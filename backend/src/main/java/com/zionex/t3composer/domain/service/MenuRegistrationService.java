@@ -1,0 +1,402 @@
+package com.zionex.t3composer.domain.service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import com.zionex.t3composer.domain.entity.ComposerArtifact;
+import com.zionex.t3composer.domain.entity.ComposerSession;
+import com.zionex.t3composer.domain.repository.ComposerArtifactRepository;
+import com.zionex.t3composer.domain.repository.ComposerSessionRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Composer 가 생성한 MENU_SQL 아티팩트를 실제 DB 에 적용한다.
+ *
+ * 안전 장치:
+ *  - SELECT/INSERT/UPDATE/DELETE 만 허용, DROP/TRUNCATE 등 파괴적 DDL 차단
+ *  - TB_AD_MENU · TB_AD_LANG_PACK · TB_AD_MANUAL 만 허용 테이블
+ *  - 멀티 스테이트먼트는 세미콜론으로 분리해 순차 실행 (오류 시 롤백)
+ */
+@Slf4j
+@Service
+public class MenuRegistrationService {
+
+    private static final List<String> ALLOWED_TABLES = Arrays.asList(
+            "TB_AD_MENU", "TB_AD_LANG_PACK", "TB_AD_MANUAL",
+            "TB_AD_MENU_BADGE", "TB_AD_MENU_BOOKMARK",
+            // 권한 동시 등록
+            "TB_AD_PERMISSION", "TB_AD_PERMISSION_GROUP", "TB_AD_GROUP");
+
+    private static final List<String> BANNED_KEYWORDS = Arrays.asList(
+            "DROP ", "TRUNCATE ", "ALTER ", "EXEC ", "EXECUTE ", "CREATE PROCEDURE",
+            "CREATE FUNCTION", "CREATE VIEW", "CREATE INDEX", "SHUTDOWN");
+
+    /**
+     * 테이블별 실제 컬럼 화이트리스트 — INSERT/UPDATE 의 컬럼명이 여기 없으면
+     * LLM 허구 생성(hallucination). SQL 실행 전 차단하고 명확한 에러 메시지 반환.
+     * (Entity 파일 기준 · BaseEntity 의 CREATE_BY/CREATE_DTTM/MODIFY_BY/MODIFY_DTTM 포함)
+     */
+    private static final Map<String, Set<String>> TABLE_COLUMNS = Map.ofEntries(
+            Map.entry("TB_AD_MENU", Set.of(
+                    "ID", "PARENT_ID", "MENU_CD", "MENU_PATH", "MENU_SEQ",
+                    "MENU_FILE_PATH", "USE_YN",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_LANG_PACK", Set.of(
+                    "ID", "LANG_CD", "LANG_KEY", "LANG_VALUE",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_PERMISSION", Set.of(
+                    "ID", "USER_ID", "MENU_ID", "PERMISSION_TP", "USABILITY",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_PERMISSION_GROUP", Set.of(
+                    "ID", "GRP_ID", "MENU_ID", "PERMISSION_TP", "USABILITY",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_GROUP", Set.of(
+                    "ID", "GRP_CD", "GRP_NM", "GRP_DESCRIP",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_MENU_BADGE", Set.of(
+                    "ID", "MENU_ID", "BADGE_TYPE", "BADGE_VALUE",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_MENU_BOOKMARK", Set.of(
+                    "ID", "USER_ID", "MENU_ID", "BOOKMARK_SEQ",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM")),
+            Map.entry("TB_AD_MANUAL", Set.of(
+                    "ID", "MENU_ID", "LANG_CD", "CONTENT", "CONTENT_TYPE",
+                    "CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM"))
+    );
+
+    private static final Pattern INSERT_COLS_PATTERN = Pattern.compile(
+            "INSERT\\s+INTO\\s+(?:\\[?dbo\\]?\\s*\\.\\s*)?\\[?(TB_AD_[A-Z_]+)\\]?\\s*\\(([^)]+)\\)",
+            Pattern.CASE_INSENSITIVE);
+
+    @PersistenceContext
+    private EntityManager em;
+
+    private final ComposerArtifactRepository artifactRepo;
+    private final ComposerSessionRepository sessionRepo;
+
+    /**
+     * 각 SQL statement 를 독립 트랜잭션으로 실행하기 위한 template.
+     * 외부 메서드를 @Transactional 로 묶으면 개별 statement 실패 시 rollback-only 로
+     * 마킹되어 정상 catch 후 리턴해도 commit 시점에 UnexpectedRollbackException → 500.
+     * REQUIRES_NEW 로 각 statement 를 분리해 실패한 건만 롤백, 성공 건은 유지.
+     */
+    private final TransactionTemplate perStatementTx;
+    private final TransactionTemplate defaultTx;
+
+    public MenuRegistrationService(ComposerArtifactRepository artifactRepo,
+                                   ComposerSessionRepository sessionRepo,
+                                   PlatformTransactionManager txManager) {
+        this.artifactRepo = artifactRepo;
+        this.sessionRepo = sessionRepo;
+        this.perStatementTx = new TransactionTemplate(txManager);
+        this.perStatementTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.defaultTx = new TransactionTemplate(txManager);
+    }
+
+    /**
+     * sqlOverride 없이 세션의 MENU_SQL 아티팩트를 그대로 실행.
+     */
+    public Map<String, Object> executeSessionMenuSql(String sessionId) {
+        return executeSessionMenuSql(sessionId, null);
+    }
+
+    /**
+     * 세션 내 최신 MENU_SQL 아티팩트를 실행. sqlOverride 가 제공되면 그 SQL 을 사용
+     * (트리 픽커로 부모 메뉴를 바꾼 뒤 실행하는 시나리오). 성공 시 아티팩트 content
+     * 도 override 로 갱신하여 다음 조회 시 최신 상태를 보이게 한다.
+     *
+     * 이 메서드 자체는 @Transactional 이 아니다. 각 statement 는 per-statement
+     * 트랜잭션으로 격리 실행되어, 한 구문이 실패해도 전체 500 으로 터지지 않는다.
+     */
+    public Map<String, Object> executeSessionMenuSql(String sessionId, String sqlOverride) {
+        List<ComposerArtifact> artifacts = artifactRepo
+                .findBySessionIdAndArtifactTypeOrderByCreateDttmDesc(sessionId, ComposerArtifact.TYPE_MENU_SQL);
+
+        // Supersede 된 이전 버전(DISCARDED) 제외 — 항상 최신만 실행
+        artifacts = artifacts.stream()
+                .filter(a -> !ComposerArtifact.STATUS_DISCARDED.equals(a.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (artifacts.isEmpty()) {
+            return resultOf(false, 0, 0, List.of("MENU_SQL 타입 아티팩트가 없습니다."));
+        }
+
+        // 최신 버전(첫 번째) 만 실행
+        ComposerArtifact artifact = artifacts.get(0);
+        String sql = (sqlOverride != null && !sqlOverride.isBlank())
+                ? sqlOverride
+                : artifact.getContent();
+        if (sql == null || sql.isBlank()) {
+            return resultOf(false, 0, 0, List.of("아티팩트 내용이 비어 있습니다."));
+        }
+        // override 가 제공되면 아티팩트 content 도 갱신 (별도 트랜잭션에서 뒤에 save 함)
+        final boolean overrideProvided = sqlOverride != null && !sqlOverride.isBlank();
+        final String finalOverride = sqlOverride;
+
+        int executed = 0;
+        int skipped = 0;
+        List<String> errors = new ArrayList<>();
+
+        String[] statements = splitSqlStatements(sql);
+        log.info("Executing {} menu SQL statements for session {}", statements.length, sessionId);
+
+        for (int i = 0; i < statements.length; i++) {
+            String stmt = statements[i].trim();
+            if (stmt.isEmpty() || stmt.startsWith("--")) {
+                skipped++;
+                continue;
+            }
+            String upper = stmt.toUpperCase();
+
+            // 금지 키워드 차단
+            boolean banned = false;
+            for (String bannedKw : BANNED_KEYWORDS) {
+                if (upper.contains(bannedKw)) {
+                    errors.add("차단된 구문: " + bannedKw.trim() + " (statement #" + (i + 1) + ")");
+                    banned = true;
+                    break;
+                }
+            }
+            if (banned) {
+                return resultOf(false, executed, skipped, errors);
+            }
+
+            // 허용 테이블만 참조하는지 검증
+            if (!onlyAllowedTables(upper)) {
+                errors.add("허용되지 않은 테이블 참조 (statement #" + (i + 1) + "): "
+                        + stmt.substring(0, Math.min(120, stmt.length())));
+                return resultOf(false, executed, skipped, errors);
+            }
+
+            // INSERT 컬럼 화이트리스트 검증 — LLM 허구 컬럼 사전 차단
+            String colViolation = validateInsertColumns(stmt);
+            if (colViolation != null) {
+                errors.add("존재하지 않는 컬럼명 사용 (statement #" + (i + 1) + "): " + colViolation);
+                errors.add("SQL: " + (stmt.length() > 400 ? stmt.substring(0, 400) + " ..." : stmt));
+                return resultOf(false, executed, skipped, errors);
+            }
+
+            final String stmtFinal = stmt;
+            try {
+                perStatementTx.executeWithoutResult(status -> {
+                    em.createNativeQuery(stmtFinal).executeUpdate();
+                });
+                executed++;
+            } catch (Exception e) {
+                String causeMsg = rootMessage(e);
+                String snippet = stmtFinal.length() > 400
+                        ? stmtFinal.substring(0, 400) + " ..."
+                        : stmtFinal;
+                errors.add("실행 실패 (statement #" + (i + 1) + "): " + causeMsg);
+                errors.add("SQL: " + snippet);
+                log.error("Menu SQL execute failed statement=[{}] error={}", stmtFinal, causeMsg, e);
+                return resultOf(false, executed, skipped, errors);
+            }
+        }
+
+        // 아티팩트 상태 FINAL 로 마킹 + override 가 있으면 content 도 갱신 (별도 트랜잭션)
+        try {
+            defaultTx.executeWithoutResult(status -> {
+                artifact.setStatus(ComposerArtifact.STATUS_FINAL);
+                if (overrideProvided) {
+                    artifact.setContent(finalOverride);
+                }
+                artifactRepo.save(artifact);
+            });
+        } catch (Exception e) {
+            log.warn("Artifact FINAL 마킹 실패 (실행 자체는 성공): {}", rootMessage(e));
+        }
+
+        // 메뉴등록 + 아티팩트 적용이 모두 완료되면 세션 상태를 COMPLETED 로 전이
+        markSessionCompletedIfReady(sessionId);
+
+        return resultOf(true, executed, skipped, errors);
+    }
+
+    /**
+     * 세션의 메뉴등록과 아티팩트 적용이 모두 완료되었는지 확인하고, 완료 상태이면
+     * 세션을 {@link ComposerSession#STATUS_COMPLETED} 로 전이한다.
+     *
+     * 완료 조건: MENU_SQL 아티팩트 STATUS_FINAL + 그 외 타입 아티팩트 STATUS_FINAL 이
+     *          각각 1건 이상 존재.
+     * 이미 COMPLETED 이거나 ARCHIVED 면 변경하지 않는다.
+     */
+    private void markSessionCompletedIfReady(String sessionId) {
+        try {
+            boolean menuDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
+                    sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
+            boolean artifactsApplied = artifactRepo.existsBySessionIdAndArtifactTypeNotAndStatus(
+                    sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
+            if (!menuDone || !artifactsApplied) return;
+
+            defaultTx.executeWithoutResult(s -> sessionRepo.findById(sessionId).ifPresent(session -> {
+                if (ComposerSession.STATUS_ACTIVE.equals(session.getStatus())) {
+                    session.setStatus(ComposerSession.STATUS_COMPLETED);
+                    sessionRepo.save(session);
+                    log.info("Composer session {} 상태 COMPLETED 로 전이 (menu+artifact 완료)", sessionId);
+                }
+            }));
+        } catch (Exception e) {
+            log.warn("Session COMPLETED 전이 실패 (실행 자체는 성공) sessionId={}: {}", sessionId, rootMessage(e));
+        }
+    }
+
+    private String rootMessage(Throwable t) {
+        Throwable cur = t;
+        while (cur.getCause() != null && cur.getCause() != cur) {
+            cur = cur.getCause();
+        }
+        String msg = cur.getMessage();
+        return msg == null ? cur.getClass().getSimpleName() : msg;
+    }
+
+    /**
+     * SQL 을 세미콜론 기준으로 분리.
+     *  - 문자열 리터럴('...') 및 N'...' 내부의 세미콜론은 분리자로 취급하지 않음
+     *  - 줄 단위 주석 `-- ...` 제거
+     *  - 블록 주석 `/* ... *\/` 제거
+     *  - T-SQL `GO` 배치 구분자 제거
+     *  - 빈 statement · 공백만 있는 statement 제거
+     *  - BOM / 개행 정규화
+     */
+    private String[] splitSqlStatements(String sql) {
+        // BOM · CRLF 정규화
+        String cleaned = sql.replace("﻿", "").replace("\r\n", "\n").replace('\r', '\n');
+        // 블록 주석 제거
+        cleaned = cleaned.replaceAll("(?s)/\\*.*?\\*/", "");
+        // 줄 주석 제거 (하지만 '--' 가 문자열 안에 올 수도 있음 — 메뉴 SQL 에선 드문 편이지만 간단 처리)
+        cleaned = cleaned.replaceAll("(?m)--[^\\n]*", "");
+        // GO 배치 구분자 제거 (한 줄에 GO 만 있는 경우)
+        cleaned = cleaned.replaceAll("(?im)^\\s*GO\\s*$", "");
+
+        List<String> result = new ArrayList<>();
+        StringBuilder buf = new StringBuilder();
+        boolean inSingleQuote = false;
+        int len = cleaned.length();
+        for (int i = 0; i < len; i++) {
+            char c = cleaned.charAt(i);
+            if (inSingleQuote) {
+                buf.append(c);
+                if (c == '\'') {
+                    // escaped '' — 다음 '도 리터럴 일부
+                    if (i + 1 < len && cleaned.charAt(i + 1) == '\'') {
+                        buf.append('\'');
+                        i++;
+                    } else {
+                        inSingleQuote = false;
+                    }
+                }
+            } else if (c == '\'') {
+                buf.append(c);
+                inSingleQuote = true;
+            } else if (c == ';') {
+                String stmt = buf.toString().trim();
+                if (!stmt.isEmpty()) result.add(stmt);
+                buf.setLength(0);
+            } else {
+                buf.append(c);
+            }
+        }
+        String last = buf.toString().trim();
+        if (!last.isEmpty()) result.add(last);
+        return result.toArray(new String[0]);
+    }
+
+    private boolean onlyAllowedTables(String upperSql) {
+        // 화이트리스트에 없는 TB_ 접두어 테이블이 발견되면 거부
+        int idx = 0;
+        while ((idx = upperSql.indexOf("TB_", idx)) >= 0) {
+            int end = idx;
+            while (end < upperSql.length()
+                    && (Character.isLetterOrDigit(upperSql.charAt(end)) || upperSql.charAt(end) == '_')) {
+                end++;
+            }
+            String tableName = upperSql.substring(idx, end);
+            if (!ALLOWED_TABLES.contains(tableName)) {
+                log.warn("Disallowed table reference: {}", tableName);
+                return false;
+            }
+            idx = end;
+        }
+        return true;
+    }
+
+    /**
+     * INSERT 문의 컬럼 리스트가 실제 테이블 스키마와 일치하는지 검증.
+     * LLM 이 허구 컬럼명(MENU_NM · PARENT_MENU_CD · DEPTH 등)을 생성하는 경우를 차단.
+     * 통과 = null 반환, 위반 = 사람이 읽을 수 있는 에러 문자열 반환.
+     */
+    private String validateInsertColumns(String stmt) {
+        Matcher m = INSERT_COLS_PATTERN.matcher(stmt);
+        while (m.find()) {
+            String table = m.group(1).toUpperCase();
+            Set<String> allowed = TABLE_COLUMNS.get(table);
+            if (allowed == null) continue;   // 스키마 매핑 없는 테이블은 skip (TB_AD_MANUAL 등)
+            String colList = m.group(2);
+            for (String raw : colList.split(",")) {
+                String col = raw.trim().replaceAll("[\\[\\]\"`]", "").toUpperCase();
+                if (col.isEmpty()) continue;
+                if (!allowed.contains(col)) {
+                    String suggest = suggestFix(table, col);
+                    return table + "." + col + " 는 존재하지 않는 컬럼입니다. "
+                         + "허용 컬럼: " + String.join(", ", allowed)
+                         + (suggest != null ? " · 힌트: " + suggest : "");
+                }
+            }
+        }
+        return null;
+    }
+
+    /** 자주 혼동되는 LLM 허구 컬럼 → 실제 컬럼 매핑 힌트 */
+    private String suggestFix(String table, String col) {
+        if ("TB_AD_MENU".equals(table)) {
+            switch (col) {
+                case "MENU_NM":         return "MENU_NM 은 TB_AD_LANG_PACK(LANG_KEY=MENU_CD) 로 분리 등록";
+                case "PARENT_MENU_CD":  return "PARENT_ID 로 바꾸고 `(SELECT ID FROM TB_AD_MENU WHERE MENU_CD='...')` 서브쿼리 사용";
+                case "URL":             return "URL 컬럼 없음. MENU_FILE_PATH 사용";
+                case "DEPTH":           return "DEPTH 컬럼 없음 (자동 계산)";
+                case "SORT_ORDER":      return "SORT_ORDER → MENU_SEQ";
+                default: return null;
+            }
+        }
+        return null;
+    }
+
+    private Map<String, Object> resultOf(boolean success, int executed, int skipped, List<String> errors) {
+        Map<String, Object> r = new HashMap<>();
+        r.put("success",  success);
+        r.put("executed", executed);
+        r.put("skipped",  skipped);
+        r.put("errors",   errors);
+        return r;
+    }
+
+    /**
+     * 등록 전 검증 — 지정한 부모 메뉴가 실제로 존재하는지 확인 (UI 확인용)
+     */
+    @Transactional(readOnly = true)
+    public boolean parentMenuExists(String menuCd) {
+        if (menuCd == null || menuCd.isBlank()) return false;
+        Object cnt = em.createNativeQuery(
+                "SELECT COUNT(*) FROM TB_AD_MENU WHERE MENU_CD = :cd")
+                .setParameter("cd", menuCd)
+                .getSingleResult();
+        return cnt != null && ((Number) cnt).intValue() > 0;
+    }
+}

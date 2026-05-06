@@ -1,0 +1,154 @@
+# T3Composer 단독 환경 — 3 서비스 (db / backend / frontend)
+# 사용법: cp .env.example .env → 값 채운 후 `docker compose up -d`
+
+services:
+  # ---------------------------------------------------------------
+  # 1. MSSQL 2022 — Composer 전용 단독 DB
+  # ---------------------------------------------------------------
+  composer-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: composer-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
+      MSSQL_PID: Developer
+    ports:
+      - "${MSSQL_PORT:-11433}:1433"
+    volumes:
+      - composer-db-data:/var/opt/mssql
+    networks:
+      - composer-net
+    healthcheck:
+      test: >
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b -h -1
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # 2. DB Init — 마커 행 (T3COMPOSER_INIT_DONE) 으로 멱등 보장
+  # ---------------------------------------------------------------
+  composer-db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: composer-db-init
+    depends_on:
+      composer-db:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
+      COMPOSER_DB_NAME: ${COMPOSER_DB_NAME:-T3SMARTSCM}
+    volumes:
+      - ./docker/db/init:/init:ro
+    networks:
+      - composer-net
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        SQLCMD="/opt/mssql-tools18/bin/sqlcmd -S composer-db -U sa -P $$MSSQL_SA_PASSWORD -C"
+
+        echo "[init] Waiting for composer-db ..."
+        for i in $$(seq 1 30); do
+          $$SQLCMD -Q "SELECT 1" -b -h -1 > /dev/null 2>&1 && break
+          sleep 2
+        done
+
+        # Step 1 — 01_create_database.sql 은 master 에서 실행 (DB 생성)
+        echo "[init] /init/01_create_database.sql"
+        $$SQLCMD -d master -i /init/01_create_database.sql -b
+
+        # Step 2 — 마커 테이블 체크. 있으면 init 끝.
+        EXISTS=$$($$SQLCMD -d $$COMPOSER_DB_NAME -h -1 -W -Q "SET NOCOUNT ON; SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.tables WHERE name='T3COMPOSER_INIT_DONE') THEN 1 ELSE 0 END" 2>/dev/null | head -1 | tr -d '[:space:]')
+        if [ "$$EXISTS" = "1" ]; then
+          echo "[init] T3COMPOSER_INIT_DONE marker exists. SKIP."
+          exit 0
+        fi
+
+        echo "[init] Running all init SQL files (first time) ..."
+        for f in /init/0[2-9]_*.sql /init/[1-9][0-9]_*.sql; do
+          [ -f "$$f" ] || continue
+          echo "[init]   $$f"
+          $$SQLCMD -d $$COMPOSER_DB_NAME -i "$$f" -b
+          if [ $$? -ne 0 ]; then
+            echo "[init] FAILED at $$f"
+            exit 1
+          fi
+        done
+
+        # Marker
+        $$SQLCMD -d $$COMPOSER_DB_NAME -Q "CREATE TABLE T3COMPOSER_INIT_DONE (created DATETIME DEFAULT GETDATE()); INSERT INTO T3COMPOSER_INIT_DONE DEFAULT VALUES;" -b
+        echo "[init] DONE"
+    restart: "no"
+
+  # ---------------------------------------------------------------
+  # 3. Spring Boot 백엔드 (Phase 3 에서 활성화)
+  # ---------------------------------------------------------------
+  composer-backend:
+    profiles: ["backend", "all"]
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: composer-backend
+    depends_on:
+      composer-db-init:
+        condition: service_completed_successfully
+    environment:
+      SPRING_PROFILES_ACTIVE: ${COMPOSER_PROFILE:-dev}
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://composer-db:1433;databaseName=${COMPOSER_DB_NAME:-T3SMARTSCM};encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      COMPOSER_APPLY_MODE: ${COMPOSER_APPLY_MODE:-staging}
+      COMPOSER_PROJECT_ROOT: /workspace/staging
+      COMPOSER_WINGUI_REF_PATH: /workspace/wingui
+      COMPOSER_DATABASE_REF_PATH: /workspace/database
+      COMPOSER_UPGRADE_VERSION: ${COMPOSER_UPGRADE_VERSION:-v26.0.0-20260507}
+    ports:
+      - "${COMPOSER_BACKEND_PORT:-8090}:8090"
+    volumes:
+      - ./staging:/workspace/staging
+      - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
+      - ${COMPOSER_DATABASE_REF_PATH:-../t3series/t3series-database}:/workspace/database:ro
+    networks:
+      - composer-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8090/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # 4. React 프론트 (Phase 4 에서 활성화)
+  # ---------------------------------------------------------------
+  composer-frontend:
+    profiles: ["frontend", "all"]
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: composer-frontend
+    depends_on:
+      - composer-backend
+    environment:
+      COMPOSER_API_BASE: http://composer-backend:8090
+      WDS_PORT: 5173
+    ports:
+      - "${COMPOSER_FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - composer-net
+    restart: unless-stopped
+
+networks:
+  composer-net:
+    driver: bridge
+
+volumes:
+  composer-db-data:
+    driver: local

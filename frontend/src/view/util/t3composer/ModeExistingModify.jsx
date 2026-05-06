@@ -1,0 +1,481 @@
+import React, { useState } from 'react';
+
+import {
+  Box,
+  Button,
+  Typography,
+  Stack,
+  Paper,
+  Chip,
+  Alert,
+  CircularProgress,
+  Divider,
+  Card,
+  CardActionArea,
+  CardContent,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import SourceIcon from '@mui/icons-material/Source';
+import ChatIcon from '@mui/icons-material/Chat';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+
+import MenuTreeBrowser from './MenuTreeBrowser';
+import ComposerWorkspace from './ComposerWorkspace';
+import StepByStepWizard from './StepByStepWizard';
+import { createSession, collectSourceForLlm } from './api';
+import { createInitialSpecFromSource } from './wizardState';
+
+/**
+ * 기존 화면 수정 모드.
+ *
+ * 2-단계 진입 (2026-04-30):
+ *   ⓪ 서브모드 선택 — 자연어 수정 / 단계별 수정
+ *   ① 메뉴 트리에서 화면 선택
+ *   ② [NL]   소스 번들 프리뷰 → [시작] → ComposerWorkspace 자연어 대화
+ *      [STEP] 소스 번들 수집 → StepByStepWizard 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
+ */
+function ModeExistingModify({ onBack }) {
+  // 서브모드 — 'NL' (자연어, 기존 흐름) | 'STEP' (단계별 Wizard)
+  const [subMode, setSubMode] = useState(null);
+
+  const [selectedMenu, setSelectedMenu]   = useState(null);
+  const [sourceBundle, setSourceBundle]   = useState(null);
+  const [loadingSource, setLoadingSource] = useState(false);
+  const [starting, setStarting]           = useState(false);
+  const [error, setError]                 = useState(null);
+
+  // NL 흐름
+  const [session, setSession]             = useState(null);
+  const [initialPrompt, setInitialPrompt] = useState(null);
+
+  // STEP 흐름
+  const [wizardEntered, setWizardEntered] = useState(false);
+  const [prefilledSpec, setPrefilledSpec] = useState(null);
+
+  const reset = () => {
+    setSelectedMenu(null);
+    setSourceBundle(null);
+    setError(null);
+    setSession(null);
+    setInitialPrompt(null);
+    setWizardEntered(false);
+    setPrefilledSpec(null);
+  };
+
+  const handleSelect = async (menuNode) => {
+    setSelectedMenu(menuNode);
+    setSourceBundle(null);
+    setError(null);
+    if (!menuNode.id) return;
+    setLoadingSource(true);
+    try {
+      const res = await collectSourceForLlm(menuNode.id);
+      setSourceBundle(res.data);
+    } catch (e) {
+      setError('소스 수집 실패: ' + (e?.response?.data?.error || e?.message || ''));
+    } finally {
+      setLoadingSource(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  // [NL] 자연어 수정 — 기존 흐름
+  // ─────────────────────────────────────────────────────────────────
+  const handleStartNl = async () => {
+    if (!selectedMenu) return;
+    setStarting(true);
+    setError(null);
+    try {
+      const sessRes = await createSession({
+        mode: 'EXISTING_MODIFY',
+        targetMenuCd: selectedMenu.id,
+        title: `${selectedMenu.id} 수정`,
+      });
+
+      const bundleText = formatBundleForPrompt(sourceBundle);
+      const prompt = [
+        `대상 메뉴: ${selectedMenu.id} (${selectedMenu.filePath})`,
+        '',
+        '이 화면의 현재 소스를 아래에 제공합니다. 소스를 숙지한 후 다음 지시를 기다려주세요.',
+        '변경 요청이 오면 영향 범위의 파일을 전체 내용으로 재작성해 주세요.',
+        '',
+        bundleText,
+      ].join('\n');
+
+      setInitialPrompt(prompt);
+      setSession(sessRes.data);
+    } catch (e) {
+      setError(e?.response?.data?.error || e?.message || '세션 생성 실패');
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  // [STEP] 단계별 수정 — sourceBundle 로 prefill 한 후 StepByStepWizard 위임
+  // ─────────────────────────────────────────────────────────────────
+  const handleStartStep = () => {
+    if (!selectedMenu || !sourceBundle) return;
+    setStarting(true);
+    setError(null);
+    try {
+      // 신규 메뉴가 아닌 기존 메뉴 그대로 — newMenuCd 자리에 selectedMenu.id 사용.
+      // wizard 의 step2_overview.menuCd 가 자동으로 createSession.targetMenuCd 로 들어가
+      // 백엔드는 EXISTING_MODIFY 모드 + 동일 menuCd 로 인식.
+      const baseSpec = createInitialSpecFromSource({
+        sourceMenu:  selectedMenu,
+        sourceBundle,
+        newMenuCd:   selectedMenu.id,
+        newTitle:    selectedMenu.title || selectedMenu.id,
+      });
+      setPrefilledSpec(baseSpec);
+      setWizardEntered(true);
+    } catch (e) {
+      setError('Spec 생성 실패: ' + (e?.message || ''));
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────
+  // 분기 렌더
+  // ─────────────────────────────────────────────────────────────────
+
+  // NL 세션 시작 후 Workspace
+  if (session) {
+    return (
+      <ComposerWorkspace
+        session={session}
+        initialPrompt={initialPrompt}
+        extraHeader={
+          <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
+            종료
+          </Button>
+        }
+      />
+    );
+  }
+
+  // STEP — Wizard 위임
+  if (wizardEntered && prefilledSpec) {
+    return (
+      <StepByStepWizard
+        mode="EXISTING_MODIFY"
+        prefilledSpec={prefilledSpec}
+        sourceBundle={sourceBundle}
+        initialModuleCode={prefilledSpec.moduleCode}
+        onBack={() => setWizardEntered(false)}
+      />
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // 공통 헤더
+  // ─────────────────────────────────────────────────────────────────
+  const Header = (
+    <Stack direction="row" alignItems="center" sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+      <Button
+        startIcon={<ArrowBackIcon fontSize="small" />}
+        onClick={() => {
+          if (subMode) { reset(); setSubMode(null); } else { onBack?.(); }
+        }}
+        size="small"
+      >
+        {subMode ? '서브모드 선택' : '모드 선택'}
+      </Button>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
+        <BorderColorIcon sx={{ color: '#fa7d5b' }} />
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          기존 화면 수정
+          {subMode && (
+            <Chip
+              label={subMode === 'NL' ? '자연어 수정' : '단계별 수정'}
+              size="small"
+              sx={{ ml: 1, bgcolor: subMode === 'NL' ? '#fef3c7' : '#dbeafe',
+                    color:   subMode === 'NL' ? '#92400e' : '#1e40af', fontWeight: 600 }}
+            />
+          )}
+        </Typography>
+      </Stack>
+    </Stack>
+  );
+
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 0 — 서브모드 선택
+  // ─────────────────────────────────────────────────────────────────
+  if (!subMode) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        {Header}
+        <Box sx={{ p: 4, maxWidth: 1100, mx: 'auto', flex: 1, overflow: 'auto' }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            기존 화면을 어떻게 수정할지 선택하세요. 두 방식 모두 메뉴 트리에서 화면을 선택한 후 진행합니다.
+          </Typography>
+
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <SubModeCard
+              title="자연어 수정"
+              subtitle="Natural Language"
+              icon={ChatIcon}
+              color="#f59e0b"
+              description="현재 소스를 Claude 에 제공하고 자연어 대화로 변경 요청을 전달합니다. 빠르고 유연하지만 토큰 사용량이 많습니다."
+              pros={['빠른 시작', '자유로운 변경 요청', '복합 변경에 적합']}
+              cons={['토큰 비용 높음', '결과 확인은 응답 후']}
+              onClick={() => setSubMode('NL')}
+            />
+            <SubModeCard
+              title="단계별 수정"
+              subtitle="Step-by-step Wizard"
+              icon={PlaylistAddCheckIcon}
+              color="#5281b3"
+              description="현재 화면을 9단계 Spec 으로 분해해 단계별로 보여주며 수정하고 싶은 부분만 변경 후 Claude 호출. 토큰 절감 + 변경 범위 명확."
+              pros={['토큰 절약', '변경 영역 명확', 'Step 별 미세 조정 가능']}
+              cons={['입력 단계 다수', '완전히 새로운 패턴 변경엔 부적합']}
+              onClick={() => setSubMode('STEP')}
+            />
+          </Stack>
+        </Box>
+      </Box>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 1 — 메뉴 선택 + 소스 번들 (NL/STEP 공통)
+  // ─────────────────────────────────────────────────────────────────
+  const startBtnLabel = subMode === 'NL' ? '수정 세션 시작' : '단계별 Wizard 시작';
+  const startHandler  = subMode === 'NL' ? handleStartNl  : handleStartStep;
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      {Header}
+
+      <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* 좌측 메뉴 트리 */}
+        <Box sx={{ width: 360, borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} />
+        </Box>
+
+        {/* 우측 소스 번들 프리뷰 */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {!selectedMenu ? (
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+              <Stack alignItems="center" spacing={1.5}>
+                <SourceIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+                <Typography variant="body2" color="text.secondary">
+                  좌측에서 수정할 화면을 선택하세요.
+                </Typography>
+              </Stack>
+            </Box>
+          ) : (
+            <>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.08)' }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
+                      {selectedMenu.id}
+                    </Typography>
+                    <Chip label={selectedMenu.filePath} size="small" variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    {selectedMenu.path}
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<PlayArrowIcon />}
+                  onClick={startHandler}
+                  disabled={starting || loadingSource || !sourceBundle}
+                >
+                  {starting ? '시작 중...' : startBtnLabel}
+                </Button>
+              </Stack>
+
+              {loadingSource && (
+                <Box sx={{ p: 4, textAlign: 'center' }}>
+                  <CircularProgress size={28} />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    소스 수집 중 (insight-apicall/screen-metadata/collect-source-for-llm)...
+                  </Typography>
+                </Box>
+              )}
+
+              {error && (
+                <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>
+              )}
+
+              {sourceBundle && !loadingSource && (
+                <Box sx={{ flex: 1, overflow: 'auto', p: 2, minHeight: 0 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {subMode === 'NL'
+                      ? '수집된 소스 번들 (수정 세션 시작 시 Claude 의 초기 컨텍스트로 전달됩니다)'
+                      : '수집된 소스 번들 (Wizard 의 9단계 Spec 으로 자동 prefill — 변경하고 싶은 단계만 수정)'}
+                  </Typography>
+                  <Divider sx={{ my: 1 }} />
+                  <SourceBundlePreview bundle={sourceBundle} />
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 서브모드 카드 (자연어 / 단계별)
+// ─────────────────────────────────────────────────────────────────
+function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, cons, onClick }) {
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        flex: 1,
+        borderRadius: 3,
+        borderColor: 'rgba(0,0,0,0.08)',
+        transition: 'all 0.2s',
+        '&:hover': {
+          borderColor: color,
+          boxShadow: `0 8px 24px -10px ${color}55`,
+          transform: 'translateY(-4px)',
+        },
+      }}
+    >
+      <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+            <Box
+              sx={{
+                width: 44, height: 44, borderRadius: 2,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: `${color}22`, color,
+              }}
+            >
+              <Icon />
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>{title}</Typography>
+              <Typography variant="caption" color="text.secondary">{subtitle}</Typography>
+            </Box>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
+            {description}
+          </Typography>
+          <Stack spacing={0.5} sx={{ mb: 1 }}>
+            {pros.map((p, i) => (
+              <Typography key={i} variant="caption" sx={{ color: 'success.main' }}>+ {p}</Typography>
+            ))}
+          </Stack>
+          <Stack spacing={0.5}>
+            {cons.map((p, i) => (
+              <Typography key={i} variant="caption" sx={{ color: 'text.secondary' }}>− {p}</Typography>
+            ))}
+          </Stack>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
+}
+
+/**
+ * 백엔드 응답 구조가 확정적이지 않을 수 있어 범용적으로 표시.
+ * screen-metadata/collect-source-for-llm 는 보통
+ *   { screen: {...}, components: [...], controllers: [...], services: [...],
+ *     repositories: [...], entities: [...], procedures: [...] }
+ * 형태로 반환됨.
+ */
+function SourceBundlePreview({ bundle }) {
+  if (!bundle || typeof bundle !== 'object') return null;
+
+  const sections = [
+    { key: 'screen',       title: 'SCREEN'       },
+    { key: 'components',   title: 'COMPONENTS'   },
+    { key: 'controllers',  title: 'CONTROLLERS'  },
+    { key: 'services',     title: 'SERVICES'     },
+    { key: 'repositories', title: 'REPOSITORIES' },
+    { key: 'entities',     title: 'ENTITIES'     },
+    { key: 'procedures',   title: 'PROCEDURES'   },
+  ];
+
+  return (
+    <Stack spacing={1.5}>
+      {sections.map(({ key, title }) => {
+        const data = bundle[key];
+        if (!data) return null;
+        const count = Array.isArray(data) ? data.length : 1;
+        return (
+          <Paper key={key} variant="outlined" sx={{ p: 1.5 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                {title}
+              </Typography>
+              <Chip label={count} size="small" sx={{ height: 18, fontSize: 10 }} />
+            </Stack>
+            {Array.isArray(data) ? (
+              <Stack spacing={0.3}>
+                {data.map((item, i) => (
+                  <Typography
+                    key={i}
+                    variant="caption"
+                    sx={{ fontFamily: 'monospace', fontSize: 11, color: 'text.secondary' }}
+                  >
+                    {item.path || item.name || item.fileName || JSON.stringify(item).slice(0, 120)}
+                  </Typography>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 11 }}>
+                {typeof data === 'string' ? data.slice(0, 200) : JSON.stringify(data).slice(0, 200)}
+              </Typography>
+            )}
+          </Paper>
+        );
+      })}
+    </Stack>
+  );
+}
+
+/**
+ * 번들을 Claude 에 보낼 긴 텍스트로 직렬화.
+ * 각 파일을 마커로 감싸 Claude 가 파일 경계를 인식하도록 한다.
+ */
+function formatBundleForPrompt(bundle) {
+  if (!bundle || typeof bundle !== 'object') return '(소스 번들 없음)';
+
+  const sections = [
+    ['SCREEN',       bundle.screen       ],
+    ['COMPONENTS',   bundle.components   ],
+    ['CONTROLLERS',  bundle.controllers  ],
+    ['SERVICES',     bundle.services     ],
+    ['REPOSITORIES', bundle.repositories ],
+    ['ENTITIES',     bundle.entities     ],
+    ['PROCEDURES',   bundle.procedures   ],
+  ];
+
+  const out = [];
+  for (const [title, data] of sections) {
+    if (!data) continue;
+    out.push(`\n=== ${title} ===`);
+    if (Array.isArray(data)) {
+      for (const item of data) {
+        const path = item.path || item.fileName || item.name || 'unknown';
+        const content = item.content || item.source || item.body || '';
+        out.push(`\n---FILE: ${path}---\n${content}`);
+      }
+    } else if (typeof data === 'object') {
+      const path = data.path || data.fileName || 'unknown';
+      out.push(`\n---FILE: ${path}---\n${data.content || JSON.stringify(data, null, 2)}`);
+    }
+  }
+  return out.join('\n');
+}
+
+export default ModeExistingModify;

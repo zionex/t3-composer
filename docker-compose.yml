@@ -87,7 +87,6 @@ services:
   # 3. Spring Boot 백엔드 (Phase 3 에서 활성화)
   # ---------------------------------------------------------------
   composer-backend:
-    profiles: ["backend", "all"]
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -126,7 +125,6 @@ services:
   # 4. React 프론트 (Phase 4 에서 활성화)
   # ---------------------------------------------------------------
   composer-frontend:
-    profiles: ["frontend", "all"]
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile

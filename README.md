@@ -14,18 +14,37 @@
 ```bash
 # 1. .env 작성
 cp .env.example .env
-# 편집기로 .env 열어 ANTHROPIC_API_KEY 채우기
+# 편집기로 .env 열어 ANTHROPIC_API_KEY 채우기 (없으면 LLM 호출 비활성화 — 부팅은 됨)
 
-# 2. 모든 서비스 기동
-docker compose up -d
+# 2. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
+docker compose up -d --build
 
 # 3. 헬스 체크
 docker compose ps
-# composer-db / composer-backend / composer-frontend 모두 healthy 되어야 함
+# composer-db (healthy) · composer-db-init (Exited 0) · composer-backend (healthy) · composer-frontend (Up)
 
 # 4. 브라우저 진입
-# http://localhost:5173/composer
+# http://localhost:5173/  →  /composer 로 자동 리디렉트
 ```
+
+### 접속 주소
+
+| 용도 | URL | 비고 |
+|---|---|---|
+| **Composer UI (메인)** | http://localhost:5173 | webpack-dev-server, `/composer` `/actuator` 는 backend 로 proxy |
+| Backend REST | http://localhost:8090 | Spring Boot |
+| Backend Health | http://localhost:8090/actuator/health | `{"status":"UP"}` 확인용 |
+| MSSQL 직접 접속 | `localhost:11433` (sa / `.env` 의 `MSSQL_SA_PASSWORD`) | SSMS / Azure Data Studio |
+
+### 첫 실행 시 자주 발생하는 이슈
+
+부모 `t3series` 코드를 옮겨오는 과정에서 backend `pom.xml` 또는 frontend `view/common/` 에 일부 의존이 누락된 상태로 시작될 수 있습니다. 이 경우 빌드 시 또는 브라우저 console 에 명확한 에러가 보입니다:
+
+| 증상 | 해결 위치 |
+|---|---|
+| `mvn compile` 시 `cannot find symbol class PBEStringEncryptor` 등 | TROUBLESHOOTING.md §3 (D)/(E) |
+| 브라우저 흰 화면 + Console `process is not defined` | TROUBLESHOOTING.md §4 (C) |
+| 브라우저 흰 화면 + Console `Module not found: ../../common/X` | TROUBLESHOOTING.md §4 (B) |
 
 ## 디렉토리 구조
 

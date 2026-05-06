@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = (env, argv) => {
@@ -49,6 +50,10 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: './public/index.html',
         templateParameters: { apiBase },
+      }),
+      new webpack.DefinePlugin({
+        'process.env.COMPOSER_API_BASE': JSON.stringify(apiBase),
+        'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       }),
     ],
     devServer: {

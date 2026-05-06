@@ -1,0 +1,29 @@
+# Dev profile — Docker 단독 환경 전용
+# 인증/CORS 우회 + 로컬 staging 모드
+
+spring:
+  jpa:
+    show-sql: false
+
+# CORS — frontend dev server (5173) 가 backend (8090) 호출
+composer:
+  cors:
+    allowed-origins:
+      - "http://localhost:5173"
+      - "http://localhost:3000"
+      - "http://composer-frontend:5173"
+
+# Mock 사용자 정보 (DevAuthenticationProvider 가 반환)
+composer-dev:
+  mock-user:
+    user-id: user0000000000000000000000000001
+    username: composer-dev
+    display-name: Composer Dev
+    email: dev@composer.local
+    roles:
+      - ADMIN
+
+logging:
+  level:
+    com.zionex.t3composer: DEBUG
+    org.springframework.security: DEBUG

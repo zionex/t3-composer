@@ -1,0 +1,296 @@
+{
+    "folders": [
+        { "name": "t3-composer", "path": "." },
+        { "name": "backend",     "path": "backend" },
+        { "name": "frontend",    "path": "frontend" }
+    ],
+
+    "settings": {
+        "files.encoding": "utf8",
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.rulers": [120],
+
+        "[javascript]":      { "editor.tabSize": 4 },
+        "[javascriptreact]": { "editor.tabSize": 4 },
+        "[typescript]":      { "editor.tabSize": 4 },
+        "[typescriptreact]": { "editor.tabSize": 4 },
+        "[json]":            { "editor.tabSize": 2 },
+        "[jsonc]":           { "editor.tabSize": 2 },
+        "[yaml]":            { "editor.tabSize": 2 },
+        "[markdown]":        { "editor.tabSize": 2 },
+        "[xml]":             { "editor.tabSize": 4 },
+
+        "files.exclude": {
+            "**/.classpath": true,
+            "**/.project": true,
+            "**/.settings": true,
+            "**/target": true,
+            "**/node_modules": true,
+            "**/dist": true,
+            "**/.factorypath": true
+        },
+
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/target": true,
+            "**/dist": true,
+            "**/staging/output": true,
+            "**/.git": true,
+            "**/package-lock.json": true
+        },
+
+        "files.associations": {
+            "*.yaml": "yaml",
+            "Dockerfile*": "dockerfile",
+            "docker-compose*.yml": "dockercompose",
+            "*.code-workspace": "jsonc"
+        },
+
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "automatic",
+        "java.import.maven.enabled": true,
+        "java.import.gradle.enabled": false,
+        "java.format.settings.profile": "GoogleStyle",
+        "java.completion.importOrder": [
+            "java",
+            "jakarta",
+            "javax",
+            "org",
+            "com",
+            "lombok"
+        ],
+
+        "spring-boot.ls.problem.application-properties.unknown-property": "WARNING",
+        "spring.initializr.defaultLanguage": "Java",
+
+        "[powershell]": {
+            "files.encoding": "utf8bom"
+        },
+        "powershell.codeFormatting.preset": "OTBS",
+
+        "sqltools.useNodeRuntime": true,
+        "sqltools.connections": [
+            {
+                "name": "composer-db (Docker)",
+                "driver": "MSSQL",
+                "previewLimit": 50,
+                "server": "localhost",
+                "port": 11433,
+                "database": "T3SMARTSCM",
+                "username": "sa",
+                "encrypt": "Optional",
+                "trustServerCertificate": true,
+                "askForPassword": true
+            }
+        ],
+
+        "eslint.workingDirectories": [
+            { "directory": "frontend", "changeProcessCWD": true }
+        ],
+
+        "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+        "git.ignoreLimitWarning": true
+    },
+
+    "extensions": {
+        "recommendations": [
+            "vscjava.vscode-java-pack",
+            "vmware.vscode-spring-boot",
+            "redhat.java",
+            "redhat.vscode-yaml",
+            "ms-azuretools.vscode-docker",
+            "ms-vscode.powershell",
+            "ms-mssql.mssql",
+            "mtxr.sqltools",
+            "mtxr.sqltools-driver-mssql",
+            "dbaeumer.vscode-eslint",
+            "esbenp.prettier-vscode",
+            "humao.rest-client",
+            "anthropic.claude-code"
+        ]
+    },
+
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            // ─── Docker ──────────────────────────────────────────────────
+            {
+                "label": "🐳 compose: up DB only",
+                "type": "shell",
+                "command": "docker compose up -d composer-db composer-db-init",
+                "problemMatcher": [],
+                "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+            },
+            {
+                "label": "🐳 compose: up all",
+                "type": "shell",
+                "command": "docker compose --profile all up -d",
+                "problemMatcher": [],
+                "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+            },
+            {
+                "label": "🐳 compose: down",
+                "type": "shell",
+                "command": "docker compose down",
+                "problemMatcher": []
+            },
+            {
+                "label": "🐳 compose: down -v (DB volume 삭제 — 위험)",
+                "type": "shell",
+                "command": "docker compose down -v",
+                "problemMatcher": [],
+                "presentation": { "reveal": "always" }
+            },
+            {
+                "label": "🐳 compose: ps",
+                "type": "shell",
+                "command": "docker compose ps"
+            },
+            {
+                "label": "🐳 compose: logs backend (follow)",
+                "type": "shell",
+                "command": "docker compose logs -f composer-backend",
+                "isBackground": true,
+                "problemMatcher": []
+            },
+            {
+                "label": "🐳 compose: logs db-init",
+                "type": "shell",
+                "command": "docker compose logs composer-db-init"
+            },
+            {
+                "label": "🐳 compose: rebuild backend",
+                "type": "shell",
+                "command": "docker compose build composer-backend && docker compose up -d composer-backend",
+                "problemMatcher": []
+            },
+            {
+                "label": "🐳 compose: rebuild frontend",
+                "type": "shell",
+                "command": "docker compose build composer-frontend && docker compose up -d composer-frontend",
+                "problemMatcher": []
+            },
+
+            // ─── Backend (host 환경 실행 — Docker 외부) ───────────────────
+            {
+                "label": "☕ backend: mvn package (host)",
+                "type": "shell",
+                "command": "mvn -B clean package -DskipTests",
+                "options": { "cwd": "${workspaceFolder:backend}" },
+                "problemMatcher": []
+            },
+            {
+                "label": "☕ backend: mvn compile (host)",
+                "type": "shell",
+                "command": "mvn -B compile -DskipTests",
+                "options": { "cwd": "${workspaceFolder:backend}" }
+            },
+
+            // ─── Frontend (host 환경 실행) ───────────────────────────────
+            {
+                "label": "⚛️ frontend: npm install (host)",
+                "type": "shell",
+                "command": "npm install --legacy-peer-deps",
+                "options": { "cwd": "${workspaceFolder:frontend}" }
+            },
+            {
+                "label": "⚛️ frontend: dev (host webpack-dev-server)",
+                "type": "shell",
+                "command": "npm run dev",
+                "options": { "cwd": "${workspaceFolder:frontend}" },
+                "isBackground": true,
+                "problemMatcher": []
+            },
+
+            // ─── Wingui Sync (PowerShell) ────────────────────────────────
+            {
+                "label": "🔄 sync: manifest from staging",
+                "type": "shell",
+                "command": "powershell -ExecutionPolicy Bypass -File ./sync/manifest-from-staging.ps1"
+            },
+            {
+                "label": "🔄 sync: files → wingui (DRY-RUN)",
+                "type": "shell",
+                "command": "powershell -ExecutionPolicy Bypass -File ./sync/sync-files-to-wingui.ps1 -DryRun"
+            },
+            {
+                "label": "🔄 sync: files → wingui (실제 적용)",
+                "type": "shell",
+                "command": "powershell -ExecutionPolicy Bypass -File ./sync/sync-files-to-wingui.ps1",
+                "presentation": { "reveal": "always", "echo": true }
+            },
+            {
+                "label": "🔄 sync: db → wingui (WHATIF)",
+                "type": "shell",
+                "command": "powershell -ExecutionPolicy Bypass -File ./sync/sync-db-to-wingui.ps1 -WhatIf"
+            },
+
+            // ─── DB 도구 ─────────────────────────────────────────────────
+            {
+                "label": "🗄️ db: sqlcmd 접속 (Docker exec)",
+                "type": "shell",
+                "command": "docker exec -it composer-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Composer!2026' -C -d T3SMARTSCM"
+            },
+            {
+                "label": "🗄️ db: 마커 row 삭제 (init 재실행 강제)",
+                "type": "shell",
+                "command": "docker exec composer-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Composer!2026' -C -d T3SMARTSCM -Q \"DROP TABLE IF EXISTS T3COMPOSER_INIT_DONE\""
+            }
+        ]
+    },
+
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "type": "java",
+                "name": "☕ Spring Boot: T3ComposerApplication (host, dev profile)",
+                "request": "launch",
+                "mainClass": "com.zionex.t3composer.T3ComposerApplication",
+                "projectName": "t3-composer-backend",
+                "args": "",
+                "vmArgs": "-Xms256m -Xmx1024m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul",
+                "env": {
+                    "SPRING_PROFILES_ACTIVE": "dev",
+                    "SPRING_DATASOURCE_URL": "jdbc:sqlserver://localhost:11433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true",
+                    "SPRING_DATASOURCE_USERNAME": "sa",
+                    "SPRING_DATASOURCE_PASSWORD": "Composer!2026",
+                    "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+                    "COMPOSER_APPLY_MODE": "staging",
+                    "COMPOSER_PROJECT_ROOT": "${workspaceFolder:t3-composer}/staging",
+                    "COMPOSER_WINGUI_REF_PATH": "C:/Project/t3series/t3series-wingui",
+                    "COMPOSER_DATABASE_REF_PATH": "C:/Project/t3series/t3series-database",
+                    "COMPOSER_UPGRADE_VERSION": "v26.0.0-20260507"
+                }
+            },
+            {
+                "type": "node",
+                "name": "⚛️ Frontend: webpack-dev-server (host)",
+                "request": "launch",
+                "runtimeExecutable": "npm",
+                "runtimeArgs": ["run", "dev"],
+                "cwd": "${workspaceFolder:frontend}",
+                "env": {
+                    "COMPOSER_API_BASE": "http://localhost:8090"
+                },
+                "console": "integratedTerminal"
+            }
+        ],
+        "compounds": [
+            {
+                "name": "🚀 Full stack (host: backend + frontend, db 는 Docker 별도 기동)",
+                "configurations": [
+                    "☕ Spring Boot: T3ComposerApplication (host, dev profile)",
+                    "⚛️ Frontend: webpack-dev-server (host)"
+                ],
+                "stopAll": true
+            }
+        ]
+    }
+}

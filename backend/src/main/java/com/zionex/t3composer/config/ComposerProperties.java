@@ -2,10 +2,13 @@ package com.zionex.t3composer.config;
 
 import java.util.List;
 
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 부모 wingui 의 ApplicationProperties.Composer 와 동일 구조.
@@ -16,6 +19,7 @@ import lombok.Data;
  * - wingui-ref-path: 부모 wingui 폴더 read-only 경로
  * - database-ref-path: 부모 t3series-database 폴더 경로
  */
+@Slf4j
 @Data
 @Component
 @ConfigurationProperties(prefix = "app.composer")
@@ -56,5 +60,26 @@ public class ComposerProperties {
 
     public boolean isDirectMode() {
         return "direct".equalsIgnoreCase(applyMode);
+    }
+
+    /**
+     * apply-mode 가 'direct' 면 startup 시 projectRoot 를 winguiRefPath 로 자동 전환.
+     * 이로써 ArtifactApplyService 등 기존 코드 (props.getComposer().getProjectRoot()) 는 변경 없이
+     * staging/direct 두 모드 모두 정상 동작.
+     */
+    @PostConstruct
+    void resolveEffectiveProjectRoot() {
+        if (isDirectMode()) {
+            if (winguiRefPath != null && !winguiRefPath.isBlank()) {
+                String prev = projectRoot;
+                this.projectRoot = winguiRefPath;
+                log.info("Composer apply-mode=direct → projectRoot 전환: {} → {}", prev, projectRoot);
+            } else {
+                log.warn("Composer apply-mode=direct 인데 winguiRefPath 가 비어있어 staging 으로 fallback");
+                this.applyMode = "staging";
+            }
+        } else {
+            log.info("Composer apply-mode=staging, projectRoot={}", projectRoot);
+        }
     }
 }

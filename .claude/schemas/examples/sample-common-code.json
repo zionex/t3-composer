@@ -1,0 +1,199 @@
+{
+  "block_id": "filter_common_code",
+  "block_type": "FILTER_BAR",
+  "title_i18n_key": "screen.common_code.filter",
+
+  "bar": {
+    "layout": "grid_3col",
+    "collapsible": false,
+    "submit_button": {
+      "visible": true,
+      "label_i18n_key": "btn.search",
+      "shortcut": "Enter"
+    },
+    "reset_button": { "visible": true, "label_i18n_key": "btn.reset" }
+  },
+
+  "fields": [
+    {
+      "field_id": "GRP_CD",
+      "field_type": "TEXT",
+      "label_i18n_key": "field.grp_cd",
+      "placeholder_i18n_key": "field.grp_cd.placeholder",
+      "layout": { "col_span": 1, "order": 10 },
+      "text": {
+        "mode": "single_line",
+        "max_length": 30,
+        "upper_case": true,
+        "search_op": "like_both"
+      },
+      "output_variable": {
+        "name": "grpCd",
+        "data_type": "string",
+        "null_when_empty": true,
+        "trim": true
+      },
+      "help": {
+        "tooltip_key": "field.grp_cd.tooltip"
+      }
+    },
+
+    {
+      "field_id": "GRP_NM",
+      "field_type": "AUTOCOMPLETE",
+      "label_i18n_key": "field.grp_nm",
+      "layout": { "col_span": 1, "order": 20 },
+      "autocomplete": {
+        "options_source": {
+          "type": "sp",
+          "binding": {
+            "service_id": "SP_COMM_SRH_COMBO_LIST_Q",
+            "value_field": "GRP_CD",
+            "label_field": "GRP_NM",
+            "secondary_label_field": "GRP_CD",
+            "search_field": "KEYWORD"
+          }
+        },
+        "min_search_length": 1,
+        "debounce_ms": 300,
+        "max_results": 20,
+        "show_recent": true,
+        "recent_count": 5,
+        "free_solo": true
+      },
+      "output_variable": {
+        "name": "grpNm",
+        "data_type": "string",
+        "null_when_empty": true
+      }
+    },
+
+    {
+      "field_id": "USE_YN",
+      "field_type": "DROPDOWN",
+      "label_i18n_key": "field.use_yn",
+      "layout": { "col_span": 1, "order": 30 },
+      "dropdown": {
+        "mode": "single",
+        "clearable": false,
+        "include_all": {
+          "enabled": true,
+          "label_key": "common.all",
+          "value": "ALL",
+          "is_default": true
+        },
+        "options_source": {
+          "type": "inline",
+          "binding": {
+            "values": [
+              { "code": "Y", "label_key": "common.use"    },
+              { "code": "N", "label_key": "common.unused" }
+            ]
+          }
+        }
+      },
+      "submit_behavior": { "trigger_search_on_change": true },
+      "output_variable": {
+        "name": "useYn",
+        "data_type": "string",
+        "transform_when_all": "send_null"
+      }
+    },
+
+    {
+      "field_id": "OWNER_USER",
+      "field_type": "POPUP",
+      "label_i18n_key": "field.owner_user",
+      "layout": { "col_span": 1, "order": 40 },
+      "popup": {
+        "popup_block_id": "pop_select_user",
+        "display_field": "USER_NM",
+        "value_field": "USER_ID",
+        "mode": "single",
+        "show_code_behind_name": true,
+        "preview_fields": [
+          { "field": "DEPT_NM", "label_key": "popup.dept" },
+          { "field": "EMAIL",   "label_key": "popup.email" }
+        ],
+        "clearable": true
+      },
+      "output_variable": {
+        "name": "ownerUserId",
+        "data_type": "string",
+        "null_when_empty": true,
+        "additional_fields": {
+          "ownerUserNm": "@selected.USER_NM",
+          "ownerDeptCd": "@selected.DEPT_CD"
+        }
+      }
+    },
+
+    {
+      "field_id": "MIN_USAGE",
+      "field_type": "NUMBER",
+      "label_i18n_key": "field.min_usage",
+      "layout": { "col_span": 1, "order": 50 },
+      "number": {
+        "format": "#,##0",
+        "decimals": 0,
+        "min": 0,
+        "max": 999999,
+        "step": 10,
+        "show_spinner": true,
+        "allow_negative": false,
+        "unit_i18n_key": "unit.count"
+      },
+      "output_variable": {
+        "name": "minUsage",
+        "data_type": "number",
+        "null_when_empty": true
+      }
+    },
+
+    {
+      "field_id": "CATEGORY",
+      "field_type": "CHECKBOX",
+      "label_i18n_key": "field.category",
+      "layout": { "col_span": 3, "order": 60 },
+      "checkbox": {
+        "mode": "multi",
+        "orientation": "horizontal",
+        "options_source": {
+          "type": "common_code",
+          "binding": {
+            "group_cd": "CODE_CATEGORY"
+          },
+          "cache": { "enabled": true, "ttl_seconds": 1800 }
+        },
+        "select_all": {
+          "enabled": true,
+          "label_key": "common.select_all"
+        }
+      },
+      "output_variable": {
+        "name": "categories",
+        "data_type": "array",
+        "element_type": "string",
+        "delimiter_for_sp": ","
+      }
+    }
+  ],
+
+  "validation": {
+    "cross_field_rules": [
+      {
+        "rule_id": "at_least_one_filter",
+        "description": "최소 하나의 조건은 입력해야 함",
+        "expression": "(form.grpCd && form.grpCd.length > 0) || (form.grpNm && form.grpNm.length > 0) || (form.categories && form.categories.length > 0)",
+        "message_key": "validation.filter.at_least_one",
+        "severity": "warning",
+        "on_warning_confirm": true
+      }
+    ]
+  },
+
+  "output": {
+    "form_id": "form_filter_common_code",
+    "emit_event": "on_filter_submit"
+  }
+}

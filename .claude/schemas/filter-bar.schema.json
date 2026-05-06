@@ -1,0 +1,1129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zionex.com/t3series/schemas/filter-bar.schema.json",
+  "title": "T3Series FilterBar Block Schema",
+  "description": "T3Series ScreenSpec 체계에서 FilterBar(조회 조건 영역) 블록을 정의하는 JSON Schema. 모든 필드 타입·출력 변수·의존성·검증 규칙을 표준화한다.",
+  "version": "1.0.0",
+  "type": "object",
+
+  "required": ["block_id", "block_type", "fields"],
+  "additionalProperties": false,
+
+  "properties": {
+    "block_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Block 고유 ID. snake_case 권장. 예: filter_main, filter_dp_monthly",
+      "examples": ["filter_main", "filter_dp_monthly"]
+    },
+
+    "block_type": {
+      "const": "FILTER_BAR",
+      "description": "Block 타입. FilterBar 는 항상 FILTER_BAR 고정."
+    },
+
+    "title": {
+      "type": "string",
+      "description": "Block 제목 (직접 입력 또는 i18n 키로 대체)."
+    },
+
+    "title_i18n_key": {
+      "type": "string",
+      "description": "제목의 다국어 키. TB_AD_LANG_PACK 의 MSG_CD 를 가리킨다.",
+      "examples": ["screen.common.filter_bar"]
+    },
+
+    "description": {
+      "type": "string",
+      "description": "Block 설명 (개발자용 메모)."
+    },
+
+    "bar": {
+      "$ref": "#/$defs/bar_options",
+      "description": "FilterBar 전체 레이아웃·버튼 옵션."
+    },
+
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "description": "필드 정의 배열. 최소 1개 이상.",
+      "items": { "$ref": "#/$defs/field_def" }
+    },
+
+    "dependencies": {
+      "type": "array",
+      "description": "필드 간 연쇄 규칙 (A 값 변경 → B 옵션 재조회 등).",
+      "items": { "$ref": "#/$defs/dependency_rule" },
+      "default": []
+    },
+
+    "validation": {
+      "type": "object",
+      "description": "필드 간 상호 검증 규칙.",
+      "additionalProperties": false,
+      "properties": {
+        "cross_field_rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/cross_field_rule" },
+          "default": []
+        }
+      }
+    },
+
+    "output": {
+      "type": "object",
+      "description": "FilterBar 가 값 제출 시 생성하는 폼/이벤트 정보.",
+      "additionalProperties": false,
+      "required": ["form_id", "emit_event"],
+      "properties": {
+        "form_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_]*$",
+          "description": "react-hook-form 이 사용할 폼 ID. 다른 블록에서 @form.<form_id>.<var_name> 으로 참조.",
+          "examples": ["form_filter_main"]
+        },
+        "emit_event": {
+          "type": "string",
+          "description": "[조회] 버튼 클릭 시 발행할 이벤트 ID.",
+          "default": "on_filter_submit"
+        },
+        "emit_on_change": {
+          "type": "boolean",
+          "description": "필드 값이 바뀔 때마다 이벤트를 발행할지 여부 (trigger_search_on_change 필드만 실제 발행).",
+          "default": true
+        }
+      }
+    },
+
+    "layout_meta": {
+      "type": "object",
+      "description": "편집기에서 블록 배치에 쓰는 메타 (x/y/w/h). ScreenSpec 의 공통 layout 블록과 동일.",
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 11 },
+        "y": { "type": "integer", "minimum": 0 },
+        "w": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "visibility": {
+      "type": "object",
+      "description": "Block 자체 노출 제어.",
+      "properties": {
+        "expression": { "type": "string" },
+        "permission": { "type": "string" }
+      }
+    },
+
+    "audit": {
+      "type": "object",
+      "description": "생성/수정 감사 정보.",
+      "properties": {
+        "created_by":   { "type": "string" },
+        "created_at":   { "type": "string", "format": "date-time" },
+        "modified_by":  { "type": "string" },
+        "modified_at":  { "type": "string", "format": "date-time" },
+        "generated_by": { "type": "string", "examples": ["T3Composer 1.0"] }
+      }
+    }
+  },
+
+  "$defs": {
+
+    "bar_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "layout": {
+          "type": "string",
+          "enum": ["horizontal", "vertical", "grid_2col", "grid_3col", "grid_4col", "grid_6col", "flex_wrap"],
+          "default": "grid_4col",
+          "description": "필드 배치 방식."
+        },
+        "collapsible": {
+          "type": "boolean",
+          "default": true,
+          "description": "접기/펼치기 가능 여부."
+        },
+        "default_collapsed": {
+          "type": "boolean",
+          "default": false,
+          "description": "초기 상태가 접혀있는지."
+        },
+        "show_button_area": {
+          "type": "boolean",
+          "default": true,
+          "description": "하단/우측 버튼 영역(조회·초기화) 표시 여부."
+        },
+        "button_area_position": {
+          "type": "string",
+          "enum": ["right", "bottom"],
+          "default": "right"
+        },
+        "submit_button": { "$ref": "#/$defs/bar_button" },
+        "reset_button":  { "$ref": "#/$defs/bar_button" },
+        "custom_buttons": {
+          "type": "array",
+          "description": "추가 커스텀 버튼 (엑셀 다운, 즐겨찾기 등).",
+          "items": { "$ref": "#/$defs/bar_button" },
+          "default": []
+        },
+        "sticky_top": {
+          "type": "boolean",
+          "description": "스크롤 시 FilterBar 를 화면 상단에 고정.",
+          "default": false
+        },
+        "show_active_filter_chips": {
+          "type": "boolean",
+          "description": "현재 적용된 필터를 칩 형태로 요약 표시.",
+          "default": false
+        }
+      }
+    },
+
+    "bar_button": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "visible":       { "type": "boolean", "default": true },
+        "label":         { "type": "string" },
+        "label_i18n_key":{ "type": "string" },
+        "icon":          { "type": "string", "description": "MUI 아이콘 이름 (예: Search, Refresh)" },
+        "shortcut":      { "type": "string", "examples": ["Enter", "Ctrl+Enter", "F5"] },
+        "validate_before_submit": { "type": "boolean", "default": true },
+        "reset_to": {
+          "type": "string",
+          "enum": ["default_values", "empty", "last_submitted"],
+          "default": "default_values"
+        },
+        "action":        { "type": "string", "description": "custom_buttons 전용. 실행할 액션 ID." },
+        "action_params": { "type": "object" },
+        "permission":    { "type": "string" }
+      }
+    },
+
+    "field_def": {
+      "type": "object",
+      "description": "단일 필드 정의. 공통 속성 + 타입별 속성(oneOf) 로 구성.",
+      "required": ["field_id", "field_type", "output_variable"],
+
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "필드 식별자. UPPER_SNAKE_CASE 권장. 이 값은 DB 컬럼명/SP 파라미터명과 직결되는 경우가 많다.",
+          "examples": ["ITEM_CD", "PLAN_PERIOD", "USE_YN"]
+        },
+
+        "field_type": {
+          "type": "string",
+          "enum": [
+            "TEXT", "NUMBER", "DATE", "DATE_RANGE",
+            "DROPDOWN", "RADIO", "CHECKBOX",
+            "POPUP", "AUTOCOMPLETE",
+            "DOMAIN_PLAN_SCOPE",
+            "DOMAIN_ITEM_SINGLE", "DOMAIN_ITEM_MULTI",
+            "DOMAIN_ACCOUNT_SINGLE", "DOMAIN_ACCOUNT_MULTI",
+            "DOMAIN_LOCATION_MULTI",
+            "DOMAIN_RESOURCE_MULTI",
+            "DOMAIN_USER",
+            "DOMAIN_VERSION",
+            "HIDDEN"
+          ],
+          "description": "필드 타입."
+        },
+
+        "label":            { "type": "string" },
+        "label_i18n_key":   { "type": "string" },
+        "description":      { "type": "string" },
+        "description_i18n_key": { "type": "string" },
+        "placeholder":      { "type": "string" },
+        "placeholder_i18n_key": { "type": "string" },
+
+        "layout":           { "$ref": "#/$defs/field_layout" },
+
+        "default_value": {
+          "description": "정적 기본값. 타입별로 값 유형이 다르다 (string/number/boolean/array/object).",
+          "type": ["string", "number", "boolean", "array", "object", "null"]
+        },
+        "default_value_expression": {
+          "type": "string",
+          "description": "동적 기본값 표현식. 예: '@session.user.defaultPlanCd', '@now-30d'"
+        },
+
+        "output_variable": { "$ref": "#/$defs/output_variable" },
+
+        "submit_behavior": { "$ref": "#/$defs/submit_behavior" },
+
+        "validation":      { "$ref": "#/$defs/field_validation" },
+
+        "visibility":      { "$ref": "#/$defs/conditional_rule" },
+        "readonly":        { "$ref": "#/$defs/conditional_rule" },
+
+        "help": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tooltip":        { "type": "string" },
+            "tooltip_key":    { "type": "string" },
+            "popover":        { "type": "string" },
+            "popover_key":    { "type": "string" },
+            "link_url":       { "type": "string", "format": "uri" }
+          }
+        },
+
+        "text":         { "$ref": "#/$defs/type_text" },
+        "number":       { "$ref": "#/$defs/type_number" },
+        "date":         { "$ref": "#/$defs/type_date" },
+        "date_range":   { "$ref": "#/$defs/type_date_range" },
+        "dropdown":     { "$ref": "#/$defs/type_dropdown" },
+        "radio":        { "$ref": "#/$defs/type_radio" },
+        "checkbox":     { "$ref": "#/$defs/type_checkbox" },
+        "popup":        { "$ref": "#/$defs/type_popup" },
+        "autocomplete": { "$ref": "#/$defs/type_autocomplete" },
+
+        "domain_plan_scope":      { "$ref": "#/$defs/type_domain_plan_scope" },
+        "domain_item_single":     { "$ref": "#/$defs/type_domain_item_single" },
+        "domain_item_multi":      { "$ref": "#/$defs/type_domain_item_multi" },
+        "domain_account_single":  { "$ref": "#/$defs/type_domain_account_single" },
+        "domain_account_multi":   { "$ref": "#/$defs/type_domain_account_multi" },
+        "domain_location_multi":  { "$ref": "#/$defs/type_domain_location_multi" },
+        "domain_resource_multi":  { "$ref": "#/$defs/type_domain_resource_multi" },
+        "domain_user":            { "$ref": "#/$defs/type_domain_user" },
+        "domain_version":         { "$ref": "#/$defs/type_domain_version" }
+      },
+
+      "allOf": [
+        { "if": { "properties": { "field_type": { "const": "TEXT" } } },
+          "then": { "required": ["text"] } },
+        { "if": { "properties": { "field_type": { "const": "NUMBER" } } },
+          "then": { "required": ["number"] } },
+        { "if": { "properties": { "field_type": { "const": "DATE" } } },
+          "then": { "required": ["date"] } },
+        { "if": { "properties": { "field_type": { "const": "DATE_RANGE" } } },
+          "then": { "required": ["date_range"] } },
+        { "if": { "properties": { "field_type": { "const": "DROPDOWN" } } },
+          "then": { "required": ["dropdown"] } },
+        { "if": { "properties": { "field_type": { "const": "RADIO" } } },
+          "then": { "required": ["radio"] } },
+        { "if": { "properties": { "field_type": { "const": "CHECKBOX" } } },
+          "then": { "required": ["checkbox"] } },
+        { "if": { "properties": { "field_type": { "const": "POPUP" } } },
+          "then": { "required": ["popup"] } },
+        { "if": { "properties": { "field_type": { "const": "AUTOCOMPLETE" } } },
+          "then": { "required": ["autocomplete"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_PLAN_SCOPE" } } },
+          "then": { "required": ["domain_plan_scope"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_ITEM_SINGLE" } } },
+          "then": { "required": ["domain_item_single"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_ITEM_MULTI" } } },
+          "then": { "required": ["domain_item_multi"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_ACCOUNT_SINGLE" } } },
+          "then": { "required": ["domain_account_single"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_ACCOUNT_MULTI" } } },
+          "then": { "required": ["domain_account_multi"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_LOCATION_MULTI" } } },
+          "then": { "required": ["domain_location_multi"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_RESOURCE_MULTI" } } },
+          "then": { "required": ["domain_resource_multi"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_USER" } } },
+          "then": { "required": ["domain_user"] } },
+        { "if": { "properties": { "field_type": { "const": "DOMAIN_VERSION" } } },
+          "then": { "required": ["domain_version"] } }
+      ]
+    },
+
+    "field_layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "col_span": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "default": 1,
+          "description": "grid_Ncol 레이아웃에서 차지하는 열 개수."
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "강제 지정할 행 번호 (미지정 시 자동)."
+        },
+        "order": {
+          "type": "integer",
+          "default": 100,
+          "description": "정렬 순서. 작을수록 앞에 배치됨."
+        },
+        "label_position": {
+          "type": "string",
+          "enum": ["left", "top", "right", "floating", "hidden"],
+          "default": "left"
+        },
+        "label_width": {
+          "type": ["integer", "string"],
+          "description": "라벨 너비 (px 숫자 또는 CSS 문자열).",
+          "examples": [120, "auto", "30%"]
+        },
+        "width": {
+          "type": "string",
+          "description": "입력 영역 너비 (CSS).",
+          "default": "100%"
+        },
+        "new_line_before": {
+          "type": "boolean",
+          "description": "이 필드 앞에서 줄바꿈 강제.",
+          "default": false
+        }
+      }
+    },
+
+    "output_variable": {
+      "type": "object",
+      "description": "이 필드의 값이 다른 블록으로 전달될 때의 규약.",
+      "required": ["name", "data_type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "description": "변수명. camelCase 권장. @form.<form_id>.<name> 으로 참조됨.",
+          "examples": ["itemCd", "planPeriod", "useYn"]
+        },
+        "data_type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "date", "array", "object"],
+          "description": "출력 시 변환 타입."
+        },
+        "element_type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "date"],
+          "description": "data_type 이 array 일 때 원소 타입."
+        },
+        "shape": {
+          "type": "object",
+          "description": "data_type 이 object 일 때 내부 필드 구조. 키: 필드명, 값: 타입.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "date"]
+          },
+          "examples": [{ "from": "date", "to": "date" }]
+        },
+        "null_when_empty": {
+          "type": "boolean",
+          "default": true,
+          "description": "빈 값일 때 null 로 전송. SP 의 IS NULL OR ... 패턴과 호환."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "문자열 앞뒤 공백 제거."
+        },
+        "transform": {
+          "type": "string",
+          "description": "값 변환 표현식 (JS). 'value' 가 현재 값.",
+          "examples": ["value.toUpperCase()", "value.replace(/-/g, '')"]
+        },
+        "alias": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "추가 별칭 이름. 하위호환용."
+        },
+        "flatten": {
+          "type": "object",
+          "description": "data_type 이 object 일 때 스칼라 변수들로 펼쳐 노출할지. SP 호출에 편리.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "from_name": { "type": "string", "description": "객체의 'from' 키를 이 이름으로 펼침." },
+            "to_name":   { "type": "string" },
+            "prefix":    { "type": "string", "description": "범용 prefix (from/to 대신 쓸 때)." }
+          }
+        },
+        "delimiter_for_sp": {
+          "type": "string",
+          "description": "data_type 이 array 일 때 SP 호출 직전 문자열로 조인할 구분자. FN_SPLIT_NVARCHAR_TO_TABLE 호환.",
+          "default": ","
+        },
+        "transform_when_all": {
+          "type": "string",
+          "enum": ["send_null", "send_all", "send_empty_array", "keep_as_is"],
+          "default": "send_null",
+          "description": "include_all 이 활성화된 DROPDOWN 등에서 '전체' 선택 시 SP 로 어떻게 전송할지."
+        },
+        "additional_fields": {
+          "type": "object",
+          "description": "POPUP/AUTOCOMPLETE 등에서 선택된 행의 다른 컬럼도 동시 노출. 키: 변수명, 값: @selected.<col> 표현식.",
+          "additionalProperties": { "type": "string" },
+          "examples": [{ "acctNm": "@selected.ACCT_NM", "acctTp": "@selected.ACCT_TP" }]
+        }
+      }
+    },
+
+    "submit_behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trigger_search_on_change": {
+          "type": "boolean",
+          "default": false,
+          "description": "값이 바뀌는 즉시 조회 실행 (라디오/체크박스/드롭다운에 권장, 텍스트에는 비권장)."
+        },
+        "include_in_submit": {
+          "type": "boolean",
+          "default": true,
+          "description": "[조회] 제출 시 params 에 포함할지."
+        },
+        "debounce_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "trigger_search_on_change 가 true 일 때 연속 변경 디바운스."
+        }
+      }
+    },
+
+    "field_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "required_message": { "type": "string" },
+        "required_message_key": { "type": "string" },
+
+        "regex": { "type": "string", "description": "정규식 (TEXT/NUMBER 입력값 검증)." },
+        "regex_message": { "type": "string" },
+        "regex_message_key": { "type": "string" },
+
+        "min":        { "type": "number" },
+        "max":        { "type": "number" },
+        "min_length": { "type": "integer", "minimum": 0 },
+        "max_length": { "type": "integer", "minimum": 1 },
+
+        "min_selections": { "type": "integer", "minimum": 0 },
+        "max_selections": { "type": "integer", "minimum": 1 },
+
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "이 필드의 검증이 다른 필드 값에 의존하는 경우 대상 field_id 목록."
+        },
+
+        "custom_expression": {
+          "type": "string",
+          "description": "JS 표현식 (value, form, session, global 컨텍스트 사용 가능)."
+        },
+        "custom_message_key": { "type": "string" }
+      }
+    },
+
+    "conditional_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expression": {
+          "type": "string",
+          "description": "JS 표현식. true 면 적용."
+        },
+        "permission": {
+          "type": "string",
+          "description": "이 권한 코드를 가진 사용자만 적용."
+        }
+      }
+    },
+
+    "options_source": {
+      "type": "object",
+      "description": "DROPDOWN/RADIO/CHECKBOX/AUTOCOMPLETE 의 옵션 공급원.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["common_code", "inline", "sp", "kpi_dictionary", "ontology_entity", "menu", "api"]
+        },
+        "binding":  { "type": "object", "description": "type 별 세부 바인딩." },
+        "params":   { "type": "object", "description": "SP 호출 파라미터 (표현식 포함 가능)." },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "enabled":      { "type": "boolean", "default": true },
+            "ttl_seconds":  { "type": "integer", "minimum": 0, "default": 300 }
+          }
+        }
+      },
+
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "common_code" } } },
+          "then": {
+            "properties": {
+              "binding": {
+                "type": "object",
+                "required": ["group_cd"],
+                "properties": {
+                  "group_cd":        { "type": "string", "description": "TB_AD_COMN_GRP.GRP_CD" },
+                  "value_field":     { "type": "string", "default": "CD" },
+                  "label_field":     { "type": "string", "default": "CD_NM" },
+                  "order_by":        { "type": "string", "default": "SORT_ORDER" },
+                  "lang_cd":         { "type": "string", "description": "다국어 코드 (미지정 시 세션 언어)." }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "inline" } } },
+          "then": {
+            "properties": {
+              "binding": {
+                "type": "object",
+                "required": ["values"],
+                "properties": {
+                  "values": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["code"],
+                      "properties": {
+                        "code":       { "type": ["string", "number", "boolean"] },
+                        "label":      { "type": "string" },
+                        "label_key":  { "type": "string" },
+                        "is_default": { "type": "boolean", "default": false },
+                        "disabled":   { "type": "boolean", "default": false },
+                        "group":      { "type": "string", "description": "그룹핑용 라벨." }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "sp" } } },
+          "then": {
+            "properties": {
+              "binding": {
+                "type": "object",
+                "required": ["service_id"],
+                "properties": {
+                  "service_id":  { "type": "string", "pattern": "^SP_" },
+                  "value_field": { "type": "string" },
+                  "label_field": { "type": "string" },
+                  "secondary_label_field": { "type": "string" },
+                  "group_by_field":        { "type": "string" },
+                  "search_field":          { "type": "string", "description": "AUTOCOMPLETE 에서 입력값이 들어가는 파라미터 이름." }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "kpi_dictionary" } } },
+          "then": {
+            "properties": {
+              "binding": {
+                "type": "object",
+                "properties": {
+                  "domain":   { "type": "string", "enum": ["BF", "DP", "MP", "FP", "IM", "RP", "SA", "CM"] },
+                  "category": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "ontology_entity" } } },
+          "then": {
+            "properties": {
+              "binding": {
+                "type": "object",
+                "properties": {
+                  "entity_type": {
+                    "type": "string",
+                    "enum": ["business_process", "business_rule", "business_entity", "data_entity", "system_entity"]
+                  },
+                  "status":      { "type": "string", "default": "CONFIRMED" },
+                  "min_importance": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.5 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "type_text": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["single_line", "multi_line", "password"],
+          "default": "single_line"
+        },
+        "max_length": { "type": "integer", "minimum": 1, "default": 255 },
+        "min_length": { "type": "integer", "minimum": 0, "default": 0 },
+        "rows":       { "type": "integer", "minimum": 2, "description": "multi_line 일 때 행 수." },
+        "upper_case": { "type": "boolean", "default": false, "description": "입력값을 자동으로 대문자 변환." },
+        "lower_case": { "type": "boolean", "default": false },
+        "mask":       { "type": "string", "description": "inputmask 포맷. 예: '999-9999'" },
+        "prefix":     { "type": "string" },
+        "suffix":     { "type": "string" },
+        "search_op": {
+          "type": "string",
+          "enum": ["exact", "like_left", "like_right", "like_both", "not_equal"],
+          "default": "like_both",
+          "description": "SP 에 전달되는 연산자 힌트 (output_variable 에 _op 으로 함께 전송)."
+        }
+      }
+    },
+
+    "type_number": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "format":          { "type": "string", "default": "#,##0", "description": "숫자 포맷 패턴." },
+        "decimals":        { "type": "integer", "minimum": 0, "default": 0 },
+        "min":             { "type": "number" },
+        "max":             { "type": "number" },
+        "step":            { "type": "number", "default": 1 },
+        "show_spinner":    { "type": "boolean", "default": false },
+        "allow_negative":  { "type": "boolean", "default": true },
+        "thousand_separator": { "type": "boolean", "default": true },
+        "unit":            { "type": "string", "description": "표시용 단위 (예: '원', '%')." },
+        "unit_i18n_key":   { "type": "string" }
+      }
+    },
+
+    "type_date": {
+      "type": "object",
+      "required": ["granularity"],
+      "additionalProperties": false,
+      "properties": {
+        "granularity": {
+          "type": "string",
+          "enum": ["day", "week", "month", "quarter", "year"],
+          "description": "일자 정밀도."
+        },
+        "format": {
+          "type": "string",
+          "description": "저장/전송용 포맷 (dayjs 패턴).",
+          "examples": ["YYYY-MM-DD", "YYYY-MM", "YYYY"]
+        },
+        "format_display": {
+          "type": "string",
+          "description": "화면 표시용 포맷 (다를 경우)."
+        },
+        "min": {
+          "type": "string",
+          "description": "최소 선택 가능 일자 (표현식 또는 ISO 문자열).",
+          "examples": ["2020-01-01", "@now-1y"]
+        },
+        "max": {
+          "type": "string",
+          "examples": ["@now", "@now+6m"]
+        },
+        "business_day_only": {
+          "type": "boolean",
+          "default": false,
+          "description": "영업일만 선택 가능. holiday_calendar 참조."
+        },
+        "holiday_calendar": {
+          "type": "string",
+          "description": "참조할 캘린더 테이블명/코드.",
+          "default": "TB_CM_CALENDAR"
+        },
+        "quick_picks": {
+          "type": "array",
+          "description": "입력 필드 옆에 노출할 빠른 선택 버튼.",
+          "items": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+              "label":     { "type": "string" },
+              "label_key": { "type": "string" },
+              "value":     { "type": "string", "examples": ["@now", "@now-1d", "@now.month_start"] }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+
+    "type_date_range": {
+      "type": "object",
+      "required": ["granularity"],
+      "additionalProperties": false,
+      "properties": {
+        "granularity": { "type": "string", "enum": ["day", "week", "month", "quarter", "year"] },
+        "format":      { "type": "string" },
+        "format_display": { "type": "string" },
+        "min":         { "type": "string", "description": "from 선택 하한." },
+        "max":         { "type": "string", "description": "to 선택 상한." },
+        "min_range":   { "type": "string", "description": "최소 기간. 예: '1d', '1m'." },
+        "max_range":   { "type": "string", "description": "최대 기간." },
+        "default_range": { "type": "string" },
+        "presets": {
+          "type": "array",
+          "description": "기간 프리셋 버튼.",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "label":     { "type": "string" },
+              "label_key": { "type": "string" },
+              "from":      { "type": "string", "examples": ["@now-7d", "@now.month_start"] },
+              "to":        { "type": "string", "examples": ["@now", "@now.month_end"] }
+            }
+          },
+          "default": []
+        },
+        "validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "from_before_to":            { "type": "boolean", "default": true },
+            "from_before_to_message":    { "type": "string" },
+            "from_before_to_message_key":{ "type": "string" }
+          }
+        }
+      }
+    },
+
+    "type_dropdown": {
+      "type": "object",
+      "required": ["options_source"],
+      "additionalProperties": false,
+      "properties": {
+        "mode":       { "type": "string", "enum": ["single", "multi"], "default": "single" },
+        "searchable": { "type": "boolean", "default": false },
+        "clearable":  { "type": "boolean", "default": true },
+        "virtual_scroll": { "type": "boolean", "default": false, "description": "옵션이 수천 개일 때 활성화." },
+        "max_selections": { "type": "integer", "minimum": 1, "description": "mode=multi 일 때 최대 선택 수." },
+        "include_all": {
+          "type": "object",
+          "description": "'전체' 옵션 자동 삽입.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled":    { "type": "boolean", "default": false },
+            "label":      { "type": "string" },
+            "label_key":  { "type": "string", "default": "common.all" },
+            "value":      { "type": ["string", "number"], "default": "ALL" },
+            "is_default": { "type": "boolean", "default": false }
+          }
+        },
+        "options_source": { "$ref": "#/$defs/options_source" },
+        "render": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "show_code":        { "type": "boolean", "default": false },
+            "show_description": { "type": "boolean", "default": false },
+            "group_by_field":   { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "type_radio": {
+      "type": "object",
+      "required": ["options_source"],
+      "additionalProperties": false,
+      "properties": {
+        "orientation":  { "type": "string", "enum": ["horizontal", "vertical"], "default": "horizontal" },
+        "button_style": {
+          "type": "string",
+          "enum": ["radio", "segmented", "tabs", "chips"],
+          "default": "radio",
+          "description": "시각 스타일. segmented/tabs 는 ToggleButtonGroup 느낌."
+        },
+        "options_source": { "$ref": "#/$defs/options_source" }
+      }
+    },
+
+    "type_checkbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["single", "multi"],
+          "default": "single"
+        },
+        "orientation": { "type": "string", "enum": ["horizontal", "vertical"], "default": "horizontal" },
+        "checked_value":   { "type": ["string", "number", "boolean"], "default": "Y" },
+        "unchecked_value": { "type": ["string", "number", "boolean"], "default": "N" },
+        "options_source":  { "$ref": "#/$defs/options_source", "description": "mode=multi 일 때 필수." },
+        "select_all": {
+          "type": "object",
+          "description": "mode=multi 전용.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled":   { "type": "boolean", "default": false },
+            "label":     { "type": "string" },
+            "label_key": { "type": "string", "default": "common.select_all" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "multi" } } },
+          "then": { "required": ["options_source"] }
+        }
+      ]
+    },
+
+    "type_popup": {
+      "type": "object",
+      "required": ["popup_block_id", "display_field", "value_field"],
+      "additionalProperties": false,
+      "properties": {
+        "popup_block_id": {
+          "type": "string",
+          "description": "호출할 팝업 Block ID. 예: pop_select_item, pop_select_account."
+        },
+        "display_field":  { "type": "string", "description": "입력 칸에 표시할 컬럼명 (예: ITEM_NM)." },
+        "value_field":    { "type": "string", "description": "실제 값으로 저장할 컬럼명 (예: ITEM_CD)." },
+        "mode":           { "type": "string", "enum": ["single", "multi"], "default": "single" },
+        "show_code_behind_name": {
+          "type": "boolean",
+          "default": true,
+          "description": "'홍길동 상사 (ACCT-001)' 형식으로 코드를 같이 노출."
+        },
+        "preview_fields": {
+          "type": "array",
+          "description": "필드 옆에 읽기전용으로 같이 노출할 필드들 (예: 거래처 유형/그룹).",
+          "items": {
+            "type": "object",
+            "required": ["field"],
+            "properties": {
+              "field":     { "type": "string" },
+              "label":     { "type": "string" },
+              "label_key": { "type": "string" }
+            }
+          },
+          "default": []
+        },
+        "pass_filter_context": {
+          "type": "boolean",
+          "default": true,
+          "description": "팝업 열 때 현재 FilterBar 의 다른 값들을 초기 조건으로 전달."
+        },
+        "clearable":      { "type": "boolean", "default": true },
+        "init_params": {
+          "type": "object",
+          "description": "팝업 열 때 넘길 초기 파라미터 (표현식 가능)."
+        }
+      }
+    },
+
+    "type_autocomplete": {
+      "type": "object",
+      "required": ["options_source"],
+      "additionalProperties": false,
+      "properties": {
+        "options_source":     { "$ref": "#/$defs/options_source" },
+        "min_search_length":  { "type": "integer", "minimum": 1, "default": 2 },
+        "debounce_ms":        { "type": "integer", "minimum": 0, "default": 300 },
+        "max_results":        { "type": "integer", "minimum": 1, "default": 50 },
+        "show_recent":        { "type": "boolean", "default": false },
+        "recent_count":       { "type": "integer", "minimum": 1, "default": 5 },
+        "show_clear_button":  { "type": "boolean", "default": true },
+        "free_solo":          { "type": "boolean", "default": false, "description": "목록에 없는 값도 허용." }
+      }
+    },
+
+    "type_domain_plan_scope": {
+      "type": "object",
+      "description": "T3Series PlanScope 컴포넌트 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "initial_value":     { "type": "string", "description": "초기값 표현식." },
+        "filter_by_module":  {
+          "type": "string",
+          "enum": ["BF", "DP", "MP", "FP", "IM", "RP", "SA", "CM"]
+        },
+        "allow_simulation":  { "type": "boolean", "default": true },
+        "show_version":      { "type": "boolean", "default": true },
+        "auto_load_recent_version": { "type": "boolean", "default": false, "description": "loadRecentSimulationVersion() 자동 호출." }
+      }
+    },
+
+    "type_domain_item_single": {
+      "type": "object",
+      "description": "T3Series ItemSearchInput 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "item_type_filter":  { "type": "array", "items": { "type": "string" }, "description": "ITEM_CLASS_CD 필터." },
+        "plan_scope_context":{ "type": "string", "description": "현재 PlanScope 를 자동으로 컨텍스트로 사용. 필드 ID 지정." },
+        "allow_eos":         { "type": "boolean", "default": false }
+      }
+    },
+
+    "type_domain_item_multi": {
+      "type": "object",
+      "description": "T3Series ItemMultiSearchBox 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "item_type_filter":   { "type": "array", "items": { "type": "string" } },
+        "plan_scope_context": { "type": "string" },
+        "allow_eos":          { "type": "boolean", "default": false },
+        "max_selections":     { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "type_domain_account_single": {
+      "type": "object",
+      "description": "T3Series AccountSearchInput 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "account_type_filter": { "type": "array", "items": { "type": "string" } },
+        "plan_scope_context":  { "type": "string" }
+      }
+    },
+
+    "type_domain_account_multi": {
+      "type": "object",
+      "description": "T3Series PopAccountMulti 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "account_type_filter": { "type": "array", "items": { "type": "string" } },
+        "plan_scope_context":  { "type": "string" },
+        "max_selections":      { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "type_domain_location_multi": {
+      "type": "object",
+      "description": "T3Series LocationMultiSearchBox 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "location_type_filter":{ "type": "array", "items": { "type": "string" } },
+        "plan_scope_context":  { "type": "string" },
+        "level":               { "type": "string", "enum": ["L1", "L2", "L3", "MST"], "description": "위치 계층." }
+      }
+    },
+
+    "type_domain_resource_multi": {
+      "type": "object",
+      "description": "T3Series ResourceMultiSearchBox 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "plant_filter":        { "type": "array", "items": { "type": "string" } },
+        "plan_scope_context":  { "type": "string" }
+      }
+    },
+
+    "type_domain_user": {
+      "type": "object",
+      "description": "T3Series UserInputField 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "group_filter":        { "type": "array", "items": { "type": "string" } },
+        "include_inactive":    { "type": "boolean", "default": false }
+      }
+    },
+
+    "type_domain_version": {
+      "type": "object",
+      "description": "T3Series PopSimulationVersion 래퍼.",
+      "additionalProperties": false,
+      "properties": {
+        "version_type":        { "type": "string", "enum": ["main", "simulation", "both"], "default": "both" },
+        "plan_scope_context":  { "type": "string" },
+        "status_filter":       { "type": "array", "items": { "type": "string" }, "description": "CONFIRMED, DRAFT 등." }
+      }
+    },
+
+    "dependency_rule": {
+      "type": "object",
+      "required": ["when_field", "when_event", "affect_field", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "dep_no":       { "type": "integer", "minimum": 1 },
+        "description":  { "type": "string" },
+        "when_field": {
+          "type": "string",
+          "description": "트리거 필드의 field_id."
+        },
+        "when_event": {
+          "type": "string",
+          "enum": ["value_changed", "focused", "blurred", "submitted", "loaded"],
+          "default": "value_changed"
+        },
+        "affect_field": {
+          "type": "string",
+          "description": "영향 대상 필드의 field_id."
+        },
+        "action": {
+          "type": "string",
+          "enum": ["reload_options", "set_value", "clear_value", "set_visibility", "set_readonly", "validate"]
+        },
+        "pass_params": {
+          "type": "object",
+          "description": "reload_options 시 대상 필드의 options_source 로 넘길 추가 파라미터.",
+          "examples": [{ "PARENT_TYPE": "@this_field.value" }]
+        },
+        "value_expression": {
+          "type": "string",
+          "description": "set_value 액션에서 설정할 값 표현식."
+        },
+        "condition": {
+          "type": "string",
+          "description": "JS 표현식. true 일 때만 액션 실행. set_visibility/set_readonly 의 결정식으로도 쓰임."
+        },
+        "also_clear": {
+          "type": "boolean",
+          "default": false,
+          "description": "reload_options 후 기존 선택값을 함께 초기화."
+        },
+        "also_clear_if_no_match": {
+          "type": "boolean",
+          "default": true,
+          "description": "reload_options 후 새 옵션 목록에 기존 값이 없으면 자동 클리어."
+        }
+      }
+    },
+
+    "cross_field_rule": {
+      "type": "object",
+      "required": ["rule_id", "expression", "severity"],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "description": { "type": "string" },
+        "expression": {
+          "type": "string",
+          "description": "JS 표현식. 사용 가능 컨텍스트: form.<var_name>, session.*, global.*, @now."
+        },
+        "message":         { "type": "string" },
+        "message_key":     { "type": "string" },
+        "severity": {
+          "type": "string",
+          "enum": ["error", "warning", "info"]
+        },
+        "on_warning_confirm": {
+          "type": "boolean",
+          "default": true,
+          "description": "severity=warning 일 때 사용자 확인 후 제출 허용."
+        },
+        "applies_to_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "오류 표시를 이 필드들에 집중 (선택사항)."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# T3 Validator — Common helpers (block / warn)
+# Sourced by pre-tool-use-validator.sh
+
+block() {
+  echo "❌ [T3 Rule Violation] $1" >&2
+  echo "   File: $FILE_PATH" >&2
+  [ -n "${2:-}" ] && echo "   규칙: $2" >&2
+  exit 2
+}
+
+warn() {
+  echo "⚠️  [T3 Rule Warning] $1" >&2
+  echo "   File: $FILE_PATH" >&2
+}

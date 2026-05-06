@@ -1,0 +1,261 @@
+{
+  "block_id": "filter_dp_monthly",
+  "block_type": "FILTER_BAR",
+  "title_i18n_key": "screen.dp_monthly.filter",
+
+  "bar": {
+    "layout": "grid_4col",
+    "collapsible": true,
+    "default_collapsed": false,
+    "submit_button": {
+      "visible": true,
+      "label_i18n_key": "btn.search",
+      "shortcut": "Enter",
+      "icon": "Search",
+      "validate_before_submit": true
+    },
+    "reset_button": {
+      "visible": true,
+      "label_i18n_key": "btn.reset",
+      "icon": "Refresh",
+      "reset_to": "default_values"
+    },
+    "sticky_top": false,
+    "show_active_filter_chips": true
+  },
+
+  "fields": [
+    {
+      "field_id": "PLAN_SCOPE",
+      "field_type": "DOMAIN_PLAN_SCOPE",
+      "label_i18n_key": "field.plan_scope",
+      "layout": { "col_span": 2, "order": 10 },
+      "default_value_expression": "@session.user.defaultPlanCd",
+      "domain_plan_scope": {
+        "filter_by_module": "DP",
+        "show_version": true,
+        "auto_load_recent_version": true
+      },
+      "output_variable": {
+        "name": "planScope",
+        "data_type": "object",
+        "shape": { "planCd": "string", "mainVerCd": "string", "simulVerCd": "string" },
+        "flatten": { "enabled": true }
+      },
+      "validation": { "required": true }
+    },
+
+    {
+      "field_id": "PLAN_PERIOD",
+      "field_type": "DATE_RANGE",
+      "label_i18n_key": "field.plan_period",
+      "description_i18n_key": "field.plan_period.desc",
+      "layout": { "col_span": 2, "order": 20 },
+      "date_range": {
+        "granularity": "month",
+        "format": "YYYY-MM",
+        "max_range": "24m",
+        "default_range": "12m",
+        "presets": [
+          { "label_key": "range.this_year", "from": "@now.year_start", "to": "@now.year_end" },
+          { "label_key": "range.last_12m",  "from": "@now-12m",         "to": "@now" },
+          { "label_key": "range.next_6m",   "from": "@now",             "to": "@now+6m" }
+        ],
+        "validation": {
+          "from_before_to": true,
+          "from_before_to_message_key": "validation.date.from_before_to"
+        }
+      },
+      "output_variable": {
+        "name": "planPeriod",
+        "data_type": "object",
+        "shape": { "from": "date", "to": "date" },
+        "flatten": {
+          "enabled": true,
+          "from_name": "planPeriodFrom",
+          "to_name":   "planPeriodTo"
+        }
+      },
+      "validation": { "required": true }
+    },
+
+    {
+      "field_id": "ACCOUNT",
+      "field_type": "DOMAIN_ACCOUNT_SINGLE",
+      "label_i18n_key": "field.account",
+      "layout": { "col_span": 1, "order": 30 },
+      "domain_account_single": {
+        "plan_scope_context": "PLAN_SCOPE"
+      },
+      "output_variable": {
+        "name": "acctCd",
+        "data_type": "string",
+        "null_when_empty": true,
+        "additional_fields": {
+          "acctNm": "@selected.ACCT_NM",
+          "acctTp": "@selected.ACCT_TP"
+        }
+      }
+    },
+
+    {
+      "field_id": "ITEM_TYPE",
+      "field_type": "DROPDOWN",
+      "label_i18n_key": "field.item_type",
+      "layout": { "col_span": 1, "order": 40 },
+      "dropdown": {
+        "mode": "single",
+        "clearable": true,
+        "include_all": {
+          "enabled": true,
+          "label_key": "common.all",
+          "value": "ALL",
+          "is_default": true
+        },
+        "options_source": {
+          "type": "common_code",
+          "binding": {
+            "group_cd": "ITEM_TYPE",
+            "value_field": "CD",
+            "label_field": "CD_NM"
+          },
+          "cache": { "enabled": true, "ttl_seconds": 3600 }
+        }
+      },
+      "output_variable": {
+        "name": "itemType",
+        "data_type": "string",
+        "transform_when_all": "send_null"
+      }
+    },
+
+    {
+      "field_id": "ITEM_GRP",
+      "field_type": "DROPDOWN",
+      "label_i18n_key": "field.item_group",
+      "layout": { "col_span": 1, "order": 50 },
+      "dropdown": {
+        "mode": "multi",
+        "searchable": true,
+        "max_selections": 50,
+        "options_source": {
+          "type": "sp",
+          "binding": {
+            "service_id": "SP_COMM_SRH_COMBO_LIST_Q",
+            "value_field": "GRP_CD",
+            "label_field": "GRP_NM"
+          },
+          "params": { "PARENT_TYPE": "@form.itemType" }
+        }
+      },
+      "output_variable": {
+        "name": "itemGrps",
+        "data_type": "array",
+        "element_type": "string",
+        "delimiter_for_sp": ","
+      }
+    },
+
+    {
+      "field_id": "VIEW_MODE",
+      "field_type": "RADIO",
+      "label_i18n_key": "field.view_mode",
+      "layout": { "col_span": 1, "order": 60 },
+      "radio": {
+        "orientation": "horizontal",
+        "button_style": "segmented",
+        "options_source": {
+          "type": "inline",
+          "binding": {
+            "values": [
+              { "code": "QTY",    "label_key": "view.qty",    "is_default": true },
+              { "code": "AMOUNT", "label_key": "view.amount" }
+            ]
+          }
+        }
+      },
+      "submit_behavior": { "trigger_search_on_change": true },
+      "output_variable": { "name": "viewMode", "data_type": "string" }
+    },
+
+    {
+      "field_id": "INCLUDE_EOS",
+      "field_type": "CHECKBOX",
+      "label_i18n_key": "field.include_eos",
+      "description_i18n_key": "field.include_eos.desc",
+      "layout": { "col_span": 1, "order": 70 },
+      "checkbox": {
+        "mode": "single",
+        "checked_value": "Y",
+        "unchecked_value": "N"
+      },
+      "default_value": "N",
+      "output_variable": { "name": "includeEos", "data_type": "string" },
+      "help": {
+        "tooltip_key": "field.include_eos.tooltip"
+      }
+    }
+  ],
+
+  "dependencies": [
+    {
+      "dep_no": 1,
+      "description": "품목유형 변경 시 품목그룹 재조회",
+      "when_field": "ITEM_TYPE",
+      "when_event": "value_changed",
+      "affect_field": "ITEM_GRP",
+      "action": "reload_options",
+      "pass_params": { "PARENT_TYPE": "@this_field.value" },
+      "also_clear": true,
+      "also_clear_if_no_match": true
+    },
+    {
+      "dep_no": 2,
+      "description": "PlanScope 변경 시 거래처/품목그룹 초기화",
+      "when_field": "PLAN_SCOPE",
+      "when_event": "value_changed",
+      "affect_field": "ACCOUNT",
+      "action": "clear_value"
+    },
+    {
+      "dep_no": 3,
+      "when_field": "PLAN_SCOPE",
+      "when_event": "value_changed",
+      "affect_field": "ITEM_GRP",
+      "action": "clear_value"
+    }
+  ],
+
+  "validation": {
+    "cross_field_rules": [
+      {
+        "rule_id": "large_range_warning",
+        "description": "12개월 초과 조회 시 경고",
+        "expression": "months_between(form.planPeriodFrom, form.planPeriodTo) <= 12",
+        "message_key": "validation.range.over_12_months",
+        "severity": "warning",
+        "on_warning_confirm": true,
+        "applies_to_fields": ["PLAN_PERIOD"]
+      },
+      {
+        "rule_id": "future_plan_period_check",
+        "description": "미래 구간 조회 시 시뮬레이션 버전 존재 확인",
+        "expression": "form.planPeriodTo <= @now || form.simulVerCd !== null",
+        "message_key": "validation.plan.sim_ver_required",
+        "severity": "error",
+        "applies_to_fields": ["PLAN_SCOPE", "PLAN_PERIOD"]
+      }
+    ]
+  },
+
+  "output": {
+    "form_id": "form_filter_dp_monthly",
+    "emit_event": "on_filter_submit",
+    "emit_on_change": true
+  },
+
+  "audit": {
+    "generated_by": "T3Composer 1.0",
+    "created_at": "2026-04-23T14:00:00+09:00"
+  }
+}

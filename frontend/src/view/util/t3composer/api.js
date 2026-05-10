@@ -154,6 +154,28 @@ export const applyArtifacts = (sessionId, opts = {}) =>
     composerReq({ timeout: 300000 })
   );
 
+// Phase 2a — Preview (docker 컨테이너 안에서 검증 — JSX/SQL/MENU)
+export const applyPreview = (sessionId) =>
+  zAxios.post(
+    `composer/sessions/${sessionId}/preview/apply`,
+    {},
+    composerReq({ timeout: 120000 })
+  );
+
+export const confirmPreview = (sessionId, opts = {}) =>
+  zAxios.post(
+    `composer/sessions/${sessionId}/preview/confirm`,
+    opts,
+    composerReq({ timeout: 300000 })
+  );
+
+export const cancelPreview = (sessionId) =>
+  zAxios.post(
+    `composer/sessions/${sessionId}/preview/cancel`,
+    {},
+    composerReq({ timeout: 60000 })
+  );
+
 export const checkMenuExists = (menuCd) =>
   zAxios.get(`composer/menus/${menuCd}/exists`, composerReq());
 

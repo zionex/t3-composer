@@ -4,6 +4,19 @@
 spring:
   jpa:
     show-sql: false
+  # Phase 1/2 — DevTools 자동 재시작 (mvn 으로 띄울 때만 동작)
+  devtools:
+    restart:
+      enabled: true
+      # host 마운트 환경에서는 inotify 가 동작하지 않을 수 있어 polling 으로 보완
+      poll-interval: 2s
+      quiet-period: 1s
+      # ★ trigger-file — random .class 변경에는 restart 안 함.
+      #   ArtifactPreviewService 가 mvn 완료 후 이 파일을 touch 할 때만 restart 트리거.
+      #   mvn 이 부분적으로 .class 를 쓰는 도중 restart 가 일어나면 NoClassDefFoundError 발생하던 문제 해결.
+      trigger-file: .devtools-restart-trigger
+    livereload:
+      enabled: false
 
 # CORS — frontend dev server (5173) 가 backend (8090) 호출
 composer:

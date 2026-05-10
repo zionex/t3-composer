@@ -12,7 +12,12 @@ RUN npm install --no-audit --no-fund --legacy-peer-deps || npm install --no-audi
 
 COPY frontend/ ./
 
+# 부모 wingui 의 realgrid 자동 복사용 entrypoint
+COPY docker/frontend/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 5173
 
+ENTRYPOINT ["/entrypoint.sh"]
 # webpack-dev-server 는 0.0.0.0 바인딩 필수 (Docker 내부 접속용)
 CMD ["npm", "run", "dev"]

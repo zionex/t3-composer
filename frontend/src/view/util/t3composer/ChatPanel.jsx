@@ -254,49 +254,76 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt })
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';
   const isAssistant = msg.role === 'assistant';
+  const [expanded, setExpanded] = React.useState(false);
+
+  // 한 줄 요약 (collapsed) — content 의 첫 줄/80자
+  const oneLine = (() => {
+    const c = (msg.content || '').replace(/\s+/g, ' ').trim();
+    return c.length > 80 ? c.substring(0, 80) + '…' : c;
+  })();
 
   return (
-    <Stack direction={isUser ? 'row-reverse' : 'row'} spacing={1.5} sx={{ my: 1.5 }}>
-      <Avatar
-        sx={{
-          width: 32,
-          height: 32,
+    <Box
+      onClick={() => setExpanded((e) => !e)}
+      sx={{
+        my: 0.6, mx: 0.5,
+        px: 1.2, py: 0.9,
+        borderRadius: 1.2,
+        cursor: 'pointer',
+        bgcolor: isUser ? 'rgba(40,135,215,0.05)' : '#fff',
+        border: '1px solid',
+        borderColor: isUser ? 'rgba(40,135,215,0.18)' : 'rgba(0,0,0,0.06)',
+        '&:hover': { borderColor: isUser ? 'rgba(40,135,215,0.4)' : 'rgba(0,0,0,0.18)' },
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Avatar sx={{
+          width: 22, height: 22, fontSize: 13,
           bgcolor: isUser ? 'grey.400' : 'primary.main',
-        }}
-      >
-        {isUser ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
-      </Avatar>
-      <Paper
-        variant="outlined"
-        sx={{
-          p: 1.5,
-          maxWidth: '85%',
-          bgcolor: isUser ? 'rgba(40,135,215,0.06)' : 'white',
-          borderColor: isUser ? 'rgba(40,135,215,0.3)' : 'rgba(0,0,0,0.1)',
-        }}
-      >
-        {isAssistant ? (
-          <LlmMarkdown content={msg.content || ''} />
-        ) : (
-          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {msg.content}
+        }}>
+          {isUser ? <PersonIcon sx={{ fontSize: 14 }} /> : <SmartToyIcon sx={{ fontSize: 14 }} />}
+        </Avatar>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: isUser ? '#0369a1' : '#0f172a' }}>
+          {isUser ? 'User' : 'Claude'}
+        </Typography>
+        {!expanded && (
+          <Typography variant="caption" sx={{
+            color: '#64748b', flex: 1, minWidth: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {oneLine || '(빈 메시지)'}
           </Typography>
         )}
-        {(msg.inputTokens != null || msg.outputTokens != null) && (
-          <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
-            {msg.inputTokens != null && (
-              <Chip label={`in ${msg.inputTokens}`} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
-            )}
-            {msg.outputTokens != null && (
-              <Chip label={`out ${msg.outputTokens}`} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
-            )}
-            {msg.stopReason && (
-              <Chip label={msg.stopReason} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
-            )}
-          </Stack>
+        {(msg.outputTokens != null) && !expanded && (
+          <Chip label={`${msg.outputTokens}t`} size="small" variant="outlined"
+                sx={{ height: 16, fontSize: 9, fontFamily: 'monospace', flexShrink: 0 }} />
         )}
-      </Paper>
-    </Stack>
+      </Stack>
+      {expanded && (
+        <Box sx={{ mt: 1, pl: 3.6 }}>
+          {isAssistant ? (
+            <LlmMarkdown content={msg.content || ''} />
+          ) : (
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {msg.content}
+            </Typography>
+          )}
+          {(msg.inputTokens != null || msg.outputTokens != null) && (
+            <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
+              {msg.inputTokens != null && (
+                <Chip label={`in ${msg.inputTokens}`} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
+              )}
+              {msg.outputTokens != null && (
+                <Chip label={`out ${msg.outputTokens}`} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
+              )}
+              {msg.stopReason && (
+                <Chip label={msg.stopReason} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
+              )}
+            </Stack>
+          )}
+        </Box>
+      )}
+    </Box>
   );
 }
 

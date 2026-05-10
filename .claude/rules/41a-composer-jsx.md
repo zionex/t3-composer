@@ -142,6 +142,8 @@ zAxios.get('util/dept-mgmt-v2', { params: getValues() });  // 404 (Controller �
 >
 > 두 store 를 바꿔서 selector 에 넣으면 selector 가 `undefined` 를 돌려주어 `setViewInfo(...)` 호출 시 `is not a function` TypeError, `globalButtons` 미등록 → 상단 바 빈 채로 렌더. Hook (`composer-jsx.sh CG-STORE`) 이 자동 차단.
 
+> 🔴 **2026-05-11 t3-composer 단독 환경 추가 사례**: 산출물 jsx 가 `const activeViewId = useViewStore(s => s.activeViewId)` 사용 → t3composer shim 에서 `useViewStore.activeViewId` 가 undefined → `useEffect(() => { if (!activeViewId) return; setViewInfo(...) }, [activeViewId])` 에서 early return → globalButtons 미등록 → SearchArea 의 [조회] 버튼 click 시 `[shim] SearchArea: globalButtons.search 가 등록되지 않았습니다` 무반응. 단독 환경 보완으로 useViewStore 에도 activeViewId 노출했지만, **wingui 본 환경에서는 여전히 정확한 store 사용 필수**. (TROUBLESHOOTING.md §14)
+
 ```jsx
 // ✅ 올바른 store 매핑
 const [activeViewId] = useContentStore((s) => [s.activeViewId]);

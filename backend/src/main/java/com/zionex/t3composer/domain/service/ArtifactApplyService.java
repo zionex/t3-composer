@@ -67,7 +67,18 @@ public class ArtifactApplyService {
             Pattern.compile("^\\s*CREATE\\s+(OR\\s+ALTER\\s+)?FUNCTION" +
                             "\\s+(?:\\[?dbo\\]?\\s*\\.\\s*)?\\[?FN_",
                     Pattern.CASE_INSENSITIVE);
-    // 파괴적 구문 — DDL/SP 안에 포함되면 거부
+    /**
+     * DROP guard — Composer 가 자주 쓰는 idempotent 패턴:
+     *   IF OBJECT_ID('dbo.SP_UI_*', 'P') IS NOT NULL DROP PROCEDURE dbo.SP_UI_*
+     * CREATE OR ALTER 가 있으면 사실 불필요하지만 LLM 산출물에 자주 등장.
+     * 이름이 SP_UI_* 또는 FN_* 인 경우만 허용 — 다른 객체 DROP 은 BANNED_INLINE 으로 차단.
+     */
+    private static final Pattern SP_DROP_GUARD =
+            Pattern.compile("^\\s*IF\\s+OBJECT_ID\\s*\\(\\s*'(?:\\[?dbo\\]?\\.)?\\[?(SP_UI_|FN_)[A-Z0-9_]+\\]?'" +
+                            "\\s*,\\s*'(?:P|FN|IF|TF)'\\s*\\)\\s*IS\\s+NOT\\s+NULL" +
+                            "\\s+DROP\\s+(?:PROCEDURE|FUNCTION)\\s+(?:\\[?dbo\\]?\\.)?\\[?(SP_UI_|FN_)",
+                    Pattern.CASE_INSENSITIVE);
+    // 파괴적 구문 — DDL/SP 안에 포함되면 거부 (단, SP_UI_/FN_ 만 대상으로 한 DROP 은 SP_DROP_GUARD 에서 별도 허용)
     private static final List<String> BANNED_INLINE = List.of(
             "DROP TABLE ", "DROP DATABASE ", "TRUNCATE ", "SHUTDOWN",
             "xp_cmdshell", "BULK INSERT", "OPENROWSET"
@@ -661,6 +672,25 @@ public class ArtifactApplyService {
     // SQL 실행 (DDL / SP)
     // --------------------------------------------------------
 
+    /**
+     * Phase 2a — ArtifactPreviewService 가 호출하는 SQL 실행 위임.
+     *
+     * @param ddlMode TRUE=DDL 검증, FALSE=SP 검증, NULL=MENU 검증(파괴 키워드만 차단)
+     */
+    public Map<String, Object> executeAsBatchPublic(ComposerArtifact a, String content,
+                                                    String kind, Boolean ddlMode) {
+        StmtValidator v;
+        if (ddlMode == null) {
+            // MENU INSERT 등 — 파괴 키워드는 execSqlBatch 가 어차피 BANNED_INLINE 으로 차단
+            v = upper -> null;
+        } else if (ddlMode) {
+            v = ArtifactApplyService::validateDdl;
+        } else {
+            v = ArtifactApplyService::validateSp;
+        }
+        return execSqlBatch(a, content, kind, v);
+    }
+
     private interface StmtValidator {
         /** 통과하면 null, 거부하면 거부 사유 문자열 반환 */
         String reject(String upperStmt);
@@ -738,10 +768,13 @@ public class ArtifactApplyService {
     private static String validateSp(String upper) {
         if (SP_CREATE.matcher(upper).find()) return null;
         if (SP_FN_CREATE.matcher(upper).find()) return null;
+        // SP_UI_ / FN_ 만 대상으로 한 DROP guard (idempotent re-creation 패턴)
+        if (SP_DROP_GUARD.matcher(upper).find()) return null;
         // SET ANSI_NULLS / SET QUOTED_IDENTIFIER 등 preamble 허용
         if (upper.startsWith("SET ANSI_NULLS")) return null;
         if (upper.startsWith("SET QUOTED_IDENTIFIER")) return null;
-        return "SP 는 `CREATE [OR ALTER] PROCEDURE SP_UI_*` 또는 `CREATE FUNCTION FN_*` 만 허용";
+        return "SP 는 `CREATE [OR ALTER] PROCEDURE SP_UI_*` · `CREATE FUNCTION FN_*` · "
+             + "`IF OBJECT_ID(...) IS NOT NULL DROP PROCEDURE SP_UI_*` 패턴만 허용";
     }
 
     /**

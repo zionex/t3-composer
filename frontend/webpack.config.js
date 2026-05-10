@@ -62,11 +62,44 @@ module.exports = (env, argv) => {
       host: '0.0.0.0',
       hot: true,
       client: { overlay: { errors: true, warnings: false } },
-      proxy: {
-        '/composer': { target: apiBase, changeOrigin: true, secure: false },
-        '/actuator': { target: apiBase, changeOrigin: true, secure: false },
-      },
+      // 윈도우 host + Linux container 마운트에서는 inotify 가 cross-OS 로 동작하지 않아
+      // polling 으로 전환해야 src 변경이 webpack 에 인식됨.
+      static: { watch: { usePolling: true, interval: 1000 } },
+      proxy: [
+        {
+          // SPA (Accept: text/html GET) 는 index.html 로 fallback,
+          // 그 외 (XHR — Accept: application/json 등) 모든 요청은 backend 로 proxy.
+          // 개별 prefix 화이트리스트 (/composer /auth /util /demandplan ...) 를 명시하지 않고
+          // bypass 로 SPA route 만 분기 — 산출물이 만드는 모든 모듈 endpoint 자동 지원.
+          context: () => true,
+          target: apiBase,
+          changeOrigin: true,
+          secure: false,
+          bypass: (req) => {
+            const accept = req.headers.accept || '';
+            // SPA route — HTML GET 만 fallback
+            if (req.method === 'GET' && accept.includes('text/html')) {
+              return '/index.html';
+            }
+            // webpack-dev-server 자체 리소스 (정적 자산, hot-update 등) 는 proxy 하지 않음
+            if (req.url.startsWith('/sockjs-node')
+             || req.url.includes('hot-update')
+             || req.url.endsWith('.js')
+             || req.url.endsWith('.js.map')
+             || req.url.endsWith('.css')
+             || req.url.endsWith('.css.map')) {
+              return req.url;
+            }
+            return null;  // proxy 진행
+          },
+        },
+      ],
     },
     devtool: isDev ? 'eval-cheap-module-source-map' : 'source-map',
+    watchOptions: {
+      poll: 1000,           // 1초 polling — docker mount 의 fs 변경 감지
+      aggregateTimeout: 200,
+      ignored: /node_modules/,
+    },
   };
 };

@@ -75,12 +75,15 @@ t3-composer/
 2. 모드 선택 (NEW_NL / NEW_STEP / NEW_FROM_COPY / NEW_FROM_DESIGN / EXISTING_MODIFY)
 3. 9-Step Wizard 진행
 4. Step9 → Claude 로 생성
-5. ArtifactApply
+5. [화면 실행] (헤더 버튼) — 산출물을 docker 안에 임시 적용 + 우측 [실행 화면] Tab 에 inline 노출
+   - JSX → frontend webpack hot-reload
+   - Java → JavaArtifactRewriter 가 패키지 변환 후 mvn compile (별도 thread, trigger-file 로 1회 restart)
+   - SQL → composer-db 에 정식 이름 실행 (CREATE OR ALTER)
+   - MENU → composer-db 에 __PV<sid8> suffix 로 임시 등록
+   → RealGrid2 (sky-blue) + wingui 룩 InputField/SearchArea — 부모 t3series 와 동일
+6. 검증 OK 후 [메뉴 등록] + [아티팩트 실행]
    - staging mode: ./staging/output/<session> 에 산출물 + composer-db 에 메뉴/SP 등록
    - direct mode : COMPOSER_WINGUI_REF_PATH 폴더에 직접 + composer-db 에도 등록
-6. 검증
-   - composer-frontend 에서 새 화면이 메뉴 트리에 노출
-   - 클릭하여 진입·동작 확인
 7. wingui 동기화 (검증 통과 후)
    ./sync/manifest-from-staging.ps1
    ./sync/sync-files-to-wingui.ps1 -DryRun   # 미리보기
@@ -88,6 +91,14 @@ t3-composer/
    ./sync/sync-db-to-wingui.ps1 -WhatIf      # 미리보기
    ./sync/sync-db-to-wingui.ps1              # 실 적용
 ```
+
+상세 인프라: `.claude/rules/50-composer-standalone-runtime.md` (Phase 1~2d — Docker DevTools / preview API / RealGrid2 / shim 구조 / mock-up 이미지)
+문제 해결: `TROUBLESHOOTING.md §10~19` (504 / license / store swap / 부재 Pop\* / `/util` proxy / 한글 폰트 / 빈 마스터 등)
+
+추가:
+- 헤더 [📥 설계서] 다운로드 시 .xlsx 의 "레이아웃" 시트 하단에 화면 mock-up PNG 자동 첨부 (Java2D, 한글 Noto CJK 폰트)
+- webpack proxy 가 `context: () => true` 로 산출물의 모든 모듈 endpoint (`/util` 등) 자동 forward
+- 좌측 layout: 위 (55%) 아티팩트 트리 / 아래 (45%) 작업 내역, vertical SplitPane 드래그
 
 ## 부모 프로젝트와의 관계
 

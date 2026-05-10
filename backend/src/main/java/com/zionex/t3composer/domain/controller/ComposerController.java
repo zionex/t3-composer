@@ -37,6 +37,7 @@ import com.zionex.t3composer.domain.dto.SessionDto;
 import com.zionex.t3composer.domain.entity.ComposerSession;
 import com.zionex.t3composer.domain.service.AnthropicApiKeyService;
 import com.zionex.t3composer.domain.service.ArtifactApplyService;
+import com.zionex.t3composer.domain.service.ArtifactPreviewService;
 import com.zionex.t3composer.domain.service.ComposerService;
 import com.zionex.t3composer.shared.auth.AuthenticationInfo;
 import com.zionex.t3composer.shared.auth.AuthenticationProvider;
@@ -66,6 +67,7 @@ public class ComposerController {
     private final PrefillFromSourceService prefillFromSourceService;
     private final PrefillFromDesignService prefillFromDesignService;
     private final ArtifactApplyService artifactApplyService;
+    private final ArtifactPreviewService artifactPreviewService;
 
     // ---- API Key ----
 
@@ -76,6 +78,11 @@ public class ComposerController {
                 "registered", apiKeyService.hasApiKey(userId),
                 "provider",   AnthropicApiKeyService.PROVIDER
         );
+    }
+
+    @GetMapping("/apikey/diag")
+    public Map<String, Object> apiKeyDiag() {
+        return apiKeyService.diagApiKey(currentUserId());
     }
 
     @PostMapping("/apikey")
@@ -93,6 +100,24 @@ public class ComposerController {
         String userId = currentUserId();
         apiKeyService.deleteApiKey(userId);
         return ResponseEntity.ok(Map.of("message", "Anthropic API 키가 삭제되었습니다"));
+    }
+
+    // ---- Preview (Phase 2a — JSX/SQL/MENU 만 docker 안에서 검증) ----
+
+    @PostMapping("/sessions/{sessionId}/preview/apply")
+    public Map<String, Object> previewApply(@PathVariable String sessionId) {
+        return artifactPreviewService.applyPreview(sessionId);
+    }
+
+    @PostMapping("/sessions/{sessionId}/preview/confirm")
+    public Map<String, Object> previewConfirm(@PathVariable String sessionId,
+                                              @RequestBody(required = false) ArtifactApplyService.ApplyOptions opts) {
+        return artifactPreviewService.confirmPreview(sessionId, opts);
+    }
+
+    @PostMapping("/sessions/{sessionId}/preview/cancel")
+    public Map<String, Object> previewCancel(@PathVariable String sessionId) {
+        return artifactPreviewService.cancelPreview(sessionId);
     }
 
     // ---- Sessions ----

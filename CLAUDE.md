@@ -89,6 +89,48 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 - DB 스키마 변경 시 `.claude/rules/32-sql-schema-verification.md §0 진실 우선순위` 절차 필수
 - import 화이트리스트 (`.claude/rules/41b §5.5`) 준수 — `javax.*` 금지, `jakarta.*` 만 사용
 - `ut/` 패키지/URL 절대 금지 (`.claude/rules/99-anti-patterns.md §0`)
+- **단독 dev 환경 인프라** (Docker DevTools / 화면 실행 / RealGrid2 / shim 구조) — `.claude/rules/50-composer-standalone-runtime.md`
+
+## 2.1 단독 환경 핵심 인프라 (2026-05 개편)
+
+### Backend hot-reload (Phase 1)
+- backend 컨테이너가 `mvn spring-boot:run` 으로 기동 (jar 가 아님)
+- host `./backend` 가 컨테이너의 `/app` 에 마운트 → src 변경 즉시 가시
+- Maven 캐시는 named volume `composer-maven-repo`
+- DevTools 의 `spring.devtools.restart.trigger-file=.devtools-restart-trigger` 활성 — `target/classes/.devtools-restart-trigger` 변경 시에만 self-restart (random class 변경에 자동 restart 안 함 → partial-state NoClassDefFoundError 회피)
+
+### 화면 실행 (Phase 2)
+- ComposerWorkspace 헤더 [화면 실행] 버튼 → `POST /composer/sessions/{sid}/preview/apply`
+  - JSX → `frontend/src/view/_preview/<sid8>/...` (webpack lazy chunk)
+  - Java → `backend/src/main/java/com/zionex/t3composer/preview/s<sid8>/...` (JavaArtifactRewriter 가 wingui 패키지 → t3composer 패키지 자동 변환)
+  - SQL DDL/SP → composer-db 에 정식 이름 실행
+  - MENU_SQL → composer-db TB_AD_MENU 에 `__PV<sid8>` suffix 로 임시 등록
+- mvn compile 은 별도 daemon thread (요청 즉시 응답, 504 회피)
+- mvn 완료 시 `target/classes/.devtools-restart-trigger` touch → DevTools 한 번만 restart
+- 우측 [실행 화면 LIVE] 탭에 PreviewEmbed 가 `_preview/<sid8>/<viewSub>.jsx` 를 lazy import 해 inline 노출
+
+### RealGrid2 / wingui 룩 (Phase 2c)
+- `docker/frontend/entrypoint.sh` 가 컨테이너 시작 시 부모 t3series 의 `realgrid` 폴더를 `/app/node_modules/realgrid` 로 자동 복사
+- `frontend/src/shim/wingui/common/BaseGrid.jsx` 가 RealGrid2 GridView + LocalDataProvider 직접 wrap (sky-blue 테마)
+- `frontend/src/shim/wingui/common/realgrid-license.js` 가 부모 t3series 와 동일한 `realGrid2Lic` 키 + `RealGrid.setLicenseKey()` 등록
+- SearchArea / SearchRow / InputField / CommonCodeSelect 도 wingui 의 wrapBox (좌측 라벨 + 우측 입력) 룩으로 흉내
+- SearchArea 우측 끝에 [🔍 조회] 버튼 항상 노출 — click 시점에 `useViewStore.viewData[activeViewId].globalButtons[name=search].action` lookup
+- 산출물 호환을 위해 `useViewStore` 에도 `activeViewId: 'composer-standalone'` 노출 (`useContentStore` 와 동일)
+
+### webpack proxy generic
+- `frontend/webpack.config.js` 의 proxy 가 `context: () => true` (모든 path) + `bypass` 로 SPA route (Accept: text/html GET) 만 `/index.html` fallback
+- 산출물이 만드는 모든 모듈 endpoint (`/util /demandplan /masterplan /system ...`) 사전 등록 없이 자동 backend proxy
+
+### 설계서 mock-up 이미지 (Phase 2d)
+- `DesignDocExportService.buildLayoutSheet` 가 "레이아웃" 시트 하단에 화면 mock-up PNG 첨부
+- `ScreenMockupRenderer` (Java2D BufferedImage) — 검색조건(라벨박스+입력박스+조회 버튼) + RealGrid2 풍 그리드(헤더+격자 8행) 를 spec 으로부터 자동 그리기
+- backend 컨테이너에 `fonts-noto-cjk` + `fontconfig` 설치 + `cjkFont()` 로 한글 표시 가능 폰트 자동 매칭
+
+### 3-Layer 좌측 layout
+- 위 (55%): 아티팩트 트리 (`ArtifactTreeView`)
+- 아래 (45%): 작업 내역 (`ChatPanel` — collapsed 메시지 목록, 클릭 시 펼침)
+- 둘 사이 vertical SplitPane (드래그)
+- 우측 (68%): Tab Container (실행 화면 / 아티팩트 소스), 좌우 사이 horizontal SplitPane
 
 ## 3. 부모 폴더와의 관계 (sync 시점 외)
 

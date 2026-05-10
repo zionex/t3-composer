@@ -25,8 +25,15 @@ import ErrorIcon from '@mui/icons-material/Error';
 import StorageIcon from '@mui/icons-material/Storage';
 import CodeIcon from '@mui/icons-material/Code';
 import DescriptionIcon from '@mui/icons-material/Description';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassTopIcon from '@mui/icons-material/HourglassTop';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
-import { listArtifacts, applyArtifacts, preflightArtifacts } from './api';
+import {
+  listArtifacts, applyArtifacts, preflightArtifacts,
+  applyPreview, confirmPreview, cancelPreview,
+} from './api';
 
 /**
  * 아티팩트 실행 다이얼로그 — MenuRegistrationDialog 와 분리.
@@ -57,6 +64,12 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
     autoApply: false,
     applyFiles: true, executeDdl: true, executeSp: true, overwrite: false,
   });
+  // Phase 2a — Preview (docker 검증) 상태
+  const [previewBusy, setPreviewBusy] = useState(null);   // 'apply' | 'confirm' | 'cancel' | null
+  const [previewResult, setPreviewResult] = useState(null);
+  // 진행 단계: { phase: 'compiling' | 'restarting' | 'ready' | 'failed', message, elapsedMs }
+  const [autoOpen, setAutoOpen] = useState(null);
+  const autoOpenAbortRef = useRef(false);
 
   useEffect(() => {
     if (!open || !sessionId) return;
@@ -72,6 +85,10 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
     setError(null);
     setPreflight(null);
     setOpts({ autoApply: false, applyFiles: true, executeDdl: true, executeSp: true, overwrite: false });
+    setPreviewResult(null);
+    setPreviewBusy(null);
+    setAutoOpen(null);
+    autoOpenAbortRef.current = false;
   };
 
   const loadArtifactsAndPreflight = async () => {
@@ -98,6 +115,132 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
       setError('아티팩트 목록 조회 실패: ' + (e?.message || ''));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // -------------------------------------------------------------------
+  // Phase 2a — Preview handlers (docker 컨테이너 안에서 검증)
+  // -------------------------------------------------------------------
+
+  const handlePreviewApply = async () => {
+    setPreviewBusy('apply');
+    setAutoOpen(null);
+    autoOpenAbortRef.current = false;
+    try {
+      const res = await applyPreview(sessionId);
+      const r = res?.data || {};
+      setPreviewResult(r);
+      const sid8 = r.sid8 || '????????';
+      if (!r.success) {
+        setSnackbar({
+          open: true, severity: 'error',
+          title: '미리보기 적용 실패',
+          message: `❌ ${r.error || 'JSX/SQL/MENU 처리 중 오류 — 결과 패널 확인'}`,
+        });
+        return;
+      }
+      setSnackbar({
+        open: true, severity: 'success',
+        title: '미리보기 적용 완료',
+        message: `✅ JSX ${r.jsxOk}건 / DDL ${r.ddlOk}건 / SP ${r.spOk}건 / MENU ${r.menuOk}건 / Java ${r.javaOk || 0}건. PV ${sid8}`,
+      });
+      // 자동 진입 — preview 첫 jsx 화면을 새 창으로
+      const targetUrl = Array.isArray(r.previewLinks) && r.previewLinks.length > 0 ? r.previewLinks[0].url : null;
+      if (targetUrl) {
+        await runAutoOpen(targetUrl, (r.javaOk || 0) > 0);
+      }
+    } catch (e) {
+      const data = e?.response?.data || {};
+      setPreviewResult({ success: false, error: data.error || data.message || e?.message });
+      setSnackbar({
+        open: true, severity: 'error',
+        title: '미리보기 통신 오류',
+        message: `❌ ${data.error || data.message || e?.message || '서버 응답 없음'}`,
+      });
+    } finally {
+      setPreviewBusy(null);
+    }
+  };
+
+  /**
+   * 진행 단계:
+   *   - hasJava=false: 즉시 화면 진입
+   *   - hasJava=true:
+   *       1) compiling — mvn compile 진행 (약 30~60초). backend health 는 200 유지
+   *       2) restarting — DevTools 가 trigger-file 감지해 backend 재기동 (10~20초). health 503/error
+   *       3) ready — health 회복 → window.open
+   *       4) failed — 120초 timeout
+   */
+  const runAutoOpen = async (targetUrl, hasJava) => {
+    if (!hasJava) {
+      setAutoOpen({ phase: 'ready', message: '화면 진입', targetUrl, elapsedMs: 0 });
+      setTimeout(() => {
+        if (!autoOpenAbortRef.current) window.open(targetUrl, '_blank', 'noopener');
+      }, 600);
+      return;
+    }
+
+    const start = Date.now();
+    setAutoOpen({ phase: 'compiling', message: 'Java 산출물 mvn compile 진행 중...', targetUrl, elapsedMs: 0 });
+
+    let sawDown = false;
+    const maxWait = 120000;
+    while (!autoOpenAbortRef.current && (Date.now() - start) < maxWait) {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      if (autoOpenAbortRef.current) return;
+      const elapsed = Date.now() - start;
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 2000);
+        const resp = await fetch('/actuator/health', { method: 'GET', signal: ctrl.signal });
+        clearTimeout(timer);
+        if (resp.ok) {
+          if (sawDown) {
+            // 재기동 후 회복
+            setAutoOpen({ phase: 'ready', message: 'backend 재기동 완료 — 화면 진입', targetUrl, elapsedMs: elapsed });
+            setTimeout(() => {
+              if (!autoOpenAbortRef.current) window.open(targetUrl, '_blank', 'noopener');
+            }, 800);
+            return;
+          }
+          // 아직 mvn 진행 중 (또는 시작 직후)
+          setAutoOpen({ phase: 'compiling', message: 'Java 산출물 mvn compile 진행 중... DevTools 트리거 대기', targetUrl, elapsedMs: elapsed });
+        } else {
+          sawDown = true;
+          setAutoOpen({ phase: 'restarting', message: 'mvn 완료 — DevTools 가 backend 재기동 중...', targetUrl, elapsedMs: elapsed });
+        }
+      } catch {
+        sawDown = true;
+        setAutoOpen({ phase: 'restarting', message: 'mvn 완료 — DevTools 가 backend 재기동 중 (connection refused)...', targetUrl, elapsedMs: elapsed });
+      }
+    }
+    if (!autoOpenAbortRef.current) {
+      setAutoOpen({ phase: 'failed', message: '대기 시간 초과(120초). 위 [▶ 화면명] 버튼으로 직접 진입하세요.', targetUrl, elapsedMs: Date.now() - start });
+    }
+  };
+
+  const handlePreviewCancel = async () => {
+    autoOpenAbortRef.current = true;
+    setAutoOpen(null);
+    setPreviewBusy('cancel');
+    try {
+      const res = await cancelPreview(sessionId);
+      const r = res?.data || {};
+      setPreviewResult(null);
+      setSnackbar({
+        open: true, severity: 'info',
+        title: '미리보기 취소',
+        message: `🗑 preview 폴더 삭제 + DB ${r.dbRowsDeleted ?? 0}건 정리`,
+      });
+    } catch (e) {
+      const data = e?.response?.data || {};
+      setSnackbar({
+        open: true, severity: 'error',
+        title: '미리보기 취소 실패',
+        message: `❌ ${data.error || data.message || e?.message}`,
+      });
+    } finally {
+      setPreviewBusy(null);
     }
   };
 
@@ -236,6 +379,186 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
               </Box>
             }
           />
+        </Paper>
+
+        {/* ===== Phase 2a — Preview (docker 컨테이너에서 검증) ===== */}
+        <Paper variant="outlined" sx={{
+          p: 1.8, mb: 2, borderRadius: 2,
+          borderColor: previewResult?.success ? 'info.main' : 'divider',
+          bgcolor: previewResult?.success ? 'info.lighter' : 'grey.50',
+        }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.8 }}>
+            <VisibilityIcon fontSize="small" color="info" />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              미리보기 (docker 안에서 검증)
+            </Typography>
+            {previewResult?.success && (
+              <Chip size="small" color="info" label={`PV ${previewResult.sid8}`} sx={{ fontSize: 10, height: 18 }} />
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.2 }}>
+            JSX / SQL DDL / SP / MENU 만 임시 위치에 적용해 메뉴트리에서 화면을 직접 띄워볼 수 있습니다.
+            (Java 는 Phase 2b 미구현 — 정식 적용 시점에 컴파일.) 검증 후 [정식 적용] 또는 [미리보기 취소].
+          </Typography>
+          {previewResult && (
+            <Alert
+              severity={previewResult.success ? 'success' : 'error'}
+              sx={{ mb: 1, py: 0.5 }}
+            >
+              {previewResult.success ? (
+                <Typography variant="caption" component="div">
+                  ✓ JSX {previewResult.jsxOk} · DDL {previewResult.ddlOk} · SP {previewResult.spOk} · MENU {previewResult.menuOk} · Java {previewResult.javaOk || 0}
+                  {previewResult.javaFail > 0 && (
+                    <Box component="span" sx={{ ml: 1, color: 'error.main' }}>
+                      (Java {previewResult.javaFail}건 실패)
+                    </Box>
+                  )}
+                  <Box component="span" sx={{ display: 'block', mt: 0.3 }}>
+                    {previewResult.note}
+                  </Box>
+
+                  {/* 자동 진입 진행 단계 */}
+                  {autoOpen && (
+                    <Box sx={{
+                      mt: 1, p: 1, borderRadius: 1,
+                      bgcolor: autoOpen.phase === 'ready' ? 'rgba(16,185,129,0.10)'
+                              : autoOpen.phase === 'failed' ? 'rgba(239,68,68,0.10)'
+                              : 'rgba(245,158,11,0.10)',
+                      border: '1px solid',
+                      borderColor: autoOpen.phase === 'ready' ? 'success.light'
+                                  : autoOpen.phase === 'failed' ? 'error.light'
+                                  : 'warning.light',
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        {autoOpen.phase === 'ready' ? (
+                          <CheckCircleIcon fontSize="small" color="success" />
+                        ) : autoOpen.phase === 'failed' ? (
+                          <ErrorIcon fontSize="small" color="error" />
+                        ) : (
+                          <>
+                            <HourglassTopIcon fontSize="small" color="warning" sx={{
+                              animation: 'composerHourglass 1.5s linear infinite',
+                              '@keyframes composerHourglass': {
+                                '0%':   { transform: 'rotate(0deg)' },
+                                '50%':  { transform: 'rotate(180deg)' },
+                                '100%': { transform: 'rotate(360deg)' },
+                              },
+                            }} />
+                            <CircularProgress size={14} thickness={6} />
+                          </>
+                        )}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                            {autoOpen.phase === 'compiling'  && '⏳ 1/2 mvn compile (Java 산출물)'}
+                            {autoOpen.phase === 'restarting' && '🔄 2/2 backend 자동 재기동'}
+                            {autoOpen.phase === 'ready'      && '✅ 준비 완료 — 새 창에서 화면 진입'}
+                            {autoOpen.phase === 'failed'     && '⚠ 자동 진입 실패'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                            {autoOpen.message}
+                            {autoOpen.elapsedMs > 0 && (
+                              <Box component="span" sx={{ ml: 1, fontFamily: 'monospace' }}>
+                                ({Math.round(autoOpen.elapsedMs / 1000)}s)
+                              </Box>
+                            )}
+                          </Typography>
+                        </Box>
+                        {autoOpen.phase === 'failed' && previewResult?.previewLinks?.[0]?.url && (
+                          <Button
+                            size="small" variant="outlined" color="info"
+                            startIcon={<RestartAltIcon />}
+                            href={previewResult.previewLinks[0].url}
+                            target="_blank" rel="noopener noreferrer"
+                          >직접 진입</Button>
+                        )}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {/* 화면 진입 — preview 가 적용된 JSX 들 */}
+                  {Array.isArray(previewResult.previewLinks) && previewResult.previewLinks.length > 0 && (
+                    <Box sx={{ mt: 1, p: 0.8, borderRadius: 1, bgcolor: 'rgba(6,182,212,0.10)', border: '1px solid', borderColor: 'info.light' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.dark', display: 'block', mb: 0.4 }}>
+                        🔗 화면 진입 (새 창에서 열기)
+                      </Typography>
+                      <Stack direction="row" spacing={0.6} flexWrap="wrap" sx={{ rowGap: 0.6 }}>
+                        {previewResult.previewLinks.map((lk, i) => (
+                          <Button
+                            key={i}
+                            size="small"
+                            variant="contained"
+                            color="info"
+                            href={lk.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ textTransform: 'none', fontSize: 11, py: 0.3 }}
+                          >
+                            ▶ {lk.label}
+                          </Button>
+                        ))}
+                      </Stack>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontSize: 10, color: 'text.secondary' }}>
+                        Java 산출물이 있으면 약 30~60초 후 backend 자동 재기동 완료된 다음 클릭하세요.
+                      </Typography>
+                    </Box>
+                  )}
+                  {previewResult.mvn && (
+                    <Box sx={{ mt: 0.6, pl: 1, borderLeft: '3px solid', borderColor: 'info.main', py: 0.3 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
+                        mvn compile (비동기) — pid {previewResult.mvn.pid || '-'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block' }}>
+                        {previewResult.mvn.note}
+                      </Typography>
+                      {previewResult.mvn.logFile && (
+                        <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 10.5, color: 'text.secondary' }}>
+                          log: {previewResult.mvn.logFile}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                  {Array.isArray(previewResult.unknownImports) && previewResult.unknownImports.length > 0 && (
+                    <Box sx={{ mt: 0.6, pl: 1, borderLeft: '3px solid', borderColor: 'warning.main', py: 0.3 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'warning.dark', display: 'block' }}>
+                        ⚠ 매핑 안 된 import {previewResult.unknownImports.length} 개 — 컴파일 실패 가능
+                      </Typography>
+                      {previewResult.unknownImports.slice(0, 5).map((imp, i) => (
+                        <Typography key={i} variant="caption" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 10.5 }}>
+                          · {imp}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                </Typography>
+              ) : (
+                <Typography variant="caption">
+                  ❌ {previewResult.error || '실패 — 서버 로그 확인'}
+                </Typography>
+              )}
+            </Alert>
+          )}
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant="contained"
+              color="info"
+              onClick={handlePreviewApply}
+              disabled={previewBusy !== null || applying}
+              startIcon={previewBusy === 'apply' ? <CircularProgress size={12} color="inherit" /> : <VisibilityIcon />}
+            >
+              {previewBusy === 'apply' ? '적용 중...' : '미리보기 적용'}
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              onClick={handlePreviewCancel}
+              disabled={previewBusy !== null || applying}
+              startIcon={previewBusy === 'cancel' ? <CircularProgress size={12} color="inherit" /> : <CancelIcon />}
+            >
+              {previewBusy === 'cancel' ? '정리 중...' : '미리보기 취소'}
+            </Button>
+          </Stack>
         </Paper>
 
         {result?.policyBlocked && (

@@ -165,3 +165,102 @@ docker exec composer-db /opt/mssql-tools18/bin/sqlcmd \
 **원인**: composer 에서 만든 MENU_CD 가 wingui 에 이미 존재
 
 **대처**: sync-db 스크립트가 `IF NOT EXISTS` 가드로 SKIP 하므로 정상. 이미 있는 메뉴를 강제 갱신하려면 별도 UPDATE SQL 작성.
+
+---
+
+## 10. 세션 확인 실패: Request failed with status code 404 (`/auth/validate`)
+
+**증상**: ChatPanel 첫 메시지 전송 시 `세션 확인 실패: Request failed with status code 404`
+
+**원인**: 프런트가 `GET /auth/validate` 로 세션 프리체크하는데 backend 에 endpoint 없음
+
+**대처**: `backend/src/main/java/com/zionex/t3composer/shared/auth/AuthController.java` 가 단순 `true` 반환 endpoint 제공. dev mock provider 의 `isValidAuthentication()` 그대로 반환.
+
+## 11. webpack proxy 로 SPA 라우트 `/composer` 가 404
+
+**증상**: 브라우저 새로고침 시 `Failed to load resource: 404 /composer`
+
+**원인**: webpack-dev-server 의 proxy 가 `/composer` prefix 를 무차별 forward → SPA 라우트도 backend 로 보냄
+
+**대처**: `frontend/webpack.config.js` 의 proxy 에 `bypass` 추가 — `Accept: text/html` GET 은 `/index.html` 로 fallback, 그 외 (`Accept: application/json`) 만 backend proxy.
+
+## 12. 화면 실행 시 504 Gateway Timeout
+
+**증상**: [화면 실행] 클릭 후 ~30초 뒤 504
+
+**원인 (3 단계 누적 사고)**:
+1. `spring.mvc.async.request-timeout` 기본 30초가 Anthropic Mono controller 보다 짧음 → `application.yaml` 에 `2700000` (45분) 설정
+2. ArtifactPreviewService 의 mvn compile 이 동기 실행 → DevTools 가 응답 보내기 전 self-restart → connection 끊김 → 별도 daemon thread 로 비동기화
+3. mvn 이 부분적으로 .class 갱신 → DevTools partial-state restart → `NoClassDefFoundError` → DevTools 의 `trigger-file: .devtools-restart-trigger` 옵션으로 random class 변경에 자동 restart 안 하게 + mvn 완료 후 명시적 trigger-file touch
+
+**대처**: 위 3 단계 모두 해소된 상태. 그래도 504 가 보이면 backend 로그의 `preview mvn compile finished exitCode=...` + `trigger-file touched` 라인 확인.
+
+## 13. RealGrid2 `No license or invalid license. license: undefined`
+
+**증상**: 콘솔에 RealGrid2 license 에러, grid 미렌더링
+
+**원인**: composer-frontend 가 RealGrid2 의 license 키를 등록 안 함. 부모 wingui 는 `src/main/resources/profile/local/static/license/realgrid-lic.js` 가 `var realGrid2Lic = '...'` 로 global 등록
+
+**대처**: `frontend/src/shim/wingui/common/realgrid-license.js` 가 부모와 동일한 키를 `window.realGrid2Lic` 등록 + `RealGrid.setLicenseKey()` 양쪽 호출. `BaseGrid.jsx` 가 `realgrid` import 보다 먼저 license side-effect import.
+
+## 14. 산출물 jsx 의 `useViewStore(s => s.activeViewId)` → globalButtons 미등록
+
+**증상**: 화면 실행 후 [조회] 버튼 click 시 `[shim] SearchArea: globalButtons.search 가 등록되지 않았습니다`
+
+**원인**: 산출물 jsx 가 `const activeViewId = useViewStore(s => s.activeViewId)` 호출 → wingui 표준은 `activeViewId` 가 `useContentStore` 소속 (rules/41a §4.6 의 store swap 안티패턴) → undefined 반환 → useEffect 의 `if (!activeViewId) return` 로 setViewInfo 호출 안 됨
+
+**대처**:
+- LLM 측: `.claude/rules/41a-composer-jsx.md §4.6` + `.claude/hooks/validators/composer-jsx.sh` 의 CG-STORE 검증 (Write/Edit 시 차단). 그러나 산출물은 ArtifactExtractor 가 직접 DB 저장이라 hook 미적용.
+- 단독 환경 보완: `frontend/src/shim/wingui/common/imports.js` 의 `useViewStore` state 에 `activeViewId: 'composer-standalone'` 도 노출 — 잘못된 store 사용 케이스도 동작.
+
+## 15. 산출물의 부재 컴포넌트 import (PopDepartment / PopPosition / fieldCascade)
+
+**증상**: webpack `Module not found: Can't resolve '@wingui/view/common/PopDepartment'`
+
+**원인**: rules/41c §6.0.3 의 ❌ 미실재 컴포넌트를 LLM 산출물이 import
+
+**대처**: shim 으로 stub 제공 — `frontend/src/shim/wingui/view/common/{PopDepartment,PopPosition,CommonCodeSelect}.jsx` + `frontend/src/shim/wingui/common/{CommonCodeSelect.jsx,fieldCascade.js}`. 빈 결과 반환 + 안내 텍스트.
+
+## 16. 산출물 endpoint 호출 시 404 (`/util/...` 등)
+
+**증상**: 화면 [조회] click → `GET http://localhost:5173/util/user-info-mgmts ... 404`
+
+**원인**: `webpack.config.js` 의 proxy 가 화이트리스트 (`/composer /actuator /auth`) 만 forward — 산출물이 만든 `/util /demandplan /masterplan /system /sales /inventory ...` 등 신규 prefix 는 proxy 안 됨
+
+**대처**: proxy `context: () => true` 로 모든 path 를 backend 로 넘기되 `bypass` 함수가 SPA route (Accept: text/html GET) 만 `/index.html` 로 fallback. webpack 자체 자산 (`/sockjs-node /hot-update *.js *.css *.map`) 은 webpack 직접 서빙. 산출물이 만들 모든 모듈 endpoint 자동 동작.
+
+## 17. 설계서 mock-up 이미지의 한글/영문이 깨짐 (□□□)
+
+**증상**: 설계서 .xlsx 의 "레이아웃" 시트 하단 mock-up image 의 모든 텍스트가 □ 박스로 표시
+
+**원인**: backend 컨테이너 (eclipse-temurin) 에 한글 (CJK) 폰트 + fontconfig 미설치 → Java AWT 가 글리프 못 그림
+
+**대처**:
+- `docker/backend/Dockerfile` — `apt-get install fonts-noto-core fonts-noto-cjk fontconfig` + `fc-cache -fv`
+- `ScreenMockupRenderer.cjkFont(style, size)` — 시스템 폰트 후보 (Noto Sans CJK KR / NanumGothic / Malgun Gothic 등) 중 한글 '가' 표시 가능한 첫 폰트 자동 선택 (1회 cache)
+- backend 재빌드 (`docker compose down composer-backend && docker compose up -d --build composer-backend`)
+
+## 18. 화면 [조회] 버튼 click 시점에 globalButtons.search 미등록 메시지
+
+**증상**: `[shim] SearchArea: globalButtons.search 가 등록되지 않았습니다`
+
+**원인**: 산출물 jsx 가 `useViewStore(s => s.activeViewId)` 잘못 사용 (`§14`) → useEffect 의 `if (!activeViewId) return` early-exit → setViewInfo 호출 자체 skip
+
+**대처**:
+- 단독 환경 보완: `frontend/src/shim/wingui/common/imports.js` 의 `useViewStore` state 에 `activeViewId: 'composer-standalone'` 추가 (useContentStore 와 동일 값)
+- SearchArea 가 click 시점에 store 직접 lookup (subscribe 의 timing 무관)
+- LLM 측: `composer-jsx.sh CG-STORE` 가 산출물 jsx 작성 시 차단
+
+## 19. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
+
+**증상**: 화면 정상 진입 + [조회] 정상 호출하지만 그리드 0건
+
+**원인**: docker init 시드는 메뉴/권한/Composer 테이블만 INSERT. 마스터 테이블 (사용자정보 등) 은 빈 상태
+
+**대처**: 검증용 sample 데이터를 직접 INSERT — 예:
+```sql
+INSERT INTO TB_UT_USER_INFO (USER_ID, USER_NM, USER_EMAIL, ...) VALUES
+('admin', N'관리자', 'admin@example.com', ...),
+('user001', N'홍길동', 'hong@example.com', ...);
+```
+또는 화면의 [+ 행 추가] [💾 저장] 으로 사용자가 직접 입력해 round-trip 검증.

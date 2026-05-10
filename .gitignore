@@ -50,6 +50,19 @@ staging/output/
 staging/*.json
 !staging/.gitkeep
 
+# Composer Phase 2 preview (docker 내 검증용 임시 산출물)
+frontend/src/view/_preview/*
+!frontend/src/view/_preview/.gitkeep
+backend/src/main/java/com/zionex/t3composer/preview/
+
+# DevTools restart trigger (mvn worker thread 가 touch 하는 runtime artifact)
+backend/.devtools-restart-trigger
+backend/target/classes/.devtools-restart-trigger
+
+# Claude scheduled tasks lock (runtime)
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks/
+
 # Docker
 .docker-volumes/
 docker-data/

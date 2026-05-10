@@ -118,7 +118,7 @@ public class DesignDocExportService {
             buildRevisionHistorySheet(wb, styles, session);
             buildOverviewSheet(wb, styles, session, artifacts, layout,
                     grids, fields, calls, procs, tables);
-            buildLayoutSheet(wb, styles, layout);
+            buildLayoutSheet(wb, styles, layout, fields, grids, session);
             buildSearchConditionSheet(wb, styles, fields);
             buildGridListSheet(wb, styles, grids);
             for (GridSpec g : grids) {
@@ -361,7 +361,9 @@ public class DesignDocExportService {
         return sb.toString();
     }
 
-    private void buildLayoutSheet(Workbook wb, Styles s, LayoutInfo layout) {
+    private void buildLayoutSheet(Workbook wb, Styles s, LayoutInfo layout,
+                                  List<FieldSpec> fields, List<GridSpec> grids,
+                                  ComposerSession session) {
         XSSFSheet sh = (XSSFSheet) wb.createSheet("레이아웃");
         // col 0 — Lv / 순번 (좁아도 됨) / KeyValue 키
         sh.setColumnWidth(0, 4500);
@@ -432,6 +434,54 @@ public class DesignDocExportService {
                 Row r = sh.createRow(rowIdx++);
                 setCell(r, 1, s.cellStyle, "· " + note);
             }
+            rowIdx++;
+        }
+
+        // ── 6. 화면 미리보기 (Mock-up) — Spec 으로부터 PNG 생성해 시트 하단에 첨부 ──
+        rowIdx++;
+        rowIdx = writeSectionTitle(sh, rowIdx, s, "6. 화면 미리보기 (Mock-up)", span);
+        Row noteRow = sh.createRow(rowIdx++);
+        setCell(noteRow, 0, s.cellStyle,
+                "산출물 spec 으로 자동 생성된 layout mock-up. 실제 운영 화면은 RealGrid2 + wingui 룩으로 동일 형태.");
+        sh.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(noteRow.getRowNum(), noteRow.getRowNum(), 0, span - 1));
+
+        try {
+            String title = (session != null && session.getTitle() != null) ? session.getTitle() : "(화면)";
+            List<String> searchLabels = new ArrayList<>();
+            if (fields != null) {
+                for (FieldSpec f : fields) {
+                    String lbl = nvl(f.label);
+                    if (lbl.isBlank()) lbl = nvl(f.name);
+                    if (!lbl.isBlank()) searchLabels.add(lbl);
+                }
+            }
+            List<String> gridHeaders = new ArrayList<>();
+            if (grids != null && !grids.isEmpty()) {
+                GridSpec g0 = grids.get(0);
+                if (g0 != null && g0.columns != null) {
+                    for (ColumnSpec c : g0.columns) {
+                        String h = nvl(c.headerText);
+                        if (h.isBlank()) h = nvl(c.name);
+                        if (!h.isBlank()) gridHeaders.add(h);
+                    }
+                }
+            }
+            byte[] png = ScreenMockupRenderer.render(title, searchLabels, gridHeaders);
+            if (png != null && png.length > 0) {
+                int picIdx = wb.addPicture(png, Workbook.PICTURE_TYPE_PNG);
+                org.apache.poi.xssf.usermodel.XSSFCreationHelper helper = ((XSSFWorkbook) wb).getCreationHelper();
+                org.apache.poi.xssf.usermodel.XSSFDrawing drawing = sh.createDrawingPatriarch();
+                org.apache.poi.xssf.usermodel.XSSFClientAnchor anchor = helper.createClientAnchor();
+                anchor.setCol1(0);
+                anchor.setRow1(rowIdx);
+                anchor.setCol2(span);
+                anchor.setRow2(rowIdx + 28);  // 약 28 행 높이로 배치
+                org.apache.poi.xssf.usermodel.XSSFPicture pic = drawing.createPicture(anchor, picIdx);
+                pic.resize(1.0);  // 원본 픽셀 비율 유지
+                rowIdx += 30;
+            }
+        } catch (Exception ignored) {
+            // mock-up 실패해도 설계서 다른 부분은 계속 생성
         }
     }
 

@@ -42,6 +42,24 @@ public class ComposerProperties {
     /** DDL/SP 파일을 upgrade 폴더에 저장할 때 사용할 버전 폴더명 */
     private String upgradeVersion;
 
+    /**
+     * Phase 2a (JSX preview) — JSX 산출물을 frontend webpack-dev-server 가 watch 하는
+     * `frontend/src/view/_preview/<sid8>/...` 위치에 쓰기 위한 컨테이너 내부 절대 경로.
+     * docker-compose 의 `./frontend/src/view/_preview:/workspace/preview/frontend` 마운트와 매칭.
+     */
+    private String previewFrontendRoot;
+
+    /**
+     * Phase 2b (Java preview) — Java 산출물을 backend devtools 가 watch 하는 컨테이너 내부 src 경로.
+     * docker-compose 의 `./backend:/app` 마운트가 적용된 상태에서 `/app/src/main/java/com/zionex/t3composer/preview/s<sid8>/` 에 쓴다.
+     */
+    private String previewJavaRoot;
+
+    /**
+     * Phase 2b — mvn 실행 작업 디렉토리. 보통 `/app` (backend 컨테이너 안의 host-mounted ./backend).
+     */
+    private String previewMvnWorkdir;
+
     /** 쓰기 허용 경로 패턴 (glob) */
     private List<String> allowWritePatterns = List.of(
         "**/view/**",

@@ -51,7 +51,8 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
       setApiKey('');
       if (onSaved) onSaved();
     } catch (e) {
-      setError(e?.response?.data?.error || e?.message || '저장 중 오류가 발생했습니다.');
+      const data = e?.response?.data || {};
+      setError(data.message || data.error || e?.message || '저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }

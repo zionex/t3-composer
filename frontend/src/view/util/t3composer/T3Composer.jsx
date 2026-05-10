@@ -23,6 +23,7 @@ import CheckCircleIcon       from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon      from '@mui/icons-material/WarningAmber';
 import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
+import HistoryIcon           from '@mui/icons-material/History';
 
 import { useLocation, useHistory } from 'react-router-dom';
 
@@ -102,6 +103,7 @@ function embossedPaper(accent, hovered = false) {
 // =====================================================================
 function LandingSelector({ onPickNew, onPickModify, onOpenSettings, apiKeyRegistered }) {
   const [hovered, setHovered] = useState(null);
+  const history = useHistory();
 
   return (
     <Box sx={{
@@ -175,6 +177,11 @@ function LandingSelector({ onPickNew, onPickModify, onOpenSettings, apiKeyRegist
                 {apiKeyRegistered ? 'API Key 등록' : 'API Key 필요'}
               </Typography>
             </Box>
+          </Tooltip>
+          <Tooltip title="작업 이력 — 진행중·완료·보관 세션 관리">
+            <IconButton size="small" onClick={() => history.push('/history')} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+              <HistoryIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
           <Tooltip title="설정">
             <IconButton size="small" onClick={onOpenSettings} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>

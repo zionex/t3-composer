@@ -92,12 +92,14 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
       fi
     fi
 
-    # CG-STORE. Zustand store 매핑 swap 차단 (2026-04-27 사고 재발 방지)
+    # CG-STORE. Zustand store 매핑 swap 차단 (2026-04-27 사고 + 2026-05-11 t3-composer 단독 환경 재발)
     # activeViewId 는 useContentStore, setViewInfo 는 useViewStore — 헷갈려 swap 하면
     # selector 가 undefined 를 돌려주어 setViewInfo(...) 호출 시 TypeError.
+    # ★ 단독 환경 (t3-composer) 에서는 useEffect 의 if (!activeViewId) return 으로 setViewInfo
+    #    호출 자체가 skip 되어 globalButtons 미등록 → SearchArea 의 [조회] 버튼 click 무반응 사고 발생.
     if grep -qE "useViewStore\s*\(\s*\([^)]*\)\s*=>[^)]*\.activeViewId" <<<"$CONTENT"; then
-      block "activeViewId 는 useContentStore 소속입니다 (useViewStore 아님). useViewStore selector 에서 .activeViewId 를 읽으면 undefined. 정정: const [activeViewId] = useContentStore((s) => [s.activeViewId]);" \
-            "rules/41a-composer-jsx.md §4.6"
+      block "activeViewId 는 useContentStore 소속입니다 (useViewStore 아님). useViewStore selector 에서 .activeViewId 를 읽으면 undefined → useEffect 의 if(!activeViewId) return 로 setViewInfo 호출 자체가 skip → globalButtons 미등록 → SearchArea 의 [조회] 버튼 click 시 무반응. 정정: const [activeViewId] = useContentStore((s) => [s.activeViewId]);" \
+            "rules/41a-composer-jsx.md §4.6 · TROUBLESHOOTING.md §14"
     fi
     if grep -qE "useContentStore\s*\(\s*\([^)]*\)\s*=>[^)]*\.setViewInfo" <<<"$CONTENT"; then
       block "setViewInfo 는 useViewStore 소속입니다 (useContentStore 아님). useContentStore selector 에서 .setViewInfo 를 읽으면 undefined → setViewInfo(...) 호출 시 'is not a function' TypeError. 정정: const [setViewInfo] = useViewStore((s) => [s.setViewInfo]);" \
@@ -197,6 +199,17 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
       if grep -qE "name:[[:space:]]*['\"](deptCd|DEPT_CD|positionCd|POSITION_CD)['\"]" <<<"$CONTENT" \
          && ! grep -q "PopDepartment\|PopPosition" <<<"$CONTENT"; then
         warn "부서/직위 필드는 PopDepartment / PopPosition POPUP 연결 권장 (rules/41c-composer-widgets.md §6.1)"
+      fi
+
+      # CG-SEARCH-TRIGGER. SearchArea 가 있는데 search 트리거 (globalButtons.search 또는 onSearch) 미등록
+      # → [조회] 버튼 click 시 무반응. 2026-05-11 t3-composer 단독 환경 사고 후 추가.
+      if grep -qE "<SearchArea\b" <<<"$CONTENT" \
+         && ! grep -qE "name:\s*['\"]search['\"]" <<<"$CONTENT" \
+         && ! grep -qE "onSearch=" <<<"$CONTENT"; then
+        warn "SearchArea 가 있으나 search 트리거가 등록되지 않았습니다. " \
+             "(a) setViewInfo(activeViewId, 'globalButtons', [{name:'search', action: handleSubmit(handleSearch), visible:true, disable:false}]) " \
+             "또는 (b) <SearchArea onSearch={handleSubmit(handleSearch)}> 둘 중 하나 필수. " \
+             "(rules/20-screen-development.md §3.3 · TROUBLESHOOTING.md §14)"
       fi
 
       # CG5g. 공통코드 성 필드 (USE_YN, USER_TP, STATUS_CD 등) 가 있는데 CommonCodeSelect 미사용

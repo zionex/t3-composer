@@ -105,10 +105,18 @@ services:
       COMPOSER_WINGUI_REF_PATH: /workspace/wingui
       COMPOSER_DATABASE_REF_PATH: /workspace/database
       COMPOSER_UPGRADE_VERSION: ${COMPOSER_UPGRADE_VERSION:-v26.0.0-20260507}
+      COMPOSER_PREVIEW_FRONTEND_ROOT: /workspace/preview/frontend
+      COMPOSER_PREVIEW_JAVA_ROOT: /app/src/main/java/com/zionex/t3composer/preview
+      COMPOSER_PREVIEW_MVN_WORKDIR: /app
     ports:
       - "${COMPOSER_BACKEND_PORT:-8090}:8090"
     volumes:
+      # Phase 1 — DevTools 핫리로드용. host 의 backend 코드가 컨테이너에 보이게.
+      - ./backend:/app
+      - composer-maven-repo:/root/.m2
       - ./staging:/workspace/staging
+      # Phase 2a — JSX preview 산출물을 frontend webpack-dev-server 가 watch 하는 위치에 직접 작성.
+      - ./frontend/src/view/_preview:/workspace/preview/frontend
       - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
       - ${COMPOSER_DATABASE_REF_PATH:-../t3series/t3series-database}:/workspace/database:ro
     networks:
@@ -117,8 +125,8 @@ services:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8090/actuator/health"]
       interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 60s
+      retries: 20
+      start_period: 180s   # mvn 첫 컴파일 + dependency resolve 시간 확보
     restart: unless-stopped
 
   # ---------------------------------------------------------------
@@ -139,6 +147,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      # 부모 t3series-wingui 를 read-only 로 마운트 — webpack alias 로 wingui-core / RealGrid2 직접 사용
+      - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
     networks:
       - composer-net
     restart: unless-stopped
@@ -149,4 +159,6 @@ networks:
 
 volumes:
   composer-db-data:
+    driver: local
+  composer-maven-repo:
     driver: local

@@ -88,6 +88,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot DevTools — preview hot-reload (dev 컨테이너에서만 활성) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Commons -->
         <dependency>
             <groupId>org.apache.commons</groupId>

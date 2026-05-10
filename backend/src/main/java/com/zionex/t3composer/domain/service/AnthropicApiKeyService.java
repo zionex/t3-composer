@@ -37,7 +37,19 @@ public class AnthropicApiKeyService {
      */
     @Transactional
     public void saveApiKey(String userId, String apiKey, String description) {
-        String encrypted = SecurityUtils.encrypt(apiKey);
+        if (apiKey == null) {
+            throw new IllegalArgumentException("API key is null");
+        }
+        String trimmed = apiKey.trim();
+        if (!trimmed.startsWith("sk-ant-")) {
+            throw new IllegalArgumentException("API key must start with sk-ant-");
+        }
+        if (trimmed.length() < 80) {
+            throw new IllegalArgumentException(
+                "API key length " + trimmed.length() + " is too short. "
+                + "Anthropic keys are typically 100+ characters. Re-copy the entire key from the console.");
+        }
+        String encrypted = SecurityUtils.encrypt(trimmed);
 
         boolean exists = hasApiKey(userId);
         if (exists) {
@@ -99,6 +111,35 @@ public class AnthropicApiKeyService {
             log.error("Failed to decrypt Anthropic API key for userId={}: {}", userId, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * 키 진단 — 복호화한 키의 길이/prefix/suffix/SHA-256 prefix 만 반환 (전체 노출 X).
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> diagApiKey(String userId) {
+        Optional<String> opt = getApiKey(userId);
+        if (opt.isEmpty()) {
+            return java.util.Map.of("registered", false);
+        }
+        String key = opt.get();
+        String prefix = key.length() >= 12 ? key.substring(0, 12) : key;
+        String suffix = key.length() >= 4 ? key.substring(key.length() - 4) : "";
+        String digest = "";
+        try {
+            byte[] hash = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(key.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 4; i++) sb.append(String.format("%02x", hash[i]));
+            digest = sb.toString();
+        } catch (java.security.NoSuchAlgorithmException ignored) { /* SHA-256 standard */ }
+        return java.util.Map.of(
+                "registered", true,
+                "length",     key.length(),
+                "prefix",     prefix,
+                "suffix",     suffix,
+                "sha256_8",   digest
+        );
     }
 
     /**

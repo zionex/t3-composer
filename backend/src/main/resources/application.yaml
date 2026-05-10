@@ -27,6 +27,11 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
+  mvc:
+    # Anthropic 호출 (Mono 반환 controller) 가 async 처리되며 이 timeout 에 종속.
+    # AnthropicClient 의 responseTimeout(40분) 보다 같거나 약간 길게.
+    async:
+      request-timeout: 2700000   # 45분 (밀리초)
 
 server:
   port: ${COMPOSER_BACKEND_PORT:8090}
@@ -52,6 +57,9 @@ app:
     wingui-ref-path: ${COMPOSER_WINGUI_REF_PATH:/workspace/wingui}
     database-ref-path: ${COMPOSER_DATABASE_REF_PATH:/workspace/database}
     upgrade-version: ${COMPOSER_UPGRADE_VERSION:v26.0.0-20260507}
+    preview-frontend-root: ${COMPOSER_PREVIEW_FRONTEND_ROOT:/workspace/preview/frontend}
+    preview-java-root: ${COMPOSER_PREVIEW_JAVA_ROOT:/app/src/main/java/com/zionex/t3composer/preview}
+    preview-mvn-workdir: ${COMPOSER_PREVIEW_MVN_WORKDIR:/app}
     allow-write-patterns:
       - "**/view/**"
       - "**/data/menus.js"

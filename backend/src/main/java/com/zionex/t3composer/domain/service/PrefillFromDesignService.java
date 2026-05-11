@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
+import com.zionex.t3composer.domain.client.AnthropicModels.SystemBlock;
 import com.zionex.t3composer.domain.client.AnthropicModels.TextBlock;
 import com.zionex.t3composer.domain.dto.PrefillFromDesignRequest;
 
@@ -66,11 +68,16 @@ public class PrefillFromDesignService {
         log.info("prefill-from-design 호출: fileName={} → newMenuCd={} userPromptLen={} systemPromptLen={}",
                 req.getFileName(), req.getNewMenuCd(), userPrompt.length(), systemPrompt.length());
 
+        // 정적 system prompt 에 cache_control 부착 — 같은 prefill 을 5분 안에 재호출하면 input 비용 90% 절감
         MessagesRequest mreq = MessagesRequest.builder()
                 .model(MODEL_NAME)
                 .max_tokens(MAX_TOKENS)
                 .temperature(0.0)
-                .system(systemPrompt)
+                .system(List.of(SystemBlock.builder()
+                        .type("text")
+                        .text(systemPrompt)
+                        .cacheControl(CacheControl.builder().type("ephemeral").build())
+                        .build()))
                 .messages(List.of(Message.builder().role("user").content(userPrompt).build()))
                 .build();
 

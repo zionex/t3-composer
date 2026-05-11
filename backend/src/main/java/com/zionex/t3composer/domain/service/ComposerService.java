@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
+import com.zionex.t3composer.domain.client.AnthropicModels.SystemBlock;
 import com.zionex.t3composer.domain.dto.CreateSessionRequest;
 import com.zionex.t3composer.domain.entity.ComposerArtifact;
 import com.zionex.t3composer.domain.entity.ComposerMessage;
@@ -246,6 +248,18 @@ public class ComposerService {
         int inTok  = tokens(resp, true);
         int outTok = tokens(resp, false);
 
+        // Prompt caching 적중률 로깅 — cache_read > 0 이면 캐시 적중 (90% 할인된 input tokens).
+        if (resp != null && resp.getUsage() != null) {
+            Integer cacheCreate = resp.getUsage().getCacheCreationInputTokens();
+            Integer cacheRead   = resp.getUsage().getCacheReadInputTokens();
+            if ((cacheCreate != null && cacheCreate > 0) || (cacheRead != null && cacheRead > 0)) {
+                log.info("Anthropic prompt cache: session={} in={} out={} cache_create={} cache_read={}",
+                        session.getId(), inTok, outTok,
+                        cacheCreate != null ? cacheCreate : 0,
+                        cacheRead   != null ? cacheRead   : 0);
+            }
+        }
+
         int nextSeq = nextTurnSeq(session.getId());
         ComposerMessage m = ComposerMessage.builder()
                 .sessionId(session.getId())
@@ -434,10 +448,29 @@ public class ComposerService {
                     .build());
         }
 
+        // System prompt 를 정적/세션 두 블록으로 분리.
+        // 정적 블록(INVARIANTS + BASE_SYSTEM + 모드별 가이드 + 재확인 후미) 에 cache_control 부착 →
+        // 같은 모드의 후속 호출은 5분 TTL 안에서 input token 비용 90% 절감 (Anthropic Prompt Caching).
+        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getMode());
+        String sessionPart = promptBuilder.buildSessionSystemPrompt(session);
+
+        List<SystemBlock> systemBlocks = new ArrayList<>();
+        systemBlocks.add(SystemBlock.builder()
+                .type("text")
+                .text(staticPart)
+                .cacheControl(CacheControl.builder().type("ephemeral").build())
+                .build());
+        if (sessionPart != null && !sessionPart.isBlank()) {
+            systemBlocks.add(SystemBlock.builder()
+                    .type("text")
+                    .text(sessionPart)
+                    .build());
+        }
+
         return MessagesRequest.builder()
                 .model(session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL)
                 .max_tokens(DEFAULT_MAX_TOKENS)
-                .system(promptBuilder.buildSystemPrompt(session))
+                .system(systemBlocks)
                 .messages(messages)
                 .build();
     }

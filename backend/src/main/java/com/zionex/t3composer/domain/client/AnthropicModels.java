@@ -29,10 +29,38 @@ public class AnthropicModels {
     public static class MessagesRequest {
         private String model;
         private Integer max_tokens;
-        private String system;
+        /**
+         * Anthropic API 는 system 에 String 또는 SystemBlock 배열을 받음.
+         * Prompt caching 을 쓰려면 배열 형태로 보내고 캐시 대상 블록에 cache_control 부착.
+         */
+        private List<SystemBlock> system;
         private List<Message> messages;
         private Double temperature;
         private Boolean stream;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class SystemBlock {
+        /** 항상 "text" */
+        private String type;
+        private String text;
+
+        @JsonProperty("cache_control")
+        private CacheControl cacheControl;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CacheControl {
+        /** "ephemeral" (5분 TTL) */
+        private String type;
     }
 
     @Data
@@ -91,6 +119,14 @@ public class AnthropicModels {
 
         @JsonProperty("output_tokens")
         private Integer outputTokens;
+
+        /** Prompt caching 으로 새로 쓴 토큰 (이번 호출에서 캐시 생성) */
+        @JsonProperty("cache_creation_input_tokens")
+        private Integer cacheCreationInputTokens;
+
+        /** Prompt caching 으로 적중한 토큰 (할인된 토큰 수) */
+        @JsonProperty("cache_read_input_tokens")
+        private Integer cacheReadInputTokens;
     }
 
     // ---- SSE streaming events ----

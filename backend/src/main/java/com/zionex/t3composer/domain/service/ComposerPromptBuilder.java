@@ -583,7 +583,68 @@ public class ComposerPromptBuilder {
     );
 
     public String buildSystemPrompt(ComposerSession session) {
+        return buildStaticSystemPrompt(session.getMode()) + buildSessionSystemPrompt(session);
+    }
+
+    /**
+     * 세션과 무관하게 거의 동일한 정적 부분 — INVARIANTS + BASE_SYSTEM + 모드별 가이드 + 재확인 후미.
+     * Anthropic Prompt Caching 의 cache 키 단위로 사용 (모드만 같으면 다른 세션도 캐시 적중).
+     */
+    public String buildStaticSystemPrompt(String mode) {
         StringBuilder sb = new StringBuilder(BASE_SYSTEM);
+
+        sb.append("\n=== 모드별 지침 ===\n");
+        if (mode == null) {
+            sb.append(MODE_PREFIX).append("일반 생성 모드에 준해 처리.\n").append(MODE_SUFFIX);
+        } else {
+            switch (mode) {
+                case ComposerSession.MODE_NEW_GENERAL:
+                case ComposerSession.MODE_NEW_NL:
+                    sb.append(newGeneralGuide());
+                    break;
+                case ComposerSession.MODE_NEW_STEP:
+                    // 통합 (2026-04): NEW_STEP / NEW_FROM_COPY / NEW_FROM_DESIGN 모두 9단계 Wizard 흐름.
+                    // 차이는 prefill 출처(빈 / sourceBundle / parsedDesign)뿐. PromptBuilder 는 그에 맞춰
+                    // 추가 지침만 prepend.
+                    sb.append(newStepGuide(StepGuideMode.PLAIN));
+                    break;
+                case ComposerSession.MODE_NEW_FROM_DESIGN:
+                    sb.append(newStepGuide(StepGuideMode.DESIGN));
+                    break;
+                case ComposerSession.MODE_NEW_FROM_COPY:
+                    sb.append(newStepGuide(StepGuideMode.COPY));
+                    break;
+                case ComposerSession.MODE_EXISTING_MODIFY:
+                    sb.append(existingModifyGuide());
+                    break;
+                default:
+                    sb.append(MODE_PREFIX).append("일반 생성 모드에 준해 처리.\n").append(MODE_SUFFIX);
+            }
+        }
+
+        // mode guide 뒤에 불변 원칙 재강조 — LLM 이 절대 우회하지 못하도록 최종 재확인
+        sb.append("\n\n");
+        sb.append("═══════════════════════════════════════════════════════════════\n");
+        sb.append("재확인 — 위 모든 모드는 INVARIANTS (§①~⑩) 위반 불가:\n");
+        sb.append("  · §① 유사 원본 Read 후 '참조 원본:' 명시 + 트랙 A(JSX)/B(코드템플릿)/C(변환규칙) 분리\n");
+        sb.append("  · §② wingui 단독 구동 + SP_UI_*.sql DDL + Entity + Service(JdbcTemplate SP 호출) + Controller\n");
+        sb.append("  · §③ zAxios → RestController → JdbcTemplate → SP_UI_* (callService 엔진 경유 금지 · 엔진 service XML 생성 금지)\n");
+        sb.append("  · §④ MENU_CD/PATH/FILE_PATH 규약 + 부모 메뉴 정확\n");
+        sb.append("  · §⑤ JSX 표면 API 단일 진실 (BaseGrid items/afterGridCreate · grid 문자열 id 등)\n");
+        sb.append("  · §⑥ 위젯/정렬/편집기 매트릭스 — editable:true 컬럼별 점검\n");
+        sb.append("  · §⑦ Cascade 자동 (useFieldCascade · applyGridCascade)\n");
+        sb.append("  · §⑧ SP 카탈로그 컨텍스트 활용 (SP_COMM_RAISE_ERR · SP_COMM_AUTO_GEN_ID · FN_G_*)\n");
+        sb.append("  · §⑨ 수정 모드도 동일 원칙\n");
+        sb.append("═══════════════════════════════════════════════════════════════\n");
+        return sb.toString();
+    }
+
+    /**
+     * 세션별로 달라지는 가변 부분 — SP SCREEN_NO 힌트 + 현재 세션 컨텍스트.
+     * 캐시 대상에서 제외 (매 호출마다 다른 텍스트가 될 수 있음).
+     */
+    public String buildSessionSystemPrompt(ComposerSession session) {
+        StringBuilder sb = new StringBuilder();
 
         // SP SCREEN_NO 자동 할당 — DB 의 현재 사용 중인 SP 를 조회해 도메인별 권장 NN 주입.
         // 신규 모드일 때만 의미 있으므로 EXISTING_MODIFY 는 생략.
@@ -609,45 +670,6 @@ public class ComposerPromptBuilder {
             sb.append("- 업로드 설계서: ").append(session.getDesignDocName()).append("\n");
         }
 
-        sb.append("\n=== 모드별 지침 ===\n");
-        switch (session.getMode()) {
-            case ComposerSession.MODE_NEW_GENERAL:
-            case ComposerSession.MODE_NEW_NL:
-                sb.append(newGeneralGuide());
-                break;
-            case ComposerSession.MODE_NEW_STEP:
-                // 통합 (2026-04): NEW_STEP / NEW_FROM_COPY / NEW_FROM_DESIGN 모두 9단계 Wizard 흐름.
-                // 차이는 prefill 출처(빈 / sourceBundle / parsedDesign)뿐. PromptBuilder 는 그에 맞춰
-                // 추가 지침만 prepend.
-                sb.append(newStepGuide(StepGuideMode.PLAIN));
-                break;
-            case ComposerSession.MODE_NEW_FROM_DESIGN:
-                sb.append(newStepGuide(StepGuideMode.DESIGN));
-                break;
-            case ComposerSession.MODE_NEW_FROM_COPY:
-                sb.append(newStepGuide(StepGuideMode.COPY));
-                break;
-            case ComposerSession.MODE_EXISTING_MODIFY:
-                sb.append(existingModifyGuide());
-                break;
-            default:
-                sb.append(MODE_PREFIX).append("일반 생성 모드에 준해 처리.\n").append(MODE_SUFFIX);
-        }
-
-        // mode guide 뒤에 불변 원칙 재강조 — LLM 이 절대 우회하지 못하도록 최종 재확인
-        sb.append("\n\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n");
-        sb.append("재확인 — 위 모든 모드는 INVARIANTS (§①~⑩) 위반 불가:\n");
-        sb.append("  · §① 유사 원본 Read 후 '참조 원본:' 명시 + 트랙 A(JSX)/B(코드템플릿)/C(변환규칙) 분리\n");
-        sb.append("  · §② wingui 단독 구동 + SP_UI_*.sql DDL + Entity + Service(JdbcTemplate SP 호출) + Controller\n");
-        sb.append("  · §③ zAxios → RestController → JdbcTemplate → SP_UI_* (callService 엔진 경유 금지 · 엔진 service XML 생성 금지)\n");
-        sb.append("  · §④ MENU_CD/PATH/FILE_PATH 규약 + 부모 메뉴 정확\n");
-        sb.append("  · §⑤ JSX 표면 API 단일 진실 (BaseGrid items/afterGridCreate · grid 문자열 id 등)\n");
-        sb.append("  · §⑥ 위젯/정렬/편집기 매트릭스 — editable:true 컬럼별 점검\n");
-        sb.append("  · §⑦ Cascade 자동 (useFieldCascade · applyGridCascade)\n");
-        sb.append("  · §⑧ SP 카탈로그 컨텍스트 활용 (SP_COMM_RAISE_ERR · SP_COMM_AUTO_GEN_ID · FN_G_*)\n");
-        sb.append("  · §⑨ 수정 모드도 동일 원칙\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n");
         return sb.toString();
     }
 

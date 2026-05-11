@@ -64,7 +64,14 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- MSSQL JDBC -->
+        <!-- PostgreSQL JDBC (Composer 자체 운영 DB — 2026-05-11 전환) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.4</version>
+        </dependency>
+
+        <!-- MSSQL JDBC (Target=T3SERIES_MSSQL 의 운영 DB 접근/검증용 — Phase 4 dialect 분기) -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>

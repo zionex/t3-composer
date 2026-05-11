@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 
 import StepDataInspector from '../StepDataInspector';
+import InferredSqlPanel from '../InferredSqlPanel';
 
 /**
  * 모듈 도메인별 default source.
@@ -38,8 +39,22 @@ const SOURCES_BASE = [
  *  · ONTOLOGY   : menu_cd 또는 entity id → NL Query 플로우
  *  · DIRECT     : 사용자가 URL 직접 입력
  */
-function Step4DataBinding({ areas, value, moduleCode, onChange }) {
+function Step4DataBinding({ areas, value, moduleCode, onChange, sourceBundle }) {
   const defaultSrc = defaultSourceFor(moduleCode);
+
+  // sourceBundle 의 모든 Repository 의 queryMethods 합쳐 — JPA_ENTITY area 일 때 표시
+  const allQueryMethods = React.useMemo(() => {
+    const repos = (sourceBundle && sourceBundle.backend && sourceBundle.backend.repositories) || [];
+    const out = [];
+    for (const repo of repos) {
+      if (Array.isArray(repo.queryMethods)) {
+        for (const qm of repo.queryMethods) {
+          out.push({ ...qm, repoName: repo.className || repo.name });
+        }
+      }
+    }
+    return out;
+  }, [sourceBundle]);
   const SOURCES = SOURCES_BASE.map((s) =>
     s.value === defaultSrc ? { ...s, label: `${s.label} · 권장` } : s
   );
@@ -193,6 +208,14 @@ function Step4DataBinding({ areas, value, moduleCode, onChange }) {
                       InputLabelProps={{ shrink: true }}
                     />
                   </Stack>
+                  {/* Repository method-name → 추론 SQL (Hibernate 가 런타임에 생성할 실제 쿼리 미리보기) */}
+                  {allQueryMethods.length > 0 && (
+                    <InferredSqlPanel
+                      queryMethods={allQueryMethods}
+                      title={`JPA 추론 SQL — Hibernate 가 런타임에 발생시킬 쿼리 (${allQueryMethods.length}건)`}
+                      defaultExpanded={false}
+                    />
+                  )}
                 </>
               )}
 

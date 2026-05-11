@@ -53,9 +53,10 @@ public class SchemaInspectionService {
     public boolean tableExists(String tableName) {
         if (!isValidIdentifier(tableName)) return false;
         try {
+            // PG 호환: 식별자 비교를 case-insensitive 하게. PG 의 unquoted 식별자는 lowercase 로 저장됨.
             Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES" +
-                " WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW') AND TABLE_NAME = ?",
+                " WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW') AND LOWER(TABLE_NAME) = LOWER(?)",
                 Integer.class, tableName);
             return count != null && count > 0;
         } catch (DataAccessException e) {
@@ -82,7 +83,8 @@ public class SchemaInspectionService {
         try {
             schema = jdbcTemplate.queryForObject(
                 "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES" +
-                " WHERE TABLE_NAME = ? AND TABLE_TYPE IN ('BASE TABLE', 'VIEW')",
+                " WHERE LOWER(TABLE_NAME) = LOWER(?) AND TABLE_TYPE IN ('BASE TABLE', 'VIEW')" +
+                " LIMIT 1",
                 String.class, tableName);
         } catch (DataAccessException e) {
             schema = null;
@@ -98,7 +100,7 @@ public class SchemaInspectionService {
             "       NUMERIC_PRECISION, NUMERIC_SCALE, IS_NULLABLE," +
             "       COLUMN_DEFAULT, ORDINAL_POSITION" +
             "  FROM INFORMATION_SCHEMA.COLUMNS" +
-            " WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?" +
+            " WHERE LOWER(TABLE_SCHEMA) = LOWER(?) AND LOWER(TABLE_NAME) = LOWER(?)" +
             " ORDER BY ORDINAL_POSITION",
             (rs, rowNum) -> {
                 ColumnInfo c = new ColumnInfo();
@@ -123,7 +125,7 @@ public class SchemaInspectionService {
             "   AND tc.TABLE_SCHEMA   = kcu.TABLE_SCHEMA" +
             "   AND tc.TABLE_NAME     = kcu.TABLE_NAME" +
             " WHERE tc.CONSTRAINT_TYPE = 'PRIMARY KEY'" +
-            "   AND tc.TABLE_SCHEMA = ? AND tc.TABLE_NAME = ?" +
+            "   AND LOWER(tc.TABLE_SCHEMA) = LOWER(?) AND LOWER(tc.TABLE_NAME) = LOWER(?)" +
             " ORDER BY kcu.ORDINAL_POSITION",
             String.class, schema, tableName);
 
@@ -133,14 +135,16 @@ public class SchemaInspectionService {
         }
         b.columns(columns).primaryKeyColumns(pkColumns);
 
-        // 4) 행 수 추정 (MSSQL sys.partitions — 정확치는 않음)
+        // 4) 행 수 추정 (PG: pg_class.reltuples — Composer 자체 DB(PG) 의 estimate)
+        // 추후 Phase 4 에서 Target dialect 별 분기 — 지금은 PG 만.
         try {
             Long rowCount = jdbcTemplate.queryForObject(
-                "SELECT SUM(p.rows) FROM sys.partitions p" +
-                "  JOIN sys.tables t ON p.object_id = t.object_id" +
-                "  JOIN sys.schemas s ON t.schema_id = s.schema_id" +
-                " WHERE p.index_id IN (0, 1)" +
-                "   AND s.name = ? AND t.name = ?",
+                "SELECT COALESCE(c.reltuples::bigint, 0)" +
+                "  FROM pg_class c" +
+                "  JOIN pg_namespace n ON c.relnamespace = n.oid" +
+                " WHERE LOWER(n.nspname) = LOWER(?)" +
+                "   AND LOWER(c.relname) = LOWER(?)" +
+                "   AND c.relkind IN ('r','p')",
                 Long.class, schema, tableName);
             b.approximateRowCount(rowCount);
         } catch (DataAccessException e) {

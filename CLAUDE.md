@@ -132,6 +132,30 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 - 둘 사이 vertical SplitPane (드래그)
 - 우측 (68%): Tab Container (실행 화면 / 아티팩트 소스), 좌우 사이 horizontal SplitPane
 
+### Per-Target 운영 DB 직접 접근 (Phase 3 — 2026-05-11)
+- `tb_cmp_target_system` 에 db_url/user/pass/driver_class 컬럼 추가 (`init-pg/23`, `24`)
+- `TargetDataSourceRegistry` — target_cd → HikariDataSource on-demand 캐시
+- `TargetDbConnectionEnvLoader` — `.env` 의 `TARGET_<CD>_DB_*` 환경변수 startup 시 적용 (T3SERIES 기본 채워짐)
+- `PrimaryDataSourceConfig.composerJdbcTemplate` (★ Primary) — composer-db PG 전용 (jsonb UPDATE 우회용 직접 SQL)
+- `GET /composer/target/menus?lang=ko&target=T3SERIES` — 활성 Target 의 운영 DB 메뉴 트리 (`source: "target:T3SERIES" | "local"` 응답으로 routing 확인)
+- `POST /insight-apicall/screen-metadata/collect-source-for-llm` — JSX + Java(Controller/Service/Repository/Entity) + JPA 추론 SQL 한 번에 수집
+- Frontend: `useTargetStore.currentTargetCd` 가 `MenuTreeBrowser` · `ModeNewFromCopy` · `ModeExistingModify` · `collectSourceForLlm()` 까지 자동 전파
+- TargetSystemSelector dropdown 우측 [💾 Storage] 버튼 → `TargetDbConnectionDialog` (JDBC URL 입력 + 연결 테스트)
+
+### JPA 추론 SQL & 공용 소스 분석 패널 (Phase 3)
+- `JpaMethodSqlMapper` — Repository method-name → SQL 추론 (`@Column(name=...)` 매핑 우선)
+  - `findByXxxContaining` / `existsByXxx` / `deleteByXxx` / `@Query("...")` / `findAll/save/deleteById` stock
+- `InferredSqlPanel.jsx` — collapsible SQL preview + 클립보드 복사
+- `SourceBundleSection.jsx` — `SourceBundleAnalysisPanel` (SP/URL/Entity 칩) + `SourceBundlePreview` (섹션 + Repository 추론 SQL) **NEW_FROM_COPY / EXISTING_MODIFY 공용**
+- Step4 DataBinding 의 JPA_ENTITY 모드도 InferredSqlPanel 표시 (`sourceBundle` prop)
+
+### 산출물 호환 인프라 (Phase 3)
+- `JavaArtifactRewriter.injectTargetJdbcTemplateQualifier()` — 산출물 Service 의 `private final JdbcTemplate jdbcTemplate;` 에 `@Qualifier("targetJdbcTemplate")` 자동 주입
+- `backend/lombok.config` — `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` (Lombok 생성자 파라미터로 qualifier 복사)
+- `ResponseMessage.ofSuccess()` / `ofFail(msg)` 별칭 — LLM 환각 패턴 자동 호환
+- shim `GridSaveButton` / `GridDeleteRowButton` 이 `getAllStateRows()` 전 `g.commit(true)` 자동 호출 (RealGrid `Client is editing` 오류 회피)
+- AI prefill SP 오분류 방어 — Backend prompt + Frontend `mergeAiSpecIntoBaseSpec` 사후 정합화 (`source='SP'` AND SP 필드 빈 + baseUrl/entity 있음 → JPA_ENTITY 강제 전환)
+
 ## 3. 부모 폴더와의 관계 (sync 시점 외)
 
 - 단독 dev 시에는 부모 `t3series` 폴더 의존 없이 동작 가능

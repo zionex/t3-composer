@@ -55,6 +55,23 @@ public class JavaArtifactRewriter {
             "^\\s*import\\s+(static\\s+)?(com\\.zionex\\.t3series\\.[A-Za-z0-9_.*]+)\\s*;",
             Pattern.MULTILINE);
 
+    /**
+     * JdbcTemplate 필드 검출 — 산출물은 composer-db (PG) 가 아닌 target-db (MSSQL 등) 로
+     * 라우팅되어야 SP 호출이 동작하므로 {@code @Qualifier("targetJdbcTemplate")} 를 자동 주입.
+     * 매칭 그룹: 1=indent, 2=visibility, 3=final?, 4=variable name.
+     */
+    private static final Pattern JDBC_TEMPLATE_FIELD = Pattern.compile(
+            "(?m)^([ \\t]*)((?:private|protected|public)\\s+)?(final\\s+)?JdbcTemplate\\s+(\\w+)\\s*;");
+
+    /** JdbcTemplate import — Qualifier import 삽입 위치 결정 시 사용 */
+    private static final Pattern JDBC_TEMPLATE_IMPORT = Pattern.compile(
+            "(?m)^\\s*import\\s+org\\.springframework\\.jdbc\\.core\\.JdbcTemplate\\s*;");
+
+    private static final String QUALIFIER_IMPORT_LINE =
+            "import org.springframework.beans.factory.annotation.Qualifier;";
+
+    private static final String QUALIFIER_ANNOTATION = "@Qualifier(\"targetJdbcTemplate\")";
+
     public static class RewriteResult {
         public String content;            // 변환된 java 소스
         public String previewPackage;     // 새 package FQN
@@ -106,8 +123,85 @@ public class JavaArtifactRewriter {
         }
         impM.appendTail(buf2);
 
-        r.content = buf2.toString();
+        // 3) JdbcTemplate 필드에 @Qualifier("targetJdbcTemplate") 자동 주입
+        r.content = injectTargetJdbcTemplateQualifier(buf2.toString(), r);
+
         return r;
+    }
+
+    /**
+     * 산출물 Service 가 주입받는 {@code JdbcTemplate} 은 기본 Primary (composer-db PG) 가 아닌
+     * {@code targetJdbcTemplate} (target-db, MSSQL 등) 으로 라우팅되어야 한다.
+     *
+     * 변환:
+     *   {@code private final JdbcTemplate jdbcTemplate;}
+     *   →
+     *   {@code @Qualifier("targetJdbcTemplate")}
+     *   {@code private final JdbcTemplate jdbcTemplate;}
+     *
+     * Qualifier import 도 함께 보장. 이미 {@code @Qualifier} 가 붙어있거나 변수명이
+     * {@code targetJdbcTemplate} 이면 건너뜀.
+     *
+     * 주의: {@code @RequiredArgsConstructor} 가 생성하는 생성자 파라미터로 {@code @Qualifier}
+     * 가 복사되려면 프로젝트 {@code lombok.config} 에 다음 설정 필요:
+     *   {@code lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier}
+     */
+    private String injectTargetJdbcTemplateQualifier(String source, RewriteResult r) {
+        Matcher fm = JDBC_TEMPLATE_FIELD.matcher(source);
+        StringBuilder out = new StringBuilder();
+        boolean anyInjected = false;
+
+        while (fm.find()) {
+            String matched = fm.group();
+            String indent = fm.group(1) == null ? "" : fm.group(1);
+            String varName = fm.group(4);
+
+            // 이미 명시적으로 targetJdbcTemplate 을 사용 → 건너뜀
+            if ("targetJdbcTemplate".equals(varName)) {
+                fm.appendReplacement(out, Matcher.quoteReplacement(matched));
+                continue;
+            }
+
+            // 직전에 이미 @Qualifier 가 붙어있는지 — 매치 시작 직전 200자 검사
+            int regionStart = Math.max(0, fm.start() - 200);
+            String preceding = source.substring(regionStart, fm.start());
+            if (preceding.contains("@Qualifier")) {
+                fm.appendReplacement(out, Matcher.quoteReplacement(matched));
+                continue;
+            }
+
+            String replacement = indent + QUALIFIER_ANNOTATION + "\n" + matched;
+            fm.appendReplacement(out, Matcher.quoteReplacement(replacement));
+            anyInjected = true;
+        }
+        fm.appendTail(out);
+
+        if (!anyInjected) {
+            return source;
+        }
+
+        r.changed = true;
+        String result = out.toString();
+
+        // Qualifier import 보장
+        if (!result.contains("org.springframework.beans.factory.annotation.Qualifier")) {
+            Matcher jt = JDBC_TEMPLATE_IMPORT.matcher(result);
+            if (jt.find()) {
+                int insertAt = jt.end();
+                result = result.substring(0, insertAt) + "\n" + QUALIFIER_IMPORT_LINE
+                       + result.substring(insertAt);
+            } else {
+                // fallback: package 선언 뒤
+                Matcher pkg = PACKAGE_LINE.matcher(result);
+                if (pkg.find()) {
+                    int insertAt = pkg.end();
+                    result = result.substring(0, insertAt) + "\n\n" + QUALIFIER_IMPORT_LINE
+                           + result.substring(insertAt);
+                }
+            }
+        }
+
+        return result;
     }
 
     private String mapImport(String fqn, String sid8) {

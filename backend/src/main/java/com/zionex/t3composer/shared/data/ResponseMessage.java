@@ -67,4 +67,18 @@ public class ResponseMessage {
     public static ResponseMessage error(String message) {
         return of(HttpStatus.INTERNAL_SERVER_ERROR, message);
     }
+
+    // ─── LLM 산출물 호환 별칭 ─────────────────────────────────────
+    // 일부 산출물이 ofSuccess/ofFail 시그니처를 환각하므로 동일 시멘틱으로 alias 제공.
+    public static ResponseMessage ofSuccess() {
+        return ok();
+    }
+
+    public static ResponseMessage ofSuccess(String message) {
+        return ok(message);
+    }
+
+    public static ResponseMessage ofFail(String message) {
+        return error(message);
+    }
 }

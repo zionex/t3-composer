@@ -179,6 +179,29 @@ export function mergeAiSpecIntoBaseSpec(baseSpec, aiSpec) {
         }
       }
       // ─ baseline 에만 있고 AI 가 응답하지 않은 areaId 는 자연스럽게 보존 (`out = { ...baseS }`)
+
+      // ★ 사후 정합화 — source='SP' 인데 어떤 SP 도 못 채운 경우, baseUrl 이 있으면 JPA_ENTITY 로 강제 변환.
+      // AI 가 'SP' 라고 라벨링했지만 실제로는 Java/JSX 에 SP 호출이 0건인 화면 (예: UI_AD_02 Users) 대응.
+      for (const areaId of Object.keys(merged)) {
+        const v = merged[areaId];
+        if (!v || v.source !== 'SP') continue;
+        const hasSpName  = !!v.spName;
+        const hasCrud    = v.crudSp && (v.crudSp.read || v.crudSp.create || v.crudSp.update || v.crudSp.delete);
+        const hasAllSp   = Array.isArray(v.allSpNames) && v.allSpNames.length > 0;
+        const hasSvcIds  = Array.isArray(v.serviceIds) && v.serviceIds.length > 0;
+        if (hasSpName || hasCrud || hasAllSp || hasSvcIds) continue;
+        if (v.baseUrl || v.entity) {
+          // 빈 SP 필드 정리 후 JPA_ENTITY 로 전환
+          const corrected = { ...v, source: 'JPA_ENTITY' };
+          delete corrected.spName;
+          delete corrected.crudSp;
+          delete corrected.allSpNames;
+          delete corrected.serviceIds;
+          delete corrected.serviceIdToSp;
+          delete corrected.target;
+          merged[areaId] = corrected;
+        }
+      }
     } else {
       // step3 / step5 / step6 — 일반 병합 (AI 우선)
       for (const areaId of Object.keys(aiS)) {

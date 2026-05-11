@@ -3,19 +3,103 @@
 
 services:
   # ---------------------------------------------------------------
-  # 1. MSSQL 2022 — Composer 전용 단독 DB
+  # 1. PostgreSQL 17 — Composer 운영 데이터 DB (2026-05-11 PG 전환)
+  #    Composer 자체의 세션·메시지·아티팩트·패턴·사전을 보관.
+  #    Target System (T3SERIES_MSSQL 등) 의 SP 산출물은 Target 의 DB 방언
+  #    그대로 생성되며 이 DB 에 직접 실행되지 않음 (apply 는 dialect 분기 — Phase 4).
   # ---------------------------------------------------------------
   composer-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:17-alpine
     container_name: composer-db
     environment:
+      POSTGRES_USER: ${COMPOSER_DB_USER:-composer}
+      POSTGRES_PASSWORD: ${COMPOSER_DB_PASSWORD:-Composer!2026}
+      POSTGRES_DB: ${COMPOSER_DB_NAME:-t3composer}
+      # search_path 는 init 의 00_setup_schema.sql 이 DB-level 로 설정
+    ports:
+      - "${COMPOSER_DB_PORT:-15432}:5432"
+    volumes:
+      - composer-db-data:/var/lib/postgresql/data
+    networks:
+      - composer-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COMPOSER_DB_USER:-composer} -d ${COMPOSER_DB_NAME:-t3composer}"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # 2. DB Init — composer-db (PG) 에 init-pg/*.sql 적용
+  #    멱등: t3composer_init_done 테이블 존재 여부로 판단
+  # ---------------------------------------------------------------
+  composer-db-init:
+    image: postgres:17-alpine
+    container_name: composer-db-init
+    depends_on:
+      composer-db:
+        condition: service_healthy
+    environment:
+      PGUSER: ${COMPOSER_DB_USER:-composer}
+      PGPASSWORD: ${COMPOSER_DB_PASSWORD:-Composer!2026}
+      PGHOST: composer-db
+      PGPORT: "5432"
+      PGDATABASE: ${COMPOSER_DB_NAME:-t3composer}
+    volumes:
+      - ./docker/db/init-pg:/init:ro
+    networks:
+      - composer-net
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        echo "[init] Waiting for composer-db ..."
+        for i in $$(seq 1 30); do
+          psql -c "SELECT 1" > /dev/null 2>&1 && break
+          sleep 2
+        done
+
+        # 멱등 마커 — 있으면 skip
+        EXISTS=$$(psql -tA -c "SELECT CASE WHEN EXISTS(SELECT 1 FROM pg_class WHERE relname='t3composer_init_done') THEN 1 ELSE 0 END" 2>/dev/null | tr -d '[:space:]')
+        if [ "$$EXISTS" = "1" ]; then
+          echo "[init] t3composer_init_done marker exists. SKIP."
+          exit 0
+        fi
+
+        echo "[init] Running init SQL files (first time) ..."
+        for f in /init/00_*.sql /init/0[2-9]_*.sql /init/[1-9][0-9]_*.sql; do
+          [ -f "$$f" ] || continue
+          echo "[init]   $$f"
+          psql -v ON_ERROR_STOP=1 -f "$$f"
+          if [ $$? -ne 0 ]; then
+            echo "[init] FAILED at $$f"
+            exit 1
+          fi
+        done
+
+        # 멱등 마커
+        psql -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS t3composer_init_done (created timestamp DEFAULT now()); INSERT INTO t3composer_init_done DEFAULT VALUES;"
+        echo "[init] DONE"
+    restart: "no"
+
+  # ---------------------------------------------------------------
+  # 2a. Target Operational DB — MSSQL (T3SERIES/PLANNEL/LGES_NEXTSCM 공유)
+  #     화면 실행 (preview/apply) 시 LLM 산출 SP DDL 을 여기 적용.
+  #     composer-db (PG) 와 분리 — composer 메타 ↔ Target 방언 산출물 격리.
+  # ---------------------------------------------------------------
+  target-mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: target-mssql
+    environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
+      MSSQL_SA_PASSWORD: ${TARGET_MSSQL_PASSWORD:-Composer!2026}
       MSSQL_PID: Developer
     ports:
-      - "${MSSQL_PORT:-11433}:1433"
+      - "${TARGET_MSSQL_PORT:-11433}:1433"
     volumes:
-      - composer-db-data:/var/opt/mssql
+      - target-mssql-data:/var/opt/mssql
     networks:
       - composer-net
     healthcheck:
@@ -27,18 +111,17 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # ---------------------------------------------------------------
-  # 2. DB Init — 마커 행 (T3COMPOSER_INIT_DONE) 으로 멱등 보장
-  # ---------------------------------------------------------------
-  composer-db-init:
+  # Target MSSQL 의 DB 생성 + wingui minimal DDL/seed 적용
+  # composer 자체 메타 (TB_IS_COMPOSER_*) 은 PG 만. wingui 마스터 (TB_AD_*, TB_UT_*) 는 MSSQL.
+  target-mssql-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: composer-db-init
+    container_name: target-mssql-init
     depends_on:
-      composer-db:
+      target-mssql:
         condition: service_healthy
     environment:
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
-      COMPOSER_DB_NAME: ${COMPOSER_DB_NAME:-T3SMARTSCM}
+      MSSQL_SA_PASSWORD: ${TARGET_MSSQL_PASSWORD:-Composer!2026}
+      TARGET_DB_NAME: ${TARGET_DB_NAME:-T3SMARTSCM}
     volumes:
       - ./docker/db/init:/init:ro
     networks:
@@ -48,39 +131,33 @@ services:
       - -c
       - |
         set -e
-        SQLCMD="/opt/mssql-tools18/bin/sqlcmd -S composer-db -U sa -P $$MSSQL_SA_PASSWORD -C"
-
-        echo "[init] Waiting for composer-db ..."
+        SQLCMD="/opt/mssql-tools18/bin/sqlcmd -S target-mssql -U sa -P $$MSSQL_SA_PASSWORD -C"
+        echo "[target-init] Waiting for target-mssql ..."
         for i in $$(seq 1 30); do
           $$SQLCMD -Q "SELECT 1" -b -h -1 > /dev/null 2>&1 && break
           sleep 2
         done
 
-        # Step 1 — 01_create_database.sql 은 master 에서 실행 (DB 생성)
-        echo "[init] /init/01_create_database.sql"
+        # Step 1 — DB 생성 (master 에서)
+        echo "[target-init] /init/01_create_database.sql"
         $$SQLCMD -d master -i /init/01_create_database.sql -b
 
-        # Step 2 — 마커 테이블 체크. 있으면 init 끝.
-        EXISTS=$$($$SQLCMD -d $$COMPOSER_DB_NAME -h -1 -W -Q "SET NOCOUNT ON; SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.tables WHERE name='T3COMPOSER_INIT_DONE') THEN 1 ELSE 0 END" 2>/dev/null | head -1 | tr -d '[:space:]')
+        # Step 2 — 마커 체크. 있으면 skip.
+        EXISTS=$$($$SQLCMD -d $$TARGET_DB_NAME -h -1 -W -Q "SET NOCOUNT ON; SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.tables WHERE name='TARGET_INIT_DONE') THEN 1 ELSE 0 END" 2>/dev/null | head -1 | tr -d '[:space:]')
         if [ "$$EXISTS" = "1" ]; then
-          echo "[init] T3COMPOSER_INIT_DONE marker exists. SKIP."
+          echo "[target-init] TARGET_INIT_DONE marker exists. SKIP."
           exit 0
         fi
 
-        echo "[init] Running all init SQL files (first time) ..."
-        for f in /init/0[2-9]_*.sql /init/[1-9][0-9]_*.sql; do
-          [ -f "$$f" ] || continue
-          echo "[init]   $$f"
-          $$SQLCMD -d $$COMPOSER_DB_NAME -i "$$f" -b
-          if [ $$? -ne 0 ]; then
-            echo "[init] FAILED at $$f"
-            exit 1
-          fi
+        # Step 3 — wingui minimal (02, 03) 만 적용 — composer 자체 init (04~12) 는 PG 만.
+        for f in /init/02_wingui_minimal_ddl.sql /init/03_wingui_seed_menus_users.sql; do
+          echo "[target-init]   $$f"
+          $$SQLCMD -d $$TARGET_DB_NAME -i "$$f" -b
         done
 
         # Marker
-        $$SQLCMD -d $$COMPOSER_DB_NAME -Q "CREATE TABLE T3COMPOSER_INIT_DONE (created DATETIME DEFAULT GETDATE()); INSERT INTO T3COMPOSER_INIT_DONE DEFAULT VALUES;" -b
-        echo "[init] DONE"
+        $$SQLCMD -d $$TARGET_DB_NAME -Q "CREATE TABLE TARGET_INIT_DONE (created DATETIME DEFAULT GETDATE()); INSERT INTO TARGET_INIT_DONE DEFAULT VALUES;" -b
+        echo "[target-init] DONE"
     restart: "no"
 
   # ---------------------------------------------------------------
@@ -94,11 +171,29 @@ services:
     depends_on:
       composer-db-init:
         condition: service_completed_successfully
+      target-mssql-init:
+        condition: service_completed_successfully
     environment:
       SPRING_PROFILES_ACTIVE: ${COMPOSER_PROFILE:-dev}
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://composer-db:1433;databaseName=${COMPOSER_DB_NAME:-T3SMARTSCM};encrypt=true;trustServerCertificate=true
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-Composer!2026}
+      # Primary DataSource — Composer 자체 메타 DB (PG)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://composer-db:5432/${COMPOSER_DB_NAME:-t3composer}?currentSchema=dbo,public
+      SPRING_DATASOURCE_USERNAME: ${COMPOSER_DB_USER:-composer}
+      SPRING_DATASOURCE_PASSWORD: ${COMPOSER_DB_PASSWORD:-Composer!2026}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Secondary DataSource — Target operational DB (MSSQL).
+      # SP/DDL 산출물이 여기로 실행됨.
+      TARGET_DATASOURCE_URL: jdbc:sqlserver://target-mssql:1433;databaseName=${TARGET_DB_NAME:-T3SMARTSCM};encrypt=true;trustServerCertificate=true
+      TARGET_DATASOURCE_USERNAME: sa
+      TARGET_DATASOURCE_PASSWORD: ${TARGET_MSSQL_PASSWORD:-Composer!2026}
+      TARGET_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      # Per-Target System 운영 DB 접속 정보 — 비어있으면 startup 시 update 안 함
+      # (이미 DB 에 저장된 값 유지). Target=T3SERIES 의 db_url/계정을 외부 (운영/개발 DB) 로
+      # 라우팅하고 싶을 때 .env 에 설정.
+      TARGET_T3SERIES_DB_URL:           ${TARGET_T3SERIES_DB_URL:-}
+      TARGET_T3SERIES_DB_USERNAME:      ${TARGET_T3SERIES_DB_USERNAME:-}
+      TARGET_T3SERIES_DB_PASSWORD:      ${TARGET_T3SERIES_DB_PASSWORD:-}
+      TARGET_T3SERIES_DB_DRIVER_CLASS:  ${TARGET_T3SERIES_DB_DRIVER_CLASS:-com.microsoft.sqlserver.jdbc.SQLServerDriver}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       COMPOSER_APPLY_MODE: ${COMPOSER_APPLY_MODE:-staging}
       COMPOSER_PROJECT_ROOT: /workspace/staging
@@ -119,6 +214,10 @@ services:
       - ./frontend/src/view/_preview:/workspace/preview/frontend
       - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
       - ${COMPOSER_DATABASE_REF_PATH:-../t3series/t3series-database}:/workspace/database:ro
+      # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.
+      # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
+      # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.
+      - ${COMPOSER_T3SERIES_CLAUDE_PATH:-./.claude}:/workspace/t3series-claude:ro
     networks:
       - composer-net
     healthcheck:
@@ -159,6 +258,8 @@ networks:
 
 volumes:
   composer-db-data:
+    driver: local
+  target-mssql-data:
     driver: local
   composer-maven-repo:
     driver: local

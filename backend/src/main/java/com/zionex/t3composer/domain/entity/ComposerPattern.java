@@ -57,10 +57,10 @@ public class ComposerPattern {
     @Column(name = "NAME_EN")
     private String nameEn;
 
-    @Column(name = "DESCRIPTION", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "DESCRIPTION", columnDefinition = "text")
     private String description;
 
-    @Column(name = "VISUAL", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "VISUAL", columnDefinition = "text")
     private String visual;
 
     @Column(name = "EXAMPLE_FILE")
@@ -72,10 +72,10 @@ public class ComposerPattern {
     @Column(name = "RECOMMENDED_FOR")
     private String recommendedFor;
 
-    @Column(name = "COMPONENT_STACK", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "COMPONENT_STACK", columnDefinition = "text")
     private String componentStack;
 
-    @Column(name = "WHEN_TO_USE", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "WHEN_TO_USE", columnDefinition = "text")
     private String whenToUse;
 
     @Column(name = "SORT_ORDER")

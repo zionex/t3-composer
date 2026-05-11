@@ -234,11 +234,21 @@ public class FeatureController {
 ```
 
 ### §5.6.4 Service.saveAll (JdbcTemplate + SP 호출 — 2026-04-27 정책)
+
+> ⚠️ **JdbcTemplate 인젝션 — Composer 단독 환경에서는 `@Qualifier("targetJdbcTemplate")` 필수.**
+>
+> wingui 본 환경은 단일 DataSource 라 무지정 OK. **t3-composer 단독 환경은 composer-db (PG) 와 target-mssql 2개 DataSource** 라 무지정 인젝션 시 Spring 이 PG 에 wire → MSSQL SP 호출 시 `'now' is not a recognized built-in function name` 등 syntax 오류 발생.
+>
+> `JavaArtifactRewriter.injectTargetJdbcTemplateQualifier()` 가 산출물 컴파일 시점에 **자동 주입** 하지만, LLM 출력 자체에 `@Qualifier` 가 있으면 더 안전. wingui 환경에는 무해 (qualifier 가 무시될 뿐).
+>
+> 추가로 `backend/lombok.config` 에 `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` 가 있어야 `@RequiredArgsConstructor` 가 만드는 생성자 파라미터로 qualifier 가 복사됨.
+
 ```java
 @Service
 @RequiredArgsConstructor
 public class FeatureService {
 
+    @Qualifier("targetJdbcTemplate")        // ★ 단독 환경 호환 (wingui 본 환경은 무시됨)
     private final JdbcTemplate jdbcTemplate;
     private static final String SP_QUERY  = "EXEC SP_UI_<DOMAIN>_<NO>_Q1 ?, ?";
     private static final String SP_SAVE   = "EXEC SP_UI_<DOMAIN>_<NO>_S1 ?, ?, ?, ?";

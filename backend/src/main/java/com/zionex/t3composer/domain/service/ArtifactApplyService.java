@@ -101,6 +101,7 @@ public class ArtifactApplyService {
                                 ComposerArtifactRepository artifactRepo,
                                 ComposerSessionRepository sessionRepo,
                                 PlatformTransactionManager txManager,
+                                @org.springframework.beans.factory.annotation.Qualifier("targetDataSource")
                                 DataSource dataSource,
                                 ArtifactNormalizer artifactNormalizer,
                                 SpScreenNoAllocator screenNoAllocator,

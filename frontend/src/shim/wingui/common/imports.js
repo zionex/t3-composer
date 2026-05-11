@@ -180,6 +180,8 @@ export const GridDeleteRowButton = ({ grid, onDelete, onAfterDelete }) => (
         onClick={async () => {
             const g = lookupGrid(grid);
             if (!g) return;
+            // RealGrid2 — 셀 편집 중이면 getAllStateRows 가 거부하므로 commit 먼저
+            try { if (typeof g.commit === 'function') g.commit(true); } catch (_) {}
             const states = g.dataProvider.getAllStateRows();
             const candidates = [...(states.deleted || [])];
             // 현재 화면에서는 "선택 행 삭제" — 단순화: 마지막 행 삭제 또는 사용자 onDelete 의 처리
@@ -204,6 +206,8 @@ export const GridSaveButton = ({ grid, onSave, onAfterSave }) => (
         onClick={async () => {
             const g = lookupGrid(grid);
             if (!g) return;
+            // RealGrid2 — 셀 편집 중이면 getAllStateRows 가 거부하므로 commit 먼저
+            try { if (typeof g.commit === 'function') g.commit(true); } catch (_) {}
             const states = g.dataProvider.getAllStateRows();
             const changes = [
                 ...(states.created || []),

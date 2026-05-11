@@ -36,6 +36,7 @@ import ModeNewFromDesign from './ModeNewFromDesign';
 import ModeNewFromCopy   from './ModeNewFromCopy';
 import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
+import TargetSystemSelector from './TargetSystemSelector';
 
 const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
@@ -155,6 +156,9 @@ function LandingSelector({ onPickNew, onPickModify, onOpenSettings, apiKeyRegist
               AI 화면 생성기 · 개발 방식을 선택하세요
             </Typography>
           </Box>
+
+          {/* Target System Selector — 다중 프로젝트 전환 */}
+          <TargetSystemSelector darkMode />
 
           {/* API Key pill */}
           <Tooltip title={apiKeyRegistered ? 'API 키 등록됨 — 모든 모드 사용 가능' : 'API 키 미등록 — 클릭하여 등록'}>

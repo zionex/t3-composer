@@ -49,7 +49,7 @@ public class ComposerMessage {
     @Column(name = "ROLE", length = 16, nullable = false)
     private String role;
 
-    @Column(name = "CONTENT", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "CONTENT", columnDefinition = "text")
     private String content;
 
     @Column(name = "STOP_REASON", length = 32)
@@ -64,7 +64,7 @@ public class ComposerMessage {
     @Column(name = "MODEL_NAME", length = 100)
     private String modelName;
 
-    @Column(name = "METADATA", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "METADATA", columnDefinition = "text")
     private String metadata;
 
     @Column(name = "CREATE_DTTM", updatable = false)

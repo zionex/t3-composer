@@ -70,7 +70,7 @@ public class ComposerArtifact {
     @Column(name = "LANGUAGE", length = 32)
     private String language;
 
-    @Column(name = "CONTENT", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "CONTENT", columnDefinition = "text")
     private String content;
 
     @Column(name = "CONTENT_BIN")

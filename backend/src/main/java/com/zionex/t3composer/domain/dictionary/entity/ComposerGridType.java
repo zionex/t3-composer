@@ -53,7 +53,7 @@ public class ComposerGridType {
     @Column(name = "NAME_EN")
     private String nameEn;
 
-    @Column(name = "DESCRIPTION", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "DESCRIPTION", columnDefinition = "text")
     private String description;
 
     @Column(name = "LAYOUT_KEY", length = 80)
@@ -62,13 +62,13 @@ public class ComposerGridType {
     @Column(name = "COMPONENT_STACK")
     private String componentStack;
 
-    @Column(name = "PROPERTIES", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "PROPERTIES", columnDefinition = "text")
     private String properties;
 
-    @Column(name = "SAMPLE_COLUMNS", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "SAMPLE_COLUMNS", columnDefinition = "text")
     private String sampleColumns;
 
-    @Column(name = "SAMPLE_ROWS", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "SAMPLE_ROWS", columnDefinition = "text")
     private String sampleRows;
 
     @Column(name = "RECOMMENDED_FOR")

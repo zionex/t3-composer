@@ -24,8 +24,10 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import MenuTreeBrowser from './MenuTreeBrowser';
 import StepByStepWizard from './StepByStepWizard';
+import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { collectSourceForLlm, checkMenuExists, prefillFromSource } from './api';
-import { createInitialSpecFromSource, mergeAiSpecIntoBaseSpec, analyzeSourceBundle } from './wizardState';
+import { createInitialSpecFromSource, mergeAiSpecIntoBaseSpec } from './wizardState';
+import { useTargetStore } from './targetStore';
 
 /**
  * 기존 화면 복사 모드 (NEW_FROM_COPY).
@@ -44,6 +46,9 @@ import { createInitialSpecFromSource, mergeAiSpecIntoBaseSpec, analyzeSourceBund
  *   - 단일 LLM 호출 → 9단계 구조화 Spec 기반 호출 (토큰 절감 + 단계별 검토 가능)
  */
 function ModeNewFromCopy({ onBack }) {
+  // 활성 Target System (운영 DB 직접 조회용)
+  const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
+
   // 원본 선택 및 소스 수집
   const [selectedMenu, setSelectedMenu]   = useState(null);
   const [sourceBundle, setSourceBundle]   = useState(null);
@@ -72,7 +77,7 @@ function ModeNewFromCopy({ onBack }) {
     if (!menuNode.id) return;
     setLoadingSource(true);
     try {
-      const res = await collectSourceForLlm(menuNode.id);
+      const res = await collectSourceForLlm(menuNode.id, activeTargetCd);
       setSourceBundle(res.data);
     } catch (e) {
       setError('소스 수집 실패: ' + (e?.response?.data?.error || e?.message || ''));
@@ -239,7 +244,7 @@ function ModeNewFromCopy({ onBack }) {
               <Chip label="선택됨" size="small" sx={{ height: 18, fontSize: 10, bgcolor: '#dcfce7', color: '#15803d' }} />
             )}
           </Stack>
-          <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} />
+          <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} activeTargetCd={activeTargetCd} />
         </Box>
 
         {/* Middle: source bundle preview */}
@@ -472,171 +477,4 @@ function suggestNewMenuCd(origCd) {
   }
   return `${origCd}_V2`;
 }
-
-function SourceBundlePreview({ bundle }) {
-  if (!bundle || typeof bundle !== 'object') return null;
-  const sections = [
-    { key: 'screen',       title: 'SCREEN',       color: '#2563eb' },
-    { key: 'components',   title: 'COMPONENTS',   color: '#0891b2' },
-    { key: 'controllers',  title: 'CONTROLLERS',  color: '#7c3aed' },
-    { key: 'services',     title: 'SERVICES',     color: '#c026d3' },
-    { key: 'repositories', title: 'REPOSITORIES', color: '#db2777' },
-    { key: 'entities',     title: 'ENTITIES',     color: '#ea580c' },
-    { key: 'procedures',   title: 'PROCEDURES',   color: '#ca8a04' },
-  ];
-  return (
-    <Stack spacing={1}>
-      {sections.map(({ key, title, color }) => {
-        const data = bundle[key];
-        if (!data) return null;
-        const count = Array.isArray(data) ? data.length : 1;
-        return (
-          <Paper key={key} elevation={0}
-                 sx={{ p: 1.2, border: `1px solid ${color}33`, borderLeft: `3px solid ${color}`,
-                       borderRadius: 1, bgcolor: '#fff' }}>
-            <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mb: 0.3 }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color, fontFamily: 'monospace' }}>
-                {title}
-              </Typography>
-              <Chip label={count} size="small"
-                    sx={{ height: 16, fontSize: 10, bgcolor: `${color}22`, color, fontWeight: 700 }} />
-            </Stack>
-            {Array.isArray(data) ? (
-              <Stack spacing={0.2}>
-                {data.slice(0, 8).map((item, i) => (
-                  <Typography key={i} variant="caption"
-                              sx={{ fontFamily: 'monospace', fontSize: 10, color: '#475569' }}>
-                    {item.path || item.name || item.fileName || JSON.stringify(item).slice(0, 90)}
-                  </Typography>
-                ))}
-                {data.length > 8 && (
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                    ... 외 {data.length - 8}건
-                  </Typography>
-                )}
-              </Stack>
-            ) : (
-              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10 }}>
-                {typeof data === 'string' ? data.slice(0, 180) : JSON.stringify(data).slice(0, 180)}
-              </Typography>
-            )}
-          </Paper>
-        );
-      })}
-    </Stack>
-  );
-}
-
-/**
- * sourceBundle 분석 미리보기 — wizard 진입 전 사용자가 즉시 무엇이 잡혔는지 확인.
- *   · 발견된 SP (CRUD 분류 포함) chip
- *   · 발견된 zAxios URL chip
- *   · 발견된 Entity / BaseGrid id chip
- *   · 아무것도 안 잡혔으면 sourceBundle 의 각 섹션 항목수/길이 dump (디버깅)
- */
-function SourceBundleAnalysisPanel({ bundle }) {
-  const analysis = React.useMemo(() => analyzeSourceBundle(bundle), [bundle]);
-  const { sps, spsCrud, urls, entities, gridIds, serviceIds, serviceIdToSp, sections, hasAny } = analysis;
-
-  return (
-    <Paper variant="outlined" sx={{
-      p: 1.5, mb: 1, borderRadius: 2,
-      borderColor: hasAny ? '#10b981' : '#f59e0b',
-      bgcolor: hasAny ? '#f0fdf4' : '#fffbeb',
-    }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <SourceIcon fontSize="small" sx={{ color: hasAny ? '#16a34a' : '#d97706' }} />
-        <Typography variant="caption" sx={{ fontWeight: 700, color: hasAny ? '#15803d' : '#92400e' }}>
-          {hasAny ? '✓ sourceBundle 분석 완료 — wizard 에 자동 prefill 됩니다'
-                  : '⚠ sourceBundle 에서 SP/URL 을 못 찾았습니다 — 아래 섹션 정보 확인'}
-        </Typography>
-      </Stack>
-
-      {sps.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="caption" sx={{ display: 'block', color: '#15803d', fontWeight: 600 }}>
-            🔧 발견된 SP ({sps.length}) — CRUD 자동 분류:
-          </Typography>
-          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.3 }}>
-            {spsCrud.read   && <Chip size="small" label={`R: ${spsCrud.read}`}   sx={{ fontFamily: 'monospace', fontSize: 11, bgcolor: '#dbeafe', color: '#1e40af' }} />}
-            {spsCrud.create && <Chip size="small" label={`C: ${spsCrud.create}`} sx={{ fontFamily: 'monospace', fontSize: 11, bgcolor: '#dcfce7', color: '#166534' }} />}
-            {spsCrud.update && <Chip size="small" label={`U: ${spsCrud.update}`} sx={{ fontFamily: 'monospace', fontSize: 11, bgcolor: '#fef3c7', color: '#92400e' }} />}
-            {spsCrud.delete && <Chip size="small" label={`D: ${spsCrud.delete}`} sx={{ fontFamily: 'monospace', fontSize: 11, bgcolor: '#fee2e2', color: '#991b1b' }} />}
-          </Stack>
-          {sps.length > Object.values(spsCrud).filter(Boolean).length && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#64748b' }}>
-              전체 SP: {sps.join(', ')}
-            </Typography>
-          )}
-        </Box>
-      )}
-
-      {Array.isArray(serviceIds) && serviceIds.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="caption" sx={{ display: 'block', color: '#15803d', fontWeight: 600 }}>
-            ⚙️ 발견된 callService SERVICE ID ({serviceIds.length}) — service.xml 의 &lt;service id&gt;:
-          </Typography>
-          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.3 }}>
-            {serviceIds.map((sid) => {
-              const sp = serviceIdToSp && serviceIdToSp[sid];
-              return (
-                <Chip
-                  key={sid} size="small"
-                  label={sp ? `${sid} → ${sp}` : `${sid} (SP 매핑 ↻ service.xml 필요)`}
-                  sx={{ fontFamily: 'monospace', fontSize: 11,
-                        bgcolor: sp ? '#dbeafe' : '#fef3c7',
-                        color: sp ? '#1e40af' : '#92400e' }}
-                />
-              );
-            })}
-          </Stack>
-        </Box>
-      )}
-
-      {urls.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="caption" sx={{ display: 'block', color: '#15803d', fontWeight: 600 }}>
-            🌐 발견된 zAxios URL ({urls.length}):
-          </Typography>
-          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.3 }}>
-            {urls.map((u) => (
-              <Chip key={u} size="small" label={u}
-                    sx={{ fontFamily: 'monospace', fontSize: 11, bgcolor: '#e0e7ff', color: '#3730a3' }} />
-            ))}
-          </Stack>
-        </Box>
-      )}
-
-      {entities.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="caption" sx={{ color: '#475569' }}>
-            📦 Entity: <b>{entities.join(', ')}</b>
-            {gridIds.length > 0 && <> · 🔲 BaseGrid id: <b>{gridIds.join(', ')}</b></>}
-          </Typography>
-        </Box>
-      )}
-
-      {/* 발견 안 됐을 때 — sourceBundle 의 각 섹션 정보 표시 (진단 도움) */}
-      {!hasAny && (
-        <Box sx={{ mt: 1, p: 1, bgcolor: '#fef9c3', borderRadius: 1 }}>
-          <Typography variant="caption" sx={{ display: 'block', color: '#92400e', fontWeight: 600, mb: 0.5 }}>
-            sourceBundle 섹션 별 데이터:
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 10.5, color: '#713f12' }}>
-            screen.source     : {sections.screenLen.toLocaleString()} chars{sections.screenLen === 0 && '  ⚠ 비어있음'}<br/>
-            frontendSources   : {sections.frontendSources} files<br/>
-            backend.controllers : {sections.controllers} · services: {sections.services} · repositories: {sections.repositories}<br/>
-            backend.entities    : {sections.entities} · procedures: {sections.procedures}<br/>
-            frontendProcedures: {sections.frontendProcedures} · apiCalls: {sections.apiCalls}
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', mt: 0.8, color: '#92400e' }}>
-            💡 위 값이 모두 0 이면 백엔드 sourceBundle 수집 실패. 메뉴를 다시 선택하거나 wingui 재시작 후 시도하세요.
-            <br/>screen.source 만 있고 다른 항목이 0 이면 화면이 SP 를 직접 호출하지 않거나 callService 가 다른 모듈에서 import 됨.
-          </Typography>
-        </Box>
-      )}
-    </Paper>
-  );
-}
-
 export default ModeNewFromCopy;

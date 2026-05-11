@@ -65,10 +65,10 @@ public class ComposerKpiDict {
     @Column(name = "FREQUENCY", length = 50)
     private String frequency;
 
-    @Column(name = "DESCRIPTION", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "DESCRIPTION", columnDefinition = "text")
     private String description;
 
-    @Column(name = "FORMULA", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "FORMULA", columnDefinition = "text")
     private String formula;
 
     @Column(name = "CHART1_TYPE", length = 30)
@@ -77,7 +77,7 @@ public class ComposerKpiDict {
     @Column(name = "CHART1_LABEL")
     private String chart1Label;
 
-    @Column(name = "CHART1_DATA", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "CHART1_DATA", columnDefinition = "text")
     private String chart1Data;
 
     @Column(name = "CHART2_TYPE", length = 30)
@@ -86,7 +86,7 @@ public class ComposerKpiDict {
     @Column(name = "CHART2_LABEL")
     private String chart2Label;
 
-    @Column(name = "CHART2_DATA", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "CHART2_DATA", columnDefinition = "text")
     private String chart2Data;
 
     @Column(name = "CHART2_UNIT", length = 20)

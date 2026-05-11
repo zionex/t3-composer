@@ -144,3 +144,37 @@ GridButton.jsx 실제 props 화이트리스트 (절대 다른 이름 사용 금�
 2. JSX 안 모든 `url: '<url>'` / `url="<url>"` 의 값 추출
 3. 위 값들을 Java Controller 의 `@RequestMapping("<base>")` 값과 prefix 매칭 — 1:1 일치 여부 확인
 4. JSX 폴더/파일명에 v2 가 없는데 zAxios URL 에는 v-접미어가 있다면 100% 환각
+
+## J. Standalone preview Service / SP routing (2026-05-11 · Phase 3)
+
+> Composer 단독 환경에서 산출물 Service 가 `JdbcTemplate` 을 무지정 인젝션 받으면 Spring 이 어느 DataSource (composer-db PG vs target-mssql) 와 wire 할지 불확정. 산출물이 MSSQL SP 호출 의도라면 반드시 `targetJdbcTemplate` qualifier 필요.
+
+| # | ❌ | ✅ | 검증 |
+|---|---|---|---|
+| CG-J1 | 산출물 `Service.java` 가 `private final JdbcTemplate jdbcTemplate;` (qualifier 없음) → composer-db (PG) 에 wire 됨 → MSSQL SP 호출 시 `'now' is not a recognized built-in function name` 등 syntax 오류 | `JavaArtifactRewriter.injectTargetJdbcTemplateQualifier()` 가 자동으로 `@Qualifier("targetJdbcTemplate")` + `org.springframework.beans.factory.annotation.Qualifier` import 주입 | backend rewriter 자동 |
+| CG-J2 | Lombok `@RequiredArgsConstructor` 가 만드는 생성자 파라미터로 `@Qualifier` 가 복사되지 않아 qualifier 무효 | `backend/lombok.config` 에 `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` | 설정 1회 |
+| CG-J3 | 산출물 Controller 가 `ResponseMessage.builder().message(...).build()` 사용 (Lombok @Builder 없음) → 컴파일 실패 → 전체 startup 실패 → 모든 endpoint 500 | `ResponseMessage.ok()` / `ok(msg)` / `error(msg)` / `ofSuccess()` / `ofFail(msg)` 정적 팩토리 사용 | LLM/L · shared/data/ResponseMessage.java |
+| CG-J4 | composer-backend 의 모듈 코드가 `JdbcTemplate` 을 qualifier 없이 인젝션 — Spring 의 autoconfig 가 target-mssql 빈에 잘못 wire 해 메타 DB UPDATE 가 MSSQL 로 전송 (`Invalid object name 'dbo.tb_cmp_target_system'`) | `@Qualifier("composerJdbcTemplate")` 명시 (PG 메타 DB) 또는 `@Qualifier("targetJdbcTemplate")` (운영 DB) | LLM/L |
+| CG-J5 | shim `GridSaveButton` / `GridDeleteRowButton` 이 `g.dataProvider.getAllStateRows()` 직전 commit 호출 안 함 → 셀 편집 중일 때 `Client is editing (call grid.commit() or grid.cancel() first)` 오류 | 진입 직후 `try { if (typeof g.commit === 'function') g.commit(true); } catch (_) {}` | shim 자동 |
+| CG-J6 | AI prefill 이 `source: "SP"` 라고 응답했지만 spName/crudSp/allSpNames/serviceIds 모두 비어있음 → Wizard Step4 가 빈 SP 모드로 표시되어 사용자가 데이터 흐름 파악 불가 | `mergeAiSpecIntoBaseSpec` 사후 정합화 — baseUrl 또는 entity 있으면 자동 `JPA_ENTITY` 로 전환 + 빈 SP 필드 제거 | wizardState.js 자동 |
+| CG-J7 | NEW_FROM_COPY / EXISTING_MODIFY 가 각각 local `SourceBundlePreview` 정의 → 보강 시 두 곳 모두 수정 필요 | `SourceBundleSection.jsx` 공용 컴포넌트 import — `SourceBundleAnalysisPanel` + `SourceBundlePreview` | L |
+| CG-J8 | Repository 의 method-name 기반 finder 를 SQL 로 추론할 때 camelCase → snake_case 단순 변환 사용 (예: `userName` → `user_name`) — 실제 컬럼이 `USER_NAME` 인 경우 잘못 매핑 | `JpaMethodSqlMapper.resolveColumn()` 이 Entity 의 `@Column(name="...")` 매핑 우선 사용 | backend 자동 |
+| CG-J9 | sourceBundle.backend.entities[0] 의 `name` 필드가 `User.java` (확장자 포함) → frontend 의 `entityClassNames[0]` 가 잘못된 클래스명으로 인식 | `InsightSourceController.addJavaFile()` 이 `className` 별도 필드로 확장자 제거된 이름 동봉 (`User.java` → `User`) | backend 자동 |
+| CG-J10 | `User.java` 같은 디렉토리에 `UserDeserializer.java`/`UserUtil.java` 등이 entities 배열에 함께 포함되어 첫 element 가 비-Entity 클래스 | `looksLikeNonEntity()` 가 `Deserializer/Serializer/Util/Helper/Config/Constants/Builder/Mapper/Converter.java` 자동 제외 + 정렬 시 dir 이름과 일치하는 className 우선 | backend 자동 |
+
+### J 의 자기 검증 (산출물 Service 출력 직전)
+- [ ] `JdbcTemplate` 필드에 `@Qualifier(...)` 있나? (LLM 출력 시점)
+- [ ] `ResponseMessage.builder()` 호출 없는가?
+- [ ] AI prefill 결과의 step4 area 중 `source==='SP'` AND `(spName + crudSp + allSpNames + serviceIds)` 모두 비어있는 항목 없는가?
+
+## K. Target DB 접근 (2026-05-11 · Phase 3)
+
+> Composer 의 NEW_FROM_COPY / EXISTING_MODIFY 가 활성 Target 의 운영 DB 에서 메뉴 트리·LangPack·소스를 실시간 조회.
+
+| # | ❌ | ✅ | 비고 |
+|---|---|---|---|
+| CG-K1 | 트리 응답이 `source: "local"` 인데 한글 메뉴명 매핑 부족하다고 보고 | 활성 Target 의 `db_url` 미설정 또는 연결 실패 — TargetDataSourceRegistry 가 폴백한 상태. `[Storage 다이얼로그 → 연결 테스트]` 로 확인 |  |
+| CG-K2 | 운영 DB 정보를 한 사용자가 UI 로 입력했는데 docker compose down/up 후 사라진 것으로 오해 | 입력값은 `composer-db.tb_cmp_target_system` 에 영구 저장됨. 영구 보존 + 다중 환경 동기화는 `.env` 의 `TARGET_<CD>_DB_*` 사용 (`TargetDbConnectionEnvLoader` 가 startup 시 적용) |  |
+| CG-K3 | 헤더 Target 변경했는데 메뉴 트리/소스 결과가 안 바뀜 | `MenuTreeBrowser` / `ModeNewFromCopy` / `ModeExistingModify` 가 `activeTargetCd` prop 으로 명시 받아야 함. `useTargetStore.currentTargetCd` 의존 누락 시 발생 |  |
+| CG-K4 | TargetSystem 의 jsonb 컬럼 (`artifact_naming` 등) 때문에 `targetRepo.save(t)` 실패 — `column "artifact_naming" is of type jsonb but expression is of type character varying` | DB 정보 update 는 `composerJdbcTemplate.update("UPDATE dbo.tb_cmp_target_system SET ...")` 직접 SQL 로 우회. JPA save() 미사용 |  |
+| CG-K5 | TargetMenuController 가 `targetJdbcTemplate` 만 사용 (활성 Target 무시) | `pickJdbc(targetCd)` 헬퍼 — registry 에서 live DataSource 시도, 실패하면 로컬 폴백. 응답에 `source: "target:<cd>" | "local"` 표시 |  |

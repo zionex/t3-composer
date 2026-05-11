@@ -157,9 +157,18 @@ POST /composer/sessions/{sessionId}/status/{status}
 
 NEW_FROM_COPY 진입 직전 sourceBundle 을 LLM 한 번 호출로 분석해 9단계 spec 을 정확히 prefill. 정규식 기반 파싱의 fragility 우회.
 
+**Target DB 라우팅 (Phase 3 — 2026-05-11)**: NEW_FROM_COPY / EXISTING_MODIFY 둘 다 활성 Target 의 운영 DB 를 사용.
+- `MenuTreeBrowser` 가 `useTargetStore.currentTargetCd` 를 `loadTargetMenuTree(lang, targetCd)` 로 전달
+- 사용자가 메뉴 선택 시 `collectSourceForLlm(menuCd, targetCd)` 가 `targetCd` 를 body 에 포함
+- Backend `TargetDataSourceRegistry.getJdbcTemplate(targetCd)` → 등록된 db_url 의 live DB JdbcTemplate 반환 (실패 시 로컬 target-mssql 폴백)
+- 응답의 `source: "target:T3SERIES"` 또는 `"local"` 로 라우팅 결과 확인
+- 사용자가 DB 정보 변경: TargetSystemSelector dropdown → [💾 Storage] → TargetDbConnectionDialog 또는 `.env` 의 `TARGET_<CD>_DB_*` (`TargetDbConnectionEnvLoader` 가 startup 시 자동 적용)
+
+**sourceBundle 의 JPA 추론 SQL (Phase 3)**: 응답의 `backend.repositories[].queryMethods` 에 Repository method-name 별 추론 SQL 포함 (`JpaMethodSqlMapper`). Entity 의 `@Column(name=...)` 우선 매핑. Wizard Step4 의 `Step4DataBinding` 이 JPA_ENTITY 모드일 때 `InferredSqlPanel` 로 펼침 표시. 동일 컴포넌트 `SourceBundleSection` 이 NEW_FROM_COPY 와 EXISTING_MODIFY 양쪽에서 재사용.
+
 **흐름**:
 ```
-원본 메뉴 선택 → collectSourceForLlm → sourceBundle 받음
+원본 메뉴 선택 → collectSourceForLlm(menuCd, activeTargetCd) → sourceBundle 받음
    ↓
 SourceBundleAnalysisPanel — 사용자가 wizard 진입 전에
                             발견된 SP/URL/Entity/GridId 미리 확인 (analyzeSourceBundle 호출)

@@ -24,8 +24,10 @@ import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
+import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { createSession, collectSourceForLlm } from './api';
 import { createInitialSpecFromSource } from './wizardState';
+import { useTargetStore } from './targetStore';
 
 /**
  * 기존 화면 수정 모드.
@@ -37,6 +39,9 @@ import { createInitialSpecFromSource } from './wizardState';
  *      [STEP] 소스 번들 수집 → StepByStepWizard 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
  */
 function ModeExistingModify({ onBack }) {
+  // 활성 Target System (운영 DB 직접 조회용)
+  const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
+
   // 서브모드 — 'NL' (자연어, 기존 흐름) | 'STEP' (단계별 Wizard)
   const [subMode, setSubMode] = useState(null);
 
@@ -71,7 +76,7 @@ function ModeExistingModify({ onBack }) {
     if (!menuNode.id) return;
     setLoadingSource(true);
     try {
-      const res = await collectSourceForLlm(menuNode.id);
+      const res = await collectSourceForLlm(menuNode.id, activeTargetCd);
       setSourceBundle(res.data);
     } catch (e) {
       setError('소스 수집 실패: ' + (e?.response?.data?.error || e?.message || ''));
@@ -254,7 +259,7 @@ function ModeExistingModify({ onBack }) {
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* 좌측 메뉴 트리 */}
         <Box sx={{ width: 360, borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} />
+          <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} activeTargetCd={activeTargetCd} />
         </Box>
 
         {/* 우측 소스 번들 프리뷰 */}
@@ -313,12 +318,16 @@ function ModeExistingModify({ onBack }) {
 
               {sourceBundle && !loadingSource && (
                 <Box sx={{ flex: 1, overflow: 'auto', p: 2, minHeight: 0 }}>
+                  {/* 분석 패널 — 발견된 SP/URL/Entity/GridId 빠른 진단 */}
+                  <SourceBundleAnalysisPanel bundle={sourceBundle} />
+                  <Divider sx={{ my: 1 }} />
                   <Typography variant="caption" color="text.secondary">
                     {subMode === 'NL'
                       ? '수집된 소스 번들 (수정 세션 시작 시 Claude 의 초기 컨텍스트로 전달됩니다)'
                       : '수집된 소스 번들 (Wizard 의 9단계 Spec 으로 자동 prefill — 변경하고 싶은 단계만 수정)'}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
+                  {/* 섹션별 파일 목록 + Repository 의 JPA 추론 SQL 펼침 */}
                   <SourceBundlePreview bundle={sourceBundle} />
                 </Box>
               )}
@@ -384,65 +393,6 @@ function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, co
     </Card>
   );
 }
-
-/**
- * 백엔드 응답 구조가 확정적이지 않을 수 있어 범용적으로 표시.
- * screen-metadata/collect-source-for-llm 는 보통
- *   { screen: {...}, components: [...], controllers: [...], services: [...],
- *     repositories: [...], entities: [...], procedures: [...] }
- * 형태로 반환됨.
- */
-function SourceBundlePreview({ bundle }) {
-  if (!bundle || typeof bundle !== 'object') return null;
-
-  const sections = [
-    { key: 'screen',       title: 'SCREEN'       },
-    { key: 'components',   title: 'COMPONENTS'   },
-    { key: 'controllers',  title: 'CONTROLLERS'  },
-    { key: 'services',     title: 'SERVICES'     },
-    { key: 'repositories', title: 'REPOSITORIES' },
-    { key: 'entities',     title: 'ENTITIES'     },
-    { key: 'procedures',   title: 'PROCEDURES'   },
-  ];
-
-  return (
-    <Stack spacing={1.5}>
-      {sections.map(({ key, title }) => {
-        const data = bundle[key];
-        if (!data) return null;
-        const count = Array.isArray(data) ? data.length : 1;
-        return (
-          <Paper key={key} variant="outlined" sx={{ p: 1.5 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {title}
-              </Typography>
-              <Chip label={count} size="small" sx={{ height: 18, fontSize: 10 }} />
-            </Stack>
-            {Array.isArray(data) ? (
-              <Stack spacing={0.3}>
-                {data.map((item, i) => (
-                  <Typography
-                    key={i}
-                    variant="caption"
-                    sx={{ fontFamily: 'monospace', fontSize: 11, color: 'text.secondary' }}
-                  >
-                    {item.path || item.name || item.fileName || JSON.stringify(item).slice(0, 120)}
-                  </Typography>
-                ))}
-              </Stack>
-            ) : (
-              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 11 }}>
-                {typeof data === 'string' ? data.slice(0, 200) : JSON.stringify(data).slice(0, 200)}
-              </Typography>
-            )}
-          </Paper>
-        );
-      })}
-    </Stack>
-  );
-}
-
 /**
  * 번들을 Claude 에 보낼 긴 텍스트로 직렬화.
  * 각 파일을 마커로 감싸 Claude 가 파일 경계를 인식하도록 한다.

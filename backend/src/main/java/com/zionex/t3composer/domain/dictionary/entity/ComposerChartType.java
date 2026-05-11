@@ -53,16 +53,16 @@ public class ComposerChartType {
     @Column(name = "NAME_EN")
     private String nameEn;
 
-    @Column(name = "DESCRIPTION", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "DESCRIPTION", columnDefinition = "text")
     private String description;
 
     @Column(name = "CHART_TYPE", length = 30, nullable = false)
     private String chartType;
 
-    @Column(name = "OPTIONS_JSON", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "OPTIONS_JSON", columnDefinition = "text")
     private String optionsJson;
 
-    @Column(name = "SAMPLE_DATA", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "SAMPLE_DATA", columnDefinition = "text")
     private String sampleData;
 
     @Column(name = "PREVIEW_COLOR", length = 20)

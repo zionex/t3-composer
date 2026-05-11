@@ -268,6 +268,7 @@ function renderStep({ idx, spec, module, pattern, updateStep, updateChangeReq, s
           moduleCode={module?.code}
           value={spec.step4_dataBinding}
           onChange={(v) => updateStep(3, v)}
+          sourceBundle={spec.sourceBundle}
         />
       );
     case 4:

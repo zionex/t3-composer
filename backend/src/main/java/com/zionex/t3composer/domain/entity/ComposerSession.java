@@ -80,7 +80,7 @@ public class ComposerSession {
     @Column(name = "DESIGN_DOC_NAME")
     private String designDocName;
 
-    @Column(name = "DESIGN_DOC_JSON", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "DESIGN_DOC_JSON", columnDefinition = "text")
     private String designDocJson;
 
     @CreatedBy

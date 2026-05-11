@@ -13,6 +13,47 @@ import { zAxios } from '@wingui/common/imports';
 const COMPOSER_REQ = { waitOn: false, skip401Dialog: true };
 const composerReq = (extra) => ({ ...COMPOSER_REQ, ...(extra || {}) });
 
+// ---- Target System (다중 프로젝트 메타) ----
+
+/**
+ * Target DB 의 메뉴 트리 조회 — NEW_FROM_COPY 모드에서 원본 메뉴 선택용.
+ * 응답: { items: [{ id(=MENU_CD), filePath, path, displayName, items: [...] }, ...] }
+ */
+export const loadTargetMenuTree = (lang, targetCd) =>
+  zAxios.get('composer/target/menus', composerReq({
+    params: { lang: lang || 'ko', ...(targetCd ? { target: targetCd } : {}) }
+  }));
+
+/**
+ * 부모 wingui 의 menus.js 를 파싱해 target-mssql 의 TB_AD_MENU 에 멱등 sync.
+ * 응답: { inserted, updated, total, source, errors }
+ */
+export const syncTargetMenusFromWingui = () =>
+  zAxios.post('composer/target/menus/sync-from-wingui', null, composerReq());
+
+/**
+ * 부모 wingui 의 db_update_script.sql 들에서 TB_AD_LANG_PACK INSERT 를 추출해
+ * target-mssql 에 멱등 sync. 메뉴 ID 와 매칭되는 LANG_KEY 만 import.
+ */
+export const syncTargetLangpackFromWingui = () =>
+  zAxios.post('composer/target/menus/langpack/sync-from-wingui', null, composerReq());
+
+/** 활성 Target 목록 조회 */
+export const listTargets = () =>
+  zAxios.get('composer/targets', composerReq());
+
+/** 단건 Target 조회 (Phase 3 동적 PromptBuilder 에서 사용 예정) */
+export const getTarget = (targetCd) =>
+  zAxios.get('composer/targets/' + encodeURIComponent(targetCd), composerReq());
+
+/** Target 의 .claude/rules+hooks 를 DB 로 재적재 */
+export const importClaudeAssets = (targetCd, claudeRoot) =>
+  zAxios.post(
+    'composer/targets/' + encodeURIComponent(targetCd) + '/import-claude',
+    { claudeRoot: claudeRoot || '' },
+    composerReq()
+  );
+
 // ---- API Key ----
 
 export const getApiKeyStatus = () =>
@@ -90,12 +131,19 @@ export const getArtifact = (artifactId) =>
 
 // ---- Existing screen source (기존 Insight 엔드포인트 재사용) ----
 
-export const collectSourceForLlm = (menuCd) =>
+export const collectSourceForLlm = (menuCd, targetCd) =>
   zAxios.post(
     'insight-apicall/screen-metadata/collect-source-for-llm',
-    { menuCd },
+    { menuCd, ...(targetCd ? { targetCd } : {}) },
     composerReq()
   );
+
+/** Target System DB 연결 정보 저장 / 테스트 */
+export const updateTargetDbConnection = (targetCd, payload) =>
+  zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/db-connection`, payload, composerReq());
+
+export const testTargetDbConnection = (targetCd, payload) =>
+  zAxios.post(`composer/targets/${encodeURIComponent(targetCd)}/db-connection/test`, payload || {}, composerReq());
 
 /**
  * NEW_FROM_COPY — sourceBundle 을 LLM 한 번 호출로 분석해 9단계 spec JSON 받기.

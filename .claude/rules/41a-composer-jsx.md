@@ -79,6 +79,12 @@ GridButton.jsx 의 실제 props (절대 다른 이름 사용 금지):
 - `GridSaveButton`: `grid`, `onBeforeSave`, **`onSave(grid, changeRowData)`**, `onAfterSave`
 - `GridExcelExportButton`: `grid`, `fileName`, `sheetName`
 
+#### §4.4.2 RealGrid2 — `getAllStateRows()` 전 `commit()` 호출 (2026-05-11 단독 환경)
+
+shim `GridSaveButton` / `GridDeleteRowButton` 이 `g.dataProvider.getAllStateRows()` 호출 직전에 자동으로 `g.commit(true)` 호출. 셀 편집 중 상태에서 RealGrid 가 `Client is editing (call grid.commit() or grid.cancel() first)` 오류 throw 하는 케이스 회피.
+
+산출물 JSX 는 추가 코드 불필요 — shim 이 자동 처리. wingui 본 환경의 GridSaveButton 도 동일 거동.
+
 ### §4.5 서버 통신 = wingui REST (zAxios) 기본
 ```jsx
 // 조회

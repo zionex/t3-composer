@@ -100,10 +100,64 @@ public class TargetSystemController {
     }
 
     /**
+     * Target 의 ref path (wingui / database) 저장.
+     * body: { winguiRefPath, databaseRefPath }
+     * 컨테이너 안 절대경로 입력 (예: /workspace/projects/t3series/t3series-wingui).
+     * 빈 문자열 / null 도 허용 (글로벌 fallback 으로 동작).
+     */
+    @PutMapping("/{targetCd}/ref-paths")
+    public TargetSystem updateRefPaths(@PathVariable String targetCd,
+                                       @RequestBody Map<String, String> body) {
+        if (!targetRepo.existsById(targetCd)) {
+            throw new IllegalArgumentException("Unknown target: " + targetCd);
+        }
+        // jsonb 컬럼 회피 — 변경 컬럼만 직접 UPDATE.
+        composerDbJdbc.update(
+            "UPDATE dbo.tb_cmp_target_system SET wingui_ref_path=?, database_ref_path=?, " +
+            "modify_by='composer', modify_dttm=now() WHERE target_cd=?",
+            nullIfBlank(body.get("winguiRefPath")),
+            nullIfBlank(body.get("databaseRefPath")),
+            targetCd);
+        return targetRepo.findById(targetCd).orElseThrow();
+    }
+
+    private static String nullIfBlank(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    /**
      * Target 의 운영 DB 접속 테스트 — DriverManager.getConnection.
      * body 가 비어있으면 저장된 값으로 테스트, 있으면 그 값으로.
      * 성공 시 dbConnectedAt 갱신, 실패 시 dbLastError 저장.
      */
+    /**
+     * 빠른 연결 확인 (ping) — pool 에서 connection 빌려 SELECT 1 만 실행. UPDATE 없음.
+     * 최초 호출 (pool warm-up) 만 다소 걸리고 이후 호출은 50ms 이하.
+     * frontend 의 신규/수정 진입 시 사전 DB 체크용.
+     */
+    @GetMapping("/{targetCd}/db-connection/ping")
+    public Map<String, Object> pingDbConnection(@PathVariable String targetCd) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        long start = System.currentTimeMillis();
+        try {
+            JdbcTemplate live = dsRegistry.getJdbcTemplate(targetCd);
+            if (live == null) {
+                result.put("success", false);
+                result.put("error",   "db connection not configured");
+                return result;
+            }
+            // SELECT 1 — pool 에서 connection 빌려 빠르게 확인
+            live.queryForObject("SELECT 1", Integer.class);
+            result.put("success",    true);
+            result.put("elapsedMs",  System.currentTimeMillis() - start);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error",   e.getClass().getSimpleName());
+            result.put("elapsedMs", System.currentTimeMillis() - start);
+        }
+        return result;
+    }
+
     @PostMapping("/{targetCd}/db-connection/test")
     public Map<String, Object> testDbConnection(@PathVariable String targetCd,
                                                 @RequestBody(required = false) Map<String, String> body) {

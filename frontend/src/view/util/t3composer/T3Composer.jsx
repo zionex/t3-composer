@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import {
   Box,
@@ -27,9 +27,9 @@ import HistoryIcon           from '@mui/icons-material/History';
 
 import { useLocation, useHistory } from 'react-router-dom';
 
-import { ContentInner, WorkArea } from '@wingui/common/imports';
+import { ContentInner, WorkArea, showMessage } from '@wingui/common/imports';
 
-import { getApiKeyStatus, getSession } from './api';
+import { getApiKeyStatus, getSession, pingTargetDbConnection } from './api';
 import ApiKeyDialog from './ApiKeyDialog';
 import ModeNewGeneral    from './ModeNewGeneral';
 import ModeNewFromDesign from './ModeNewFromDesign';
@@ -37,6 +37,7 @@ import ModeNewFromCopy   from './ModeNewFromCopy';
 import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
+import { useTargetStore } from './targetStore';
 
 const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
@@ -496,6 +497,49 @@ function T3Composer() {
     fn();
   };
 
+  // API 키 + 활성 Target 의 DB 연결 둘 다 확인 후 진행.
+  // - DB 연결 실패 / 확인 불가 / Target 미등록 시: "계속하시겠습니까?" confirm
+  //   (예 → 진행 · 아니오 → 취소).
+  // - 정상 연결 시: 즉시 fn 호출.
+  //
+  // 성능: pool 기반 ping endpoint 사용 (SELECT 1) + 60초 캐싱.
+  //   같은 Target 의 연속 클릭은 즉시 통과 (네트워크 호출 0).
+  const DB_PING_CACHE_TTL_MS = 60_000;
+  const dbPingCacheRef = useRef({ targetCd: null, ok: false, timestamp: 0 });
+
+  const requireKeyAndDbThen = async (fn) => {
+    if (!apiKeyRegistered) { setApiKeyDialog(true); return; }
+    const targetCd = useTargetStore.getState().currentTargetCd;
+    const confirmContinue = () => {
+      const label = targetCd ? `Target [${targetCd}] 의 ` : '';
+      showMessage(
+        '확인',
+        `${label}데이터베이스 접속이 안된 상태입니다.\n\n계속하시겠습니까?`,
+        (proceed) => { if (proceed) fn(); }
+      );
+    };
+    if (!targetCd) { confirmContinue(); return; }
+
+    // 60초 안에 같은 Target 으로 성공한 적 있으면 즉시 통과
+    const cached = dbPingCacheRef.current;
+    if (cached.targetCd === targetCd && cached.ok &&
+        Date.now() - cached.timestamp < DB_PING_CACHE_TTL_MS) {
+      fn();
+      return;
+    }
+
+    try {
+      const res = await pingTargetDbConnection(targetCd);
+      const ok = res?.data?.success === true;
+      dbPingCacheRef.current = { targetCd, ok, timestamp: Date.now() };
+      if (ok) { fn(); return; }
+      confirmContinue();
+    } catch (_) {
+      dbPingCacheRef.current = { targetCd, ok: false, timestamp: Date.now() };
+      confirmContinue();
+    }
+  };
+
   const handleApiKeySaved = async () => {
     setApiKeyDialog(false);
     await checkApiKey();
@@ -564,8 +608,8 @@ function T3Composer() {
       <WorkArea>
         {mode === null && step === 'landing' && (
           <LandingSelector
-            onPickNew={() => requireKeyThen(() => setStep('new'))}
-            onPickModify={() => requireKeyThen(() => setMode(MODE.EXISTING_MODIFY))}
+            onPickNew={() => requireKeyAndDbThen(() => setStep('new'))}
+            onPickModify={() => requireKeyAndDbThen(() => setMode(MODE.EXISTING_MODIFY))}
             onOpenSettings={() => setApiKeyDialog(true)}
             apiKeyRegistered={apiKeyRegistered}
           />

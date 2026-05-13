@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
+import com.zionex.t3composer.domain.service.TargetPathResolver;
 import com.zionex.t3composer.shared.data.ResponseMessage;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,7 @@ public class TargetMenuController {
     private final JdbcTemplate targetJdbcTemplate;
 
     private final TargetDataSourceRegistry dsRegistry;
+    private final TargetPathResolver       pathResolver;
 
     /**
      * 활성 Target 의 운영 DB JdbcTemplate 반환. db_url 미설정/연결실패 시
@@ -172,11 +174,14 @@ public class TargetMenuController {
     // wingui menus.js → TB_AD_MENU sync (idempotent)
     // ──────────────────────────────────────────────────────────────
 
-    /** 부모 wingui repo 가 마운트된 표준 경로 + menus.js 후보 */
-    private static final List<String> MENUS_JS_CANDIDATES = Arrays.asList(
-        "/workspace/wingui/packages/wingui/src/data/menus.js",
-        "/workspace/wingui/packages/node_modules/wingui/src/data/menus.js"
-    );
+    /** 부모 wingui repo 의 menus.js 후보 — Target 별 winguiRefPath 아래 */
+    private List<String> menusJsCandidates(String targetCd) {
+        String root = pathResolver.resolveWinguiPath(targetCd);
+        return Arrays.asList(
+            root + "/packages/wingui/src/data/menus.js",
+            root + "/packages/node_modules/wingui/src/data/menus.js"
+        );
+    }
 
     /**
      * 부모 wingui 의 menus.js 를 파싱해 target-mssql 의 TB_AD_MENU 에 멱등 sync.
@@ -188,10 +193,11 @@ public class TargetMenuController {
      * 응답: { inserted: n, updated: n, total: n, source: <path>, errors: [...] }
      */
     @PostMapping("/sync-from-wingui")
-    public ResponseEntity<?> syncFromWingui() {
-        // 1) menus.js 위치 탐색
+    public ResponseEntity<?> syncFromWingui(
+            @RequestParam(value = "target", required = false) String targetCd) {
+        // 1) menus.js 위치 탐색 — Target 별 wingui 폴더에서
         Path menusJs = null;
-        for (String p : MENUS_JS_CANDIDATES) {
+        for (String p : menusJsCandidates(targetCd)) {
             Path candidate = Path.of(p);
             if (Files.isRegularFile(candidate)) {
                 menusJs = candidate;
@@ -352,7 +358,10 @@ public class TargetMenuController {
     // wingui db_update_script.sql → TB_AD_LANG_PACK sync (idempotent)
     // ──────────────────────────────────────────────────────────────
 
-    private static final Path DB_UPGRADE_ROOT = Path.of("/workspace/database/mssql/upgrade");
+    /** db upgrade 폴더 — Target 별 databaseRefPath 아래의 mssql/upgrade */
+    private Path dbUpgradeRoot(String targetCd) {
+        return Path.of(pathResolver.resolveDatabasePath(targetCd), "mssql", "upgrade");
+    }
 
     /**
      * INSERT INTO TB_AD_LANG_PACK (LANG_CD, LANG_KEY, LANG_VALUE) VALUES ('xx', 'KEY', N'value');
@@ -372,11 +381,13 @@ public class TargetMenuController {
      * - 같은 (LANG_CD, LANG_KEY) 가 중복 등장하면 마지막 등장 값 사용 (최신 upgrade 가 진실)
      */
     @PostMapping("/langpack/sync-from-wingui")
-    public ResponseEntity<?> syncLangpackFromWingui() {
-        if (!Files.isDirectory(DB_UPGRADE_ROOT)) {
+    public ResponseEntity<?> syncLangpackFromWingui(
+            @RequestParam(value = "target", required = false) String targetCd) {
+        Path upgradeRoot = dbUpgradeRoot(targetCd);
+        if (!Files.isDirectory(upgradeRoot)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseMessage.of(HttpStatus.NOT_FOUND,
-                    "DB upgrade 폴더를 찾을 수 없음: " + DB_UPGRADE_ROOT));
+                    "DB upgrade 폴더를 찾을 수 없음: " + upgradeRoot));
         }
 
         // 1) TB_AD_MENU 의 MENU_CD 화이트리스트
@@ -389,7 +400,7 @@ public class TargetMenuController {
         // 2) upgrade 폴더의 db_update_script.sql 전수 스캔 — (LANG_CD, LANG_KEY) → LANG_VALUE 누적
         //    파일은 폴더명 (vX.Y.Z-YYYYMMDD) 알파벳/숫자 순으로 적재돼 마지막 등장이 최신.
         Map<String, String> langMap = new LinkedHashMap<>();
-        try (Stream<Path> walk = Files.walk(DB_UPGRADE_ROOT)) {
+        try (Stream<Path> walk = Files.walk(upgradeRoot)) {
             // upgrade 폴더의 모든 .sql 파일 (db_update_script.sql + 분리된 *.sql 포함)
             // 단 procedures/ 폴더 내부는 제외 — SP DDL 안의 동적 SQL 까지 매칭 위험
             List<Path> scripts = walk
@@ -447,7 +458,7 @@ public class TargetMenuController {
         result.put("inserted", inserted);
         result.put("updated",  updated);
         result.put("total",    langMap.size());
-        result.put("scanned",  DB_UPGRADE_ROOT.toString());
+        result.put("scanned",  upgradeRoot.toString());
         result.put("errors",   errors);
         log.info("Target langpack sync 완료 — inserted={}, updated={}, total={}", inserted, updated, langMap.size());
         return ResponseEntity.ok(result);

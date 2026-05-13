@@ -39,6 +39,7 @@ import com.zionex.t3composer.domain.service.AnthropicApiKeyService;
 import com.zionex.t3composer.domain.service.ArtifactApplyService;
 import com.zionex.t3composer.domain.service.ArtifactPreviewService;
 import com.zionex.t3composer.domain.service.ComposerService;
+import com.zionex.t3composer.domain.service.PreviewModuleResolver;
 import com.zionex.t3composer.shared.auth.AuthenticationInfo;
 import com.zionex.t3composer.shared.auth.AuthenticationProvider;
 
@@ -68,6 +69,7 @@ public class ComposerController {
     private final PrefillFromDesignService prefillFromDesignService;
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
+    private final PreviewModuleResolver previewModuleResolver;
 
     // ---- API Key ----
 
@@ -118,6 +120,102 @@ public class ComposerController {
     @PostMapping("/sessions/{sessionId}/preview/cancel")
     public Map<String, Object> previewCancel(@PathVariable String sessionId) {
         return artifactPreviewService.cancelPreview(sessionId);
+    }
+
+    /**
+     * preview JSX 파일의 raw 텍스트.
+     *
+     * frontend PreviewEmbed 가 webpack dependency graph 와 격리된 상태에서
+     * runtime fetch + @babel/standalone 변환으로 컴포넌트를 마운트하기 위해 사용.
+     *
+     * 격리 효과: 산출물 JSX 에 syntax error / Module not found 가 있어도
+     * main bundle 의 컴파일에는 영향이 없음. 에러는 fetch 응답이 200 OK
+     * + 본문이지만 babel 변환에서 잡혀 PreviewEmbed 의 Alert 으로 표시됨.
+     */
+    @GetMapping(value = "/sessions/{sessionId}/preview/source-jsx",
+                produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> previewSourceJsx(@PathVariable String sessionId,
+                                                   @org.springframework.web.bind.annotation.RequestParam("view") String view) {
+        String src = artifactPreviewService.readPreviewJsxSource(sessionId, view);
+        if (src == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("// preview JSX 를 찾지 못했습니다: " + view);
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("text/plain; charset=UTF-8"))
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(src);
+    }
+
+    /**
+     * preview runtime 의 부재 import 해결 — 원본 wingui 의 monorepo src 에서 raw text 반환.
+     *
+     * 매핑:
+     *   @wingui/&lt;X&gt;                      → &lt;winguiRoot&gt;/packages/wingui/src/&lt;X&gt;
+     *   @zionex/wingui-core[/&lt;X&gt;]         → &lt;winguiRoot&gt;/packages/wingui-core[/&lt;X&gt;]
+     *   기타 (target wingui 안 임의 path)  → 절대경로 그대로 (단 winguiRoot prefix 안만 허용)
+     *
+     * 확장자 미지정 시 후보: .js → .jsx → /index.js → /index.jsx
+     *
+     * 격리: 산출물 JSX 가 부재 import 를 만나도 main bundle 영향 0.
+     */
+    /**
+     * Target 의 wingui CSS 번들 — iframe 격리된 PreviewEmbed 에 inject 용.
+     * realgrid 테마 + wingui grid 기본 + custom override 를 단일 텍스트로 반환.
+     */
+    /** realgrid UMD bundle — iframe 안 RealGrid 별도 instance 로드용. */
+    @GetMapping(value = "/preview/realgrid-umd",
+                produces = "application/javascript; charset=UTF-8")
+    public ResponseEntity<String> previewRealgridUmd(
+            @org.springframework.web.bind.annotation.RequestParam(value = "targetCd", required = false) String targetCd) {
+        com.zionex.t3composer.domain.service.PreviewModuleResolver.Resolved r =
+                previewModuleResolver.resolveRealgridUmd(targetCd);
+        if (r == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.valueOf("application/javascript; charset=UTF-8"))
+                    .body("// realgrid UMD bundle 을 찾지 못했습니다.");
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("application/javascript; charset=UTF-8"))
+                .header(HttpHeaders.CACHE_CONTROL, "max-age=300")
+                .header("X-Preview-Resolved-Path", r.relativePath())
+                .body(r.source());
+    }
+
+    @GetMapping(value = "/preview/css",
+                produces = "text/css; charset=UTF-8")
+    public ResponseEntity<String> previewCss(
+            @org.springframework.web.bind.annotation.RequestParam(value = "targetCd", required = false) String targetCd) {
+        String css = previewModuleResolver.bundleCss(targetCd);
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("text/css; charset=UTF-8"))
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(css);
+    }
+
+    @GetMapping(value = "/preview/resolve-module",
+                produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> resolveModule(
+            @org.springframework.web.bind.annotation.RequestParam("spec") String spec,
+            @org.springframework.web.bind.annotation.RequestParam(value = "targetCd", required = false) String targetCd) {
+        if (spec == null || spec.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("// spec 파라미터 필요");
+        }
+        com.zionex.t3composer.domain.service.PreviewModuleResolver.Resolved resolved =
+                previewModuleResolver.resolve(spec, targetCd);
+        if (resolved == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("// 모듈을 찾지 못했습니다: " + spec);
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("text/plain; charset=UTF-8"))
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .header("X-Preview-Resolved-Path", resolved.relativePath())
+                .body(resolved.source());
     }
 
     // ---- Sessions ----

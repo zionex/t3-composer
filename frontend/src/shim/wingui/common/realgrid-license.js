@@ -3,10 +3,12 @@
 // =============================================================================
 // 부모: t3series-wingui/src/main/resources/profile/local/static/license/realgrid-lic.js
 // RealGrid2 는 import 시 window.realGrid2Lic 을 자동 감지하거나
-// 명시적 RealGrid.setLicenseKey() 로 등록 가능. 두 방식 모두 동시 적용.
+// 명시적 RealGrid.setLicenseKey() 로 등록 가능.
+//
+// 주의: 이 파일은 RealGrid module 을 import 하지 않는다 — main bundle 에 realgrid 가
+// 끌려오면 main window 에 global pointer handler 가 등록되어 iframe element 와 cross-document
+// 비교 시 깨짐. PreviewEmbed 가 LICENSE_KEY 만 import 해서 iframe window 에 직접 set.
 // =============================================================================
-
-import RealGrid from 'realgrid';
 
 const LICENSE_KEY =
     'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+ws'
@@ -18,16 +20,10 @@ const LICENSE_KEY =
   + 'zYmMoeKmzBLUOYmvKS+YrKGExjV+QgNTakk0yR9UcKS69Wn2kI83Uszabo3mU0IebAMvwuf7/54'
   + 'd2tHsx3AJz8Ro6kcFL1moeJMu9csUs=';
 
-// (1) global 변수 — RealGrid2 가 import 시 자동 검출
+// main window 에도 set — RealGrid module 을 main bundle 에 직접 import 하는 케이스 대비
+// (현재는 그렇게 import 하지 않지만 향후 변경 안전망).
 if (typeof window !== 'undefined') {
     window.realGrid2Lic = LICENSE_KEY;
 }
-
-// (2) 명시 등록 — RealGrid 에 setLicenseKey 가 있으면 호출
-try {
-    if (RealGrid && typeof RealGrid.setLicenseKey === 'function') {
-        RealGrid.setLicenseKey(LICENSE_KEY);
-    }
-} catch (_e) { /* no-op — 일부 버전에서 실패해도 (1) 의 global 으로 동작 */ }
 
 export default LICENSE_KEY;

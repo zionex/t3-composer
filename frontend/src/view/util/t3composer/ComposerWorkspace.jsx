@@ -526,8 +526,8 @@ function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
           />
         }
         second={
-          <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
-            <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff' }}>
+          <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
+            <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff', flexShrink: 0 }}>
               <Tabs
                 value={rightTab}
                 onChange={(_, v) => setRightTab(v)}
@@ -558,7 +558,11 @@ function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
               </Tabs>
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 0 ? 'flex' : 'none', flexDirection: 'column' }}>
-              <PreviewEmbed sid8={previewMeta?.sid8} viewSub={previewMeta?.viewSub} />
+              <PreviewEmbed
+                sessionId={session?.id}
+                sid8={previewMeta?.sid8}
+                viewSub={previewMeta?.viewSub}
+              />
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />

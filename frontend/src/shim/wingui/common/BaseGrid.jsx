@@ -1,8 +1,12 @@
 // =============================================================================
-// BaseGrid — 부모 wingui-core BaseGrid 의 mini-version (RealGrid2 직접 wrap).
+// BaseGrid — 부모 wingui-core BaseGrid 의 mini-version (RealGrid2 wrap).
 // =============================================================================
-// 부모 t3series 의 realgrid 패키지를 entrypoint 가 /app/node_modules/realgrid 로
-// 복사한 뒤, 여기서 직접 import 해 RealGrid2 GridView 를 생성/표시한다.
+// ★ 중요: main bundle 에서 realgrid module 을 직접 import 하지 않음.
+//   - main window 에 RealGrid 의 global pointer handler 가 등록되면 iframe 안
+//     element 와 cross-document 비교 시 깨짐 (TypeError: r.indexOf is not a function).
+//   - 대신 mount 시점에 element.ownerDocument.defaultView.RealGrid 를 사용 —
+//     PreviewEmbed 가 iframe head 에 RealGrid UMD bundle 을 inject 해서 iframe window 에만
+//     RealGrid 가 set 되어 있음. Composer 자체 화면에서는 BaseGrid 자체를 안 쓰니 무방.
 //
 // 지원 props: id, items (column 정의 배열), afterGridCreate(grid, gridView, dataProvider), height
 // 지원 dataProvider API:
@@ -13,24 +17,11 @@
 //   - addRow(seed)
 //   - removeRow(idx)
 //
-// items 의 column field:
-//   name, headerText, width, dataType ('text'|'number'|'datetime'|'boolean'|'group'),
-//   editable, textAlignment ('center'|'far'|'near'),
-//   useDropdown + lookupDisplay + values + labels (enum dropdown),
-//   datetimeFormat, displayType, validRules
+// Mock 모드 (window.__PREVIEW_MOCK__===true): mount 시점에 column 기반 sample row 5개 자동 채움.
 // =============================================================================
 
 import React, { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
-
-// ★ RealGrid2 license — import 보다 반드시 먼저 (window.realGrid2Lic 등록 + setLicenseKey)
-import './realgrid-license';
-
-// realgrid CSS — 부모 t3series 와 동일한 sky-blue 테마
-import 'realgrid/realgrid-style.css';
-import 'realgrid/realgrid-sky-blue.css';
-
-import { GridView, LocalDataProvider } from 'realgrid';
 
 // 컨테이너 안의 grid registry (GridSaveButton 등이 string id 로 lookup)
 const REGISTRY = {};
@@ -39,11 +30,11 @@ export function lookupGrid(idOrObj) {
     if (typeof idOrObj === 'object') return idOrObj;
     return REGISTRY[idOrObj] || null;
 }
-export function listRegistry() {
+export function listGrids() {
     return REGISTRY;
 }
 
-function mapDataType(dt) {
+function dataTypeOf(dt) {
     if (!dt) return 'text';
     const t = String(dt).toLowerCase();
     if (t === 'number') return 'number';
@@ -54,40 +45,41 @@ function mapDataType(dt) {
 
 function buildFields(items) {
     return items
-        .filter((c) => !c.iteration)
-        .map((c) => ({
-            fieldName: c.name,
-            dataType:  mapDataType(c.dataType),
-            ...(c.datetimeFormat ? { datetimeFormat: c.datetimeFormat } : {}),
-        }));
+        .filter((c) => c && c.dataType !== 'group')
+        .map((c) => ({ fieldName: c.fieldName || c.name, dataType: dataTypeOf(c.dataType) }));
 }
 
 function buildColumns(items) {
     return items
-        .filter((c) => !c.iteration)
+        .filter((c) => c && c.dataType !== 'group')
         .map((c) => {
-            const align = c.textAlignment === 'far' ? 'far'
-                        : c.textAlignment === 'center' ? 'center' : 'near';
             const col = {
                 name: c.name,
-                fieldName: c.name,
-                header: { text: c.headerText || c.name, styleName: 'rg-header' },
+                fieldName: c.fieldName || c.name,
+                header: { text: c.headerText || c.name, showTooltip: true },
                 width: c.width || 100,
-                styleName: align,
                 editable: !!c.editable,
+                styleName: c.styleName,
+                styles: { textAlignment: c.textAlignment || 'near' },
             };
-            if (c.useDropdown && Array.isArray(c.values)) {
-                col.values = c.values;
-                col.labels = c.labels || c.values;
+            if (c.useDropdown && Array.isArray(c.values) && Array.isArray(c.labels)) {
+                col.editor = { type: 'dropdown', values: c.values, labels: c.labels };
                 col.lookupDisplay = !!c.lookupDisplay;
-                col.editor = { type: 'dropdown', list: c.labels || c.values };
+                col.values = c.values;
+                col.labels = c.labels;
             }
-            if (c.dataType === 'datetime') {
-                col.editor = c.editor || { type: 'date', datetimeFormat: c.datetimeFormat || 'yyyy-MM-dd' };
-                if (c.datetimeFormat) col.datetimeFormat = c.datetimeFormat;
+            if (c.datetimeFormat) {
+                col.datetimeFormat = c.datetimeFormat;
             }
-            if (c.dataType === 'number') {
+            if (dataTypeOf(c.dataType) === 'number') {
                 col.numberFormat = c.numberFormat || '#,##0.##';
+            }
+            // boolean 컬럼 — RealGrid 의 default 가 text("true"/"false") 라 checkbox renderer + editor 명시.
+            if (dataTypeOf(c.dataType) === 'boolean') {
+                col.renderer = { type: 'check', editable: !!c.editable };
+                col.editor = { type: 'check' };
+                if (!col.styles) col.styles = {};
+                col.styles.textAlignment = 'center';
             }
             if (Array.isArray(c.validRules)) {
                 const required = c.validRules.find((r) => r && r.criteria === 'required');
@@ -97,6 +89,47 @@ function buildColumns(items) {
         });
 }
 
+// column 기반 sample row 생성. mock 모드에서 자동으로 grid 에 5개 채움.
+function generateSampleRows(items, count = 5) {
+    const cols = items.filter((c) => c && c.dataType !== 'group');
+    const rows = [];
+    for (let i = 0; i < count; i++) {
+        const row = {};
+        for (const c of cols) {
+            const key = c.fieldName || c.name;
+            const dt = dataTypeOf(c.dataType);
+            // dropdown 이면 values 첫번째 또는 round-robin
+            if (Array.isArray(c.values) && c.values.length > 0) {
+                row[key] = c.values[i % c.values.length];
+                continue;
+            }
+            switch (dt) {
+                case 'number':
+                    row[key] = (i + 1) * 100;
+                    break;
+                case 'datetime': {
+                    const d = new Date(2026, 0, i + 1);
+                    row[key] = d.toISOString().slice(0, 10);
+                    break;
+                }
+                case 'boolean':
+                    row[key] = (i % 2) === 0;
+                    break;
+                default: {
+                    const label = (c.headerText || c.name || key);
+                    row[key] = label + ' ' + (i + 1);
+                }
+            }
+        }
+        rows.push(row);
+    }
+    return rows;
+}
+
+function isMockPreviewMode() {
+    return typeof window !== 'undefined' && window.__PREVIEW_MOCK__ === true;
+}
+
 function BaseGrid({ id, items = [], afterGridCreate, height }) {
     const containerRef = useRef(null);
     const gridRef = useRef(null);
@@ -104,34 +137,52 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
     useEffect(() => {
         if (!containerRef.current) return undefined;
 
-        const dp = new LocalDataProvider(true);
+        const el = containerRef.current;
+        // iframe 안 RealGrid 사용 — owner document 의 defaultView 에서 lookup.
+        // Composer 자체에선 BaseGrid 가 쓰이지 않으므로 main window 에 RealGrid 없어도 OK.
+        const ownerWin = el.ownerDocument && el.ownerDocument.defaultView;
+        const RG = ownerWin && ownerWin.RealGrid;
+        if (!RG || !RG.GridView || !RG.LocalDataProvider) {
+            // RealGrid UMD 가 아직 inject 안 됐거나 실패 — placeholder 표시
+            const msg = document.createElement('div');
+            msg.style.cssText = 'padding:24px;text-align:center;color:#94a3b8;font-size:13px;';
+            msg.textContent = 'RealGrid loading...';
+            el.innerHTML = '';
+            el.appendChild(msg);
+            return undefined;
+        }
+
+        const dp = new RG.LocalDataProvider(true);
         dp.setFields(buildFields(items));
 
-        const view = new GridView(containerRef.current);
+        const view = new RG.GridView(el);
         view.setDataSource(dp);
         view.setColumns(buildColumns(items));
 
         // wingui 표준 동작
-        view.setStateBar({ visible: true });
-        view.setFooters({ visible: false });
-        view.setEditOptions({ insertable: true, appendable: true, deletable: true });
-        view.setRowIndicator({ visible: false });
-        view.setDisplayOptions({ rowHeight: 26, fitStyle: 'evenFill' });
-        view.setHeader({ height: 30 });
+        try { view.setStateBar({ visible: true }); } catch (_e) { /* no-op */ }
+        try { view.setFooters({ visible: false }); } catch (_e) { /* no-op */ }
+        try { view.setEditOptions({ insertable: true, appendable: true, deletable: true }); } catch (_e) { /* no-op */ }
+        try { view.setRowIndicator({ visible: false }); } catch (_e) { /* no-op */ }
+        try { view.setDisplayOptions({ rowHeight: 26, fitStyle: 'evenFill' }); } catch (_e) { /* no-op */ }
+        try { view.setHeader({ height: 30 }); } catch (_e) { /* no-op */ }
 
         const grid = {
             id,
             items,
-            // 부모 wingui BaseGrid 와 호환되는 dataProvider 표면
             dataProvider: {
                 fillJsonData: (data) => {
-                    const arr = Array.isArray(data) ? data : [];
+                    let arr = Array.isArray(data) ? data : [];
+                    // Mock 모드 — 산출물 JSX 가 빈 array 로 fill 하면 (mock GET 응답이 [])
+                    // sample 5개로 fallback. 화면 진입 즉시 데이터가 보이도록.
+                    if (isMockPreviewMode() && arr.length === 0) {
+                        arr = generateSampleRows(items, 5);
+                    }
                     dp.fillJsonData(arr);
                 },
                 getAllStateRows: () => {
                     const states = dp.getAllStateRows ? dp.getAllStateRows() : null;
                     if (states) return states;
-                    // 일부 RealGrid 버전 호환 fallback
                     return {
                         created: dp.getStateRows ? dp.getStateRows('created') : [],
                         updated: dp.getStateRows ? dp.getStateRows('updated') : [],
@@ -152,13 +203,22 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
             removeRow: (idx) => {
                 try { dp.removeRow(idx); } catch { /* no-op */ }
             },
-            // RealGrid2 raw 객체도 노출 — 사용자가 원하면 직접 호출 가능
+            commit: (force) => {
+                try { return view.commit && view.commit(force); } catch (_e) { return undefined; }
+            },
             _view: view,
             _dataProvider: dp,
         };
 
         gridRef.current = grid;
         REGISTRY[id] = grid;
+
+        // Mock 모드 — column 기반 sample row 5개 자동 채움
+        if (isMockPreviewMode()) {
+            try {
+                dp.fillJsonData(generateSampleRows(items, 5));
+            } catch (_e) { /* no-op */ }
+        }
 
         if (typeof afterGridCreate === 'function') {
             try { afterGridCreate(grid, view, grid.dataProvider); } catch (_e) { /* no-op */ }

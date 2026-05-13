@@ -24,8 +24,10 @@ import com.zionex.t3composer.domain.entity.ComposerArtifact;
 @Component
 public class ArtifactExtractor {
 
+    // ===FILE: <path>===  와  ===FILE: <path>  (트레일링 === 없음) 두 형식 모두 인식.
+    // path 는 newline 이전까지 한 줄. 트레일링 === 가 있으면 그것까지 trim.
     private static final Pattern FILE_BLOCK = Pattern.compile(
-            "===\\s*FILE:\\s*([^=\\n]+?)\\s*===\\s*\\r?\\n"
+            "===\\s*FILE:\\s*([^\\n]+?)(?:\\s*===)?\\s*\\r?\\n"
           + "```([a-zA-Z0-9+#_-]*)\\s*\\r?\\n"
           + "([\\s\\S]*?)"
           + "```",

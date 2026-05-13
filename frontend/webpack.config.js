@@ -31,7 +31,10 @@ module.exports = (env, argv) => {
       rules: [
         {
           test: /\.(js|jsx)$/,
-          exclude: /node_modules/,
+          // _preview 폴더는 절대 main bundle 의 dependency graph 에 포함되지 않도록
+          // babel-loader 에서 명시적으로 배제. 산출물 JSX 는 runtime 에 @babel/standalone
+          // 으로 변환되어 격리된 형태로 로드됨 (frontend/src/preview/runtime.js).
+          exclude: [/node_modules/, /[\\/]_preview[\\/]/],
           use: {
             loader: 'babel-loader',
             options: {
@@ -54,6 +57,12 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin({
         'process.env.COMPOSER_API_BASE': JSON.stringify(apiBase),
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
+      }),
+      // _preview 격리 안전망 — 어떤 형태의 import / require 든 _preview 경로를 가리키면
+      // 빈 모듈로 치환. 산출물 JSX 의 syntax error 나 부재 import 가 main bundle 컴파일에
+      // 영향을 주는 모든 경로를 봉쇄.
+      new webpack.IgnorePlugin({
+        resourceRegExp: /[\\/]_preview[\\/]/,
       }),
     ],
     devServer: {

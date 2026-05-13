@@ -34,6 +34,10 @@ public class TargetDataSourceRegistry {
     private final TargetSystemRepository targetRepo;
     private final ConcurrentHashMap<String, HikariDataSource> cache = new ConcurrentHashMap<>();
 
+    /** 실패한 connection 시도를 짧은 시간 동안 negative cache — 반복 호출이 매번 timeout 까지 기다리지 않도록. */
+    private final ConcurrentHashMap<String, Long> negativeCache = new ConcurrentHashMap<>();
+    private static final long NEGATIVE_TTL_MS = 30_000;
+
     /** Target 의 JdbcTemplate. null → 미설정 또는 연결 실패 (호출자가 폴백 결정). */
     public JdbcTemplate getJdbcTemplate(String targetCd) {
         DataSource ds = getDataSource(targetCd);
@@ -44,6 +48,12 @@ public class TargetDataSourceRegistry {
         if (targetCd == null || targetCd.isBlank()) return null;
         HikariDataSource cached = cache.get(targetCd);
         if (cached != null && !cached.isClosed()) return cached;
+
+        // negative cache — 최근에 실패한 시도는 30초간 즉시 null 반환
+        Long failedAt = negativeCache.get(targetCd);
+        if (failedAt != null && System.currentTimeMillis() - failedAt < NEGATIVE_TTL_MS) {
+            return null;
+        }
 
         TargetSystem t = targetRepo.findById(targetCd).orElse(null);
         if (t == null) {
@@ -64,7 +74,11 @@ public class TargetDataSourceRegistry {
             ds.setDriverClassName(t.getDbDriverClass());
         }
         ds.setMaximumPoolSize(3);
-        ds.setConnectionTimeout(15_000);
+        // 사용자 진입 사전 체크 (ping) 가 매번 timeout 까지 hang 하지 않도록 3초로 단축.
+        // 운영 DB 가 정상이면 50ms 안에 connection 획득, 비정상이면 3초 안에 빠른 fail.
+        ds.setConnectionTimeout(3_000);
+        // hikari 가 첫 connection 획득까지 기다리는 시간 (initializationFailTimeout 도 동일하게)
+        ds.setInitializationFailTimeout(3_000);
         ds.setIdleTimeout(60_000);
         ds.setPoolName("target-pool-" + targetCd);
 
@@ -74,17 +88,20 @@ public class TargetDataSourceRegistry {
         } catch (Exception e) {
             log.warn("Target {} DB 연결 실패: {}", targetCd, e.getMessage());
             ds.close();
+            negativeCache.put(targetCd, System.currentTimeMillis());
             return null;
         }
 
+        negativeCache.remove(targetCd);
         cache.put(targetCd, ds);
         return ds;
     }
 
-    /** DB 정보 변경 후 호출 — 캐시된 pool 닫고 제거. */
+    /** DB 정보 변경 후 호출 — 캐시된 pool 닫고 제거 + negative cache 도 비움 (즉시 재시도 가능). */
     public void invalidate(String targetCd) {
         if (targetCd == null) return;
         HikariDataSource ds = cache.remove(targetCd);
+        negativeCache.remove(targetCd);
         if (ds != null) {
             try { ds.close(); } catch (Exception ignored) {}
             log.info("Target {} DataSource 캐시 무효화", targetCd);

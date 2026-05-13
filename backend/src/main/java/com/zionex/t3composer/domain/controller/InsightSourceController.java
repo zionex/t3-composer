@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
 import com.zionex.t3composer.domain.service.JpaMethodSqlMapper;
+import com.zionex.t3composer.domain.service.TargetPathResolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,9 +56,7 @@ public class InsightSourceController {
 
     private final TargetDataSourceRegistry dsRegistry;
     private final JpaMethodSqlMapper       sqlMapper;
-
-    @Value("${composer.wingui.root:/workspace/wingui}")
-    private String winguiRoot;
+    private final TargetPathResolver       pathResolver;
 
     private JdbcTemplate pickJdbc(String targetCd) {
         if (targetCd != null && !targetCd.isBlank()) {
@@ -68,8 +66,14 @@ public class InsightSourceController {
         return targetJdbcTemplate;
     }
 
-    private Path jsxBase()  { return Path.of(winguiRoot, "packages", "wingui", "src", "view"); }
-    private Path javaBase() { return Path.of(winguiRoot, "src", "main", "java"); }
+    private Path jsxBase(String targetCd) {
+        return Path.of(pathResolver.resolveWinguiPath(targetCd),
+                "packages", "wingui", "src", "view");
+    }
+    private Path javaBase(String targetCd) {
+        return Path.of(pathResolver.resolveWinguiPath(targetCd),
+                "src", "main", "java");
+    }
 
     @PostMapping("/collect-source-for-llm")
     public ResponseEntity<?> collectSourceForLlm(@RequestBody Map<String, Object> req) {
@@ -97,7 +101,7 @@ public class InsightSourceController {
 
         // 2) JSX 경로 해석 + 본문 read
         String relPath = resolveJsxRelPath(menuFilePath);
-        Path jsxFile = jsxBase().resolve(relPath + ".jsx");
+        Path jsxFile = jsxBase(targetCd).resolve(relPath + ".jsx");
         if (!Files.isRegularFile(jsxFile)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("success", false,
@@ -127,7 +131,7 @@ public class InsightSourceController {
         Set<String> visitedFiles  = new HashSet<>();
 
         for (String url : urls) {
-            List<Path> matches = findControllersByUrl(url);
+            List<Path> matches = findControllersByUrl(url, targetCd);
             for (Path ctrl : matches) {
                 addJavaFile(controllers, ctrl, visitedFiles);
                 Path dir = ctrl.getParent();
@@ -244,14 +248,14 @@ public class InsightSourceController {
      *   2) Class-level @RequestMapping("/util") + method-level @GetMapping("/user-infos") 분할 케이스도 고려:
      *      → 첫 segment 까지로 grep 매칭 (false positive 위험은 있으나 same dir peer 가 정답 가능성↑)
      */
-    List<Path> findControllersByUrl(String url) {
+    List<Path> findControllersByUrl(String url, String targetCd) {
         if (url == null || url.isBlank()) return Collections.emptyList();
         String clean = stripLeadingSlash(url);
         String[] needles = {
             "\"/" + clean + "\"",
             "\"" + clean + "\"",
         };
-        Path javaRoot = javaBase();
+        Path javaRoot = javaBase(targetCd);
         if (!Files.isDirectory(javaRoot)) return Collections.emptyList();
 
         List<Path> matches = new ArrayList<>();

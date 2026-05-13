@@ -8,6 +8,7 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
+    "@babel/standalone": "^7.23.6",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@hello-pangea/dnd": "16.6.0",

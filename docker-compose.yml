@@ -214,6 +214,16 @@ services:
       - ./frontend/src/view/_preview:/workspace/preview/frontend
       - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
       - ${COMPOSER_DATABASE_REF_PATH:-../t3series/t3series-database}:/workspace/database:ro
+      # Target System 별 wingui / database 폴더 슬롯 — 호스트 드라이브가 달라도 (C: / D:) 독립 마운트.
+      # 미설정 슬롯은 ./empty (빈 폴더) 마운트로 처리 (compose 가 빈 source 거부).
+      # Target.wingui_ref_path 에 컨테이너 안 경로를 저장하면 그게 우선 사용되고,
+      # 비어있으면 fallback 으로 /workspace/targets/<CD>/{wingui|database} 사용.
+      - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
+      - ${TARGET_T3SERIES_DATABASE_PATH:-./empty}:/workspace/targets/T3SERIES/database:ro
+      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
+      - ${TARGET_PLANNEL_DATABASE_PATH:-./empty}:/workspace/targets/PLANNEL/database:ro
+      - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
+      - ${TARGET_LGES_NEXTSCM_DATABASE_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/database:ro
       # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.
       # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
       # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.
@@ -248,6 +258,10 @@ services:
       - /app/node_modules
       # 부모 t3series-wingui 를 read-only 로 마운트 — webpack alias 로 wingui-core / RealGrid2 직접 사용
       - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
+      # Target System 별 wingui 폴더 슬롯 (backend 와 동일 패턴) — frontend 도 source bundle 조회 등에 사용
+      - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
+      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
+      - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
     networks:
       - composer-net
     restart: unless-stopped

@@ -318,7 +318,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
       </Box>
 
       {/* 우측 미리보기 */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}>
         {selected ? (
           <>
             <Stack
@@ -326,7 +326,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
               alignItems="center"
               justifyContent="space-between"
               spacing={1}
-              sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)' }}
+              sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }}
             >
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>

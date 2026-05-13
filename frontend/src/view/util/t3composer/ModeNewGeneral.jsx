@@ -29,8 +29,9 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DiamondIcon from '@mui/icons-material/Diamond';
 
-import { createSession, extractAndLookupTables } from './api';
+import { createSession, extractAndLookupTables, extractAndLookupProcedures } from './api';
 import { getModule } from './constants';
+import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
@@ -154,6 +155,13 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const [tableLookupLoading, setTableLookupLoading] = useState(false);
   const lookupDebounceRef = useRef(null);
 
+  // SP 자동 lookup 상태 — prompt 안의 SP_* 패턴을 디바운스 후 target DB(sys.procedures) 조회
+  // 정책: 사용자가 명시한 SP 가 이미 존재하면 새로 만들지 말고, 명시되지 않은 SP (예: 삭제) 도 자의로 만들지 않게
+  const [procLookup, setProcLookup] = useState({ extracted: [], results: {}, formattedForPrompt: '' });
+  const [procLookupLoading, setProcLookupLoading] = useState(false);
+  const procLookupDebounceRef = useRef(null);
+  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
+
   // UI 패턴 선택 (선택사항) — POPUP 으로 PatternSelector 띄움
   // selectedPattern: { code, name, layout, category, description } | null
   const [selectedPattern, setSelectedPattern] = useState(null);
@@ -202,6 +210,35 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current);
     };
   }, [prompt, subMode]);
+
+  // prompt 변경 시 600ms 디바운스 후 자동 SP lookup (target DB 의 sys.procedures)
+  // targetCd 미선택이면 백엔드가 빈 results 반환 — 그래도 호출은 한다 (구조 일관)
+  useEffect(() => {
+    if (subMode !== 'NL' || !prompt || !prompt.trim()) {
+      setProcLookup({ extracted: [], results: {}, formattedForPrompt: '' });
+      return undefined;
+    }
+    if (procLookupDebounceRef.current) clearTimeout(procLookupDebounceRef.current);
+    procLookupDebounceRef.current = setTimeout(async () => {
+      setProcLookupLoading(true);
+      try {
+        const res = await extractAndLookupProcedures(prompt, currentTargetCd);
+        setProcLookup({
+          extracted: res?.data?.extractedNames || [],
+          results: res?.data?.results || {},
+          formattedForPrompt: res?.data?.formattedForPrompt || '',
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[Composer] SP 자동 lookup 실패:', e?.message || e);
+      } finally {
+        setProcLookupLoading(false);
+      }
+    }, 600);
+    return () => {
+      if (procLookupDebounceRef.current) clearTimeout(procLookupDebounceRef.current);
+    };
+  }, [prompt, subMode, currentTargetCd]);
 
   const reset = () => {
     // startWith 로 고정 진입한 경우엔 서브모드는 유지 (모듈·프롬프트만 초기화)
@@ -276,6 +313,12 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     // 존재하는지 + 컬럼 명세를 알고 SP_UI_*.sql DDL 작성 시 정확한 컬럼명 사용
     if (tableLookup.formattedForPrompt) {
       systemContext += '\n' + tableLookup.formattedForPrompt + '\n';
+    }
+
+    // SP 자동 lookup 결과 첨부 — 사용자가 명시한 SP 가 이미 존재하면 새로 만들지 말고
+    // 명시 안 한 SP(예: 삭제) 도 임의 생성 금지. formatter 에 강제 문구 포함.
+    if (procLookup.formattedForPrompt) {
+      systemContext += '\n' + procLookup.formattedForPrompt + '\n';
     }
 
     return (
@@ -654,6 +697,89 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                           <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10.5, color: '#475569' }}>
                             {cols.slice(0, 12).map((c) => c.name).join(' · ')}
                             {cols.length > 12 && ` · 외 ${cols.length - 12}개`}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Stack>
+            )}
+          </Paper>
+        )}
+
+        {/* SP 자동 lookup 결과 — prompt 안의 SP_* 패턴을 target DB sys.procedures 조회 */}
+        {(procLookupLoading || procLookup.extracted.length > 0) && (
+          <Paper variant="outlined" sx={{
+            p: 2, mb: 3, borderRadius: 2,
+            borderColor: '#0891b2', bgcolor: '#ecfeff',
+          }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <StorageIcon fontSize="small" sx={{ color: '#0891b2' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#155e75' }}>
+                자동 Stored Procedure 존재 여부 확인 {currentTargetCd ? `(${currentTargetCd})` : '(target 미선택)'}
+              </Typography>
+              {procLookupLoading && <CircularProgress size={14} sx={{ color: '#0891b2' }} />}
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              prompt 안의 <code>SP_*</code> 명을 target Operational DB 의 <code>sys.procedures</code> 에서 직접 조회 —
+              존재하면 시그니처/본문을 prompt 에 첨부해 Claude 가 기존 SP 를 그대로 사용 (새 CREATE 생성 금지,
+              사용자가 명시하지 않은 SP 도 임의 추가 금지).
+            </Typography>
+            {!currentTargetCd && procLookup.extracted.length > 0 && (
+              <Alert severity="warning" sx={{ mb: 1, py: 0.5 }}>
+                Target 시스템이 선택되지 않아 SP 존재 여부를 조회할 수 없습니다. 우측 상단에서 Target 을 선택하세요.
+              </Alert>
+            )}
+            {procLookup.extracted.length === 0 && !procLookupLoading && (
+              <Typography variant="caption" color="text.secondary">
+                (prompt 에서 <code>SP_*</code> 패턴 미발견 — 사용할 SP 명이 있으면 입력하세요)
+              </Typography>
+            )}
+            {procLookup.extracted.length > 0 && (
+              <Stack spacing={0.5}>
+                {procLookup.extracted.map((name) => {
+                  const info = procLookup.results[name.toUpperCase()];
+                  const exists = info?.exists;
+                  const params = info?.parameters || [];
+                  return (
+                    <Box key={name} sx={{
+                      p: 1, borderRadius: 1,
+                      bgcolor: exists ? '#dcfce7' : '#fef3c7',
+                      border: `1px solid ${exists ? '#16a34a' : '#d97706'}33`,
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        {exists
+                          ? <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
+                          : <HighlightOffIcon fontSize="small" sx={{ color: '#d97706' }} />}
+                        <Typography variant="body2" sx={{
+                          fontFamily: 'monospace', fontWeight: 700,
+                          color: exists ? '#166534' : '#92400e',
+                        }}>
+                          {name}
+                        </Typography>
+                        {exists && (
+                          <Chip size="small" label={`${params.length} params`}
+                            sx={{ height: 18, fontSize: 10, bgcolor: '#bbf7d0', color: '#166534' }} />
+                        )}
+                        {exists && info?.modifyDate && (
+                          <Typography variant="caption" color="text.secondary">
+                            modified {info.modifyDate}
+                          </Typography>
+                        )}
+                        {!exists && (
+                          <Typography variant="caption" sx={{ color: '#92400e' }}>
+                            {currentTargetCd
+                              ? '존재하지 않음 — 명시한 경우에만 새 SP 생성 (삭제 등 미요청 동작 금지)'
+                              : 'target 미선택 — 조회 불가'}
+                          </Typography>
+                        )}
+                      </Stack>
+                      {exists && params.length > 0 && (
+                        <Box sx={{ mt: 0.5, pl: 3 }}>
+                          <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10.5, color: '#475569' }}>
+                            {params.slice(0, 8).map((p) => p.name).join(' · ')}
+                            {params.length > 8 && ` · 외 ${params.length - 8}개`}
                           </Typography>
                         </Box>
                       )}

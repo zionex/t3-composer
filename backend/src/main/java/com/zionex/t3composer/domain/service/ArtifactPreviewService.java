@@ -111,52 +111,32 @@ public class ArtifactPreviewService {
             String content = a.getContent();
             if (content == null || content.isBlank()) continue;
 
+            // Lite 모드 (2026-05 정책): [화면 실행] 은 JSX 만 처리하고 mock 으로 UI 만 보임.
+            // Java/SP/DDL/MENU 적용은 [아티팩트 적용] 정식 단계에서 처리.
+            // → mvn compile (수십 초) / DB 수정 / DevTools restart 모두 skip → 2~3초 안에 화면 노출.
             switch (type) {
                 case ComposerArtifact.TYPE_SCREEN_JSX -> {
                     Map<String, Object> rec = writeJsxToPreview(a, sessionPreview, sid8);
                     applied.add(rec);
                     if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
                 }
-                case ComposerArtifact.TYPE_SQL_DDL -> {
-                    Map<String, Object> rec = applyService.executeAsBatchPublic(a, content, "DDL", true);
-                    applied.add(rec);
-                    if (Boolean.TRUE.equals(rec.get("execOk"))) ddlOk++; else ddlFail++;
-                }
-                case ComposerArtifact.TYPE_SQL_SP -> {
-                    Map<String, Object> rec = applyService.executeAsBatchPublic(a, content, "SP", false);
-                    applied.add(rec);
-                    if (Boolean.TRUE.equals(rec.get("execOk"))) spOk++; else spFail++;
-                }
-                case ComposerArtifact.TYPE_MENU_SQL -> {
-                    Map<String, Object> rec = executeMenuSqlForPreview(a, content, sid8);
-                    applied.add(rec);
-                    if (Boolean.TRUE.equals(rec.get("execOk"))) menuOk++; else menuFail++;
-                }
-                case ComposerArtifact.TYPE_JAVA_CONTROLLER, ComposerArtifact.TYPE_JAVA_SERVICE,
+                case ComposerArtifact.TYPE_SQL_DDL, ComposerArtifact.TYPE_SQL_SP,
+                     ComposerArtifact.TYPE_MENU_SQL,
+                     ComposerArtifact.TYPE_JAVA_CONTROLLER, ComposerArtifact.TYPE_JAVA_SERVICE,
                      ComposerArtifact.TYPE_JAVA_REPOSITORY, ComposerArtifact.TYPE_JAVA_ENTITY -> {
-                    if (sessionJavaPreview == null) {
-                        Map<String, Object> rec = new LinkedHashMap<>();
-                        rec.put("id", a.getId());
-                        rec.put("type", type);
-                        rec.put("ok", false);
-                        rec.put("err", "preview-java-root 가 설정되지 않았습니다.");
-                        applied.add(rec);
-                        javaFail++;
-                        break;
-                    }
-                    Map<String, Object> rec = writeJavaToPreview(a, sessionJavaPreview, sid8, unknownImports);
+                    Map<String, Object> rec = new LinkedHashMap<>();
+                    rec.put("id", a.getId());
+                    rec.put("type", type);
+                    rec.put("ok", true);
+                    rec.put("skipped", true);
+                    rec.put("note", "lite preview — UI 만 표시, 실제 적용은 [아티팩트 적용]");
                     applied.add(rec);
-                    if (Boolean.TRUE.equals(rec.get("ok"))) javaOk++; else javaFail++;
                 }
                 default -> { /* MENUS_JS_PATCH 등은 preview 대상 외 */ }
             }
         }
 
-        // Java 가 1건 이상 적용됐으면 mvn compile 트리거 → DevTools 자동 재기동
-        Map<String, Object> mvn = null;
-        if (javaOk > 0) {
-            mvn = triggerMvnCompile();
-        }
+        // Lite 모드 — mvn compile / DB 수정 모두 안 함.
 
         boolean success = jsxFail == 0 && ddlFail == 0 && spFail == 0 && menuFail == 0 && javaFail == 0;
 
@@ -196,9 +176,8 @@ public class ArtifactPreviewService {
         out.put("javaFail", javaFail);
         out.put("unknownImports", unknownImports);
         out.put("items", applied);
-        if (mvn != null) out.put("mvn", mvn);
-        out.put("note", "메뉴트리에서 [PV " + sid8 + "] 항목 클릭해 화면 동작 확인 후 [정식 적용] 또는 [미리보기 취소]. "
-                + (javaOk > 0 ? "Java 산출물이 있어 backend DevTools 자동 재기동 (약 10~20초)." : ""));
+        out.put("note", "Lite preview — JSX 만 실행되고 Java/SP/MENU 는 mock 응답으로 동작. "
+                + "실제 backend / DB 적용은 [아티팩트 적용] 으로 진행.");
         return out;
     }
 
@@ -497,6 +476,38 @@ public class ArtifactPreviewService {
         if (sessionId == null) return "00000000";
         String s = sessionId.replaceAll("[^A-Za-z0-9]", "");
         return s.substring(0, Math.min(8, s.length())).toLowerCase();
+    }
+
+    /**
+     * preview JSX 파일의 raw 텍스트 반환. webpack dependency graph 와 격리된 상태에서
+     * runtime fetch + Babel transform 으로 컴포넌트를 마운트할 때 사용.
+     *
+     * viewSub 는 `_preview/<sid8>/` 이하의 상대 경로 (예: `util/userinfomgmt/UserInfoMgmt.jsx`).
+     * `..` 등으로 부모 폴더 탈출 시도하면 빈 결과.
+     */
+    public String readPreviewJsxSource(String sessionId, String viewSub) {
+        if (sessionId == null || viewSub == null) return null;
+        String previewRoot = props.getComposer().getPreviewFrontendRoot();
+        if (previewRoot == null || previewRoot.isBlank()) return null;
+        Path previewBase = absDir(previewRoot);
+        if (previewBase == null || !Files.isDirectory(previewBase)) return null;
+
+        String sid8 = shortSid(sessionId);
+        Path sessionPreview = previewBase.resolve(sid8).normalize();
+        String normalized = viewSub.replace('\\', '/');
+        if (!normalized.endsWith(".jsx")) normalized = normalized + ".jsx";
+        Path target = sessionPreview.resolve(normalized).normalize();
+        if (!target.startsWith(sessionPreview)) {
+            log.warn("preview source 경로 탈출 시도: sid={} viewSub={}", sid8, viewSub);
+            return null;
+        }
+        if (!Files.isRegularFile(target)) return null;
+        try {
+            return Files.readString(target, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("preview JSX 읽기 실패 sid={} viewSub={} err={}", sid8, viewSub, e.getMessage());
+            return null;
+        }
     }
 
     private Path absDir(String pathStr) {

@@ -101,6 +101,15 @@ public class TargetSystem {
     @Column(name = "db_last_error", columnDefinition = "text")
     private String dbLastError;
 
+    // ─── Target 별 소스 폴더 경로 (컨테이너 안 절대경로) ───────────────────────
+    /** wingui 소스 폴더 — 비어있으면 app.composer.wingui-ref-path 글로벌 fallback */
+    @Column(name = "wingui_ref_path", length = 500)
+    private String winguiRefPath;
+
+    /** database upgrade 폴더 — 비어있으면 app.composer.database-ref-path 글로벌 fallback */
+    @Column(name = "database_ref_path", length = 500)
+    private String databaseRefPath;
+
     @CreatedBy
     @Column(name = "create_by", length = 100)
     private String createBy;

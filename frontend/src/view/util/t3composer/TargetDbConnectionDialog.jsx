@@ -11,8 +11,11 @@ import {
 import StorageIcon from '@mui/icons-material/Storage';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from '@mui/icons-material/Save';
+import FolderIcon from '@mui/icons-material/Folder';
 
-import { getTarget, updateTargetDbConnection, testTargetDbConnection } from './api';
+import {
+  getTarget, updateTargetDbConnection, testTargetDbConnection, updateTargetRefPaths,
+} from './api';
 
 const DRIVER_BY_DBTYPE = {
   MSSQL:      'com.microsoft.sqlserver.jdbc.SQLServerDriver',
@@ -36,6 +39,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
   const [form, setForm]       = useState({
     dbUrl: '', dbUsername: '', dbPassword: '', dbDriverClass: '',
   });
+  const [paths, setPaths]     = useState({ winguiRefPath: '', databaseRefPath: '' });
   const [testResult, setTestResult] = useState(null);
   const [savedMsg, setSavedMsg]     = useState(null);
 
@@ -53,6 +57,10 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
           dbUsername:    t.dbUsername || '',
           dbPassword:    '',   // 보안상 안 가져옴 — 비워두면 기존 유지
           dbDriverClass: t.dbDriverClass || DRIVER_BY_DBTYPE[t.dbType] || '',
+        });
+        setPaths({
+          winguiRefPath:   t.winguiRefPath   || '',
+          databaseRefPath: t.databaseRefPath || '',
         });
       })
       .catch((e) => setTestResult({ success: false, error: '대상 로딩 실패: ' + (e?.message || '') }))
@@ -77,6 +85,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
     setSavedMsg(null);
     try {
       await updateTargetDbConnection(targetCd, form);
+      await updateTargetRefPaths(targetCd, paths);
       setSavedMsg({ kind: 'success', text: '저장됨 — 다음 메뉴 트리/소스 조회부터 적용됩니다' });
       if (onSaved) onSaved();
     } catch (e) {
@@ -146,6 +155,33 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
                   : `연결 실패 — ${testResult.error}`}
               </Alert>
             )}
+
+            {/* Target 별 wingui / database 소스 폴더 경로 */}
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ pt: 1, mt: 1, borderTop: '1px solid #e2e8f0' }}>
+              <FolderIcon fontSize="small" sx={{ color: '#64748b' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>
+                Target Path (소스 폴더)
+              </Typography>
+            </Stack>
+            <Alert severity="info" sx={{ bgcolor: '#f1f5f9', '& .MuiAlert-icon': { color: '#64748b' } }}>
+              컨테이너 안 절대경로로 입력하세요 (예: <code>/workspace/projects/t3series/t3series-wingui</code>).
+              비어두면 글로벌 fallback (<code>/workspace/wingui</code> · <code>/workspace/database</code>) 사용.
+            </Alert>
+            <TextField
+              label="wingui 폴더 경로" fullWidth size="small"
+              value={paths.winguiRefPath}
+              onChange={(e) => setPaths({ ...paths, winguiRefPath: e.target.value })}
+              placeholder="/workspace/projects/<프로젝트>/t3series-wingui"
+              InputProps={{ sx: { fontFamily: 'monospace', fontSize: 12 } }}
+            />
+            <TextField
+              label="database 폴더 경로" fullWidth size="small"
+              value={paths.databaseRefPath}
+              onChange={(e) => setPaths({ ...paths, databaseRefPath: e.target.value })}
+              placeholder="/workspace/projects/<프로젝트>/t3series-database"
+              InputProps={{ sx: { fontFamily: 'monospace', fontSize: 12 } }}
+            />
+
             {savedMsg && <Alert severity={savedMsg.kind}>{savedMsg.text}</Alert>}
           </Stack>
         )}

@@ -16,23 +16,6 @@ spring:
       connection-timeout: 30000
   jpa:
     database-platform: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
-
-# Target Operational DataSource — 화면 실행 시 LLM 산출 SP/DDL 적용 대상.
-# composer-db (PG) 와 별개 — Target System 의 dialect 와 일치하는 DB.
-target:
-  datasource:
-    url: ${TARGET_DATASOURCE_URL:jdbc:sqlserver://localhost:11433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true}
-    username: ${TARGET_DATASOURCE_USERNAME:sa}
-    password: ${TARGET_DATASOURCE_PASSWORD:Composer!2026}
-    driver-class-name: ${TARGET_DATASOURCE_DRIVER_CLASS_NAME:com.microsoft.sqlserver.jdbc.SQLServerDriver}
-  # Per-Target DB 접속 정보 seed — startup 시 tb_cmp_target_system 의 db_url 등을 갱신.
-  # 값이 비어있으면 DB 의 기존 값 유지. .env 의 TARGET_<CD>_DB_* 와 1:1 매칭.
-  seed:
-    t3series:
-      db-url:            ${TARGET_T3SERIES_DB_URL:}
-      db-username:       ${TARGET_T3SERIES_DB_USERNAME:}
-      db-password:       ${TARGET_T3SERIES_DB_PASSWORD:}
-      db-driver-class:   ${TARGET_T3SERIES_DB_DRIVER_CLASS:}
     hibernate:
       ddl-auto: none      # init SQL 들이 모두 책임. JPA 가 ALTER 하지 못하게.
     show-sql: false
@@ -51,6 +34,23 @@ target:
     # AnthropicClient 의 responseTimeout(40분) 보다 같거나 약간 길게.
     async:
       request-timeout: 2700000   # 45분 (밀리초)
+
+# Target Operational DataSource — 화면 실행 시 LLM 산출 SP/DDL 적용 대상.
+# composer-db (PG) 와 별개 — Target System 의 dialect 와 일치하는 DB.
+target:
+  datasource:
+    url: ${TARGET_DATASOURCE_URL:jdbc:sqlserver://localhost:11433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true}
+    username: ${TARGET_DATASOURCE_USERNAME:sa}
+    password: ${TARGET_DATASOURCE_PASSWORD:Composer!2026}
+    driver-class-name: ${TARGET_DATASOURCE_DRIVER_CLASS_NAME:com.microsoft.sqlserver.jdbc.SQLServerDriver}
+  # Per-Target DB 접속 정보 seed — startup 시 tb_cmp_target_system 의 db_url 등을 갱신.
+  # 값이 비어있으면 DB 의 기존 값 유지. .env 의 TARGET_<CD>_DB_* 와 1:1 매칭.
+  seed:
+    t3series:
+      db-url:            ${TARGET_T3SERIES_DB_URL:}
+      db-username:       ${TARGET_T3SERIES_DB_USERNAME:}
+      db-password:       ${TARGET_T3SERIES_DB_PASSWORD:}
+      db-driver-class:   ${TARGET_T3SERIES_DB_DRIVER_CLASS:}
 
 server:
   port: ${COMPOSER_BACKEND_PORT:8090}

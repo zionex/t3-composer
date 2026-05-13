@@ -145,6 +145,14 @@ export const updateTargetDbConnection = (targetCd, payload) =>
 export const testTargetDbConnection = (targetCd, payload) =>
   zAxios.post(`composer/targets/${encodeURIComponent(targetCd)}/db-connection/test`, payload || {}, composerReq());
 
+/** 빠른 연결 확인 (pool 기반 SELECT 1). 작업 진입 사전 체크용 — 첫 호출 후 50ms 이하. */
+export const pingTargetDbConnection = (targetCd) =>
+  zAxios.get(`composer/targets/${encodeURIComponent(targetCd)}/db-connection/ping`, composerReq());
+
+/** Target System 별 wingui / database 소스 폴더 경로 저장 */
+export const updateTargetRefPaths = (targetCd, payload) =>
+  zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
+
 /**
  * NEW_FROM_COPY — sourceBundle 을 LLM 한 번 호출로 분석해 9단계 spec JSON 받기.
  * 응답: { spec: {...9단계 JSON...}, modelName: "..." }
@@ -244,6 +252,20 @@ export const lookupTables = (names) =>
 /** 자연어 prompt 에서 TB_* 패턴 자동 추출 + lookup */
 export const extractAndLookupTables = (text) =>
   zAxios.post(`composer/schema/tables/extract`, { text }, composerReq());
+
+/**
+ * SP 명 배치 lookup — target Operational DB(MSSQL) 의 sys.procedures 조회.
+ * { results: {SP_NAME: ProcedureInfo, ...}, formattedForPrompt: "..." }
+ */
+export const lookupProcedures = (names, targetCd) =>
+  zAxios.post(`composer/schema/procedures/lookup`, { names, targetCd }, composerReq());
+
+/**
+ * 자연어 prompt 에서 SP_* 패턴 자동 추출 + lookup (target DB 기준).
+ * targetCd 미지정/연결 실패 시 결과 비어있음 — 호출부가 폴백.
+ */
+export const extractAndLookupProcedures = (text, targetCd) =>
+  zAxios.post(`composer/schema/procedures/extract`, { text, targetCd }, composerReq());
 
 // ---- Design Doc Excel ----
 

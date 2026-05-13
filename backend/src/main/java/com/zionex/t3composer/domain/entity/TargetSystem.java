@@ -102,13 +102,17 @@ public class TargetSystem {
     private String dbLastError;
 
     // ─── Target 별 소스 폴더 경로 (컨테이너 안 절대경로) ───────────────────────
-    /** wingui 소스 폴더 — 비어있으면 app.composer.wingui-ref-path 글로벌 fallback */
-    @Column(name = "wingui_ref_path", length = 500)
-    private String winguiRefPath;
+    /** Target 의 frontend/jsx 소스 폴더 — 비어있으면 app.composer.wingui-ref-path 글로벌 fallback */
+    @Column(name = "source_ref_path", length = 500)
+    private String sourceRefPath;
 
     /** database upgrade 폴더 — 비어있으면 app.composer.database-ref-path 글로벌 fallback */
     @Column(name = "database_ref_path", length = 500)
     private String databaseRefPath;
+
+    /** 메뉴 트리 소스: DB (TB_AD_MENU 조회) | JS_FILE (TabMenuList.js 파싱) — 기본 DB */
+    @Column(name = "menu_source", length = 20)
+    private String menuSource;
 
     @CreatedBy
     @Column(name = "create_by", length = 100)

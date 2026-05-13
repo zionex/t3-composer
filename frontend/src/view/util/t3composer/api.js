@@ -149,7 +149,7 @@ export const testTargetDbConnection = (targetCd, payload) =>
 export const pingTargetDbConnection = (targetCd) =>
   zAxios.get(`composer/targets/${encodeURIComponent(targetCd)}/db-connection/ping`, composerReq());
 
-/** Target System 별 wingui / database 소스 폴더 경로 저장 */
+/** Target System 별 source / database 소스 폴더 경로 저장 — payload: { sourceRefPath, databaseRefPath } */
 export const updateTargetRefPaths = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
 

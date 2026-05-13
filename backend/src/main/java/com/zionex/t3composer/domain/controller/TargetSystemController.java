@@ -100,10 +100,12 @@ public class TargetSystemController {
     }
 
     /**
-     * Target 의 ref path (wingui / database) 저장.
-     * body: { winguiRefPath, databaseRefPath }
+     * Target 의 ref path (source / database) 저장.
+     * body: { sourceRefPath, databaseRefPath }
      * 컨테이너 안 절대경로 입력 (예: /workspace/projects/t3series/t3series-wingui).
      * 빈 문자열 / null 도 허용 (글로벌 fallback 으로 동작).
+     *
+     * 옛 필드명 winguiRefPath 도 한시적으로 수신 (frontend 캐시 호환) — 사라지면 제거.
      */
     @PutMapping("/{targetCd}/ref-paths")
     public TargetSystem updateRefPaths(@PathVariable String targetCd,
@@ -111,11 +113,13 @@ public class TargetSystemController {
         if (!targetRepo.existsById(targetCd)) {
             throw new IllegalArgumentException("Unknown target: " + targetCd);
         }
+        String src = body.get("sourceRefPath");
+        if (src == null) src = body.get("winguiRefPath");   // 옛 키 호환
         // jsonb 컬럼 회피 — 변경 컬럼만 직접 UPDATE.
         composerDbJdbc.update(
-            "UPDATE dbo.tb_cmp_target_system SET wingui_ref_path=?, database_ref_path=?, " +
+            "UPDATE dbo.tb_cmp_target_system SET source_ref_path=?, database_ref_path=?, " +
             "modify_by='composer', modify_dttm=now() WHERE target_cd=?",
-            nullIfBlank(body.get("winguiRefPath")),
+            nullIfBlank(src),
             nullIfBlank(body.get("databaseRefPath")),
             targetCd);
         return targetRepo.findById(targetCd).orElseThrow();

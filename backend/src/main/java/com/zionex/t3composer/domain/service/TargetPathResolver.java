@@ -12,12 +12,13 @@ import com.zionex.t3composer.domain.repository.TargetSystemRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Target System 별 wingui / database 폴더 경로 해석.
+ * Target System 별 source / database 폴더 경로 해석.
  *
  * 우선순위:
- *  1. Target.winguiRefPath / databaseRefPath (Target 별 명시 설정)
+ *  1. Target.sourceRefPath / databaseRefPath (Target 별 명시 설정)
  *  2. Per-Target 마운트 convention — /workspace/targets/&lt;CD&gt;/{wingui|database}
- *     (docker-compose 에서 TARGET_&lt;CD&gt;_WINGUI_PATH 가 .env 에 설정된 경우 활성)
+ *     (docker-compose 에서 TARGET_&lt;CD&gt;_WINGUI_PATH 가 .env 에 설정된 경우 활성 —
+ *     mount path 의 'wingui' 토큰은 호환을 위한 내부 이름이며 의미는 'source')
  *  3. app.composer.wingui-ref-path / database-ref-path (글로벌 fallback — application.yaml)
  *  4. 컨테이너 안 default (/workspace/wingui · /workspace/database)
  *
@@ -35,11 +36,11 @@ public class TargetPathResolver {
     private final TargetSystemRepository targetRepo;
     private final ApplicationProperties  props;
 
-    public String resolveWinguiPath(String targetCd) {
+    public String resolveSourcePath(String targetCd) {
         // 각 단계의 path 는 컨테이너 안에서 실제 디렉토리일 때만 채택.
         // (사용자가 host path 를 입력해 컨테이너 안에서 valid 하지 않은 경우 자동 fallback)
         String byTarget = targetCd == null ? null
-                : targetRepo.findById(targetCd).map(TargetSystem::getWinguiRefPath).orElse(null);
+                : targetRepo.findById(targetCd).map(TargetSystem::getSourceRefPath).orElse(null);
         if (validDir(byTarget)) return byTarget;
         if (targetCd != null && !targetCd.isBlank()) {
             String convention = TARGETS_BASE + "/" + targetCd + "/wingui";
@@ -48,6 +49,12 @@ public class TargetPathResolver {
         String global = props.getComposer().getWinguiRefPath();
         if (validDir(global)) return global;
         return DEFAULT_WINGUI_PATH;
+    }
+
+    /** @deprecated 이전 이름 호환 — {@link #resolveSourcePath(String)} 사용. */
+    @Deprecated
+    public String resolveWinguiPath(String targetCd) {
+        return resolveSourcePath(targetCd);
     }
 
     public String resolveDatabasePath(String targetCd) {

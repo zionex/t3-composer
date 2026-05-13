@@ -29,6 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
+import com.zionex.t3composer.domain.entity.TargetSystem;
+import com.zionex.t3composer.domain.repository.TargetSystemRepository;
+import com.zionex.t3composer.domain.service.JsMenuFileParser;
 import com.zionex.t3composer.domain.service.TargetPathResolver;
 import com.zionex.t3composer.shared.data.ResponseMessage;
 
@@ -54,6 +57,8 @@ public class TargetMenuController {
 
     private final TargetDataSourceRegistry dsRegistry;
     private final TargetPathResolver       pathResolver;
+    private final TargetSystemRepository   targetRepo;
+    private final JsMenuFileParser         jsMenuFileParser;
 
     /**
      * 활성 Target 의 운영 DB JdbcTemplate 반환. db_url 미설정/연결실패 시
@@ -86,16 +91,63 @@ public class TargetMenuController {
     public ResponseEntity<?> tree(@RequestParam(defaultValue = "ko") String lang,
                                    @RequestParam(required = false) String target) {
         try {
+            // 1) Target 의 menu_source 기반 분기
+            String menuSource = "DB";
+            if (target != null && !target.isBlank()) {
+                TargetSystem t = targetRepo.findById(target).orElse(null);
+                if (t != null && t.getMenuSource() != null && !t.getMenuSource().isBlank()) {
+                    menuSource = t.getMenuSource();
+                }
+            }
+
+            if ("JS_FILE".equalsIgnoreCase(menuSource)) {
+                return ResponseEntity.ok(loadJsFileMenus(target));
+            }
+
+            // 2) 기본 DB 경로
             JdbcTemplate jdbc = pickJdbc(target);
             List<Map<String, Object>> flat = jdbc.queryForList(SQL, lang);
             Map<String, Object> tree = buildTree(flat);
             tree.put("source", (jdbc != targetJdbcTemplate) ? ("target:" + target) : "local");
+            tree.put("menuSource", "DB");
             return ResponseEntity.ok(tree);
         } catch (Exception e) {
             log.error("Target menu tree 조회 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseMessage.error(e.getMessage()));
         }
+    }
+
+    /**
+     * Target.sourceRefPath 아래의 JS 파일에서 메뉴 트리 추출.
+     * 기본 후보: src/pages/TabMenuList.js (PlanNEL 컨벤션)
+     */
+    private Map<String, Object> loadJsFileMenus(String targetCd) throws IOException {
+        String root = pathResolver.resolveSourcePath(targetCd);
+        Path[] candidates = new Path[]{
+            Path.of(root, "src", "pages", "TabMenuList.js"),
+            Path.of(root, "src", "pages", "TabMenuList.jsx"),
+            Path.of(root, "src", "TabMenuList.js"),
+        };
+        Path found = null;
+        for (Path p : candidates) {
+            if (Files.isRegularFile(p)) { found = p; break; }
+        }
+        if (found == null) {
+            Map<String, Object> empty = new LinkedHashMap<>();
+            empty.put("items", List.of());
+            empty.put("source", "target:" + targetCd);
+            empty.put("menuSource", "JS_FILE");
+            empty.put("error", "TabMenuList.js 파일을 찾지 못했습니다. " +
+                    "sourceRefPath 와 src/pages/TabMenuList.js 존재 여부를 확인하세요. " +
+                    "검색한 경로: " + Arrays.toString(candidates));
+            return empty;
+        }
+        Map<String, Object> tree = jsMenuFileParser.parse(found);
+        tree.put("source", "target:" + targetCd);
+        tree.put("menuSource", "JS_FILE");
+        tree.put("sourceFile", found.toString());
+        return tree;
     }
 
     @SuppressWarnings("unchecked")

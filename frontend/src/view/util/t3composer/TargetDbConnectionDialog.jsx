@@ -39,7 +39,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
   const [form, setForm]       = useState({
     dbUrl: '', dbUsername: '', dbPassword: '', dbDriverClass: '',
   });
-  const [paths, setPaths]     = useState({ winguiRefPath: '', databaseRefPath: '' });
+  const [paths, setPaths]     = useState({ sourceRefPath: '', databaseRefPath: '' });
   const [testResult, setTestResult] = useState(null);
   const [savedMsg, setSavedMsg]     = useState(null);
 
@@ -59,7 +59,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
           dbDriverClass: t.dbDriverClass || DRIVER_BY_DBTYPE[t.dbType] || '',
         });
         setPaths({
-          winguiRefPath:   t.winguiRefPath   || '',
+          sourceRefPath:   t.sourceRefPath   || '',
           databaseRefPath: t.databaseRefPath || '',
         });
       })
@@ -168,8 +168,8 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
             </Alert>
             <TextField
               label="source 폴더 경로" fullWidth size="small"
-              value={paths.winguiRefPath}
-              onChange={(e) => setPaths({ ...paths, winguiRefPath: e.target.value })}
+              value={paths.sourceRefPath}
+              onChange={(e) => setPaths({ ...paths, sourceRefPath: e.target.value })}
               placeholder="/workspace/projects/<프로젝트>/t3series-wingui"
               InputProps={{ sx: { fontFamily: 'monospace', fontSize: 12 } }}
             />

@@ -137,6 +137,16 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
             "rules/41c-composer-widgets.md §6.2 (검색조건 팝업 트리거)"
     fi
 
+    # CG-FAB6d. @mui/icons-material/<Name> 의 named import 금지 — default export 임
+    # `import { SearchIcon } from '@mui/icons-material/Search';` → 런타임 SearchIcon === undefined
+    # → JSX 렌더 시 "Element type is invalid: ... got: undefined" 오류. 가장 잦은 LLM 환각.
+    # 표준: `import SearchIcon from '@mui/icons-material/Search';`
+    if grep -qE "^import\s*\{[^}]*\}\s*from\s*['\"]@mui/icons-material/" <<<"$CONTENT"; then
+      OFFENDER=$(grep -nE "^import\s*\{[^}]*\}\s*from\s*['\"]@mui/icons-material/" <<<"$CONTENT" | head -1)
+      block "@mui/icons-material/<Name> 의 named import 금지 — default export 입니다. 발견: $OFFENDER  → 런타임에 컴포넌트가 undefined 가 되어 'Element type is invalid' 오류. 표준: import SearchIcon from '@mui/icons-material/Search';" \
+            "rules/41c-composer-widgets.md §6.2"
+    fi
+
     # CG-FAB6c. <GridCnt> 에 format prop 누락 — 라벨 없이 숫자만 노출
     # GridCnt 는 props.format 없으면 단순 카운트 숫자 (예: "2") 만 출력 → 화면에 "2" 가 외로이 보임
     # 표준: format={"{0} " + transLangKey("CASES") + " " + transLangKey("MSG_0010")}

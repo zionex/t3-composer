@@ -272,7 +272,8 @@ public class ArtifactPreviewService {
         }
         try {
             Files.createDirectories(target.getParent());
-            Files.writeString(target, a.getContent(), StandardCharsets.UTF_8,
+            String content = rewriteJsxArtifact(a.getContent());
+            Files.writeString(target, content, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.WRITE);
@@ -285,6 +286,40 @@ public class ArtifactPreviewService {
             log.warn("preview JSX 쓰기 실패 sid={} fp={} err={}", sid8, fp, e.getMessage());
         }
         return rec;
+    }
+
+    /**
+     * LLM 환각 자동 보정 — JSX 산출물에 가장 자주 나오는 잘못된 import 형태를 표준 형태로 치환.
+     *
+     * 케이스 1: `import { SearchIcon } from '@mui/icons-material/Search';` (named import)
+     *           → `import SearchIcon from '@mui/icons-material/Search';` (default import)
+     *
+     *  서브경로 형태 (`@mui/icons-material/<Name>`) 는 default export 임. named 로 받으면
+     *  런타임에 undefined → JSX 렌더 시 "Element type is invalid" 오류.
+     */
+    static String rewriteJsxArtifact(String content) {
+        if (content == null || content.isEmpty()) return content;
+        // 패턴: import { Foo } from '@mui/icons-material/Bar';
+        //   주의: 여러 named (`{ A, B }`) 는 단일 default 로 자동 변환 불가능 — 첫 이름만 살리고 경고 로그.
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+            "import\\s*\\{\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(,\\s*[^}]*)?\\}\\s*from\\s*(['\"])@mui/icons-material/([A-Za-z_][A-Za-z0-9_]*)\\3\\s*;");
+        java.util.regex.Matcher m = p.matcher(content);
+        StringBuilder sb = new StringBuilder();
+        boolean rewrote = false;
+        while (m.find()) {
+            String name = m.group(1);
+            String quote = m.group(3);
+            String sub = m.group(4);
+            m.appendReplacement(sb,
+                java.util.regex.Matcher.quoteReplacement(
+                    "import " + name + " from " + quote + "@mui/icons-material/" + sub + quote + ";"));
+            rewrote = true;
+        }
+        m.appendTail(sb);
+        if (rewrote) {
+            log.info("JSX rewrite: @mui/icons-material/<Name> named import → default import");
+        }
+        return sb.toString();
     }
 
     private String extractViewSubpath(String filePath, String fileName) {

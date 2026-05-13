@@ -13,26 +13,29 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.zionex.t3composer.config.TargetDataSourceRegistry;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * MSSQL INFORMATION_SCHEMA / sys.* 메타테이블을 조회해 Composer NEW_NL 모드가
- * 사용자가 입력한 테이블의 존재 여부 + 컬럼 메타데이터를 받을 수 있게 한다.
+ * 테이블 메타 조회 — Composer NEW_NL 모드가 사용자가 prompt 에 명시한 TB_* 테이블이
+ * 운영 DB(Target MSSQL) 에 이미 존재하는지, 컬럼/PK 가 어떻게 되는지를 LLM 에 전달한다.
  *
- * 정책: 신규 화면 생성 시 사용자가 자연어 prompt 에 언급한 모든 TB_* 테이블에 대해
+ * 정책:
  *   1) 존재 → 기존 Entity 재사용 (DDL 생성 금지)
  *   2) 미존재 → 새 SQL_DDL 아티팩트로 테이블 생성 (NEW_NL/NEW_GENERAL 모드만 허용)
  *
- * DataSource 는 Spring Boot 가 application.yaml 의 메인 DB 접속 정보를 자동 인젝션 —
- * Composer 는 별도 접속 정보 관리 안 함 (T3SMARTSCM.dbo).
+ * DataSource: {@link TargetDataSourceRegistry} 로 targetCd 별 동적 라우팅.
+ * Composer 자체 메타 DB(PG) 에는 TB_* 운영 테이블이 없으므로 반드시 Target Operational DB(MSSQL) 에 질의.
+ * (2026-05-13 수정 — 이전 버전은 unqualified JdbcTemplate 으로 composer-db PG 만 조회해서 "미존재" 오판 발생.)
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SchemaInspectionService {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final TargetDataSourceRegistry registry;
 
     /** 테이블명 정규식 — 안전한 식별자만 허용 (SQL injection 방어) */
     private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
@@ -47,28 +50,30 @@ public class SchemaInspectionService {
 
     /**
      * 테이블 존재 여부만 빠르게 확인.
-     * @param tableName 대소문자 무관 (MSSQL 의 기본 collation 은 대소문자 구분 X)
-     * @return true = 존재
+     * @param targetCd  Target System 코드 (null/blank 이면 false 반환)
+     * @param tableName 대소문자 무관
      */
-    public boolean tableExists(String tableName) {
+    public boolean tableExists(String targetCd, String tableName) {
         if (!isValidIdentifier(tableName)) return false;
+        JdbcTemplate jdbc = registry.getJdbcTemplate(targetCd);
+        if (jdbc == null) return false;
         try {
-            // PG 호환: 식별자 비교를 case-insensitive 하게. PG 의 unquoted 식별자는 lowercase 로 저장됨.
-            Integer count = jdbcTemplate.queryForObject(
+            Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES" +
                 " WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW') AND LOWER(TABLE_NAME) = LOWER(?)",
                 Integer.class, tableName);
             return count != null && count > 0;
         } catch (DataAccessException e) {
-            log.warn("tableExists 조회 실패 ({}): {}", tableName, e.getMessage());
+            log.warn("tableExists 조회 실패 (target={}, table={}): {}", targetCd, tableName, e.getMessage());
             return false;
         }
     }
 
     /**
-     * 테이블 메타데이터 (존재 여부 + 컬럼 + PK + 행 수 추정) 한 번에.
+     * 테이블 메타데이터 (존재 여부 + 컬럼 + PK) 한 번에.
+     * 행수 추정은 dialect 차이로 생략 — 필요 시 후속 보강.
      */
-    public TableInfo getTableInfo(String tableName) {
+    public TableInfo getTableInfo(String targetCd, String tableName) {
         TableInfo.TableInfoBuilder b = TableInfo.builder()
                 .tableName(tableName)
                 .columns(Collections.emptyList())
@@ -77,25 +82,28 @@ public class SchemaInspectionService {
         if (!isValidIdentifier(tableName)) {
             return b.exists(false).build();
         }
-
-        // 1) 스키마 + 존재 여부
-        String schema;
-        try {
-            schema = jdbcTemplate.queryForObject(
-                "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES" +
-                " WHERE LOWER(TABLE_NAME) = LOWER(?) AND TABLE_TYPE IN ('BASE TABLE', 'VIEW')" +
-                " LIMIT 1",
-                String.class, tableName);
-        } catch (DataAccessException e) {
-            schema = null;
-        }
-        if (schema == null) {
+        JdbcTemplate jdbc = registry.getJdbcTemplate(targetCd);
+        if (jdbc == null) {
+            log.debug("target {} JdbcTemplate 미사용 — 테이블 lookup 스킵", targetCd);
             return b.exists(false).build();
         }
+
+        // 1) 스키마 + 존재 여부
+        List<String> schemas = jdbc.queryForList(
+            "SELECT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES" +
+            " WHERE LOWER(TABLE_NAME) = LOWER(?) AND TABLE_TYPE IN ('BASE TABLE', 'VIEW')",
+            String.class, tableName);
+        if (schemas.isEmpty()) {
+            return b.exists(false).build();
+        }
+        String schema = schemas.get(0);
         b.tableSchema(schema).exists(true);
 
         // 2) 컬럼
-        List<ColumnInfo> columns = jdbcTemplate.query(
+        //   MSSQL INFORMATION_SCHEMA.COLUMNS 의 NUMERIC_PRECISION/SCALE 은 tinyint(Byte),
+        //   CHARACTER_MAXIMUM_LENGTH 는 int 지만 일부 케이스 Short — (Integer) 직접 캐스트 ClassCastException.
+        //   Number 경유로 안전 변환.
+        List<ColumnInfo> columns = jdbc.query(
             "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH," +
             "       NUMERIC_PRECISION, NUMERIC_SCALE, IS_NULLABLE," +
             "       COLUMN_DEFAULT, ORDINAL_POSITION" +
@@ -106,18 +114,18 @@ public class SchemaInspectionService {
                 ColumnInfo c = new ColumnInfo();
                 c.setName(rs.getString("COLUMN_NAME"));
                 c.setDataType(rs.getString("DATA_TYPE"));
-                c.setCharacterMaximumLength((Integer) rs.getObject("CHARACTER_MAXIMUM_LENGTH"));
-                c.setNumericPrecision((Integer) rs.getObject("NUMERIC_PRECISION"));
-                c.setNumericScale((Integer) rs.getObject("NUMERIC_SCALE"));
+                c.setCharacterMaximumLength(asInteger(rs.getObject("CHARACTER_MAXIMUM_LENGTH")));
+                c.setNumericPrecision(asInteger(rs.getObject("NUMERIC_PRECISION")));
+                c.setNumericScale(asInteger(rs.getObject("NUMERIC_SCALE")));
                 c.setIsNullable(rs.getString("IS_NULLABLE"));
                 c.setColumnDefault(rs.getString("COLUMN_DEFAULT"));
-                c.setOrdinalPosition((Integer) rs.getObject("ORDINAL_POSITION"));
+                c.setOrdinalPosition(asInteger(rs.getObject("ORDINAL_POSITION")));
                 return c;
             },
             schema, tableName);
 
         // 3) PK 컬럼
-        List<String> pkColumns = jdbcTemplate.queryForList(
+        List<String> pkColumns = jdbc.queryForList(
             "SELECT kcu.COLUMN_NAME" +
             "  FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc" +
             "  JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu" +
@@ -135,60 +143,33 @@ public class SchemaInspectionService {
         }
         b.columns(columns).primaryKeyColumns(pkColumns);
 
-        // 4) 행 수 추정 (PG: pg_class.reltuples — Composer 자체 DB(PG) 의 estimate)
-        // 추후 Phase 4 에서 Target dialect 별 분기 — 지금은 PG 만.
-        try {
-            Long rowCount = jdbcTemplate.queryForObject(
-                "SELECT COALESCE(c.reltuples::bigint, 0)" +
-                "  FROM pg_class c" +
-                "  JOIN pg_namespace n ON c.relnamespace = n.oid" +
-                " WHERE LOWER(n.nspname) = LOWER(?)" +
-                "   AND LOWER(c.relname) = LOWER(?)" +
-                "   AND c.relkind IN ('r','p')",
-                Long.class, schema, tableName);
-            b.approximateRowCount(rowCount);
-        } catch (DataAccessException e) {
-            // VIEW 거나 권한 부족 — 무시
-        }
-
         return b.build();
     }
 
     // ──────────────────────────────────────────────────────────────────
-    // 배치 lookup — Composer 가 prompt 에서 추출한 여러 테이블을 한 번에
+    // 배치 lookup
     // ──────────────────────────────────────────────────────────────────
 
-    /**
-     * 여러 테이블 동시 조회. 입력 순서 유지된 LinkedHashMap.
-     */
-    public Map<String, TableInfo> getMultipleTables(List<String> tableNames) {
+    public Map<String, TableInfo> getMultipleTables(String targetCd, List<String> tableNames) {
         Map<String, TableInfo> out = new LinkedHashMap<>();
         if (tableNames == null) return out;
         for (String name : tableNames) {
             if (name == null) continue;
             String trimmed = name.trim();
             if (trimmed.isEmpty()) continue;
-            // 중복 제거 (대문자 정규화)
             String key = trimmed.toUpperCase();
             if (out.containsKey(key)) continue;
-            out.put(key, getTableInfo(trimmed));
+            out.put(key, getTableInfo(targetCd, trimmed));
         }
         return out;
     }
 
     /**
      * 자연어 prompt 에서 TB_* / tb_* 패턴 테이블명을 grep 으로 추출 후 lookup.
-     * Composer NEW_NL 모드의 자동 분석 진입점.
      */
-    public Map<String, TableInfo> lookupTablesInText(String text) {
+    public Map<String, TableInfo> lookupTablesInText(String targetCd, String text) {
         if (text == null || text.isEmpty()) return Collections.emptyMap();
-        Matcher m = TABLE_REF_PATTERN.matcher(text);
-        List<String> found = new ArrayList<>();
-        while (m.find()) {
-            String name = m.group(1);
-            if (!found.contains(name)) found.add(name);
-        }
-        return getMultipleTables(found);
+        return getMultipleTables(targetCd, extractTableNamesFromText(text));
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -201,20 +182,27 @@ public class SchemaInspectionService {
     }
 
     /**
+     * JDBC ResultSet 의 numeric 컬럼을 Integer 로 안전 변환.
+     * MSSQL INFORMATION_SCHEMA 의 NUMERIC_PRECISION/SCALE 은 tinyint(Byte) 로 와서
+     * (Integer) 직접 캐스트는 ClassCastException — Number 경유로 처리.
+     */
+    private static Integer asInteger(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number n) return n.intValue();
+        return null;
+    }
+
+    /**
      * lookup 결과를 LLM prompt 컨텍스트용 사람 친화 텍스트 블록으로 직렬화.
-     * 사용자 prompt 에 첨부되어 LLM 이 "어떤 테이블이 이미 존재하는지" 한눈에 파악.
      */
     public String formatLookupResultForPrompt(Map<String, TableInfo> lookup) {
         if (lookup == null || lookup.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
-        sb.append("=== 자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo · INFORMATION_SCHEMA 조회) ===\n");
+        sb.append("=== 자동 테이블 존재 여부 확인 (Target Operational DB · INFORMATION_SCHEMA 조회) ===\n");
         for (Map.Entry<String, TableInfo> e : lookup.entrySet()) {
             TableInfo info = e.getValue();
             if (info.isExists()) {
                 sb.append("[✓ 존재] ").append(info.getTableSchema()).append('.').append(info.getTableName());
-                if (info.getApproximateRowCount() != null) {
-                    sb.append(" (~").append(info.getApproximateRowCount()).append(" rows)");
-                }
                 sb.append("\n");
                 List<ColumnInfo> cols = info.getColumns();
                 if (cols != null) {
@@ -245,7 +233,7 @@ public class SchemaInspectionService {
     }
 
     /**
-     * 사용자 prompt 에서 테이블명 후보를 추출. (자연어 분석 보조용 — 외부에서도 호출 가능)
+     * 사용자 prompt 에서 테이블명 후보를 추출.
      */
     public List<String> extractTableNamesFromText(String text) {
         if (text == null || text.isEmpty()) return Collections.emptyList();
@@ -260,5 +248,35 @@ public class SchemaInspectionService {
             }
         }
         return out;
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 하위 호환 — targetCd 없이 호출하던 옛 경로 (composer-db PG 에는 TB_* 없음 → 항상 미존재)
+    // TODO: ArtifactApplyService.checkTableNameCollisions ·
+    //       ComposerService.enrichUserContentWithTableLookup 에 sessionId→targetCd 매핑 추가 후 제거.
+    // ──────────────────────────────────────────────────────────────────
+
+    /** @deprecated targetCd 가 없으면 항상 false. {@link #tableExists(String, String)} 사용. */
+    @Deprecated
+    public boolean tableExists(String tableName) {
+        return tableExists(null, tableName);
+    }
+
+    /** @deprecated targetCd 가 없으면 항상 exists=false. {@link #getTableInfo(String, String)} 사용. */
+    @Deprecated
+    public TableInfo getTableInfo(String tableName) {
+        return getTableInfo(null, tableName);
+    }
+
+    /** @deprecated targetCd 가 없으면 빈 결과. {@link #getMultipleTables(String, List)} 사용. */
+    @Deprecated
+    public Map<String, TableInfo> getMultipleTables(List<String> tableNames) {
+        return getMultipleTables(null, tableNames);
+    }
+
+    /** @deprecated targetCd 가 없으면 빈 결과. {@link #lookupTablesInText(String, String)} 사용. */
+    @Deprecated
+    public Map<String, TableInfo> lookupTablesInText(String text) {
+        return lookupTablesInText(null, text);
     }
 }

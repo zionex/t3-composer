@@ -55,7 +55,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         setForm({
           dbUrl:         t.dbUrl || '',
           dbUsername:    t.dbUsername || '',
-          dbPassword:    '',   // 보안상 안 가져옴 — 비워두면 기존 유지
+          dbPassword:    t.dbPassword || '',
           dbDriverClass: t.dbDriverClass || DRIVER_BY_DBTYPE[t.dbType] || '',
         });
         setPaths({
@@ -138,7 +138,6 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
                 label="Password" size="small" type="password" sx={{ flex: 1 }}
                 value={form.dbPassword}
                 onChange={(e) => setForm({ ...form, dbPassword: e.target.value })}
-                placeholder="비워두면 기존 비밀번호 유지"
               />
             </Stack>
             <TextField

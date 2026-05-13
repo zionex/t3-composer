@@ -236,22 +236,31 @@ export const checkMenuExists = (menuCd) =>
   zAxios.get(`composer/menus/${menuCd}/exists`, composerReq());
 
 // ---- 테이블 자동 lookup (NEW_NL 모드 — 사용자가 입력한 테이블명의 존재 여부 + 컬럼 자동 조회) ----
+// targetCd 미지정 또는 연결 실패 시 backend 가 빈 결과 반환 — TB_* 운영 테이블은 Target Operational DB(MSSQL) 에만 존재.
 
 /** 단일 테이블 존재 여부만 빠르게 — { tableName, exists } */
-export const checkTableExists = (tableName) =>
-  zAxios.get(`composer/schema/tables/${encodeURIComponent(tableName)}/exists`, composerReq());
+export const checkTableExists = (tableName, targetCd) =>
+  zAxios.get(
+    `composer/schema/tables/${encodeURIComponent(tableName)}/exists`
+      + (targetCd ? `?targetCd=${encodeURIComponent(targetCd)}` : ''),
+    composerReq(),
+  );
 
-/** 단일 테이블 메타 (컬럼 + PK + 행수 추정) — TableInfo */
-export const getTableInfo = (tableName) =>
-  zAxios.get(`composer/schema/tables/${encodeURIComponent(tableName)}`, composerReq());
+/** 단일 테이블 메타 (컬럼 + PK) — TableInfo */
+export const getTableInfo = (tableName, targetCd) =>
+  zAxios.get(
+    `composer/schema/tables/${encodeURIComponent(tableName)}`
+      + (targetCd ? `?targetCd=${encodeURIComponent(targetCd)}` : ''),
+    composerReq(),
+  );
 
 /** 배치 lookup — { results: {NAME: TableInfo, ...}, formattedForPrompt: "..." } */
-export const lookupTables = (names) =>
-  zAxios.post(`composer/schema/tables/lookup`, { names }, composerReq());
+export const lookupTables = (names, targetCd) =>
+  zAxios.post(`composer/schema/tables/lookup`, { names, targetCd }, composerReq());
 
 /** 자연어 prompt 에서 TB_* 패턴 자동 추출 + lookup */
-export const extractAndLookupTables = (text) =>
-  zAxios.post(`composer/schema/tables/extract`, { text }, composerReq());
+export const extractAndLookupTables = (text, targetCd) =>
+  zAxios.post(`composer/schema/tables/extract`, { text, targetCd }, composerReq());
 
 /**
  * SP 명 배치 lookup — target Operational DB(MSSQL) 의 sys.procedures 조회.

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Composer NEW_NL 흐름의 테이블 / SP 자동 lookup REST 엔드포인트.
  *
- *   GET  /composer/schema/tables/{tableName}/exists           — 테이블 존재 여부만
- *   GET  /composer/schema/tables/{tableName}                  — 테이블 컬럼 + PK + 행수
- *   POST /composer/schema/tables/lookup       body: {names:[...]}
- *   POST /composer/schema/tables/extract      body: {text: "..."}
+ *   GET  /composer/schema/tables/{tableName}/exists?targetCd=T3SERIES
+ *   GET  /composer/schema/tables/{tableName}?targetCd=T3SERIES
+ *   POST /composer/schema/tables/lookup       body: {names:[...], targetCd: "T3SERIES"}
+ *   POST /composer/schema/tables/extract      body: {text: "...",  targetCd: "T3SERIES"}
  *   POST /composer/schema/procedures/lookup   body: {names:[...], targetCd: "T3SERIES"}
  *   POST /composer/schema/procedures/extract  body: {text: "...",  targetCd: "T3SERIES"}
  *
- * 테이블 조회: 메인 DataSource (T3SMARTSCM.dbo) 의 INFORMATION_SCHEMA.
- * SP 조회   : targetCd 의 Target Operational DB(MSSQL) 의 sys.procedures.
+ * 테이블/SP 모두 targetCd 의 Target Operational DB(MSSQL) 의 INFORMATION_SCHEMA / sys.procedures 조회.
+ * targetCd 미지정 또는 연결 실패 시 빈 결과.
  */
 @Slf4j
 @RestController
@@ -37,28 +38,33 @@ public class SchemaInspectionController {
     private final ProcedureInspectionService procedureInspectionService;
 
     @GetMapping("/tables/{tableName}/exists")
-    public Map<String, Object> tableExists(@PathVariable String tableName) {
-        boolean exists = schemaInspectionService.tableExists(tableName);
+    public Map<String, Object> tableExists(@PathVariable String tableName,
+                                           @RequestParam(value = "targetCd", required = false) String targetCd) {
+        boolean exists = schemaInspectionService.tableExists(targetCd, tableName);
         Map<String, Object> out = new HashMap<>();
         out.put("tableName", tableName);
+        out.put("targetCd", targetCd);
         out.put("exists", exists);
         return out;
     }
 
     @GetMapping("/tables/{tableName}")
-    public TableInfo getTableInfo(@PathVariable String tableName) {
-        return schemaInspectionService.getTableInfo(tableName);
+    public TableInfo getTableInfo(@PathVariable String tableName,
+                                  @RequestParam(value = "targetCd", required = false) String targetCd) {
+        return schemaInspectionService.getTableInfo(targetCd, tableName);
     }
 
     /**
-     * 배치 lookup. body: { "names": ["TB_AD_USER", "TB_FP_DEMAND", ...] }
+     * 배치 lookup. body: { "names": ["TB_AD_USER", "TB_FP_DEMAND", ...], "targetCd": "T3SERIES" }
      */
     @PostMapping("/tables/lookup")
     public Map<String, Object> lookupBatch(@RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<String> names = (List<String>) body.getOrDefault("names", List.of());
-        Map<String, TableInfo> results = schemaInspectionService.getMultipleTables(names);
+        String targetCd = (String) body.getOrDefault("targetCd", null);
+        Map<String, TableInfo> results = schemaInspectionService.getMultipleTables(targetCd, names);
         Map<String, Object> out = new HashMap<>();
+        out.put("targetCd", targetCd);
         out.put("results", results);
         out.put("formattedForPrompt", schemaInspectionService.formatLookupResultForPrompt(results));
         return out;
@@ -66,14 +72,16 @@ public class SchemaInspectionController {
 
     /**
      * 자연어 prompt 텍스트에서 TB_* 패턴 테이블명 자동 추출 + lookup.
-     * body: { "text": "TB_FP_DEMAND 와 TB_CM_ITEM_MST 사용하는 화면 만들어줘" }
+     * body: { "text": "TB_FP_DEMAND 와 TB_CM_ITEM_MST 사용하는 화면 만들어줘", "targetCd": "T3SERIES" }
      */
     @PostMapping("/tables/extract")
     public Map<String, Object> extractAndLookup(@RequestBody Map<String, Object> body) {
         String text = (String) body.getOrDefault("text", "");
+        String targetCd = (String) body.getOrDefault("targetCd", null);
         List<String> extracted = schemaInspectionService.extractTableNamesFromText(text);
-        Map<String, TableInfo> results = schemaInspectionService.getMultipleTables(extracted);
+        Map<String, TableInfo> results = schemaInspectionService.getMultipleTables(targetCd, extracted);
         Map<String, Object> out = new HashMap<>();
+        out.put("targetCd", targetCd);
         out.put("extractedNames", extracted);
         out.put("results", results);
         out.put("formattedForPrompt", schemaInspectionService.formatLookupResultForPrompt(results));

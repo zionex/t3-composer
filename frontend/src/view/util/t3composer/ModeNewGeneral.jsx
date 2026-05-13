@@ -192,7 +192,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     lookupDebounceRef.current = setTimeout(async () => {
       setTableLookupLoading(true);
       try {
-        const res = await extractAndLookupTables(prompt);
+        const res = await extractAndLookupTables(prompt, currentTargetCd);
         setTableLookup({
           extracted: res?.data?.extractedNames || [],
           results: res?.data?.results || {},
@@ -209,7 +209,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     return () => {
       if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current);
     };
-  }, [prompt, subMode]);
+  }, [prompt, subMode, currentTargetCd]);
 
   // prompt 변경 시 600ms 디바운스 후 자동 SP lookup (target DB 의 sys.procedures)
   // targetCd 미선택이면 백엔드가 빈 results 반환 — 그래도 호출은 한다 (구조 일관)
@@ -634,7 +634,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
               <StorageIcon fontSize="small" sx={{ color: '#a855f7' }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#7e22ce' }}>
-                자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)
+                자동 테이블 존재 여부 확인 {currentTargetCd ? `(${currentTargetCd})` : '(target 미선택)'}
               </Typography>
               {tableLookupLoading && <CircularProgress size={14} sx={{ color: '#a855f7' }} />}
             </Stack>

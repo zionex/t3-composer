@@ -168,7 +168,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               비어두면 글로벌 fallback (<code>/workspace/wingui</code> · <code>/workspace/database</code>) 사용.
             </Alert>
             <TextField
-              label="wingui 폴더 경로" fullWidth size="small"
+              label="source 폴더 경로" fullWidth size="small"
               value={paths.winguiRefPath}
               onChange={(e) => setPaths({ ...paths, winguiRefPath: e.target.value })}
               placeholder="/workspace/projects/<프로젝트>/t3series-wingui"

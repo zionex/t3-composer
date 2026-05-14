@@ -31,7 +31,7 @@ import { listMessages, sendChat } from './api';
  *   placeholder       : 입력창 placeholder
  *   initialPrompt     : 세션 최초 진입 시 자동 전송할 사용자 메시지 (선택)
  */
-function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt }) {
+function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -82,13 +82,14 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt })
           setError('세션 확인 실패: ' + (e?.message || ''));
           return;
         }
-        send(initialPrompt);
+        // 첫 메시지에 D&D 첨부된 binary (이미지/PDF) 도 함께 전송
+        send(initialPrompt, initialAttachments);
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, initialPrompt]);
 
-  const send = async (text) => {
+  const send = async (text, attachments) => {
     const message = (text ?? input).trim();
     if (!message) return;
     setInput('');
@@ -107,7 +108,7 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt })
         },
       ]);
 
-      await sendChat(sessionId, message);
+      await sendChat(sessionId, message, undefined, attachments);
       await reload();
       if (onNewAssistantMsg) onNewAssistantMsg();
     } catch (e) {

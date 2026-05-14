@@ -57,6 +57,19 @@ public class ArtifactApplyService {
     private static final Pattern DDL_SAFE_ALTER =
             Pattern.compile("\\bALTER\\s+TABLE\\s+(?:\\[?dbo\\]?\\s*\\.\\s*)?\\[?TB_[A-Z_]+\\]?\\s+(ADD|ALTER\\s+COLUMN)\\s+",
                     Pattern.CASE_INSENSITIVE);
+    // CREATE INDEX / VIEW — TB_* 또는 IDX_/IX_/VW_ 접두어. 보조 객체.
+    private static final Pattern DDL_CREATE_INDEX =
+            Pattern.compile("\\bCREATE\\s+(UNIQUE\\s+)?(CLUSTERED\\s+|NONCLUSTERED\\s+)?INDEX\\s+\\[?(IX_|IDX_)[A-Z0-9_]+",
+                    Pattern.CASE_INSENSITIVE);
+    private static final Pattern DDL_CREATE_VIEW =
+            Pattern.compile("\\bCREATE\\s+(OR\\s+ALTER\\s+)?VIEW\\s+(?:\\[?dbo\\]?\\s*\\.\\s*)?\\[?VW_",
+                    Pattern.CASE_INSENSITIVE);
+    private static final Pattern DDL_DROP_TABLE_GUARD =
+            Pattern.compile("\\bIF\\s+OBJECT_ID\\([^)]*\\)\\s+IS\\s+NOT\\s+NULL\\s+DROP\\s+TABLE\\s+(?:\\[?dbo\\]?\\s*\\.\\s*)?\\[?TB_",
+                    Pattern.CASE_INSENSITIVE);
+    private static final Pattern DDL_DROP_INDEX_GUARD =
+            Pattern.compile("\\bIF\\s+EXISTS\\s*\\([^)]*\\)\\s+DROP\\s+INDEX|\\bDROP\\s+INDEX\\s+IF\\s+EXISTS",
+                    Pattern.CASE_INSENSITIVE);
     // 스키마 접두어는 5가지 형식 모두 허용 (없음 / dbo. / [dbo]. / [dbo].[ / dbo.[ ).
     // SSMS / SQL Server Management Studio 가 자동 생성하는 [dbo].[SP_UI_*] 형식 호환.
     private static final Pattern SP_CREATE =
@@ -96,6 +109,7 @@ public class ArtifactApplyService {
     private final ArtifactNormalizer artifactNormalizer;
     private final SpScreenNoAllocator screenNoAllocator;
     private final com.zionex.t3composer.domain.schema.SchemaInspectionService schemaInspectionService;
+    private final ComposerObjectsRegistry objectsRegistry;
 
     public ArtifactApplyService(ApplicationProperties props,
                                 ComposerArtifactRepository artifactRepo,
@@ -105,7 +119,8 @@ public class ArtifactApplyService {
                                 DataSource dataSource,
                                 ArtifactNormalizer artifactNormalizer,
                                 SpScreenNoAllocator screenNoAllocator,
-                                com.zionex.t3composer.domain.schema.SchemaInspectionService schemaInspectionService) {
+                                com.zionex.t3composer.domain.schema.SchemaInspectionService schemaInspectionService,
+                                ComposerObjectsRegistry objectsRegistry) {
         this.props = props;
         this.artifactRepo = artifactRepo;
         this.sessionRepo = sessionRepo;
@@ -115,6 +130,7 @@ public class ArtifactApplyService {
         this.artifactNormalizer = artifactNormalizer;
         this.screenNoAllocator = screenNoAllocator;
         this.schemaInspectionService = schemaInspectionService;
+        this.objectsRegistry = objectsRegistry;
     }
 
     /**
@@ -732,14 +748,49 @@ public class ArtifactApplyService {
                 }
             }
             final String stmt = s;
+            // Composer-owned 객체 DROP — DDL 모드 + CREATE 인 stmt 만 적용.
+            //   사용자가 같은 화면을 재실행할 때 자기가 만든 객체를 깨끗히 drop 후 create.
+            //   외부 객체 (composer 가 한 번도 만들지 않은 것) 는 건드리지 않음.
+            String sidShort = sidShortOf(a);
+            List<Map<String, String>> createObjs = "DDL".equals(kind)
+                ? extractCreateObjects(upper) : List.of();
+            for (Map<String, String> obj : createObjs) {
+                String name = obj.get("name");
+                String type = obj.get("type");
+                String parent = obj.get("parent");
+                if (objectsRegistry.isOwned(name, type)) {
+                    String dropSql = buildDropSql(name, type, parent);
+                    if (dropSql != null) {
+                        try {
+                            executeRawDdl(dropSql);
+                            log.info("Composer-owned {} dropped before re-create: {}", type, name);
+                        } catch (Exception dropEx) {
+                            log.warn("Composer-owned DROP failed (skip) {} {}: {}",
+                                    type, name, rootMessage(dropEx));
+                        }
+                    }
+                }
+            }
             try {
                 // raw JDBC Statement.execute() 로 실행 — Hibernate 의 T-SQL flow control
                 // (IF/BEGIN/END) · "0 rows affected" 오인 · N 리터럴 전처리 문제를 회피.
                 // DBeaver 등 툴과 동일한 실행 경로.
                 executeRawDdl(stmt);
                 executed++;
+                // 성공 → registry 에 등록 (이후 재실행 시 owned 로 인식되어 자동 DROP)
+                for (Map<String, String> obj : createObjs) {
+                    objectsRegistry.register(obj.get("name"), obj.get("type"), sidShort);
+                }
             } catch (Exception e) {
-                errors.add("#" + (i + 1) + " 실행 실패: " + rootMessage(e));
+                String msg = rootMessage(e);
+                // 멱등성 — "이미 존재" 에러는 재실행 시 skip 하고 다음 stmt 계속.
+                // MSSQL 2714: "There is already an object named '<name>' in the database."
+                if (isAlreadyExistsError(msg)) {
+                    errors.add("#" + (i + 1) + " skip (이미 존재): " + shortSql(stmt));
+                    log.info("{} already exists, skipping: {}", kind, shortSql(stmt));
+                    continue;
+                }
+                errors.add("#" + (i + 1) + " 실행 실패: " + msg);
                 errors.add("SQL: " + shortSql(stmt));
                 rec.put("execOk", false);
                 rec.put("executed", executed);
@@ -759,11 +810,18 @@ public class ArtifactApplyService {
         // 다만 인라인 BANNED_INLINE 키워드(DROP/TRUNCATE 등)는 별도에서 차단되므로 안전.
         if (DDL_CREATE_TABLE.matcher(upper).find()) return null;
         if (DDL_SAFE_ALTER.matcher(upper).find()) return null;
+        // 보조 객체 — IX_/IDX_ INDEX, VW_ VIEW
+        if (DDL_CREATE_INDEX.matcher(upper).find()) return null;
+        if (DDL_CREATE_VIEW.matcher(upper).find()) return null;
+        // IF OBJECT_ID(...) IS NOT NULL DROP TABLE TB_* — Composer-owned 재적용용 (BANNED_INLINE
+        // 의 'DROP TABLE ' 와 충돌하지만 BANNED_INLINE check 보다 먼저 ownership 확인하므로 안전)
+        if (DDL_DROP_TABLE_GUARD.matcher(upper).find()) return null;
+        if (DDL_DROP_INDEX_GUARD.matcher(upper).find()) return null;
         // SET ANSI_NULLS / SET QUOTED_IDENTIFIER preamble 허용
         if (upper.trim().startsWith("SET ANSI_NULLS")) return null;
         if (upper.trim().startsWith("SET QUOTED_IDENTIFIER")) return null;
-        return "DDL 은 `CREATE TABLE TB_*` 또는 `ALTER TABLE TB_* ADD/ALTER COLUMN` 포함 구문만 허용 "
-             + "(IF NOT EXISTS · IF OBJECT_ID IS NULL 로 감싼 패턴 OK)";
+        return "DDL 은 `CREATE TABLE TB_*` · `ALTER TABLE TB_* ADD/ALTER COLUMN` · "
+             + "`CREATE INDEX IX_/IDX_*` · `CREATE VIEW VW_*` · `IF OBJECT_ID(..) IS NOT NULL DROP TABLE TB_*` 만 허용";
     }
 
     private static String validateSp(String upper) {
@@ -893,6 +951,87 @@ public class ArtifactApplyService {
         while (cur.getCause() != null && cur.getCause() != cur) cur = cur.getCause();
         String m = cur.getMessage();
         return m == null ? cur.getClass().getSimpleName() : m;
+    }
+
+    /**
+     * DDL/SP 재실행 시 "이미 존재" 에러 — 화면 실행(preview) 멱등성 보장용.
+     * MSSQL: 2714 "There is already an object named ..."
+     * PG: "already exists"
+     */
+    private static boolean isAlreadyExistsError(String msg) {
+        if (msg == null) return false;
+        String lower = msg.toLowerCase();
+        return lower.contains("already an object named")
+            || lower.contains("already exists");
+    }
+
+    // ──── Composer-owned DDL DROP+CREATE helpers ────
+
+    /** ComposerArtifact 의 session_id 첫 8자. null/short 면 sessionId 자체. */
+    private static String sidShortOf(ComposerArtifact a) {
+        String sid = a != null ? a.getSessionId() : null;
+        if (sid == null) return null;
+        return sid.length() >= 8 ? sid.substring(0, 8) : sid;
+    }
+
+    private static final Pattern P_CREATE_TABLE_NAME = Pattern.compile(
+            "\\bCREATE\\s+TABLE\\s+(?:\\[?DBO\\]?\\s*\\.\\s*)?\\[?(TB_[A-Z0-9_]+)\\]?",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern P_CREATE_INDEX_NAME = Pattern.compile(
+            "\\bCREATE\\s+(?:UNIQUE\\s+)?(?:CLUSTERED\\s+|NONCLUSTERED\\s+)?INDEX\\s+\\[?(I[DX]X?_[A-Z0-9_]+|IX_[A-Z0-9_]+|IDX_[A-Z0-9_]+)\\]?\\s+ON\\s+(?:\\[?DBO\\]?\\s*\\.\\s*)?\\[?(TB_[A-Z0-9_]+)\\]?",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern P_CREATE_VIEW_NAME = Pattern.compile(
+            "\\bCREATE\\s+(?:OR\\s+ALTER\\s+)?VIEW\\s+(?:\\[?DBO\\]?\\s*\\.\\s*)?\\[?(VW_[A-Z0-9_]+)\\]?",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * upper-cased SQL stmt 에서 CREATE TABLE / INDEX / VIEW 객체명 추출.
+     * 반환 element: { name, type:TABLE|INDEX|VIEW, parent(INDEX 만) }
+     */
+    static List<Map<String, String>> extractCreateObjects(String upper) {
+        List<Map<String, String>> out = new ArrayList<>();
+        if (upper == null) return out;
+        Matcher m = P_CREATE_TABLE_NAME.matcher(upper);
+        while (m.find()) {
+            Map<String, String> o = new LinkedHashMap<>();
+            o.put("name", m.group(1));
+            o.put("type", "TABLE");
+            out.add(o);
+        }
+        m = P_CREATE_INDEX_NAME.matcher(upper);
+        while (m.find()) {
+            Map<String, String> o = new LinkedHashMap<>();
+            o.put("name",   m.group(1));
+            o.put("type",   "INDEX");
+            o.put("parent", m.group(2));
+            out.add(o);
+        }
+        m = P_CREATE_VIEW_NAME.matcher(upper);
+        while (m.find()) {
+            Map<String, String> o = new LinkedHashMap<>();
+            o.put("name", m.group(1));
+            o.put("type", "VIEW");
+            out.add(o);
+        }
+        return out;
+    }
+
+    /** owned 객체의 DROP SQL — MSSQL syntax. type 별 IF EXISTS guard 포함. */
+    static String buildDropSql(String objName, String type, String parentTable) {
+        if (objName == null || type == null) return null;
+        switch (type) {
+            case "TABLE":
+                return "IF OBJECT_ID(N'dbo." + objName + "', N'U') IS NOT NULL DROP TABLE dbo." + objName;
+            case "VIEW":
+                return "IF OBJECT_ID(N'dbo." + objName + "', N'V') IS NOT NULL DROP VIEW dbo." + objName;
+            case "INDEX":
+                if (parentTable == null) return null;
+                return "IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = '" + objName +
+                       "' AND object_id = OBJECT_ID(N'dbo." + parentTable + "')) " +
+                       "DROP INDEX " + objName + " ON dbo." + parentTable;
+            default:
+                return null;
+        }
     }
 
     private Map<String, Object> failure(String msg) {

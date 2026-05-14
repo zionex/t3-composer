@@ -2,7 +2,9 @@ package com.zionex.t3composer.domain.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.domain.client.AnthropicClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
+import com.zionex.t3composer.domain.dto.Attachment;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
 import com.zionex.t3composer.domain.client.AnthropicModels.SystemBlock;
@@ -204,22 +207,30 @@ public class ComposerService {
      * auto-continuation 루프를 수행 (최대 MAX_AUTO_CONTINUATIONS 회).
      * 반환값은 **마지막** (잘리지 않은) assistant 메시지.
      */
-    public Mono<ComposerMessage> chat(String userId, String sessionId) {
+    public Mono<ComposerMessage> chat(String userId, String sessionId, List<Attachment> attachments) {
         ComposerSession session = getSession(sessionId);
         String apiKey = apiKeyService.getApiKey(userId)
                 .orElseThrow(() -> new IllegalStateException(
                         "Anthropic API 키가 등록되지 않았습니다. 먼저 /composer/apikey 에 저장하세요."));
 
-        return chatWithAutoContinuation(session, userId, apiKey, MAX_AUTO_CONTINUATIONS);
+        return chatWithAutoContinuation(session, userId, apiKey, MAX_AUTO_CONTINUATIONS, attachments);
+    }
+
+    /** 하위 호환 — attachments 없는 호출 */
+    public Mono<ComposerMessage> chat(String userId, String sessionId) {
+        return chat(userId, sessionId, null);
     }
 
     /**
      * stop_reason=max_tokens 발생 시 "계속" user 메시지를 append 한 후 재귀 호출.
      * 매 이터레이션마다 buildRequest 가 DB 에서 최신 히스토리를 다시 읽어 Claude 로 보냄.
+     *
+     * attachments 는 첫 호출에만 적용 — auto-continuation 시 "계속" user message 는 plain text.
      */
     private Mono<ComposerMessage> chatWithAutoContinuation(
-            ComposerSession session, String userId, String apiKey, int remaining) {
-        MessagesRequest req = buildRequest(session);
+            ComposerSession session, String userId, String apiKey, int remaining,
+            List<Attachment> attachmentsForLastUserMsg) {
+        MessagesRequest req = buildRequest(session, attachmentsForLastUserMsg);
         return anthropicClient.sendMessages(apiKey, req)
                 .flatMap(resp -> Mono.fromCallable(
                                 () -> persistAssistantResponse(session, userId, resp))
@@ -238,7 +249,8 @@ public class ComposerService {
                             return Mono.fromCallable(
                                             () -> appendUserMessage(session.getId(), CONTINUE_PROMPT))
                                     .then(Mono.defer(() -> chatWithAutoContinuation(
-                                            session, userId, apiKey, remaining - 1)));
+                                            // continuation 의 "계속" 메시지는 attachments 없이 plain text
+                                            session, userId, apiKey, remaining - 1, null)));
                         }));
     }
 
@@ -433,19 +445,41 @@ public class ComposerService {
     // ---- Helpers ----
 
     MessagesRequest buildRequest(ComposerSession session) {
+        return buildRequest(session, null);
+    }
+
+    /**
+     * @param attachmentsForLastUserMsg 마지막 user message 에 부착할 binary 첨부 — null/empty 면 plain text
+     */
+    MessagesRequest buildRequest(ComposerSession session, List<Attachment> attachmentsForLastUserMsg) {
         List<ComposerMessage> history = messageRepo.findBySessionIdOrderByTurnSeqAsc(session.getId());
 
+        // 마지막 user message 의 index 찾기 — auto-continuation 시 "계속" 도 user 이므로 마지막 user 가 정답
+        int lastUserIdx = -1;
+        for (int i = history.size() - 1; i >= 0; i--) {
+            if (ComposerMessage.ROLE_USER.equals(history.get(i).getRole())) { lastUserIdx = i; break; }
+        }
+        boolean hasAttach = attachmentsForLastUserMsg != null && !attachmentsForLastUserMsg.isEmpty();
+
         List<Message> messages = new ArrayList<>();
-        for (ComposerMessage m : history) {
+        for (int i = 0; i < history.size(); i++) {
+            ComposerMessage m = history.get(i);
             // Claude API 는 user/assistant 만 수용. system 은 request 의 system 필드로 전달됨.
             if (!ComposerMessage.ROLE_USER.equals(m.getRole())
                     && !ComposerMessage.ROLE_ASSISTANT.equals(m.getRole())) {
                 continue;
             }
-            messages.add(Message.builder()
-                    .role(m.getRole())
-                    .content(m.getContent() == null ? "" : m.getContent())
-                    .build());
+            if (i == lastUserIdx && hasAttach) {
+                // 마지막 user message → text + binary content blocks 배열
+                Object content = buildMultimodalContent(
+                        m.getContent() == null ? "" : m.getContent(), attachmentsForLastUserMsg);
+                messages.add(Message.builder().role(m.getRole()).content(content).build());
+            } else {
+                messages.add(Message.builder()
+                        .role(m.getRole())
+                        .content(m.getContent() == null ? "" : m.getContent())
+                        .build());
+            }
         }
 
         // System prompt 를 정적/세션 두 블록으로 분리.
@@ -473,6 +507,45 @@ public class ComposerService {
                 .system(systemBlocks)
                 .messages(messages)
                 .build();
+    }
+
+    /**
+     * 마지막 user message 의 텍스트 + binary 첨부 → Anthropic content block 배열.
+     *   image  → { type:"image",    source:{ type:"base64", media_type, data } }
+     *   pdf    → { type:"document", source:{ type:"base64", media_type, data } }
+     */
+    private List<Object> buildMultimodalContent(String text, List<Attachment> attachments) {
+        List<Object> blocks = new ArrayList<>();
+        // text block 먼저 — 사용자 prompt
+        Map<String, Object> textBlock = new LinkedHashMap<>();
+        textBlock.put("type", "text");
+        textBlock.put("text", text == null ? "" : text);
+        blocks.add(textBlock);
+
+        for (Attachment a : attachments) {
+            if (a == null || a.getBase64() == null || a.getBase64().isEmpty()) continue;
+            String mediaType = a.getMediaType() == null ? "application/octet-stream" : a.getMediaType();
+            String blockType = inferBlockType(mediaType);
+
+            Map<String, Object> source = new LinkedHashMap<>();
+            source.put("type", "base64");
+            source.put("media_type", mediaType);
+            source.put("data", a.getBase64());
+
+            Map<String, Object> block = new LinkedHashMap<>();
+            block.put("type", blockType);
+            block.put("source", source);
+            blocks.add(block);
+        }
+        return blocks;
+    }
+
+    private static String inferBlockType(String mediaType) {
+        String mt = mediaType.toLowerCase();
+        if (mt.startsWith("image/")) return "image";
+        if (mt.equals("application/pdf")) return "document";
+        // 그 외 (xlsx/docx/etc) — document block 으로 시도 (Anthropic 가 거부할 수도 있음)
+        return "document";
     }
 
     private int nextTurnSeq(String sessionId) {

@@ -64,6 +64,35 @@ export const SearchArea = ({ children, onSearch, sx }) => {
         } catch (e) { console.error('[shim] SearchArea click failed', e); }
     };
 
+    // Sample 모드 ON 시 — 화면 mount 후 globalButtons.search 가 등록될 때까지 폴링하다가
+    // 등록되는 즉시 자동 search 트리거 (사용자가 [조회] 누르지 않아도 데이터 표시).
+    useEffect(() => {
+        if (!isSampleModeEnabled()) return undefined;
+        let attempts = 0;
+        const timer = setInterval(() => {
+            attempts++;
+            try {
+                if (typeof onSearch === 'function') {
+                    onSearch();
+                    clearInterval(timer);
+                    return;
+                }
+                const viewData = viewStoreApi.getState().viewData || {};
+                const activeViewId = contentStoreApi.getState().activeViewId;
+                const buttons = (viewData[activeViewId] && viewData[activeViewId].globalButtons) || [];
+                const searchBtn = buttons.find((b) => b && b.name === 'search');
+                if (searchBtn && typeof searchBtn.action === 'function') {
+                    searchBtn.action();
+                    clearInterval(timer);
+                    return;
+                }
+            } catch (_) { /* no-op */ }
+            if (attempts > 20) clearInterval(timer);   // 최대 4초 (200ms × 20) 대기
+        }, 200);
+        return () => clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <Box sx={{
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px',
@@ -325,22 +354,44 @@ export const InputField = ({
         );
     }
 
+    // Sample 모드 ON + 빈 control 필드면 mount 시점에 dummy 값 자동 주입
+    //   (사용자가 [조회] 클릭 시 required validation 통과하도록)
+    const sampleDummyFor = (t, nm) => {
+        const lname = String(nm || '').toLowerCase();
+        if (t === 'number') return 1;
+        if (t === 'datetime' || t === 'date') return new Date().toISOString().slice(0, 10);
+        if (/ver|version/.test(lname)) return 'V01';
+        if (/cd|code|id$/.test(lname)) return 'SAMPLE-001';
+        if (/nm|name/.test(lname)) return '샘플';
+        return 'SAMPLE';
+    };
+
     const inputEl = control && name
         ? (
             <Controller
                 control={control} name={name} defaultValue=""
-                render={({ field }) => (
-                    <TextField
-                        size="small"
-                        type={muiType}
-                        InputLabelProps={muiType === 'date' ? { shrink: true } : undefined}
-                        InputProps={{ readOnly: !!readonly }}
-                        onKeyDown={onKeyDown}
-                        sx={wgInputBaseSx}
-                        {...field}
-                        value={field.value ?? ''}
-                    />
-                )}
+                render={({ field }) => {
+                    useEffect(() => {
+                        if (!isSampleModeEnabled()) return;
+                        const cur = field.value;
+                        if (cur === undefined || cur === null || cur === '') {
+                            field.onChange(sampleDummyFor(type, name));
+                        }
+                        // eslint-disable-next-line react-hooks/exhaustive-deps
+                    }, []);
+                    return (
+                        <TextField
+                            size="small"
+                            type={muiType}
+                            InputLabelProps={muiType === 'date' ? { shrink: true } : undefined}
+                            InputProps={{ readOnly: !!readonly }}
+                            onKeyDown={onKeyDown}
+                            sx={wgInputBaseSx}
+                            {...field}
+                            value={field.value ?? ''}
+                        />
+                    );
+                }}
             />
         )
         : (
@@ -409,6 +460,80 @@ export const zAxios = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
+// [Sample 데이터] 응답 interceptor —
+//   화면 실행 + CheckBox ON 상태에서 산출물의 zAxios 호출이 빈 응답을 받으면
+//   휴리스틱 sample 로 채워서 차트/KPI 카드가 실제 운영처럼 보이도록 함.
+//   composer 자체 API (/composer/*, /auth/*, /actuator/*) 는 절대 건드리지 않음.
+import { isSampleModeEnabled, generateSampleArrayFromUrl, generateSampleKpiObject } from './sampleData';
+
+const SAMPLE_SKIP_PREFIXES = ['/composer/', 'composer/', '/auth/', 'auth/',
+                              '/actuator/', 'actuator/', '/insight-', 'insight-'];
+
+function urlIsSkippable(url) {
+    if (!url) return true;
+    return SAMPLE_SKIP_PREFIXES.some((p) => url.startsWith(p));
+}
+
+// 요청 interceptor — Sample 모드 ON + composer 외 URL 이면 timeout 을 짧게(4초) 줄여
+// backend endpoint 부재 시 webpack proxy 의 60초 504 대신 axios 가 먼저 abort 하도록.
+zAxios.interceptors.request.use((config) => {
+    try {
+        if (isSampleModeEnabled() && !urlIsSkippable(config?.url || '')) {
+            config.timeout = 4000;
+        }
+    } catch (_) { /* no-op */ }
+    return config;
+});
+
+// 응답이 비었을 때 (정상 200) sample 주입
+zAxios.interceptors.response.use((response) => {
+    try {
+        if (!isSampleModeEnabled()) return response;
+        const reqUrl = response?.config?.url || '';
+        if (urlIsSkippable(reqUrl)) return response;
+        const data = response.data;
+        // 빈 배열 → 차트/리스트용 sample 배열
+        if (Array.isArray(data) && data.length === 0) {
+            response.data = generateSampleArrayFromUrl(reqUrl, 12);
+            return response;
+        }
+        // 빈 객체 / null → KPI 카드용 sample
+        if (data === null || data === undefined
+            || (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)) {
+            response.data = generateSampleKpiObject();
+            return response;
+        }
+    } catch (_e) { /* no-op */ }
+    return response;
+}, (error) => {
+    // 응답 자체가 4xx/5xx 또는 network error — backend endpoint 가 없거나 죽은 경우
+    // Sample 모드 ON 이고 composer 자체 API 가 아니면, 가짜 정상 응답으로 변환
+    try {
+        if (!isSampleModeEnabled()) return Promise.reject(error);
+        const reqUrl = error?.config?.url || '';
+        if (urlIsSkippable(reqUrl)) return Promise.reject(error);
+
+        // URL 패턴에 따라 array vs object 추정
+        // (확실치 않으면 array — KPI/요약 endpoint 는 보통 'kpi'/'summary' 키워드 포함)
+        const u = String(reqUrl).toLowerCase();
+        const isObjectShape = /kpi|summary|stat|overview|total/.test(u);
+        const fakeData = isObjectShape
+            ? generateSampleKpiObject()
+            : generateSampleArrayFromUrl(reqUrl, 12);
+
+        return Promise.resolve({
+            data: fakeData,
+            status: 200,
+            statusText: 'OK (sample)',
+            headers: {},
+            config: error.config || {},
+            request: error.request,
+        });
+    } catch (_e) {
+        return Promise.reject(error);
+    }
+});
+
 // ----- callService : 단독 환경 미지원 -----
 export const callService = (serviceId, params, target) => {
     console.warn('[shim] callService is not supported in standalone mode', { serviceId, target });
@@ -455,6 +580,12 @@ export const useFieldCascade = () => {};
 export const applyGridCascade = () => {};
 export const buildPopupFilterProps = () => ({});
 
+// ----- 산출물 환각 호환 헬퍼 -----
+// 산출물 jsx 가 `getActiveViewId()` 또는 `getActiveViewID()` 함수를 import 하는 케이스.
+// 표준은 `useContentStore((s) => s.activeViewId)` 인데 LLM 이 헬퍼 함수로 환각.
+export const getActiveViewId = () => useContentStore.getState().activeViewId;
+export const getActiveViewID = getActiveViewId;
+
 // ----- 기타 -----
 export const loadRecentSimulationVersion = () => Promise.resolve(null);
 export const setHeaderColor = () => {};
@@ -469,4 +600,5 @@ export default {
     useDashboardStore, useInsightSystemStore,
     useFieldCascade, applyGridCascade, buildPopupFilterProps,
     loadRecentSimulationVersion, setHeaderColor,
+    getActiveViewId, getActiveViewID,
 };

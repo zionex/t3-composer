@@ -88,10 +88,26 @@ public class ArtifactPreviewService {
         String sid8 = shortSid(sessionId);
         Path sessionPreview = previewBase.resolve(sid8);
 
-        // 이전 preview 흔적 청소
+        // 이전 preview 흔적 청소 — 현재 sid 폴더만 삭제하면
+        // 다른 sid (s019e23ff 등) 의 Controller 가 backend classpath 에 남아 있어
+        // Spring bean 이름 충돌 (ConflictingBeanDefinitionException) 발생 → startup 실패.
+        // 따라서 모든 sid 의 java preview 폴더 + frontend preview 폴더 한꺼번에 정리.
         deleteRecursively(sessionPreview);
         Path sessionJavaPreview = (javaBase == null) ? null : javaBase.resolve("s" + sid8);
-        if (sessionJavaPreview != null) deleteRecursively(sessionJavaPreview);
+        if (javaBase != null) {
+            try (java.util.stream.Stream<Path> s = Files.list(javaBase)) {
+                s.filter(Files::isDirectory)
+                 .filter(p -> p.getFileName().toString().startsWith("s"))
+                 .forEach(this::deleteRecursively);
+            } catch (IOException ignored) { /* no-op */ }
+        }
+        if (previewBase != null) {
+            try (java.util.stream.Stream<Path> s = Files.list(previewBase)) {
+                s.filter(Files::isDirectory)
+                 .filter(p -> !p.getFileName().toString().equals(sid8))   // 현재 sid 외 모두
+                 .forEach(this::deleteRecursively);
+            } catch (IOException ignored) { /* no-op */ }
+        }
 
         try {
             Files.createDirectories(sessionPreview);
@@ -196,6 +212,36 @@ public class ArtifactPreviewService {
         out.put("javaFail", javaFail);
         out.put("unknownImports", unknownImports);
         out.put("items", applied);
+
+        // 실패 시 — 어느 아티팩트에서 어떤 에러가 났는지 첫 줄 메시지로 합쳐 응답에 포함.
+        //   frontend 가 generic 'JSX/SQL/MENU 처리 오류' 대신 구체적 메시지 노출하도록.
+        if (!success) {
+            List<String> failMsgs = new ArrayList<>();
+            for (Map<String, Object> rec : applied) {
+                boolean ok      = Boolean.TRUE.equals(rec.get("ok"));
+                boolean execOk  = Boolean.TRUE.equals(rec.get("execOk"));
+                if (ok || execOk) continue;
+                Object errs = rec.get("errors");
+                String firstErr = null;
+                if (errs instanceof List<?> list && !list.isEmpty()) {
+                    firstErr = String.valueOf(list.get(0));
+                } else {
+                    Object e = rec.get("err");
+                    if (e != null) firstErr = String.valueOf(e);
+                }
+                if (firstErr != null) {
+                    String label = String.valueOf(rec.get("type")) + " · " + String.valueOf(rec.get("fileName"));
+                    failMsgs.add("[" + label + "] " + firstErr);
+                }
+            }
+            if (!failMsgs.isEmpty()) {
+                out.put("error", String.join(" / ", failMsgs.subList(0, Math.min(3, failMsgs.size()))));
+                out.put("failMessages", failMsgs);
+            }
+            log.warn("applyPreview failed sid8={} jsxFail={} ddlFail={} spFail={} menuFail={} javaFail={} firstErr={}",
+                    sid8, jsxFail, ddlFail, spFail, menuFail, javaFail,
+                    failMsgs.isEmpty() ? "(no detail)" : failMsgs.get(0));
+        }
         if (mvn != null) out.put("mvn", mvn);
         out.put("note", "메뉴트리에서 [PV " + sid8 + "] 항목 클릭해 화면 동작 확인 후 [정식 적용] 또는 [미리보기 취소]. "
                 + (javaOk > 0 ? "Java 산출물이 있어 backend DevTools 자동 재기동 (약 10~20초)." : ""));

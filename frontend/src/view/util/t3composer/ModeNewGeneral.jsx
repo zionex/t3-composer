@@ -148,6 +148,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const [session, setSession] = useState(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
+  // D&D 첨부 — 텍스트 파일은 prompt 에 inline 추가, binary 는 attachments state.
+  //   binary 는 Phase 2 에서 backend AnthropicClient 의 content blocks 로 진짜 multi-modal 전송 예정.
+  const [attachments, setAttachments] = useState([]);   // [{ name, mediaType, base64, sizeKb }]
+  const [dragOver, setDragOver]       = useState(false);
 
   // 테이블 자동 lookup 상태 — prompt 안의 TB_* 패턴을 디바운스 후 백엔드 INFORMATION_SCHEMA 조회
   const [tableLookup, setTableLookup] = useState({ extracted: [], results: {}, formattedForPrompt: '' });
@@ -216,6 +220,79 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     setSelectedModel(DEFAULT_MODEL_ID);
   };
 
+  // ─── D&D 파일 첨부 ──────────────────────────────────────────────
+  const TEXT_EXTS = React.useMemo(() => new Set([
+    'txt','md','markdown','jsx','tsx','js','ts','mjs','java','kt','scala',
+    'sql','json','yaml','yml','xml','html','htm','css','scss','less',
+    'csv','tsv','sh','ps1','bat','conf','properties','toml','ini','env',
+    'log','gradle','dockerfile','py','rb','go','rs','c','cpp','h','hpp','svg',
+  ]), []);
+
+  const isTextFile = (file) => {
+    if (file.type && file.type.startsWith('text/')) return true;
+    if (file.type && /(json|xml|yaml|x-sh|x-shellscript|svg\+xml)/.test(file.type)) return true;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    return TEXT_EXTS.has(ext);
+  };
+
+  const readAsText = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsText(file);
+  });
+
+  const readAsBase64 = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const url = String(r.result || '');
+      const m = /^data:([^;]+);base64,(.+)$/.exec(url);
+      if (m) resolve({ mediaType: m[1], base64: m[2] });
+      else reject(new Error('invalid data url'));
+    };
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+
+  const handleFilesPicked = async (files) => {
+    const arr = Array.from(files || []);
+    if (arr.length === 0) return;
+    for (const file of arr) {
+      try {
+        const sizeKb = Math.round(file.size / 1024);
+        if (file.size > 5 * 1024 * 1024) {     // 5MB 한 파일당
+          setError(`파일이 너무 큽니다 (${sizeKb}KB > 5MB): ${file.name}`);
+          continue;
+        }
+        if (isTextFile(file)) {
+          // 텍스트는 chip 으로만 노출 — 전송 직전 prompt 본문에 inline 합쳐서 보냄
+          const text = await readAsText(file);
+          const lang = (file.name.split('.').pop() || '').toLowerCase();
+          setAttachments((prev) => [...prev, {
+            kind: 'text', name: file.name, mediaType: file.type || 'text/plain',
+            sizeKb, lang, text,
+          }]);
+        } else {
+          const { mediaType, base64 } = await readAsBase64(file);
+          setAttachments((prev) => [...prev, {
+            kind: 'binary', name: file.name, mediaType, base64, sizeKb,
+          }]);
+        }
+      } catch (err) {
+        setError(`파일 읽기 실패: ${file?.name || ''}: ${err?.message || err}`);
+      }
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragOver(false);
+    handleFilesPicked(e.dataTransfer?.files);
+  };
+  const handleDragOver  = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); };
+  const removeAttachment = (idx) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
+
   const startNlSession = async () => {
     if (!prompt.trim()) {
       setError('요구사항을 입력해주세요.');
@@ -278,10 +355,19 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       systemContext += '\n' + tableLookup.formattedForPrompt + '\n';
     }
 
+    // D&D 첨부 분리 — 텍스트는 prompt 본문에 inline, binary 만 attachments 로 전송
+    const textAttachs   = attachments.filter((a) => a && a.kind === 'text');
+    const binaryAttachs = attachments.filter((a) => a && a.kind === 'binary');
+    let textInline = '';
+    for (const t of textAttachs) {
+      textInline += `\n\n=== 첨부 파일: ${t.name} ===\n\`\`\`${t.lang || ''}\n${t.text}\n\`\`\`\n`;
+    }
+
     return (
       <ComposerWorkspace
         session={session}
-        initialPrompt={systemContext + '\n' + prompt}
+        initialPrompt={systemContext + '\n' + prompt + textInline}
+        initialAttachments={binaryAttachs}
         extraHeader={
           <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
             종료
@@ -408,16 +494,63 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         </Stack>
 
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-          <TextField
-            fullWidth
-            multiline
-            minRows={6}
-            placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}`}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            sx={{ mb: 2 }}
-            autoFocus
-          />
+          {/* D&D wrapper — drop 시 텍스트 파일은 prompt inline, 그 외는 attachments chip */}
+          <Box
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            sx={{
+              position: 'relative',
+              borderRadius: 1,
+              ...(dragOver && {
+                outline: '2px dashed #2563eb',
+                outlineOffset: 2,
+                bgcolor: 'rgba(37,99,235,0.04)',
+              }),
+              mb: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              multiline
+              minRows={6}
+              placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}\n\n💡 파일을 여기 끌어다 놓으면 자동으로 참조됩니다 (텍스트 파일은 inline, 이미지/PDF/binary 는 첨부)`}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              autoFocus
+            />
+            {dragOver && (
+              <Box sx={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700, color: '#2563eb',
+                bgcolor: 'rgba(37,99,235,0.08)', borderRadius: 1,
+              }}>
+                파일을 여기에 놓으세요
+              </Box>
+            )}
+          </Box>
+
+          {/* 첨부된 파일 — chip 표시 + 삭제. 텍스트/binary 모두 동일 UX, 아이콘만 다름 */}
+          {attachments.length > 0 && (
+            <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ mb: 2, gap: 0.8 }}>
+              {attachments.map((a, i) => {
+                const icon = a.kind === 'text' ? '📄' : (/^image\//.test(a.mediaType) ? '🖼️' : '📎');
+                return (
+                  <Chip
+                    key={`${a.name}-${i}`}
+                    label={`${icon} ${a.name} (${a.sizeKb}KB)`}
+                    size="small"
+                    onDelete={() => removeAttachment(i)}
+                    sx={{
+                      bgcolor: a.kind === 'text' ? 'rgba(37,99,235,0.08)' : 'rgba(124,58,237,0.08)',
+                      fontSize: 11,
+                    }}
+                  />
+                );
+              })}
+            </Stack>
+          )}
 
           {/* AI 엔진(모델) 선택 — Sonnet(기본) / Opus */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"

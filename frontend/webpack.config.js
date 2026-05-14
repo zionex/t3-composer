@@ -1,6 +1,10 @@
 const path = require('path');
+const http = require('http');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+// keep-alive 끈 agent — backend 재시작 후 stale socket 으로 504 가 발생하던 문제 회피.
+const noKeepAliveAgent = new http.Agent({ keepAlive: false });
 
 module.exports = (env, argv) => {
   const isDev = argv.mode !== 'production';
@@ -25,6 +29,8 @@ module.exports = (env, argv) => {
         '@zionex/wingui-core/lang/i18n-func': path.resolve(__dirname, 'src/shim/zionex/i18n-func.js'),
         '@zionex/wingui-core/store/contentStore': path.resolve(__dirname, 'src/shim/zionex/contentStore.js'),
         '@zionex/wingui-core': path.resolve(__dirname, 'src/shim/zionex/wingui-core.js'),
+        // 산출물이 환각하는 차트 라이브러리 — react-chartjs-2 로 wrapping
+        '@progress/kendo-react-charts': path.resolve(__dirname, 'src/shim/kendo-react-charts.jsx'),
       },
     },
     module: {
@@ -75,6 +81,9 @@ module.exports = (env, argv) => {
           target: apiBase,
           changeOrigin: true,
           secure: false,
+          agent: noKeepAliveAgent,           // stale socket 회피 (backend 재시작 후 504 방지)
+          proxyTimeout: 600_000,             // 10분 — Anthropic 호출 등 long-running 응답 수용
+          timeout:      600_000,
           bypass: (req) => {
             const accept = req.headers.accept || '';
             // SPA route — HTML GET 만 fallback

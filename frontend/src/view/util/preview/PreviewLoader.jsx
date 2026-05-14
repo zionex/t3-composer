@@ -24,7 +24,8 @@ function PreviewLoader() {
     return <Box sx={{ p: 3 }}><Alert severity="error">잘못된 preview URL: {location.pathname}</Alert></Box>;
   }
   const sid8 = m[1];
-  const viewSub = m[2].replace(/\/$/, '');
+  // 끝 슬래시 + `.jsx` 확장자 strip — 호출자가 어느 형태로 넘기든 안전하게 정규화
+  const viewSub = m[2].replace(/\/$/, '').replace(/\.jsx$/i, '');
 
   // useMemo 로 sid8/viewSub 가 같으면 같은 lazy 컴포넌트 사용 — 무한 재마운트 방지
   const Comp = useMemo(() => React.lazy(

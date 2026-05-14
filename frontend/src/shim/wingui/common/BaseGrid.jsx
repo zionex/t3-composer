@@ -32,6 +32,8 @@ import 'realgrid/realgrid-sky-blue.css';
 
 import { GridView, LocalDataProvider } from 'realgrid';
 
+import { generateSampleRowsFromItems, isSampleModeEnabled } from './sampleData';
+
 // 컨테이너 안의 grid registry (GridSaveButton 등이 string id 로 lookup)
 const REGISTRY = {};
 export function lookupGrid(idOrObj) {
@@ -125,7 +127,11 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
             // 부모 wingui BaseGrid 와 호환되는 dataProvider 표면
             dataProvider: {
                 fillJsonData: (data) => {
-                    const arr = Array.isArray(data) ? data : [];
+                    let arr = Array.isArray(data) ? data : [];
+                    // [Sample 데이터] checkbox 가 켜져 있고 응답이 빈 경우 — 컬럼 메타로 자동 주입
+                    if (arr.length === 0 && isSampleModeEnabled()) {
+                        arr = generateSampleRowsFromItems(items, 10);
+                    }
                     dp.fillJsonData(arr);
                 },
                 getAllStateRows: () => {

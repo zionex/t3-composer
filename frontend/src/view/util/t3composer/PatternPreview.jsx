@@ -2138,8 +2138,8 @@ function CBTerminal({ lines, activeLine }) {
   );
 }
 
-function CBRow(...items) { return <Box sx={{ display: 'flex', gap: 0.3, flex: 1, minHeight: 0 }}>{items}</Box>; }
-function CBCol(...items) { return <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3, flex: 1, minHeight: 0 }}>{items}</Box>; }
+function CBRow(...items) { return <Box sx={{ display: 'flex', gap: 0.3, flex: 1, minHeight: 0 }}>{React.Children.toArray(items)}</Box>; }
+function CBCol(...items) { return <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3, flex: 1, minHeight: 0 }}>{React.Children.toArray(items)}</Box>; }
 
 // ---- 재사용 공통 렌더러 ----
 function cbSimpleTable(title, cols, rows, topRight, rowBg) {
@@ -6082,7 +6082,8 @@ function RLCanvasEqp({ item }) {
 
 function RLFlows({ flows }) {
   return (
-    <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                    pointerEvents: 'none', zIndex: 2 }}>
       <defs>
         <marker id="rl-arrow-c" markerWidth="5" markerHeight="4" refX="4" refY="2" orient="auto">
@@ -6097,7 +6098,7 @@ function RLFlows({ flows }) {
         const dx = Math.abs(x2 - x1);
         const cx1 = x1 + Math.max(dx / 2, 3);
         const cx2 = x2 - Math.max(dx / 2, 3);
-        const pathData = `M ${x1}% ${y1}% C ${cx1}% ${y1}%, ${cx2}% ${y2}%, ${x2}% ${y2}%`;
+        const pathData = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`;
         const marker = f.color === DC.cyan ? 'rl-arrow-c' : 'rl-arrow-a';
         return (
           <path key={i} d={pathData} fill="none" stroke={f.color} strokeWidth="0.7"

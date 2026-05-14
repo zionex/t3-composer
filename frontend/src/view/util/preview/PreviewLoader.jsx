@@ -1,84 +1,88 @@
-import React, { Suspense, useMemo } from 'react';
-import { useLocation, useHistory } from 'react-router-dom';
-
+// =============================================================================
+// PreviewLoader — 산출물 화면을 새 브라우저 탭(/preview/<sessionId>/<viewSub>)
+// 에서 단독 표시. PreviewEmbed 와 동일한 runtime 사용 — webpack dependency graph
+// 와 격리되어 산출물 syntax error 가 main bundle 에 영향 0.
+//
+// URL 형식: /preview/:sessionId/:viewSub  (viewSub 은 슬래시 포함 가능)
+// 예) /preview/019e1ae4abcd.../pk/ornmatmst/OrnMatMst
+// =============================================================================
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
-  Box, Paper, Stack, Typography, Alert, AlertTitle, Chip, Button, CircularProgress,
+  Box, Paper, Stack, Typography, Alert, AlertTitle, Chip, CircularProgress,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 
-/**
- * Phase 2 — preview 화면 직접 진입 라우터.
- *
- * URL 형식: /preview/:sid8/:viewSub  (viewSub 에 슬래시 포함, 예: util/userinfomgmt/UserInfoMgmt)
- *
- * webpack 의 dynamic import 는 prefix 가 명확해야 chunk split 가능.
- * → `../../_preview/${sid8}/${viewSub}.jsx` 형태로 build time 에 _preview/** 모든 jsx 를 chunk 화.
- */
+import { loadPreviewComponent } from '../../../preview/runtime';
+
 function PreviewLoader() {
   const location = useLocation();
-  const history  = useHistory();
+  const [phase, setPhase] = useState('loading');   // 'loading' | 'ready' | 'error'
+  const [Comp, setComp]   = useState(null);
+  const [error, setError] = useState(null);
+  const [meta, setMeta]   = useState({ sessionId: null, viewSub: null });
 
-  const m = /^\/preview\/([a-zA-Z0-9]+)\/(.+)$/.exec(location.pathname);
-  if (!m) {
-    return <Box sx={{ p: 3 }}><Alert severity="error">잘못된 preview URL: {location.pathname}</Alert></Box>;
-  }
-  const sid8 = m[1];
-  // 끝 슬래시 + `.jsx` 확장자 strip — 호출자가 어느 형태로 넘기든 안전하게 정규화
-  const viewSub = m[2].replace(/\/$/, '').replace(/\.jsx$/i, '');
+  useEffect(() => {
+    const m = /^\/preview\/([a-zA-Z0-9_-]+)\/(.+)$/.exec(location.pathname);
+    if (!m) {
+      setPhase('error');
+      setError('잘못된 preview URL: ' + location.pathname);
+      return;
+    }
+    const sessionId = m[1];
+    const viewSub = m[2].replace(/\/$/, '').replace(/\.jsx$/i, '');
+    setMeta({ sessionId, viewSub });
+    setPhase('loading');
+    setError(null);
+    setComp(null);
 
-  // useMemo 로 sid8/viewSub 가 같으면 같은 lazy 컴포넌트 사용 — 무한 재마운트 방지
-  const Comp = useMemo(() => React.lazy(
-    () => import(
-      /* webpackInclude: /\.jsx$/ */
-      /* webpackChunkName: "preview-[request]" */
-      `../../_preview/${sid8}/${viewSub}.jsx`
-    ).catch((err) => ({
-      default: () => (
-        <Box sx={{ p: 3 }}>
-          <Alert severity="error">
-            <AlertTitle>preview 모듈 로드 실패</AlertTitle>
-            <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-              경로: <code>view/_preview/{sid8}/{viewSub}.jsx</code>
-            </Typography>
-            <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
-              {err?.message || String(err)}
-            </Typography>
-          </Alert>
-        </Box>
-      ),
-    })),
-  ), [sid8, viewSub]);
+    loadPreviewComponent({ sessionId, viewSub })
+      .then((C) => {
+        setComp(() => C);
+        setPhase('ready');
+      })
+      .catch((e) => {
+        setError(e?.message || String(e));
+        setPhase('error');
+      });
+  }, [location.pathname]);
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* preview 표시 헤더 */}
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Paper variant="outlined" sx={{ borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0,
-                                       bgcolor: 'rgba(6,182,212,0.06)' }}>
+                                     bgcolor: 'rgba(6,182,212,0.06)' }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 0.8 }}>
           <VisibilityIcon fontSize="small" color="info" />
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>미리보기 모드</Typography>
-          <Chip size="small" color="info" label={`PV ${sid8}`} sx={{ height: 20, fontSize: 10 }} />
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
-            view/_preview/{sid8}/{viewSub}.jsx
-          </Typography>
-          <Box sx={{ flex: 1 }} />
-          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => history.push('/composer')}>
-            Composer 로 돌아가기
-          </Button>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>미리보기 (단독 창)</Typography>
+          {meta.sessionId && (
+            <Chip size="small" color="info"
+                  label={'sid ' + String(meta.sessionId).slice(0, 8)}
+                  sx={{ height: 20, fontSize: 10 }} />
+          )}
+          {meta.viewSub && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+              {meta.viewSub}
+            </Typography>
+          )}
         </Stack>
       </Paper>
 
-      {/* 실제 preview 컴포넌트 */}
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-        <Suspense fallback={
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1 }}>
+        {phase === 'loading' && (
           <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', gap: 1 }}>
             <CircularProgress />
             <Typography variant="caption" color="text.secondary">preview 모듈 로드 중...</Typography>
           </Stack>
-        }>
-          <Comp />
-        </Suspense>
+        )}
+        {phase === 'error' && (
+          <Alert severity="error" sx={{ m: 2 }}>
+            <AlertTitle>preview 로드 실패</AlertTitle>
+            <Typography variant="caption" sx={{ display: 'block', whiteSpace: 'pre-wrap' }}>
+              {error}
+            </Typography>
+          </Alert>
+        )}
+        {phase === 'ready' && Comp && <Comp />}
       </Box>
     </Box>
   );

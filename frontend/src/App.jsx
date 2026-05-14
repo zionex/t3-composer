@@ -19,7 +19,8 @@ import { ShowMessageHost } from '@wingui/common/imports';
  *   - 메인은 초기 진입 시 1개 자동 오픈
  *   - 한 번 열린 Tab 은 닫기 전까지 mount 유지 (display 토글) — 세션 상태 보존
  *
- * `/preview/...` URL 은 별도 라우트 — 산출물 화면 lazy load (PreviewLoader 사용)
+ * /preview/<sessionId>/<viewSub> 라우트 — 산출물 화면 새 창에서 단독 표시 (PreviewLoader 사용).
+ * 런타임 격리 메커니즘은 PreviewEmbed 와 공유 (preview/runtime.js).
  */
 const MENU_ITEMS = [
     { key: 'composer', label: 'T3Composer', Component: T3Composer },

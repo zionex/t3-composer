@@ -595,10 +595,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     size="small"
                     disabled={!previewMeta}
                     onClick={() => {
-                      if (!previewMeta?.sid8 || !previewMeta?.viewSub) return;
-                      // viewSub 의 끝 `.jsx` 는 PreviewLoader 가 자동 부착하므로 미리 제거
+                      if (!session?.id || !previewMeta?.viewSub) return;
+                      // PreviewLoader 는 /preview/<sessionId>/<viewSub> URL 을 받아
+                      // preview/runtime.js 로 산출물 격리 로드. viewSub 의 `.jsx` 는 자동 제거됨.
                       const vs = String(previewMeta.viewSub).replace(/\.jsx$/i, '');
-                      window.open(`/preview/${previewMeta.sid8}/${vs}`,
+                      window.open(`/preview/${session.id}/${vs}`,
                                   '_blank', 'noopener,noreferrer');
                     }}
                     sx={{ mx: 0.5, color: '#475569',

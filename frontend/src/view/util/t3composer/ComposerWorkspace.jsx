@@ -611,7 +611,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Tooltip>
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 0 ? 'flex' : 'none', flexDirection: 'column' }}>
-              <PreviewEmbed sid8={previewMeta?.sid8} viewSub={previewMeta?.viewSub} />
+              <PreviewEmbed
+                sessionId={session?.id}
+                sid8={previewMeta?.sid8}
+                viewSub={previewMeta?.viewSub}
+              />
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />

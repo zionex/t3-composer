@@ -289,7 +289,8 @@ public class ComposerController {
         composerService.appendUserMessage(sessionId, req.getMessage());
 
         // Claude 호출 → assistant 저장
-        return composerService.chat(userId, sessionId)
+        //   D&D 로 첨부된 binary (이미지/PDF) 는 마지막 user message 에 content block 으로 부착
+        return composerService.chat(userId, sessionId, req.getAttachments())
                 .map(MessageDto::from)
                 .doOnError(e -> log.error("Composer chat error: {}", e.getMessage(), e));
     }

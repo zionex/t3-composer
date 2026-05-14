@@ -482,6 +482,26 @@ function T3Composer() {
     })();
   }, [location?.state?.resumeSessionId]);
 
+  // Tab Container 방식 — 이력 [이어하기] 가 window event 로 resume 요청
+  useEffect(() => {
+    const h = async (e) => {
+      const rid = e?.detail?.sessionId;
+      if (!rid) return;
+      setResumeLoading(true);
+      setResumeError(null);
+      try {
+        const res = await getSession(rid);
+        setResumeSession(res?.data || null);
+      } catch (err) {
+        setResumeError(err?.response?.data?.message || err?.message || '세션 로드 실패');
+      } finally {
+        setResumeLoading(false);
+      }
+    };
+    window.addEventListener('t3composer:resume', h);
+    return () => window.removeEventListener('t3composer:resume', h);
+  }, []);
+
   // ComposerWorkspace 에서 "종료" 누르면 resume 상태 해제 + URL state 청소
   const backFromResume = () => {
     setResumeSession(null);

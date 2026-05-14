@@ -29,9 +29,8 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DiamondIcon from '@mui/icons-material/Diamond';
 
-import { createSession, extractAndLookupTables, extractAndLookupProcedures } from './api';
+import { createSession, extractAndLookupTables } from './api';
 import { getModule } from './constants';
-import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
@@ -149,18 +148,15 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const [session, setSession] = useState(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
+  // D&D 첨부 — 텍스트 파일은 prompt 에 inline 추가, binary 는 attachments state.
+  //   binary 는 Phase 2 에서 backend AnthropicClient 의 content blocks 로 진짜 multi-modal 전송 예정.
+  const [attachments, setAttachments] = useState([]);   // [{ name, mediaType, base64, sizeKb }]
+  const [dragOver, setDragOver]       = useState(false);
 
   // 테이블 자동 lookup 상태 — prompt 안의 TB_* 패턴을 디바운스 후 백엔드 INFORMATION_SCHEMA 조회
   const [tableLookup, setTableLookup] = useState({ extracted: [], results: {}, formattedForPrompt: '' });
   const [tableLookupLoading, setTableLookupLoading] = useState(false);
   const lookupDebounceRef = useRef(null);
-
-  // SP 자동 lookup 상태 — prompt 안의 SP_* 패턴을 디바운스 후 target DB(sys.procedures) 조회
-  // 정책: 사용자가 명시한 SP 가 이미 존재하면 새로 만들지 말고, 명시되지 않은 SP (예: 삭제) 도 자의로 만들지 않게
-  const [procLookup, setProcLookup] = useState({ extracted: [], results: {}, formattedForPrompt: '' });
-  const [procLookupLoading, setProcLookupLoading] = useState(false);
-  const procLookupDebounceRef = useRef(null);
-  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   // UI 패턴 선택 (선택사항) — POPUP 으로 PatternSelector 띄움
   // selectedPattern: { code, name, layout, category, description } | null
@@ -192,7 +188,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     lookupDebounceRef.current = setTimeout(async () => {
       setTableLookupLoading(true);
       try {
-        const res = await extractAndLookupTables(prompt, currentTargetCd);
+        const res = await extractAndLookupTables(prompt);
         setTableLookup({
           extracted: res?.data?.extractedNames || [],
           results: res?.data?.results || {},
@@ -209,36 +205,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     return () => {
       if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current);
     };
-  }, [prompt, subMode, currentTargetCd]);
-
-  // prompt 변경 시 600ms 디바운스 후 자동 SP lookup (target DB 의 sys.procedures)
-  // targetCd 미선택이면 백엔드가 빈 results 반환 — 그래도 호출은 한다 (구조 일관)
-  useEffect(() => {
-    if (subMode !== 'NL' || !prompt || !prompt.trim()) {
-      setProcLookup({ extracted: [], results: {}, formattedForPrompt: '' });
-      return undefined;
-    }
-    if (procLookupDebounceRef.current) clearTimeout(procLookupDebounceRef.current);
-    procLookupDebounceRef.current = setTimeout(async () => {
-      setProcLookupLoading(true);
-      try {
-        const res = await extractAndLookupProcedures(prompt, currentTargetCd);
-        setProcLookup({
-          extracted: res?.data?.extractedNames || [],
-          results: res?.data?.results || {},
-          formattedForPrompt: res?.data?.formattedForPrompt || '',
-        });
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn('[Composer] SP 자동 lookup 실패:', e?.message || e);
-      } finally {
-        setProcLookupLoading(false);
-      }
-    }, 600);
-    return () => {
-      if (procLookupDebounceRef.current) clearTimeout(procLookupDebounceRef.current);
-    };
-  }, [prompt, subMode, currentTargetCd]);
+  }, [prompt, subMode]);
 
   const reset = () => {
     // startWith 로 고정 진입한 경우엔 서브모드는 유지 (모듈·프롬프트만 초기화)
@@ -252,6 +219,79 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     setSelectedCharts([]);
     setSelectedModel(DEFAULT_MODEL_ID);
   };
+
+  // ─── D&D 파일 첨부 ──────────────────────────────────────────────
+  const TEXT_EXTS = React.useMemo(() => new Set([
+    'txt','md','markdown','jsx','tsx','js','ts','mjs','java','kt','scala',
+    'sql','json','yaml','yml','xml','html','htm','css','scss','less',
+    'csv','tsv','sh','ps1','bat','conf','properties','toml','ini','env',
+    'log','gradle','dockerfile','py','rb','go','rs','c','cpp','h','hpp','svg',
+  ]), []);
+
+  const isTextFile = (file) => {
+    if (file.type && file.type.startsWith('text/')) return true;
+    if (file.type && /(json|xml|yaml|x-sh|x-shellscript|svg\+xml)/.test(file.type)) return true;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    return TEXT_EXTS.has(ext);
+  };
+
+  const readAsText = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsText(file);
+  });
+
+  const readAsBase64 = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const url = String(r.result || '');
+      const m = /^data:([^;]+);base64,(.+)$/.exec(url);
+      if (m) resolve({ mediaType: m[1], base64: m[2] });
+      else reject(new Error('invalid data url'));
+    };
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+
+  const handleFilesPicked = async (files) => {
+    const arr = Array.from(files || []);
+    if (arr.length === 0) return;
+    for (const file of arr) {
+      try {
+        const sizeKb = Math.round(file.size / 1024);
+        if (file.size > 5 * 1024 * 1024) {     // 5MB 한 파일당
+          setError(`파일이 너무 큽니다 (${sizeKb}KB > 5MB): ${file.name}`);
+          continue;
+        }
+        if (isTextFile(file)) {
+          // 텍스트는 chip 으로만 노출 — 전송 직전 prompt 본문에 inline 합쳐서 보냄
+          const text = await readAsText(file);
+          const lang = (file.name.split('.').pop() || '').toLowerCase();
+          setAttachments((prev) => [...prev, {
+            kind: 'text', name: file.name, mediaType: file.type || 'text/plain',
+            sizeKb, lang, text,
+          }]);
+        } else {
+          const { mediaType, base64 } = await readAsBase64(file);
+          setAttachments((prev) => [...prev, {
+            kind: 'binary', name: file.name, mediaType, base64, sizeKb,
+          }]);
+        }
+      } catch (err) {
+        setError(`파일 읽기 실패: ${file?.name || ''}: ${err?.message || err}`);
+      }
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragOver(false);
+    handleFilesPicked(e.dataTransfer?.files);
+  };
+  const handleDragOver  = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); };
+  const removeAttachment = (idx) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
 
   const startNlSession = async () => {
     if (!prompt.trim()) {
@@ -315,16 +355,19 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       systemContext += '\n' + tableLookup.formattedForPrompt + '\n';
     }
 
-    // SP 자동 lookup 결과 첨부 — 사용자가 명시한 SP 가 이미 존재하면 새로 만들지 말고
-    // 명시 안 한 SP(예: 삭제) 도 임의 생성 금지. formatter 에 강제 문구 포함.
-    if (procLookup.formattedForPrompt) {
-      systemContext += '\n' + procLookup.formattedForPrompt + '\n';
+    // D&D 첨부 분리 — 텍스트는 prompt 본문에 inline, binary 만 attachments 로 전송
+    const textAttachs   = attachments.filter((a) => a && a.kind === 'text');
+    const binaryAttachs = attachments.filter((a) => a && a.kind === 'binary');
+    let textInline = '';
+    for (const t of textAttachs) {
+      textInline += `\n\n=== 첨부 파일: ${t.name} ===\n\`\`\`${t.lang || ''}\n${t.text}\n\`\`\`\n`;
     }
 
     return (
       <ComposerWorkspace
         session={session}
-        initialPrompt={systemContext + '\n' + prompt}
+        initialPrompt={systemContext + '\n' + prompt + textInline}
+        initialAttachments={binaryAttachs}
         extraHeader={
           <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
             종료
@@ -451,16 +494,63 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         </Stack>
 
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-          <TextField
-            fullWidth
-            multiline
-            minRows={6}
-            placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}`}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            sx={{ mb: 2 }}
-            autoFocus
-          />
+          {/* D&D wrapper — drop 시 텍스트 파일은 prompt inline, 그 외는 attachments chip */}
+          <Box
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            sx={{
+              position: 'relative',
+              borderRadius: 1,
+              ...(dragOver && {
+                outline: '2px dashed #2563eb',
+                outlineOffset: 2,
+                bgcolor: 'rgba(37,99,235,0.04)',
+              }),
+              mb: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              multiline
+              minRows={6}
+              placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}\n\n💡 파일을 여기 끌어다 놓으면 자동으로 참조됩니다 (텍스트 파일은 inline, 이미지/PDF/binary 는 첨부)`}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              autoFocus
+            />
+            {dragOver && (
+              <Box sx={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700, color: '#2563eb',
+                bgcolor: 'rgba(37,99,235,0.08)', borderRadius: 1,
+              }}>
+                파일을 여기에 놓으세요
+              </Box>
+            )}
+          </Box>
+
+          {/* 첨부된 파일 — chip 표시 + 삭제. 텍스트/binary 모두 동일 UX, 아이콘만 다름 */}
+          {attachments.length > 0 && (
+            <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ mb: 2, gap: 0.8 }}>
+              {attachments.map((a, i) => {
+                const icon = a.kind === 'text' ? '📄' : (/^image\//.test(a.mediaType) ? '🖼️' : '📎');
+                return (
+                  <Chip
+                    key={`${a.name}-${i}`}
+                    label={`${icon} ${a.name} (${a.sizeKb}KB)`}
+                    size="small"
+                    onDelete={() => removeAttachment(i)}
+                    sx={{
+                      bgcolor: a.kind === 'text' ? 'rgba(37,99,235,0.08)' : 'rgba(124,58,237,0.08)',
+                      fontSize: 11,
+                    }}
+                  />
+                );
+              })}
+            </Stack>
+          )}
 
           {/* AI 엔진(모델) 선택 — Sonnet(기본) / Opus */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
@@ -634,7 +724,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
               <StorageIcon fontSize="small" sx={{ color: '#a855f7' }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#7e22ce' }}>
-                자동 테이블 존재 여부 확인 {currentTargetCd ? `(${currentTargetCd})` : '(target 미선택)'}
+                자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)
               </Typography>
               {tableLookupLoading && <CircularProgress size={14} sx={{ color: '#a855f7' }} />}
             </Stack>
@@ -697,89 +787,6 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                           <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10.5, color: '#475569' }}>
                             {cols.slice(0, 12).map((c) => c.name).join(' · ')}
                             {cols.length > 12 && ` · 외 ${cols.length - 12}개`}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Stack>
-            )}
-          </Paper>
-        )}
-
-        {/* SP 자동 lookup 결과 — prompt 안의 SP_* 패턴을 target DB sys.procedures 조회 */}
-        {(procLookupLoading || procLookup.extracted.length > 0) && (
-          <Paper variant="outlined" sx={{
-            p: 2, mb: 3, borderRadius: 2,
-            borderColor: '#0891b2', bgcolor: '#ecfeff',
-          }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <StorageIcon fontSize="small" sx={{ color: '#0891b2' }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#155e75' }}>
-                자동 Stored Procedure 존재 여부 확인 {currentTargetCd ? `(${currentTargetCd})` : '(target 미선택)'}
-              </Typography>
-              {procLookupLoading && <CircularProgress size={14} sx={{ color: '#0891b2' }} />}
-            </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              prompt 안의 <code>SP_*</code> 명을 target Operational DB 의 <code>sys.procedures</code> 에서 직접 조회 —
-              존재하면 시그니처/본문을 prompt 에 첨부해 Claude 가 기존 SP 를 그대로 사용 (새 CREATE 생성 금지,
-              사용자가 명시하지 않은 SP 도 임의 추가 금지).
-            </Typography>
-            {!currentTargetCd && procLookup.extracted.length > 0 && (
-              <Alert severity="warning" sx={{ mb: 1, py: 0.5 }}>
-                Target 시스템이 선택되지 않아 SP 존재 여부를 조회할 수 없습니다. 우측 상단에서 Target 을 선택하세요.
-              </Alert>
-            )}
-            {procLookup.extracted.length === 0 && !procLookupLoading && (
-              <Typography variant="caption" color="text.secondary">
-                (prompt 에서 <code>SP_*</code> 패턴 미발견 — 사용할 SP 명이 있으면 입력하세요)
-              </Typography>
-            )}
-            {procLookup.extracted.length > 0 && (
-              <Stack spacing={0.5}>
-                {procLookup.extracted.map((name) => {
-                  const info = procLookup.results[name.toUpperCase()];
-                  const exists = info?.exists;
-                  const params = info?.parameters || [];
-                  return (
-                    <Box key={name} sx={{
-                      p: 1, borderRadius: 1,
-                      bgcolor: exists ? '#dcfce7' : '#fef3c7',
-                      border: `1px solid ${exists ? '#16a34a' : '#d97706'}33`,
-                    }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        {exists
-                          ? <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
-                          : <HighlightOffIcon fontSize="small" sx={{ color: '#d97706' }} />}
-                        <Typography variant="body2" sx={{
-                          fontFamily: 'monospace', fontWeight: 700,
-                          color: exists ? '#166534' : '#92400e',
-                        }}>
-                          {name}
-                        </Typography>
-                        {exists && (
-                          <Chip size="small" label={`${params.length} params`}
-                            sx={{ height: 18, fontSize: 10, bgcolor: '#bbf7d0', color: '#166534' }} />
-                        )}
-                        {exists && info?.modifyDate && (
-                          <Typography variant="caption" color="text.secondary">
-                            modified {info.modifyDate}
-                          </Typography>
-                        )}
-                        {!exists && (
-                          <Typography variant="caption" sx={{ color: '#92400e' }}>
-                            {currentTargetCd
-                              ? '존재하지 않음 — 명시한 경우에만 새 SP 생성 (삭제 등 미요청 동작 금지)'
-                              : 'target 미선택 — 조회 불가'}
-                          </Typography>
-                        )}
-                      </Stack>
-                      {exists && params.length > 0 && (
-                        <Box sx={{ mt: 0.5, pl: 3 }}>
-                          <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10.5, color: '#475569' }}>
-                            {params.slice(0, 8).map((p) => p.name).join(' · ')}
-                            {params.length > 8 && ` · 외 ${params.length - 8}개`}
                           </Typography>
                         </Box>
                       )}

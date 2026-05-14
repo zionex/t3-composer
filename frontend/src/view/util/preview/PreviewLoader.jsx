@@ -1,66 +1,87 @@
-import React from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 
 import {
-    Box, Paper, Stack, Typography, Alert, AlertTitle, Chip, Button,
+  Box, Paper, Stack, Typography, Alert, AlertTitle, Chip, Button, CircularProgress,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 
 /**
- * /preview/:sid8/:viewSub 라우트 진입점.
+ * Phase 2 — preview 화면 직접 진입 라우터.
  *
- * Phase 2 격리 (옵션 A) 이전: webpack dynamic import 로 _preview 전체를 build time
- * chunk 화 → 어떤 산출물 JSX 의 오류라도 main bundle 컴파일 실패로 시스템 마비.
+ * URL 형식: /preview/:sid8/:viewSub  (viewSub 에 슬래시 포함, 예: util/userinfomgmt/UserInfoMgmt)
  *
- * 격리 이후: standalone page 진입 흐름은 사용 빈도가 낮고, 정상 흐름은 Composer
- * 워크스페이스의 우측 [실행 화면 LIVE] 탭에 inline 으로 표시되는 PreviewEmbed.
- * 따라서 이 라우트는 안내 화면으로 단순화하고, dynamic import 는 완전히 제거.
+ * webpack 의 dynamic import 는 prefix 가 명확해야 chunk split 가능.
+ * → `../../_preview/${sid8}/${viewSub}.jsx` 형태로 build time 에 _preview/** 모든 jsx 를 chunk 화.
  */
 function PreviewLoader() {
-    const location = useLocation();
-    const history  = useHistory();
+  const location = useLocation();
+  const history  = useHistory();
 
-    const m = /^\/preview\/([a-zA-Z0-9]+)\/(.+)$/.exec(location.pathname);
-    const sid8    = m ? m[1] : null;
-    const viewSub = m ? m[2].replace(/\/$/, '') : null;
+  const m = /^\/preview\/([a-zA-Z0-9]+)\/(.+)$/.exec(location.pathname);
+  if (!m) {
+    return <Box sx={{ p: 3 }}><Alert severity="error">잘못된 preview URL: {location.pathname}</Alert></Box>;
+  }
+  const sid8 = m[1];
+  // 끝 슬래시 + `.jsx` 확장자 strip — 호출자가 어느 형태로 넘기든 안전하게 정규화
+  const viewSub = m[2].replace(/\/$/, '').replace(/\.jsx$/i, '');
 
-    return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Paper variant="outlined" sx={{ borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0,
-                                            bgcolor: 'rgba(6,182,212,0.06)' }}>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 0.8 }}>
-                    <VisibilityIcon fontSize="small" color="info" />
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>미리보기 모드 (standalone)</Typography>
-                    {sid8 && (
-                        <Chip size="small" color="info" label={`PV ${sid8}`}
-                              sx={{ height: 20, fontSize: 10 }} />
-                    )}
-                    <Box sx={{ flex: 1 }} />
-                    <Button size="small" startIcon={<ArrowBackIcon />}
-                            onClick={() => history.push('/composer')}>
-                        Composer 로 돌아가기
-                    </Button>
-                </Stack>
-            </Paper>
-
-            <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 3 }}>
-                <Alert severity="info">
-                    <AlertTitle>standalone 진입은 지원하지 않습니다</AlertTitle>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                        화면 미리보기는 <b>Composer 워크스페이스의 우측 [실행 화면 LIVE] 탭</b>에서
-                        inline 으로 표시됩니다.
-                    </Typography>
-                    {viewSub && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary',
-                                                            fontFamily: 'monospace' }}>
-                            요청 경로: view/_preview/{sid8}/{viewSub}.jsx
-                        </Typography>
-                    )}
-                </Alert>
-            </Box>
+  // useMemo 로 sid8/viewSub 가 같으면 같은 lazy 컴포넌트 사용 — 무한 재마운트 방지
+  const Comp = useMemo(() => React.lazy(
+    () => import(
+      /* webpackInclude: /\.jsx$/ */
+      /* webpackChunkName: "preview-[request]" */
+      `../../_preview/${sid8}/${viewSub}.jsx`
+    ).catch((err) => ({
+      default: () => (
+        <Box sx={{ p: 3 }}>
+          <Alert severity="error">
+            <AlertTitle>preview 모듈 로드 실패</AlertTitle>
+            <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+              경로: <code>view/_preview/{sid8}/{viewSub}.jsx</code>
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+              {err?.message || String(err)}
+            </Typography>
+          </Alert>
         </Box>
-    );
+      ),
+    })),
+  ), [sid8, viewSub]);
+
+  return (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* preview 표시 헤더 */}
+      <Paper variant="outlined" sx={{ borderRadius: 0, borderLeft: 0, borderRight: 0, borderTop: 0,
+                                       bgcolor: 'rgba(6,182,212,0.06)' }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 0.8 }}>
+          <VisibilityIcon fontSize="small" color="info" />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>미리보기 모드</Typography>
+          <Chip size="small" color="info" label={`PV ${sid8}`} sx={{ height: 20, fontSize: 10 }} />
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+            view/_preview/{sid8}/{viewSub}.jsx
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => history.push('/composer')}>
+            Composer 로 돌아가기
+          </Button>
+        </Stack>
+      </Paper>
+
+      {/* 실제 preview 컴포넌트 */}
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Suspense fallback={
+          <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', gap: 1 }}>
+            <CircularProgress />
+            <Typography variant="caption" color="text.secondary">preview 모듈 로드 중...</Typography>
+          </Stack>
+        }>
+          <Comp />
+        </Suspense>
+      </Box>
+    </Box>
+  );
 }
 
 export default PreviewLoader;

@@ -115,8 +115,13 @@ function T3ComposerHistory() {
   }, [sessions]);
 
   const handleResume = (s) => {
-    // T3Composer.jsx 가 location.state.resumeSessionId 를 인식해 ComposerWorkspace 로 직진
-    history.push('/composer', { resumeSessionId: s.id });
+    // Tab Container 방식 — react-router push 가 아니라 window event 로
+    //   ① 메인 (T3Composer) Tab 활성화 (이미 열려 있으면 그대로, 없으면 open)
+    //   ② T3Composer 가 listen 하는 resume event 발화 — ComposerWorkspace 로 직진
+    window.dispatchEvent(new CustomEvent('t3composer:openTab', { detail: { key: 'composer' } }));
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('t3composer:resume', { detail: { sessionId: s.id } }));
+    }, 50);
   };
 
   const handleStatus = async (s, status) => {

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 
 import {
   Box,
-  Tabs,
-  Tab,
   Typography,
   Stack,
   Paper,
@@ -90,39 +88,7 @@ function T3ComposerDict() {
             </Stack>
           </Paper>
 
-          {/* Tabs */}
-          <Paper elevation={0} sx={{ borderRadius: 2, flexShrink: 0, bgcolor: '#fff' }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)}
-                  variant="fullWidth"
-                  sx={{
-                    borderBottom: 1, borderColor: 'divider',
-                    '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
-                  }}>
-              {TAB_META.map((m, i) => (
-                <Tab key={i}
-                     icon={m.icon}
-                     iconPosition="start"
-                     label={
-                       <Stack direction="column" spacing={0.1} alignItems="flex-start">
-                         <Typography variant="body2" sx={{ fontWeight: 700, textTransform: 'none' }}>
-                           {m.label}
-                         </Typography>
-                         <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.7, textTransform: 'none' }}>
-                           {m.sub}
-                         </Typography>
-                       </Stack>
-                     }
-                     sx={{
-                       alignItems: 'flex-start',
-                       py: 1.2,
-                       color: tab === i ? m.color : 'text.secondary',
-                       '&.Mui-selected': { color: m.color },
-                     }} />
-              ))}
-            </Tabs>
-          </Paper>
-
-          {/* Body */}
+          {/* Body — 하단 Tab 행은 헤더 우측 카드(quick stats)와 기능이 중복되어 제거 */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {tab === 0 && <GridTypeTab />}
             {tab === 1 && <ChartTypeTab />}

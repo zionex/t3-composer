@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab } from '@mui/material';
+import { Box, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab, FormControlLabel, Checkbox } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import DownloadIcon from '@mui/icons-material/Download';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LaunchIcon from '@mui/icons-material/Launch';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DiamondIcon from '@mui/icons-material/Diamond';
@@ -65,7 +66,7 @@ function modelMeta(id) {
  *  - 메뉴 등록  (MENU_SQL 만 실행 — TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)
  *  - 아티팩트 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
  */
-function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
+function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [menuDialogOpen, setMenuDialogOpen]   = useState(false);
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
@@ -80,6 +81,16 @@ function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
   const [previewBusy, setPreviewBusy] = useState(false);
   const [previewStage, setPreviewStage] = useState(null);  // { phase, message, elapsedMs, targetUrl }
   const previewAbortRef = React.useRef(false);
+  // [Sample 데이터] CheckBox — 화면 실행 시 빈 응답에 휴리스틱 sample 자동 주입 여부.
+  //   default false. shim 의 BaseGrid 가 window.__composerSampleData 를 lookup.
+  //   새창(preview)도 같은 origin 이라 localStorage 동기화로 flag 공유.
+  const [useSampleData, setUseSampleData] = useState(() => {
+    try { return localStorage.getItem('composer.sampleData') === '1'; } catch (_) { return false; }
+  });
+  useEffect(() => {
+    window.__composerSampleData = useSampleData;
+    try { localStorage.setItem('composer.sampleData', useSampleData ? '1' : '0'); } catch (_) { /* no-op */ }
+  }, [useSampleData]);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', title: '', message: '' });
 
   // AI 엔진(모델) 전환 — 세션 생성 후/이어하기 진입 후에도 변경 가능
@@ -399,6 +410,21 @@ function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
               </Button>
             </span>
           </Tooltip>
+          <Tooltip title="체크 시 — 그리드/차트 응답이 비어있으면 컬럼 메타데이터(dataType·name) 기준으로 휴리스틱 sample 데이터를 자동 주입해 실제 운영처럼 보이게 함. backend 미적용 (frontend shim 단)">
+            <FormControlLabel
+              sx={{ ml: 0, mr: 0.5,
+                    '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={useSampleData}
+                  onChange={(e) => setUseSampleData(e.target.checked)}
+                  sx={{ p: 0.5 }}
+                />
+              }
+              label="Sample"
+            />
+          </Tooltip>
           <Tooltip title="① 메뉴 등록 — MENU_SQL 만 실제 DB 에 적용 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)">
             <span>
               <Button
@@ -520,49 +546,71 @@ function ComposerWorkspace({ session, initialPrompt, extraHeader }) {
                   sessionId={session.id}
                   onNewAssistantMsg={triggerRefresh}
                   initialPrompt={initialPrompt}
+                  initialAttachments={initialAttachments}
                 />
               </Box>
             }
           />
         }
         second={
-          <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
-            <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff', flexShrink: 0 }}>
-              <Tabs
-                value={rightTab}
-                onChange={(_, v) => setRightTab(v)}
-                variant="standard"
-                sx={{
-                  minHeight: 36,
-                  '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 },
-                }}
-              >
-                <Tab
-                  icon={<LaunchIcon fontSize="small" />}
-                  iconPosition="start"
-                  label={
-                    <Stack direction="row" alignItems="center" spacing={0.6}>
-                      <span>실행 화면</span>
-                      {previewMeta && (
-                        <Chip size="small" color="success" label="LIVE"
-                              sx={{ height: 16, fontSize: 9, fontWeight: 700 }} />
-                      )}
-                    </Stack>
-                  }
-                />
-                <Tab
-                  icon={<CodeIcon fontSize="small" />}
-                  iconPosition="start"
-                  label="아티팩트 소스"
-                />
-              </Tabs>
+          <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
+            <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff',
+                       display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Tabs
+                  value={rightTab}
+                  onChange={(_, v) => setRightTab(v)}
+                  variant="standard"
+                  sx={{
+                    minHeight: 36,
+                    '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 },
+                  }}
+                >
+                  <Tab
+                    icon={<LaunchIcon fontSize="small" />}
+                    iconPosition="start"
+                    label={
+                      <Stack direction="row" alignItems="center" spacing={0.6}>
+                        <span>실행 화면</span>
+                        {previewMeta && (
+                          <Chip size="small" color="success" label="LIVE"
+                                sx={{ height: 16, fontSize: 9, fontWeight: 700 }} />
+                        )}
+                      </Stack>
+                    }
+                  />
+                  <Tab
+                    icon={<CodeIcon fontSize="small" />}
+                    iconPosition="start"
+                    label="아티팩트 소스"
+                  />
+                </Tabs>
+              </Box>
+              {/* 새창열기 — 실행 화면이 떠 있을 때만 활성. 클릭 시 preview URL 을 새 브라우저 탭으로 */}
+              <Tooltip title={previewMeta
+                  ? '실행 화면을 새 창으로 열기 (전체화면 보기)'
+                  : '먼저 [화면 실행] 버튼을 눌러 실행 화면을 띄우세요'}>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={!previewMeta}
+                    onClick={() => {
+                      if (!previewMeta?.sid8 || !previewMeta?.viewSub) return;
+                      // viewSub 의 끝 `.jsx` 는 PreviewLoader 가 자동 부착하므로 미리 제거
+                      const vs = String(previewMeta.viewSub).replace(/\.jsx$/i, '');
+                      window.open(`/preview/${previewMeta.sid8}/${vs}`,
+                                  '_blank', 'noopener,noreferrer');
+                    }}
+                    sx={{ mx: 0.5, color: '#475569',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' } }}
+                  >
+                    <OpenInNewIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 0 ? 'flex' : 'none', flexDirection: 'column' }}>
-              <PreviewEmbed
-                sessionId={session?.id}
-                sid8={previewMeta?.sid8}
-                viewSub={previewMeta?.viewSub}
-              />
+              <PreviewEmbed sid8={previewMeta?.sid8} viewSub={previewMeta?.viewSub} />
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />

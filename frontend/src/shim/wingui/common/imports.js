@@ -64,35 +64,63 @@ export const SearchArea = ({ children, onSearch, sx }) => {
         } catch (e) { console.error('[shim] SearchArea click failed', e); }
     };
 
+    // Sample 모드 ON 시 — 화면 mount 후 globalButtons.search 가 등록될 때까지 폴링하다가
+    // 등록되는 즉시 자동 search 트리거 (사용자가 [조회] 누르지 않아도 데이터 표시).
+    useEffect(() => {
+        if (!isSampleModeEnabled()) return undefined;
+        let attempts = 0;
+        const timer = setInterval(() => {
+            attempts++;
+            try {
+                if (typeof onSearch === 'function') {
+                    onSearch();
+                    clearInterval(timer);
+                    return;
+                }
+                const viewData = viewStoreApi.getState().viewData || {};
+                const activeViewId = contentStoreApi.getState().activeViewId;
+                const buttons = (viewData[activeViewId] && viewData[activeViewId].globalButtons) || [];
+                const searchBtn = buttons.find((b) => b && b.name === 'search');
+                if (searchBtn && typeof searchBtn.action === 'function') {
+                    searchBtn.action();
+                    clearInterval(timer);
+                    return;
+                }
+            } catch (_) { /* no-op */ }
+            if (attempts > 20) clearInterval(timer);   // 최대 4초 (200ms × 20) 대기
+        }, 200);
+        return () => clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <Box sx={{
-            // wingui SearchArea — flex row layout + 우측 끝 [조회] 버튼.
-            // wingui 본 환경의 정확한 룩 (AppCommonStyle.useSearchAreaStyles 기반).
-            display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '4px',
+            display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px',
             width: '100%',
             border: '1px solid #E0E0E0',
-            bgcolor: '#FAFAFA',
-            padding: '6px 4px 4px 4px',
+            bgcolor: '#f4f6f8',
+            padding: '6px 8px',
             flex: '0 0 auto',
             ...sx,
         }}>
-            {/* SearchRow 들 — flex 1 로 본문 확장. SearchRow 가 자체 layout 결정 */}
+            {/* SearchRow 들 — 본문. 100% 폭이라 줄바꿈됨 */}
             <Box sx={{ flex: 1, minWidth: 0 }}>
                 {children}
             </Box>
-            {/* 우측 고정 [조회] 버튼 — 항상 노출. height 가 InputField 와 동일 (45) */}
+            {/* 우측 고정 [조회] 버튼 — 항상 노출 */}
             <Button
                 variant="contained"
                 size="small"
                 startIcon={<SearchIcon fontSize="small" />}
                 onClick={handleSearch}
                 sx={{
-                    height: 45,
-                    minWidth: 88,
+                    height: 32,
+                    minWidth: 76,
                     bgcolor: '#3b82f6',
-                    fontSize: 13, fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     boxShadow: 'none',
                     flexShrink: 0,
+                    alignSelf: 'flex-start',
                     '&:hover': { bgcolor: '#2563eb', boxShadow: 'none' },
                 }}
             >
@@ -103,8 +131,8 @@ export const SearchArea = ({ children, onSearch, sx }) => {
 };
 export const SearchRow = ({ children, sx }) => (
     <Box sx={{
-        // wingui SearchRow — 한 줄. wingui 의 FormArea 는 flex row + wrap + alignItems center.
-        display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: '4px',
+        // wingui SearchRow — flex row, gap 6px
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px',
         width: '100%',
         ...sx,
     }}>
@@ -245,25 +273,38 @@ export const GridExcelImportButton = ({ grid }) => (
 );
 export const LargeExcelDownload = GridExcelExportButton;
 
-// ----- InputField — wingui 본 환경의 outlined TextField + floating label 룩 -----
-//   라벨이 input 의 top-left 에 floating (별도 라벨 박스 없음). 둥근 corner, 회색 light border, white bg.
-//   wingui 의 AppInputStyle constants 와 동일: INPUT_HEIGHT=45, INPUT_WIDTH=200, BORDER_RADIUS=6.
-const WG_INPUT_HEIGHT = 45;
+// ----- InputField — wingui 의 wrapBox (좌측 라벨 + 우측 input) inline-flex 형태 -----
+//   상수 (부모 AppInputStyle.jsx):
+//     INPUT_HEIGHT=45, INPUT_WIDTH=200, INPUT_BORDER_RADIUS=6,
+//     LEFT_LABEL_WIDTH=70, label fontWeight=600~800, fontSize 14
+const WG_INPUT_HEIGHT = 32;       // wingui 실측 (small 변형)
 const WG_INPUT_WIDTH  = 200;
+const WG_LABEL_WIDTH  = 78;
+const WG_LABEL_BG     = '#eef1f5';
 const WG_BORDER       = '#cfd6e0';
 
-const wgFieldSx = {
+const wgWrapBoxSx = {
+    display: 'inline-flex',
+    alignItems: 'stretch',
+    height: WG_INPUT_HEIGHT,
+    border: `1px solid ${WG_BORDER}`,
+    borderRadius: '4px',
+    bgcolor: '#fff',
+    overflow: 'hidden',
+};
+const wgLabelBoxSx = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: WG_LABEL_WIDTH, px: 1,
+    bgcolor: WG_LABEL_BG, color: '#334155',
+    fontSize: 12, fontWeight: 600,
+    borderRight: `1px solid ${WG_BORDER}`,
+};
+const wgInputBaseSx = {
     width: WG_INPUT_WIDTH,
-    '& .MuiOutlinedInput-root': {
-        height: WG_INPUT_HEIGHT,
-        borderRadius: '6px',
-        bgcolor: '#fff',
-        fontSize: 13,
-    },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: WG_BORDER },
-    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#94a3b8' },
-    '& .MuiInputLabel-root': { fontSize: 13, color: '#64748b' },
-    '& .MuiInputLabel-root.Mui-focused': { color: '#3b82f6' },
+    '& .MuiOutlinedInput-root': { height: WG_INPUT_HEIGHT, fontSize: 12, borderRadius: 0 },
+    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+    '& input': { py: 0.4, px: 0.8 },
+    '& .MuiSelect-select': { py: 0.6, px: 0.8 },
 };
 
 export const InputField = ({
@@ -275,25 +316,18 @@ export const InputField = ({
                   : type === 'time' ? 'time'
                   : 'text';
 
-    // action 타입 — 버튼처럼 동작하는 input (예: 팝업 트리거)
     if (type === 'action') {
         return (
-            <TextField
-                size="small"
-                label={label}
-                value={value || ''}
-                onClick={onClick}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                    readOnly: true,
-                    endAdornment: (
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', pl: 0.5 }}>
-                            {children || <SearchIcon fontSize="small" sx={{ color: '#64748b' }} />}
-                        </Box>
-                    ),
-                }}
-                sx={{ ...wgFieldSx, cursor: 'pointer', ...(rest.sx || {}) }}
-            />
+            <Box sx={{ ...wgWrapBoxSx, ...(rest.sx || {}) }} onClick={onClick}>
+                {label && <Box sx={wgLabelBoxSx}>{label}</Box>}
+                <Box sx={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 36, cursor: 'pointer',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+                }}>
+                    {children || '…'}
+                </Box>
+            </Box>
         );
     }
     if (type === 'check') {
@@ -305,7 +339,7 @@ export const InputField = ({
                         <FormControlLabel
                             control={<Checkbox {...field} size="small" checked={!!field.value} />}
                             label={label || name}
-                            sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }}
+                            sx={{ '& .MuiFormControlLabel-label': { fontSize: 12 } }}
                         />
                     )}
                 />
@@ -315,39 +349,70 @@ export const InputField = ({
             <FormControlLabel
                 control={<Checkbox size="small" checked={!!value} onChange={onChange} />}
                 label={label || name}
-                sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }}
+                sx={{ '& .MuiFormControlLabel-label': { fontSize: 12 } }}
             />
         );
     }
 
-    // 일반 input — MUI outlined TextField + floating label (wingui 본 환경 룩)
-    const commonProps = {
-        size: 'small',
-        label: label,
-        type: muiType,
-        // date/time 은 항상 label shrink (placeholder 가 항상 위)
-        InputLabelProps: (muiType === 'date' || muiType === 'time') ? { shrink: true } : undefined,
-        InputProps: { readOnly: !!readonly },
-        onKeyDown: onKeyDown,
-        sx: { ...wgFieldSx, ...(rest.sx || {}) },
+    // Sample 모드 ON + 빈 control 필드면 mount 시점에 dummy 값 자동 주입
+    //   (사용자가 [조회] 클릭 시 required validation 통과하도록)
+    const sampleDummyFor = (t, nm) => {
+        const lname = String(nm || '').toLowerCase();
+        if (t === 'number') return 1;
+        if (t === 'datetime' || t === 'date') return new Date().toISOString().slice(0, 10);
+        if (/ver|version/.test(lname)) return 'V01';
+        if (/cd|code|id$/.test(lname)) return 'SAMPLE-001';
+        if (/nm|name/.test(lname)) return '샘플';
+        return 'SAMPLE';
     };
 
-    if (control && name) {
-        return (
+    const inputEl = control && name
+        ? (
             <Controller
                 control={control} name={name} defaultValue=""
-                render={({ field }) => (
-                    <TextField {...commonProps} {...field} value={field.value ?? ''} />
-                )}
+                render={({ field }) => {
+                    useEffect(() => {
+                        if (!isSampleModeEnabled()) return;
+                        const cur = field.value;
+                        if (cur === undefined || cur === null || cur === '') {
+                            field.onChange(sampleDummyFor(type, name));
+                        }
+                        // eslint-disable-next-line react-hooks/exhaustive-deps
+                    }, []);
+                    return (
+                        <TextField
+                            size="small"
+                            type={muiType}
+                            InputLabelProps={muiType === 'date' ? { shrink: true } : undefined}
+                            InputProps={{ readOnly: !!readonly }}
+                            onKeyDown={onKeyDown}
+                            sx={wgInputBaseSx}
+                            {...field}
+                            value={field.value ?? ''}
+                        />
+                    );
+                }}
+            />
+        )
+        : (
+            <TextField
+                size="small"
+                type={muiType}
+                value={value || ''}
+                onChange={onChange || (() => {})}
+                InputProps={{ readOnly: !!readonly }}
+                onKeyDown={onKeyDown}
+                sx={wgInputBaseSx}
             />
         );
-    }
+
     return (
-        <TextField
-            {...commonProps}
-            value={value || ''}
-            onChange={onChange || (() => {})}
-        />
+        <Box sx={{ ...wgWrapBoxSx, ...(rest.sx || {}) }}>
+            {label && <Box sx={wgLabelBoxSx}>{label}</Box>}
+            <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                {inputEl}
+            </Box>
+        </Box>
     );
 };
 
@@ -388,65 +453,86 @@ export function ShowMessageHost() {
 }
 
 // ----- zAxios -----
-// PreviewEmbed iframe 안에서는 window.__PREVIEW_MOCK__ = true 가 설정되어
-// 모든 호출이 mock 응답을 즉시 반환 (실제 backend 안 침). Composer 자체 화면에서는
-// flag 가 없으므로 zAxios 가 정상적으로 backend 로 forward.
 const apiBase = (typeof window !== 'undefined' && window.__COMPOSER_API_BASE__) || '';
-const realAxios = axios.create({
+export const zAxios = axios.create({
     baseURL: apiBase || '/',
     timeout: 2_400_000,
     headers: { 'Content-Type': 'application/json' },
 });
 
-function isMockMode() {
-    return typeof window !== 'undefined' && window.__PREVIEW_MOCK__ === true;
+// [Sample 데이터] 응답 interceptor —
+//   화면 실행 + CheckBox ON 상태에서 산출물의 zAxios 호출이 빈 응답을 받으면
+//   휴리스틱 sample 로 채워서 차트/KPI 카드가 실제 운영처럼 보이도록 함.
+//   composer 자체 API (/composer/*, /auth/*, /actuator/*) 는 절대 건드리지 않음.
+import { isSampleModeEnabled, generateSampleArrayFromUrl, generateSampleKpiObject } from './sampleData';
+
+const SAMPLE_SKIP_PREFIXES = ['/composer/', 'composer/', '/auth/', 'auth/',
+                              '/actuator/', 'actuator/', '/insight-', 'insight-'];
+
+function urlIsSkippable(url) {
+    if (!url) return true;
+    return SAMPLE_SKIP_PREFIXES.some((p) => url.startsWith(p));
 }
 
-function mockResponse(method, url, payload) {
-    const m = (method || 'GET').toUpperCase();
-    // GET → mock list (빈 배열). grid 가 mock data 를 자체 채울 수 있도록 빈 응답.
-    if (m === 'GET') {
+// 요청 interceptor — Sample 모드 ON + composer 외 URL 이면 timeout 을 짧게(4초) 줄여
+// backend endpoint 부재 시 webpack proxy 의 60초 504 대신 axios 가 먼저 abort 하도록.
+zAxios.interceptors.request.use((config) => {
+    try {
+        if (isSampleModeEnabled() && !urlIsSkippable(config?.url || '')) {
+            config.timeout = 4000;
+        }
+    } catch (_) { /* no-op */ }
+    return config;
+});
+
+// 응답이 비었을 때 (정상 200) sample 주입
+zAxios.interceptors.response.use((response) => {
+    try {
+        if (!isSampleModeEnabled()) return response;
+        const reqUrl = response?.config?.url || '';
+        if (urlIsSkippable(reqUrl)) return response;
+        const data = response.data;
+        // 빈 배열 → 차트/리스트용 sample 배열
+        if (Array.isArray(data) && data.length === 0) {
+            response.data = generateSampleArrayFromUrl(reqUrl, 12);
+            return response;
+        }
+        // 빈 객체 / null → KPI 카드용 sample
+        if (data === null || data === undefined
+            || (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)) {
+            response.data = generateSampleKpiObject();
+            return response;
+        }
+    } catch (_e) { /* no-op */ }
+    return response;
+}, (error) => {
+    // 응답 자체가 4xx/5xx 또는 network error — backend endpoint 가 없거나 죽은 경우
+    // Sample 모드 ON 이고 composer 자체 API 가 아니면, 가짜 정상 응답으로 변환
+    try {
+        if (!isSampleModeEnabled()) return Promise.reject(error);
+        const reqUrl = error?.config?.url || '';
+        if (urlIsSkippable(reqUrl)) return Promise.reject(error);
+
+        // URL 패턴에 따라 array vs object 추정
+        // (확실치 않으면 array — KPI/요약 endpoint 는 보통 'kpi'/'summary' 키워드 포함)
+        const u = String(reqUrl).toLowerCase();
+        const isObjectShape = /kpi|summary|stat|overview|total/.test(u);
+        const fakeData = isObjectShape
+            ? generateSampleKpiObject()
+            : generateSampleArrayFromUrl(reqUrl, 12);
+
         return Promise.resolve({
-            status: 200, statusText: 'OK (mock)',
-            data: [], headers: {}, config: { url, method: m, mock: true },
+            data: fakeData,
+            status: 200,
+            statusText: 'OK (sample)',
+            headers: {},
+            config: error.config || {},
+            request: error.request,
         });
+    } catch (_e) {
+        return Promise.reject(error);
     }
-    // POST/PUT/DELETE → success
-    return Promise.resolve({
-        status: 200, statusText: 'OK (mock)',
-        data: { success: true, message: 'mock saved', code: 200 },
-        headers: {}, config: { url, method: m, mock: true },
-    });
-}
-
-// zAxios — function 형태 (axios(config)) 와 method shortcut 모두 지원.
-function zAxiosFn(config) {
-    if (isMockMode()) {
-        const url = (config && config.url) || '';
-        return mockResponse(config && config.method, url, config && config.data);
-    }
-    return realAxios(config);
-}
-zAxiosFn.get = (url, config) => isMockMode()
-    ? mockResponse('GET', url, null)
-    : realAxios.get(url, config);
-zAxiosFn.post = (url, data, config) => isMockMode()
-    ? mockResponse('POST', url, data)
-    : realAxios.post(url, data, config);
-zAxiosFn.put = (url, data, config) => isMockMode()
-    ? mockResponse('PUT', url, data)
-    : realAxios.put(url, data, config);
-zAxiosFn.delete = (url, config) => isMockMode()
-    ? mockResponse('DELETE', url, null)
-    : realAxios.delete(url, config);
-zAxiosFn.patch = (url, data, config) => isMockMode()
-    ? mockResponse('PATCH', url, data)
-    : realAxios.patch(url, data, config);
-zAxiosFn.create = (cfg) => realAxios.create(cfg);
-zAxiosFn.defaults = realAxios.defaults;
-zAxiosFn.interceptors = realAxios.interceptors;
-
-export const zAxios = zAxiosFn;
+});
 
 // ----- callService : 단독 환경 미지원 -----
 export const callService = (serviceId, params, target) => {
@@ -494,6 +580,12 @@ export const useFieldCascade = () => {};
 export const applyGridCascade = () => {};
 export const buildPopupFilterProps = () => ({});
 
+// ----- 산출물 환각 호환 헬퍼 -----
+// 산출물 jsx 가 `getActiveViewId()` 또는 `getActiveViewID()` 함수를 import 하는 케이스.
+// 표준은 `useContentStore((s) => s.activeViewId)` 인데 LLM 이 헬퍼 함수로 환각.
+export const getActiveViewId = () => useContentStore.getState().activeViewId;
+export const getActiveViewID = getActiveViewId;
+
 // ----- 기타 -----
 export const loadRecentSimulationVersion = () => Promise.resolve(null);
 export const setHeaderColor = () => {};
@@ -508,4 +600,5 @@ export default {
     useDashboardStore, useInsightSystemStore,
     useFieldCascade, applyGridCascade, buildPopupFilterProps,
     loadRecentSimulationVersion, setHeaderColor,
+    getActiveViewId, getActiveViewID,
 };

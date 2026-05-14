@@ -63,8 +63,10 @@ function categorySortKey(cat) {
 function PatternSelector({ value, onChange, recommendedCodes = [] }) {
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading]   = useState(true);
-  // 초기 카테고리 — 미분할 (단일) 부터 보이도록 (2026-04-30 카테고리 재분류 후 기본 화면 진입성 강화)
-  const [category, setCategory] = useState('LAYOUT_SINGLE');
+  // 초기 카테고리 — 'ALL' (전체) 로 진입해 첫 화면이 빈 채로 보이는 일을 원천 차단.
+  // (LAYOUT_SINGLE 은 향후 등록 예정이지만 현재 패턴이 0 개이며,
+  //  자동 전환 로직 race-condition 우려를 피해 default 를 ALL 로 못박음)
+  const [category, setCategory] = useState('ALL');
   const [query, setQuery]       = useState('');
 
   useEffect(() => {
@@ -76,11 +78,24 @@ function PatternSelector({ value, onChange, recommendedCodes = [] }) {
     try {
       const res = await listPatterns(true);
       const list = Array.isArray(res.data) ? res.data : [];
-      if (list.length === 0) {
-        // 빈 경우 폴백
-        setPatterns(mapFallback());
-      } else {
-        setPatterns(list);
+      const finalList = list.length === 0 ? mapFallback() : list;
+      setPatterns(finalList);
+      // 초기 카테고리에 패턴이 0 개면 첫 진입 시 빈 화면이 됨.
+      // load 후 데이터 있는 카테고리 중 라벨 prefix 가 가장 작은 것으로 자동 전환.
+      // 단 'ALL' 은 전체 보기 special case 라 자동 전환 안 함.
+      const hasInCurrent = category === 'ALL'
+        ? true
+        : finalList.some((p) => (p.category || '').toUpperCase() === category);
+      if (!hasInCurrent && finalList.length > 0) {
+        const cats = Array.from(new Set(
+          finalList.map((p) => (p.category || '').toUpperCase()).filter(Boolean)
+        ));
+        cats.sort((a, b) => {
+          const ka = categorySortKey(a);
+          const kb = categorySortKey(b);
+          return ka === kb ? a.localeCompare(b) : ka - kb;
+        });
+        if (cats[0]) setCategory(cats[0]);
       }
     } catch {
       setPatterns(mapFallback());

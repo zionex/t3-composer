@@ -96,10 +96,12 @@ export const deleteSession = (sessionId) =>
 export const listMessages = (sessionId) =>
   zAxios.get(`composer/sessions/${sessionId}/messages`, composerReq());
 
-export const sendChat = (sessionId, message, attachmentArtifactIds) =>
+export const sendChat = (sessionId, message, attachmentArtifactIds, attachments) =>
   zAxios.post(
     `composer/sessions/${sessionId}/chat`,
-    { message, attachmentArtifactIds },
+    // attachments: D&D 로 받은 binary 파일 [{name, mediaType, base64}, ...]
+    //   backend 가 Anthropic vision/document content block 으로 변환
+    { message, attachmentArtifactIds, attachments },
     // max_tokens=100K + 서버 auto-continuation(최대 5회) 까지 커버. 40분.
     // 서버 Mono 체인은 client 가 끊어도 계속 진행되어 최종 결과는 DB 에 저장됨.
     // 40분을 넘는 경우 사용자가 리로드하면 listMessages 로 최종 상태 조회 가능.

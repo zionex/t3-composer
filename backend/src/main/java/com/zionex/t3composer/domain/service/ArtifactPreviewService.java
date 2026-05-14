@@ -249,6 +249,39 @@ public class ArtifactPreviewService {
     }
 
     // -----------------------------------------------------------------
+    // readPreviewJsxSource — PreviewEmbed runtime 의 fetch 백킹
+    // -----------------------------------------------------------------
+
+    /**
+     * Preview 폴더에 적용된 JSX 파일의 raw 텍스트 반환.
+     * frontend PreviewEmbed 가 webpack dependency graph 와 격리된 상태에서
+     * runtime fetch + @babel/standalone 으로 컴포넌트를 마운트하기 위해 사용.
+     *
+     * @param sessionId 세션 ID (sid8 prefix 추출)
+     * @param view      view 하위 경로 (예: "util/userinfomgmt/UserInfoMgmt.jsx" — 끝 .jsx 자동 부착)
+     * @return 파일 내용. 못 찾으면 null.
+     */
+    public String readPreviewJsxSource(String sessionId, String view) {
+        String previewRoot = props.getComposer().getPreviewFrontendRoot();
+        if (previewRoot == null || previewRoot.isBlank()) return null;
+        String sid8 = shortSid(sessionId);
+        String safeView = (view == null) ? "" : view.replaceAll("^/+", "").replace("\\", "/");
+        if (!safeView.toLowerCase().endsWith(".jsx")) safeView += ".jsx";
+        // 경로 탈출 방어 — `..` segment 거부
+        if (safeView.contains("..")) return null;
+        Path base = Paths.get(previewRoot, sid8).toAbsolutePath().normalize();
+        Path target = base.resolve(safeView).normalize();
+        if (!target.startsWith(base)) return null;
+        if (!Files.isRegularFile(target)) return null;
+        try {
+            return Files.readString(target, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.warn("preview JSX 읽기 실패 sid={} view={} err={}", sid8, safeView, e.getMessage());
+            return null;
+        }
+    }
+
+    // -----------------------------------------------------------------
     // confirmPreview — 정식 apply 호출 후 preview 흔적 제거
     // -----------------------------------------------------------------
 

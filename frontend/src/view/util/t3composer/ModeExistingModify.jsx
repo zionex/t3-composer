@@ -97,6 +97,7 @@ function ModeExistingModify({ onBack }) {
         mode: 'EXISTING_MODIFY',
         targetMenuCd: selectedMenu.id,
         title: `${selectedMenu.id} 수정`,
+        targetCd: activeTargetCd,
       });
 
       const bundleText = formatBundleForPrompt(sourceBundle);

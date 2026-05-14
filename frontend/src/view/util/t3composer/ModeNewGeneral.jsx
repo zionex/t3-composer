@@ -305,6 +305,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         mode: 'NEW_NL',
         title: `[${module.code}] ${prompt.slice(0, 60)}`,
         modelName: selectedModel,
+        targetCd: currentTargetCd,
       });
       setSession(res.data);
     } catch (e) {

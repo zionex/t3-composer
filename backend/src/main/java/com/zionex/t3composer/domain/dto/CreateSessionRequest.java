@@ -19,4 +19,11 @@ public class CreateSessionRequest {
 
     /** 사용 모델 (미지정 시 서버 기본값) */
     private String modelName;
+
+    /**
+     * 대상 Target System 코드 (T3SERIES / PLANNEL / LGES_NEXTSCM 등).
+     * Phase 2 에서 architecture 별 rule pack 동적 로드의 기준.
+     * 미지정 시 NULL → wingui 글로벌 fallback.
+     */
+    private String targetCd;
 }

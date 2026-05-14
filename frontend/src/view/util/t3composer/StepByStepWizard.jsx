@@ -9,6 +9,7 @@ import { getModule, getPattern } from './constants';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import { createSession } from './api';
+import { useTargetStore } from './targetStore';
 
 import {
   WIZARD_STEPS, createInitialSpec, canProceedStep, invalidateDownstream, toLlmPayload,
@@ -47,6 +48,7 @@ function StepByStepWizard({
   prefilledSpec = null,
   sourceBundle = null,
 }) {
+  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
   const initialSpec = prefilledSpec || createInitialSpec(initialModuleCode);
   // prefill 모드는 모듈을 자동 추론해 prefilledSpec.moduleCode 로 들어옴 → 모듈선택 단계 skip
   const startsWithModule = !!(prefilledSpec?.moduleCode || initialModuleCode);
@@ -116,6 +118,7 @@ function StepByStepWizard({
         mode,
         targetMenuCd: spec.step2_overview.menuCd || undefined,
         title: `${titlePrefix}${screenLabel}`,
+        targetCd: currentTargetCd,
       });
       setInitialPrompt(buildStepPrompt(spec, module, pattern, { isCopyMode, isDesignMode, isModifyMode, sourceBundle }));
       setSession(sessRes.data);

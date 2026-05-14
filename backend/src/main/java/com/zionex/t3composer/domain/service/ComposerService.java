@@ -104,6 +104,7 @@ public class ComposerService {
                 .userId(userId)
                 .mode(req.getMode())
                 .targetMenuCd(req.getTargetMenuCd())
+                .targetCd(req.getTargetCd())
                 .title(req.getTitle() != null ? req.getTitle() : defaultTitle(req))
                 .modelName(req.getModelName() != null ? req.getModelName() : DEFAULT_MODEL)
                 .status(ComposerSession.STATUS_ACTIVE)

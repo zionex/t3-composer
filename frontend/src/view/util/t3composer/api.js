@@ -67,8 +67,8 @@ export const deleteApiKey = () =>
 
 // ---- Sessions ----
 
-export const createSession = ({ mode, targetMenuCd, title, modelName }) =>
-  zAxios.post('composer/sessions', { mode, targetMenuCd, title, modelName }, composerReq());
+export const createSession = ({ mode, targetMenuCd, title, modelName, targetCd }) =>
+  zAxios.post('composer/sessions', { mode, targetMenuCd, title, modelName, targetCd }, composerReq());
 
 export const listSessions = () =>
   zAxios.get('composer/sessions', composerReq());

@@ -62,6 +62,10 @@ public class ComposerSession {
     @Column(name = "TARGET_MENU_CD")
     private String targetMenuCd;
 
+    /** 대상 Target System 코드 (T3SERIES / PLANNEL / ...). NULL = wingui 글로벌 fallback. */
+    @Column(name = "TARGET_CD", length = 50)
+    private String targetCd;
+
     @Column(name = "TITLE")
     private String title;
 

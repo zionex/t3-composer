@@ -10,7 +10,8 @@
 # ─── 검증 모듈 (validators/ 디렉토리, 순서대로 source) ────────────────
 # 1. jsx-basic.sh        — R1~R9 화면 구조 + 한글 i18n
 # 2. sql-sp.sh           — S1~S8 네이밍·MSSQL/Oracle·DDL upgrade · 온톨로지 O3/O4/O7
-# 3. java-basic.sh       — J2 println · J5 @Autowired · SE1 평문 비번
+# 3. java-basic.sh       — J2 println · J5 @Autowired · J8 ResponseMessage.builder
+#                           J9 @Value default · CG-J1 JdbcTemplate qualifier · SE1 평문 비번
 # 4. build-config.sh     — §4 pom.xml (T1/J1) + §5 환경변수/시크릿
 # 5. filter-bar.sh       — FilterBar JSON 스키마 (FB1~FB15)
 # 6. composer-patterns.sh — T3Composer Pattern/Dictionary (CP1~CP11)
@@ -21,9 +22,10 @@
 # 11. path-convention.sh — `ut/` 사용 금지 → `util/` 강제 (Java 패키지/URL/zAxios/JSX 경로)
 # 12. sql-schema-whitelist.sh — .sql 파일 컬럼 화이트리스트 (TB_UT_USER_INFO/TB_AD_MENU/TB_AD_LANG_PACK)
 # 13. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단 (`_sql`/`_jsx`/`_java`)
+# 14. java-class-naming.sh   — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1 (LLM 축약 환각 차단)
 #
 # 분리 전 단일 파일: pre-tool-use-validator.sh (937줄, 57KB)
-# 분리 후: 디스패처(이 파일) + validators/*.sh 11개
+# 분리 후: 디스패처(이 파일) + validators/*.sh 14개
 # =====================================================================
 
 set -euo pipefail
@@ -76,6 +78,7 @@ VALIDATORS_DIR="$HOOKS_DIR/validators"
 . "$VALIDATORS_DIR/path-convention.sh"
 . "$VALIDATORS_DIR/sql-schema-whitelist.sh"
 . "$VALIDATORS_DIR/composer-artifact-path.sh"
+. "$VALIDATORS_DIR/java-class-naming.sh"
 
 # =====================================================================
 # 모든 검증 통과

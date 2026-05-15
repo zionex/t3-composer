@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zionex.t3composer.domain.client.AnthropicApiException;
@@ -106,9 +107,14 @@ public class ComposerController {
 
     // ---- Preview (Phase 2a — JSX/SQL/MENU 만 docker 안에서 검증) ----
 
+    /**
+     * @param skipJava Sample 모드용 빠른 미리보기 — Java 산출물 적용·mvn compile·DevTools 재기동 생략.
+     *                 frontend Sample shim 이 axios 응답을 가로채므로 backend 미동작 OK (10~20초 down 회피).
+     */
     @PostMapping("/sessions/{sessionId}/preview/apply")
-    public Map<String, Object> previewApply(@PathVariable String sessionId) {
-        return artifactPreviewService.applyPreview(sessionId);
+    public Map<String, Object> previewApply(@PathVariable String sessionId,
+                                            @RequestParam(name = "skipJava", required = false, defaultValue = "false") boolean skipJava) {
+        return artifactPreviewService.applyPreview(sessionId, skipJava);
     }
 
     @PostMapping("/sessions/{sessionId}/preview/confirm")

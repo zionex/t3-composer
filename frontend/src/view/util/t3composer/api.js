@@ -213,12 +213,16 @@ export const applyArtifacts = (sessionId, opts = {}) =>
   );
 
 // Phase 2a — Preview (docker 컨테이너 안에서 검증 — JSX/SQL/MENU)
-export const applyPreview = (sessionId) =>
-  zAxios.post(
-    `composer/sessions/${sessionId}/preview/apply`,
+// options.skipJava=true → Sample 모드: Java 산출물 적용·mvn compile·재기동 생략 (10~20초 backend down 회피).
+//                          frontend Sample shim 이 axios 응답 가로채므로 backend 미동작 OK.
+export const applyPreview = (sessionId, options = {}) => {
+  const qs = options.skipJava ? '?skipJava=true' : '';
+  return zAxios.post(
+    `composer/sessions/${sessionId}/preview/apply${qs}`,
     {},
-    composerReq({ timeout: 120000 })
+    composerReq({ timeout: options.skipJava ? 30000 : 120000 }),
   );
+};
 
 export const confirmPreview = (sessionId, opts = {}) =>
   zAxios.post(

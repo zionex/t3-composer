@@ -147,9 +147,14 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     if (!session?.id || previewBusy) return;
     setPreviewBusy(true);
     previewAbortRef.current = false;
-    setPreviewStage({ phase: 'applying', message: '산출물 적용 중...', elapsedMs: 0 });
+    // Sample 모드 ON 이면 backend 가 Java 적용·mvn compile·재기동 모두 skip → 즉시 ready.
+    // axios 요청은 frontend shim 의 sample interceptor 가 합성 응답으로 가로챔.
+    const sampleMode = useSampleData;
+    setPreviewStage({ phase: 'applying',
+      message: sampleMode ? '산출물 적용 중 (Sample 모드 — 재기동 생략)...' : '산출물 적용 중...',
+      elapsedMs: 0 });
     try {
-      const res = await applyPreview(session.id);
+      const res = await applyPreview(session.id, { skipJava: sampleMode });
       const r = res?.data || {};
       if (!r.success) {
         setPreviewStage(null);
@@ -158,7 +163,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         return;
       }
       setSnackbar({ open: true, severity: 'success', title: '화면 실행 준비 완료',
-                    message: `JSX ${r.jsxOk} · DDL ${r.ddlOk} · SP ${r.spOk} · MENU ${r.menuOk} · Java ${r.javaOk || 0}` });
+                    message: `JSX ${r.jsxOk} · DDL ${r.ddlOk} · SP ${r.spOk} · MENU ${r.menuOk} · Java ${r.javaOk || 0}`
+                             + (sampleMode ? ' (Sample 모드)' : '') });
 
       // 첫 미리보기 링크 + 메타 (Tab embed 용) 저장
       const link = r.previewLinks?.[0];
@@ -171,11 +177,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         setPreviewStage(null);
         return;
       }
+      // Sample 모드 또는 Java 0건 — 재기동 없음. 즉시 ready 처리.
       const hasJava = (r.javaOk || 0) > 0;
-      if (!hasJava) {
-        // Java 없음 — 즉시 화면 노출 (Tab 0 에 자동 embed)
-        setPreviewStage({ phase: 'ready', message: '실행 준비 완료', elapsedMs: 0, targetUrl });
-        // 짧은 시간 후 토스트 자동 사라짐
+      if (sampleMode || !hasJava) {
+        setPreviewStage({ phase: 'ready',
+          message: sampleMode ? 'Sample 모드 — 실행 준비 완료 (재기동 생략)' : '실행 준비 완료',
+          elapsedMs: 0, targetUrl });
         setTimeout(() => { if (!previewAbortRef.current) setPreviewStage(null); }, 1500);
         return;
       }
@@ -410,7 +417,13 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Button>
             </span>
           </Tooltip>
-          <Tooltip title="체크 시 — 그리드/차트 응답이 비어있으면 컬럼 메타데이터(dataType·name) 기준으로 휴리스틱 sample 데이터를 자동 주입해 실제 운영처럼 보이게 함. backend 미적용 (frontend shim 단)">
+          <Tooltip title={
+              "Sample 모드 — 두 가지 효과:\n"
+            + "① 그리드/차트 빈 응답에 컬럼 메타(dataType·name) 기준 휴리스틱 sample 자동 주입 (frontend shim 단)\n"
+            + "② [화면 실행] 시 Java 산출물 적용·mvn compile·DevTools 재기동 모두 SKIP — 10~20초 backend down 회피.\n"
+            + "    axios 요청은 shim 의 sample interceptor 가 가로채 합성 응답 제공.\n"
+            + "체크 후 [화면 실행] 클릭하면 즉시 ready (재기동 끊김 없음)."
+          }>
             <FormControlLabel
               sx={{ ml: 0, mr: 0.5,
                     '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}

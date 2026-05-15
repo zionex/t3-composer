@@ -258,6 +258,37 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
 
 `ApplicationReadyEvent` 핸들러가 위 값을 composer-db 에 UPDATE + 캐시 invalidate. 비어있으면 DB 의 기존 값 유지 (개발자가 UI 로 직접 입력한 값 보호).
 
+### 6.5.1 Target DB 정보 변경 워크플로 (운영 표준)
+
+운영 wingui DB 호스트/계정이 바뀌었을 때 (예: 사내망 IP 변경, 교육용 계정 발급) 다음 순서로 적용:
+
+```
+1. .env 편집 — TARGET_<CD>_DB_URL / USERNAME / PASSWORD 3개 라인 수정
+   ※ SSL 옵션 'encrypt=true;trustServerCertificate=true' 누락 시 MSSQL JDBC 12+ 가 연결 거부
+   ※ .env 는 .gitignore 됨 — commit 금지
+   ↓
+2. composer-backend 컨테이너 재기동
+   docker compose up -d --force-recreate composer-backend
+   ↓
+3. TargetDbConnectionEnvLoader 가 startup 시 자동:
+   - .env 값을 composer-db.tb_cmp_target_system 의 해당 행에 UPDATE
+   - TargetDataSourceRegistry.invalidate(cd) → HikariDataSource 캐시 폐기
+   - 로그: "Target T3SERIES db_url 환경변수 적용: jdbc:sqlserver://..."
+   ↓
+4. 연결 검증
+   curl -X POST http://localhost:8090/composer/targets/T3SERIES/db-connection/test
+   → {"success":true,"databaseProduct":"Microsoft SQL Server","databaseVersion":"...","elapsedMs":...}
+   ↓
+5. NEW_FROM_COPY / EXISTING_MODIFY 가 이제 새 운영 DB 로 라우팅됨
+```
+
+**UI 대체 경로**: 일회성 변경이면 TargetSystemSelector dropdown 의 `[💾 Storage]` 버튼 → `TargetDbConnectionDialog` 에서 URL/계정 입력 + [연결 테스트]. 입력값은 composer-db 에 영구 저장되어 `docker compose down/up` 후에도 유지됨. 단 `.env` 의 `TARGET_<CD>_DB_*` 가 채워져 있으면 매 startup 마다 그 값으로 덮어쓰므로, 영구 변경은 **반드시 `.env` + 재기동** 경로 사용.
+
+**Anti-patterns**:
+- ❌ `.env` 만 수정하고 backend 재기동 안 함 → 메모리 상태 그대로라 변경 미반영
+- ❌ DB 직접 UPDATE 후 registry invalidate API 호출 누락 → HikariDataSource 캐시가 옛 connection pool 유지
+- ❌ SSL 옵션 누락 (`jdbc:sqlserver://host:port;database=X` 만) → MSSQL JDBC 12+ 의 encrypt 기본값 때문에 연결 실패. 기존 endpoint 의 옵션 패턴 그대로 복사 권장
+
 ### 6.6 Frontend 라우팅
 - `useTargetStore` 가 currentTargetCd 보유 (localStorage 영속)
 - `MenuTreeBrowser` 가 prop 으로 받아 `loadTargetMenuTree(lang, targetCd)` 호출
@@ -386,6 +417,9 @@ merge 직후 step4 의 모든 area 를 재검사:
 | `JdbcTemplate` 무지정 인젝션 — Spring 이 어느 DataSource wire 할지 불확정 | `@Qualifier("composerJdbcTemplate")` (메타) 또는 `@Qualifier("targetJdbcTemplate")` (운영) 명시 |
 | AI prefill 이 `source: "SP"` 라고 했지만 spName/crudSp 모두 비어있음 | `mergeAiSpecIntoBaseSpec` 사후 정합화 — baseUrl/entity 있으면 자동 JPA_ENTITY 전환 |
 | `ModeNewFromCopy` / `ModeExistingModify` 각자 local `SourceBundlePreview` 정의 | `SourceBundleSection.jsx` 공용 컴포넌트 import |
+| `.env` 의 `TARGET_<CD>_DB_*` 수정만 하고 backend 재기동 안 함 | `docker compose up -d --force-recreate composer-backend` 로 `TargetDbConnectionEnvLoader` 발화 (§6.5.1) |
+| JDBC URL 에 SSL 옵션 `encrypt=true;trustServerCertificate=true` 누락 | MSSQL JDBC 12+ 의 default encrypt=true 때문에 연결 거부. 기존 endpoint 의 옵션 패턴 그대로 복사 |
+| `composer-db` 의 `tb_cmp_target_system` 을 직접 UPDATE 하고 registry invalidate API 미호출 | `PUT /composer/targets/{cd}/db-connection` 사용 (저장 + invalidate 자동) 또는 backend 재기동 |
 
 ## 관련 파일
 

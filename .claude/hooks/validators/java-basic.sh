@@ -34,11 +34,24 @@ if [[ "$FILE_PATH" == *.java ]]; then
       fi
     fi
 
-    # SE1. application.yaml 평문 암호
-    if [[ "$FILE_PATH" == *.yaml ]] || [[ "$FILE_PATH" == *.yml ]] || [[ "$FILE_PATH" == *.properties ]]; then
-      if grep -qE "^[[:space:]]*password:[[:space:]]*[^$E]" <<<"$CONTENT" && ! grep -q "ENC(" <<<"$CONTENT"; then
-        warn "평문 비밀번호 감지. Jasypt ENC() 암호화 필수 (rules/99-anti-patterns.md SE1)"
-      fi
+    # J9. 사용자 정의 @Value("${app.x.y}") 에 default 누락 — Spring Boot 3.x PropertyPlaceholderHelper
+    #     가 YAML 빈 값을 placeholder 미해결로 처리 → startup 실패 → 모든 endpoint 500
+    #     자동 키 (server.*, spring.*, logging.*) 는 framework 가 default 제공해 예외
+    if grep -nE '@Value\s*\(\s*"\$\{[^:}]+\}"' <<<"$CONTENT" | \
+       grep -vE '\$\{(server|spring|logging|management|sentry|info)\.' >/dev/null 2>&1; then
+      warn "@Value 에 default 누락 감지 — '\${app.x.y:}' 형식으로 빈 문자열 default 추가. 누락 시 startup 실패 (rules/99-anti-patterns.md J9)"
+    fi
+  fi
+fi
+
+# =====================================================================
+# 4. 설정 파일 평문 암호 (SE1) — .java 블록 밖으로 분리 (이전 nested 버그 수정)
+# =====================================================================
+if [[ "$FILE_PATH" == *.yaml ]] || [[ "$FILE_PATH" == *.yml ]] || [[ "$FILE_PATH" == *.properties ]]; then
+  if [ -n "$CONTENT" ]; then
+    # password: 'xxxx' 형태 + ENC(...) 미사용 시 경고
+    if grep -qE "^[[:space:]]*password:[[:space:]]*['\"]?[^'\"$\{[:space:]]" <<<"$CONTENT" && ! grep -q "ENC(" <<<"$CONTENT"; then
+      warn "평문 비밀번호 감지. Jasypt ENC() 암호화 권장 (rules/99-anti-patterns.md SE1)"
     fi
   fi
 fi

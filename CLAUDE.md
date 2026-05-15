@@ -162,7 +162,7 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 
 ### T3Mockup 갤러리 (Phase 4a/b/c — 2026-05-15)
 - **위치**: `frontend/src/view/util/t3mockup/`
-- **접근**: t3-composer 단독 frontend 의 상단 메뉴 바에서 [목업] Tab (App.jsx 의 `MENU_ITEMS` 5번째)
+- **접근**: 상단 메뉴 바 [SCM UI Mockup] Tab (App.jsx `MENU_ITEMS` 순서: T3Composer · History · **SCM UI Mockup** · UI Pattern · Gallery)
 - **`index.js` 의 `MOCKUP_ENTRIES`** — 54개 mockup entry (단일 진실 저장소)
   - 그룹: `T3SMART_SCM_ENTRIES` (54) · `PLANEL_ENTRIES` (placeholder)
   - 자동 부여: `productLine` (T3SmartSCM/PlaNEL) · `menus[]` (운영 메뉴 매핑)
@@ -176,6 +176,16 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
   2. `index.js` 의 `T3SMART_SCM_ENTRIES` 또는 `PLANEL_ENTRIES` 배열에 entry 추가 (lazy import path)
   3. 운영 메뉴 매핑 갱신: `node scripts/mockup-menu-mapping.cjs`
   4. hook 검증: `.claude/hooks/validators/t3mockup.sh` (M1~M4)
+
+### T3MES UI Pattern 카탈로그 (2026-05-15)
+- **위치**: `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` · 접근: 상단 메뉴 [UI Pattern] Tab
+- **원본 → 분리**: `frontend/public/t3mes/*.html` (T3MES 퍼블리싱 29개) → `scripts/split-t3mes-tabs.cjs` 가 TabPage 단위 분리
+  - `frontend/public/t3mes-split/full/` (730개 독립 HTML — iframe 표시) · `lite/` (730개 경량 마크업 — AI 참조용)
+  - `_data/t3mes-tabs.json` — 파일별 TabPage 메타. `ALL_ENTRIES` export (picker 재사용)
+  - 신규/수정 시: `node scripts/split-t3mes-tabs.cjs` 재실행 (full/lite + json 일괄 재생성)
+- **자연어 생성 연동**: `ModeNewGeneral` 선택사항 영역 — `SCM UI Mockup` / `UI Pattern` / `파일 D&D` 중 **1개 단독** 적용
+  (`MockupPickerDialog` · `UiPatternPickerDialog` 미리보기 포함 · 하단 전용 D&D 영역)
+- 상세: `.claude/rules/50-composer-standalone-runtime.md §12`
 
 ## 3. 부모 폴더와의 관계 (sync 시점 외)
 

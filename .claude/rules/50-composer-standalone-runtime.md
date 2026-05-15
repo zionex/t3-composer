@@ -182,6 +182,20 @@ proxy: [{
 
 산출물이 만드는 모든 새 모듈 endpoint (`/util /demandplan /masterplan /sales /inventory /system ...`) 가 사전 등록 없이 자동 backend proxy.
 
+`bypass` 는 `/t3mes/` · `/t3mes-split/` 로 시작하는 요청을 `req.url` 그대로 반환 → SPA fallback / proxy 없이 webpack-dev-server static 으로 서빙 (T3MES UI Pattern 카탈로그 정적 자산).
+
+### webpack devServer.static.watch — 정적 폴더 폴링 비활성 (2026-05-15)
+
+`devServer.static.watch: false` **필수**.
+
+- `public/t3mes-split/` 에 T3MES UI Pattern 분리본 **1460+ HTML** 이 있다. `static.watch` 를
+  `{ usePolling: true, interval: 1000 }` 로 두면 dev-server 가 매초 1460+ 파일을 스캔 →
+  Node 이벤트 루프 잠식 → webpack-dev-middleware 가 번들(60MB+)을 `200 + Content-Length`
+  헤더만 보낸 뒤 본문을 **0바이트로 끊음** → 브라우저 화면 무한 대기 (2026-05-15 사고).
+- 정적 카탈로그 HTML 은 라이브 리로드가 불필요하므로 `static: { watch: false }`.
+- src 변경 감지는 `watchOptions.poll: 1000` 이 담당 (webpack 모듈 그래프만 폴링 — 가벼움).
+- Hook: `build-config.sh` W1 이 `webpack.config.js` 의 `usePolling` 재등장 시 warn.
+
 ## 4.5 설계서 mock-up 이미지 (Phase 2d)
 
 `DesignDocExportService.buildLayoutSheet` 가 "레이아웃" 시트 하단에 `6. 화면 미리보기 (Mock-up)` 섹션 + PNG image 첨부.
@@ -400,6 +414,21 @@ merge 직후 step4 의 모든 area 를 재검사:
 - frontend 코드 변경 시 webpack polling 자동 hot-reload (1초)
 - 큰 의존성 변경 시 `docker compose down composer-backend && docker compose up -d composer-backend` (down + up)
 
+### 소스 동기화(git pull/rebase) 후 절차 — 필수 점검 (2026-05-15)
+git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 자동 반영되지 **않으므로** 수동 조치:
+
+1. **신규 npm 의존성** — `package.json` 에 새 의존성이 들어오면 컨테이너 `node_modules` 에 없다.
+   `docker compose exec -T composer-frontend npm install --legacy-peer-deps` → frontend 재시작.
+   (예: `@babel/standalone` 누락 → `Module not found` 컴파일 에러)
+2. **신규 DB 마이그레이션** — `docker/db/init-pg/*.sql` 의 새 파일은 composer-db **최초 생성 시에만** 실행된다
+   (`composer-db-init` 이 `T3COMPOSER_INIT_DONE` 마커로 멱등 skip). 기존 DB 볼륨에는 미적용 →
+   backend Entity ≠ DB 테이블 → `column "..." does not exist` 로 해당 테이블 조회가 전부 500.
+   조치: 누락 마이그레이션을 수동 적용 (모두 `IF NOT EXISTS`/조건부 — 멱등):
+   `docker compose exec -T composer-db psql -U composer -d T3SMARTSCM -v ON_ERROR_STOP=1 < docker/db/init-pg/<NN>_*.sql`
+   누락 여부는 `information_schema.columns` 로 Entity 기대 컬럼과 대조.
+   (예: `25~28` 미적용 → `tb_cmp_target_system.database_ref_path/source_ref_path/menu_source` 누락 → Target 로딩 실패)
+3. **backend 재컴파일** — `mvn` 재컴파일 + DevTools restart 확인.
+
 ## 11. Anti-patterns (단독 환경 한정)
 
 | ❌ | ✅ |
@@ -420,6 +449,37 @@ merge 직후 step4 의 모든 area 를 재검사:
 | `.env` 의 `TARGET_<CD>_DB_*` 수정만 하고 backend 재기동 안 함 | `docker compose up -d --force-recreate composer-backend` 로 `TargetDbConnectionEnvLoader` 발화 (§6.5.1) |
 | JDBC URL 에 SSL 옵션 `encrypt=true;trustServerCertificate=true` 누락 | MSSQL JDBC 12+ 의 default encrypt=true 때문에 연결 거부. 기존 endpoint 의 옵션 패턴 그대로 복사 |
 | `composer-db` 의 `tb_cmp_target_system` 을 직접 UPDATE 하고 registry invalidate API 미호출 | `PUT /composer/targets/{cd}/db-connection` 사용 (저장 + invalidate 자동) 또는 backend 재기동 |
+| webpack `devServer.static.watch` 를 `{ usePolling:true }` 로 둠 → public/t3mes-split 1460+ 파일 폴링 → 번들 0바이트 전송 끊김 | `static: { watch: false }` (src 변경은 watchOptions.poll 담당) — Hook `build-config.sh` W1 |
+| 소스 동기화 후 `docker/db/init-pg/` 신규 마이그레이션을 기존 composer-db 에 미적용 → `column "..." does not exist` | 누락 마이그레이션 수동 적용 (`psql ... < init-pg/<NN>_*.sql` — 멱등) §10 |
+| 동기화 후 `package.json` 신규 의존성을 컨테이너에 미설치 → `Module not found` | `npm install --legacy-peer-deps` 후 frontend 재시작 §10 |
+
+## 12. T3MES UI Pattern 카탈로그 + 자연어 생성 참조 picker (2026-05-15)
+
+### 12.1 T3MES UI Pattern 카탈로그 ([UI Pattern] 메뉴)
+- 원본: `frontend/public/t3mes/*.html` (T3MES 퍼블리싱 산출물 29개) — 파일당 다수 TabPage.
+- 생성기: `scripts/split-t3mes-tabs.cjs` — 각 HTML 의 TabPage 를 물리적으로 분리:
+  - `frontend/public/t3mes-split/full/<stem>/<NN>_<label>.html` — 독립 실행 HTML (iframe 표시용, 730개)
+  - `frontend/public/t3mes-split/lite/<stem>/<NN>_<label>.html` — 경량 마크업 조각 (AI 참조용, 730개)
+  - `frontend/src/view/util/t3composerpatterns/_data/t3mes-tabs.json` — 파일별 TabPage 메타
+- 화면: `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` — Section(SCM/MES)→Group→File→TabPage 트리.
+  TabPage 클릭 → iframe 으로 `full` HTML 로드. `ALL_ENTRIES` export (picker 재사용).
+- 분리본 full HTML 은 `</body>` 직전에 auto-activate 부트스트랩 주입 — 해당 TabPage 패널만 활성화.
+  ★ 원본 `switchTab(i, btnEl)` 가 `btnEl.classList` 를 쓰므로, 부트스트랩은 실제 `.tab-btn[i]` 요소를 넘기고
+  실패 시 `.panel`/`.tab-btn` active 클래스를 직접 토글하는 fallback 을 포함한다 (btnEl=null TypeError 회피).
+  `switchTab(N,null)` 단독 호출은 항상 0번 패널만 표시되는 버그 — 금지.
+
+### 12.2 자연어 신규 생성 — 참조 선택 + D&D (ModeNewGeneral)
+자연어(NEW_NL) 입력 화면의 "선택사항" 영역 — 3개 기능 **단독(상호 배타) 적용**:
+
+| 기능 | POPUP | Claude 전달 |
+|---|---|---|
+| SCM UI Mockup 선택 | `MockupPickerDialog` (좌 목록 + 우 컴포넌트 미리보기) | mockup 메타·레이아웃 카테고리 |
+| UI Pattern 선택 | `UiPatternPickerDialog` (좌 목록 + 우 iframe 미리보기) | 선택 패턴의 lite HTML 마크업 인라인 |
+| 참조 파일 첨부 | 하단 전용 D&D 영역 (drop / 클릭 파일탐색) | 텍스트=prompt inline · binary=attachments |
+
+- 하나를 선택하면 나머지 둘은 자동 해제 — `selectedMockup` / `selectedUiPattern` / `attachments` 중 하나만 유효.
+- KPI/Chart 사전 선택 트리거는 선택한 Mockup/UI Pattern 이 Chart·Dashboard·Monitoring 류일 때만 노출.
+- 미리보기: Mockup 은 lazy 컴포넌트를 가상화면(1400×900) scale 렌더, UI Pattern 은 `srcUrl` iframe.
 
 ## 관련 파일
 

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>사용자정의 엑셀 추출</title>
+<!-- T3MES UI Pattern · mes_stock_1_retrive · TabPage #29: 사용자정의 엑셀 추출 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p28">
+  <div class="sec-hdr"><div><h3>㉙ 사용자 정의 데이터 추출(Export) 빌더</h3><span class="tip">필요한 컬럼(열)만 체크박스로 선택하여 원하는 형태의 엑셀/CSV로 재고를 다운로드합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">추출할 컬럼 선택</div><div class="grid2" style="gap:8px" id="tb28"></div></div>
+    <div class="card" style="background:var(--surface2)"><div class="card-title">미리보기 (Preview)</div><div style="font-family:var(--mono);font-size:11px;color:var(--text2);background:#000;padding:10px;border-radius:4px;height:200px">ItemCode, Qty, BinLoc<br>ITM-001, 150, A-1<br>ITM-002, 20, B-3...</div><button class="btn btn-green" style="margin-top:16px;width:100%" onclick="showToast('CSV 다운로드 시작')">⬇️ 선택 항목 CSV 다운로드</button></div>
+  </div>
+</div>

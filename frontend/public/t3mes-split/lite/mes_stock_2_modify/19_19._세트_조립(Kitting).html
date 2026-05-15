@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>19. 세트 조립(Kitting)</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #19: 19. 세트 조립(Kitting) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p18">
+  <div class="sec-hdr"><div><h3>⑲ Kitting(세트 조립) 재고 트랜잭션</h3><span class="tip">개별 원자재 재고를 감소시키고, 묶음 완제품(Kit) 재고를 증가시키는 조립 트랜잭션입니다.</span></div></div>
+  <div class="grid2">
+    <div class="card" style="border:1px solid var(--border)"><div class="card-title">생성할 완제품(Kit)</div><select class="inp" style="margin-bottom:8px"><option>명절 스팸/참치 혼합세트 A</option></select><div class="label">생성 수량</div><input type="number" class="inp" value="50"><div style="margin-top:16px;color:var(--green);font-weight:700">➔ Kit 재고 +50 EA 증가</div></div>
+    <div class="card" style="border:1px solid var(--border)"><div class="card-title">소모될 구성품 (BOM)</div><div id="tb18"></div><div style="margin-top:16px;color:var(--red);font-weight:700">➔ 원자재 자동 차감</div></div>
+  </div>
+  <div style="text-align:center"><button class="btn btn-blue" style="width:200px">조립(Build) 확정</button></div>
+</div>

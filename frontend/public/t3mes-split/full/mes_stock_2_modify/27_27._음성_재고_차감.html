@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Adjustment UI (30 Types) - Advanced Operations</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252a3d;
+  --border:#2a3050;--border2:#3a4570;
+  --green:#00d68f;--green-dim:#00d68f22;--red:#ff4d6d;--red-dim:#ff4d6d22;
+  --amber:#ffb347;--amber-dim:#ffb34722;--blue:#4d9fff;--blue-dim:#4d9fff22;
+  --pink:#ff66a3;--pink-dim:#ff66a322;--purple:#9d72ff;--purple-dim:#9d72ff22;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff22;--orange:#ff8a00;--orange-dim:#ff8a0022;
+  --text:#e8ecf4;--text2:#a0aabf;--text3:#5a6480;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-btn.active{background:var(--surface2);color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:700}
+.tab-btn.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.tab-btn.grp2{color:var(--cyan)}.tab-btn.grp2.active{color:var(--cyan);border-bottom-color:var(--cyan)}.tab-btn.grp2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.tab-btn.grp3{color:var(--orange)}.tab-btn.grp3.active{color:var(--orange);border-bottom-color:var(--orange)}.tab-btn.grp3.active .tab-num{color:var(--orange);background:var(--orange-dim)}
+.tab-btn.grp4{color:var(--purple)}.tab-btn.grp4.active{color:var(--purple);border-bottom-color:var(--purple)}.tab-btn.grp4.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.tab-btn.grp5{color:var(--pink)}.tab-btn.grp5.active{color:var(--pink);border-bottom-color:var(--pink)}.tab-btn.grp5.active .tab-num{color:var(--pink);background:var(--pink-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1}
+.panel.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Forms & Inputs */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--blue)}
+.inp.err{border-color:var(--red);background:var(--red-dim)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono);text-align:right}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+textarea.inp{resize:vertical;min-height:60px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn:hover{filter:brightness(1.2)}
+.btn-blue{background:var(--blue-dim);border-color:#4d9fff55;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#00e5ff55;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.btn-orange{background:var(--orange-dim);border-color:#ff8a0055;color:var(--orange)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.chk-box{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+
+/* Layouts & Badges */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.badge{padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700;display:inline-block}
+.b-green{background:var(--green-dim);color:var(--green)}.b-red{background:var(--red-dim);color:var(--red)}.b-amber{background:var(--amber-dim);color:var(--amber)}
+
+/* Custom UI Elements for Adjustments */
+.transfer-arr{display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text3)}
+.dd-zone{border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:20px;text-align:center;color:var(--text2);background:var(--surface3);transition:all .2s}
+.dd-zone:hover{border-color:var(--blue);background:var(--blue-dim)}
+.item-chip{display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;gap:6px}
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative}
+
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">1. 단건 수량조정<span class="tab-num">Basic</span></button>
+  <button class="tab-btn" onclick="switchTab(1)">2. 일괄 실사입력<span class="tab-num">Grid</span></button>
+  <button class="tab-btn" onclick="switchTab(2)">3. 블라인드 실사<span class="tab-num">Blind</span></button>
+  <button class="tab-btn" onclick="switchTab(3)">4. 사유코드 맵핑<span class="tab-num">Reason</span></button>
+  <button class="tab-btn" onclick="switchTab(4)">5. 파손/폐기 처리<span class="tab-num">Scrap</span></button>
+  <button class="tab-btn" onclick="switchTab(5)">6. QC/보류 전환<span class="tab-num">Status</span></button>
+
+  <button class="tab-btn grp2" onclick="switchTab(6)">7. 창고 간 이동<span class="tab-num">Transfer</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(7)">8. Bin to Bin 이동<span class="tab-num">Loc</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(8)">9. 단위(UOM) 변환<span class="tab-num">Split</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(9)">10. 3D 랙 재배치<span class="tab-num">Drag</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(10)">11. 모바일 적치(Put)<span class="tab-num">PDA</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(11)">12. 최적화 자동이동<span class="tab-num">AI Opt</span></button>
+
+  <button class="tab-btn grp3" onclick="switchTab(12)">13. 로트(Lot) 분할<span class="tab-num">Lot</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(13)">14. 유통기한 수정<span class="tab-num">Expiry</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(14)">15. 시리얼 교체<span class="tab-num">S/N</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(15)">16. 매트릭스 일괄조정<span class="tab-num">Apparel</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(16)">17. 실중량(Weight) 보정<span class="tab-num">Catch</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(17)">18. 위탁재고 소진<span class="tab-num">Consign</span></button>
+
+  <button class="tab-btn grp4" onclick="switchTab(18)">19. 세트 조립(Kitting)<span class="tab-num">Build</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(19)">20. 세트 해체(Tear)<span class="tab-num">Unpack</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(20)">21. 재고자산 재평가<span class="tab-num">Finance</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(21)">22. 부대비용 배분<span class="tab-num">Landed</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(22)">23. 관리자 승인 보드<span class="tab-num">Approve</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(23)">24. 조정 감사 로그<span class="tab-num">Audit</span></button>
+
+  <button class="tab-btn grp5" onclick="switchTab(24)">25. 바코드 연속 차감<span class="tab-num">Scan</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(25)">26. 파손품 사진 AI<span class="tab-num">Vision</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(26)">27. 음성 재고 차감<span class="tab-num">Voice</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(27)">28. RFID 게이트 일괄<span class="tab-num">RFID</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(28)">29. 오프라인 충돌 해결<span class="tab-num">Sync</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(29)">30. 조정 임팩트 KPI<span class="tab-num">Dash</span></button>
+</div>
+
+<div class="panel active" id="p0">
+  <div class="sec-hdr"><div><h3>① 단건 재고 수량 조정 (Quick Adjust)</h3><span class="tip">특정 품목의 현재 장부 재고를 확인하고 즉시 증감(+/-) 처리합니다.</span></div></div>
+  <div class="grid2" style="max-width:800px">
+    <div class="card">
+      <div class="label">대상 품목 스캔/입력</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px"><input type="text" class="inp" value="ITM-88902"><button class="btn btn-ghost">검색</button></div>
+      <div style="background:var(--surface3);padding:12px;border-radius:var(--radius);font-size:14px"><b>고성능 그래픽카드 RTX-4090</b><br><span style="color:var(--text2);font-size:12px">위치: 본사 A창고 / 1열-3단</span></div>
+    </div>
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:16px"><span class="label">현재 장부 재고</span><h2 style="font-family:var(--mono)">142 EA</h2></div>
+      <div class="label">실제 수량 입력 (또는 증감분)</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="number" class="inp" placeholder="실제 수량 입력" style="font-size:18px;font-family:var(--mono);text-align:right" value="140">
+        <select class="inp" style="width:120px"><option>파손/분실</option><option>오기재</option><option>샘플사용</option></select>
+      </div>
+      <div style="color:var(--red);text-align:right;margin-bottom:16px;font-family:var(--mono)">조정량: -2 EA</div>
+      <button class="btn btn-blue" style="width:100%" onclick="showToast('재고 조정이 완료되었습니다.')">조정 실행</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="sec-hdr"><div><h3>② 일괄 재고 실사 입력 (Batch Cycle Count)</h3><span class="tip">엑셀 스타일의 그리드에서 여러 품목의 실사 수량을 한 번에 입력하고 차이를 확인합니다.</span></div></div>
+  <div class="card"><div class="grid4"><div><select class="inp"><option>A구역 전체</option></select></div><div><input type="date" class="inp"></div><div></div><div style="text-align:right"><button class="btn btn-blue" onclick="genP1()">데이터 불러오기</button></div></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위치(Bin)</th><th>품목코드</th><th>품목명</th><th class="num">장부수량(A)</th><th class="num">실사입력(B)</th><th class="num">차이(B-A)</th><th>사유</th></tr></thead><tbody id="tb1"></tbody></table></div>
+  <div style="margin-top:16px;text-align:right"><button class="btn btn-green" onclick="showToast('일괄 조정 전표가 생성되었습니다.')">일괄 조정 확정</button></div>
+</div>
+
+<div class="panel" id="p2">
+  <div class="sec-hdr"><div><h3>③ 블라인드 실사 입력 (Blind Count)</h3><span class="tip">작업자의 선입견을 없애기 위해 '장부 수량'을 숨긴 상태에서 실측 수량만 입력받습니다.</span></div></div>
+  <div class="tbl-wrap" style="max-width:800px"><table class="tbl"><thead><tr><th>위치</th><th>품목명</th><th class="num">장부수량</th><th class="num">실제 카운트 입력</th><th>상태</th></tr></thead><tbody id="tb2"></tbody></table></div>
+</div>
+
+<div class="panel" id="p3">
+  <div class="sec-hdr"><div><h3>④ 조정 사유별 회계 계정 맵핑</h3><span class="tip">재고 증감이 회사 장부에 어떻게 기록될지(비용, 손실 등) 사유 코드를 명확히 지정합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>조정 전표번호</th><th>품목</th><th class="num">조정량</th><th>조정액(원가)</th><th>사유코드 (필수 선택)</th><th>회계처리(자동)</th></tr></thead><tbody id="tb3"></tbody></table></div>
+</div>
+
+<div class="panel" id="p4">
+  <div class="sec-hdr"><div><h3>⑤ 파손 및 스크랩(Scrap) 폐기 처리</h3><span class="tip">사용 불가능한 재고를 장부에서 차감하고 '폐기 창고' 또는 '손실 비용'으로 완전히 넘깁니다.</span></div></div>
+  <div class="grid2">
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th><input type="checkbox" class="chk-box" checked></th><th>대상 품목</th><th class="num">가용재고</th><th>상태</th></tr></thead><tbody id="tb4"></tbody></table></div>
+    <div class="card" style="background:var(--surface2)">
+      <div class="card-title" style="color:var(--red)">선택 품목 일괄 폐기</div>
+      <div class="label">폐기 수량 입력</div><input type="number" class="inp" placeholder="수량" style="margin-bottom:12px">
+      <div class="label">폐기 사유 상세 설명</div><textarea class="inp" placeholder="파손 경위 등을 입력하세요" style="margin-bottom:16px"></textarea>
+      <div class="label">증빙 사진 첨부</div><div class="dd-zone" style="padding:10px;margin-bottom:16px">📸 클릭하여 사진 업로드</div>
+      <button class="btn btn-red" style="width:100%" onclick="showToast('폐기 승인 요청됨')">스크랩 처리 및 비용화</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p5">
+  <div class="sec-hdr"><div><h3>⑥ 재고 상태 전환 (정상 ↔ QC보류)</h3><span class="tip">수량 변경 없이 재고의 상태 속성만 변경하여 영업 출하(SO)를 막거나 허용합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th class="num">총 수량</th><th>현재 상태</th><th>변경할 상태 선택</th><th>액션</th></tr></thead><tbody id="tb5"></tbody></table></div>
+</div>
+
+<div class="panel" id="p6">
+  <div class="sec-hdr"><div><h3>⑦ 창고 간 이동 지시 (Inter-org Transfer)</h3><span class="tip">A물류센터에서 B영업소로 재고를 이송하기 위한 출고/입고 트랜잭션을 생성합니다.</span></div></div>
+  <div class="card"><div class="grid3" style="align-items:end">
+    <div><div class="label">출발 창고 (From)</div><select class="inp"><option>수도권 메가센터</option></select></div>
+    <div class="transfer-arr">➔</div>
+    <div><div class="label">도착 창고 (To)</div><select class="inp"><option>강남 직영매장</option></select></div>
+  </div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>이동할 품목</th><th class="num">출발지 현재고</th><th>이동 수량 입력</th><th>차량/운송편</th></tr></thead><tbody id="tb6"></tbody></table></div>
+</div>
+
+<div class="panel" id="p7">
+  <div class="sec-hdr"><div><h3>⑧ 창고 내 위치 이동 (Bin to Bin Transfer)</h3><span class="tip">같은 창고 안에서 지게차를 이용해 선반 A에서 선반 B로 재고의 위치만 바꿉니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th>현재 위치 (From Bin)</th><th>이동 대상 위치 (To Bin) 입력/스캔</th><th>이동 수량</th><th>액션</th></tr></thead><tbody id="tb7"></tbody></table></div>
+</div>
+
+<div class="panel" id="p8">
+  <div class="sec-hdr"><div><h3>⑨ 단위(UOM) 분할 및 병합 조정</h3><span class="tip">1 Pallet를 해체하여 40 Box로 만들거나, 낱개(EA)를 묶어 1 Box로 장부를 변환합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <div class="card-title">단위 분할 (Split Down)</div>
+      <div class="flex-between" style="margin-bottom:12px"><span>대상: <b>생수 2L (Pallet)</b></span><span class="badge b-amber">현재: 5 PLT</span></div>
+      <div class="flex-between" style="gap:10px;margin-bottom:16px"><input type="number" class="inp" value="1" style="width:60px"> PLT ➔ <b>40</b> BOX</div>
+      <button class="btn btn-blue" style="width:100%">분할 실행</button>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green)">
+      <div class="card-title">단위 병합 (Pack Up)</div>
+      <div class="flex-between" style="margin-bottom:12px"><span>대상: <b>마우스 (EA)</b></span><span class="badge b-amber">현재: 152 EA</span></div>
+      <div class="flex-between" style="gap:10px;margin-bottom:16px"><input type="number" class="inp" value="100" style="width:60px"> EA ➔ <b>1</b> Master Box</div>
+      <button class="btn btn-green" style="width:100%">병합 실행</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p9">
+  <div class="sec-hdr"><div><h3>⑩ 3D 랙 시각적 드래그 앤 드롭 이동</h3><span class="tip">화면상의 랙(Rack) 칸을 마우스로 끌어다 놓으면 자동으로 Bin-to-Bin 이동이 처리됩니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns:1fr 50px 1fr;align-items:center">
+    <div class="card"><div class="label">A열 선반</div><div id="tb9_a" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div></div>
+    <div class="transfer-arr">⇄</div>
+    <div class="card"><div class="label">B열 선반 (빈 공간)</div><div id="tb9_b" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div></div>
+  </div>
+</div>
+
+<div class="panel" id="p10">
+  <div class="sec-hdr"><div><h3>⑪ 모바일 PDA 적치(Putaway) 조정</h3><span class="tip">입하장에 도착한 물건을 작업자가 스캔한 후, 실제 선반 바코드를 찍어 위치를 확정합니다.</span></div></div>
+  <div class="mobile-frame">
+    <div style="padding:16px;background:var(--blue);color:#fff;font-weight:700">작업지시: #PUT-882</div>
+    <div style="padding:20px">
+      <div class="label">1. 품목 바코드 스캔</div>
+      <input type="text" class="inp" value="880123456789" readonly style="margin-bottom:16px;background:var(--green-dim);color:var(--green);border-color:var(--green)">
+      <div style="font-size:18px;font-weight:700;margin-bottom:20px">삼성 SSD 1TB (50 EA)</div>
+      <div class="label">2. 적재할 위치(Bin) 스캔</div>
+      <input type="text" class="inp" placeholder="위치 바코드 대기중..." style="margin-bottom:16px;border:2px dashed var(--blue)">
+      <button class="btn btn-blue" style="width:100%;height:50px;font-size:16px">적치 완료 (Confirm)</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p11">
+  <div class="sec-hdr"><div><h3>⑫ AI 기반 위치 최적화(Slotting) 자동조정</h3><span class="tip">출고 빈도가 높은 물건을 앞쪽으로, 무거운 것을 아래로 빼도록 시스템이 이동 지시를 내립니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th>추천 사유 (AI)</th><th>현재 위치</th><th>추천 위치</th><th>예상 동선 절감</th><th>액션</th></tr></thead><tbody id="tb11"></tbody></table></div>
+</div>
+
+<div class="panel" id="p12">
+  <div class="sec-hdr"><div><h3>⑬ 로트(Lot) 번호 분할 및 재생성</h3><span class="tip">벌크(Bulk) 로트를 소분하여 새로운 로트 번호 2개로 쪼개고 각각 수량을 부여합니다.</span></div></div>
+  <div class="card"><div class="card-title">원본 로트: LOT-2024-X99 (총 1,000kg)</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:16px">
+      <div style="flex:1;background:var(--surface3);padding:16px;border-radius:8px">
+        <div class="label">분할 로트 1</div><input type="text" class="inp" value="LOT-2024-X99-A" style="margin-bottom:8px">
+        <div class="label">할당 수량 (kg)</div><input type="number" class="inp" value="400">
+      </div>
+      <div style="flex:1;background:var(--surface3);padding:16px;border-radius:8px">
+        <div class="label">분할 로트 2</div><input type="text" class="inp" value="LOT-2024-X99-B" style="margin-bottom:8px">
+        <div class="label">할당 수량 (kg)</div><input type="number" class="inp" value="600">
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:16px"><button class="btn btn-orange">로트 분할 실행</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p13">
+  <div class="sec-hdr"><div><h3>⑭ 유통기한/사용기한 연장 조정</h3><span class="tip">품질 검사 결과 이상이 없을 경우, 특정 로트의 시스템 만료 일자를 강제로 연장합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>로트 번호</th><th>품목명</th><th>기존 만료일자</th><th>변경할 만료일자</th><th>QC 승인서 첨부</th><th>조정</th></tr></thead><tbody id="tb13"></tbody></table></div>
+</div>
+
+<div class="panel" id="p14">
+  <div class="sec-hdr"><div><h3>⑮ 개별 시리얼(S/N) 스왑/폐기</h3><span class="tip">특정 기기의 불량으로 인해 장부 상의 A 시리얼을 빼고 B 시리얼을 새로 집어넣습니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="label">불량 출고(Minus) 시리얼 스캔</div><input type="text" class="inp err" value="SN-OLD-001"><div class="tip" style="color:var(--red);margin-top:8px">상태: 파손 폐기 처리됨</div></div>
+    <div class="card"><div class="label">대체 입고(Plus) 시리얼 스캔</div><input type="text" class="inp" style="border-color:var(--green)" value="SN-NEW-999"><div class="tip" style="color:var(--green);margin-top:8px">상태: 신규 가용 재고로 등록됨</div></div>
+  </div>
+  <div style="text-align:center"><button class="btn btn-blue" style="width:200px">1:1 시리얼 교체 처리</button></div>
+</div>
+
+<div class="panel" id="p15">
+  <div class="sec-hdr"><div><h3>⑯ 의류 옵션(Matrix) 일괄 수량 조정</h3><span class="tip">사이즈와 색상 축으로 이루어진 그리드 입력창에서 여러 옵션의 수량을 한 번에 차감/증가 시킵니다.</span></div></div>
+  <div class="card" style="margin-bottom:8px"><b>품목: 나이키 에어 자켓 (NK-JK-001)</b> - <span style="color:var(--text2)">각 칸에 조정할 증감(+/-) 수량을 입력하세요.</span></div>
+  <div class="tbl-wrap"><table class="tbl"><thead id="th15"></thead><tbody id="tb15"></tbody></table></div>
+  <div style="margin-top:12px;text-align:right"><button class="btn btn-purple">매트릭스 일괄 반영</button></div>
+</div>
+
+<div class="panel" id="p16">
+  <div class="sec-hdr"><div><h3>⑰ 수분 증발에 따른 실중량(Catch Weight) 보정</h3><span class="tip">축산물/농산물 등 시간이 지남에 따라 낱개(EA)는 그대로이나 무게(KG)가 줄어드는 것을 조정합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th class="num">박스 수량 (EA)</th><th class="num">장부 중량 (KG)</th><th class="num">저울 재측정 중량 (KG)</th><th class="num">감모손실 중량</th></tr></thead><tbody id="tb16"></tbody></table></div>
+</div>
+
+<div class="panel" id="p17">
+  <div class="sec-hdr"><div><h3>⑱ 공급사 위탁재고(Consignment) 자사 편입</h3><span class="tip">협력사 소유의 재고를 우리 공정에 투입하는 순간, 우리 자산으로 조정(Ownership Change)합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>협력사</th><th>위탁 품목</th><th class="num">위탁 잔여량</th><th>사용/편입 수량 입력</th><th>소유권 이전 승인</th></tr></thead><tbody id="tb17"></tbody></table></div>
+</div>
+
+<div class="panel" id="p18">
+  <div class="sec-hdr"><div><h3>⑲ Kitting(세트 조립) 재고 트랜잭션</h3><span class="tip">개별 원자재 재고를 감소시키고, 묶음 완제품(Kit) 재고를 증가시키는 조립 트랜잭션입니다.</span></div></div>
+  <div class="grid2">
+    <div class="card" style="border:1px solid var(--border)"><div class="card-title">생성할 완제품(Kit)</div><select class="inp" style="margin-bottom:8px"><option>명절 스팸/참치 혼합세트 A</option></select><div class="label">생성 수량</div><input type="number" class="inp" value="50"><div style="margin-top:16px;color:var(--green);font-weight:700">➔ Kit 재고 +50 EA 증가</div></div>
+    <div class="card" style="border:1px solid var(--border)"><div class="card-title">소모될 구성품 (BOM)</div><div id="tb18"></div><div style="margin-top:16px;color:var(--red);font-weight:700">➔ 원자재 자동 차감</div></div>
+  </div>
+  <div style="text-align:center"><button class="btn btn-blue" style="width:200px">조립(Build) 확정</button></div>
+</div>
+
+<div class="panel" id="p19">
+  <div class="sec-hdr"><div><h3>⑳ Tear-down(세트 해체) 트랜잭션</h3><span class="tip">안 팔리는 세트 상품을 뜯어서 개별 단품 재고로 다시 되돌려 놓습니다. (조립의 역순)</span></div></div>
+  <div class="card" style="text-align:center;padding:30px">
+    <div style="font-size:16px;margin-bottom:12px">해체 대상: <b>PC 기본 부품 패키지</b> (<span style="color:var(--red)">-10 SET</span> 차감)</div>
+    <div class="transfer-arr" style="margin:20px 0">⬇️</div>
+    <div style="display:flex;justify-content:center;gap:12px">
+      <div class="item-chip">CPU <span style="color:var(--green)">+10 EA</span></div>
+      <div class="item-chip">RAM 16GB <span style="color:var(--green)">+20 EA</span></div>
+      <div class="item-chip">Mainboard <span style="color:var(--green)">+10 EA</span></div>
+    </div>
+    <button class="btn btn-orange" style="margin-top:30px">세트 해체(Unpack) 실행</button>
+  </div>
+</div>
+
+<div class="panel" id="p20">
+  <div class="sec-hdr"><div><h3>㉑ 재고 자산 단가 재평가 (Revaluation)</h3><span class="tip">수량은 그대로 두되, 시장 가격 하락 등으로 인해 장부상의 재고 단가(Value)만 조정합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th class="num">현재고</th><th class="num">기존 단가(원)</th><th class="num">새로운 단가 입력</th><th class="num">총 자산 증감액</th><th>사유</th></tr></thead><tbody id="tb20"></tbody></table></div>
+</div>
+
+<div class="panel" id="p21">
+  <div class="sec-hdr"><div><h3>㉒ 수입 부대비용(Landed Cost) 배분 조정</h3><span class="tip">해상 운임, 관세 등 통관에 발생한 총 비용을 입고된 여러 재고들의 원가에 n분의 1로 얹어 조정합니다.</span></div></div>
+  <div class="card" style="background:var(--surface2)"><b>배분할 총 발생 비용: ₩ 5,000,000</b> (관세+운임) / 배분 기준: <select class="inp" style="width:150px;display:inline-block"><option>중량(Weight) 기준</option><option>금액 기준</option></select><button class="btn btn-blue btn-sm" style="margin-left:8px">자동 계산</button></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고 품목</th><th class="num">수량</th><th class="num">기존 원가</th><th class="num" style="color:var(--orange)">배분된 부대비용(+)</th><th class="num" style="color:var(--green)">최종 재고단가</th></tr></thead><tbody id="tb21"></tbody></table></div>
+</div>
+
+<div class="panel" id="p22">
+  <div class="sec-hdr"><div><h3>㉓ 관리자 조정 승인 대기함 (Approval Inbox)</h3><span class="tip">현장 작업자가 입력한 차이 수량이나 손실 폐기 건이 장부에 반영되기 전, 팀장의 결재를 거칩니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>요청자</th><th>유형</th><th>품목 및 내역</th><th class="num">조정 금액</th><th>증빙</th><th>승인/반려</th></tr></thead><tbody id="tb22"></tbody></table></div>
+</div>
+
+<div class="panel" id="p23">
+  <div class="sec-hdr"><div><h3>㉔ 재고 조정 감사(Audit) 추적 로그</h3><span class="tip">누가, 언제, 어떤 사유로 재고를 임의로 늘리거나 줄였는지 위변조 불가능한 로그로 보여줍니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>일시</th><th>사용자/시스템</th><th>트랜잭션 ID</th><th>작업 유형</th><th>상세 내역 (품목/수량)</th><th>IP 주소</th></tr></thead><tbody id="tb23"></tbody></table></div>
+</div>
+
+<div class="panel" id="p24">
+  <div class="sec-hdr"><div><h3>㉕ 바코드 스캐너 연속 차감 모드</h3><span class="tip">출고 지시서 없이 현장용 소모품 등을 작업자가 가져갈 때, 바코드를 찍을 때마다 즉시 -1씩 차감됩니다.</span></div></div>
+  <div class="card" style="text-align:center;background:#000;border:2px solid var(--blue)">
+    <div style="font-family:var(--mono);color:var(--blue);font-size:20px;margin-bottom:10px">READY TO SCAN</div>
+    <input type="text" class="inp" placeholder="바코드 입력 포커스 유지..." style="width:300px;text-align:center;font-size:18px" autofocus>
+  </div>
+  <div id="tb24_log" style="height:250px;overflow-y:auto;background:var(--surface);padding:10px;border-radius:var(--radius);font-family:var(--mono)"></div>
+</div>
+
+<div class="panel" id="p25">
+  <div class="sec-hdr"><div><h3>㉖ 파손품 사진 업로드 AI 판독 조정</h3><span class="tip">파손된 박스 사진을 올리면 AI가 바코드와 파손 정도를 인식해 자동으로 폐기 전표를 초안 작성합니다.</span></div></div>
+  <div class="grid2">
+    <div class="dd-zone" style="height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:40px">📷<br><span style="font-size:14px;margin-top:10px">파손품 이미지 드래그</span></div>
+    <div class="card" style="background:var(--surface2)">
+      <div style="color:var(--blue);font-weight:700;margin-bottom:12px">🤖 AI Vision 판독 결과</div>
+      <div class="label">인식된 품목</div><input type="text" class="inp" value="PRD-990 (유리컵 세트)" readonly style="margin-bottom:10px">
+      <div class="label">파손 수량 추정</div><input type="number" class="inp" value="2" readonly style="margin-bottom:10px">
+      <div class="label">권장 처리 사유</div><select class="inp"><option>배송 중 파손 (Carrier Damage)</option></select>
+      <button class="btn btn-blue" style="width:100%;margin-top:20px">이대로 조정 전표 생성</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p26">
+  <div class="sec-hdr"><div><h3>㉗ 음성 지시 재고 차감 (Voice-directed Adjust)</h3><span class="tip">장갑을 낀 작업자가 마이크에 "A구역 나사 10개 파손 처리해" 라고 말하면 시스템이 파싱하여 조정합니다.</span></div></div>
+  <div style="text-align:center;padding:50px">
+    <div style="width:100px;height:100px;border-radius:50%;background:var(--red-dim);border:3px solid var(--red);display:inline-flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;margin-bottom:20px">🎤</div>
+    <div style="font-size:18px;color:var(--red)">"마이크가 켜져 있습니다. 차감할 내역을 말씀하세요."</div>
+    <div style="margin-top:30px;padding:20px;background:var(--surface3);border-radius:8px;font-family:var(--mono);color:var(--text2)">인식된 텍스트: <span style="color:#fff">"A동 2열에서 M4 볼트 5박스 불량으로 빼줘"</span></div>
+    <button class="btn btn-ghost" style="margin-top:16px">파싱된 조정 명령 확인</button>
+  </div>
+</div>
+
+<div class="panel" id="p27">
+  <div class="sec-hdr"><div><h3>㉘ RFID 게이트 통과 일괄 조정</h3><span class="tip">지게차가 수십 개의 박스를 싣고 게이트를 지나는 순간 RFID 태그를 일괄 인식하여 장부에서 빼버립니다.</span></div></div>
+  <div class="grid2">
+    <div class="card" style="border:2px solid var(--cyan);text-align:center;padding:40px">
+      <div style="font-size:60px">📡</div>
+      <h2 style="color:var(--cyan);margin:10px 0">RFID Gate #2 활성</h2>
+      <div style="color:var(--text2)">초당 200태그 스캔 중...</div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>인식된 EPC 태그</th><th>품목 변환</th><th>액션</th></tr></thead><tbody id="tb27"></tbody></table></div>
+  </div>
+</div>
+
+<div class="panel" id="p28">
+  <div class="sec-hdr"><div><h3>㉙ 오프라인 싱크 충돌(Conflict) 해결 보드</h3><span class="tip">음영 구역에서 작업한 PDA 데이터가 메인 서버로 넘어올 때 장부 수량이 꼬인 경우(음수 발생 등) 관리자가 개입합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th class="num">서버 장부 재고</th><th class="num">PDA 오프라인 차감</th><th class="num" style="color:var(--red)">결과(음수 충돌)</th><th>해결 조치 선택</th></tr></thead><tbody id="tb28"></tbody></table></div>
+</div>
+
+<div class="panel" id="p29">
+  <div class="sec-hdr"><div><h3>㉚ 재고 조정 재무 임팩트 대시보드</h3><span class="tip">한 달 동안 발생한 분실, 파손, 실사 차이 조정이 회사의 자산 가치에 얼마나 마이너스를 줬는지 집계합니다.</span></div></div>
+  <div class="grid3" style="margin-bottom:16px">
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div class="label">이달의 재고 손실액 (Shrinkage)</div>
+      <h2 style="color:var(--red)">- ₩ 12,450,000</h2>
+    </div>
+    <div class="card" style="border-left:4px solid var(--amber)">
+      <div class="label">최다 손실 발생 창고</div>
+      <h2 style="color:var(--amber)">B동 물류센터</h2>
+    </div>
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div class="label">실사 정확도 (IRA)</div>
+      <h2 style="color:var(--blue)">98.2 %</h2>
+    </div>
+  </div>
+  <div class="card"><div class="card-title">사유별 조정 금액 비중</div><div id="tb29" style="display:flex;height:30px;border-radius:15px;overflow:hidden;margin-top:10px"></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text2)"><span>파손 (40%)</span><span>실사차이 (35%)</span><span>유통기한 (25%)</span></div></div>
+</div>
+
+</div>
+<div id="toast">메시지</div>
+
+<script>
+function switchTab(i){
+  document.querySelectorAll('.tab-btn').forEach((t,idx)=>t.classList.toggle('active',idx===i));
+  document.querySelectorAll('.panel').forEach((p,idx)=>p.classList.toggle('active',idx===i));
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function rInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function rStr(len){return Math.random().toString(36).substring(2,2+len).toUpperCase();}
+
+window.onload = () => {
+  genP1(); genP2(); genP3(); genP4(); genP5(); genP6(); genP7(); genP9(); genP11();
+  genP13(); genP15(); genP16(); genP17(); genP18(); genP20(); genP21(); genP22(); genP23(); genP24(); genP27(); genP28(); genP29();
+};
+
+function genP1(){
+  let h=''; const rsn=['정상','파손','분실','위치오류'];
+  for(let i=1;i<=15;i++){
+    const b=rInt(10,100); const c=Math.random()>0.7?b-rInt(1,3):b;
+    h+=`<tr><td>A-${String(i).padStart(2,'0')}</td><td>ITM-${rStr(4)}</td><td>볼트 부품 ${i}</td><td class="num">${b}</td><td class="num"><input type="number" class="inp inp-sm" value="${c}" style="width:70px"></td><td class="num" style="color:${c-b<0?'var(--red)':'var(--text)'}">${c-b}</td><td><select class="inp inp-sm"><option>${c===b?rsn[0]:rsn[rInt(1,3)]}</option><option>파손</option><option>분실</option></select></td></tr>`;
+  }
+  document.getElementById('tb1').innerHTML=h;
+}
+
+function genP2(){
+  let h='';
+  for(let i=1;i<=10;i++){
+    const done=Math.random()>0.5;
+    h+=`<tr><td>Bin-C${i}</td><td>고급 윤활유 ${i}L</td><td class="num" style="color:var(--surface2);background:var(--surface2);border-radius:4px;user-select:none">***</td><td class="num"><input type="number" class="inp inp-sm" placeholder="?" ${done?`value="${rInt(20,50)}"`:''}></td><td>${done?'<span class="badge b-green">입력됨</span>':'<span class="badge b-amber">대기중</span>'}</td></tr>`;
+  }
+  document.getElementById('tb2').innerHTML=h;
+}
+
+function genP3(){
+  let h='';
+  for(let i=1;i<=6;i++){
+    const qty=rInt(-50,-5); const amt=qty*rInt(10,50)*1000;
+    h+=`<tr><td style="font-family:var(--mono)">ADJ-24-${i}</td><td>생산 부자재 ${i}</td><td class="num" style="color:var(--red)">${qty}</td><td class="num">₩${Math.abs(amt).toLocaleString()}</td><td><select class="inp inp-sm"><option>선택...</option><option>R01: 재고감모손실</option><option>R02: 폐기손실</option><option>R03: 연구개발비</option></select></td><td><span class="badge b-amber">맵핑 대기</span></td></tr>`;
+  }
+  document.getElementById('tb3').innerHTML=h;
+}
+
+function genP4(){
+  let h='';
+  for(let i=1;i<=5;i++) h+=`<tr><td><input type="checkbox" class="chk-box" ${i<3?'checked':''}></td><td>유리병 패키지 ${i}</td><td class="num">${rInt(5,20)}</td><td><span class="badge b-red">파손 보류 구역</span></td></tr>`;
+  document.getElementById('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h='';
+  for(let i=1;i<=5;i++){
+    const st=Math.random()>0.5?'정상(가용)':'QC 보류';
+    h+=`<tr><td>원료 베이스 ${i}</td><td class="num">${rInt(100,500)}</td><td>${st==='정상(가용)'?'<span class="badge b-green">정상</span>':'<span class="badge b-red">보류</span>'}</td><td><select class="inp inp-sm"><option>정상(Available)</option><option>QC 보류(Hold)</option></select></td><td><button class="btn btn-sm btn-ghost">변경</button></td></tr>`;
+  }
+  document.getElementById('tb5').innerHTML=h;
+}
+
+function genP6(){
+  let h='';
+  for(let i=1;i<=3;i++) h+=`<tr><td>모니터 27인치 모델${i}</td><td class="num">${rInt(50,200)}</td><td><input type="number" class="inp inp-sm" value="${rInt(10,30)}" style="width:80px"></td><td><select class="inp inp-sm"><option>자체 1톤 트럭</option><option>외부 택배사</option></select></td></tr>`;
+  document.getElementById('tb6').innerHTML=h;
+}
+
+function genP7(){
+  let h='';
+  for(let i=1;i<=5;i++) h+=`<tr><td>패킹용 박스 ${i}호</td><td>A열-0${i}칸</td><td><input type="text" class="inp inp-sm" placeholder="바코드 스캔" style="text-align:left"></td><td><input type="number" class="inp inp-sm" value="100" style="width:60px"></td><td><button class="btn btn-sm btn-blue">이동</button></td></tr>`;
+  document.getElementById('tb7').innerHTML=h;
+}
+
+function genP9(){
+  const drawRack=(id)=>{
+    let h='';
+    for(let i=0;i<8;i++){
+      const r=Math.random(); const c=r>0.5?`background:var(--surface);border:1px solid var(--border);color:var(--text)`:`background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue);cursor:grab`;
+      h+=`<div style="height:60px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;${c}">${r>0.5?'Empty':'Box-'+rStr(3)}</div>`;
+    }
+    document.getElementById(id).innerHTML=h;
+  };
+  drawRack('tb9_a'); drawRack('tb9_b');
+}
+
+function genP11(){
+  let h='';
+  for(let i=1;i<=4;i++) h+=`<tr><td>인기상품 ${i}</td><td>피킹 빈도 높음 (A급)</td><td>Z열 (구석)</td><td style="color:var(--blue);font-weight:700">A열 1단 (입구)</td><td>일 평균 15m ▼</td><td><button class="btn btn-sm btn-green">지시 생성</button></td></tr>`;
+  document.getElementById('tb11').innerHTML=h;
+}
+
+function genP13(){
+  let h='';
+  for(let i=1;i<=5;i++){
+    const d=new Date(); d.setDate(d.getDate()+rInt(1,10)); const dStr=d.toISOString().split('T')[0];
+    h+=`<tr><td style="font-family:var(--mono)">LOT-${rStr(5)}</td><td>화학 약품 ${i}</td><td>${dStr}</td><td><input type="date" class="inp inp-sm"></td><td><button class="btn btn-sm btn-ghost">📁 파일</button></td><td><button class="btn btn-sm btn-orange">연장</button></td></tr>`;
+  }
+  document.getElementById('tb13').innerHTML=h;
+}
+
+function genP15(){
+  const sz=['S','M','L','XL']; const cl=['Black','White'];
+  let th='<tr><th>Color \\ Size</th>'; sz.forEach(s=>th+=`<th>${s}</th>`); th+='</tr>';
+  document.getElementById('th15').innerHTML=th;
+  let h='';
+  cl.forEach(c=>{
+    h+=`<tr><td><b>${c}</b></td>`;
+    sz.forEach(s=>{ h+=`<td><input type="number" class="inp inp-sm" placeholder="0" style="width:50px"></td>`; });
+    h+=`</tr>`;
+  });
+  document.getElementById('tb15').innerHTML=h;
+}
+
+function genP16(){
+  let h='';
+  for(let i=1;i<=4;i++){
+    const box=rInt(10,50); const w1=box*10; const w2=(w1-(Math.random()*2)).toFixed(1);
+    h+=`<tr><td>냉동 돼지고기 파트${i}</td><td class="num">${box}</td><td class="num">${w1} kg</td><td class="num"><input type="number" class="inp inp-sm" value="${w2}" style="width:80px"></td><td class="num" style="color:var(--red)">${(w2-w1).toFixed(1)} kg</td></tr>`;
+  }
+  document.getElementById('tb16').innerHTML=h;
+}
+
+function genP17(){
+  let h='';
+  for(let i=1;i<=3;i++) h+=`<tr><td>(주)부품벤더${i}</td><td>LCD 패널 ${i}형</td><td class="num">${rInt(500,1000)}</td><td><input type="number" class="inp inp-sm" placeholder="사용량" style="width:80px"></td><td><button class="btn btn-sm btn-blue">우리 자산 편입</button></td></tr>`;
+  document.getElementById('tb17').innerHTML=h;
+}
+
+function genP18(){
+  let h='';
+  ['스팸 클래식 200g','참치 150g','종이 패키지'].forEach((n,i)=>{
+    h+=`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--border)"><span>${n}</span><span><b style="color:var(--red)">-${(i+1)*50}</b> EA</span></div>`;
+  });
+  document.getElementById('tb18').innerHTML=h;
+}
+
+function genP20(){
+  let h='';
+  for(let i=1;i<=5;i++){
+    const p1=rInt(50,100)*1000; const p2=p1-rInt(5,10)*1000; const q=rInt(10,50); const diff=(p2-p1)*q;
+    h+=`<tr><td>반도체 칩 ${rStr(3)}</td><td class="num">${q}</td><td class="num">₩${p1.toLocaleString()}</td><td class="num"><input type="number" class="inp inp-sm" value="${p2}" style="width:100px"></td><td class="num" style="color:var(--red)">₩${diff.toLocaleString()}</td><td><input type="text" class="inp inp-sm" value="시장가 하락"></td></tr>`;
+  }
+  document.getElementById('tb20').innerHTML=h;
+}
+
+function genP21(){
+  let h='';
+  for(let i=1;i<=3;i++){
+    const q=rInt(10,50); const p=rInt(10,30)*10000; const lc=Math.floor(5000000/3/q);
+    h+=`<tr><td>수입 소파 모델 ${i}</td><td class="num">${q}</td><td class="num">₩${p.toLocaleString()}</td><td class="num" style="color:var(--orange)">+ ₩${lc.toLocaleString()}</td><td class="num" style="color:var(--green);font-weight:700">₩${(p+lc).toLocaleString()}</td></tr>`;
+  }
+  document.getElementById('tb21').innerHTML=h;
+}
+
+function genP22(){
+  let h='';
+  for(let i=1;i<=4;i++) h+=`<tr><td>김작업자</td><td><span class="badge b-red">폐기 차감</span></td><td>유리컵 외 2건</td><td class="num">₩${(rInt(1,5)*100000).toLocaleString()}</td><td><span style="color:var(--blue);cursor:pointer;text-decoration:underline">사진.jpg</span></td><td><button class="btn btn-sm btn-green">승인</button> <button class="btn btn-sm btn-ghost">반려</button></td></tr>`;
+  document.getElementById('tb22').innerHTML=h;
+}
+
+function genP23(){
+  let h='';
+  for(let i=1;i<=8;i++){
+    const ty=Math.random()>0.5?'수량 임의조정':'상태 강제변경';
+    h+=`<tr><td>24-10-${String(20-i).padStart(2,'0')} 14:00</td><td>Admin</td><td style="font-family:var(--mono)">TRX-${rStr(6)}</td><td>${ty}</td><td>ITM-00${i} / +2 EA</td><td>192.168.1.${rInt(10,99)}</td></tr>`;
+  }
+  document.getElementById('tb23').innerHTML=h;
+}
+
+function genP24(){
+  let h='';
+  for(let i=1;i<=15;i++){
+    h+=`<div style="padding:5px;border-bottom:1px solid var(--border);color:${i===1?'var(--green)':'var(--text2)'}">[${new Date().toLocaleTimeString()}] 스캔: 880${rInt(100000,999999)} ➔ <b style="color:var(--red)">-1 차감</b> (장갑)</div>`;
+  }
+  document.getElementById('tb24_log').innerHTML=h;
+}
+
+function genP27(){
+  let h='';
+  for(let i=1;i<=5;i++) h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">EPC-E2003412${rStr(4)}</td><td>박스 A-${i}</td><td><span class="badge b-red">자동 출고 처리됨</span></td></tr>`;
+  document.getElementById('tb27').innerHTML=h;
+}
+
+function genP28(){
+  let h='';
+  for(let i=1;i<=3;i++){
+    const a=rInt(5,10); const b=rInt(15,20);
+    h+=`<tr><td>물티슈 박스 ${i}</td><td class="num">${a}</td><td class="num">-${b}</td><td class="num" style="color:var(--red)"><b>${a-b}</b></td><td><select class="inp inp-sm"><option>서버 기준 복구 (차감 취소)</option><option>마이너스 허용 승인</option></select></td></tr>`;
+  }
+  document.getElementById('tb28').innerHTML=h;
+}
+
+function genP29(){
+  document.getElementById('tb29').innerHTML=`<div style="width:40%;background:var(--red)"></div><div style="width:35%;background:var(--amber)"></div><div style="width:25%;background:var(--blue)"></div>`;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #26 */
+(function(){var I=26;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

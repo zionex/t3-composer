@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단건 수직 타임라인</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #1: 단건 수직 타임라인 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 단건 상세 수직 타임라인 (Vertical Timeline)</h3><span class="tip">특정 주문 1건에 대해 접수부터 배송완료까지의 상세 이력을 세로형 타임라인으로 보여주는 가장 고전적이고 확실한 UI입니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="card" style="margin:0"><div class="card-title">전체 주문 목록 (클릭하여 추적)</div><div class="tbl-wrap" style="max-height:550px"><table class="tbl"><thead><tr><th>주문번호 (SO)</th><th>고객사 / 수취인</th><th>품목</th><th>상태</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--blue);font-size:18px" id="tl-title">SO-2024-1001 추적</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">품목: 고성능 서버 랙 세트<br>도착예정: 2024-11-05</div>
+        <div class="timeline" id="tl0">
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-25 09:00</div><div style="font-weight:700">주문 접수 (Order Received)</div></div>
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-26 14:30</div><div style="font-weight:700">생산 완료 (Production Done)</div></div>
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-27 10:00</div><div style="font-weight:700">포장 및 상차 (Packed & Loaded)</div></div>
+          <div class="tl-item active"><div class="tl-dot"></div><div style="font-size:11px;color:var(--amber)">10-28 08:15</div><div style="font-weight:700;color:var(--amber)">배송 중 (In Transit)</div><div class="tip">현재 위치: 대전 허브 터미널</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text3)">예정</div><div style="color:var(--text3)">배송 완료 (Delivered)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>

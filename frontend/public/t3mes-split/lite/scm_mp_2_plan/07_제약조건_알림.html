@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>제약조건 알림</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #7: 제약조건 알림 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑦ 제약조건 알림 & 가이드 보정</h3>
+      <span class="tip">위반된 제약(용량/재고 등)을 탐지하고 권장 보정 액션을 제시합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="genP6()">⟳ 재분석</button>
+      <button class="btn btn-blue" onclick="showToast('권장안 일괄 적용 완료')">권장안 일괄 적용</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div class="card-title">🔴 위반 항목 <span id="viol-cnt" class="badge b-red">0건</span></div>
+      <div id="constraint-alerts"></div>
+    </div>
+    <div>
+      <div class="card-title">💡 권장 보정 액션</div>
+      <div id="suggest-actions"></div>
+    </div>
+  </div>
+</div>

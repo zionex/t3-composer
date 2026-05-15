@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>% 비율 보정</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #10: % 비율 보정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑩ % 비율 슬라이더 보정</h3>
+      <span class="tip">품목군 단위로 수량을 % 비율로 일괄 증감시킵니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="resetSliders()">⟳ 초기화</button>
+      <button class="btn btn-blue" onclick="showToast('보정 적용 완료')">보정 적용</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div id="slider-area"></div>
+    <div class="card" style="margin:0">
+      <div class="card-title">미리보기</div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목군</th><th class="num">기존</th><th class="num">보정후</th><th class="num">증감</th></tr></thead><tbody id="tb9"></tbody></table></div>
+    </div>
+  </div>
+</div>

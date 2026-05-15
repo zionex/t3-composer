@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>X-R 관리도(SPC)</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #16: X-R 관리도(SPC) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ X-bar R 관리도 (SPC Control Chart)</h3><span class="tip">입력된 치수 데이터(두께, 길이)를 바탕으로 관리상한선(UCL)과 하한선(LCL)을 이탈하는 이상 추세(Trend)를 감지합니다.</span></div><button class="btn btn-purple" onclick="drawSPC()">차트 새로고침 ↻</button></div>
+    <div class="card" style="padding:30px">
+      <div class="card-title">샤프트 외경 치수 X-bar 관리도 (n=5)</div>
+      <div class="spc-chart" id="spc-chart">
+        <div class="spc-line" style="top:15%;border-color:var(--red)"><span style="font-size:10px;color:var(--red);position:absolute;top:-15px;right:5px">UCL 50.08</span></div>
+        <div class="spc-line" style="top:50%;border-color:var(--purple)"><span style="font-size:10px;color:var(--purple);position:absolute;top:-15px;right:5px">CL 50.00</span></div>
+        <div class="spc-line" style="top:85%;border-color:var(--red)"><span style="font-size:10px;color:var(--red);position:absolute;top:-15px;right:5px">LCL 49.92</span></div>
+        <svg width="100%" height="100%" style="position:absolute;top:0;left:0;z-index:2" id="spc-svg"></svg>
+      </div>
+      <div class="tip" style="color:var(--red);margin-top:10px;font-weight:700">🚨 경고: 최근 3타점이 2시그마 구역을 벗어나는 런(Run) 현상 발생. 공정 점검 요망.</div>
+    </div>
+  </div>

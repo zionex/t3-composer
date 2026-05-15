@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>AI 챗봇 배송조회</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #23: AI 챗봇 배송조회 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ AI 챗봇 주문조회 (Chatbot Tracking)</h3><span class="tip">고객센터에 전화할 필요 없이, 채팅창에 "내 주문 언제 와?"라고 치면 챗봇이 DB를 뒤져서 대답해 줍니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto">
+      <div class="chat-wrap" style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        <div style="padding:16px;background:var(--rose);color:#fff;font-weight:700;text-align:center">AI 챗봇 상담원 🤖</div>
+        <div class="chat-body" id="chat-body" style="height:350px">
+          <div class="msg bot">안녕하세요! 주문번호나 연락처를 입력해 주시면 배송조회를 도와드립니다.</div>
+          <div class="msg user" style="background:var(--rose-dim);border-color:var(--rose);color:var(--rose)">SO-99124 언제 도착하나요?</div>
+          <div class="msg bot">조회 결과입니다.<br><br>📦 <b>SO-99124</b><br>현재 [대전 터미널]에서 간선 상차 중입니다. 내일(11/01) 오후 배송 완료 예정입니다.</div>
+        </div>
+        <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="메시지 입력..."><button class="btn btn-rose" onclick="showToast('챗봇 메시지 전송 시뮬레이션')">전송</button></div>
+      </div>
+    </div>
+  </div>

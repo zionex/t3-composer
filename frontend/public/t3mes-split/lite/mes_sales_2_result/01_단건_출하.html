@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단건 출하</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #1: 단건 출하 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 기본 단건 출하 등록 (Header-Detail)</h3><span class="tip">가장 기본적인 1:1 수주(SO) 대비 출하 등록 화면입니다. 1개의 수주번호 아래 여러 품목을 출하합니다.</span></div><button class="btn btn-indigo" onclick="showToast('출하 확정 및 명세서 발행 완료')">출하 확정 (Ship)</button></div>
+    <div class="grid2">
+      <div>
+        <div class="card"><div class="card-title">출하 기본 정보</div><div class="grid2"><div><div class="label">출하일자</div><input type="date" class="inp" value="2024-10-30"></div><div><div class="label">대상 수주번호(SO)</div><input type="text" class="inp" value="SO-2024-10-990" disabled></div><div><div class="label">고객사</div><input type="text" class="inp" value="삼성전자 (평택)" disabled></div><div><div class="label">출하 담당자</div><input type="text" class="inp" value="박물류 주임"></div></div></div>
+        <div class="card"><div class="card-title">출하 대상 품목 (Detail)</div><div class="tbl-wrap" style="max-height:250px"><table class="tbl"><thead><tr><th>품목</th><th>미출하잔량</th><th>출하수량 입력</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">최근 출하 이력 (50건)</div><div class="tbl-wrap" style="flex:1"><table class="tbl"><thead><tr><th>출하문서번호</th><th>고객사</th><th>총수량</th></tr></thead><tbody id="tb0_hist"></tbody></table></div></div>
+    </div>
+  </div>

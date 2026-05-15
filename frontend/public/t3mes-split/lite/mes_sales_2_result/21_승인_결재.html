@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>승인 결재</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #21: 승인 결재 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 출하 승인 워크플로우 (Approval)</h3><span class="tip">외상 한도가 초과되었거나 수출 금액이 큰 건은 영업팀장/재무팀의 결재 타임라인을 통과해야만 출하가 떨어집니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">출하 보류 (Hold) 상세 내역</div><div style="font-size:24px;font-weight:700;color:var(--fuchsia);margin-bottom:10px">₩ 550,000,000</div><div style="color:var(--red);font-weight:700;margin-bottom:20px">사유: 해당 고객사(쿠팡) 외상 매출 채권 한도 5억 초과</div><button class="btn btn-fuchsia" style="width:100%" onclick="showToast('재무팀에 예외 승인을 요청했습니다.')">예외 출하 승인 기안 상신</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">승인 타임라인</div><div style="color:var(--fuchsia);font-weight:700;margin-top:20px">재무팀장 결재 대기중... (승인 시 WMS 출하락 해제)</div></div>
+    </div>
+  </div>

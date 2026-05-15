@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>지도 기반 분포</title>
+<!-- T3MES UI Pattern · mes_stock_1_retrive · TabPage #13: 지도 기반 분포 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+  <div class="sec-hdr"><div><h3>⑬ 지도 기반 권역별 재고 분포</h3><span class="tip">특정 품목이 전국 어느 창고에 얼마나 있는지 지리적으로 파악합니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns:2fr 1fr">
+    <div class="map-canvas">
+      <div class="map-pin" style="top:30%;left:30%" onclick="showToast('서울: 5,000 EA')"></div><div style="position:absolute;top:30%;left:30%;transform:translate(20px,-5px)">서울 (5K)</div>
+      <div class="map-pin" style="top:60%;left:40%" onclick="showToast('대전: 2,000 EA')"></div><div style="position:absolute;top:60%;left:40%;transform:translate(20px,-5px)">대전 (2K)</div>
+      <div class="map-pin" style="top:80%;left:75%" onclick="showToast('부산: 8,000 EA')"></div><div style="position:absolute;top:80%;left:75%;transform:translate(20px,-5px)">부산 (8K)</div>
+    </div>
+    <div class="card"><div class="card-title">품목: [갤럭시 S24 울트라]</div><div class="label">총 권역 재고</div><h2 style="color:var(--blue)">15,000 EA</h2><hr style="border-color:var(--border);margin:16px 0"><div id="tb12"></div></div>
+  </div>
+</div>

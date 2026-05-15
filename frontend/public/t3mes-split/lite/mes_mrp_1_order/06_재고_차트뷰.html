@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>재고 차트뷰</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #6: 재고 차트뷰 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 재고 vs 소요량 시각화 (Dashboard)</h3><span class="tip">현재고(파랑)와 소요량(빨강)의 Gap을 막대그래프로 직관적으로 확인하고 바를 클릭해 발주합니다.</span></div></div>
+    <div class="card" style="max-height:600px;overflow-y:auto">
+      <div style="display:flex;gap:16px;margin-bottom:20px;font-size:11px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--teal);border-radius:2px"></span> 현재고</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--red);border-radius:2px"></span> 부족분 (발주 필요)</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--surface3);border-radius:2px"></span> 여유/안전재고</span></div>
+      <div id="tb5"></div>
+    </div>
+  </div>

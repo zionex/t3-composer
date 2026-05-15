@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Bin 간 이동</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #12: Bin 간 이동 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 빈 간 이동 (Bin-to-Bin Transfer)</h3><span class="tip">같은 창고 안에서 공간 효율화를 위해 A열 선반에서 B열 선반으로 물건의 위치만 바꿀 때 사용하는 쾌속 UI입니다.</span></div></div>
+    <div class="grid3">
+      <div class="card"><div class="card-title">1. 이동할 재고 스캔</div><input type="text" class="inp" value="LOT-BIN-991" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-bottom:12px"><div class="tip">품목: 고장력 볼트 1,000 EA</div></div>
+      <div class="card"><div class="card-title">2. 출발지 (From Bin)</div><div style="font-size:24px;font-weight:700;color:var(--text2);margin-top:10px">ZONE-A-01</div></div>
+      <div class="card" style="border-color:var(--green);background:var(--green-dim)"><div class="card-title" style="color:var(--green)">3. 도착지 (To Bin) 스캔</div><input type="text" class="inp" placeholder="새로운 위치 바코드 스캔" style="border-color:var(--green)"><button class="btn btn-green" style="width:100%;margin-top:16px" onclick="showToast('위치 이동 확정 완료')">이동 확정 ➔</button></div>
+    </div>
+  </div>

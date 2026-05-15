@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>토폴로지 자재연동</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #32: 토폴로지 자재연동 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p31">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉜ 마스터-디테일 토폴로지 (Topology & Material Link)</h3>
+        <span class="tip">상단의 뷰 전환(Toggle) 버튼으로 공정 전체 흐름을 '단순' 또는 '상세(분할/병합)'로 조망하고, 노드를 클릭하여 해당 공정의 투입 자재 현황(Detail)을 확인합니다.</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="toggle-group">
+          <button id="tgl-simple" class="toggle-btn" onclick="toggleTopo('simple')">단순 뷰</button>
+          <button id="tgl-detail" class="toggle-btn active" onclick="toggleTopo('detail')">상세 뷰</button>
+        </div>
+        <button class="btn btn-fuchsia" onclick="filterMat('ALL', null)">전체 공정 자재 보기</button>
+      </div>
+    </div>
+
+    <div class="topo-wrap" id="topo-simple" style="display:none; padding:20px; margin-bottom:16px;">
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('WO-EPI-001', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">EPI 공정 (Wafer)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 사내 오더 진행</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('ALL_FAB', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">FAB 공정 (Chip)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">3개 오더 (분할/외주 병합)</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('EXT-PKG-BATCH', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">PKG 공정 (Package)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 외주 오더 대기</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('WO-MOD-FINAL', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">MOD 공정 (Module)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 사내 완제품 대기</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topo-wrap" id="topo-detail" style="padding:20px; margin-bottom:16px;">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 1: EPI</div>
+        <div class="topo-node" onclick="filterMat('WO-EPI-001', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-EPI-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">사파이어 기판 투입 및 EPI 성장</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">1,000 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분할 (Split)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 2: FAB</div>
+        <div class="topo-node" onclick="filterMat('WO-FAB-A1', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A1</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Mesa Etching & Metal 증착</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node" onclick="filterMat('WO-FAB-A2', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A2</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Test</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node ext warn" onclick="filterMat('EXT-FAB-088', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-FAB-088 (외주)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Probing</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-amber">진행중</span><span class="num">400 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">병합 (Merge)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 3: PKG</div>
+        <div class="topo-node ext" onclick="filterMat('EXT-PKG-BATCH', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PKG-BATCH</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Die Attach & Wire Bonding</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">1,000 Wafer 분량</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">진행<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 4: MOD</div>
+        <div class="topo-node" onclick="filterMat('WO-MOD-FINAL', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-MOD-FINAL</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">LED 모듈 SMT 실장 및 검사</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">100,000 EA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin:0">
+      <div class="card-title" id="mat-title" style="color:var(--fuchsia);font-size:16px">전체 오더 소요 자재 현황</div>
+      <div class="tbl-wrap" style="max-height:400px">
+        <table class="tbl">
+          <thead><tr><th>대상 오더 (Node)</th><th>자재코드</th><th>자재명 (BOM)</th><th style="text-align:right">소요량</th><th style="text-align:right">현재고</th><th style="text-align:right">발주진행(PO)</th><th style="text-align:right">과부족 상태</th></tr></thead>
+          <tbody id="tb31"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>

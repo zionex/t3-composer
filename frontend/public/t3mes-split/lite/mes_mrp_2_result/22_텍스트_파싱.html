@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>텍스트 파싱</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #22: 텍스트 파싱 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 이메일/카톡 텍스트 파싱 입고</h3><span class="tip">영업사원이나 현장 직원이 카톡으로 대충 보낸 "A물건 100개, B물건 50개 들어옴" 텍스트를 복붙하면 표로 예쁘게 찢어줍니다.</span></div></div>
+    <textarea class="inp" id="inp21" rows="6" style="font-family:var(--mono);margin-bottom:16px;font-size:14px">PO-001	모니터 27인치	100	양호
+PO-002	기계식 키보드	50	박스찌그러짐
+PO-003	무선 마우스	200	양호</textarea>
+    <button class="btn btn-amber" style="margin-bottom:16px" onclick="doParse21()">✨ 텍스트 지능형 파싱 (Parse)</button>
+    <div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>PO 번호</th><th>품목명</th><th>수량</th><th>비고(상태)</th></tr></thead><tbody id="tb21"><tr><td colspan="4" style="text-align:center;padding:30px">파싱 대기중</td></tr></tbody></table></div>
+  </div>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QMS & Quality Control UI (30 Types) - Massive Full Data</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Quality Management Theme: Red(Defect), Green(Pass), Amber(Hold), Cyan(Smart), Purple(Analysis) */
+  --bg:#0f111a;--surface:#161b22;--surface2:#1e2532;--surface3:#293345;
+  --border:#344054;--border2:#475569;
+  --text:#f8fafc;--text2:#cbd5e1;--text3:#94a3b8;
+  --red:#ef4444;--red-dim:#ef444422;--red-mid:#ef444455;
+  --green:#10b981;--green-dim:#10b98122;--green-mid:#10b98155;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (6 Groups x 5 Tabs = 30 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Group Colors */
+.t-1.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-1.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-2.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-2.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-3.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-3.active .tab-num{color:var(--red);background:var(--red-dim)}
+.t-4.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-4.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-5.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-5.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-6.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-6.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Forms & Buttons */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border .15s}
+.inp:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-green{background:var(--green-dim);border-color:#10b98155;color:var(--green)}
+.btn-red{background:var(--red-dim);border-color:#ef444455;color:var(--red)}
+.btn-purple{background:var(--purple-dim);border-color:#8b5cf655;color:var(--purple)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+
+/* Grids & Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:320px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+
+/* SPC / Charts */
+.spc-chart{height:180px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;margin:10px 0}
+.spc-line{position:absolute;left:0;right:0;border-top:1px dashed;z-index:1}
+.chart-bar-wrap{flex:1;height:20px;background:var(--surface3);border-radius:4px;display:flex;overflow:hidden;position:relative}
+.c-bar{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+
+/* Touch Defect Pad */
+.big-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big-btn{padding:24px 12px;border:2px solid;border-radius:12px;cursor:pointer;text-align:center;font-family:var(--sans);transition:all .1s}
+.big-btn-ng{border-color:var(--red-mid);background:var(--red-dim);color:var(--red)}
+.big-btn-ng:active{background:var(--red-mid)}
+.big-btn-ok{border-color:var(--green-mid);background:var(--green-dim);color:var(--green)}
+
+/* Topology Root Cause */
+.topo-wrap{display:flex;gap:30px;overflow-x:auto;padding:30px;align-items:center;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);min-height:350px}
+.topo-col{display:flex;flex-direction:column;gap:20px;position:relative;min-width:240px}
+.topo-node{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--text3);border-radius:var(--radius);padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.2);position:relative}
+.topo-node.err{border-left-color:var(--red);background:var(--red-dim);border-color:var(--red)}
+.topo-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-weight:700;font-size:12px;white-space:nowrap}
+.topo-line{width:40px;height:2px;background:var(--border2);position:relative;margin:4px 0}
+.topo-line::after{content:'';position:absolute;right:-2px;top:-4px;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid var(--border2)}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--cyan);color:var(--cyan);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+@keyframes pulse{0%{opacity:1}50%{opacity:0.5;box-shadow:0 0 10px var(--red)}100%{opacity:1}}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① IQC 검사 대기열 (Pending Inspection)</h3><span class="tip">원부자재가 입고되어 가용 재고로 잡히기 전, 품질부서의 수입검사를 기다리는 리스트입니다. (100건 생성)</span></div><button class="btn btn-blue" onclick="showToast('검사 할당 완료')">선택항목 검사 할당</button></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>No</th><th>입고 LOT</th><th>공급사</th><th>품목명</th><th style="text-align:right">입고수량</th><th>입고일자</th><th>IQC 상태</th><th>담당자 할당</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② AQL 샘플링 사이즈 계산기 (AQL Standard)</h3><span class="tip">10만 개가 입고되었을 때 전수검사가 불가하므로, MIL-STD-105E 등 통계적 샘플링 기준표에 따라 시료 수(n)를 산출합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">AQL 파라미터 설정</div><div class="label">총 입고 수량 (N)</div><input type="number" class="inp" value="100000" style="margin-bottom:12px"><div class="label">검사 수준 (Inspection Level)</div><select class="inp" style="margin-bottom:12px"><option>General II (일반)</option><option>Special S-3 (특수)</option></select><div class="label">AQL 목표치 (%)</div><select class="inp" style="margin-bottom:16px"><option>0.65 %</option><option>1.0 %</option><option>1.5 %</option></select><button class="btn btn-blue" style="width:100%" onclick="showToast('AQL 통계 테이블에 기반하여 시료수가 산출되었습니다.')">샘플링 사이즈 산출 ↓</button></div>
+      <div class="card" style="background:var(--surface2);border-color:var(--blue)"><div class="card-title" style="color:var(--blue)">산출된 샘플링 계획 (Sampling Plan)</div><div class="grid2" style="text-align:center;margin-top:20px;margin-bottom:20px"><div><div class="label">추출할 시료 수 (n)</div><div style="font-family:var(--mono);font-size:40px;font-weight:700;color:var(--blue)">800 EA</div></div><div><div class="label">합불 판정 기준 (Ac / Re)</div><div style="font-family:var(--mono);font-size:40px;font-weight:700;color:var(--red)">10 / 11</div></div></div><div class="tip" style="text-align:center;font-size:14px">해석: 800개를 검사하여 불량이 <b>10개 이하</b>면 합격, <b>11개 이상</b>이면 해당 LOT 전체 반품(Reject).</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ IQC 합불 판정 및 불량 등록 (Pass/Fail)</h3><span class="tip">측정된 샘플 데이터를 바탕으로 최종 양/불을 판정하고, 불량이 났다면 어떤 유형인지 Defect Code를 입력합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">검사 진행 정보</div><div class="label">대상 LOT</div><input type="text" class="inp" value="RAW-2410-991" disabled style="margin-bottom:12px"><div class="label">총 검사 수량</div><input type="text" class="inp num" value="800" disabled></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">검사 결과 입력</div><div class="grid2" style="margin-bottom:16px"><div><div class="label" style="color:var(--green)">양품 수량 (OK)</div><input type="number" class="inp" value="785" style="font-size:24px;font-weight:700;color:var(--green)"></div><div><div class="label" style="color:var(--red)">불량 수량 (NG)</div><input type="number" class="inp" value="15" style="font-size:24px;font-weight:700;color:var(--red)"></div></div><div class="label">주요 불량 유형 (Defect Code)</div><select class="inp" style="margin-bottom:16px"><option>D-01: 치수 불량 (Out of Spec)</option><option>D-02: 표면 스크래치</option></select><button class="btn btn-red" style="width:100%;padding:14px;font-size:14px" onclick="showToast('불량수량이 Re 기준(11개)을 초과하여 최종 불합격(FAIL) 및 보류(Hold) 처리되었습니다.')">최종 판정 등록 (FAIL)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 성적서(COA) 스캔 및 파일 업로드 (OCR)</h3><span class="tip">협력사가 물건과 함께 보낸 종이 성적서(Certificate of Analysis)를 스캔해 업로드하고 시스템에 보관합니다.</span></div></div>
+    <div class="grid2">
+      <div style="border:2px dashed var(--blue);padding:60px;text-align:center;border-radius:12px;background:var(--surface);cursor:pointer" onclick="showToast('성적서 PDF 파일이 업로드 되었습니다.')"><div style="font-size:50px;margin-bottom:10px">📄</div><div style="font-size:16px;font-weight:700;color:var(--blue)">여기를 클릭하여 COA PDF 파일 첨부</div></div>
+      <div class="card" style="margin:0"><div class="card-title">첨부된 COA 이력 리스트</div><div class="tbl-wrap" style="max-height:200px;border:none"><table class="tbl"><thead><tr><th>LOT 번호</th><th>파일명</th><th>업로드 일자</th></tr></thead><tbody id="tb3"></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 협력사 품질 평가 (Vendor Quality Rating)</h3><span class="tip">입고 시 발생한 수입검사 불량률(PPM)을 누적하여 협력사의 품질 등급을 매기고 페널티를 산정합니다. (30개 협력사)</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>협력사명</th><th>월간 총 입고량</th><th>불량 발생 건수</th><th style="text-align:right">불량률 (PPM)</th><th>품질 평가 등급</th><th>조치 사항</th></tr></thead><tbody id="tb4"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 초중종물 검사 (First/Middle/Last Article)</h3><span class="tip">생산 라인에서 작업 시작 시(초물), 중간(중물), 끝날 때(종물) 제품을 검사하여 양산 진행 여부를 승인합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>생산 라인 (설비)</th><th>작업지시 (WO)</th><th>초물 검사 (First)</th><th>중물 검사 (Middle)</th><th>종물 검사 (Last)</th><th>라인 가동 상태</th></tr></thead><tbody id="tb5"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 순회 검사 (Patrol Inspection) 체크리스트</h3><span class="tip">품질 담당자가 태블릿을 들고 현장을 돌아다니며 체크리스트 O/X를 쳐서 공정 품질 이상 유무를 점검하는 모바일 뷰입니다.</span></div></div>
+    <div class="mobile-frame">
+      <div style="padding:20px;background:var(--green);color:#fff;font-weight:700;text-align:center">📱 정기 순회 검사</div>
+      <div style="padding:20px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:20px">대상: CNC 조립 1라인 (오전조)</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)"><span>1. 작업표준서(SOP) 준수 여부</span><div style="display:flex;gap:4px"><button class="btn btn-green btn-sm">O</button><button class="btn btn-ghost btn-sm">X</button></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)"><span>2. 정전기(ESD) 방지 밴드 착용</span><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm">O</button><button class="btn btn-red btn-sm">X</button></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)"><span>3. 계측기 0점 세팅 상태</span><div style="display:flex;gap:4px"><button class="btn btn-green btn-sm">O</button><button class="btn btn-ghost btn-sm">X</button></div></div>
+        <button class="btn btn-green" style="width:100%;margin-top:30px;padding:14px" onclick="showToast('순회검사 결과가 등록되었습니다. ESD 미착용 1건 부적합.')">검사 결과 제출 (Submit)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 터치형 간편 불량 등록 (Touch Defect Pad)</h3><span class="tip">현장 작업자가 제품을 조립하다가 불량을 발견하면 화면의 큰 아이콘을 꾹 눌러 직관적으로 불량을 카운트합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 2fr 1fr;height:500px">
+      <div class="card" style="margin:0"><div class="card-title">원터치 불량 유형 패드 (Defect Input)</div><div class="big-btn-grid" id="touch-pad">
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('스크래치')"><div style="font-size:30px">🔪</div><div>표면 스크래치</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('오염/이물')"><div style="font-size:30px">🦠</div><div>오염 / 이물</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('치수미달')"><div style="font-size:30px">📏</div><div>치수 미달</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('나사빠짐')"><div style="font-size:30px">🔩</div><div>나사 조립 누락</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('전원불량')"><div style="font-size:30px">🔌</div><div>전원 인가 불량</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('파손')"><div style="font-size:30px">🔨</div><div>파손 / 깨짐</div></div>
+      </div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--red)">누적 불량 리스트</div><div style="font-size:40px;font-family:var(--mono);font-weight:700;color:var(--red);text-align:right" id="def-tot">0 EA</div><div id="def-list" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div><button class="btn btn-red" style="width:100%;margin-top:auto" onclick="showToast('입력된 불량 내역이 실적에 반영되었습니다.')">불량 실적 반영</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 불량 매트릭스 일괄 입력 (Defect Matrix)</h3><span class="tip">팝업 창을 띄울 필요 없이 세로축(LOT) x 가로축(불량종류) 표를 엑셀처럼 탭(Tab) 키로 넘나들며 숫자를 빠르게 칩니다.</span></div><button class="btn btn-green">일괄 저장</button></div>
+    <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead id="th8"></thead><tbody id="tb8"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ OQC 출하검사 대기열 (Outgoing QA)</h3><span class="tip">생산이 모두 끝나고 포장까지 마친 제품이 고객에게 출하되기 직전(OQC) 거치는 깐깐한 최종 검사 리스트입니다. (50건 생성)</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>출하(SO) 번호</th><th>고객사</th><th>완제품 LOT</th><th>수량</th><th style="color:var(--green)">OQC 판정 결과</th><th>출하 승인(Release) 여부</th></tr></thead><tbody id="tb9"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 부적합 보고서 (NCR) 발행 대시보드</h3><span class="tip">검사에서 떨어진 중대한 불량건에 대해 '부적합 보고서(Non-Conformance Report)'가 발행되어 조치를 기다리는 현황입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>NCR 문서번호</th><th>발생 공정/부서</th><th>불량 내역 (Defect)</th><th style="color:var(--red)">진행 상태</th><th>발행 일자</th><th>조치 기한</th></tr></thead><tbody id="tb10"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ MRB (결함 심의 위원회) 판정 보드</h3><span class="tip">NCR이 발행된 부적합품을 폐기(Scrap)할지, 재작업(Rework)할지, 그냥 쓸지(Use-As-Is) 유관부서가 모여 판정하는 칸반입니다.</span></div></div>
+    <div class="kanban" id="kb-wrap">
+      <div class="k-col"><div style="font-weight:700;color:var(--amber)">1. 심의 대기 (MRB Review)</div><div id="k11_1"></div></div>
+      <div class="k-col" style="border-color:var(--red-mid)"><div style="font-weight:700;color:var(--red)">2. 폐기 판정 (Scrap)</div><div id="k11_2"></div></div>
+      <div class="k-col" style="border-color:var(--cyan-dim)"><div style="font-weight:700;color:var(--cyan)">3. 재작업 판정 (Rework)</div><div id="k11_3"></div></div>
+      <div class="k-col" style="border-color:var(--green-mid)"><div style="font-weight:700;color:var(--green)">4. 특채 허용 (Use-As-Is)</div><div id="k11_4"></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 폐기 / 재작업 지시 (Disposition Action)</h3><span class="tip">MRB에서 '재작업'이나 '폐기'로 판정난 재고들에 대해 실제 ERP 재고를 깎거나 재작업용 라우팅 지시를 발급하는 화면입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>부적합 LOT 번호</th><th>품목명</th><th>MRB 판정 결과</th><th>물리적 재고 위치</th><th>실행 액션 (Execution)</th></tr></thead><tbody id="tb12"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 고객 클레임 (RMA) 및 반품 접수창</h3><span class="tip">고객에게 나갔던 물건이 불량으로 회수(Return Material Authorization)되었을 때, 원인 분석을 위해 접수하는 폼입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">고객 클레임(RMA) 접수</div><div class="label">고객사 명</div><input type="text" class="inp" value="애플 (Apple Inc.)" style="margin-bottom:12px"><div class="label">반품된 우리 LOT 번호</div><input type="text" class="inp" value="PROD-2410-9991" style="font-family:var(--mono);color:var(--red);margin-bottom:12px"><div class="label">고객 불만 내용</div><textarea class="inp" rows="4" style="margin-bottom:16px">조립 후 전원 인가 시 발열 및 쇼트 현상 발생. 전량 반품 및 개선대책(8D) 요구함.</textarea><button class="btn btn-red" style="width:100%" onclick="showToast('클레임 접수 및 8D Report 작성이 활성화되었습니다.')">클레임 접수 등록</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">최근 접수된 클레임 이력</div><div class="tbl-wrap" style="max-height:300px;border:none"><table class="tbl"><thead><tr><th>RMA 번호</th><th>고객사</th><th>클레임 일자</th></tr></thead><tbody id="tb13"></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 8D Report (근본원인 개선대책) 입력 폼</h3><span class="tip">중대 클레임 발생 시 고객에게 제출하는 표준 품질 개선 양식(8 Disciplines)의 단계별 텍스트 입력 창입니다.</span></div></div>
+    <div class="card">
+      <div class="grid2" style="margin-bottom:16px"><div><div class="label">D1. 팀 구성 (Team Formation)</div><input type="text" class="inp" value="품질팀장, 생산팀장, 기술연구소"></div><div><div class="label">D2. 문제 설명 (Problem Description)</div><input type="text" class="inp" value="전원 인가 시 발열 쇼트 (불량률 2.5%)"></div></div>
+      <div class="label">D3. 임시 봉쇄 조치 (Containment Action)</div><textarea class="inp" rows="2" style="margin-bottom:16px">창고 내 동일 생산일자 재고 전량 출하 정지(Hold) 및 전수검사 지시</textarea>
+      <div class="label" style="color:var(--red)">D4. 근본 원인 분석 (Root Cause Analysis - 5 Whys)</div><textarea class="inp" rows="3" style="border-color:var(--red);margin-bottom:16px">1. 칩 표면 파티클 유입 -> 2. 클린룸 필터 교체주기 초과 -> 3. 유지보수 알람 시스템 미비...</textarea>
+      <div class="label" style="color:var(--green)">D5/D6. 영구 시정 조치 (Corrective Action)</div><textarea class="inp" rows="2" style="margin-bottom:16px">클린룸 HEPA 필터 즉시 교체 및 IoT 차압 센서 연동 알람 시스템 구축</textarea>
+      <button class="btn btn-purple" style="width:100%;padding:14px" onclick="showToast('8D Report가 고객 양식(PDF)으로 출력됩니다.')">8D Report 승인 및 문서(PDF) 발행</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ X-bar R 관리도 (SPC Control Chart)</h3><span class="tip">입력된 치수 데이터(두께, 길이)를 바탕으로 관리상한선(UCL)과 하한선(LCL)을 이탈하는 이상 추세(Trend)를 감지합니다.</span></div><button class="btn btn-purple" onclick="drawSPC()">차트 새로고침 ↻</button></div>
+    <div class="card" style="padding:30px">
+      <div class="card-title">샤프트 외경 치수 X-bar 관리도 (n=5)</div>
+      <div class="spc-chart" id="spc-chart">
+        <div class="spc-line" style="top:15%;border-color:var(--red)"><span style="font-size:10px;color:var(--red);position:absolute;top:-15px;right:5px">UCL 50.08</span></div>
+        <div class="spc-line" style="top:50%;border-color:var(--purple)"><span style="font-size:10px;color:var(--purple);position:absolute;top:-15px;right:5px">CL 50.00</span></div>
+        <div class="spc-line" style="top:85%;border-color:var(--red)"><span style="font-size:10px;color:var(--red);position:absolute;top:-15px;right:5px">LCL 49.92</span></div>
+        <svg width="100%" height="100%" style="position:absolute;top:0;left:0;z-index:2" id="spc-svg"></svg>
+      </div>
+      <div class="tip" style="color:var(--red);margin-top:10px;font-weight:700">🚨 경고: 최근 3타점이 2시그마 구역을 벗어나는 런(Run) 현상 발생. 공정 점검 요망.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ Cp / Cpk 공정능력 지수 (Process Capability)</h3><span class="tip">우리 공장이 고객이 요구하는 스펙 규격 안에 얼마나 안정적으로 제품을 밀어 넣고 있는지(산포) 점수화한 차트입니다.</span></div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">Cp (공정 능력)</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--green);margin:20px 0">1.67</div><div class="badge badge-green">Excellent (1.33 이상)</div></div>
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">Cpk (치우침 고려)</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--amber);margin:20px 0">1.25</div><div class="badge badge-amber">Good (치우침 발생)</div></div>
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">PPM (예상 불량률)</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--text);margin:20px 0">88.5</div><div class="tip">100만 개당 88개 불량 예상</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 불량 유형 파레토 차트 (Pareto Chart)</h3><span class="tip">"어떤 불량이 가장 많이 발생했는가?" 80대 20 법칙에 따라, 개선해야 할 최우선 불량 항목(Vital Few)을 시각화합니다.</span></div></div>
+    <div class="card" style="padding:30px">
+      <div class="card-title" style="margin-bottom:20px">이번 달 조립공정 불량 유형 Top 5</div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">1. 표면 스크래치</span><div class="chart-bar-wrap"><div class="c-bar" style="width:60%;background:var(--red)">350건 (40%)</div></div></div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">2. 조립 누락</span><div class="chart-bar-wrap"><div class="c-bar" style="width:40%;background:var(--amber)">210건 (24%)</div></div></div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">3. 치수 미달</span><div class="chart-bar-wrap"><div class="c-bar" style="width:25%;background:var(--amber)">120건 (14%)</div></div></div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">4. 파티클 이물</span><div class="chart-bar-wrap"><div class="c-bar" style="width:15%;background:var(--blue)">80건 (9%)</div></div></div>
+      <div style="display:flex;align-items:center"><span style="width:120px">5. 라벨 오부착</span><div class="chart-bar-wrap"><div class="c-bar" style="width:5%;background:var(--blue)">30건 (3%)</div></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 품질 비용 (COQ - Cost of Quality) 대시보드</h3><span class="tip">불량이 나서 버린 돈(실패비용)과 검사하느라 쓴 돈(예방비용)을 재무적(₩) 관점으로 환산하여 경영진에게 보여줍니다.</span></div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center;border-color:var(--red)"><div class="card-title" style="justify-content:center;color:var(--red)">내부 실패비용 (Scrap/재작업)</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;margin:20px 0;color:var(--red)">₩ 45,200k</div></div>
+      <div class="card" style="text-align:center;border-color:var(--rose)"><div class="card-title" style="justify-content:center;color:var(--rose)">외부 실패비용 (클레임/반품)</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;margin:20px 0;color:var(--rose)">₩ 125,500k</div></div>
+      <div class="card" style="text-align:center;border-color:var(--blue)"><div class="card-title" style="justify-content:center;color:var(--blue)">평가/예방비용 (검사/교육)</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;margin:20px 0;color:var(--blue)">₩ 20,100k</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ 검사원 실적 및 게이지 R&R (Inspector / Gage R&R)</h3><span class="tip">사람이 눈으로 검사할 때, 김검사원과 박검사원의 판정 결과가 다르게 나오진 않는지(측정 시스템 산포) 사람/계측기 별로 분석합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>검사원 명</th><th>월간 검사 수량</th><th>불량 적발률(%)</th><th>오판정(과잉검사) 율</th><th>평가 결과</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 스마트 캘리퍼스 (BLE) 무선 데이터 자동 연동</h3><span class="tip">작업자가 버니어 캘리퍼스로 치수를 잴 때 종이에 적지 않고 버튼만 누르면, 블루투스로 치수가 자동 입력되는 스마트 UI입니다.</span></div><span class="badge" style="background:var(--cyan);color:#fff;animation:pulse 1s infinite">📡 Mitutoyo Caliper 연결됨</span></div>
+    <div class="grid2">
+      <div class="card" style="text-align:center;border-color:var(--cyan)"><div class="card-title" style="justify-content:center">현재 수신된 측정값 (블루투스)</div><div style="font-family:var(--mono);font-size:70px;font-weight:700;color:var(--cyan);margin:20px 0" id="ble-val">12.45</div><div class="tip">단위: mm | 허용공차: 12.50 ± 0.10</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">자동 입력 대기열</div><div class="tbl-wrap" style="border:none;max-height:200px"><table class="tbl"><thead><tr><th>시료 번호</th><th>측정값</th><th>상태</th></tr></thead><tbody id="tb20"></tbody></table></div><button class="btn btn-cyan" style="width:100%;margin-top:16px" onclick="doBle()">가상 데이터 수신 버튼 ⚡</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ Vision AI 외관 불량 자동 판독 (Machine Vision)</h3><span class="tip">카메라가 찍은 PCB/제품 이미지에서 딥러닝 AI가 스크래치, 파손, 납땜 불량을 찾아내 빨간 박스(Bounding Box)를 쳐주는 뷰입니다.</span></div></div>
+    <div class="grid2">
+      <div style="height:400px;background:#000;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative"><span style="font-size:50px;opacity:0.3">📷 Image Capture</span><div style="position:absolute;top:20%;left:30%;width:50px;height:50px;border:2px solid var(--red);background:var(--red-dim)"></div><div style="position:absolute;top:60%;left:70%;width:30px;height:30px;border:2px solid var(--red);background:var(--red-dim)"></div><div style="position:absolute;top:10px;left:10px;background:var(--red);color:#fff;padding:4px 8px;border-radius:4px;font-weight:700;font-size:12px">AI Score: 98% NG</div></div>
+      <div class="card" style="margin:0"><div class="card-title">AI 판독 결과 상세</div><div style="padding:10px;border-left:3px solid var(--red);background:var(--surface3);margin-bottom:10px">1. 표면 스크래치 감지 (신뢰도 98%)</div><div style="padding:10px;border-left:3px solid var(--red);background:var(--surface3);margin-bottom:20px">2. 칩 마운트 이탈 감지 (신뢰도 95%)</div><button class="btn btn-red" style="width:100%;padding:16px;font-size:16px" onclick="showToast('AI 판정값으로 불량 실적이 확정되었습니다.')">AI 불량 판정 승인 (Reject)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ 3D 스캐너 형상/치수 검사 (3D Point Cloud)</h3><span class="tip">금속 가공품을 3D 레이저로 스캔하여, 원본 CAD 도면과 겹쳐보고(Overlay) 튀어나오거나 파인 곳을 색상 지도(Color Map)로 보여줍니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;background:var(--surface3);border-color:var(--cyan)">
+      <div style="font-size:50px;margin-bottom:20px;color:var(--cyan)">🧊</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:10px">3D CAD Overlay 검사 완료</div>
+      <div class="tip" style="font-size:14px">형상 공차(GD&T) 허용 범위 이내 (Max Deviation: 0.02mm)</div>
+      <button class="btn btn-cyan" style="margin-top:20px" onclick="showToast('3D 측정 데이터 합격 처리')">합격 판정</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ FDC 설비 이상 파라미터 감지 (Fault Detection)</h3><span class="tip">불량이 나기 전에, 설비의 온도/진동 센서값이 평소 패턴과 다르게 움직이면(이상 탐지) 미리 알람을 띄워 선제 조치합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비명</th><th>센서 항목</th><th>현재값</th><th>이상 탐지 스코어 (AI)</th><th>자동 액션</th></tr></thead><tbody id="tb23"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 모바일 불량 현장 사진 촬영 (Mobile Photo Report)</h3><span class="tip">검사원이 라인을 돌다가 불량을 발견하면, 바로 스마트폰을 꺼내 사진을 찍고 펜으로 동그라미를 쳐서 부적합 보고서를 올립니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border:2px dashed var(--cyan);text-align:center;padding:60px;cursor:pointer" onclick="showToast('카메라 앱 실행 -> 사진 첨부 됨')"><div style="font-size:50px">📸</div><div style="font-weight:700;color:var(--cyan);margin-top:10px">현장 사진 촬영 (클릭)</div></div>
+      <div class="card" style="margin:0"><div class="card-title">현장 불량 즉시 보고</div><div class="label">불량 발견 공정</div><input type="text" class="inp" value="프레스 2라인" disabled style="margin-bottom:12px"><div class="label">사진 코멘트</div><textarea class="inp" rows="4" style="margin-bottom:16px">금형 마모로 인한 끝부분 찍힘 불량 다수 발생함. 즉시 조치 요망.</textarea><button class="btn btn-red" style="width:100%" onclick="showToast('사진과 함께 긴급 NCR이 발행되었습니다.')">사진 첨부하여 긴급 NCR 발행</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ 음성 인식 (Voice) 핸즈프리 불량 등록</h3><span class="tip">양손에 장갑을 끼고 검사 중일 때, 허공에 "스크래치 두 개, 찍힘 한 개" 라고 말하면 AI가 표로 척척 채워줍니다.</span></div></div>
+    <div style="text-align:center;padding:50px">
+      <div style="width:120px;height:120px;border-radius:50%;background:var(--surface3);border:2px solid var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:50px;cursor:pointer;margin-bottom:20px;box-shadow:0 0 30px var(--cyan-dim)" onclick="showToast('음성명령 파싱: 스크래치 2건 실적 등록됨')">🎤</div>
+      <div style="font-size:24px;color:var(--cyan);font-family:var(--mono);font-weight:700">"스크래치 불량 두 개 등록해 줘"</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 다기능공(Skill Matrix) 기반 검사자 할당 통제</h3><span class="tip">초정밀 육안 검사(예: 항공부품)는 자격증이 있는 'A등급 검사원'만 시스템에 로그인해서 판정할 수 있도록 스킬을 통제합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>검사원 명</th><th>육안 검사 스킬 등급</th><th>정밀 계측기 자격증</th><th>시스템 검사 권한 상태</th></tr></thead><tbody id="tb26"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 계측기 교정 (Calibration) 이력 연동 검사</h3><span class="tip">계측기의 영점 교정 유효기간이 지난 도구로 검사하려고 바코드를 찍으면, 시스템이 "이 계측기는 못 믿어!" 하고 입력을 차단합니다.</span></div></div>
+    <div class="card" style="text-align:center;border-color:var(--red);background:var(--red-dim)">
+      <div style="font-size:20px;font-weight:700;color:var(--red);margin-bottom:10px">🚨 계측기 교정 기간 만료 (Calibration Overdue)</div>
+      <div style="font-family:var(--mono)">계측기 ID: CAL-TOOL-991 (마이크로미터)</div>
+      <div style="margin-top:10px;color:var(--text)">해당 계측기로는 품질 검사 결과를 입력할 수 없습니다. 교정을 갱신하세요.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 블록체인 기반 품질 성적서 (COA) 무결성 보증</h3><span class="tip">협력사에 발행하는 출하 성적서 데이터를 블록체인에 해시(Hash)로 기록하여, 수치가 중간에 절대 위변조되지 않았음을 증명합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>성적서 발행일</th><th>발행 대상 LOT</th><th style="color:var(--cyan)">블록체인 Tx Hash (무결성 씰)</th><th>문서 다운로드</th></tr></thead><tbody id="tb28"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉚ 불량 원인 역추적 토폴로지 (Root Cause Genealogy)</h3>
+        <span class="tip">최종 검사에서 발생한 불량이 어떤 설비, 어떤 자재, 어떤 작업자로부터 유래되었는지 꼬리에 꼬리를 무는 연쇄 트리를 그립니다.</span>
+      </div>
+    </div>
+    <div class="topo-wrap">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--red);margin-bottom:5px">1. 불량 적발 (OQC)</div>
+        <div class="topo-node err"><div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:4px">OQC-FAIL-01</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">최종 출하검사 불합격</div><div class="badge badge-red">치수 불량 (NG)</div></div>
+      </div>
+      <div class="topo-arrow">역추적<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 해당 완제품 조립 이력</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-ASSY-99</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">조립 공정 (작업자: 박조립)</div><div class="badge badge-gray">특이사항 없음</div></div>
+      </div>
+      <div class="topo-arrow">BOM 역전개<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 투입된 하위 부품 이력</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">SUB-LOT-A</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">메인 하우징 부품</div><div class="badge badge-gray">정상품</div></div>
+        <div class="topo-node err"><div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:4px">SUB-LOT-B (의심 원인)</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">내부 기어 부품</div><div class="badge badge-amber">당시 설비 온도 튀었음</div></div>
+      </div>
+      <div class="topo-arrow">외주 이력<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">4. 최종 Root Cause</div>
+        <div class="topo-node err" style="border-left-color:var(--purple)"><div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PO-55 (협력사)</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">기어 가공 외주업체 불량 혼입</div><div class="badge badge-red">근본 원인 판명!</div></div>
+      </div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// --- Navigation & Core Logic ---
+const tabNames = [
+  "IQC 검사대기열","AQL 샘플링수량","IQC 합불판정","성적서(COA) OCR","협력사 품질평가", // Grp 1 (IQC)
+  "초중종물 검사","순회검사(모바일)","터치형 불량패드","불량 매트릭스","OQC 출하검사", // Grp 2 (LQC/OQC)
+  "부적합(NCR) 보고","MRB 결함심의","재작업/폐기지시","클레임(RMA)접수","8D Report 폼", // Grp 3 (Claim)
+  "X-R 관리도(SPC)","Cp/Cpk 공정능력","불량 파레토차트","품질비용(COQ)","검사원 R&R 평가", // Grp 4 (SPC)
+  "블루투스 캘리퍼스","Vision AI 검사","3D 스캔 치수검사","FDC 설비이상감지","현장 불량사진(앱)", // Grp 5 (Smart)
+  "음성인식 불량등록","스킬기반 검사제한","계측기 교정연동","블록체인 성적서","불량원인 토폴로지" // Grp 6 (Trace)
+];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 5) + 1; // 1 to 6
+    let btn = document.createElement('button');
+    btn.className = `tab-btn t-${grp} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try {
+    genP0(); genP3(); genP4(); genP5();
+    genP8(); genP9(); genP10(); genP12();
+    genP18(); genP22(); genP25(); genP27();
+  } catch(e) { console.error(e); }
+});
+
+function genP0(){
+  let h=''; const v=["글로벌메탈","성진케미칼","우수전자","대한정밀"];
+  for(let i=1;i<=100;i++){
+    h+=`<tr><td class="num">${i}</td><td style="font-family:var(--mono);color:var(--blue)">RCV-LOT-${String(i).padStart(4,'0')}</td><td>${v[i%v.length]}</td><td>원부자재 ${i}</td><td class="num">${rInt(100,5000)}</td><td>10/30</td><td><span class="badge badge-amber">검사 대기중</span></td><td><button class="btn btn-ghost btn-sm">할당</button></td></tr>`;
+  } $('tb0').innerHTML=h;
+}
+
+function genP3(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono)">RCV-LOT-99${i}</td><td style="color:var(--blue);font-weight:700">COA_Document_v${i}.pdf</td><td>2024-10-25</td></tr>`; } $('tb3').innerHTML=h;
+}
+
+function genP4(){
+  let h=''; const v=["A상사","B정밀","C전자","D케미칼"];
+  for(let i=1;i<=30;i++){
+    const q=rInt(10000,50000); const f=rInt(0,50); const ppm=Math.floor((f/q)*1000000);
+    const gr=ppm>1000?'C등급 (경고)':ppm>500?'B등급 (보통)':'A등급 (우수)';
+    h+=`<tr><td>${v[i%v.length]} (지점${i})</td><td class="num">${q.toLocaleString()}</td><td class="num" style="color:var(--red)">${f}</td><td class="num" style="font-weight:700">${ppm}</td><td><span style="color:var(--${ppm>1000?'red':'green'})">${gr}</span></td><td><button class="btn btn-ghost btn-sm">평가서</button></td></tr>`;
+  } $('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h=''; for(let i=1;i<=20;i++){
+    const s1=i%3===0?'PASS':'대기'; const s2=i%4===0?'PASS':'대기';
+    h+=`<tr><td>사출기 ${i}호</td><td style="font-family:var(--mono)">WO-INJ-${i}</td><td><span class="badge badge-${s1==='PASS'?'green':'gray'}">${s1}</span></td><td><span class="badge badge-${s2==='PASS'?'green':'gray'}">${s2}</span></td><td><span class="badge badge-gray">대기</span></td><td style="color:var(--green);font-weight:700">가동중</td></tr>`;
+  } $('tb5').innerHTML=h;
+}
+
+// Touch Defect Logic
+let dt=0, dn=1;
+function doTouchDefect(nm){
+  dt++; $('def-tot').textContent=dt+' EA';
+  $('def-list').innerHTML+=`<div style="padding:10px;background:var(--surface);border-left:3px solid var(--red);margin-bottom:4px">#${dn++}. ${nm} (수량: 1)</div>`;
+  showToast(nm+' 불량 카운트 됨');
+}
+
+function genP8(){
+  let h1='<tr><th>LOT 번호</th><th style="color:var(--green)">양품수량</th>';
+  const defs=["스크래치","찍힘","치수미달","이물질"];
+  defs.forEach(d=>h1+=`<th style="color:var(--red)">${d}</th>`);
+  $('th8').innerHTML=h1+'</tr>';
+  
+  let h2=''; for(let i=1;i<=50;i++){
+    h2+=`<tr><td style="font-family:var(--mono);color:var(--blue)">WO-LOT-${String(i).padStart(3,'0')}</td><td><input type="number" class="inp inp-sm num" value="${rInt(100,500)}" style="color:var(--green);font-weight:700"></td>`;
+    for(let d=0;d<4;d++){ h2+=`<td><input type="number" class="inp inp-sm num" value="0"></td>`; } h2+='</tr>';
+  } $('tb8').innerHTML=h2;
+}
+
+function genP9(){
+  let h=''; for(let i=1;i<=50;i++){
+    const ok=i%8!==0;
+    h+=`<tr><td style="font-family:var(--mono)">SO-2410-${i}</td><td>고객사 ${i}</td><td style="font-family:var(--mono)">PROD-${rInt(1000,9999)}</td><td class="num">${rInt(10,50)}</td><td><span class="badge badge-${ok?'green':'red'}">${ok?'PASS':'FAIL'}</span></td><td><button class="btn btn-${ok?'green':'ghost'} btn-sm">${ok?'출하 승인 ➔':'보류됨'}</button></td></tr>`;
+  } $('tb9').innerHTML=h;
+}
+
+function genP10(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--red)">NCR-2024-${i}</td><td>조립 ${i}라인</td><td>주요 결합부 유격 발생</td><td><span class="badge badge-red">대책수립중</span></td><td>10/25</td><td style="color:var(--red);font-weight:700">11/01 까지</td></tr>`; } $('tb10').innerHTML=h;
+}
+
+function genP12(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--amber)">HOLD-LOT-${i}</td><td>불량 의심 자재 ${i}</td><td><span style="color:var(--red);font-weight:700">Scrap (폐기) 판정</span></td><td>불량격리구역</td><td><button class="btn btn-red btn-sm" onclick="showToast('재고 폐기 차감 완료')">재고 Scrap 처리</button></td></tr>`; } $('tb12').innerHTML=h;
+}
+
+function drawSPC(){
+  showToast('차트가 재계산 되었습니다.');
+  const svg=$('spc-svg'); let pts='';
+  for(let i=0;i<20;i++){ const x=i*20+10, y=rInt(20,80); pts+=`${x},${y} `; svg.innerHTML+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--purple)"/>`; }
+  svg.innerHTML+=`<polyline points="${pts}" fill="none" stroke="var(--purple)" stroke-width="2"/>`;
+}
+
+function genP18(){
+  let h=''; const names=["김검사","이판정","박품질","최분석"];
+  for(let i=1;i<=20;i++){
+    const n=names[i%4]; const q=rInt(1000,5000); const f=rInt(1,5); const over=rInt(0,2);
+    h+=`<tr><td>${n}</td><td class="num">${q.toLocaleString()}</td><td class="num">${f}%</td><td class="num" style="color:var(--red)">${over}%</td><td><span style="color:var(--green)">우수 (신뢰도 높음)</span></td></tr>`;
+  } $('tb19').innerHTML=h;
+}
+
+let bv=12.45;
+function doBle(){
+  bv=(12.45 + (Math.random()*0.1 - 0.05)).toFixed(3);
+  $('ble-val').textContent=bv;
+  const ok=(bv>=12.40 && bv<=12.60);
+  $('tb20').innerHTML+=`<tr><td>S-${rInt(100,999)}</td><td class="num" style="color:var(--${ok?'cyan':'red'})">${bv} mm</td><td><span class="badge badge-${ok?'green':'red'}">${ok?'OK':'NG'}</span></td></tr>`;
+  showToast('블루투스 데이터 수신 완료');
+}
+
+function genP22(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>진공 펌프 ${i}호기</td><td>진동 주파수 (Hz)</td><td class="num" style="color:var(--amber);font-weight:700">${rInt(80,120)}</td><td class="num" style="color:var(--red)">92% (위험)</td><td><button class="btn btn-ghost btn-sm">설비 점검 지시</button></td></tr>`; } $('tb23').innerHTML=h;
+}
+
+function genP25(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td>10-28 14:00</td><td>사원 ${i}</td><td style="color:var(--${i%4===0?'red':'green'});font-weight:700">${i%4===0?'C등급 (권한없음)':'A등급 (합격)'}</td><td><span class="badge badge-${i%4===0?'red':'green'}">${i%4===0?'접근거부':'판정가능'}</span></td></tr>`; } $('tb26').innerHTML=h;
+}
+
+function genP27(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>10-25 11:00</td><td style="font-family:var(--mono)">COA-LOT-${i}</td><td style="font-family:var(--mono);color:var(--cyan);font-size:11px">0x${Math.random().toString(16).slice(2,15)}...</td><td><button class="btn btn-ghost btn-sm">PDF</button></td></tr>`; } $('tb28').innerHTML=h;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #9 */
+(function(){var I=9;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

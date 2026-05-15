@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>레시피 다운로드</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #16: 레시피 다운로드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 레시피/파라미터(Recipe) 다운로드 지시</h3><span class="tip">작업자에게 종이 지시서를 주는 것을 넘어, 설비(PLC)로 온도/압력 설정값을 직접 쏴서(Download) 자동 세팅시킵니다.</span></div><span class="badge" style="background:var(--green);color:#fff">● 설비 양방향 통신 연결됨</span></div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl"><thead><tr><th>파라미터 명</th><th>표준 설정값 (Set Point)</th><th>허용 오차 (Tolerance)</th></tr></thead><tbody id="tb15"></tbody></table></div>
+    <button class="btn btn-blue" style="width:100%;padding:16px;font-size:16px" onclick="showToast('모든 설정값이 설비 PLC로 전송되어 자동 세팅되었습니다.')">설비로 레시피 설정값 전송 (Download) ➔</button>
+  </div>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>장바구니 픽업</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #5: 장바구니 픽업 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 장바구니형 출하 (Will-Call / Pickup)</h3><span class="tip">도매상이나 드라이브스루에서 고객이 직접 찾아와 물건을 가져갈 때, 바구니에 담듯 치고 바로 출하합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 400px">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>창고 재고 리스트</th><th>수량</th><th>액션</th></tr></thead><tbody id="tb4"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column;height:550px">
+        <div class="card-title">🛒 현장 픽업 출하 바구니</div><div id="cart-list" style="flex:1;overflow-y:auto;border-bottom:1px solid var(--border);margin-bottom:16px"></div>
+        <button class="btn btn-indigo" style="padding:16px" onclick="showToast('즉시 출하 및 영수증 출력 완료');document.getElementById('cart-list').innerHTML=''">즉시 출하 (Pick & Go)</button>
+      </div>
+    </div>
+  </div>

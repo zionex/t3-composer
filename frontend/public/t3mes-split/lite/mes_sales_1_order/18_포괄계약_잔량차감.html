@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>포괄계약 잔량차감</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #18: 포괄계약 잔량차감 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p17">
+  <div class="sec-hdr"><div><h3>⑱ 포괄계약 (Blanket Order) 잔량 차감형</h3><span class="tip">연간 대량 계약을 맺고 발주가 올 때마다 게이지를 깎습니다. (15개 계약 자동 생성)</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 350px">
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>계약번호 / 품목</th><th>계약량</th><th>진행률 (게이지)</th><th>잔량</th><th>차감</th></tr></thead><tbody id="tb17"></tbody></table></div>
+    <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">이번 달 차감 (Call-off)</div><div class="label">차감 수량 입력</div><input type="number" class="inp" value="5000" style="font-size:24px;font-weight:700;color:var(--orange);margin-bottom:20px;text-align:right"><button class="btn btn-orange" style="width:100%" onclick="showToast('수량 차감 완료')">잔량 차감 및 확정</button></div>
+  </div>
+</div>

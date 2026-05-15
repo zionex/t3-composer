@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>13. 로트(Lot) 분할</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #13: 13. 로트(Lot) 분할 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+  <div class="sec-hdr"><div><h3>⑬ 로트(Lot) 번호 분할 및 재생성</h3><span class="tip">벌크(Bulk) 로트를 소분하여 새로운 로트 번호 2개로 쪼개고 각각 수량을 부여합니다.</span></div></div>
+  <div class="card"><div class="card-title">원본 로트: LOT-2024-X99 (총 1,000kg)</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:16px">
+      <div style="flex:1;background:var(--surface3);padding:16px;border-radius:8px">
+        <div class="label">분할 로트 1</div><input type="text" class="inp" value="LOT-2024-X99-A" style="margin-bottom:8px">
+        <div class="label">할당 수량 (kg)</div><input type="number" class="inp" value="400">
+      </div>
+      <div style="flex:1;background:var(--surface3);padding:16px;border-radius:8px">
+        <div class="label">분할 로트 2</div><input type="text" class="inp" value="LOT-2024-X99-B" style="margin-bottom:8px">
+        <div class="label">할당 수량 (kg)</div><input type="number" class="inp" value="600">
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:16px"><button class="btn btn-orange">로트 분할 실행</button></div>
+  </div>
+</div>

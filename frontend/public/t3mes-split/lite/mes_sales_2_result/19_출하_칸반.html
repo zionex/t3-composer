@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>출하 칸반</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #19: 출하 칸반 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 칸반 보드형 출하 현황 (Shipping Kanban)</h3><span class="tip">창고 안에서 '피킹 대기 -> 포장중 -> 상차 대기 -> 출발' 의 상태를 카드로 직관적으로 봅니다.</span></div></div>
+    <div class="kanban">
+      <div class="k-col"><div style="font-weight:700">1. 피킹 지시됨</div><div id="sk1"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()"><div style="font-weight:700;color:var(--amber)">2. 포장 중 (Packing)</div><div id="sk2"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()"><div style="font-weight:700;color:var(--blue)">3. 도크 대기 (상차전)</div><div id="sk3"></div></div>
+      <div class="k-col" style="border-color:var(--amber-dim);background:var(--amber-dim)"><div style="font-weight:700;color:var(--amber)">4. 출하 완료 (Shipped)</div></div>
+    </div>
+  </div>

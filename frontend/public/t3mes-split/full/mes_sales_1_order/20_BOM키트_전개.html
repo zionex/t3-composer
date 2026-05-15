@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Order UI (25 Types) - Fixed Full Data Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252a3d;
+  --border:#2a3050;--border2:#3a4570;
+  --green:#00d68f;--green-dim:#00d68f22;--red:#ff4d6d;--red-dim:#ff4d6d22;
+  --amber:#ffb347;--amber-dim:#ffb34722;--blue:#4d9fff;--blue-dim:#4d9fff22;
+  --pink:#ff66a3;--pink-dim:#ff66a322;--purple:#9d72ff;--purple-dim:#9d72ff22;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff22;--orange:#ff8a00;--orange-dim:#ff8a0022;
+  --text:#e8ecf4;--text2:#a0aabf;--text3:#5a6480;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-btn.active{background:var(--surface2);color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:700}
+.tab-btn.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.tab-btn.grp2{color:var(--cyan)}.tab-btn.grp2.active{color:var(--cyan);border-bottom-color:var(--cyan)}.tab-btn.grp2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.tab-btn.grp3{color:var(--orange)}.tab-btn.grp3.active{color:var(--orange);border-bottom-color:var(--orange)}.tab-btn.grp3.active .tab-num{color:var(--orange);background:var(--orange-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1}
+.panel.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.tbl tr.child-row td{background:var(--surface2);color:var(--text2)}
+
+/* Form Elements */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none}
+.inp:focus{border-color:var(--blue)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);border-color:#4d9fff55;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#00e5ff55;color:var(--cyan)}
+.btn-orange{background:var(--orange-dim);border-color:#ff8a0055;color:var(--orange)}
+.btn-green{background:var(--green-dim);border-color:var(--green-mid);color:var(--green)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* Special UI */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;max-height:600px;overflow-y:auto;padding-right:8px}
+.prod-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .2s}
+.prod-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px}
+.k-col{width:320px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab}
+.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;max-height:600px;overflow-y:auto;padding-right:8px}
+.pos-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.pos-item:hover{border-color:var(--orange)}
+.map-canvas{position:relative;width:100%;height:500px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background-image:radial-gradient(var(--border) 1px, transparent 1px);background-size:20px 20px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.cal-header{background:var(--surface3);text-align:center;padding:8px;font-size:12px;font-weight:700}
+.cal-day{background:var(--surface);min-height:100px;padding:6px;cursor:pointer}
+.cal-day:hover{background:var(--surface3)}
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative}
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--orange)}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">헤더-디테일<span class="tab-num">1</span></button>
+  <button class="tab-btn" onclick="switchTab(1)">엑셀 쾌속입력<span class="tab-num">2</span></button>
+  <button class="tab-btn" onclick="switchTab(2)">B2B 장바구니<span class="tab-num">3</span></button>
+  <button class="tab-btn" onclick="switchTab(3)">이메일 텍스트파싱<span class="tab-num">4</span></button>
+  <button class="tab-btn" onclick="switchTab(4)">스케줄 매트릭스<span class="tab-num">5</span></button>
+  <button class="tab-btn" onclick="switchTab(5)">정기 수주<span class="tab-num">6</span></button>
+  <button class="tab-btn" onclick="switchTab(6)">CRM 칸반<span class="tab-num">7</span></button>
+  <button class="tab-btn" onclick="switchTab(7)">모바일 AI챗봇<span class="tab-num">8</span></button>
+  
+  <button class="tab-btn grp2" onclick="switchTab(8)">과거이력 재주문<span class="tab-num">9</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(9)">지도기반 할당<span class="tab-num">10</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(10)">CPQ 옵션단가<span class="tab-num">11</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(11)">다중배송지 분할<span class="tab-num">12</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(12)">캘린더 드래그<span class="tab-num">13</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(13)">단계별 마법사<span class="tab-num">14</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(14)">음성인식 수주<span class="tab-num">15</span></button>
+
+  <button class="tab-btn grp3" onclick="switchTab(15)">대량 엑셀업로드<span class="tab-num">16</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(16)">POS 매장수주<span class="tab-num">17</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(17)">포괄계약 잔량차감<span class="tab-num">18</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(18)">SaaS 티어구독<span class="tab-num">19</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(19)">BOM/키트 전개<span class="tab-num">20</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(20)">영업목표 연동<span class="tab-num">21</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(21)">할인결재 워크플로우<span class="tab-num">22</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(22)">모바일 바코드<span class="tab-num">23</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(23)">인라인 수식계산<span class="tab-num">24</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(24)">AI 크로스셀<span class="tab-num">25</span></button>
+</div>
+
+<div class="panel active" id="p0">
+  <div class="sec-hdr"><div><h3>① 헤더-디테일 (전통적 BOM 수주)</h3><span class="tip">프로젝트성 대규모 수주에서 수십 개의 하위 부품을 한 장에 담습니다. (30건 자동 생성)</span></div><button class="btn btn-blue" onclick="showToast('수주 일괄 저장 완료')">수주 일괄 저장 (Save)</button></div>
+  <div class="card"><div class="grid4"><div><div class="label">수주일자</div><input type="date" class="inp" value="2024-10-25"></div><div><div class="label">고객사</div><select class="inp"><option>SK C&C (판교데이터센터)</option></select></div><div><div class="label">프로젝트 명</div><input type="text" class="inp" value="2024년 하반기 서버 팜 증설"></div><div><div class="label">결제 조건</div><select class="inp"><option>선수금 50%, 잔금 50%</option></select></div></div></div>
+  <div class="card" style="margin:0"><div class="card-title">납품 품목 리스트</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>No</th><th>품목코드</th><th>품목명 및 규격</th><th style="text-align:right">수량</th><th style="text-align:right">단가(KRW)</th><th style="text-align:right">공급가액</th><th>납기요청일</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="sec-hdr"><div><h3>② 엑셀형 쾌속 그리드 (월말 대량 마감용)</h3><span class="tip">마감일에 수백 건의 주문을 탭(Tab)키로 미친 듯이 쳐냅니다. (50건 자동 생성)</span></div><button class="btn btn-blue" onclick="showToast('50건 일괄 저장 완료')">그리드 일괄 저장</button></div>
+  <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>No</th><th>고객사</th><th>품목명</th><th>수량</th><th>단가</th><th>공급가액 (자동계산)</th><th>납기일자</th><th>비고</th></tr></thead><tbody id="tb1"></tbody></table></div>
+</div>
+
+<div class="panel" id="p2">
+  <div class="sec-hdr"><div><h3>③ B2B 카탈로그 / 장바구니 패턴</h3><span class="tip">가맹점주가 식자재를 쇼핑몰처럼 이미지를 보며 장바구니에 담습니다. (24개 상품 생성)</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 350px">
+    <div><div style="margin-bottom:16px"><select class="inp" style="width:250px"><option>가맹점: 스타벅스 강남점</option></select></div><div class="catalog-grid" id="tb2"></div></div>
+    <div class="card" style="margin:0;display:flex;flex-direction:column;height:650px"><div class="card-title">🛒 수주 장바구니</div><div id="cart-list" style="flex:1;overflow-y:auto;border-bottom:2px dashed var(--border);margin-bottom:16px"></div><div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:20px;font-weight:700"><span>총액</span><span id="cart-tot" style="color:var(--blue)">₩ 0</span></div><button class="btn btn-blue" style="padding:16px;font-size:16px" onclick="showToast('본사 ERP 전송 완료')">수주 확정 (ERP 전송)</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p3">
+  <div class="sec-hdr"><div><h3>④ 텍스트 파싱 (이메일 엑셀표 복붙)</h3><span class="tip">메일로 온 표를 붙여넣으면 AI가 그리드로 분리해 줍니다.</span></div><button class="btn btn-blue" onclick="doParse()">텍스트 파싱 실행 ↓</button></div>
+  <textarea class="inp" id="parse-inp" rows="10" style="font-family:var(--mono);font-size:12px;margin-bottom:16px">고객사명	품목명 (스펙)	주문수량	납기요청일
+삼성SDI	배터리 분리막 20um 롤	5000	2024-11-20
+LG에너지	음극재 코팅용 바인더	20000	2024-11-25
+SK온	알루미늄 파우치 필름	15000	2024-12-01
+에코프로	양극재 믹서 블레이드	100	2024-11-10
+포스코	흑연 분말 포대 (1톤)	500	2024-11-15</textarea>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>고객사</th><th>품목명</th><th>수량/단위</th><th>납기요청일</th></tr></thead><tbody id="tb3"><tr><td colspan="4" style="text-align:center;padding:30px">위 버튼을 누르면 파싱됩니다.</td></tr></tbody></table></div>
+</div>
+
+<div class="panel" id="p4">
+  <div class="sec-hdr"><div><h3>⑤ 매트릭스 (일자별 납품 스케줄러)</h3><span class="tip">매일 분할 납품해야 하는 수량을 엑셀 달력처럼 입력합니다. (15품목 x 7일 생성)</span></div><button class="btn btn-blue" onclick="showToast('매트릭스 스케줄 저장 완료')">일괄 저장</button></div>
+  <div class="tbl-wrap" style="max-height:600px;overflow-x:auto"><table class="tbl"><thead id="th4"></thead><tbody id="tb4"></tbody></table></div>
+</div>
+
+<div class="panel" id="p5">
+  <div class="sec-hdr"><div><h3>⑥ 정기 수주 (장기 계약) 마법사</h3><span class="tip">매월 특정 일자에 납품하는 1년치 스케줄을 원클릭으로 생성합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card" style="margin:0"><div class="card-title">반복 규칙</div><div style="margin-bottom:12px"><select class="inp"><option>SK텔레콤 - 서버 유지보수 키트</option></select></div><div class="grid2" style="margin-bottom:12px"><div><div class="label">수량</div><input type="number" class="inp" value="50"></div><div><div class="label">단가</div><input type="number" class="inp" value="120000"></div></div><button class="btn btn-ghost" style="width:100%" onclick="genP5()">12개월 미래 스케줄 생성 ➔</button></div>
+    <div class="tbl-wrap" style="height:400px"><table class="tbl"><thead><tr><th>회차</th><th>납기일자</th><th>수량</th><th>예상금액</th></tr></thead><tbody id="tb5"><tr><td colspan="4" style="text-align:center;padding:50px">생성 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<div class="panel" id="p6">
+  <div class="sec-hdr"><div><h3>⑦ CRM 파이프라인 칸반</h3><span class="tip">견적 카드를 드래그하여 '수주 확정'에 넘기면 수주가 자동 생성됩니다. (20개 카드 생성)</span></div></div>
+  <div class="kanban" id="kb-wrap">
+    <div class="k-col" id="kcol-1"><div style="font-weight:700;color:var(--amber)">1. 견적 발송</div><div id="kb1"></div></div>
+    <div class="k-col" id="kcol-2" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--blue)">2. 계약 조율</div><div id="kb2"></div></div>
+    <div class="k-col" style="border-color:var(--green-mid);background:var(--green-dim)" ondragover="event.preventDefault()" ondrop="kDropWon(event, this)"><div style="font-weight:700;color:var(--green)">3. 수주 확정 (Won)</div><div id="kb3"><div style="color:var(--text3);text-align:center;padding:50px 0" id="kb-ph">여기로 카드를 드래그하세요.</div></div></div>
+  </div>
+</div>
+
+<div class="panel" id="p7">
+  <div class="sec-hdr"><div><h3>⑧ 모바일 AI 챗봇 (대화형 수주)</h3><span class="tip">채팅으로 수주를 지시합니다.</span></div></div>
+  <div style="max-width:500px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;height:500px;display:flex;flex-direction:column">
+    <div style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="chat-box">
+      <div style="max-width:80%;padding:10px;background:var(--surface3);border-radius:8px;align-self:flex-start">이마트 본사에 햇반 200박스 수주 넣을까요?</div>
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border)"><button class="btn btn-blue" style="width:100%" onclick="chatOK()">네, 확정해주세요</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p8">
+  <div class="sec-hdr"><div><h3>⑨ 과거 이력 기반 재주문 (Re-order)</h3><span class="tip">지난 거래 내역을 복사해 수량만 고쳐 발주합니다. (10건 자동 생성)</span></div></div>
+  <div class="card" style="padding:0;overflow:hidden"><div style="padding:12px;background:var(--surface3);font-weight:700">[쿠팡 물류센터] 과거 수주 이력</div><div id="tb8" style="max-height:400px;overflow-y:auto"></div></div>
+</div>
+
+<div class="panel" id="p9">
+  <div class="sec-hdr"><div><h3>⑩ 지도/지역 기반 다중 할당</h3><span class="tip">지도의 핀을 클릭해 지점별 물량을 칩니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns: 2fr 1fr">
+    <div class="map-canvas">
+      <div class="map-pin" style="top:25%;left:25%" onclick="mapSet('서울 강남점')"></div><div style="position:absolute;top:25%;left:25%;transform:translate(15px, -10px);font-weight:700">강남점</div>
+      <div class="map-pin" style="top:60%;left:35%" onclick="mapSet('대전 둔산점')"></div><div style="position:absolute;top:60%;left:35%;transform:translate(15px, -10px);font-weight:700">대전 둔산점</div>
+      <div class="map-pin" style="top:75%;left:80%" onclick="mapSet('부산 해운대점')"></div><div style="position:absolute;top:75%;left:80%;transform:translate(15px, -10px);font-weight:700">해운대점</div>
+    </div>
+    <div class="card" style="margin:0"><div class="card-title" id="map-lbl" style="color:var(--cyan)">지점을 선택하세요</div><input type="number" class="inp" value="50" style="font-size:24px;margin-bottom:16px"><button class="btn btn-cyan" style="width:100%" onclick="showToast('수량 할당 완료')">수량 할당</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p10">
+  <div class="sec-hdr"><div><h3>⑪ CPQ (Configure, Price, Quote) 맞춤형 수주</h3><span class="tip">옵션 선택에 따라 가격이 자동 계산됩니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 300px">
+    <div>
+      <div class="label">1. 베이스 서버</div><div class="grid2" style="margin-bottom:16px"><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R750 (+500만)</div><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R840 (+800만)</div></div>
+      <div class="label">2. 메모리</div><div class="grid3" style="margin-bottom:16px"><div style="border:1px solid var(--cyan);background:var(--cyan-dim);padding:10px;border-radius:8px;cursor:pointer">64GB (+0)</div><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer">128GB (+150만)</div></div>
+    </div>
+    <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">견적 요약</div><div style="font-size:24px;font-weight:700;color:var(--cyan);margin:20px 0">₩ 5,000,000</div><button class="btn btn-cyan" style="width:100%" onclick="showToast('맞춤 수주 생성 완료')">맞춤 수주 등록</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p11">
+  <div class="sec-hdr"><div><h3>⑫ 다중 배송지 물량 분할 (Split Delivery)</h3><span class="tip">본사 대량 주문을 전국 창고로 찢어서 출하 스케줄을 잡습니다. (10개 창고 자동 생성)</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>배송지 명칭</th><th style="text-align:right">할당 수량</th><th>배송 요청일</th></tr></thead><tbody id="tb11"></tbody></table></div>
+</div>
+
+<div class="panel" id="p12">
+  <div class="sec-hdr"><div><h3>⑬ 캘린더 뷰 수주 (출하/납기일 중심)</h3><span class="tip">달력을 보며 일별 출하 스케줄을 파악하고 빈 날짜에 오더를 넣습니다.</span></div></div>
+  <div class="cal-grid" id="cal12"></div>
+</div>
+
+<div class="panel" id="p13">
+  <div class="sec-hdr"><div><h3>⑭ 단계별 수주 마법사 (Wizard)</h3><span class="tip">복잡한 수출 건을 단계별로 안내합니다.</span></div></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:10px;font-weight:700"><span style="color:var(--green)">✓ 1. 고객/LC</span><span style="color:var(--cyan)">2. 품목/수량 (현재)</span><span style="color:var(--text3)">3. 운송조건</span><span style="color:var(--text3)">4. 최종확인</span></div>
+    <div style="text-align:center;padding:50px"><input type="text" class="inp" placeholder="품목코드 입력" style="width:200px"></div>
+  </div>
+</div>
+
+<div class="panel" id="p14">
+  <div class="sec-hdr"><div><h3>⑮ 음성 인식 AI 수주</h3><span class="tip">운전 중 마이크 버튼을 누르고 말로 수주를 등록합니다.</span></div></div>
+  <div style="text-align:center;padding:50px"><div style="width:100px;height:100px;border-radius:50%;background:var(--surface3);border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer" onclick="showToast('음성 인식 시뮬레이션: 수주 자동 변환 완료')">🎤</div></div>
+</div>
+
+<div class="panel" id="p15">
+  <div class="sec-hdr"><div><h3>⑯ 대량 파일 업로드 (Massive Excel Upload)</h3><span class="tip">수천 건의 데이터를 엑셀로 드래그하면 오류를 자동 검증합니다. (100건 시뮬레이션 생성)</span></div></div>
+  <div style="border:2px dashed var(--orange);padding:40px;text-align:center;background:var(--surface);cursor:pointer;border-radius:12px;margin-bottom:16px" onclick="doUpload()">📁 여기를 클릭해 가상 엑셀 업로드</div>
+  <div class="tbl-wrap" style="display:none" id="wrap15"><table class="tbl"><thead><tr><th>행</th><th>고객사</th><th>품목코드</th><th>수량</th><th>검증 결과</th></tr></thead><tbody id="tb15"></tbody></table></div>
+</div>
+
+<div class="panel" id="p16">
+  <div class="sec-hdr"><div><h3>⑰ POS / 매장 카운터 수주 (B2B 도매상)</h3><span class="tip">식자재 마트에서 화면을 터치해 실시간 영수증을 만듭니다. (40개 자동 생성)</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 350px">
+    <div class="pos-grid" id="tb16"></div>
+    <div class="card" style="margin:0;display:flex;flex-direction:column;height:650px"><div class="card-title">🧾 영수증</div><div id="pos-list" style="flex:1;overflow-y:auto;border-bottom:1px solid var(--border);margin-bottom:16px"></div><div style="font-size:24px;font-weight:700;color:var(--orange);text-align:right;margin-bottom:16px" id="pos-tot">₩ 0</div><button class="btn btn-orange" style="padding:16px" onclick="showToast('영수증/출고증 출력 완료')">외상/수주 확정</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p17">
+  <div class="sec-hdr"><div><h3>⑱ 포괄계약 (Blanket Order) 잔량 차감형</h3><span class="tip">연간 대량 계약을 맺고 발주가 올 때마다 게이지를 깎습니다. (15개 계약 자동 생성)</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 350px">
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>계약번호 / 품목</th><th>계약량</th><th>진행률 (게이지)</th><th>잔량</th><th>차감</th></tr></thead><tbody id="tb17"></tbody></table></div>
+    <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">이번 달 차감 (Call-off)</div><div class="label">차감 수량 입력</div><input type="number" class="inp" value="5000" style="font-size:24px;font-weight:700;color:var(--orange);margin-bottom:20px;text-align:right"><button class="btn btn-orange" style="width:100%" onclick="showToast('수량 차감 완료')">잔량 차감 및 확정</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p18">
+  <div class="sec-hdr"><div><h3>⑲ SaaS / 소프트웨어 티어(Tier) 구독형</h3><span class="tip">3단계 요금제 선택 및 Add-on 추가 형태의 수주입니다.</span></div></div>
+  <div class="grid3" style="margin-bottom:20px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center"><div style="font-size:18px;font-weight:700">Basic</div><div style="font-size:28px;font-family:var(--mono);font-weight:700">₩ 5만</div></div>
+    <div style="background:var(--surface3);border:1px solid var(--orange);border-radius:12px;padding:24px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--orange)">Pro</div><div style="font-size:28px;font-family:var(--mono);font-weight:700;color:var(--orange)">₩ 15만</div><button class="btn btn-orange" style="margin-top:10px">선택됨</button></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center"><div style="font-size:18px;font-weight:700">Enterprise</div><div style="font-size:28px;font-family:var(--mono);font-weight:700">₩ 50만</div></div>
+  </div>
+</div>
+
+<div class="panel" id="p19">
+  <div class="sec-hdr"><div><h3>⑳ BOM / 키트(Kit) 자동 전개형</h3><span class="tip">조립품 1개를 수주하면 하위 부품들이 쫙 펼쳐져 출하 지시됩니다.</span></div></div>
+  <div style="display:flex;gap:12px;margin-bottom:16px"><select class="inp" style="width:300px"><option>게이밍 데스크탑 풀세트 A형</option></select><button class="btn btn-ghost" onclick="doBom()">하위 부품 전개 (Explode) ↓</button></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th>BOM 소요량</th><th>출하 지시량</th></tr></thead><tbody id="tb19"><tr><td colspan="3" style="text-align:center;padding:30px">전개 버튼을 누르세요.</td></tr></tbody></table></div>
+</div>
+
+<div class="panel" id="p20">
+  <div class="sec-hdr"><div><h3>㉑ 영업 목표(Quota) 연동형 게이미피케이션</h3><span class="tip">수주 시 나의 목표 달성률 게이지가 오릅니다.</span></div></div>
+  <div class="card" style="text-align:center;padding:40px">
+    <div style="font-size:40px;font-weight:700;color:var(--orange);font-family:var(--mono)" id="q-pct">82.5%</div>
+    <div class="prog-bg" style="height:20px;margin:20px 0"><div class="prog-bar" id="q-bar" style="width:82.5%"></div></div>
+    <div style="display:flex;justify-content:center;gap:10px"><input type="number" class="inp" id="q-inp" value="150000000" style="width:200px;font-size:20px"><button class="btn btn-orange" onclick="doQuota()">수주 확정 (달성률 갱신)</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p21">
+  <div class="sec-hdr"><div><h3>㉒ 결재선/승인 워크플로우 (Approval)</h3><span class="tip">과도한 할인 적용 시 팀장 승인 타임라인이 생성됩니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="label">할인율 입력 (%)</div><input type="number" class="inp" value="25" style="color:var(--red);font-weight:700"><button class="btn btn-orange" style="margin-top:16px;width:100%" onclick="doAppr()">결재 상신</button></div>
+    <div class="card"><div id="appr-tl" style="display:none;color:var(--orange);font-weight:700">본부장 최종 결재 대기중... (승인 시 수주 확정)</div></div>
+  </div>
+</div>
+
+<div class="panel" id="p22">
+  <div class="sec-hdr"><div><h3>㉓ 모바일 바코드 스캐너 앱</h3><span class="tip">창고에서 스마트폰 카메라로 박스를 찍어 모바일 수주를 넣습니다.</span></div></div>
+  <div class="mobile-frame"><div style="height:150px;background:#000;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer" onclick="doScan()">📷 (클릭시 가상 스캔)</div><div id="scan-list" style="padding:16px;height:300px;overflow-y:auto"></div><div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-orange" style="width:100%;padding:16px" onclick="showToast('수주 전송 완료')">전송하기</button></div></div>
+</div>
+
+<div class="panel" id="p23">
+  <div class="sec-hdr"><div><h3>㉔ 인라인 단가/할인 시뮬레이터 (엑셀 수식형)</h3><span class="tip">표 내부에서 수량, 할인율(%)을 이리저리 바꾸며 마진을 엑셀처럼 실시간 자동 계산합니다. (10품목 생성)</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th>소비자가(List)</th><th>수량</th><th>할인율(%)</th><th>할인단가(공급가)</th><th>합계</th></tr></thead><tbody id="tb23"></tbody></table></div>
+</div>
+
+<div class="panel" id="p24">
+  <div class="sec-hdr"><div><h3>㉕ 크로스셀(Cross-sell) AI 추천형</h3><span class="tip">프린터를 담으면 잉크와 용지를 같이 사라고 띄워 업셀을 유도합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">현재 장바구니</div><div style="padding:16px;background:var(--surface3);font-weight:700">엡손 라벨 프린터 (5대)</div></div>
+    <div class="card" style="border-color:var(--orange)"><div class="card-title" style="color:var(--orange)">💡 같이 구매하면 좋은 추천 소모품</div><div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>프리미엄 라벨지 10롤</span><button class="btn btn-orange btn-sm" onclick="showToast('추가됨')">같이 담기</button></div></div>
+  </div>
+</div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// Tab Logic
+function switchTab(i){
+  document.querySelectorAll('.tab-btn').forEach((t,idx)=>t.classList.toggle('active',idx===i));
+  document.querySelectorAll('.panel').forEach((p,idx)=>p.classList.toggle('active',idx===i));
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function rInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+// Generate Data on Load
+window.onload = () => {
+  genP0(); genP1(); genP2(); genP4(); genP6(); genP8(); genP11(); genP12(); genP16(); genP17(); genP23();
+};
+
+function genP0(){
+  const tb=document.getElementById('tb0'); let h='';
+  for(let i=1;i<=30;i++){
+    const p=rInt(1,50)*10000; const q=rInt(10,500);
+    h+=`<tr><td class="num">${i}</td><td style="color:var(--blue);font-family:var(--mono)">BOM-${i}</td><td><input type="text" class="inp inp-sm" value="프로젝트 부품 ${i}호"></td><td><input type="number" class="inp inp-sm num" value="${q}" style="width:80px"></td><td><input type="number" class="inp inp-sm num" value="${p}" style="width:100px"></td><td class="num" style="color:var(--blue);font-weight:700">₩${(p*q).toLocaleString()}</td><td><input type="date" class="inp inp-sm"></td></tr>`;
+  }
+  tb.innerHTML=h;
+}
+
+function genP1(){
+  const tb=document.getElementById('tb1'); let h='';
+  const c=["삼성전자","현대차","LG디스플레이","SK온","쿠팡"];
+  for(let i=1;i<=50;i++){
+    const p=rInt(1,50)*10000; const q=rInt(50,5000);
+    h+=`<tr><td class="num">${i}</td><td><input type="text" class="inp inp-sm" value="${c[i%c.length]}"></td><td><input type="text" class="inp inp-sm" value="대량 품목 ${i}"></td><td><input type="number" class="inp inp-sm num" value="${q}" style="width:80px"></td><td><input type="number" class="inp inp-sm num" value="${p}" style="width:100px"></td><td class="num" style="color:var(--blue);font-weight:700">₩${(p*q).toLocaleString()}</td><td><input type="date" class="inp inp-sm"></td><td><input type="text" class="inp inp-sm"></td></tr>`;
+  }
+  tb.innerHTML=h;
+}
+
+function genP2(){
+  const tb=document.getElementById('tb2'); let h='';
+  const ic=["☕","🍯","🧃","🥤","🧻","🥡"];
+  for(let i=0;i<24;i++){
+    const p=rInt(5,50)*1000; const n=`식자재 옵션 ${i+1}`;
+    h+=`<div class="prod-card" onclick="addC2('${n}',${p})"><div style="font-size:30px;text-align:center;margin-bottom:8px">${ic[i%ic.length]}</div><div style="font-weight:700;font-size:12px;height:30px">${n}</div><div style="color:var(--blue);font-family:var(--mono);font-weight:700">₩${p.toLocaleString()}</div></div>`;
+  }
+  tb.innerHTML=h;
+}
+let c2t=0;
+function addC2(n,p){
+  c2t+=p;
+  document.getElementById('cart-list').innerHTML+=`<div style="padding:10px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>${n}</span><span style="color:var(--blue)">₩${p.toLocaleString()}</span></div>`;
+  document.getElementById('cart-tot').textContent='₩ '+c2t.toLocaleString();
+  showToast('장바구니 추가됨');
+}
+
+function doParse(){
+  const v=document.getElementById('parse-inp').value.split('\n'); let h='';
+  v.forEach(r=>{const c=r.split('\t'); if(c.length>2&&!r.includes('고객사명')) h+=`<tr><td style="color:var(--blue);font-weight:700">${c[0]}</td><td>${c[1]}</td><td class="num">${c[2]}</td><td>${c[3]||''}</td></tr>`;});
+  document.getElementById('tb3').innerHTML=h; showToast('파싱 완료');
+}
+
+function genP4(){
+  const th=document.getElementById('th4'), tb=document.getElementById('tb4');
+  let h1='<tr><th style="min-width:150px">품목</th>';
+  for(let i=1;i<=7;i++) h1+=`<th style="text-align:center;color:var(--blue)">11/0${i}</th>`;
+  th.innerHTML=h1+'</tr>';
+  let h2='';
+  for(let i=1;i<=15;i++){
+    h2+=`<tr><td><b>분할납품 부품 ${i}</b></td>`;
+    for(let j=1;j<=7;j++) h2+=`<td><input type="number" class="inp inp-sm num" value="${rInt(100,1000)}"></td>`;
+    h2+='</tr>';
+  }
+  tb.innerHTML=h2;
+}
+
+function genP5(){
+  let h='';
+  for(let i=1;i<=12;i++){
+    const m=i<3?'11':(i<14?String((i+8)%12+1).padStart(2,'0'):'01');
+    const y=i<3?'2024':'2025';
+    h+=`<tr><td class="num">${i}회차</td><td style="color:var(--blue);font-family:var(--mono)">${y}-${m}-01</td><td class="num">50</td><td class="num">₩ 6,000,000</td></tr>`;
+  }
+  document.getElementById('tb5').innerHTML=h; showToast('12개월 미래스케줄 생성 완료');
+}
+
+function genP6(){
+  const k1=document.getElementById('kb1'), k2=document.getElementById('kb2');
+  for(let i=1;i<=10;i++) k1.innerHTML+=`<div class="k-card" draggable="true" ondragstart="kDrag(event)"><div style="font-weight:700">고객사 A-${i}</div><div style="font-size:11px;color:var(--text2)">₩${rInt(10,100)}M</div></div>`;
+  for(let i=1;i<=5;i++) k2.innerHTML+=`<div class="k-card" draggable="true" ondragstart="kDrag(event)"><div style="font-weight:700">고객사 B-${i}</div><div style="font-size:11px;color:var(--text2)">₩${rInt(10,100)}M</div></div>`;
+}
+
+// FIX: Corrected Arrow Function Syntax
+let dK=null;
+function kDrag(e){ dK=e.target; dK.style.opacity='0.5'; }
+document.addEventListener('dragend', () => { if(dK) dK.style.opacity='1'; });
+function kDrop(e,c){ e.preventDefault(); if(dK) c.appendChild(dK); }
+function kDropWon(e,c){ e.preventDefault(); if(dK){ c.appendChild(dK); document.getElementById('kb-ph').style.display='none'; dK.style.border='2px solid var(--green)'; showToast('수주 변환 성공'); } }
+
+function chatOK(){
+  document.getElementById('chat-box').innerHTML+=`<div style="max-width:80%;padding:10px;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue);border-radius:8px;align-self:flex-end">네, 확정해주세요.</div>`;
+  setTimeout(()=>document.getElementById('chat-box').innerHTML+=`<div style="max-width:80%;padding:10px;background:var(--surface3);border-radius:8px;align-self:flex-start;border-left:3px solid var(--green)">✅ 수주번호 SO-2410-099 발급 완료.</div>`, 500);
+}
+
+function genP8(){
+  let h='';
+  for(let i=1;i<=10;i++) h+=`<div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><div><div style="font-family:var(--mono);color:var(--cyan);font-size:11px">SO-2024-${String(i).padStart(3,'0')}</div><div style="font-weight:700">과거 발주 물품 외 ${i}건</div></div><button class="btn btn-cyan btn-sm" onclick="showToast('이력 복제 및 수주 생성 완료')">↻ 재주문</button></div>`;
+  document.getElementById('tb8').innerHTML=h;
+}
+
+function mapSet(b){document.getElementById('map-lbl').textContent=b; showToast(b+' 선택됨');}
+
+function genP11(){
+  let h='';
+  for(let i=1;i<=10;i++) h+=`<tr><td><b>지역 물류센터 ${i}호</b></td><td><input type="number" class="inp inp-sm num" value="${rInt(10,50)*100}"></td><td><input type="date" class="inp inp-sm"></td></tr>`;
+  document.getElementById('tb11').innerHTML=h;
+}
+
+function genP12(){
+  let h='';
+  const ds=['일','월','화','수','목','금','토'];
+  ds.forEach(d=>h+=`<div class="cal-header">${d}</div>`);
+  for(let i=1;i<=35;i++){
+    h+=`<div class="cal-day" onclick="showToast('11월 ${i}일 납기 팝업 오픈')"><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${i>30?i-30:i}</div>`;
+    if(Math.random()>0.6) h+=`<div style="background:var(--cyan-dim);color:var(--cyan);font-size:10px;padding:2px;border-radius:3px">주문 ${rInt(1,5)}건</div>`;
+    h+=`</div>`;
+  }
+  document.getElementById('cal12').innerHTML=h;
+}
+
+function doUpload(){
+  document.getElementById('wrap15').style.display='block';
+  let h='';
+  for(let i=1;i<=100;i++){
+    const err=i%12===0;
+    h+=`<tr style="${err?'background:var(--red-dim)':''}"><td>${i}</td><td>고객사 ${i}</td><td>ITM-${i}</td><td class="num">${rInt(10,100)}</td><td style="color:var(--${err?'red':'green'});font-weight:700">${err?'오류':'정상'}</td></tr>`;
+  }
+  document.getElementById('tb15').innerHTML=h; showToast('엑셀 100건 검증 완료');
+}
+
+function genP16(){
+  let h='';
+  for(let i=1;i<=40;i++){
+    const p=rInt(1,20)*5000;
+    h+=`<div class="pos-item" onclick="showToast('상품 ${i} 터치됨')"><div style="font-size:30px;margin-bottom:5px">📦</div><div style="font-weight:700">도매 상품 ${i}</div><div style="color:var(--orange);font-family:var(--mono);margin-top:5px">₩${p.toLocaleString()}</div></div>`;
+  }
+  document.getElementById('tb16').innerHTML=h;
+}
+
+function genP17(){
+  let h='';
+  for(let i=1;i<=15;i++){
+    const t=rInt(10,100)*1000; const r=rInt(1,t/1000)*1000; const pct=((t-r)/t)*100;
+    h+=`<tr><td><div style="color:var(--orange)">BO-${i}</div><b>장기계약 품목 ${i}</b></td><td class="num">${t.toLocaleString()}</td><td><div class="prog-bg"><div class="prog-bar" style="width:${pct}%"></div></div></td><td class="num" style="color:var(--orange);font-weight:700">${r.toLocaleString()}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('차감 준비')">차감</button></td></tr>`;
+  }
+  document.getElementById('tb17').innerHTML=h;
+}
+
+function doBom(){
+  document.getElementById('tb19').innerHTML=`
+    <tr><td style="font-weight:700;color:var(--orange)">게이밍 데스크탑 세트 (Parent)</td><td>1</td><td class="num" style="font-size:16px;font-weight:700;color:var(--orange)">10</td></tr>
+    <tr class="child-row"><td>↳ CPU i9</td><td>1</td><td class="num">10</td></tr>
+    <tr class="child-row"><td>↳ RAM 32G</td><td>2</td><td class="num">20</td></tr>
+    <tr class="child-row"><td>↳ VGA RTX4080</td><td>1</td><td class="num">10</td></tr>
+    <tr class="child-row"><td>↳ SSD 2TB</td><td>1</td><td class="num">10</td></tr>
+    <tr class="child-row"><td>↳ 파워 1000W</td><td>1</td><td class="num">10</td></tr>
+  `;
+  showToast('하위 부품 BOM 전개 완료');
+}
+
+function doQuota(){
+  let c=parseFloat(document.getElementById('q-pct').innerText)+15.5;
+  if(c>100)c=100;
+  document.getElementById('q-pct').innerText=c.toFixed(1)+'%';
+  document.getElementById('q-bar').style.width=c+'%';
+  showToast('달성률 갱신 완료!');
+}
+
+function doAppr(){document.getElementById('appr-tl').style.display='block';showToast('팀장 결재 상신 완료');}
+
+let sc=0;
+function doScan(){
+  sc++;
+  document.getElementById('scan-list').innerHTML+=`<div style="padding:10px;background:var(--surface2);border:1px solid var(--border);margin-bottom:5px;border-radius:5px">바코드 스캔 완료 #${sc} <span style="float:right;color:var(--orange);font-weight:700">1 EA</span></div>`;
+}
+
+function genP23(){
+  let h='';
+  for(let i=1;i<=10;i++){
+    const lp=rInt(10,100)*10000;
+    h+=`<tr><td>B2B 유통 품목 ${i}</td><td class="num">₩${lp.toLocaleString()}</td><td><input type="number" class="inp inp-sm num" value="100" oninput="showToast('단가 재계산 됨')"></td><td><input type="number" class="inp inp-sm num" value="15" style="width:60px;color:var(--orange)"></td><td class="num" style="font-weight:700">₩${(lp*0.85).toLocaleString()}</td><td class="num" style="font-weight:700;color:var(--orange)">₩${(lp*0.85*100).toLocaleString()}</td></tr>`;
+  }
+  document.getElementById('tb23').innerHTML=h;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #19 */
+(function(){var I=19;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

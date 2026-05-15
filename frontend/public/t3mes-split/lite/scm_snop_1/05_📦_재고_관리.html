@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>📦 재고 관리</title>
+<!-- T3MES UI Pattern · scm_snop_1 · TabPage #5: 📦 재고 관리 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+    <div class="grid-top">
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">재고 회전율 (Inventory Turnover)</div>
+        <div style="display:flex;align-items:center;gap:30px">
+          <div class="donut-wrap" style="background:conic-gradient(var(--c-inv) 70%, var(--surface3) 0)">
+            <div class="donut-inner"><div class="donut-val c-inv">8.5 회</div><div class="donut-lbl">년 환산</div></div>
+          </div>
+          <div>
+            <div style="margin-bottom:10px"><span style="color:var(--text2)">재고 회전일수:</span> <b style="font-size:18px;font-family:var(--mono)">42.9 일</b></div>
+            <div class="trend t-dn">목표 10회 미달</div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">총 재고 자산 평가액</div>
+        <div class="val-l c-inv">₩ 2.4B</div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <span class="badge" style="background:var(--c-sal);color:#fff">원자재 1.2B</span>
+          <span class="badge" style="background:var(--c-prd);color:#fff">반제품 0.4B</span>
+          <span class="badge" style="background:var(--c-all);color:#fff">완제품 0.8B</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">재고 실사 정확도</div>
+        <div class="val-l">98.2%</div>
+        <div class="pg-wrap"><div class="pg-bar bg-all" style="width:98.2%"></div></div>
+      </div>
+    </div>
+    <div class="grid-half">
+      <div class="kpi-card">
+        <div class="card-title">📦 장기 체화(악성) 재고 현황 (Dead Stock)</div>
+        <div style="display:flex;align-items:center;gap:40px;margin-top:20px;padding:0 20px">
+          <div class="donut-wrap" style="width:150px;height:150px;background:conic-gradient(var(--c-qal) 15%, var(--c-pur) 0 45%, var(--surface3) 0)">
+            <div class="donut-inner" style="width:110px;height:110px"><div class="donut-val c-qal">15%</div><div class="donut-lbl">6개월 초과</div></div>
+          </div>
+          <div style="flex:1">
+            <table class="kpi-tbl">
+              <tr><td><div style="width:10px;height:10px;background:var(--c-qal);display:inline-block;margin-right:8px"></div>6개월 초과 (악성)</td><td class="num">₩ 360M</td></tr>
+              <tr><td><div style="width:10px;height:10px;background:var(--c-pur);display:inline-block;margin-right:8px"></div>3~6개월 (주의)</td><td class="num">₩ 720M</td></tr>
+              <tr><td><div style="width:10px;height:10px;background:var(--surface3);display:inline-block;margin-right:8px"></div>3개월 미만 (건전)</td><td class="num">₩ 1,320M</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">🏢 창고 적재율 (Capacity Utilization)</div>
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div style="background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
+            <div style="font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between"><span>A동 (원자재)</span><span class="c-qal">95%</span></div>
+            <div class="pg-wrap"><div class="pg-bar bg-qal" style="width:95%"></div></div>
+            <div class="tip" style="margin-top:8px">Full Capa 임박!</div>
+          </div>
+          <div style="background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
+            <div style="font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between"><span>B동 (완제품)</span><span class="c-all">60%</span></div>
+            <div class="pg-wrap"><div class="pg-bar bg-all" style="width:60%"></div></div>
+            <div class="tip" style="margin-top:8px">여유 있음</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

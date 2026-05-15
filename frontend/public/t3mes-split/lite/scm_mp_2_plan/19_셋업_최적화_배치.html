@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>셋업 최적화 배치</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #19: 셋업 최적화 배치 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p18">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑲ 셋업/교체시간 최적화 배치 (Setup Batching)</h3>
+      <span class="tip">유사 스펙 오더를 묶어 교체 시간 로스를 줄입니다.</span>
+    </div>
+    <div class="flex-gap">
+      <div class="badge b-amber" style="padding:4px 10px">현재 셋업시간: <span id="setup-time">180</span>분</div>
+      <button class="btn btn-purple" onclick="autoGroup18()">✨ AI 자동 그룹핑</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div><div class="card-title">대기중인 오더 (끌어서 넣기)</div><div class="setup-pool" id="setup-pool"></div></div>
+    <div><div class="card-title">생성된 배치 (Batch)</div><div id="setup-batches"></div></div>
+  </div>
+</div>

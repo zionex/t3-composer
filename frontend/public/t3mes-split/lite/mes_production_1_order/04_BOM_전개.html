@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>BOM 전개</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #4: BOM 전개 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 하위 BOM 전개형 지시 (Explosion)</h3><span class="tip">완제품 1개를 조립하기 위해 필요한 하위 반제품(Sub-assembly)들의 작업지시를 트리 형태로 연쇄 발급합니다.</span></div></div>
+    <div style="display:flex;gap:12px;margin-bottom:16px"><select class="inp" style="width:300px"><option>완제품: 고성능 전기 자전거 세트</option></select><input type="number" class="inp" value="500" style="width:100px" placeholder="목표수량"><button class="btn btn-ghost" onclick="doBom()">하위 BOM 전개 및 지시량 계산 ↓</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>BOM 레벨 / 품목명</th><th>단위소요량</th><th style="color:var(--cyan)">필요 총수량</th><th>현재고</th><th style="color:var(--amber)">부족(지시필요)</th><th>하위 지시 발급</th></tr></thead><tbody id="tb3"><tr><td colspan="6" style="text-align:center;padding:50px">전개 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>

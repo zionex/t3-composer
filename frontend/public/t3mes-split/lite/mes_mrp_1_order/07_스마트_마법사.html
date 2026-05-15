@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>스마트 마법사</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #7: 스마트 마법사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 스마트 발주 마법사 (Rule-based / AI)</h3><span class="tip">단순 부족수량에 최소발주량(MOQ), 포장배수(Multi), 안전재고율(Safety)을 자동 적용해 최적 발주량을 계산합니다.</span></div><button class="btn btn-teal" onclick="calcAutoPO()">마법사 실행 ➔ AI 최적량 계산</button></div>
+    <div style="display:flex;gap:16px;background:var(--surface);padding:16px;border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:16px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-moq"> MOQ (최소발주량) 적용</label><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-safe"> 안전재고 10% 추가 확보</label><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-multi"> 포장 배수(Multiple) 올림</label></div>
+    <div class="tbl-wrap" style="max-height:500px"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right;color:var(--red)">단순 부족수량</th><th style="text-align:right">정책 (MOQ/배수)</th><th style="text-align:right;color:var(--teal);font-size:13px">💡 AI 권장 발주량</th><th style="padding-left:20px">산출 근거 (Explain)</th></tr></thead><tbody id="tb6"></tbody></table></div>
+  </div>

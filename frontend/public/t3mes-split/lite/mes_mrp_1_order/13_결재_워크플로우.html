@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>결재 워크플로우</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #13: 결재 워크플로우 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 발주 결재선 및 승인 워크플로우 (Approval)</h3><span class="tip">특정 금액(예: 1천만 원) 이상의 발주는 즉시 전송되지 않고 팀장/재무팀의 결재 타임라인을 통과해야 합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">고액 발주 품의 작성</div><div class="label">발주 품목</div><input type="text" class="inp" value="고가공 CNC 머신 스핀들 교체부품" disabled style="margin-bottom:12px"><div class="label">발주 총액</div><input type="text" class="inp num" value="₩ 45,000,000" disabled style="margin-bottom:12px;color:var(--rose);font-weight:700"><div class="label">기안 사유</div><textarea class="inp" rows="3" style="margin-bottom:16px">장비 고장으로 인한 긴급 수리용 부품 발주 (예산 한도 외)</textarea><button class="btn btn-rose" style="width:100%" onclick="doAppr12()">팀장/임원 결재 상신</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">기안 승인 진행 상태</div><div id="appr-tl" style="display:none;margin-top:20px;color:var(--amber);font-weight:700">임원 최종 결재 대기중... (승인 시 PO 자동전송)</div><div id="appr-ph" style="color:var(--text3);text-align:center;padding:50px 0">상신 버튼을 누르세요.</div></div>
+    </div>
+  </div>

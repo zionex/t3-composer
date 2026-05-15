@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>그리드 일괄</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #1: 그리드 일괄 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 기본 그리드 일괄 발주 (MRP Grid)</h3><span class="tip">MRP 전개 결과 부족한 자재 목록을 엑셀처럼 띄워놓고, 확정 수량을 입력하여 일괄 발주합니다. (100건 생성)</span></div><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="showToast('엑셀 다운로드 완료')">엑셀 다운로드</button><button class="btn btn-purple" onclick="showToast('100건 일괄 발주 생성 완료')">선택 항목 일괄 발주생성</button></div></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th><input type="checkbox" checked disabled></th><th>품목코드</th><th>품목명 / 규격</th><th>소요예정일</th><th style="text-align:right">총 소요량</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--red)">부족수량</th><th style="text-align:right">MOQ</th><th style="text-align:right;color:var(--purple)">발주 확정수량</th><th>기본 공급사</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>

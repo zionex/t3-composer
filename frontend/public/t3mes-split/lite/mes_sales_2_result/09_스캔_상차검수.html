@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>스캔 상차검수</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #9: 스캔 상차검수 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 바코드 스캐닝 상차 검수 (Loading Verification)</h3><span class="tip">도크(Dock) 문 앞에서 트럭에 물건을 싣기 직전, 스캐너로 찍어 오출하/오배송을 막는 최종 방어선입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border:2px dashed var(--teal);text-align:center;padding:50px;cursor:pointer" onclick="scanP8()"><div style="font-size:50px">📱</div><div style="font-weight:700;margin-top:10px;color:var(--teal)">클릭하여 박스 바코드 가상 스캔</div></div>
+      <div class="card" style="margin:0"><div class="card-title">상차 지시서 (트럭 #1234)</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>박스 바코드</th><th>검수 상태</th></tr></thead><tbody id="tb8"></tbody></table></div><div style="margin-top:16px;text-align:right">진행률: <b style="color:var(--teal)" id="scan-cnt8">0</b> / 15</div></div>
+    </div>
+  </div>

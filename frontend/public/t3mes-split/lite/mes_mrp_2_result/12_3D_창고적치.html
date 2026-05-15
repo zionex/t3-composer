@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>3D 창고적치</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #12: 3D 창고적치 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 3D 창고 빈(Bin) 할당 가시화</h3><span class="tip">도식화된 3D 창고 랙(Rack)을 보며 비어있는 빈 공간(초록색)을 마우스로 콕 찝어서 방금 들어온 물건의 입고 자리를 잡아줍니다.</span></div></div>
+    <div class="grid2" style="height:450px">
+      <div class="twin-3d">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div style="width:100px;height:150px;background:var(--red-dim);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;text-align:center"><div style="font-weight:700;color:var(--red)">Rack A<br>100% Full</div></div>
+          <div style="width:100px;height:150px;background:var(--indigo-dim);border:2px solid var(--indigo);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 20px var(--indigo)" onclick="showToast('Rack B가 적치 로케이션으로 지정됨')"><div style="font-weight:700;color:var(--indigo);text-align:center">Rack B<br>비어있음 (Click)</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">방금 도착한 화물 적치 지시</div><div style="font-size:18px;margin-bottom:10px">대형 서버 랙 5대 (15 CBM)</div><div style="color:var(--text2);margin-bottom:20px">왼쪽 3D 뷰에서 적재할 선반(Rack)을 클릭하세요.</div><button class="btn btn-indigo" style="padding:16px;margin-top:auto" onclick="showToast('Rack B로 적치 지시 및 입고 확정')">선택된 로케이션으로 입고 확정</button></div>
+    </div>
+  </div>

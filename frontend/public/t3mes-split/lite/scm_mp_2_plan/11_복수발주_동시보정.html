@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>복수발주 동시보정</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #11: 복수발주 동시보정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p10">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑪ 복수 발주 동시 보정 (인라인 편집)</h3>
+      <span class="tip">체크박스로 다중 선택 후 납기일/수량을 일괄 보정합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <span id="sel10-cnt" class="badge b-gray">0건 선택</span>
+      <button class="btn btn-ghost btn-sm" onclick="selectAll10()">전체선택</button>
+      <button class="btn btn-amber btn-sm" onclick="bulkEdit10()">일괄편집</button>
+      <button class="btn btn-blue" onclick="showToast('저장 완료')">💾 저장</button>
+    </div>
+  </div>
+  <div id="bulk-edit-bar" style="display:none" class="card" style="margin-bottom:8px">
+    <div class="flex-gap">
+      <div><input type="number" class="inp inp-sm" style="width:80px" placeholder="+일수"></div>
+      <div><input type="number" class="inp inp-sm" style="width:80px" placeholder="±%"></div>
+      <button class="btn btn-amber btn-sm" onclick="applyBulk10()">적용</button>
+    </div>
+  </div>
+  <div class="tbl-wrap" style="max-height:560px">
+    <table class="tbl">
+      <thead><tr><th><input type="checkbox" id="chk10-all" onchange="toggleAll10(this)"></th><th>발주번호</th><th>품목명</th><th>납기일</th><th class="num">계획수량</th><th>우선순위</th><th>상태</th></tr></thead>
+      <tbody id="tb10"></tbody>
+    </table>
+  </div>
+</div>

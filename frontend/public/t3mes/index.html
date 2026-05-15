@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Patterns Index (MES/SCM)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1117; --surface: #181c27; --surface2: #1e2333; --surface3: #252a3d;
+  --border: #2a3050; --border2: #3a4570;
+  --text: #e8ecf4; --text2: #a0aabf; --text3: #5a6480;
+  --blue: #4d9fff; --blue-dim: #4d9fff22;
+  --cyan: #00e5ff; --cyan-dim: #00e5ff22;
+  --green: #00d68f; --green-dim: #00d68f22;
+  --amber: #ffb347; --amber-dim: #ffb34722;
+  --purple: #9d72ff; --purple-dim: #9d72ff22;
+  --rose: #f43f5e; --rose-dim: #f43f5e22;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'Noto Sans KR', sans-serif;
+  --radius: 12px; --radius-sm: 6px;
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; padding: 40px 20px; }
+.container { max-width: 1400px; margin: 0 auto; }
+
+/* Header */
+.header { text-align: center; margin-bottom: 40px; }
+.header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 12px; }
+.header p { color: var(--text2); font-size: 15px; }
+
+/* Layout */
+.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+@media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* Section & Cards */
+.section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.mes-title { color: var(--cyan); border-color: var(--cyan-dim); }
+.scm-title { color: var(--purple); border-color: var(--purple-dim); }
+
+.group-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s; }
+.group-card:hover { border-color: var(--border2); }
+.group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.group-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.group-title { font-size: 16px; font-weight: 700; color: var(--text); }
+
+/* List & Links */
+.link-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.link-item { display: flex; flex-direction: column; background: var(--surface2); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 0.2s; }
+.link-item:hover { background: var(--surface3); border-color: var(--border2); transform: translateX(4px); }
+.link-item a { text-decoration: none; color: var(--text); font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+.link-item a::after { content: '➔'; font-size: 12px; color: var(--text3); transition: color 0.2s; }
+.link-item:hover a::after { color: var(--blue); }
+.file-name { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+/* Colors */
+.c-blue { background: var(--blue-dim); color: var(--blue); }
+.c-cyan { background: var(--cyan-dim); color: var(--cyan); }
+.c-green { background: var(--green-dim); color: var(--green); }
+.c-amber { background: var(--amber-dim); color: var(--amber); }
+.c-rose { background: var(--rose-dim); color: var(--rose); }
+.c-purple { background: var(--purple-dim); color: var(--purple); }
+.c-gray { background: var(--surface3); color: var(--text2); }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1><span style="font-size:40px">🗺️</span> UI Patterns Index (MES/SCM)</h1>
+    <p>각 모듈 및 도메인별 UI 패턴 HTML 퍼블리싱 산출물 인덱스</p>
+  </div>
+
+  <div class="main-grid">
+    
+    <div>
+      <div class="section-title mes-title">🏭 MES (Manufacturing Execution System)</div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-blue">💼</div>
+          <div class="group-title">영업관리 (Sales)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_sales_1_order_ui_patterns.html" target="_blank">수주/오더 등록 패턴 (Sales Order)</a>
+            <span class="file-name">mes_sales_1_order_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_sales_2_result_ui_patterns.html" target="_blank">출하/실적 처리 패턴 (Shipping/Result)</a>
+            <span class="file-name">mes_sales_2_result_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_sales_3_monitoring_ui_patterns.html" target="_blank">영업 현황 모니터링 대시보드 (Monitoring)</a>
+            <span class="file-name">mes_sales_3_monitoring_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-cyan">⚙️</div>
+          <div class="group-title">생산관리 (Production)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_production_1_order_ui_patterns.html" target="_blank">작업지시 패턴 (Work Order)</a>
+            <span class="file-name">mes_production_1_order_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_production_2_result_ui_patterns.html" target="_blank">생산실적 등록 패턴 (Production Result)</a>
+            <span class="file-name">mes_production_2_result_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_production_3_monitoring_ui_patterns.html" target="_blank">생산 현황 모니터링 대시보드 (Monitoring)</a>
+            <span class="file-name">mes_production_3_monitoring_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-green">🛒</div>
+          <div class="group-title">구매관리 (MRP / Purchasing)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_mrp_1_order_ui_patterns.html" target="_blank">발주/구매요청 패턴 (Purchase Order)</a>
+            <span class="file-name">mes_mrp_1_order_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_mrp_2_result_ui_patterns.html" target="_blank">입고/구매실적 패턴 (Receipt Result)</a>
+            <span class="file-name">mes_mrp_2_result_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_mrp_3_monitoring_ui_patterns.html" target="_blank">구매 현황 모니터링 대시보드 (Monitoring)</a>
+            <span class="file-name">mes_mrp_3_monitoring_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-amber">📦</div>
+          <div class="group-title">자재 및 Lot 관리 (Stock / Lot)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_stock_1_retrive_ui_patterns.html" target="_blank">재고 조회 패턴 (Stock Retrieve)</a>
+            <span class="file-name">mes_stock_1_retrive_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_stock_2_modify_ui_patterns.html" target="_blank">재고 조정/이동 패턴 (Stock Modify)</a>
+            <span class="file-name">mes_stock_2_modify_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_stock_3_monitoring_ui_patterns.html" target="_blank">재고 현황 모니터링 대시보드 (Monitoring)</a>
+            <span class="file-name">mes_stock_3_monitoring_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_lot_manage_ui_patterns.html" target="_blank">Lot 관리 및 추적 (Lot Manage)</a>
+            <span class="file-name">mes_lot_manage_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-rose">🔬</div>
+          <div class="group-title">품질관리 (Quality Control)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_qc_1_operation_ui_patterns.html" target="_blank">품질 검사 및 등록 패턴 (QC Operation)</a>
+            <span class="file-name">mes_qc_1_operation_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_qc_2_operation_monitoring_patterns.html" target="_blank">품질 현황 모니터링 대시보드 (Monitoring)</a>
+            <span class="file-name">mes_qc_2_operation_monitoring_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-purple">📍</div>
+          <div class="group-title">Tracking (공통 적용)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_tracking_1_order_ui_patterns.html" target="_blank">오더 트래킹 패턴 (Order Tracking)</a>
+            <span class="file-name">mes_tracking_1_order_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_tracking_2_stock_ui_patterns.html" target="_blank">물류/재고 트래킹 패턴 (Stock Tracking)</a>
+            <span class="file-name">mes_tracking_2_stock_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-gray">🛣️</div>
+          <div class="group-title">Route 관리 (Routing & WIP)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_route_1_layout.html" target="_blank">라우트 레이아웃 뷰 (Layout)</a>
+            <span class="file-name">mes_route_1_layout.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_route_2_wip.html" target="_blank">재공품 라우팅 뷰 (WIP)</a>
+            <span class="file-name">mes_route_2_wip.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_route_3_wip_3d.html" target="_blank">재공품 3D 모니터링 (WIP 3D)</a>
+            <span class="file-name">mes_route_3_wip_3d.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_route_4_wip_simulation.html" target="_blank">라우트 시뮬레이션 (Simulation)</a>
+            <span class="file-name">mes_route_4_wip_simulation.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_route_5_wip_simulation_3d.html" target="_blank">라우트 3D 시뮬레이션 (Simulation 3D)</a>
+            <span class="file-name">mes_route_5_wip_simulation_3d.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-gray">📁</div>
+          <div class="group-title">기준정보 관리 (Master Data)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_master_1_ui_patterns.html" target="_blank">마스터 데이터 관리 패턴 (Master)</a>
+            <span class="file-name">mes_master_1_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="section-title scm-title">🌐 SCM (Supply Chain Management)</div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-purple">📊</div>
+          <div class="group-title">Master Plan (MP)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="scm_mp_1_controlboard_ui_patterns.html" target="_blank">MP 컨트롤 보드 (Control Board)</a>
+            <span class="file-name">scm_mp_1_controlboard_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="scm_mp_2_plan_ui_patterns.html" target="_blank">수급/생산 계획 패턴 (Plan)</a>
+            <span class="file-name">scm_mp_2_plan_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="scm_mp_3_monitoring_ui_patterns.html" target="_blank">계획 대비 실적 모니터링 (Monitoring)</a>
+            <span class="file-name">scm_mp_3_monitoring_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-amber">📈</div>
+          <div class="group-title">S&OP (Sales and Operations Planning)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="scm_snop_1_ui_patterns.html" target="_blank">S&OP 통합 화면 패턴 (Main UI)</a>
+            <span class="file-name">scm_snop_1_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="scm_snop_2_chart_patterns.html" target="_blank">S&OP 분석 차트 패턴 (Charts)</a>
+            <span class="file-name">scm_snop_2_chart_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="scm_snop_3_kpi_patterns.html" target="_blank">핵심성과지표 대시보드 (KPI)</a>
+            <span class="file-name">scm_snop_3_kpi_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-purple">📍</div>
+          <div class="group-title">Tracking (공통 적용)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_tracking_1_order_ui_patterns.html" target="_blank">오더 트래킹 패턴 (Order Tracking)</a>
+            <span class="file-name">mes_tracking_1_order_ui_patterns.html</span>
+          </li>
+          <li class="link-item">
+            <a href="mes_tracking_2_stock_ui_patterns.html" target="_blank">물류/재고 트래킹 패턴 (Stock Tracking)</a>
+            <span class="file-name">mes_tracking_2_stock_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-icon c-gray">📁</div>
+          <div class="group-title">기준정보 관리 (Master Data)</div>
+        </div>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="mes_master_1_ui_patterns.html" target="_blank">마스터 데이터 관리 패턴 (Master)</a>
+            <span class="file-name">mes_master_1_ui_patterns.html</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

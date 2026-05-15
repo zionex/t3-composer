@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>통합 KPI 대시보드 (Overall Dashboard)</title>
+<!-- T3MES UI Pattern · scm_mp_3_monitoring · TabPage #1: 통합 KPI 대시보드 (Overall Dashboard) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p0">
+      <div class="sec-hdr"><div><h3>1. 통합 KPI 대시보드 (Overall Dashboard)</h3><span class="tip">보정 확정된 생산 계획의 핵심 지표와 실시간 요약 현황을 한눈에 모니터링합니다.</span></div><button class="btn btn-blue" onclick="genP0()">⟳ 새로고침</button></div>
+      <div class="grid4" id="p0-kpis" style="flex-shrink:0"></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">월간 생산 계획 추이 (Trend)</div><div class="bar-chart" id="p0-chart"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">🚨 시스템 주요 알림 (Exceptions)</div><div id="p0-alerts" style="overflow-y:auto;height:120px;padding-right:4px"></div></div>
+      </div>
+    </div>

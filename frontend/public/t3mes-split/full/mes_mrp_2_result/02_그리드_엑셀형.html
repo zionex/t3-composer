@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inbound Receiving UI (30 Types) - Massive Full Data</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* 창고/입고 도메인에 어울리는 Emerald/Cyan/Indigo 톤 테마 */
+  --bg:#0b1014;--surface:#151b24;--surface2:#1c2431;--surface3:#273142;
+  --border:#303b4f;--border2:#414f6b;
+  --text:#e4e7eb;--text2:#9ba4b5;--text3:#5c6b81;
+  --green:#10b981;--green-dim:#10b98122;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --indigo:#6366f1;--indigo-dim:#6366f122;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --red:#ef4444;--red-dim:#ef444422;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (6 Groups x 5 Tabs = 30 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Tab Colors by Group */
+.t-1.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-1.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-2.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-3.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-3.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-4.active{color:var(--indigo);border-bottom-color:var(--indigo);font-weight:700}.t-4.active .tab-num{color:var(--indigo);background:var(--indigo-dim)}
+.t-5.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-5.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-6.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-6.active .tab-num{color:var(--red);background:var(--red-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Forms & Inputs */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border .15s}
+.inp:focus{border-color:var(--green);box-shadow:0 0 0 2px var(--green-dim)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-green{background:var(--green-dim);border-color:#10b98155;color:var(--green)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-indigo{background:var(--indigo-dim);border-color:#6366f155;color:var(--indigo)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-red{background:var(--red-dim);border-color:#ef444455;color:var(--red)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+
+/* Grids & Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--green)}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:320px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+
+/* Map & 3D & Scale */
+.map-canvas{position:relative;width:100%;height:500px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background-image:radial-gradient(var(--border) 1px, transparent 1px);background-size:20px 20px}
+.twin-3d{background:#000;border-radius:12px;border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;height:400px}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--green);color:var(--green);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 발주 참조 단건 입고 (PO-based Receipt)</h3><span class="tip">가장 기본적인 1:1 발주(PO) 대비 입고 화면입니다. 트럭이 들어오면 송장과 PO를 대조합니다.</span></div><button class="btn btn-green" onclick="showToast('입고실적 생성 및 창고 재고 증가 완료')">입고 확정 (Receive)</button></div>
+    <div class="grid2">
+      <div>
+        <div class="card"><div class="card-title">입고 대상 발주(PO) 검색</div><div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" class="inp" value="PO-2024-10-001" style="flex:1"><button class="btn btn-ghost">조회</button></div><div class="grid2"><div><div class="label">공급사</div><input type="text" class="inp" value="삼성전기 (수원)" disabled></div><div><div class="label">입고일자</div><input type="date" class="inp" value="2024-10-31"></div></div></div>
+        <div class="card"><div class="card-title">입고 품목 리스트 (Detail)</div><div class="tbl-wrap" style="max-height:250px"><table class="tbl"><thead><tr><th>품목</th><th>미입고잔량</th><th>실제 입고수량 입력</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">최근 입고 완료 이력 (50건)</div><div class="tbl-wrap" style="flex:1"><table class="tbl"><thead><tr><th>입고문서번호</th><th>공급사</th><th>총수량</th></tr></thead><tbody id="tb0_hist"></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 엑셀형 대량 일괄 입고 (Mass PO Receipt)</h3><span class="tip">택배나 화물이 한꺼번에 쏟아져 들어올 때, 여러 발주 건의 입고 수량을 엑셀처럼 탭(Tab)키로 미친 듯이 쳐냅니다. (100건 생성)</span></div><button class="btn btn-green" onclick="showToast('100건 일괄 입고 처리 완료')">그리드 100건 일괄 입고</button></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>No</th><th>발주번호(PO)</th><th>공급사</th><th>품목</th><th style="text-align:right">발주잔량</th><th style="text-align:right">입고수량 타건</th><th>비고/납품서번호</th></tr></thead><tbody id="tb1"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 무발주/기타 입고 (Non-PO / Misc Receipt)</h3><span class="tip">발주서(PO) 없이 들어오는 무상 샘플, 사은품, 고객 반품, 현장 반납 자재 등을 시스템 재고에 잡을 때 사용합니다.</span></div></div>
+    <div class="card">
+      <div class="grid4" style="margin-bottom:16px"><div><div class="label">입고 사유 (Transaction Type)</div><select class="inp" style="color:var(--amber)"><option>무상 샘플 반입 (Sample)</option><option>현장 생산 후 남은 자재 반납</option><option>고객 단순 변심 반품</option><option>재고 실사 초과분 조정</option></select></div><div><div class="label">입고 부서/담당자</div><input type="text" class="inp" value="품질관리팀 박연구"></div><div><div class="label">입고일자</div><input type="date" class="inp" value="2024-10-31"></div><div><div class="label">증빙/참조 번호</div><input type="text" class="inp" placeholder="메일/전표 번호 등"></div></div>
+    </div>
+    <div class="card" style="margin:0"><div class="card-title">입고 품목 등록<button class="btn btn-ghost btn-sm" onclick="showToast('행 추가됨')">+ 행 추가</button></div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>품목코드 검색</th><th>품목명</th><th style="text-align:right">수량</th><th style="text-align:right">추정단가(선택)</th><th>입고 창고/Bin 지정</th></tr></thead><tbody id="tb2"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-amber" onclick="showToast('기타 입고 수량 재고 반영 완료')">무발주 기타입고 확정</button></div></div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 분할 입고 및 잔량 관리 (Partial / Backorder)</h3><span class="tip">발주량 1,000개 중 오늘 400개만 먼저 들어왔을 때, 게이지 바를 통해 40% 입고를 잡고 600개는 백오더(미입고잔량)로 남깁니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사 / 품목명</th><th style="text-align:right">발주수량</th><th>입고 진행률 (게이지)</th><th style="text-align:right;color:var(--green)">오늘 입고량 입력</th><th style="text-align:right;color:var(--red)">미입고 잔량</th><th>상태</th></tr></thead><tbody id="tb3"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-green" onclick="showToast('분할 입고 승인 및 백오더 갱신 완료')">분할 입고 승인 (Partial Receipt)</button></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ ASN (사전출하명세서) 기반 원클릭 입고</h3><span class="tip">협력사가 트럭을 출발시킬 때 미리 보내준 ASN 데이터가 화면에 떠 있습니다. 트럭 도착 시 수량만 맞는지 보고 통째로 입고 잡습니다.</span></div></div>
+    <div class="grid2">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>수신된 ASN 목록 (도착 예정)</th><th>예정일</th><th>액션</th></tr></thead><tbody id="tb4_1"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--cyan)">ASN 검수 및 입고 확정</div>
+        <div id="asn-title" style="font-size:18px;font-weight:700;margin-bottom:12px;color:var(--text2)">좌측에서 ASN을 선택하세요</div>
+        <div class="tbl-wrap" style="max-height:300px;margin-bottom:16px"><table class="tbl"><thead><tr><th>포함된 품목</th><th>협력사 발송량</th><th>입고(정상) 확인</th></tr></thead><tbody id="tb4_2"><tr><td colspan="3" style="text-align:center;padding:50px">대기중...</td></tr></tbody></table></div>
+        <button class="btn btn-cyan" style="width:100%" onclick="showToast('ASN 정보 기반으로 100% 입고 처리되었습니다.')">ASN 원클릭 일괄 입고 (Receipt via ASN)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 수입검사(IQC) 대기열 이관 (Quarantine)</h3><span class="tip">원자재가 입고 도크에 떨어지면 바로 가용재고(Available)로 잡지 않고, 품질팀의 검사를 받기 위해 '검사대기(Quarantine)' 재고로 잡습니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고된 물품 (IQC 대상)</th><th style="text-align:right">입고 수량</th><th>물리적 적치 장소</th><th style="color:var(--amber)">재고 상태 (Status)</th><th>품질팀 검사 요청</th></tr></thead><tbody id="tb5"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 수입검사(IQC) 합불 판정 및 재고 해제</h3><span class="tip">품질팀 직원이 검사 대기중인 물건을 샘플링하여 합격/불합격을 입력하고, 가용 재고로 넘길지 불량 창고로 넘길지 결정합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">검사 대기(Hold) 리스트</div><div class="tbl-wrap" style="border:none"><table class="tbl"><tbody id="tb6_1"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--cyan)">IQC 검사 판정 (Inspection Result)</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:16px">품목: 고강도 알루미늄 판넬 (1,000 EA)</div>
+        <div class="grid3" style="margin-bottom:20px"><div><div class="label" style="color:var(--green)">합격 (Pass) 수량</div><input type="number" class="inp" value="980" style="font-size:24px;font-weight:700;color:var(--green)"></div><div><div class="label" style="color:var(--red)">불합격 (Fail) 수량</div><input type="number" class="inp" value="20" style="font-size:24px;font-weight:700;color:var(--red)"></div><div><div class="label">불량 유형</div><select class="inp"><option>스크래치/외관</option><option>치수 불량</option></select></div></div>
+        <button class="btn btn-cyan" style="width:100%;padding:16px" onclick="showToast('980개 정상재고 이동, 20개 불량창고 격리 완료')">IQC 판정 완료 및 재고 상태 변경 (Un-hold)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 불량 반품(RTV) 및 클레임 발행</h3><span class="tip">수입검사에서 불합격(Fail) 맞은 자재를 모아 협력사(Vendor)에게 반송증(Return to Vendor)과 함께 데미지 클레임을 청구합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사</th><th>불량(반품대상) 자재</th><th style="text-align:right;color:var(--red)">반품 수량</th><th>반품 사유</th><th>클레임(₩) 청구 여부</th><th>반송증(RTV) 발행</th></tr></thead><tbody id="tb7"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 샘플링 검사 (AQL / MIL-STD-105E) 자동 할당</h3><span class="tip">10만 개가 입고되었을 때, 전수검사 대신 AQL 통계 룰셋에 따라 "이번엔 200개만 랜덤으로 까서 검사하세요"라고 시스템이 지시합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고 로트(Lot)</th><th style="text-align:right">총 입고량 (N)</th><th>검사 수준 (AQL Rule)</th><th style="text-align:right;color:var(--cyan)">시스템 할당 샘플링 수량 (n)</th><th>합격판정기준 (Ac/Re)</th></tr></thead><tbody id="tb8"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 모바일 카메라 사진 첨부 입고 (파손 증빙)</h3><span class="tip">트럭에서 물건을 내리는데 박스가 찌그러져 있습니다. 작업자가 즉시 스마트폰으로 사진을 찍어 입고 실적에 파손 증빙으로 첨부합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border:2px dashed var(--blue);text-align:center;padding:50px;cursor:pointer" onclick="showToast('가상 이미지 파일이 첨부되었습니다.')"><div style="font-size:50px">📸</div><div style="font-size:16px;font-weight:700;color:var(--blue);margin-top:10px">여기를 클릭하여 파손/불량 사진 업로드 (Drag & Drop)</div><div class="tip">스마트폰 브라우저 접속 시 카메라 앱이 즉시 실행됩니다.</div></div>
+      <div class="card" style="margin:0"><div class="card-title">파손(Damage) 입고 보고서</div><div class="label">대상 PO</div><input type="text" class="inp" value="PO-DAMAGE-001" disabled style="margin-bottom:12px"><div class="label">파손 수량</div><input type="number" class="inp" value="5" style="color:var(--red);font-weight:700;margin-bottom:12px"><div class="label">현장 의견</div><textarea class="inp" rows="3" style="margin-bottom:16px">하차 중 파렛트 모서리 붕괴로 하단 5박스 찌그러짐 발견됨. 사진 첨부함.</textarea><button class="btn btn-blue" style="width:100%" onclick="showToast('사진 첨부된 조건부 입고가 보고되었습니다.')">사진 첨부하여 입고 보류 보고</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 적치 (Put-away) 로케이션(Bin) 지정 입고</h3><span class="tip">단순히 "우리 회사에 100개 들어왔다"가 아니라, WMS(창고관리시스템) 관점에서 "A동 1열 3단 빈(Bin)에 넣었다"까지 정확히 매핑합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고 품목</th><th>수량</th><th style="color:var(--indigo)">추천 로케이션 (AI Suggestion)</th><th>실제 적치한 로케이션 스캔/입력</th><th>적치 완료</th></tr></thead><tbody id="tb10"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 3D 창고 빈(Bin) 할당 가시화</h3><span class="tip">도식화된 3D 창고 랙(Rack)을 보며 비어있는 빈 공간(초록색)을 마우스로 콕 찝어서 방금 들어온 물건의 입고 자리를 잡아줍니다.</span></div></div>
+    <div class="grid2" style="height:450px">
+      <div class="twin-3d">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div style="width:100px;height:150px;background:var(--red-dim);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;text-align:center"><div style="font-weight:700;color:var(--red)">Rack A<br>100% Full</div></div>
+          <div style="width:100px;height:150px;background:var(--indigo-dim);border:2px solid var(--indigo);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 20px var(--indigo)" onclick="showToast('Rack B가 적치 로케이션으로 지정됨')"><div style="font-weight:700;color:var(--indigo);text-align:center">Rack B<br>비어있음 (Click)</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">방금 도착한 화물 적치 지시</div><div style="font-size:18px;margin-bottom:10px">대형 서버 랙 5대 (15 CBM)</div><div style="color:var(--text2);margin-bottom:20px">왼쪽 3D 뷰에서 적재할 선반(Rack)을 클릭하세요.</div><button class="btn btn-indigo" style="padding:16px;margin-top:auto" onclick="showToast('Rack B로 적치 지시 및 입고 확정')">선택된 로케이션으로 입고 확정</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 크로스도킹 (Cross-docking) 입고 즉시 출하</h3><span class="tip">협력사 트럭이 물건을 내려놓자마자, 창고 선반에 적재하지(Putaway) 않고 바로 반대편 도크의 출하 트럭에 실어버리는 고속 물류 패턴입니다.</span></div></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;background:var(--indigo-dim);border-color:var(--indigo)">
+      <div style="text-align:center"><div>📥 입고 도크 (Inbound)</div><div style="font-family:var(--mono);font-weight:700;font-size:18px;color:var(--indigo);margin-top:10px">제조사 납품 트럭</div></div>
+      <div style="font-size:40px;color:var(--indigo)">➔ ⚡ ➔</div>
+      <div style="text-align:center"><div>📤 출하 도크 (Outbound)</div><div style="font-family:var(--mono);font-weight:700;font-size:18px;color:var(--amber);margin-top:10px">고객사 배송 트럭 대기중</div></div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고(크로스도킹) 대상 품목</th><th>수량</th><th>매핑된 출하 오더 (SO)</th><th>액션</th></tr></thead><tbody id="tb12"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ VMI (공급자 관리 재고) 입고 처리</h3><span class="tip">우리 공장 창고에 물건이 들어왔지만, 소유권(Ownership)은 여전히 협력사에게 있는 위탁 재고(VMI)로 특별하게 입고를 잡습니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>협력사명</th><th>입고 품목</th><th>입고량</th><th>재고 소유권 (Ownership) 표시</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 외주 가공품 (Subcontracting) 반입</h3><span class="tip">외주 업체에 보냈던 원자재가 가공이 완료되어 '반제품' 형태로 다시 들어왔을 때, 입고를 잡음과 동시에 가공비(AP)를 정산합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">외주 가공 PO 정보</div><div class="label">가공업체</div><input type="text" class="inp" value="에이테크 도금(주)" disabled style="margin-bottom:12px"><div class="label">입고될 반제품</div><input type="text" class="inp" value="도금 완료된 샤프트 (Sub-assy)" disabled></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title" style="color:var(--indigo)">외주 반입 및 가공비 정산</div><div class="label">반입(입고) 수량</div><input type="number" class="inp" value="500" style="font-size:20px;font-weight:700;color:var(--indigo);margin-bottom:16px"><div class="label">가공비 정산액 (자동계산)</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;margin-bottom:20px">₩ 2,500,000</div><button class="btn btn-indigo" style="width:100%" onclick="showToast('반제품 입고 및 가공비 매입채권(AP) 생성 완료')">반입 확정 및 가공비 정산 (AP)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ PDA 바코드 스캐너 입고 (단건/연속)</h3><span class="tip">창고 작업자가 손에 들고 다니는 모바일 PDA 화면 시뮬레이션입니다. 박스 바코드를 띡 띡 찍어서 연속으로 입고 잡습니다.</span></div></div>
+    <div class="mobile-frame">
+      <div style="padding:20px;background:var(--blue);color:#fff;font-weight:700;text-align:center">📱 바코드 스캔 입고</div>
+      <div style="padding:20px;text-align:center">
+        <div style="height:120px;background:#000;border:2px dashed var(--blue);border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="scanP15()"><span style="font-size:40px">📷 스캔</span></div>
+        <div class="label" style="text-align:left">최근 스캔 이력</div>
+        <div id="m-scan-list" style="height:250px;overflow-y:auto;text-align:left;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface2)"></div>
+      </div>
+      <div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-blue" style="width:100%;padding:14px;font-size:16px" onclick="showToast('모바일 입고 전송 완료')">PDA 입고 전송 (Submit)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ 사내 바코드 라벨(Label) 가상 생성/출력</h3><span class="tip">외부 협력사가 바코드 없이 맹물로 물건을 보냈을 때, 우리 회사 시스템의 관리용 1D/2D 바코드를 즉시 발급하여 박스에 붙입니다.</span></div></div>
+    <div class="grid2">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>무바코드 입고 자재 (라벨 발행대상)</th><th>수량</th><th>액션</th></tr></thead><tbody id="tb16"></tbody></table></div>
+      <div class="card" style="margin:0;text-align:center;display:flex;flex-direction:column;justify-content:center;background:#fff;color:#000">
+        <div style="font-size:18px;font-weight:700;margin-bottom:10px" id="lbl-name">선택된 자재명</div>
+        <div style="font-family:var(--mono);font-size:50px;letter-spacing:2px;margin:20px 0">||| | |||| ||</div>
+        <div style="font-family:var(--mono);font-size:16px;margin-bottom:20px" id="lbl-id">RM-2024-XXXX</div>
+        <button class="btn btn-blue" style="margin-top:auto" onclick="showToast('바코드 프린터(Zebra)로 인쇄 지시가 전송되었습니다.')">🖨️ Zebra 라벨 프린터로 인쇄</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ KLT / 표준 Tote 용기 바코드 일괄 스캔</h3><span class="tip">자동차 부품 등에서 많이 쓰는 표준 플라스틱 박스(KLT) 수십 개가 들어왔을 때, 박스 번호만 연속으로 찍어 입고를 잡습니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>스캔된 표준 박스 (Tote) 바코드 ID</th><th style="color:var(--blue)">시스템 매핑된 품목</th><th style="text-align:right">포장 수량</th><th>입고 상태</th></tr></thead><tbody id="tb17"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 지게차(Forklift) 패드 전용 빅버튼 입고</h3><span class="tip">지게차 운전대에 거치된 10인치 태블릿 용으로, 장갑을 끼고도 누를 수 있게 모든 UI를 거대하게 만든 입고/적치 화면입니다.</span></div></div>
+    <div style="max-width:800px;margin:0 auto;background:var(--surface);border:4px solid #333;border-radius:12px;padding:30px">
+      <div style="font-size:24px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between"><span>🚜 지게차 #4 (김기사)</span><span style="color:var(--blue)">입고 대기: 5 파렛트</span></div>
+      <div style="display:flex;gap:20px">
+        <div style="flex:1;background:var(--surface2);border:2px dashed var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--text3);cursor:pointer;height:200px" onclick="showToast('지게차 스캐너 바코드 읽힘')">📷 파렛트 스캔</div>
+        <div style="flex:1;background:var(--blue-dim);border:2px solid var(--blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:var(--blue);cursor:pointer" onclick="showToast('파렛트 입고 확정 및 적치 완료')">입고 확정 (OK)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ RFID 포탈 게이트 통과 대량 입고</h3><span class="tip">트럭이 RFID 안테나가 설치된 게이트를 스윽 통과하면, 박스 수백 개 안에 붙은 태그가 1초 만에 일괄 인식되어 입고 잡히는 쾌감!</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;border-color:var(--blue)">
+      <div style="font-size:60px;margin-bottom:20px;animation:pulse 1s infinite">📡</div>
+      <div style="font-size:24px;font-weight:700;color:var(--blue)">RFID 게이트 센서 감지 중... (Hands-free)</div>
+      <div style="color:var(--text2);margin-top:10px;margin-bottom:30px">지게차/트럭이 통과하면 입고가 자동 확정됩니다.</div>
+      <button class="btn btn-blue" style="padding:16px 30px;font-size:18px" onclick="doRfid()">가상 태그 500개 수신 시뮬레이션 ⚡</button>
+      <div id="rfid-res" style="margin-top:20px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 엑셀 파일 대량 업로드 입고 (Mass Upload)</h3><span class="tip">수천 건의 입고 데이터를 엑셀로 드래그 앤 드롭하여 시스템에 밀어 넣고, 오류(존재하지 않는 PO 등)를 걸러냅니다.</span></div></div>
+    <div style="border:2px dashed var(--amber);padding:40px;text-align:center;background:var(--surface);cursor:pointer;border-radius:12px;margin-bottom:16px" onclick="doUpload20()"><div style="font-size:40px;margin-bottom:10px">📁</div><div style="font-size:16px;font-weight:700;color:var(--amber)">여기를 클릭하여 가상 엑셀 업로드</div></div>
+    <div class="tbl-wrap" style="display:none" id="wrap20"><table class="tbl"><thead><tr><th>행</th><th>PO 번호</th><th>품목코드</th><th>입고수량</th><th>오류 검증 결과</th></tr></thead><tbody id="tb20"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 이메일/카톡 텍스트 파싱 입고</h3><span class="tip">영업사원이나 현장 직원이 카톡으로 대충 보낸 "A물건 100개, B물건 50개 들어옴" 텍스트를 복붙하면 표로 예쁘게 찢어줍니다.</span></div></div>
+    <textarea class="inp" id="inp21" rows="6" style="font-family:var(--mono);margin-bottom:16px;font-size:14px">PO-001	모니터 27인치	100	양호
+PO-002	기계식 키보드	50	박스찌그러짐
+PO-003	무선 마우스	200	양호</textarea>
+    <button class="btn btn-amber" style="margin-bottom:16px" onclick="doParse21()">✨ 텍스트 지능형 파싱 (Parse)</button>
+    <div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>PO 번호</th><th>품목명</th><th>수량</th><th>비고(상태)</th></tr></thead><tbody id="tb21"><tr><td colspan="4" style="text-align:center;padding:30px">파싱 대기중</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ ERP / 재무 매입채권(AP) 자동 생성 연동</h3><span class="tip">입고 확정 버튼을 누름과 동시에, "우리 창고에 물건 들어왔으니 돈 줘야 함" 이라는 매입채권(AP, Account Payable) 전표를 재무팀 ERP로 넘깁니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">입고 내역 (GR)</div><div class="label">입고 품목</div><input type="text" class="inp" value="최고급 원두 1,000 kg" disabled style="margin-bottom:12px"><div class="label">입고 단가 (PO 기준)</div><input type="text" class="inp" value="₩ 15,000" disabled></div>
+      <div class="card" style="background:var(--surface2);border-color:var(--amber)"><div class="card-title" style="color:var(--amber)">재무/회계팀 매입채권(AP) 연동</div><div class="label">생성될 지급 결의(AP) 금액</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;color:var(--amber);margin-bottom:20px">₩ 15,000,000</div><button class="btn btn-amber" style="width:100%;padding:16px" onclick="showToast('입고(GR) 확정 및 매입채권(AP) 전표 ERP 전송 완료')">입고 확정 및 AP 전표 생성</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ 캘린더 기반 입고 스케줄러 (Arrival Calendar)</h3><span class="tip">이번 달에 며칠 날 어떤 트럭(화물)들이 입고 도크로 들어오는지(ETA) 달력으로 보며 도크(Dock) 혼잡도를 관리합니다.</span></div></div>
+    <div class="cal-grid" id="cal23"></div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 공급사 평가(Vendor Rating) 자동 반영</h3><span class="tip">입고 시 예정된 납기일보다 늦게 오거나, 수입검사(IQC)에서 불량이 나면 공급사의 평가 점수(별점)를 시스템이 자동으로 깎아버립니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사명</th><th>이번 입고 지연/불량 결과</th><th style="color:var(--amber)">AI 자동 평가 점수 갱신</th></tr></thead><tbody id="tb24"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ 스마트 저울 (Scale) 연동 중량 기반 입고</h3><span class="tip">나사나 볼트 10만 개를 사람이 셀 수 없죠. 스마트 저울과 COM포트로 통신해, 무게를 재면 시스템이 개수를 알아서 환산해 입고 잡습니다.</span></div><span class="badge" style="background:var(--cyan);color:#fff;animation:pulse 2s infinite">● 저울 통신 연결됨</span></div>
+    <div class="grid2">
+      <div class="card" style="text-align:center;border-color:var(--cyan)"><div class="card-title" style="justify-content:center">저울 측정 총 중량 (Gross Weight)</div><div style="font-family:var(--mono);font-size:60px;font-weight:700;color:var(--cyan);margin:20px 0">125.40 kg</div><div class="tip">용기(Tare) 무게: 5.40 kg 제외 계산됨</div></div>
+      <div class="card" style="text-align:center;background:var(--surface2)"><div class="card-title" style="justify-content:center">AI 환산 수량 (M10 볼트 단위중량 12g)</div><div style="font-family:var(--mono);font-size:60px;font-weight:700;color:var(--green);margin:20px 0">10,000 EA</div><button class="btn btn-cyan" style="padding:16px;width:80%" onclick="showToast('10,000개 수량으로 입고 확정 완료')">저울 데이터로 입고 확정</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 비전 AI (Vision AI) 파렛트 체적/수량 인식</h3><span class="tip">지게차가 파렛트를 들고 오면 카메라가 찰칵 찍어서 딥러닝으로 박스 개수를 세고 파손 여부를 판독해 줍니다.</span></div></div>
+    <div class="grid2">
+      <div style="height:350px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid var(--border)"><span style="font-size:50px;opacity:0.5">🎥 AI Vision Camera</span><div style="position:absolute;width:100%;height:4px;background:var(--cyan);top:50%;box-shadow:0 0 10px var(--cyan);animation:scanVision 2s infinite"></div></div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="font-size:40px;color:var(--cyan)">📦</div><div style="font-size:18px;font-weight:700;margin:16px 0">AI 판독 결과: 120 Box (파손 없음)</div><div class="tip" style="margin-bottom:20px">PO 수량(120 Box)과 정확히 일치합니다.</div><button class="btn btn-cyan" style="padding:16px" onclick="showToast('비전 AI 판독 결과로 입고 확정 완료')">AI 판독값으로 입고 확정</button></div>
+    </div><style>@keyframes scanVision{0%{top:0}50%{top:100%}100%{top:0}}</style>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 음성 인식 (Voice) 핸즈프리 입고</h3><span class="tip">지게차 운전 중이거나 장갑을 낀 상태로, 허공에 대고 "오더 1번, 백 개 입고 처리해" 라고 말하면 시스템이 잡아줍니다.</span></div></div>
+    <div style="text-align:center;padding:50px">
+      <div style="width:150px;height:150px;border-radius:50%;background:var(--surface3);border:2px solid var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:60px;cursor:pointer;margin-bottom:30px;box-shadow:0 0 30px var(--cyan-dim)" onclick="showToast('음성명령 인식 완료: 입고 처리됨')">🎤</div>
+      <div style="font-size:24px;color:var(--cyan);font-family:var(--mono);font-weight:700">"발주 1번, 모터 100개 입고 확정"</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 챗봇 대화형 입고 지시 (Conversational UI)</h3><span class="tip">메신저 창에 텍스트를 치듯 자연어로 명령하면 챗봇이 찰떡같이 알아듣고 입고 전표를 만들어 냅니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;height:450px;display:flex;flex-direction:column">
+      <div style="flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="chat28">
+        <div style="max-width:80%;padding:12px;background:var(--surface3);border-radius:8px;align-self:flex-start">안녕하세요, 자재부 챗봇입니다. 어떤 물건이 들어왔나요?</div>
+        <div style="max-width:80%;padding:12px;background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan);border-radius:8px;align-self:flex-end">쿠팡에서 시킨 복사용지 A4 10박스 오늘 들어왔어. 기타 입고로 잡아줘.</div>
+        <div style="max-width:80%;padding:12px;background:var(--surface3);border-radius:8px;align-self:flex-start">네, 무발주/기타 입고로 A4 용지 10박스 생성했습니다. 확정할까요?</div>
+      </div>
+      <div style="padding:16px;border-top:1px solid var(--border)"><button class="btn btn-cyan" style="width:100%" onclick="$('chat28').innerHTML+=`<div style='max-width:80%;padding:12px;background:var(--surface3);border-left:3px solid var(--green);border-radius:8px;align-self:flex-start;margin-top:10px'>✅ 전표 GR-001 생성 및 재고 10 Box 증가 완료.</div>`;showToast('챗봇 입고 확정')">네, 확정해 (Click)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 결품 해소 (Shortage Clearance) 자동 안돈 해제</h3><span class="tip">라인이 자재가 없어 멈춰(Line-Stop) 시뻘건 경고가 떠 있던 상태에서, 방금 화물이 입고되어 재고가 차는 순간 경고가 초록색으로 자동 해제되는 극강의 쾌감 화면입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 현재 라인 정지 (결품) 상태</div><div style="font-size:16px;margin-bottom:10px">결품 자재: <b>특수 센서 칩</b></div><div class="tip">대기중인 작업지시: WO-999</div></div>
+      <div class="card" style="border-color:var(--cyan);background:var(--surface2)"><div class="card-title" style="color:var(--cyan)">방금 입고 트럭 도착!</div><div class="label">입고 수량</div><input type="number" class="inp" value="5000" style="font-size:20px;font-weight:700;color:var(--cyan);margin-bottom:16px"><button class="btn btn-cyan" style="width:100%" onclick="doClear29()">입고 확정 및 결품(안돈) 해제 ⚡</button></div>
+    </div>
+    <div id="clear-res" style="display:none;margin-top:20px;padding:20px;background:var(--green-dim);border:2px solid var(--green);border-radius:12px;text-align:center;font-size:20px;font-weight:700;color:var(--green)">✅ 자재 입고 완료! 결품(Shortage)이 해제되고 라인이 재가동 됩니다!</div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// --- Navigation & Core Logic ---
+const tabNames = [
+  "단건 입고(PO)","그리드 엑셀형","무발주/기타","분할/백오더","ASN 원클릭", // Grp 1 (Basic)
+  "IQC 검사대기","IQC 합불판정","불량 반품(RTV)","AQL 샘플링","사진첨부 입고", // Grp 2 (IQC)
+  "로케이션 적치","3D 창고적치","크로스도킹","VMI 재고입고","외주반입(AP)", // Grp 3 (WMS)
+  "PDA 스캐너","가상 바코드","KLT/토트 스캔","지게차 패드","RFID 게이트", // Grp 4 (Barcode)
+  "엑셀 대량업로드","텍스트 파싱","ERP 재무연동","입고 캘린더","공급사 평가", // Grp 5 (Data)
+  "저울 중량입고","비전 AI 검수","음성인식(Voice)","챗봇 대화형","결품 자동해제" // Grp 6 (AI)
+];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 5) + 1; // 1 to 6
+    let btn = document.createElement('button');
+    btn.className = `tab-btn t-${grp} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try {
+    genP0(); genP1(); genP2(); genP3(); genP4();
+    genP5(); genP6(); genP7(); genP8();
+    genP10(); genP12(); genP13();
+    genP15(); genP16(); genP17();
+    genP23(); genP24();
+  } catch(e) { console.error(e); }
+});
+
+function genP0(){
+  let h1=''; for(let i=1;i<=20;i++) h1+=`<tr><td>입고 대상 부품 ${i}</td><td class="num">${rInt(10,500)}</td><td><input type="number" class="inp inp-sm num" value="${rInt(10,500)}" style="color:var(--green);font-weight:700"></td></tr>`; $('tb0').innerHTML=h1;
+  let h2=''; for(let i=1;i<=50;i++) h2+=`<tr><td style="font-family:var(--mono);color:var(--green)">GR-2410-${String(i).padStart(3,'0')}</td><td>공급사 ${i}</td><td class="num">${rInt(100,5000)} EA</td></tr>`; $('tb0_hist').innerHTML=h2;
+}
+
+function genP1(){
+  let h=''; const c=["삼성전기","현대모비스","LG이노텍","만도","SK온"];
+  for(let i=1;i<=100;i++){
+    const q=rInt(100,5000);
+    h+=`<tr><td class="num">${i}</td><td style="font-family:var(--mono)">PO-${i}</td><td>${c[i%c.length]}</td><td>입고품목 ${i}</td><td class="num">${q}</td><td><input type="number" class="inp inp-sm num" value="${q}" style="color:var(--green);font-weight:700;width:80px"></td><td><input type="text" class="inp inp-sm"></td></tr>`;
+  } $('tb1').innerHTML=h;
+}
+
+function genP2(){
+  let h=''; for(let i=1;i<=30;i++) h+=`<tr><td style="font-family:var(--mono);color:var(--amber)">MISC-ITM-${i}</td><td>기타입고 대상물 ${i}</td><td><input type="number" class="inp inp-sm num" value="${rInt(1,50)}"></td><td><input type="number" class="inp inp-sm num" placeholder="₩"></td><td><select class="inp inp-sm"><option>창고 A동</option></select></td></tr>`; $('tb2').innerHTML=h;
+}
+
+function genP3(){
+  let h=''; for(let i=1;i<=20;i++){
+    const po=rInt(500,1000); const gr=rInt(100,400); const pct=(gr/po)*100; // Partial
+    h+=`<tr><td>협력사 ${i} / 품목 ${i}</td><td class="num">${po}</td><td><div class="prog-bg"><div class="prog-bar" style="width:${pct}%"></div></div></td><td><input type="number" class="inp inp-sm num" value="${gr}" style="color:var(--green);font-weight:700"></td><td class="num" style="color:var(--red);font-weight:700">${po-gr}</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">분할(Partial)</span></td></tr>`;
+  } $('tb3').innerHTML=h;
+}
+
+function genP4(){
+  let h=''; for(let i=1;i<=15;i++) h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">ASN-2024-${i}</td><td>11/0${rInt(1,9)}</td><td><button class="btn btn-ghost btn-sm" onclick="showAsn(${i})">검수 ➔</button></td></tr>`; $('tb4_1').innerHTML=h;
+}
+function showAsn(id){
+  $('asn-title').textContent=`ASN-2024-${id} 상세 검수`;
+  $('tb4_2').innerHTML=`<tr><td>엔진 오일 필터 외 3건</td><td class="num">500 Box</td><td><input type="checkbox" checked style="transform:scale(1.5)"></td></tr>`;
+}
+
+function genP5(){
+  let h=''; for(let i=1;i<=30;i++) h+=`<tr><td>입고품 ${i} (품질검사 대상)</td><td class="num">${rInt(100,1000)}</td><td>도크 A구역</td><td><span class="badge badge-amber">검사대기(Quarantine)</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('품질팀에 IQC 요청 전송됨')">IQC 요청 🔔</button></td></tr>`; $('tb5').innerHTML=h;
+}
+
+function genP6(){
+  let h=''; for(let i=1;i<=20;i++) h+=`<tr><td style="padding:10px;border-bottom:1px solid var(--border);cursor:pointer" onclick="showToast('선택됨')">검사대기 품목 ${i} <span style="float:right" class="badge badge-amber">Hold</span></td></tr>`; $('tb6_1').innerHTML=h;
+}
+
+function genP7(){
+  let h=''; for(let i=1;i<=15;i++) h+=`<tr><td>공급사 ${i}</td><td>불량 판정 자재 ${i}</td><td class="num" style="color:var(--red);font-weight:700">${rInt(10,50)}</td><td>외관 파손</td><td><input type="checkbox" checked> 청구</td><td><button class="btn btn-red btn-sm" onclick="showToast('반송증 출력 및 클레임 전송 완료')">RTV 발행 ➔</button></td></tr>`; $('tb7').innerHTML=h;
+}
+
+function genP8(){
+  let h=''; for(let i=1;i<=10;i++){
+    const n = rInt(5000, 10000); const s = rInt(50, 125);
+    h+=`<tr><td style="font-family:var(--mono)">LOT-IN-${i}</td><td class="num">${n}</td><td>Normal, Level II</td><td class="num" style="color:var(--cyan);font-weight:700">${s} EA 샘플링</td><td>Ac: 2, Re: 3</td></tr>`;
+  } $('tb8').innerHTML=h;
+}
+
+function genP10(){
+  let h=''; for(let i=1;i<=20;i++) h+=`<tr><td>창고 입고품 ${i}</td><td class="num">${rInt(10,100)}</td><td style="color:var(--indigo);font-weight:700">Zone A - Bin ${i}</td><td><input type="text" class="inp inp-sm" value="Zone A - Bin ${i}"></td><td><button class="btn btn-indigo btn-sm" onclick="showToast('적치 완료')">적치 확정</button></td></tr>`; $('tb10').innerHTML=h;
+}
+
+function genP12(){
+  let h=''; for(let i=1;i<=15;i++) h+=`<tr><td>크로스도킹 품목 ${i}</td><td class="num">${rInt(10,50)} Box</td><td style="font-family:var(--mono);color:var(--amber)">SO-OUT-${i}</td><td><button class="btn btn-cyan btn-sm" onclick="showToast('출하 트럭으로 즉시 이관 완료')">즉시 출하 ➔</button></td></tr>`; $('tb12').innerHTML=h;
+}
+
+function genP13(){
+  let h=''; for(let i=1;i<=10;i++) h+=`<tr><td>VMI 공급사 ${i}</td><td>VMI 자재 ${i}</td><td class="num">${rInt(100,500)}</td><td><span class="badge" style="background:var(--purple-dim);color:var(--purple)">공급사 소유권 (VMI)</span></td></tr>`; $('tb13').innerHTML=h;
+}
+
+let sc15=0;
+function scanP15(){
+  sc15++; $('m-scan-list').innerHTML+=`<div style="padding:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>바코드 스캔 #${sc15}</span><span style="font-family:var(--mono);color:var(--blue)">BOX-99${sc15}</span></div>`;
+}
+
+function genP16(){
+  let h=''; for(let i=1;i<=10;i++) h+=`<tr><td>무바코드 납품 자재 ${i}</td><td class="num">${rInt(10,50)}</td><td><button class="btn btn-blue btn-sm" onclick="showLbl16(${i})">라벨 생성</button></td></tr>`; $('tb16').innerHTML=h;
+}
+function showLbl16(i){ $('lbl-name').textContent=`무바코드 납품 자재 ${i}`; $('lbl-id').textContent=`RM-2024-AUTO-${i}`; showToast('라벨 생성됨'); }
+
+function genP17(){
+  let h=''; for(let i=1;i<=30;i++) h+=`<tr><td style="font-family:var(--mono)">TOTE-KLT-${rInt(1000,9999)}</td><td style="color:var(--blue);font-weight:700">표준부품 ${i}</td><td class="num">${rInt(50,100)}</td><td><span class="badge badge-green">입고완료</span></td></tr>`; $('tb17').innerHTML=h;
+}
+
+function doRfid(){
+  $('rfid-res').textContent = "500 / 500 개 태그 수신 완료! (100% 입고)";
+  showToast('RFID 게이트 통과 입고 확정');
+}
+
+function doUpload20(){
+  $('wrap20').style.display='block'; let h='';
+  for(let i=1;i<=100;i++){
+    const err=i%12===0;
+    h+=`<tr style="${err?'background:var(--red-dim)':''}"><td>${i}</td><td style="font-family:var(--mono)">PO-${i}</td><td>ITM-${i}</td><td class="num">${rInt(10,100)}</td><td style="color:var(--${err?'red':'green'});font-weight:700">${err?'오류: 없는 PO':'정상'}</td></tr>`;
+  } $('tb20').innerHTML=h; showToast('가상 엑셀 검증 완료');
+}
+
+function doParse21(){
+  const v=$('inp21').value.split('\n'); let h='';
+  v.forEach(r=>{const c=r.split('\t'); if(c.length>=3) h+=`<tr><td style="color:var(--amber);font-weight:700">${c[0]}</td><td>${c[1]}</td><td class="num">${c[2]}</td><td>${c[3]||''}</td></tr>`;});
+  $('tb21').innerHTML=h; showToast('지능형 텍스트 파싱 완료');
+}
+
+function genP23(){
+  let h=''; const ds=['일','월','화','수','목','금','토']; ds.forEach(d=>h+=`<div class="cal-header">${d}</div>`);
+  for(let i=1;i<=35;i++){
+    h+=`<div class="cal-day"><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${i>30?i-30:i}</div>`;
+    if(Math.random()>0.6) h+=`<div style="background:var(--amber-dim);color:var(--amber);font-size:10px;padding:2px;border-radius:3px">트럭 ${rInt(1,5)}대 입고예정</div>`;
+    h+=`</div>`;
+  } $('cal23').innerHTML=h;
+}
+
+function genP24(){
+  let h=''; for(let i=1;i<=10;i++){
+    const d = i%3===0;
+    h+=`<tr><td>공급사 ${i}</td><td>${d?'납기 3일 지연':'정상 입고'}</td><td style="font-weight:700;color:var(--${d?'red':'green'})">${d?'⭐ 3.5 (점수 하락)':'⭐⭐⭐⭐⭐ 5.0 유지'}</td></tr>`;
+  } $('tb24').innerHTML=h;
+}
+
+function genP26(){
+  // Handled inside
+}
+function doOver26(){
+  $('over-res26').innerHTML=`
+    <div style="font-size:16px;margin-bottom:10px">🚨 현재 창고 C구역에 <b>동일 품목 악성 재고가 25,000개 (과잉상태)</b> 적재되어 있습니다! (장기 체화재고)</div>
+    <div class="tip">신규 입고(발주)를 진행하시려면 관리자 승인이 필요합니다. 기존 재고를 먼저 소진하세요.</div>
+  `;
+  showToast('시스템이 악성/과잉 재고를 감지했습니다.');
+}
+
+function doClear29(){
+  $('clear-res').style.display='block';
+  showToast('결품이 해제되었습니다! 안돈 경광등이 초록색으로 바뀝니다.');
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #1 */
+(function(){var I=1;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

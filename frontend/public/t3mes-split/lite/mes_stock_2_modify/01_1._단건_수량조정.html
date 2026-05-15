@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>1. 단건 수량조정</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #1: 1. 단건 수량조정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+  <div class="sec-hdr"><div><h3>① 단건 재고 수량 조정 (Quick Adjust)</h3><span class="tip">특정 품목의 현재 장부 재고를 확인하고 즉시 증감(+/-) 처리합니다.</span></div></div>
+  <div class="grid2" style="max-width:800px">
+    <div class="card">
+      <div class="label">대상 품목 스캔/입력</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px"><input type="text" class="inp" value="ITM-88902"><button class="btn btn-ghost">검색</button></div>
+      <div style="background:var(--surface3);padding:12px;border-radius:var(--radius);font-size:14px"><b>고성능 그래픽카드 RTX-4090</b><br><span style="color:var(--text2);font-size:12px">위치: 본사 A창고 / 1열-3단</span></div>
+    </div>
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:16px"><span class="label">현재 장부 재고</span><h2 style="font-family:var(--mono)">142 EA</h2></div>
+      <div class="label">실제 수량 입력 (또는 증감분)</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="number" class="inp" placeholder="실제 수량 입력" style="font-size:18px;font-family:var(--mono);text-align:right" value="140">
+        <select class="inp" style="width:120px"><option>파손/분실</option><option>오기재</option><option>샘플사용</option></select>
+      </div>
+      <div style="color:var(--red);text-align:right;margin-bottom:16px;font-family:var(--mono)">조정량: -2 EA</div>
+      <button class="btn btn-blue" style="width:100%" onclick="showToast('재고 조정이 완료되었습니다.')">조정 실행</button>
+    </div>
+  </div>
+</div>

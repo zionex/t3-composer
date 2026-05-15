@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>ASN 원클릭</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #5: ASN 원클릭 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ ASN (사전출하명세서) 기반 원클릭 입고</h3><span class="tip">협력사가 트럭을 출발시킬 때 미리 보내준 ASN 데이터가 화면에 떠 있습니다. 트럭 도착 시 수량만 맞는지 보고 통째로 입고 잡습니다.</span></div></div>
+    <div class="grid2">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>수신된 ASN 목록 (도착 예정)</th><th>예정일</th><th>액션</th></tr></thead><tbody id="tb4_1"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--cyan)">ASN 검수 및 입고 확정</div>
+        <div id="asn-title" style="font-size:18px;font-weight:700;margin-bottom:12px;color:var(--text2)">좌측에서 ASN을 선택하세요</div>
+        <div class="tbl-wrap" style="max-height:300px;margin-bottom:16px"><table class="tbl"><thead><tr><th>포함된 품목</th><th>협력사 발송량</th><th>입고(정상) 확인</th></tr></thead><tbody id="tb4_2"><tr><td colspan="3" style="text-align:center;padding:50px">대기중...</td></tr></tbody></table></div>
+        <button class="btn btn-cyan" style="width:100%" onclick="showToast('ASN 정보 기반으로 100% 입고 처리되었습니다.')">ASN 원클릭 일괄 입고 (Receipt via ASN)</button>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>공급사 평가할당</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #19: 공급사 평가할당 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 공급사 평가(Rating) 기반 물량 할당</h3><span class="tip">품질, 납기 점수(별점)가 높은 우수 공급사에게 발주 물량을 70%, 서브 공급사에게 30% 비율로 자동 쪼개서 발주합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사명</th><th>종합 평가 등급</th><th>물량 할당 비율(%)</th><th style="text-align:right">이번 달 할당 수량</th></tr></thead><tbody id="tb18">
+      <tr><td>우수 부품(주)</td><td style="color:var(--amber);font-size:16px">★★★★★ (98점)</td><td><input type="number" class="inp inp-sm num" value="70" style="color:var(--amber);font-weight:700"> %</td><td class="num">7,000 EA</td></tr>
+      <tr><td>서브 테크</td><td style="color:var(--amber);font-size:16px">★★★☆☆ (75점)</td><td><input type="number" class="inp inp-sm num" value="30"> %</td><td class="num">3,000 EA</td></tr>
+      <tr><td>위험 메탈</td><td style="color:var(--amber);font-size:16px">★☆☆☆☆ (40점)</td><td><input type="number" class="inp inp-sm num" value="0"> %</td><td class="num">0 EA</td></tr>
+    </tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-amber" onclick="showToast('비율에 맞춰 2곳에 발주서가 나뉘어 발급되었습니다.')">평가 비율대로 발주 쪼개기</button></div>
+  </div>

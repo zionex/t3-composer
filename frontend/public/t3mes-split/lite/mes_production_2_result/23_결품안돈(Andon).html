@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>결품/안돈(Andon)</title>
+<!-- T3MES UI Pattern · mes_production_2_result · TabPage #23: 결품/안돈(Andon) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22"><div class="sec-hdr"><div><h3>㉓ 결품/설비고장 안돈(Andon) 즉시 신고</h3><span class="tip">실적 창에서 자재가 모자랄 때 즉시 알람을 울려 작업을 중지합니다.</span></div></div><div class="grid2"><div class="card"><div class="card-title">소요 자재 리스트</div><div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border)"><span>PCB 보드</span><span class="badge badge-green">정상투입</span></div><div style="display:flex;justify-content:space-between;padding:10px;background:var(--red-dim);border:1px solid var(--red);border-radius:4px;margin-top:4px"><div><b>MCU 칩</b><br><span style="font-size:11px;color:var(--red)">재고 부족! (창고: 0)</span></div><button class="btn btn-red" onclick="showToast('안돈(Andon) 시스템 알람 발송 완료. 라인 일시정지')">🚨 결품 신고</button></div></div><div class="card" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text3);text-align:center">결품 신고 시, 해당 LOT는 자동으로 'Hold' 처리됩니다.</div></div></div>

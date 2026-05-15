@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>포장 카톤화</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #7: 포장 카톤화 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 패킹 및 카톤화 (Packing / Cartonization)</h3><span class="tip">피킹해 온 물건들을 Box 1, Box 2 등 어떤 박스에 몇 개씩 담았는지 패킹(포장) 실적을 기록합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">대상 오더 (SO-991)</div><div id="tb6_1"></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--teal)">📦 포장 단위 (Carton) 생성</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-teal btn-sm" onclick="addBox()">+ 새 박스 추가</button></div>
+        <div id="tb6_2" style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto"></div>
+        <button class="btn btn-teal" style="width:100%;margin-top:16px" onclick="showToast('패킹 명세서(Packing List) 저장 완료')">패킹 내역 확정</button>
+      </div>
+    </div>
+  </div>

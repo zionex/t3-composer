@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>GPS 실시간 물류맵</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #11: GPS 실시간 물류맵 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ GPS 지도 기반 실시간 추적 (Live Map)</h3><span class="tip">배송 트럭의 현재 GPS 위치를 지도 위에 실시간 핀으로 찍어서 보여줍니다. 배달의민족/쿠팡이츠 스타일.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 2fr 1fr;height:500px">
+      <div class="map-canvas">
+        <div class="map-pin" style="top:40%;left:45%;font-size:40px">🚚</div><div class="map-lbl" style="top:40%;left:45%">트럭 현재 위치 (이동중)</div>
+        <div class="map-pin" style="top:70%;left:80%;font-size:30px">🏠</div><div class="map-lbl" style="top:70%;left:80%">도착지 (고객사)</div>
+        <svg width="100%" height="100%" style="position:absolute;top:0;left:0"><line x1="45%" y1="40%" x2="80%" y2="70%" stroke="var(--green)" stroke-width="4" stroke-dasharray="10,10" style="animation:dash 2s linear infinite"/></svg>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column">
+        <div class="card-title" style="color:var(--green)">배송 정보 (트럭 #1234)</div>
+        <div style="font-size:40px;font-weight:700;font-family:var(--mono);margin:20px 0;color:var(--text)">ETA: 14:30</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:20px">목적지까지 약 15km (25분 소요 예상)</div>
+        <div class="label">기사 연락처</div><div style="font-size:16px;font-weight:700">김배송 기사 (010-1234-5678)</div>
+        <button class="btn btn-green" style="margin-top:auto;padding:16px">기사에게 메시지 전송</button>
+      </div>
+    </div><style>@keyframes dash{to{stroke-dashoffset:-20}}</style>
+  </div>

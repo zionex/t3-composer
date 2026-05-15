@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>CRM 칸반</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #7: CRM 칸반 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+  <div class="sec-hdr"><div><h3>⑦ CRM 파이프라인 칸반</h3><span class="tip">견적 카드를 드래그하여 '수주 확정'에 넘기면 수주가 자동 생성됩니다. (20개 카드 생성)</span></div></div>
+  <div class="kanban" id="kb-wrap">
+    <div class="k-col" id="kcol-1"><div style="font-weight:700;color:var(--amber)">1. 견적 발송</div><div id="kb1"></div></div>
+    <div class="k-col" id="kcol-2" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--blue)">2. 계약 조율</div><div id="kb2"></div></div>
+    <div class="k-col" style="border-color:var(--green-mid);background:var(--green-dim)" ondragover="event.preventDefault()" ondrop="kDropWon(event, this)"><div style="font-weight:700;color:var(--green)">3. 수주 확정 (Won)</div><div id="kb3"><div style="color:var(--text3);text-align:center;padding:50px 0" id="kb-ph">여기로 카드를 드래그하세요.</div></div></div>
+  </div>
+</div>

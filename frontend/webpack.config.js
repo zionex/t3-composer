@@ -78,8 +78,12 @@ module.exports = (env, argv) => {
       hot: true,
       client: { overlay: { errors: true, warnings: false } },
       // 윈도우 host + Linux container 마운트에서는 inotify 가 cross-OS 로 동작하지 않아
-      // polling 으로 전환해야 src 변경이 webpack 에 인식됨.
-      static: { watch: { usePolling: true, interval: 1000 } },
+      // src 변경 감지는 watchOptions.poll 로 처리한다.
+      // public/ 정적 폴더(특히 t3mes-split 1460+ 파일)는 watch 를 끈다 —
+      // usePolling 으로 매초 1460+ 파일을 스캔하면 dev-server 이벤트 루프가
+      // 잠식되어 webpack-dev-middleware 가 번들을 0바이트로 끊어 보낸다.
+      // (정적 카탈로그 HTML 은 라이브 리로드가 불필요)
+      static: { watch: false },
       proxy: [
         {
           // SPA (Accept: text/html GET) 는 index.html 로 fallback,
@@ -95,6 +99,11 @@ module.exports = (env, argv) => {
           timeout:      600_000,
           bypass: (req) => {
             const accept = req.headers.accept || '';
+            // T3MES UI Pattern 카탈로그 정적 자산 (원본 /t3mes/ + 분리본 /t3mes-split/)
+            //  — 항상 webpack-dev-server static 으로 처리 (proxy / SPA fallback 금지)
+            if (req.url.startsWith('/t3mes/') || req.url.startsWith('/t3mes-split/')) {
+              return req.url;
+            }
             // SPA route — HTML GET 만 fallback
             if (req.method === 'GET' && accept.includes('text/html')) {
               return '/index.html';

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>BOM 전개/역전개</title>
+<!-- T3MES UI Pattern · mes_master_1 · TabPage #3: BOM 전개/역전개 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+      <div class="sec-hdr">
+        <div><h3>3. BOM 구조 현황 (BOM Explosion / Implosion)</h3><span class="tip">좌측은 수량 및 구조를 시각화한 트리, 우측은 세부 파라미터 테이블입니다.</span></div>
+        <div class="flex-gap">
+          <button class="btn btn-blue active" id="btn-bom-fwd" onclick="toggleBOM('fwd')">▼ 정전개 (Explosion)</button>
+          <button class="btn btn-ghost" id="btn-bom-bwd" onclick="toggleBOM('bwd')">▲ 역전개 (Implosion)</button>
+        </div>
+      </div>
+      <div class="grid2" style="grid-template-columns: 350px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">시각적 구조 (Visual Tree)</div><div style="background:var(--bg);padding:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:auto;max-height:550px" id="bom-visual-tree"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">세부 속성 (Detail Table)</div><div class="tbl-wrap" style="border:none;max-height:550px"><table class="tbl"><thead id="th2"></thead><tbody id="tb2"></tbody></table></div></div>
+      </div>
+    </div>

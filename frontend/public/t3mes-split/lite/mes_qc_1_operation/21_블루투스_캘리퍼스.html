@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>블루투스 캘리퍼스</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #21: 블루투스 캘리퍼스 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 스마트 캘리퍼스 (BLE) 무선 데이터 자동 연동</h3><span class="tip">작업자가 버니어 캘리퍼스로 치수를 잴 때 종이에 적지 않고 버튼만 누르면, 블루투스로 치수가 자동 입력되는 스마트 UI입니다.</span></div><span class="badge" style="background:var(--cyan);color:#fff;animation:pulse 1s infinite">📡 Mitutoyo Caliper 연결됨</span></div>
+    <div class="grid2">
+      <div class="card" style="text-align:center;border-color:var(--cyan)"><div class="card-title" style="justify-content:center">현재 수신된 측정값 (블루투스)</div><div style="font-family:var(--mono);font-size:70px;font-weight:700;color:var(--cyan);margin:20px 0" id="ble-val">12.45</div><div class="tip">단위: mm | 허용공차: 12.50 ± 0.10</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">자동 입력 대기열</div><div class="tbl-wrap" style="border:none;max-height:200px"><table class="tbl"><thead><tr><th>시료 번호</th><th>측정값</th><th>상태</th></tr></thead><tbody id="tb20"></tbody></table></div><button class="btn btn-cyan" style="width:100%;margin-top:16px" onclick="doBle()">가상 데이터 수신 버튼 ⚡</button></div>
+    </div>
+  </div>

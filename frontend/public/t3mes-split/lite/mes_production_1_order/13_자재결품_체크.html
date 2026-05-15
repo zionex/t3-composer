@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>자재결품 체크</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #13: 자재결품 체크 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 자재 가용성 및 결품 시뮬레이션 (Shortage Check)</h3><span class="tip">지시를 현장에 내리기 전, 창고(WMS)의 현재고를 긁어와서 부품이 모자라지 않는지 사전 검증(Pre-check)합니다.</span></div></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="font-size:16px;font-weight:700">작업지시: 스마트폰 조립 10,000대</div><button class="btn btn-cyan" onclick="doShortage()">결품 시뮬레이션 돌리기 ↻</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>소요 자재(BOM)</th><th>필요 총수량</th><th>WMS 현재고</th><th>가용성 판정</th></tr></thead><tbody id="tb12"><tr><td colspan="4" style="text-align:center;padding:30px">시뮬레이션 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>

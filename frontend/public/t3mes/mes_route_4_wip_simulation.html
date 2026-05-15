@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM 2D Factory WIP Simulation & Bottleneck Monitor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0a0d16; --surface:#111827; --surface2:#1a2035; --surface3:#212840; --surface4:#2a3352;
+  --border:#2d3a5c; --border2:#3d4e7a;
+  --text:#dde4f5; --text2:#8a97b8; --text3:#4a5578;
+  --green:#00d68f; --red:#ff4d6d; --amber:#ffb347; --blue:#4d9fff; --cyan:#00e5ff; --purple:#9d72ff;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  --sans:'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --radius:8px;
+  --grid-size: 20px; 
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 12px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Header */
+.header { padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 100; }
+.header h1 { font-size: 16px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border: 1px solid; border-radius: var(--radius); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; background: var(--surface3); color: var(--text); border-color: var(--border2); }
+.btn:hover { background: var(--surface4); }
+.btn-green { background: rgba(0, 214, 143, 0.15); border-color: rgba(0, 214, 143, 0.5); color: var(--green); }
+.btn-cyan { background: rgba(0, 229, 255, 0.15); border-color: rgba(0, 229, 255, 0.5); color: var(--cyan); }
+
+/* Main Layout */
+.layout-app { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+/* Left Panel: Tree */
+.left-panel { width: 240px; background: var(--surface2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; }
+.panel-header { padding: 12px 16px; font-weight: 700; border-bottom: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; flex-shrink: 0; }
+.tree-container { flex: 1; overflow-y: auto; padding: 12px; }
+.tree-node { padding: 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text2); transition: background 0.15s; }
+.tree-node:hover { background: var(--surface3); color: var(--text); }
+.tree-node.active { background: rgba(0, 229, 255, 0.15); color: var(--cyan); font-weight: 700; border: 1px solid rgba(0, 229, 255, 0.3); }
+.tree-indent { margin-left: 20px; border-left: 1px solid var(--border2); padding-left: 8px; position: relative; }
+.tree-indent::before { content: ''; position: absolute; left: 0; top: 50%; width: 6px; height: 1px; background: var(--border2); }
+
+/* Center Panel: 2D Canvas */
+.center-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; overflow: hidden; }
+.canvas-toolbar { padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text2); flex-shrink: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.canvas-area { flex: 1; position: relative; overflow: auto; background-color: var(--bg); 
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+.canvas-inner { width: 4000px; height: 3000px; position: relative; transform-origin: top left; }
+
+/* Right Panel: WIP Monitor Dashboard */
+.right-panel { width: 380px; background: var(--surface2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; }
+.wip-header { padding: 16px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.wip-title { font-size: 15px; font-weight: 700; color: var(--cyan); }
+.wip-subtitle { font-size: 11px; color: var(--text3); }
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.kpi-box { background: var(--surface3); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; transition: all 0.3s; }
+.kpi-box.alert { background: rgba(255, 77, 109, 0.1); border-color: var(--red); }
+.kpi-val { font-family: var(--mono); font-size: 18px; font-weight: 700; margin-top: 4px; }
+.kpi-lbl { font-size: 10px; color: var(--text2); }
+
+.wip-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.wo-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-left: 4px solid var(--border2); transition: all 0.2s; }
+.wo-card.st-run { border-left-color: var(--green); }
+.wo-card.st-wait { border-left-color: var(--amber); }
+.wo-card.st-done { border-left-color: var(--blue); opacity: 0.6; }
+.wo-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.wo-id { font-family: var(--mono); font-weight: 700; color: var(--text); font-size: 13px; }
+.wo-item { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.wo-eqp { font-size: 10px; background: var(--surface3); padding: 2px 6px; border-radius: 4px; color: var(--cyan); display: inline-block; margin-top: 6px; border: 1px solid var(--border); }
+.prog-container { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.prog-bg { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 3px; transition: width 0.3s linear; }
+.prog-val { width: 35px; text-align: right; font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+.b-green { background: var(--green-dim); color: var(--green); }
+.b-amber { background: var(--amber-dim); color: var(--amber); }
+.b-red { background: var(--red-dim); color: var(--red); }
+.b-blue { background: var(--blue-dim); color: var(--blue); }
+
+/* Timeline Simulator Panel (NEW) */
+.timeline-panel { height: 64px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 20px; flex-shrink: 0; z-index: 50; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); }
+.tl-controls { display: flex; gap: 10px; align-items: center; }
+.play-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--cyan); color: #000; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: 900; }
+.play-btn:hover { transform: scale(1.1); box-shadow: 0 0 10px var(--cyan); }
+.play-btn.playing { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+.tl-slider-wrap { flex: 1; display: flex; flex-direction: column; position: relative; }
+.tl-slider { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+.tl-ticks { display: flex; justify-content: space-between; padding: 0 8px; margin-top: 4px; font-family: var(--mono); font-size: 9px; color: var(--text3); }
+.tl-display { background: var(--surface3); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--cyan); min-width: 160px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+
+/* Canvas Placed Items */
+#canvas-items { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+.placed-line { position: absolute; border: 2px dashed rgba(77, 159, 255, 0.4); background: rgba(77, 159, 255, 0.03); border-radius: 8px; padding: 34px 10px 10px 10px; cursor: pointer; min-width: 200px; min-height: 100px; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); transition: all 0.2s; }
+.placed-line:hover { border-style: solid; border-color: var(--blue); background: rgba(77, 159, 255, 0.08); }
+.line-label { position: absolute; top: 0; left: 0; right: 0; background: rgba(77, 159, 255, 0.15); color: var(--cyan); font-weight: 700; font-size: 11px; padding: 6px 12px; border-radius: 6px 6px 0 0; pointer-events: none; border-bottom: 1px solid rgba(77, 159, 255, 0.3); display: flex; justify-content: space-between; align-items: center;}
+
+.placed-storage { position: absolute; border: 2px dashed rgba(255, 179, 71, 0.4); background: rgba(255, 179, 71, 0.05); border-radius: 8px; padding: 34px 10px 10px 10px; min-width: 100px; min-height: 100px; box-shadow: inset 0 0 30px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; transition: all 0.2s; }
+.placed-storage:hover { border-style: solid; border-color: var(--amber); background: rgba(255, 179, 71, 0.1); }
+.storage-label { position: absolute; top: 0; left: 0; right: 0; background: rgba(255, 179, 71, 0.2); color: var(--amber); font-weight: 700; font-size: 11px; padding: 6px 12px; border-radius: 6px 6px 0 0; pointer-events: none; border-bottom: 1px solid rgba(255, 179, 71, 0.4); display: flex; justify-content: space-between; align-items: center;}
+.storage-icon-bg { font-size: 48px; opacity: 0.2; pointer-events: none; }
+
+.placed-eqp { position: absolute; background: var(--surface3); border: 2px solid var(--border2); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab; width: 60px; height: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; z-index: 5; }
+.placed-eqp:hover { border-color: var(--cyan); z-index: 10; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transform: translateY(-2px); }
+.placed-eqp:active { cursor: grabbing; border-color: var(--amber); }
+.placed-eqp .eqp-icon { font-size: 26px; pointer-events: none; }
+.placed-eqp .eqp-lbl { font-size: 9px; font-weight: 700; font-family: var(--mono); color: var(--text); position: absolute; bottom: -22px; white-space: nowrap; background: var(--surface); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+/* Selection Highlight */
+.selected-glow { border: 2px solid var(--amber) !important; box-shadow: 0 0 20px rgba(255, 179, 71, 0.4) !important; background: rgba(255, 179, 71, 0.1) !important; }
+.selected-glow-eqp { border-color: var(--amber) !important; box-shadow: 0 0 15px rgba(255, 179, 71, 0.6) !important; }
+
+/* Status LED & Stack Badge */
+.status-led { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--surface); z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none; transition: background 0.3s, box-shadow 0.3s; }
+.led-run { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.led-wait { background: var(--amber); }
+.led-idle { background: var(--border2); }
+.stack-badge { position: absolute; top: -10px; left: -10px; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; font-family: var(--mono); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 30; border: 2px solid var(--surface); pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+/* 🔥 Bottleneck Alert Animation (NEW) */
+.is-bottleneck { border-color: var(--red) !important; box-shadow: 0 0 20px rgba(255, 77, 109, 0.7) !important; animation: pulse-red 1s infinite alternate; z-index: 15 !important; }
+@keyframes pulse-red { from { box-shadow: 0 0 10px rgba(255, 77, 109, 0.4); } to { box-shadow: 0 0 30px rgba(255, 77, 109, 0.9); border-color: #ff8096; } }
+.bn-badge { position: absolute; top: -35px; background: var(--red); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; pointer-events: none; z-index: 40; border: 1px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.5); display: none; }
+.bn-badge::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: var(--red) transparent transparent transparent; }
+.is-bottleneck .bn-badge { display: block; animation: bounce 1s infinite alternate; }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
+/* SVG Flow Lines */
+#flow-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.flow-path { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-dasharray: 10, 8; animation: flowAnim 1.5s linear infinite; opacity: 0.6; filter: drop-shadow(0 0 4px var(--cyan)); transition: d 0.2s; }
+.flow-path-alt { fill: none; stroke: var(--amber); stroke-width: 3; stroke-dasharray: 10, 8; animation: flowAnim 1.5s linear infinite; opacity: 0.6; filter: drop-shadow(0 0 4px var(--amber)); transition: d 0.2s; }
+@keyframes flowAnim { from { stroke-dashoffset: 18; } to { stroke-dashoffset: 0; } }
+
+/* Tooltip */
+#wip-tooltip { position: fixed; z-index: 9999; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); pointer-events: none; display: none; opacity: 0; transition: opacity 0.15s; width: 280px; }
+#wip-tooltip.show { display: flex; flex-direction: column; gap: 8px; opacity: 1; }
+.tt-hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px; }
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>⏱️</span> SCM Factory WIP Simulator & Bottleneck Monitor</h1>
+  <div style="display:flex; gap:10px">
+    <span class="badge b-green">● 가동중</span>
+    <span class="badge b-amber">● 대기중</span>
+    <span class="badge b-red" style="animation:pulse-red 1s infinite alternate">⚠️ 병목(Bottleneck)</span>
+  </div>
+</div>
+
+<div class="layout-app">
+  <aside class="left-panel">
+    <div class="panel-header">도면 계층 트리</div>
+    <div class="tree-container" id="plant-tree"></div>
+  </aside>
+
+  <main class="center-panel">
+    <div class="canvas-toolbar">
+      <div id="current-location" style="font-weight:700; color:var(--cyan); font-size:14px; display:flex; align-items:center; gap:6px">
+        <span style="font-size:18px">📍</span> 창원 제1공장 > 1층 메인 생산동
+      </div>
+      <div style="display:flex; gap:20px; align-items:center">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--cyan)">
+          <input type="checkbox" id="toggle-flow" checked onchange="drawFlowLines()" style="accent-color:var(--cyan)"> <b>흐름선 보기</b>
+        </label>
+        <span style="color:var(--text3)">|</span>
+        <span style="color:var(--text2)">ℹ️ 설비 드래그 이동 가능 / 클릭 시 WIP 조회</span>
+      </div>
+    </div>
+    
+    <div class="canvas-area" id="scroll-area" onclick="selectContext('floor', currentFloorId, currentFloorName, event)">
+      <div class="canvas-inner" id="canvas" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <svg id="flow-svg">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--cyan)" /></marker>
+            <marker id="arrowhead-alt" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--amber)" /></marker>
+          </defs>
+          <g id="flow-paths"></g>
+        </svg>
+        <div id="canvas-items"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div class="wip-header">
+      <div class="wip-title" id="rp-title">창원 제1공장 1층</div>
+      <div class="wip-subtitle" id="rp-subtitle">전체 구역 실시간 작업 현황</div>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-lbl">총 작업(WO)</div><div class="kpi-val" id="rp-kpi-tot" style="color:var(--text)">0</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">진행(Run)</div><div class="kpi-val" id="rp-kpi-run" style="color:var(--green)">0</div></div>
+        <div class="kpi-box" id="rp-wait-box"><div class="kpi-lbl">대기(Wait)</div><div class="kpi-val" id="rp-kpi-wait" style="color:var(--amber)">0</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">완료(Done)</div><div class="kpi-val" id="rp-kpi-done" style="color:var(--blue)">0</div></div>
+      </div>
+    </div>
+    <div class="wip-list" id="wip-list-container">
+      </div>
+  </aside>
+</div>
+
+<div class="timeline-panel">
+  <div class="tl-controls">
+    <button class="play-btn" id="btn-play" onclick="togglePlay()" title="시뮬레이션 재생/일시정지">▶</button>
+  </div>
+  <div class="tl-slider-wrap">
+    <input type="range" class="tl-slider" id="time-slider" min="0" max="72" value="0" step="1" oninput="manualTimeChange(this.value)">
+    <div class="tl-ticks">
+      <span>Day 1 (0h)</span><span>Day 2 (24h)</span><span>Day 3 (48h)</span><span>End (72h)</span>
+    </div>
+  </div>
+  <div class="tl-display" id="time-display">2026-04-15 08:00</div>
+</div>
+
+<div id="wip-tooltip"></div>
+
+<div id="toast">알림 메시지</div>
+
+<script>
+// --- 1. Master Data & Setup ---
+const factories = [
+  { id: 'F1', name: '창원 제1공장 (조립/가공)', floors: [ { id: 'F1-L1', name: '1층 메인 생산동' }, { id: 'F1-L2', name: '2층 정밀 가공실' } ] },
+  { id: 'F2', name: '평택 SMT 센터', floors: [ { id: 'F2-L1', name: '1층 SMT 전용라인' } ] }
+];
+
+const masterLines = [
+  { id: 'L-SMT', name: 'SMT 표면실장 라인', width: 460, height: 160, defaultEqps: [ { masterId: 'E-LDR', relX: 20, relY: 60 }, { masterId: 'E-PRT', relX: 100, relY: 60 }, { masterId: 'E-MNT', relX: 180, relY: 60 }, { masterId: 'E-RFL', relX: 260, relY: 60 }, { masterId: 'E-AOI', relX: 360, relY: 60 } ] },
+  { id: 'L-ASSY', name: '메인 조립 라인', width: 380, height: 200, defaultEqps: [ { masterId: 'E-CVY', relX: 20, relY: 80 }, { masterId: 'E-RBT', relX: 120, relY: 80 }, { masterId: 'E-RBT', relX: 200, relY: 80 }, { masterId: 'E-WRK', relX: 280, relY: 80 } ] },
+  { id: 'L-CNC', name: 'CNC 가공 라인', width: 340, height: 160, defaultEqps: [] },
+  { id: 'L-INSP', name: '품질 검사 라인', width: 260, height: 160, defaultEqps: [ { masterId: 'E-AOI', relX: 20, relY: 60 }, { masterId: 'E-WRK', relX: 140, relY: 60 } ] },
+  { id: 'L-PKG', name: '포장 및 출하 라인', width: 280, height: 160, defaultEqps: [ { masterId: 'E-PKG', relX: 20, relY: 60 }, { masterId: 'E-LBL', relX: 100, relY: 60 }, { masterId: 'E-CVY', relX: 180, relY: 60 } ] }
+];
+
+const masterStorages = [
+  { id: 'W-RAW', name: '원자재 입고장', width: 140, height: 280, icon: '🏭' }, { id: 'W-WIP1', name: 'L1 적치장 (WIP)', width: 120, height: 160, icon: '🗄️' },
+  { id: 'W-WIP2', name: '가공 적치장 (WIP)', width: 120, height: 160, icon: '🗄️' }, { id: 'W-RWK', name: '재작업소 (Rework)', width: 140, height: 140, icon: '♻️' },
+  { id: 'W-TOOL', name: '치공구실 (Tooling)', width: 140, height: 140, icon: '🧰' }, { id: 'W-FG', name: '완제품 출하장', width: 180, height: 400, icon: '📦' }
+];
+
+const masterEqps = [
+  { id: 'E-LDR', name: 'Loader', icon: '📥' }, { id: 'E-PRT', name: 'Printer', icon: '🖨️' }, { id: 'E-MNT', name: 'Mounter', icon: '🦾' }, 
+  { id: 'E-RFL', name: 'Reflow', icon: '🔥' }, { id: 'E-AOI', name: 'AOI', icon: '🔍' }, { id: 'E-CVY', name: 'Conveyor', icon: '🛤️' },
+  { id: 'E-RBT', name: 'Robot', icon: '🤖' }, { id: 'E-WRK', name: 'Worktable', icon: '🧑‍🔧' }, { id: 'E-PKG', name: 'Packager', icon: '📦' }, 
+  { id: 'E-LBL', name: 'Labeler', icon: '🏷️' }, { id: 'E-CNC', name: 'CNC', icon: '⚙️' }, { id: 'E-AGV', name: 'AGV', icon: '🛒' },
+  { id: 'E-RCK', name: 'Rack', icon: '🗃️' }, { id: 'E-PC', name: 'PC', icon: '💻' }
+];
+
+const routingFlows = [
+  { color: 'cyan', path: ['W-RAW', 'L-SMT', 'W-WIP1', 'L-ASSY', 'L-PKG', 'W-FG'] },
+  { color: 'amber', path: ['W-RAW', 'L-CNC', 'W-WIP2', 'L-INSP', 'W-FG'] }
+];
+
+const ITEMS = ['고성능 메인보드 V1', 'OLED 디스플레이 27"', '모터 제어용 MCU', '센서 어셈블리 X', '리튬 배터리 5000mAh'];
+
+// State
+let currentFloorId = 'F1-L1';
+let currentFloorName = '창원 제1공장 > 1층 메인 생산동';
+let layoutData = { 'F1-L1': [], 'F1-L2': [], 'F2-L1': [], 'F2-L2': [] };
+let uidCounter = 1;
+// Time-based WOs
+let workOrders = []; 
+let selectedContext = { type: 'floor', id: 'F1-L1', name: currentFloorName };
+
+// Simulation State
+let simHour = 0; 
+const MAX_HOUR = 72;
+let isPlaying = false;
+let playInterval = null;
+
+// Utilities
+const $ = id => document.getElementById(id);
+function showToast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function getUID() { return 'u_' + (uidCounter++); }
+function getMasterData(type, id) {
+  if(type === 'line') return masterLines.find(l => l.id === id);
+  if(type === 'eqp') return masterEqps.find(e => e.id === id);
+  if(type === 'storage') return masterStorages.find(s => s.id === id);
+  return null;
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const rItem = arr => arr[rInt(0,arr.length-1)];
+const fmt = n => n.toLocaleString();
+function snap(val) { return Math.round(val / 20) * 20; }
+
+// --- 2. Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderTree();
+  loadRichSampleData();
+  generateTimeBasedWIP(); // Create 72h schedule
+  renderCanvas();         // Draw full DOM once
+  updateSimulation(0);    // Set hour 0 state
+});
+
+function renderTree() {
+  let h = '';
+  factories.forEach(f => {
+    h += `<div style="font-weight:700; color:var(--text); margin:12px 0 4px 4px; display:flex; align-items:center; gap:6px;">🏢 ${f.name}</div>`;
+    f.floors.forEach(fl => {
+      const isActive = fl.id === currentFloorId ? 'active' : '';
+      h += `<div class="tree-indent"><div class="tree-node ${isActive}" onclick="changeFloor('${fl.id}', '${f.name} > ${fl.name}')">📄 ${fl.name}</div></div>`;
+    });
+  });
+  $('plant-tree').innerHTML = h;
+}
+
+function changeFloor(floorId, displayName) {
+  currentFloorId = floorId;
+  currentFloorName = displayName;
+  $('current-location').innerHTML = `<span style="font-size:18px">📍</span> ${displayName}`;
+  renderTree(); 
+  renderCanvas();
+  selectContext('floor', floorId, displayName, null);
+  updateSimulation(simHour); // Re-apply states to newly drawn DOM
+  showToast(`${displayName} 도면을 불러왔습니다.`);
+}
+
+function loadRichSampleData() {
+  const f1 = layoutData['F1-L1'];
+  const addLine = (floor, mId, x, y) => {
+    const m = getMasterData('line', mId); const uid = getUID();
+    const children = m.defaultEqps.map(e => ({uid: getUID(), type: 'eqp', masterId: e.masterId, x: e.relX, y: e.relY, parentId: uid}));
+    floor.push({uid, type: 'line', masterId: mId, x, y, width: m.width, height: m.height, children});
+    return uid;
+  };
+  const addStorage = (floor, mId, x, y) => {
+    const m = getMasterData('storage', mId);
+    floor.push({uid: getUID(), type: 'storage', masterId: mId, x, y, width: m.width, height: m.height});
+  };
+  const addEqp = (floor, mId, x, y, parentId=null) => {
+    const uid = getUID();
+    if(parentId) {
+      const p = floor.find(i=>i.uid===parentId); if(p) p.children.push({uid, type: 'eqp', masterId: mId, x, y, parentId});
+    } else {
+      floor.push({uid, type: 'eqp', masterId: mId, x, y, parentId: null});
+    }
+  };
+
+  addStorage(f1, 'W-RAW', 40, 200);   
+  addStorage(f1, 'W-FG', 1860, 140);  
+  
+  // Flow 1
+  const uidSMT = addLine(f1, 'L-SMT', 280, 80);
+  addStorage(f1, 'W-WIP1', 820, 80);
+  addLine(f1, 'L-ASSY', 1020, 60);
+  addLine(f1, 'L-PKG', 1480, 80);
+
+  // Flow 2 (With Stacked CNC)
+  const uidCNC = addLine(f1, 'L-CNC', 280, 460);
+  addEqp(f1, 'E-CNC', 40, 60, uidCNC); addEqp(f1, 'E-CNC', 40, 60, uidCNC); addEqp(f1, 'E-CNC', 40, 60, uidCNC); addEqp(f1, 'E-CNC', 40, 60, uidCNC);
+  addEqp(f1, 'E-WRK', 240, 60, uidCNC);
+
+  addStorage(f1, 'W-WIP2', 720, 460);
+  addLine(f1, 'L-INSP', 940, 460);
+  
+  // Misc
+  addStorage(f1, 'W-RWK', 1480, 460); 
+  addStorage(f1, 'W-TOOL', 40, 600);  
+
+  addEqp(f1, 'E-AGV', 200, 220); addEqp(f1, 'E-AGV', 200, 360); addEqp(f1, 'E-AGV', 600, 320); addEqp(f1, 'E-AGV', 1200, 340);
+  addEqp(f1, 'E-RCK', 640, 460); addEqp(f1, 'E-RCK', 640, 460); addEqp(f1, 'E-RCK', 640, 460);
+  addEqp(f1, 'E-PC', 260, 400); addEqp(f1, 'E-WRK', 1380, 480);
+  
+  // Mark Mounter and CNC for heavy bottleneck injection later
+  window.specialEqps = [];
+  const smtLine = f1.find(l => l.uid === uidSMT);
+  if(smtLine) {
+     const mnt = smtLine.children.find(c => c.masterId === 'E-MNT');
+     if(mnt) window.specialEqps.push(mnt.uid);
+  }
+  const cncLine = f1.find(l => l.uid === uidCNC);
+  if(cncLine) {
+     const cncs = cncLine.children.filter(c => c.masterId === 'E-CNC');
+     if(cncs.length > 0) window.specialEqps.push(cncs[0].uid); // The first stacked CNC
+  }
+}
+
+// --- 3. Timeline Simulation Engine ---
+function generateTimeBasedWIP() {
+  workOrders = [];
+  let woIdx = 1;
+  const floors = Object.values(layoutData);
+  
+  floors.forEach(floorItems => {
+    floorItems.forEach(item => {
+      if (item.type === 'eqp') createSimWOs(item, null);
+      else if (item.type === 'line' && item.children) {
+        item.children.forEach(child => createSimWOs(child, item));
+      }
+    });
+  });
+
+  function createSimWOs(eqp, parentLine) {
+    const isAGVorRack = ['E-AGV','E-RCK','E-PC'].includes(eqp.masterId);
+    if(isAGVorRack) return; 
+    
+    // Normal equipment: 2-4 WOs spread over 72 hours
+    let count = rInt(2, 4);
+    // Bottleneck injection: If this is the Mounter or CNC we flagged, dump 12 WOs into a short timespan
+    if (window.specialEqps && window.specialEqps.includes(eqp.uid)) {
+      count = 12;
+    }
+
+    let currentStart = rInt(0, 5); // start early
+    for(let i=0; i<count; i++) {
+      const duration = rInt(2, 8);
+      const qty = rInt(5, 50)*100;
+      
+      workOrders.push({
+        id: `WO-2604-${String(woIdx++).padStart(4,'0')}`,
+        item: rItem(ITEMS),
+        qty: qty, act: 0, rate: 0,
+        startHour: currentStart,
+        endHour: currentStart + duration,
+        duration: duration,
+        status: 'wait', // Will be calculated dynamically
+        eqpUid: eqp.uid,
+        lineUid: parentLine ? parentLine.uid : null,
+        eqpName: getMasterData('eqp', eqp.masterId).name
+      });
+      
+      // Next WO starts after this one, maybe a small gap
+      currentStart += duration + rInt(0, 2); 
+    }
+  }
+}
+
+// 🌟 Core Simulation Logic
+function updateSimulation(hour) {
+  simHour = parseInt(hour);
+  $('time-slider').value = simHour;
+  
+  // Format Date String (Start at 2026-04-15 08:00)
+  const d = new Date(2026, 3, 15, 8, 0);
+  d.setHours(d.getHours() + simHour);
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const hh = String(d.getHours()).padStart(2,'0');
+  $('time-display').textContent = `2026-${mm}-${dd} ${hh}:00`;
+
+  // 1. Update all WorkOrders state based on current Hour
+  workOrders.forEach(wo => {
+    if (simHour < wo.startHour) {
+      wo.status = 'wait'; wo.rate = 0; wo.act = 0;
+    } else if (simHour >= wo.endHour) {
+      wo.status = 'done'; wo.rate = 100; wo.act = wo.qty;
+    } else {
+      wo.status = 'run';
+      wo.rate = Math.round(((simHour - wo.startHour) / wo.duration) * 100);
+      wo.act = Math.round(wo.qty * (wo.rate / 100));
+    }
+  });
+
+  // 2. Update Canvas Equipments (LEDs, Bottlenecks) directly for performance
+  const eqpDOMs = document.querySelectorAll('.placed-eqp');
+  eqpDOMs.forEach(el => {
+    const uid = el.id;
+    const wos = workOrders.filter(w => w.eqpUid === uid);
+    
+    // Status Logic
+    let ledClass = 'led-idle';
+    let running = wos.filter(w=>w.status==='run').length;
+    let waiting = wos.filter(w=>w.status==='wait').length; // WOs scheduled in future, or queued
+    
+    if (running > 0) ledClass = 'led-run';
+    else if (waiting > 0) ledClass = 'led-wait';
+    else ledClass = 'led-idle';
+
+    const ledEl = el.querySelector('.status-led');
+    if(ledEl) {
+      ledEl.className = `status-led ${ledClass}`;
+    }
+
+    // 🌟 Bottleneck Logic
+    // If more than 3 WOs are waiting, trigger bottleneck alert
+    const bnBadge = el.querySelector('.bn-badge');
+    if (waiting >= 3) {
+      el.classList.add('is-bottleneck');
+      if(bnBadge) bnBadge.textContent = `⚠️ 병목 (대기 ${waiting}건)`;
+    } else {
+      el.classList.remove('is-bottleneck');
+    }
+  });
+
+  // 3. Re-render Tooltip if active
+  if(tooltip.classList.contains('show') && activeTooltipUid) {
+     const eqpName = getMasterData('eqp', findItemByUid(activeTooltipUid).masterId).name;
+     showTooltip(null, activeTooltipUid, eqpName, false); // Update content without moving
+  }
+
+  // 4. Re-render Right Panel
+  updateRightPanel();
+}
+
+// Play Control
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = $('btn-play');
+  if (isPlaying) {
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+    playInterval = setInterval(() => {
+      if (simHour >= MAX_HOUR) {
+        simHour = 0; // loop
+      } else {
+        simHour++;
+      }
+      updateSimulation(simHour);
+    }, 800); // Update every 800ms = 1 simulated hour
+  } else {
+    btn.textContent = '▶';
+    btn.classList.remove('playing');
+    clearInterval(playInterval);
+  }
+}
+
+function manualTimeChange(val) {
+  if(isPlaying) togglePlay(); // Pause on manual drag
+  updateSimulation(val);
+}
+
+// --- 4. Right Panel & Selection ---
+function selectContext(type, id, name, event) {
+  if(event) event.stopPropagation();
+  selectedContext = { type, id, name };
+  
+  document.querySelectorAll('.selected-glow').forEach(el => el.classList.remove('selected-glow'));
+  document.querySelectorAll('.selected-glow-eqp').forEach(el => el.classList.remove('selected-glow-eqp'));
+  
+  if (type === 'line' || type === 'storage') {
+    const el = $(id); if(el) el.classList.add('selected-glow');
+  } else if (type === 'eqp') {
+    const el = $(id); if(el) el.classList.add('selected-glow-eqp');
+  }
+  updateRightPanel();
+}
+
+function updateRightPanel() {
+  const ctx = selectedContext;
+  $('rp-title').textContent = ctx.name;
+  
+  let subtitle = '전체 구역 실시간 작업 현황';
+  if(ctx.type === 'line') subtitle = '선택 라인 작업 현황';
+  else if(ctx.type === 'eqp') subtitle = '선택 설비 배정 작업 현황';
+  else if(ctx.type === 'storage') subtitle = '창고/적치장 (WIP 없음)';
+  $('rp-subtitle').textContent = subtitle;
+
+  let filteredWOs = [];
+  if (ctx.type === 'floor') {
+    const validLineUids = layoutData[currentFloorId].filter(i=>i.type==='line').map(i=>i.uid);
+    const validEqpUids = layoutData[currentFloorId].filter(i=>i.type==='eqp').map(i=>i.uid);
+    filteredWOs = workOrders.filter(wo => validLineUids.includes(wo.lineUid) || validEqpUids.includes(wo.eqpUid));
+  } else if (ctx.type === 'line') {
+    filteredWOs = workOrders.filter(wo => wo.lineUid === ctx.id);
+  } else if (ctx.type === 'eqp') {
+    filteredWOs = workOrders.filter(wo => wo.eqpUid === ctx.id);
+  }
+
+  // Calc KPIs
+  let t=filteredWOs.length, r=0, w=0, d=0;
+  let isBottleneckArea = false;
+
+  filteredWOs.forEach(wo => {
+    if(wo.status==='run') r++; else if(wo.status==='wait') w++; else if(wo.status==='done') d++;
+  });
+  
+  $('rp-kpi-tot').textContent = t;
+  $('rp-kpi-run').textContent = r;
+  $('rp-kpi-wait').textContent = w;
+  $('rp-kpi-done').textContent = d;
+
+  // Highlight KPI box if waiting is high
+  const waitBox = $('rp-wait-box');
+  if (w > 10) { waitBox.classList.add('alert'); isBottleneckArea = true; }
+  else { waitBox.classList.remove('alert'); }
+
+  let h = '';
+  if (ctx.type === 'storage') {
+    h = `<div style="text-align:center;padding:40px;color:var(--text3)">적치 구역입니다.<br>생산 작업(WO)이 존재하지 않습니다.</div>`;
+  } else if (filteredWOs.length === 0) {
+    h = `<div style="text-align:center;padding:40px;color:var(--text3)">해당 구역/설비에 배정된<br>작업지시가 없습니다.</div>`;
+  } else {
+    if(isBottleneckArea && ctx.type!=='eqp') {
+      h += `<div class="alert-box alert-red" style="margin-bottom:10px"><div><span style="font-weight:700">⚠️ 병목 경고</span><br><span style="font-size:11px;color:var(--text2)">현재 구역에 대기 중인 작업지시가 과도하게 많습니다.</span></div></div>`;
+    }
+
+    const sortVal = { 'run':1, 'wait':2, 'done':3 };
+    filteredWOs.sort((a,b) => sortVal[a.status] - sortVal[b.status]);
+    
+    filteredWOs.forEach(wo => {
+      const cls = `st-${wo.status}`;
+      const badge = wo.status==='run'?'<span class="badge b-green">가동중</span>':wo.status==='wait'?'<span class="badge b-amber">대기중</span>':'<span class="badge b-blue">완료</span>';
+      const pColor = wo.status==='run'?'var(--green)':wo.status==='wait'?'var(--amber)':'var(--blue)';
+      
+      h += `<div class="wo-card ${cls}">
+        <div class="wo-header">
+          <div><div class="wo-id">${wo.id}</div><div class="wo-item">${wo.item}</div></div>
+          ${badge}
+        </div>
+        <div class="wo-eqp">설비: ${wo.eqpName} | 예상착수: T+${wo.startHour}</div>
+        <div class="prog-container">
+          <div class="prog-bg"><div class="prog-bar" style="width:${wo.rate}%;background:${pColor}"></div></div>
+          <div class="prog-val" style="color:${pColor}">${wo.rate}%</div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;font-family:var(--mono)">${fmt(wo.act)} / ${fmt(wo.qty)} EA</div>
+      </div>`;
+    });
+  }
+  $('wip-list-container').innerHTML = h;
+}
+
+// --- 5. Canvas & Drag Logic ---
+let dragState = { source: null, type: null, masterId: null, uid: null, offsetX: 0, offsetY: 0, parentId: null };
+
+function handleDragStart(e, source, type, idOrUid) {
+  const rect = e.target.getBoundingClientRect();
+  dragState = { source, type, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+  if (source !== 'palette') {
+    dragState.uid = idOrUid;
+    const item = findItemByUid(idOrUid);
+    if(item) dragState.parentId = item.parentId;
+    setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
+  }
+}
+document.addEventListener('dragend', (e) => { if (e.target && e.target.style) e.target.style.opacity = '1'; });
+function handleDragOver(e) { e.preventDefault(); }
+function handleDrop(e) {
+  e.preventDefault(); e.stopPropagation(); 
+  const isLine = e.currentTarget.classList.contains('placed-line');
+  const targetUid = isLine ? e.currentTarget.id : null;
+  const rect = e.currentTarget.getBoundingClientRect();
+  let dx = snap(Math.max(0, e.clientX - rect.left - dragState.offsetX));
+  let dy = snap(Math.max(0, e.clientY - rect.top - dragState.offsetY));
+
+  if (dragState.source === 'canvas') {
+    const item = findItemByUid(dragState.uid);
+    if (!item || (item.type !== 'eqp' && isLine)) return;
+    
+    if (item.type === 'eqp') {
+      removeItemFromTree(item.uid);
+      item.parentId = targetUid; item.x = dx; item.y = dy;
+      if(targetUid) {
+        const p = layoutData[currentFloorId].find(l => l.uid === targetUid);
+        if(p) p.children.push(item);
+      } else {
+        layoutData[currentFloorId].push(item);
+      }
+    } else { item.x = dx; item.y = dy; }
+    renderCanvas();
+    updateSimulation(simHour); // Restore visual states
+  }
+}
+
+function findItemByUid(uid) {
+  const items = layoutData[currentFloorId];
+  for (let i=0; i<items.length; i++) {
+    if (items[i].uid === uid) return items[i];
+    if (items[i].children) { const c = items[i].children.find(ch => ch.uid === uid); if (c) return c; }
+  }
+  return null;
+}
+function removeItemFromTree(uid) {
+  const items = layoutData[currentFloorId];
+  const idx = items.findIndex(i => i.uid === uid);
+  if(idx > -1) { items.splice(idx, 1); return; }
+  items.forEach(l => { if(l.children) { const c = l.children.findIndex(ch => ch.uid === uid); if(c > -1) l.children.splice(c, 1); } });
+}
+function deleteItem(uid, e) { e.stopPropagation(); removeItemFromTree(uid); renderCanvas(); updateSimulation(simHour); }
+
+function renderCanvas() {
+  const canvas = $('canvas-items'); canvas.innerHTML = ''; 
+  const items = layoutData[currentFloorId] || [];
+
+  items.forEach(item => {
+    if (item.type === 'line') {
+      const master = getMasterData('line', item.masterId);
+      const div = document.createElement('div');
+      div.className = 'placed-line'; div.id = item.uid;
+      div.style.left = item.x + 'px'; div.style.top = item.y + 'px'; div.style.width = item.width + 'px'; div.style.height = item.height + 'px';
+      div.draggable = true; div.ondragstart = (e) => handleDragStart(e, 'canvas', 'line', item.uid);
+      div.ondragover = handleDragOver; div.ondrop = handleDrop;
+      div.onclick = (e) => selectContext('line', item.uid, `${master.name} (그룹)`, e);
+      div.innerHTML = `<div class="line-label"><span>${master.name}</span></div><div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>`;
+      if (item.children) renderEqpGroup(item.children, div, item);
+      canvas.appendChild(div);
+    } else if (item.type === 'storage') {
+      const master = getMasterData('storage', item.masterId);
+      const div = document.createElement('div');
+      div.className = 'placed-storage'; div.id = item.uid;
+      div.style.left = item.x + 'px'; div.style.top = item.y + 'px'; div.style.width = item.width + 'px'; div.style.height = item.height + 'px';
+      div.draggable = true; div.ondragstart = (e) => handleDragStart(e, 'canvas', 'storage', item.uid);
+      div.onclick = (e) => selectContext('storage', item.uid, master.name, e);
+      div.innerHTML = `<div class="storage-label"><span>${master.name}</span></div><div class="storage-icon-bg">${master.icon}</div><div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>`;
+      canvas.appendChild(div);
+    }
+  });
+
+  const looseEqps = items.filter(i => i.type === 'eqp');
+  renderEqpGroup(looseEqps, canvas, null);
+  drawFlowLines();
+  if(selectedContext.id) selectContext(selectedContext.type, selectedContext.id, selectedContext.name, null);
+}
+
+function renderEqpGroup(eqpList, container, parentLine) {
+  const map = {};
+  eqpList.forEach(e => { const k=`${e.x},${e.y}`; if(!map[k]) map[k]=[]; map[k].push(e); });
+  Object.values(map).forEach(stack => {
+    stack.forEach((eqp, idx) => { container.appendChild(createEqpDOM(eqp, idx, stack.length, parentLine)); });
+  });
+}
+
+let activeTooltipUid = null;
+const tooltip = $('wip-tooltip');
+
+function createEqpDOM(item, sIdx, sCnt, pLine) {
+  const master = getMasterData('eqp', item.masterId);
+  const div = document.createElement('div');
+  div.className = 'placed-eqp'; div.id = item.uid;
+  div.style.left = (item.x + (sIdx*6)) + 'px'; div.style.top = (item.y + (sIdx*6)) + 'px'; div.style.zIndex = 5 + sIdx;
+  if(sCnt>1) div.style.boxShadow = '-2px -2px 6px rgba(0,0,0,0.4), 2px 2px 6px rgba(0,0,0,0.2)';
+  div.draggable = true; div.ondragstart = (e) => handleDragStart(e, 'canvas', 'eqp', item.uid);
+  div.ondragover = e => e.stopPropagation(); div.ondrop = e => e.stopPropagation();
+  div.onclick = (e) => { const pN = pLine?`${getMasterData('line',pLine.masterId).name} > `:''; selectContext('eqp', item.uid, `${pN}${master.name}`, e); };
+  
+  // Tooltip
+  div.onmouseenter = (e) => { activeTooltipUid = item.uid; showTooltip(e, item.uid, master.name, true); };
+  div.onmousemove = (e) => moveTooltip(e);
+  div.onmouseleave = () => { activeTooltipUid = null; tooltip.classList.remove('show'); };
+
+  let b = ''; if (sCnt>1 && sIdx===sCnt-1) b = `<div class="stack-badge">${sCnt}</div>`;
+  // Add Bottleneck Badge container
+  div.innerHTML = `${b}<div class="bn-badge"></div><div class="status-led led-idle"></div><div class="eqp-icon">${master.icon}</div><div class="eqp-lbl">${master.id}</div><div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>`;
+  return div;
+}
+
+function showTooltip(e, eqpUid, eqpName, move) {
+  const wos = workOrders.filter(w => w.eqpUid === eqpUid);
+  if(wos.length === 0) { tooltip.classList.remove('show'); return; }
+  
+  wos.sort((a,b) => { const s={run:1, wait:2, done:3}; return s[a.status]-s[b.status]; });
+  const activeWo = wos[0]; 
+  const statusStr = activeWo.status==='run'?'<span style="color:var(--green)">가동중</span>':activeWo.status==='done'?'<span style="color:var(--blue)">완료</span>':'<span style="color:var(--amber)">대기중</span>';
+  const pColor = activeWo.status==='run'?'var(--green)':activeWo.status==='done'?'var(--blue)':'var(--amber)';
+
+  let h = `<div class="tt-hdr"><div style="font-weight:700;color:var(--cyan)">${eqpName}</div><div style="font-size:10px;font-weight:700">${statusStr}</div></div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">진행 WO: <span style="color:var(--text);font-family:var(--mono)">${activeWo.id}</span></div>
+    <div style="font-size:11px;font-weight:700">${activeWo.item}</div>
+    <div class="prog-container" style="margin-top:8px"><div class="prog-bg"><div class="prog-bar" style="width:${activeWo.rate}%;background:${pColor}"></div></div><div class="prog-val" style="color:${pColor}">${activeWo.rate}%</div></div>
+    <div style="font-size:10px;text-align:right;color:var(--text3);margin-top:2px;font-family:var(--mono)">${fmt(activeWo.act)} / ${fmt(activeWo.qty)} EA</div>`;
+  
+  const waitingCnt = wos.filter(w=>w.status==='wait').length;
+  if(wos.length > 1) h += `<div style="font-size:10px;color:var(--text3);margin-top:8px;border-top:1px dashed var(--border);padding-top:4px">+ 대기 스케줄 <b style="color:var(--amber)">${waitingCnt}건</b> 존재</div>`;
+  
+  tooltip.innerHTML = h; tooltip.classList.add('show');
+  if(move && e) moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  if(!tooltip.classList.contains('show')) return;
+  let x = e.clientX + 15; let y = e.clientY + 15;
+  const rect = tooltip.getBoundingClientRect();
+  if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
+  if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+  tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+}
+
+function drawFlowLines() {
+  const g = $('flow-paths'); g.innerHTML = ''; 
+  if(!$('toggle-flow').checked) return;
+  const items = layoutData[currentFloorId] || [];
+  
+  routingFlows.forEach(flowObj => {
+    const flowNodes = [];
+    flowObj.path.forEach(mId => { const n = items.find(i => (i.type === 'line' || i.type === 'storage') && i.masterId === mId); if(n) flowNodes.push(n); });
+    for(let i = 0; i < flowNodes.length - 1; i++) {
+      const s = flowNodes[i], t = flowNodes[i+1];
+      const startX = s.x + s.width, startY = s.y + (s.height / 2);
+      const endX = t.x, endY = t.y + (t.height / 2);
+      const c = Math.max(Math.abs(endX - startX) / 2, 50); 
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${startX},${startY} C ${startX + c},${startY} ${endX - c},${endY} ${endX},${endY}`);
+      path.setAttribute('class', flowObj.color === 'amber' ? 'flow-path-alt' : 'flow-path');
+      path.setAttribute('marker-end', flowObj.color === 'amber' ? 'url(#arrowhead-alt)' : 'url(#arrowhead)');
+      g.appendChild(path);
+    }
+  });
+}
+</script>
+</body>
+</html>

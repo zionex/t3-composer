@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>⚙️ 생산 관리</title>
+<!-- T3MES UI Pattern · scm_snop_1 · TabPage #4: ⚙️ 생산 관리 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+    <div class="grid-top">
+      <div class="kpi-card" style="grid-column: span 3;">
+        <div class="card-title">설비 종합 효율 (OEE Breakdown)</div>
+        <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px">
+          <div style="text-align:center">
+            <div class="donut-wrap" style="background:conic-gradient(var(--c-prd) 78.4%, var(--surface3) 0);margin:0 auto">
+              <div class="donut-inner"><div class="donut-val c-prd">78.4%</div><div class="donut-lbl">OEE Total</div></div>
+            </div>
+          </div>
+          <div style="font-size:24px;color:var(--text3)">=</div>
+          <div style="text-align:center">
+            <div class="donut-wrap" style="width:80px;height:80px;background:conic-gradient(var(--c-sal) 85%, var(--surface3) 0);margin:0 auto">
+              <div class="donut-inner" style="width:60px;height:60px"><div class="donut-val" style="font-size:14px">85%</div></div>
+            </div>
+            <div style="font-size:12px;margin-top:8px;font-weight:700">가동률(A)</div>
+          </div>
+          <div style="font-size:24px;color:var(--text3)">x</div>
+          <div style="text-align:center">
+            <div class="donut-wrap" style="width:80px;height:80px;background:conic-gradient(var(--c-pur) 94%, var(--surface3) 0);margin:0 auto">
+              <div class="donut-inner" style="width:60px;height:60px"><div class="donut-val" style="font-size:14px">94%</div></div>
+            </div>
+            <div style="font-size:12px;margin-top:8px;font-weight:700">성능효율(P)</div>
+          </div>
+          <div style="font-size:24px;color:var(--text3)">x</div>
+          <div style="text-align:center">
+            <div class="donut-wrap" style="width:80px;height:80px;background:conic-gradient(var(--c-all) 98%, var(--surface3) 0);margin:0 auto">
+              <div class="donut-inner" style="width:60px;height:60px"><div class="donut-val" style="font-size:14px">98%</div></div>
+            </div>
+            <div style="font-size:12px;margin-top:8px;font-weight:700">양품률(Q)</div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">생산 계획 달성률 (Plan vs Actual)</div>
+        <div class="val-l c-prd">92.5%</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:15px;color:var(--text2)"><span>계획: 150,000 EA</span><span>실적: 138,750 EA</span></div>
+        <div class="pg-wrap" style="height:12px"><div class="pg-bar bg-prd" style="width:92.5%"></div></div>
+      </div>
+    </div>
+    <div class="grid-mid">
+      <div class="kpi-card">
+        <div class="card-title">📊 일일 생산량 추이 (최근 14일)</div>
+        <div class="chart-wrap" id="chart-prd-1"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">🛑 비가동(Downtime) 사유 파레토</div>
+        <div style="margin-top:10px">
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>설비 고장 (Breakdown)</span><span>45% (32H)</span></div><div class="pg-wrap"><div class="pg-bar bg-qal" style="width:45%"></div></div></div>
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>모델 교체 (Setup/Changeover)</span><span>30% (21H)</span></div><div class="pg-wrap"><div class="pg-bar bg-pur" style="width:30%"></div></div></div>
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>자재 대기 (Material Shortage)</span><span>15% (10H)</span></div><div class="pg-wrap"><div class="pg-bar bg-sal" style="width:15%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px"><span>기타 (회의, 휴식 등)</span><span>10% (7H)</span></div><div class="pg-wrap"><div class="pg-bar bg-text3" style="width:10%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>

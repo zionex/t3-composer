@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>IQC 검사대기열</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #1: IQC 검사대기열 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① IQC 검사 대기열 (Pending Inspection)</h3><span class="tip">원부자재가 입고되어 가용 재고로 잡히기 전, 품질부서의 수입검사를 기다리는 리스트입니다. (100건 생성)</span></div><button class="btn btn-blue" onclick="showToast('검사 할당 완료')">선택항목 검사 할당</button></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>No</th><th>입고 LOT</th><th>공급사</th><th>품목명</th><th style="text-align:right">입고수량</th><th>입고일자</th><th>IQC 상태</th><th>담당자 할당</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>

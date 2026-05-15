@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QMS & Quality Control Monitoring Dashboard (50 Types) - Massive Full Data</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Quality Management Theme */
+  --bg:#0f111a;--surface:#161b22;--surface2:#1e2532;--surface3:#293345;
+  --border:#344054;--border2:#475569;
+  --text:#f8fafc;--text2:#cbd5e1;--text3:#94a3b8;
+  --red:#ef4444;--red-dim:#ef444422;--red-mid:#ef444455;
+  --green:#10b981;--green-dim:#10b98122;--green-mid:#10b98155;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --rose:#f43f5e;--rose-dim:#f43f5e22;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (50 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Group Colors */
+.t-1.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-1.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-2.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-2.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-3.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-3.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-4.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-4.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-5.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-5.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-6.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-6.active .tab-num{color:var(--red);background:var(--red-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1);position:relative}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:600px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Visual Components (Gauges, Bars, Live Dots) */
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;flex:1}
+.prog-fill{height:100%;transition:width 0.5s ease}
+.bar-h-wrap{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+
+.gauge-wrap{position:relative;width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--surface3) 0);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.gauge-inner{width:90px;height:90px;background:var(--surface);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.val-lg{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--c, var(--text))}
+
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1.5s infinite}
+@keyframes pulse{0%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+@keyframes blinkRow{0%,100%{background:transparent}50%{background:var(--red-dim)}}
+.blink-row{animation:blinkRow 1s infinite}
+
+.spc-box{height:200px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;margin:10px 0}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:300px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);border-left:4px solid var(--c)}
+
+/* Topo Traceability */
+.topo-wrap{display:flex;gap:30px;overflow-x:auto;padding:30px;align-items:center;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);min-height:300px}
+.topo-col{display:flex;flex-direction:column;gap:16px;min-width:200px}
+.topo-node{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--c);border-radius:var(--radius);padding:12px;position:relative}
+.topo-arrow{color:var(--text3);font-size:24px}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+<div id="panels"></div>
+</div>
+
+<script>
+// --- Configuration & Data ---
+const tabNames = [
+  // Grp 1: IQC & Supplier
+  "IQC 종합 수율","협력사 PPM 랭킹","IQC 대기열 Live","자재 불량률 추이","AQL 샘플링 모니터","IQC 리드타임","악성불량 파레토","원부자재 에이징",
+  // Grp 2: In-Process Quality
+  "공정 Live 불량률","초중종물 검사현황","불량유형 분포","수율 폭포수","순회검사 피드","재작업 라우팅현황","설비별 품질맵","교대조 품질비교",
+  // Grp 3: OQC & Customer
+  "OQC 합격률 실시간","RMA 클레임 라이브","8D Report 칸반","출하 Hold 모니터","고객 만족도 CQI","제품군별 반품률","검사원 퍼포먼스",
+  // Grp 4: SPC & Stats
+  "X-bar R 관리도","Cp/Cpk 매트릭스","OOC 이상알람","치수 히스토그램","6-Sigma 트래커","게이지 R&R 상태","다변수 상관분석","표준편차 추이",
+  // Grp 5: Smart Vision & AI
+  "Vision AI 실시간","BLE 캘리퍼스 피드","3D 편차 히트맵","AI 불량예측 알람","환경 vs 불량상관","FDC 이상징후 보드","불량 이미지 갤러리","AI 판독 신뢰도",
+  // Grp 6: QMS & Admin
+  "실시간 품질비용(COQ)","NCR 체류 현황","MRB 심의 자산","계측기 교정 캘린더","품질 오딧 현황","SOP 개정 라이브","불량 역추적 트리","블록체인 Hash 보드","스킬 매트릭스 감지","경영진 품질 요약"
+];
+
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const rFloat = (min,max) => (Math.random()*(max-min)+min).toFixed(2);
+const formatNum = n => n.toLocaleString();
+const getEl = id => document.getElementById(id);
+
+// Helpers
+const tblTpl = (head, rows) => `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+const cardTpl = (t, c, st='') => `<div class="card" style="${st}"><div class="card-title">${t}</div>${c}</div>`;
+const progTpl = (p, c) => `<div class="prog-bg"><div class="prog-fill" style="width:${p}%;background:var(--${c})"></div></div>`;
+const sparkTpl = (c, w=100) => { let pts=''; for(let i=0;i<10;i++) pts+=`${i*(w/10)},${rInt(10,40)} `; return `<svg width="${w}" height="40"><polyline points="${pts}" fill="none" stroke="var(--${c})" stroke-width="2"/></svg>`; };
+
+// Main Init
+function initTabs() {
+  const nav = getEl('tab-nav');
+  const panels = getEl('panels');
+  
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 8) + 1; if(grp>6) grp=6;
+    let btn = document.createElement('button');
+    btn.className = `tab-btn t-${grp} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+
+    let panel = document.createElement('div');
+    panel.className = `panel ${i===0?'active':''}`;
+    panel.id = `p${i}`;
+    let isLive = [2,8,12,16,17,23,25,31,32,38].includes(i);
+    panel.innerHTML = `<div class="sec-hdr"><div><h3>${isLive?'<div class="live-dot" style="margin-right:8px"></div>':''}${i+1}. ${n} Dashboard</h3><span class="tip">실시간 업데이트 대시보드 데이터입니다.</span></div></div><div id="v${i}"></div>`;
+    panels.appendChild(panel);
+  });
+
+  renderAll();
+  
+  // Live Value Auto Updater
+  setInterval(() => {
+    const act = document.querySelector('.panel.active');
+    if(!act) return;
+    act.querySelectorAll('.live-num').forEach(el => {
+      let v = parseFloat(el.innerText.replace(/,/g,''));
+      if(isNaN(v)) return;
+      let next = v + (Math.random()-0.5)*(v*0.02); // 2% fluctuation
+      el.innerText = next % 1 !== 0 ? next.toFixed(2) : Math.floor(next).toLocaleString();
+    });
+  }, 2000);
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  btnEl.classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+// --- Render Generators (50 Panels) ---
+function renderAll() {
+  for(let i=0; i<50; i++){
+    if(typeof window['g'+i] === 'function') window['g'+i]();
+  }
+}
+
+// Group 1: IQC
+function g0() {
+  let h=''; ['합격률(Pass)','불합격률(Reject)','특채율(UAI)'].forEach((t,i)=>{
+    let p=[98.2, 1.3, 0.5][i]; let c=['green','red','amber'][i];
+    h+=cardTpl(t, `<div class="gauge-wrap" style="--c:var(--${c});--p:${p}"><div class="gauge-inner"><span class="val-lg live-num" style="--c:var(--${c})">${p}</span><span style="font-size:11px;color:var(--text2)">%</span></div></div>`, 'text-align:center');
+  });
+  getEl('v0').innerHTML = `<div class="grid3">${h}</div>` + cardTpl('일일 검사 누적 건수', '<div class="val-lg live-num" style="font-size:60px;text-align:center;padding:40px;--c:var(--cyan)">12,450</div>');
+}
+function g1() {
+  let rows=[]; for(let i=1;i<=100;i++){
+    let ppm=rInt(10, 5000); let c = ppm>2000?'red':ppm>500?'amber':'green';
+    rows.push(`<tr><td>${i}</td><td>협력사 ${i}정밀</td><td class="num live-num" style="color:var(--${c});font-weight:700">${ppm}</td><td>${sparkTpl(c,80)}</td><td><span class="badge" style="background:var(--${c}-dim);color:var(--${c})">${ppm>2000?'경고':'정상'}</span></td></tr>`);
+  } getEl('v1').innerHTML = tblTpl(['순위','협력사명','PPM (불량률)','최근 추세','상태'], rows);
+}
+function g2() {
+  let rows=[]; for(let i=1;i<=200;i++){
+    let q=rInt(100,5000); let w=rInt(1,48); let c=w>24?'red':'text';
+    rows.push(`<tr class="${w>36?'blink-row':''}"><td>RCV-2024-${i}</td><td>자재 ${i}</td><td class="num">${formatNum(q)}</td><td style="color:var(--${c});font-weight:700">${w} 시간째</td><td>대기</td></tr>`);
+  } getEl('v2').innerHTML = tblTpl(['입고 LOT','품목','수량','대기 시간 (Aging)','상태'], rows);
+}
+function g3() {
+  let h=''; for(let i=1;i<=10;i++) h+=`<div class="bar-h-wrap"><div style="width:100px">자재 MAT-${i}</div>${progTpl((11-i)*8, 'red')}<div class="num">${rFloat(1,5)}%</div></div>`;
+  getEl('v3').innerHTML = cardTpl('Top 10 불량 다발 자재 모니터링', h);
+}
+function g4() {
+  let rows=[]; for(let i=1;i<=50;i++) rows.push(`<tr><td>LOT-${i}</td><td class="num">${rInt(5000,20000)}</td><td class="num" style="color:var(--cyan)">${rInt(80,315)}</td><td class="num">Ac:2, Re:3</td><td class="num live-num" style="color:var(--red)">${rInt(0,4)}</td></tr>`);
+  getEl('v4').innerHTML = cardTpl('AQL 샘플링 라이브 현황 (MIL-STD-105E)', tblTpl(['LOT','입고총량(N)','샘플수(n)','판정기준','적발수'], rows));
+}
+function g5() {
+  getEl('v5').innerHTML = `<div class="grid2">${cardTpl('평균 검사 소요시간', '<div class="val-lg live-num" style="font-size:80px;text-align:center;padding:50px;--c:var(--blue)">4.5</div><div style="text-align:center;color:var(--text2)">Hours / LOT</div>')}${cardTpl('구간별 정체현황', '<div style="height:200px;background:var(--surface3);display:flex;align-items:flex-end;gap:10px;padding:10px">'+[10,30,80,40,20].map((v,i)=>`<div style="flex:1;background:var(--${i>2?'red':'blue'});height:${v}%;border-radius:4px 4px 0 0"></div>`).join('')+'</div>')}</div>`;
+}
+function g6() {
+  let pts='0,150 '; for(let i=0;i<=10;i++) pts+=`${i*40},${150 - rInt(20,130)} `; pts+='400,150';
+  getEl('v6').innerHTML = cardTpl('악성 불량 원인 파레토 (누적 곡선 포함)', `<div style="height:300px;position:relative;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--red-dim)"/><polyline points="${pts.replace(/0,150 |400,150/g,'')}" fill="none" stroke="var(--red)" stroke-width="2"/></svg></div>`);
+}
+function g7() {
+  let rows=[]; for(let i=1;i<=100;i++){ let d=rInt(1,365); let c=d>180?'red':d>90?'amber':'text'; rows.push(`<tr><td>원자재 ${i}</td><td class="num">${formatNum(rInt(100,5000))}</td><td style="color:var(--${c});font-weight:700">입고 후 ${d}일 경과</td></tr>`); }
+  getEl('v7').innerHTML = cardTpl('창고 장기 체화(Aging) 자재 리스트', tblTpl(['자재명','재고량','체화 기간'], rows));
+}
+
+// Group 2: LQC
+function g8() {
+  let h=''; for(let i=1;i<=12;i++){ let r=rFloat(0,3); let c=r>2?'red':'green'; h+=cardTpl(`조립 라인 ${i}`, `<div class="val-lg live-num" style="text-align:center;font-size:40px;--c:var(--${c});margin:20px 0">${r}</div><div style="text-align:center;font-size:12px;color:var(--text2)">Defect Rate (%)</div>`, `border-color:var(--${c})`); }
+  getEl('v8').innerHTML = `<div class="grid4">${h}</div>`;
+}
+function g9() {
+  let rows=[]; for(let i=1;i<=30;i++){ let f=i%5===0?'FAIL':'PASS'; let m=i%6===0?'FAIL':i%3===0?'WAIT':'PASS'; rows.push(`<tr><td>설비 ${i}호</td><td style="font-family:var(--mono)">WO-${i}</td><td><span class="badge badge-${f==='PASS'?'green':'red'}">${f}</span></td><td><span class="badge badge-${m==='PASS'?'green':m==='FAIL'?'red':'gray'}">${m}</span></td><td><span class="badge badge-gray">WAIT</span></td></tr>`); }
+  getEl('v9').innerHTML = cardTpl('설비별 초중종물 검사 완료 보드', tblTpl(['설비명','지시번호','초물(First)','중물(Middle)','종물(Last)'], rows));
+}
+function g10() {
+  getEl('v10').innerHTML = `<div class="grid2">${cardTpl('기구 불량 유형', `<div class="gauge-wrap" style="background:conic-gradient(var(--red) 40%, var(--amber) 40% 70%, var(--purple) 70%);width:200px;height:200px"></div><div style="text-align:center;margin-top:20px">스크래치 40% / 찍힘 30% / 파손 30%</div>`)}${cardTpl('전장 불량 유형', `<div class="gauge-wrap" style="background:conic-gradient(var(--blue) 50%, var(--cyan) 50% 85%, var(--rose) 85%);width:200px;height:200px"></div><div style="text-align:center;margin-top:20px">쇼트 50% / 미납 35% / 오삽입 15%</div>`)}</div>`;
+}
+function g11() {
+  let h=''; let s=10000;
+  [{n:'Input',v:0},{n:'외관 NG',v:150},{n:'치수 NG',v:200},{n:'기능 NG',v:50},{n:'Output',v:0}].forEach((x,i)=>{
+    if(i>0&&i<4) s-=x.v; let w=i===0||i===4?s:x.v; let c=i>0&&i<4?'red':'green';
+    h+=`<div class="bar-h-wrap"><div style="width:80px">${x.n}</div><div style="flex:1;display:flex"><div style="width:${(s/10000)*100}%;display:flex;justify-content:flex-end"><div style="width:${(w/s)*100}%;background:var(--${c});height:24px;border-radius:4px"></div></div></div><div class="num val-lg" style="font-size:16px;--c:var(--${c})">${formatNum(w)}</div></div>`;
+  }); getEl('v11').innerHTML = cardTpl('메인 공정 수율 폭포수 (Waterfall)', h);
+}
+function g12() {
+  let h=''; for(let i=1;i<=20;i++) h+=`<div style="padding:12px;border-bottom:1px solid var(--border);color:var(--${i%4===0?'red':'text'})"><span style="font-family:var(--mono);margin-right:10px">[14:${String(i).padStart(2,'0')}:00]</span> 검사원 ${i} - 라인 ${rInt(1,5)} 순회검사 완료. ${i%4===0?'[부적합 발견: ESD 미착용]':'[특이사항 없음]'}</div>`;
+  getEl('v12').innerHTML = cardTpl('현장 모바일 순회검사 실시간 피드', `<div style="background:#000;padding:20px;border-radius:8px;height:500px;overflow-y:auto">${h}</div>`);
+}
+function g13() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>LOT-RW-${i}</td><td class="num">${rInt(10,50)}</td><td>조립 공정</td><td><div class="badge badge-amber">재작업 진행중</div></td></tr>`);
+  getEl('v13').innerHTML = cardTpl('Rework (재작업) 루프 체류 현황', tblTpl(['대상 LOT','수량','현재 위치','상태'], rows));
+}
+function g14() {
+  let h = `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;height:400px">`;
+  for(let i=1;i<=25;i++){ let r=rFloat(0,5); let c=r>3?'red':r>1?'amber':'green'; h+=`<div style="background:var(--${c});opacity:0.8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-direction:column">EQ-${i}<br>${r}%</div>`; }
+  getEl('v14').innerHTML = cardTpl('2D 설비 배치도 기반 품질 산포 (Heatmap)', h+'</div>');
+}
+function g15() {
+  getEl('v15').innerHTML = `<div class="grid2">${cardTpl('주간조 (Day Shift)', '<div class="val-lg" style="text-align:center;font-size:60px;padding:40px;--c:var(--cyan)">98.5%</div><div style="text-align:center">수율</div>')}${cardTpl('야간조 (Night Shift)', '<div class="val-lg" style="text-align:center;font-size:60px;padding:40px;--c:var(--purple)">97.2%</div><div style="text-align:center">수율</div>')}</div>`;
+}
+
+// Group 3: OQC
+function g16() {
+  let pts=''; for(let i=0;i<24;i++) pts+=`${i*40},${rInt(20,50)} `;
+  getEl('v16').innerHTML = cardTpl('실시간 출하검사(OQC) 불합격률 추이', `<div class="spc-box" style="height:300px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="3"/></svg></div>`);
+}
+function g17() {
+  let rows=[]; for(let i=1;i<=50;i++){ let isNew=i<4; rows.push(`<tr class="${isNew?'blink-row':''}"><td>RMA-2410-${i}</td><td>고객사 ${i}</td><td style="color:var(--red);font-weight:700">전원 불량 (발열)</td><td class="num">${rInt(1,10)}</td><td>${isNew?'방금 전':'어제'}</td></tr>`); }
+  getEl('v17').innerHTML = cardTpl('글로벌 RMA (고객 클레임) 실시간 접수 피드', tblTpl(['RMA 번호','고객사','클레임 내용','수량','접수시간'], rows));
+}
+function g18() {
+  let c=(n,col)=>`<div class="k-col" style="border-top:4px solid var(--${col})"><div style="font-weight:700">${n}</div><div class="k-card" style="--c:var(--${col})">8D-001: 발열 클레임<br><span style="font-size:11px;color:var(--text2)">진행중</span></div></div>`;
+  getEl('v18').innerHTML = `<div class="kanban">${c('D1~D3: 봉쇄조치','red')}${c('D4: 근본원인 분석','amber')}${c('D5~D6: 시정조치','cyan')}${c('D7~D8: 예방/완료','green')}</div>`;
+}
+function g19() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>SO-HOLD-${i}</td><td>A제품</td><td style="color:var(--amber);font-weight:700">품질 보류 (OQC 미승인)</td><td><button class="btn btn-ghost btn-sm">상세</button></td></tr>`);
+  getEl('v19').innerHTML = cardTpl('출하장 대기/보류(Hold) 물동 리스트', tblTpl(['출하 오더','품목','보류 사유','액션'], rows));
+}
+function g20() {
+  getEl('v20').innerHTML = `<div class="grid3">${[1,2,3].map(i=>cardTpl(`고객사 ${i} 품질지수(CQI)`, `<div class="val-lg live-num" style="text-align:center;font-size:50px;margin:30px 0;--c:var(--cyan)">${rFloat(85,99)}</div>`, 'text-align:center')).join('')}</div>`;
+}
+function g21() {
+  let rows=[]; for(let i=1;i<=15;i++){ let r=rFloat(0.1, 2.5); rows.push(`<tr><td>제품군 Product-${i}</td><td class="num">${formatNum(rInt(10000,50000))}</td><td class="num" style="color:var(--${r>1.5?'red':'text'});font-weight:700">${r}%</td><td>${progTpl(r*20, r>1.5?'red':'cyan')}</td></tr>`); }
+  getEl('v21').innerHTML = cardTpl('제품군별 시장 반품률 (Return Rate)', tblTpl(['제품군','출하량','반품률','게이지'], rows));
+}
+function g22() {
+  let rows=[]; for(let i=1;i<=30;i++){ let s=rInt(2,5); rows.push(`<tr><td>검사원 ${i}</td><td class="num">${formatNum(rInt(1000,5000))}</td><td><span style="color:var(--amber)">${'★'.repeat(s)}${'☆'.repeat(5-s)}</span></td></tr>`); }
+  getEl('v22').innerHTML = cardTpl('OQC 검사원 누적 처리량 및 신뢰도 등급', tblTpl(['검사원','월간 검사수량','신뢰도 (별점)'], rows));
+}
+
+// Group 4: SPC
+function g23() {
+  let pts1='', pts2=''; for(let i=0;i<50;i++){ pts1+=`${i*20},${rInt(30,70)} `; pts2+=`${i*20},${rInt(40,60)} `; }
+  getEl('v23').innerHTML = cardTpl('다중 라인 X-bar R 실시간 관리도', `<div class="spc-box" style="height:350px"><div class="spc-line" style="top:20%;border-color:var(--red)"></div><div class="spc-line" style="top:50%;border-color:var(--cyan)"></div><div class="spc-line" style="top:80%;border-color:var(--red)"></div><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="2"/><polyline points="${pts2}" fill="none" stroke="var(--amber)" stroke-width="2"/></svg></div>`);
+}
+function g24() {
+  let h=''; for(let i=1;i<=16;i++){ let cp=rFloat(0.8, 2.0); let c=cp<1.33?'red':'green'; h+=`<div class="card" style="margin:0;border-top:4px solid var(--${c});text-align:center"><div style="font-size:11px;color:var(--text2)">치수 항목 ${i}</div><div class="val-lg live-num" style="--c:var(--${c});margin-top:10px">${cp}</div></div>`; }
+  getEl('v24').innerHTML = cardTpl('주요 CTQ 항목별 Cp/Cpk 매트릭스', `<div class="grid4">${h}</div>`);
+}
+function g25() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr class="blink-row"><td>14:${String(i).padStart(2,'0')}:12</td><td>두께 측정 공정</td><td style="color:var(--red);font-weight:700">UCL 이탈 (연속 3타점 상승)</td><td><button class="btn btn-red btn-sm">조치</button></td></tr>`);
+  getEl('v25').innerHTML = cardTpl('SPC OOC (Out of Control) 실시간 경보', tblTpl(['발생시간','공정/항목','통계적 이상징후 (Rule)','액션'], rows));
+}
+function g26() {
+  let h=''; for(let i=0;i<20;i++){ let v=Math.exp(-Math.pow(i-10,2)/10)*100; h+=`<div style="flex:1;background:var(--cyan);height:${v}%;border-radius:2px"></div>`; }
+  getEl('v26').innerHTML = cardTpl('샤프트 외경 치수 히스토그램 (정규분포 곡선)', `<div style="height:300px;display:flex;align-items:flex-end;gap:2px;background:var(--surface3);padding:10px;border-radius:8px">${h}</div>`);
+}
+function g27() {
+  getEl('v27').innerHTML = `<div class="grid2">${cardTpl('현재 시그마 수준 (Z-Score)', '<div class="val-lg live-num" style="font-size:80px;text-align:center;padding:40px;--c:var(--purple)">4.2</div><div style="text-align:center">Sigma</div>')}${cardTpl('DPMO (백만개당 결함수)', '<div class="val-lg live-num" style="font-size:80px;text-align:center;padding:40px;--c:var(--text)">3,400</div><div style="text-align:center">Defects Per Million Opp.</div>')}</div>`;
+}
+function g28() {
+  let rows=[]; for(let i=1;i<=10;i++){ let r=rFloat(5,30); rows.push(`<tr><td>계측기 ${i} (Gage)</td><td class="num" style="color:var(--${r>10?'red':'green'})">${r}%</td><td><span class="badge badge-${r>10?'red':'green'}">${r>10?'개선필요':'수용가능'}</span></td></tr>`); }
+  getEl('v28').innerHTML = cardTpl('측정 시스템 분석 (Gage R&R) %Tolerance', tblTpl(['계측 장비','R&R 비율','판정'], rows));
+}
+function g29() {
+  let h=''; for(let i=0;i<9;i++){ h+=`<div style="background:var(--surface3);border-radius:4px;position:relative;overflow:hidden">`; for(let j=0;j<20;j++) h+=`<div style="position:absolute;width:4px;height:4px;background:var(--cyan);border-radius:50%;left:${rInt(10,90)}%;top:${rInt(10,90)}%"></div>`; h+=`</div>`; }
+  getEl('v29').innerHTML = cardTpl('다중 파라미터(온도/압력/속도) 상관분석 산점도 매트릭스', `<div style="display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:150px;gap:10px">${h}</div>`);
+}
+function g30() {
+  let pts=''; for(let i=0;i<24;i++) pts+=`${i*40},${180 - rInt(20,50)} `;
+  getEl('v30').innerHTML = cardTpl('일간 산포(표준편차 σ) 변화 트렌드', `<div class="spc-box" style="height:250px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="3"/></svg></div>`);
+}
+
+// Group 5: Smart
+function g31() {
+  getEl('v31').innerHTML = `<div class="grid2"><div style="height:400px;background:#000;border:1px solid var(--border);border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center"><span style="font-size:40px;opacity:0.3">Live Camera</span><div style="position:absolute;top:30%;left:40%;width:60px;height:60px;border:2px solid var(--red);box-shadow:0 0 10px var(--red)"></div><div style="position:absolute;top:10px;left:10px;background:var(--red);padding:4px 8px;border-radius:4px;font-weight:700">AI DETECT: SCRATCH (99%)</div></div>${cardTpl('실시간 판독 로그', tblTpl(['시간','판정','신뢰도'], [1,2,3,4,5].map(i=>`<tr><td>14:2${i}:00</td><td style="color:var(--red)">NG</td><td>99.${i}%</td></tr>`)))}</div>`;
+}
+function g32() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>CAL-MAC-01</td><td class="num live-num" style="color:var(--cyan);font-weight:700;font-size:16px">${rFloat(12.4,12.6)}</td><td>mm</td><td><span class="badge badge-green">OK</span></td></tr>`);
+  getEl('v32').innerHTML = cardTpl('블루투스 무선 계측기(Caliper) 실시간 수신 스트림', tblTpl(['디바이스 ID','측정값','단위','판정'], rows));
+}
+function g33() {
+  getEl('v33').innerHTML = cardTpl('3D 스캔 CAD 오버레이 편차 히트맵', `<div style="height:400px;background:radial-gradient(circle, var(--green) 20%, var(--amber) 60%, var(--red) 100%);opacity:0.6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700;text-shadow:0 2px 4px #000">MAX DEVIATION: +0.05mm</div>`);
+}
+function g34() {
+  let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr><td>CNC ${i}호기</td><td>스핀들 진동 이상패턴</td><td class="num" style="color:var(--red);font-weight:700">${rInt(80,99)}%</td><td><button class="btn btn-amber btn-sm">예방정비 지시</button></td></tr>`);
+  getEl('v34').innerHTML = cardTpl('AI 머신러닝 기반 불량/고장 예측 (Predictive QC)', tblTpl(['대상 설비','이상 감지 특징','불량 발생 확률(AI)','추천 액션'], rows));
+}
+function g35() {
+  getEl('v35').innerHTML = `<div class="grid2">${cardTpl('온도 vs 치수불량 상관관계', '<div style="height:300px;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text3)">Scatter Plot Area</div>')}${cardTpl('습도 vs 코팅불량 상관관계', '<div style="height:300px;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text3)">Scatter Plot Area</div>')}</div>`;
+}
+function g36() {
+  let h=''; for(let i=1;i<=8;i++){ h+=cardTpl(`FDC 센서 알람 ${i}`, `<div style="font-family:var(--mono);color:var(--red);font-size:20px">OVER-TEMP</div><div class="live-num">254.3 ℃</div>`, 'border-color:var(--red);background:var(--red-dim)'); }
+  getEl('v36').innerHTML = `<div class="grid4">${h}</div>`;
+}
+function g37() {
+  let h=''; for(let i=1;i<=12;i++) h+=`<div style="height:150px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text3);position:relative">IMG_${rInt(1000,9999)}.jpg <div style="position:absolute;top:5px;right:5px;background:var(--red);color:#fff;font-size:10px;padding:2px 4px;border-radius:2px">NG</div></div>`;
+  getEl('v37').innerHTML = cardTpl('실시간 불량 캡처 이미지 라이브러리', `<div class="grid4">${h}</div>`);
+}
+function g38() {
+  getEl('v38').innerHTML = cardTpl('AI 모델 판독 신뢰도(Confidence Score) 평균 추이', `<div class="gauge-wrap" style="--c:var(--cyan);--p:98;width:300px;height:300px"><div class="gauge-inner" style="width:250px;height:250px"><span class="val-lg live-num" style="font-size:80px;--c:var(--cyan)">98.5</span><span style="font-size:20px;color:var(--text2)">% Confidence</span></div></div>`);
+}
+
+// Group 6: QMS
+function g39() {
+  getEl('v39').innerHTML = cardTpl('당월 누적 품질비용 (COQ: Cost of Quality)', `<div style="font-size:100px;font-family:var(--mono);font-weight:700;color:var(--rose);text-align:center;padding:50px 0;text-shadow:0 0 20px var(--rose-dim)">₩ <span class="live-num">1,245,300</span>,000</div>`);
+}
+function g40() {
+  let rows=[]; for(let i=1;i<=15;i++){ let d=rInt(10,50); rows.push(`<tr><td>NCR-2024-${i}</td><td>조립불량</td><td class="num" style="color:var(--red);font-weight:700">${d} 일</td><td>${progTpl(d*2, 'red')}</td></tr>`); }
+  getEl('v40').innerHTML = cardTpl('부적합 보고서(NCR) 미결/체류 기간 에이징', tblTpl(['NCR 번호','유형','체류 기간','게이지'], rows));
+}
+function g41() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>MRB-REQ-${i}</td><td>고가 PCB 보드</td><td class="num live-num" style="color:var(--amber)">₩ ${rInt(500,5000)},000</td><td><span class="badge badge-amber">심의중</span></td></tr>`);
+  getEl('v41').innerHTML = cardTpl('MRB(결함심의) 보류 자산 가치 현황', tblTpl(['요청번호','대상 자재','보류 자산(₩)','상태'], rows));
+}
+function g42() {
+  let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr class="blink-row"><td>버니어 캘리퍼스 ${i}</td><td>CAL-00${i}</td><td style="color:var(--red);font-weight:700">2024-10-01 (만료됨)</td><td><button class="btn btn-red btn-sm">사용 정지</button></td></tr>`);
+  getEl('v42').innerHTML = cardTpl('계측기 교정(Calibration) 만료 도래 및 초과 리스트', tblTpl(['계측기 명','자산번호','교정 만료일','시스템 제어'], rows));
+}
+function g43() {
+  let rows=[]; for(let i=1;i<=10;i++) rows.push(`<tr><td>ISO 9001:2015 정기심사 ${i}</td><td>품질보증팀</td><td>2024-11-15</td><td><span class="badge badge-cyan">준비중</span></td></tr>`);
+  getEl('v43').innerHTML = cardTpl('대내외 품질 인증 및 오딧(Audit) 일정 현황', tblTpl(['심사 명','주관 부서','예정일','상태'], rows));
+}
+function g44() {
+  let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr><td>조립 공정 표준서_${i}.pdf</td><td class="num">v${rInt(2,5)}.0</td><td style="color:var(--blue)">2024-10-28</td><td><span class="badge badge-blue">최신 배포됨</span></td></tr>`);
+  getEl('v44').innerHTML = cardTpl('표준작업지도서(SOP) 제/개정 라이브 배포 현황', tblTpl(['문서명','최신버전','개정일자','현장단말 동기화'], rows));
+}
+function g45() {
+  getEl('v45').innerHTML = cardTpl('불량 LOT 근본원인(Root Cause) 역추적 트리', `<div class="topo-wrap">
+    <div class="topo-col"><div class="topo-node" style="--c:var(--red);border-color:var(--red)"><div style="color:var(--red);font-weight:700">고객 반품 (RMA-01)</div></div></div><div class="topo-arrow">←</div>
+    <div class="topo-col"><div class="topo-node" style="--c:var(--blue)">완제품 출하 (FIN-99)</div></div><div class="topo-arrow">←</div>
+    <div class="topo-col"><div class="topo-node" style="--c:var(--blue)">조립 공정 (WO-12)</div></div><div class="topo-arrow">←</div>
+    <div class="topo-col"><div class="topo-node" style="--c:var(--amber)">가공 공정 (WO-05)</div><div class="topo-node" style="--c:var(--purple);border-color:var(--purple)"><div style="color:var(--purple);font-weight:700">원자재 (MAT-X) <br>수입검사 누락!</div></div></div>
+  </div>`);
+}
+function g46() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>COA-2024-${i}</td><td style="font-family:var(--mono);color:var(--cyan);font-size:11px">0x${Math.random().toString(16).slice(2,20)}...</td><td><span class="badge badge-cyan">무결성 검증됨</span></td></tr>`);
+  getEl('v46').innerHTML = cardTpl('블록체인 기반 품질 성적서(COA) 무결성 검증 보드', tblTpl(['성적서 번호','Tx Hash Value','블록체인 상태'], rows));
+}
+function g47() {
+  let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr class="blink-row"><td>A-라인 검사석</td><td>사원 ${i}</td><td style="color:var(--red);font-weight:700">스킬 C등급 (접근 권한 없음)</td><td><button class="btn btn-red btn-sm">강제 로그아웃</button></td></tr>`);
+  getEl('v47').innerHTML = cardTpl('스킬 매트릭스(Skill Matrix) 위반 로그인 감지 알람', tblTpl(['발생 위치','작업자','위반 내용','시스템 조치'], rows));
+}
+function g48() {
+  let h=''; ['종합수율(Yield)','고객불만(RMA)','품질비용(COQ)','공정능력(Cpk)'].forEach((t,i)=>{
+    h+=cardTpl(t, `<div class="val-lg live-num" style="font-size:40px;text-align:center;padding:20px;--c:var(--${['green','red','rose','cyan'][i]})">${rFloat(1,99)}</div>`, 'text-align:center');
+  }); getEl('v48').innerHTML = `<div class="grid4">${h}</div>`;
+}
+function g49() {
+  getEl('v49').innerHTML = `<div style="height:600px;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center">
+    <div style="font-size:30px;color:var(--text2);margin-bottom:20px">최고 경영진(Executive) 전사 품질 요약</div>
+    <div class="val-lg live-num" style="font-size:120px;--c:var(--green)">99.85</div><div style="font-size:24px;color:var(--text2)">Total Factory Yield (%)</div>
+    <div style="font-size:40px;color:var(--cyan);margin-top:20px">목표(99.5%) 초과 달성중</div>
+  </div>`;
+}
+
+document.addEventListener("DOMContentLoaded", initTabs);
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #31 */
+(function(){var I=31;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

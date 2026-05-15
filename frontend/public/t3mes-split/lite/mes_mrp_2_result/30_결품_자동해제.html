@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>결품 자동해제</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #30: 결품 자동해제 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 결품 해소 (Shortage Clearance) 자동 안돈 해제</h3><span class="tip">라인이 자재가 없어 멈춰(Line-Stop) 시뻘건 경고가 떠 있던 상태에서, 방금 화물이 입고되어 재고가 차는 순간 경고가 초록색으로 자동 해제되는 극강의 쾌감 화면입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 현재 라인 정지 (결품) 상태</div><div style="font-size:16px;margin-bottom:10px">결품 자재: <b>특수 센서 칩</b></div><div class="tip">대기중인 작업지시: WO-999</div></div>
+      <div class="card" style="border-color:var(--cyan);background:var(--surface2)"><div class="card-title" style="color:var(--cyan)">방금 입고 트럭 도착!</div><div class="label">입고 수량</div><input type="number" class="inp" value="5000" style="font-size:20px;font-weight:700;color:var(--cyan);margin-bottom:16px"><button class="btn btn-cyan" style="width:100%" onclick="doClear29()">입고 확정 및 결품(안돈) 해제 ⚡</button></div>
+    </div>
+    <div id="clear-res" style="display:none;margin-top:20px;padding:20px;background:var(--green-dim);border:2px solid var(--green);border-radius:12px;text-align:center;font-size:20px;font-weight:700;color:var(--green)">✅ 자재 입고 완료! 결품(Shortage)이 해제되고 라인이 재가동 됩니다!</div>
+  </div>

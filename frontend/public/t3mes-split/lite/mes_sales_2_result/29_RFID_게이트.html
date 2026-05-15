@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>RFID 게이트</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #29: RFID 게이트 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ RFID / IoT 게이트 자동 출하 (RFID Portal)</h3><span class="tip">지게차가 팔레트를 들고 RFID 게이트를 휙 지나가면, 전파가 태그를 읽어 100개 제품을 1초 만에 자동 출하로 잡아버립니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;border-color:var(--cyan)">
+      <div style="font-size:60px;margin-bottom:20px;animation:pulse 1s infinite">📡</div>
+      <div style="font-size:24px;font-weight:700;color:var(--cyan)">RFID 게이트 통과 감지 중...</div>
+      <div style="color:var(--text2);margin-top:10px">지게차가 지나가면 출하가 자동 확정됩니다. (현장 Hands-free)</div>
+      <button class="btn btn-ghost" style="margin-top:30px" onclick="showToast('가상 RFID 100개 태그 수신 완료 -> 출하 처리됨')">가상 태그 100개 수신 시뮬레이션</button>
+    </div><style>@keyframes pulse{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}</style>
+  </div>

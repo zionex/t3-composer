@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>거점간 물량 이관</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #20: 거점간 물량 이관 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p19">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑳ 거점/공장간 물량 이관 (Multi-Plant Transfer)</h3>
+      <span class="tip">A공장의 발주를 B공장으로 이관하여 생산 효율을 극대화합니다.</span>
+    </div>
+    <button class="btn btn-blue" onclick="showToast('이관 확정')">이관 확정</button>
+  </div>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <div class="plant-pane" style="border-color:var(--red-mid)"><div class="flex-between"><h3 style="color:var(--text)">🏭 A공장</h3><span class="badge b-red" id="plantA-load">부하 115%</span></div><div class="prog-bg mt8"><div class="prog-bar" id="plantA-bar"></div></div><div class="plant-list" id="plantA-list"></div></div>
+    <div style="display:flex; flex-direction:column; gap:10px;"><button class="transfer-btn" onclick="transferOrder('A','B')">▶</button><button class="transfer-btn" onclick="transferOrder('B','A')">◀</button></div>
+    <div class="plant-pane" style="border-color:var(--green-mid)"><div class="flex-between"><h3 style="color:var(--text)">🏭 B공장</h3><span class="badge b-green" id="plantB-load">부하 60%</span></div><div class="prog-bg mt8"><div class="prog-bar" id="plantB-bar"></div></div><div class="plant-list" id="plantB-list"></div></div>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>무발주/기타</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #3: 무발주/기타 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 무발주/기타 입고 (Non-PO / Misc Receipt)</h3><span class="tip">발주서(PO) 없이 들어오는 무상 샘플, 사은품, 고객 반품, 현장 반납 자재 등을 시스템 재고에 잡을 때 사용합니다.</span></div></div>
+    <div class="card">
+      <div class="grid4" style="margin-bottom:16px"><div><div class="label">입고 사유 (Transaction Type)</div><select class="inp" style="color:var(--amber)"><option>무상 샘플 반입 (Sample)</option><option>현장 생산 후 남은 자재 반납</option><option>고객 단순 변심 반품</option><option>재고 실사 초과분 조정</option></select></div><div><div class="label">입고 부서/담당자</div><input type="text" class="inp" value="품질관리팀 박연구"></div><div><div class="label">입고일자</div><input type="date" class="inp" value="2024-10-31"></div><div><div class="label">증빙/참조 번호</div><input type="text" class="inp" placeholder="메일/전표 번호 등"></div></div>
+    </div>
+    <div class="card" style="margin:0"><div class="card-title">입고 품목 등록<button class="btn btn-ghost btn-sm" onclick="showToast('행 추가됨')">+ 행 추가</button></div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>품목코드 검색</th><th>품목명</th><th style="text-align:right">수량</th><th style="text-align:right">추정단가(선택)</th><th>입고 창고/Bin 지정</th></tr></thead><tbody id="tb2"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-amber" onclick="showToast('기타 입고 수량 재고 반영 완료')">무발주 기타입고 확정</button></div></div>
+  </div>

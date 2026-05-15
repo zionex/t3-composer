@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>AI 최적화</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #23: AI 최적화 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ AI 휴리스틱 최적 스케줄링 (APS 연동)</h3><span class="tip">뒤죽박죽 섞인 100개의 작업지시를 AI가 셋업 변경(교체 시간)이 최소화되도록 최적의 가공 순서로 자동 재배치합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">현재 뒤죽박죽된 지시 순서</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>순번</th><th>품목 (색상/규격)</th></tr></thead><tbody id="tb22_1"></tbody></table></div></div>
+      <div class="card" style="border-color:var(--cyan)"><div class="card-title" style="color:var(--cyan);display:flex;justify-content:space-between"><span>✨ AI 최적화 순서 (셋업 최소화)</span><button class="btn btn-cyan btn-sm" onclick="doAiOpt()">AI 최적화 실행 ↻</button></div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>순번</th><th>품목 (유사 스펙끼리 묶임)</th></tr></thead><tbody id="tb22_2"><tr><td colspan="2" style="text-align:center;padding:50px">AI 버튼을 누르세요.</td></tr></tbody></table></div></div>
+    </div>
+  </div>

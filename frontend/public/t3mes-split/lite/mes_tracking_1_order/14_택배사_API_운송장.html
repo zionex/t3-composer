@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>택배사 API 운송장</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #14: 택배사 API 운송장 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 라스트마일 택배사 API 연동 (Courier Tracking)</h3><span class="tip">CJ대한통운, 우체국, FedEx 등 외부 택배사의 송장번호를 API로 긁어와서 우리 시스템 안에 통합해 보여줍니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title">운송장 번호 조회</div><div style="display:flex;gap:8px;margin-bottom:20px"><input type="text" class="inp" value="6398-1234-5678" style="font-family:var(--mono);font-weight:700"><button class="btn btn-green">API 조회 ↻</button></div><div class="label">택배사: CJ대한통운</div><div style="padding:20px;text-align:center;background:var(--surface3);border-radius:8px"><div style="font-size:50px">📦</div><div style="font-size:16px;font-weight:700;color:var(--green);margin-top:10px">배송 완료 (배송기사: 이택배)</div></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">택배사 API 상세 스캔 이력</div><div class="tbl-wrap" style="border:none;max-height:300px"><table class="tbl"><thead><tr><th>처리일시</th><th>처리점소</th><th>스캔상태</th></tr></thead><tbody id="tb13"></tbody></table></div></div>
+    </div>
+  </div>

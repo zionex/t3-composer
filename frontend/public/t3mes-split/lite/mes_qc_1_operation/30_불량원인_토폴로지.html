@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>불량원인 토폴로지</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #30: 불량원인 토폴로지 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p29">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉚ 불량 원인 역추적 토폴로지 (Root Cause Genealogy)</h3>
+        <span class="tip">최종 검사에서 발생한 불량이 어떤 설비, 어떤 자재, 어떤 작업자로부터 유래되었는지 꼬리에 꼬리를 무는 연쇄 트리를 그립니다.</span>
+      </div>
+    </div>
+    <div class="topo-wrap">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--red);margin-bottom:5px">1. 불량 적발 (OQC)</div>
+        <div class="topo-node err"><div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:4px">OQC-FAIL-01</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">최종 출하검사 불합격</div><div class="badge badge-red">치수 불량 (NG)</div></div>
+      </div>
+      <div class="topo-arrow">역추적<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 해당 완제품 조립 이력</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-ASSY-99</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">조립 공정 (작업자: 박조립)</div><div class="badge badge-gray">특이사항 없음</div></div>
+      </div>
+      <div class="topo-arrow">BOM 역전개<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 투입된 하위 부품 이력</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">SUB-LOT-A</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">메인 하우징 부품</div><div class="badge badge-gray">정상품</div></div>
+        <div class="topo-node err"><div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:4px">SUB-LOT-B (의심 원인)</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">내부 기어 부품</div><div class="badge badge-amber">당시 설비 온도 튀었음</div></div>
+      </div>
+      <div class="topo-arrow">외주 이력<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">4. 최종 Root Cause</div>
+        <div class="topo-node err" style="border-left-color:var(--purple)"><div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PO-55 (협력사)</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">기어 가공 외주업체 불량 혼입</div><div class="badge badge-red">근본 원인 판명!</div></div>
+      </div>
+    </div>
+  </div>

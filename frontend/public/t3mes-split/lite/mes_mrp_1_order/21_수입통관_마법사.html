@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>수입/통관 마법사</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #21: 수입/통관 마법사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 해외 수입 / 통관 (Import/Customs) 마법사</h3><span class="tip">단순 수량이 아니라 인코텀즈(FOB, CIF), 신용장(L/C), 선적항, ETD/ETA 등 복잡한 무역 조건을 포함한 수입 발주서입니다.</span></div></div>
+    <div class="card">
+      <div class="grid4" style="margin-bottom:16px"><div><div class="label">Incoterms</div><select class="inp"><option>FOB (본선인도조건)</option><option>CIF</option></select></div><div><div class="label">결제 조건</div><select class="inp"><option>L/C (신용장) At sight</option><option>T/T 30 Days</option></select></div><div><div class="label">출발항 (Port of Loading)</div><input type="text" class="inp" value="Shanghai Port (CN)"></div><div><div class="label">도착항 (Port of Discharge)</div><input type="text" class="inp" value="Busan Port (KR)"></div></div>
+      <div class="grid2"><div><div class="label">예상 선적일 (ETD)</div><input type="date" class="inp" value="2024-11-20"></div><div><div class="label">예상 도착일 (ETA)</div><input type="date" class="inp" value="2024-11-25"></div></div>
+      <button class="btn btn-fuchsia" style="width:100%;margin-top:20px" onclick="showToast('해외 수입용 Commercial PO가 발행되었습니다.')">해외 수입 발주서 (PO) 확정 발행</button>
+    </div>
+  </div>

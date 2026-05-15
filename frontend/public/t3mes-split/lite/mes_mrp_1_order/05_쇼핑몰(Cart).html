@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>쇼핑몰(Cart)</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #5: 쇼핑몰(Cart) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 장바구니형 쇼핑몰 발주 (Cart)</h3><span class="tip">소모품(MRO)이나 부자재를 사내 쇼핑몰처럼 카탈로그에서 보고 바구니에 담아 결재 기안을 올립니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--red)">부족수량</th><th>단가</th><th>액션</th></tr></thead><tbody id="tb4"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column;height:550px"><div class="card-title">🛒 발주 장바구니</div><div id="cart4" style="flex:1;overflow-y:auto;border-bottom:1px solid var(--border);margin-bottom:16px"><div style="text-align:center;color:var(--text3);padding:100px 0">좌측에서 발주 품목을 담아주세요.</div></div><div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-bottom:16px"><span>총 예상액</span><span id="cart-tot4" style="color:var(--purple)">₩ 0</span></div><button class="btn btn-purple" style="padding:16px;font-size:14px" onclick="showToast('장바구니 묶음 결재 기안 상신 완료')">결재 기안 / 일괄 발주</button></div>
+    </div>
+  </div>

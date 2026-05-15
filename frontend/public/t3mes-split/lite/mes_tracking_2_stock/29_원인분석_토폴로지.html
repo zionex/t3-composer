@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>원인분석 토폴로지</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #29: 원인분석 토폴로지 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p28">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉙ 재고 불일치 원인분석 토폴로지 (Discrepancy Root Cause Tree)</h3>
+        <span class="tip">"입고는 100개가 됐는데 왜 창고엔 92개밖에 없지?" 라는 재고 구멍(Loss)의 원인을, 노드 기반의 토폴로지 트리로 파고들어 찾아냅니다.</span>
+      </div>
+    </div>
+    <div class="topo-wrap" style="min-height:300px">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">1. 최초 입고 (GR)</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">PO-24-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">공급사 납품 원물</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">입고완료</span><span class="num" style="color:var(--cyan);font-weight:700">100 EA</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분기 (Split)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 품질 검사 & 적치</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">IQC-PASS</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">정상 창고 적치 (Put-away)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">정상</span><span class="num">95 EA</span></div>
+        </div>
+        <div class="topo-node err">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:4px">IQC-FAIL (원인 1)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">수입검사 불량 격리</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-red">보류(Hold)</span><span class="num" style="color:var(--rose);font-weight:700">5 EA 🔻</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">생산 투입<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 생산 라인 소진</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-PROD-01</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">정상 생산 소진 (Backflush)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-blue">소진</span><span class="num">92 EA</span></div>
+        </div>
+        <div class="topo-node err">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:4px">SCRAP-01 (원인 2)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">작업자 실수 파손 폐기</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-red">Scrap</span><span class="num" style="color:var(--rose);font-weight:700">3 EA 🔻</span></div>
+        </div>
+      </div>
+    </div>
+  </div>

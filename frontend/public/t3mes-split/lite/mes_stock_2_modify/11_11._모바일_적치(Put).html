@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>11. 모바일 적치(Put)</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #11: 11. 모바일 적치(Put) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p10">
+  <div class="sec-hdr"><div><h3>⑪ 모바일 PDA 적치(Putaway) 조정</h3><span class="tip">입하장에 도착한 물건을 작업자가 스캔한 후, 실제 선반 바코드를 찍어 위치를 확정합니다.</span></div></div>
+  <div class="mobile-frame">
+    <div style="padding:16px;background:var(--blue);color:#fff;font-weight:700">작업지시: #PUT-882</div>
+    <div style="padding:20px">
+      <div class="label">1. 품목 바코드 스캔</div>
+      <input type="text" class="inp" value="880123456789" readonly style="margin-bottom:16px;background:var(--green-dim);color:var(--green);border-color:var(--green)">
+      <div style="font-size:18px;font-weight:700;margin-bottom:20px">삼성 SSD 1TB (50 EA)</div>
+      <div class="label">2. 적재할 위치(Bin) 스캔</div>
+      <input type="text" class="inp" placeholder="위치 바코드 대기중..." style="margin-bottom:16px;border:2px dashed var(--blue)">
+      <button class="btn btn-blue" style="width:100%;height:50px;font-size:16px">적치 완료 (Confirm)</button>
+    </div>
+  </div>
+</div>

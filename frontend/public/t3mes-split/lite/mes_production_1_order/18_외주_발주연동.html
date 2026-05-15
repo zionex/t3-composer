@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>외주 발주연동</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #18: 외주 발주연동 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 외주 가공 (Subcontracting) 발주 연동 지시</h3><span class="tip">사내 공정이 아닌 협력사(외주)로 물건을 보내 처리해야 할 때, 작업지시와 동시에 '외주 가공 발주서(PO)'를 엮어서 생성합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">내부 지시 정보</div><div class="label">외주 대상 품목</div><input type="text" class="inp" value="반도체 웨이퍼 (도금 공정)" disabled style="margin-bottom:12px"><div class="label">가공 수량</div><input type="number" class="inp" value="500" disabled></div>
+      <div class="card" style="border-color:var(--amber)"><div class="card-title" style="color:var(--amber)">외주 발주 연동 설정</div><div class="label">외주 가공업체 선택</div><select class="inp" style="margin-bottom:12px"><option>에이테크 도금(주)</option></select><div class="label">예상 가공 단가</div><input type="number" class="inp" value="15000"></div>
+    </div>
+    <button class="btn btn-amber" style="width:100%;padding:14px" onclick="showToast('작업지시 생성 및 에이테크 도금(주)로 외주 발주서(PO) 전송 완료')">작업지시 확정 및 외주 발주(PO) 동시 전송</button>
+  </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 
 import {
   Box,
@@ -446,6 +446,40 @@ function T3Composer() {
   const [apiKeyRegistered, setApiKeyReg]    = useState(null);
   const [apiKeyDialogOpen, setApiKeyDialog] = useState(false);
 
+  // ─────────────────────────────────────────
+  // Browser history ↔ 내부 step/mode 연동
+  //   forward (landing → new → mode) 진입 시 history.pushState
+  //   브라우저 뒤로가기 또는 onBack 클릭 시 한 단계만 rollback
+  //   (Composer 자체가 외부 Tab/Route 로 빠지지 않도록)
+  // ─────────────────────────────────────────
+  const navigate = useCallback((updater) => {
+    window.history.pushState({ t3ComposerNav: Date.now() }, '', '');
+    updater();
+  }, []);
+
+  const goBackOneStep = useCallback(() => {
+    if (window.history.state && window.history.state.t3ComposerNav) {
+      window.history.back();
+    } else {
+      // history entry 없으면 직접 reset (안전 폴백)
+      setMode(null);
+      setStep('landing');
+    }
+  }, []);
+
+  useEffect(() => {
+    const onPop = () => {
+      // 한 단계 뒤로 — mode 가 있으면 mode=null, 그렇지 않으면 step='landing'
+      setMode((curMode) => {
+        if (curMode !== null) return null;
+        setStep((curStep) => (curStep === 'new' ? 'landing' : curStep));
+        return null;
+      });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
   const location = useLocation();
   const history  = useHistory();
@@ -621,15 +655,18 @@ function T3Composer() {
     );
   }
 
-  const backToLanding = () => { setMode(null); setStep('landing'); };
+  // backToLanding = ModeXxx 의 "← 뒤로" — 한 단계 뒤로 (history.back 발화)
+  //   depth 2 (step=new + mode=NEW_*) → NewModeSelector 로
+  //   depth 1 (mode=EXISTING_MODIFY) → landing 으로
+  const backToLanding = goBackOneStep;
 
   return (
     <ContentInner>
       <WorkArea>
         {mode === null && step === 'landing' && (
           <LandingSelector
-            onPickNew={() => requireKeyAndDbThen(() => setStep('new'))}
-            onPickModify={() => requireKeyAndDbThen(() => setMode(MODE.EXISTING_MODIFY))}
+            onPickNew={() => requireKeyAndDbThen(() => navigate(() => setStep('new')))}
+            onPickModify={() => requireKeyAndDbThen(() => navigate(() => setMode(MODE.EXISTING_MODIFY)))}
             onOpenSettings={() => setApiKeyDialog(true)}
             apiKeyRegistered={apiKeyRegistered}
           />
@@ -637,8 +674,8 @@ function T3Composer() {
 
         {mode === null && step === 'new' && (
           <NewModeSelector
-            onSelect={(m) => requireKeyThen(() => setMode(m))}
-            onBack={() => setStep('landing')}
+            onSelect={(m) => requireKeyThen(() => navigate(() => setMode(m)))}
+            onBack={goBackOneStep}
           />
         )}
 

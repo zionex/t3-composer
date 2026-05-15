@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단종 대체품 AI</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #23: 단종 대체품 AI -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ 단종(EOL) 부품 및 대체품 AI 제안</h3><span class="tip">발주하려는 부품이 단종(End of Life)되었을 때, 스펙 문서를 AI가 분석하여 가장 비슷한 호환 부품으로 교체 발주를 제안합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 발주 불가: 단종(EOL) 부품</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;text-decoration:line-through;margin-bottom:8px">IC-OLD-990 (단종)</div><div class="tip">제조사(TI) 단종 공지: 2024-01-01 부</div></div>
+      <div class="card" style="border-color:var(--fuchsia);background:var(--surface2)"><div class="card-title" style="color:var(--fuchsia)">💡 AI 추천 대체 호환 부품</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--fuchsia);margin-bottom:8px">IC-NEW-100 (신형)</div><div class="tip">핀 호환성: 100% 매칭 | 단가: 동일</div><button class="btn btn-fuchsia" style="width:100%;margin-top:16px" onclick="showToast('신형 부품으로 BOM 변경 및 발주 완료')">대체 부품으로 교체 발주</button></div>
+    </div>
+  </div>

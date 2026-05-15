@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart.js Ultimate Encyclopedia (All Native Cases)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #090d14; --surface: #131926; --surface2: #1a2333; --border: #2e3c56;
+  --text: #f8fafc; --text2: #94a3b8; 
+  --mono: 'IBM Plex Mono', monospace; --sans: 'Noto Sans KR', sans-serif;
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; padding: 20px; overflow-y: scroll; }
+.header { margin-bottom: 20px; }
+.header h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+
+/* Scrollable Tab Navigation */
+.tab-wrapper { width: 100%; overflow-x: auto; margin-bottom: 20px; border-radius: 12px; background: var(--surface); padding: 8px; border: 1px solid var(--border); }
+.tab-nav { display: flex; gap: 8px; width: max-content; }
+.tab-btn { padding: 10px 20px; border: none; background: transparent; color: var(--text2); font-weight: 700; cursor: pointer; border-radius: 8px; transition: 0.2s; white-space: nowrap; }
+.tab-btn:hover { background: var(--surface2); color: var(--text); }
+.tab-btn.active { background: #3b82f6; color: #fff; }
+
+/* Grid Layout */
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; height: 300px; }
+.c-title { font-size: 13px; color: var(--text); font-weight: 700; margin-bottom: 5px; text-align: center; }
+.c-desc { font-size: 11px; color: var(--text2); text-align: center; margin-bottom: 15px; height: 16px;}
+
+/* Layout Fix for Chart Overflow */
+.chart-box { 
+  flex: 1; width: 100%; position: relative; min-height: 0; display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="header">
+    <h1>📈 Chart.js The Definitive Guide</h1>
+    <div style="color:var(--text2);">Chart.js가 네이티브로 제공하는 8대 차트 타입과 옵션 변형의 모든 것</div>
+  </div>
+
+  <div class="tab-wrapper">
+    <div class="tab-nav" id="tabs"></div>
+  </div>
+
+  <div id="panel">
+    <div class="grid" id="grid-container"></div>
+  </div>
+</div>
+
+<script>
+// --- Data & Palettes ---
+const C = ['#3b82f6', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4', '#eab308', '#ec4899'];
+const LBL = ['1월', '2월', '3월', '4월', '5월', '6월'];
+const rD = (min, max) => Array.from({length: 6}, () => Math.floor(Math.random() * (max - min + 1)) + min);
+const rFloat = () => [[10,20], [20,35], [15,30], [5,25], [25,40], [10,20]];
+const rScatter = (count) => Array.from({length:count}, ()=>({x:Math.floor(Math.random()*50), y:Math.floor(Math.random()*50)}));
+const rBubble = (count) => Array.from({length:count}, ()=>({x:Math.floor(Math.random()*50), y:Math.floor(Math.random()*50), r:Math.floor(Math.random()*15)+5}));
+
+// --- Chart Classifications & Variations ---
+const chartCategories = [
+  {
+    name: "1. 막대형 (Bar)",
+    baseType: "bar",
+    variations: [
+      { t: "기본 수직 (Vertical)", d: "기본적인 세로형 막대", data: [{ label:'A', data: rD(10,50), backgroundColor: C[0] }] },
+      { t: "기본 수평 (Horizontal)", d: "indexAxis: 'y' 적용", opts: { indexAxis: 'y' }, data: [{ label:'A', data: rD(10,50), backgroundColor: C[1] }] },
+      { t: "그룹형 (Grouped)", d: "다중 데이터셋 나란히 배치", data: [{ label:'A', data: rD(10,50), backgroundColor: C[0] }, { label:'B', data: rD(10,50), backgroundColor: C[2] }] },
+      { t: "누적 수직 (Stacked V)", d: "x, y축 stacked: true", opts: { scales: { x:{stacked:true}, y:{stacked:true} } }, data: [{ label:'A', data: rD(10,50), backgroundColor: C[0] }, { label:'B', data: rD(10,50), backgroundColor: C[3] }, { label:'C', data: rD(10,50), backgroundColor: C[4] }] },
+      { t: "누적 수평 (Stacked H)", d: "수평 + 누적 결합", opts: { indexAxis: 'y', scales: { x:{stacked:true}, y:{stacked:true} } }, data: [{ label:'A', data: rD(10,50), backgroundColor: C[4] }, { label:'B', data: rD(10,50), backgroundColor: C[5] }] },
+      { t: "둥근 모서리 (Border Radius)", d: "막대 끝을 둥글게 처리", data: [{ label:'A', data: rD(10,50), backgroundColor: C[2], borderRadius: 20 }] },
+      { t: "플로팅 막대 (Floating)", d: "시작/끝 값을 배열로 지정", data: [{ label:'A', data: rFloat(), backgroundColor: C[3], borderRadius: 5 }] },
+      { t: "데이터별 색상 (Multi-color)", d: "단일 데이터셋에 배열 색상 적용", data: [{ label:'A', data: rD(10,50), backgroundColor: C }] },
+      { t: "두께 고정 (Bar Thickness)", d: "막대 두께를 픽셀 단위로 고정", data: [{ label:'A', data: rD(10,50), backgroundColor: C[1], barThickness: 10 }] },
+      { t: "베이스라인 조정 (Base)", d: "0이 아닌 특정 기준선(Base) 설정", data: [{ label:'A', data: rD(-20,50), backgroundColor: C[0], base: 10 }] }
+    ]
+  },
+  {
+    name: "2. 꺾은선형 (Line)",
+    baseType: "line",
+    variations: [
+      { t: "기본 직선 (Straight Line)", d: "기본적인 꺾은선", data: [{ label:'A', data: rD(10,50), borderColor: C[0] }] },
+      { t: "곡선 (Smooth Tension)", d: "tension: 0.4 적용", data: [{ label:'A', data: rD(10,50), borderColor: C[1], tension: 0.4 }] },
+      { t: "계단형 (Stepped - Before)", d: "stepped: 'before'", data: [{ label:'A', data: rD(10,50), borderColor: C[2], stepped: 'before' }] },
+      { t: "계단형 (Stepped - Middle)", d: "stepped: 'middle'", data: [{ label:'A', data: rD(10,50), borderColor: C[3], stepped: 'middle' }] },
+      { t: "점선 (Dashed Line)", d: "borderDash 옵션", data: [{ label:'A', data: rD(10,50), borderColor: C[4], borderDash: [5, 5] }] },
+      { t: "결측치 처리 (Span Gaps)", d: "Null 데이터 연결", data: [{ label:'A', data: [20, 30, null, null, 40, 50], borderColor: C[5], spanGaps: true, pointRadius: 5 }] },
+      { t: "포인트 스타일 (Rect/Cross)", d: "점 모양 커스텀 (rectRot 등)", data: [{ label:'A', data: rD(10,50), borderColor: C[0], pointStyle: 'rectRot', pointRadius: 8, pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+      { t: "구간별 스타일 (Segment)", d: "값이 떨어질 때 색상 변경", data: [{ label:'A', data: rD(10,50), borderColor: C[1], segment: { borderColor: ctx => ctx.p0.parsed.y > ctx.p1.parsed.y ? C[3] : C[1] } }] },
+      { t: "다중 선 (Multi-line)", d: "여러 데이터 비교", data: [{ label:'A', data: rD(10,50), borderColor: C[0] }, { label:'B', data: rD(10,50), borderColor: C[2] }] },
+      { t: "포인트 숨김 (No Points)", d: "pointRadius: 0", data: [{ label:'A', data: rD(10,50), borderColor: C[4], pointRadius: 0, tension: 0.4 }] }
+    ]
+  },
+  {
+    name: "3. 영역형 (Area Fill)",
+    baseType: "line",
+    variations: [
+      { t: "하단 채우기 (Fill Origin)", d: "fill: 'origin'", data: [{ label:'A', data: rD(10,50), borderColor: C[0], backgroundColor: C[0]+'40', fill: 'origin' }] },
+      { t: "시작점 채우기 (Fill Start)", d: "fill: 'start'", data: [{ label:'A', data: rD(-20,50), borderColor: C[1], backgroundColor: C[1]+'40', fill: 'start' }] },
+      { t: "끝점 채우기 (Fill End)", d: "fill: 'end'", data: [{ label:'A', data: rD(10,50), borderColor: C[2], backgroundColor: C[2]+'40', fill: 'end' }] },
+      { t: "데이터 간 채우기 (Fill Between)", d: "fill: '-1' (이전 데이터셋 채우기)", data: [{ label:'A', data: rD(30,50), borderColor: C[4] }, { label:'B', data: rD(10,25), borderColor: C[3], backgroundColor: C[3]+'40', fill: '-1' }] },
+      { t: "누적 영역 (Stacked Area)", d: "x, y축 stacked: true", opts: { scales: { y:{stacked:true} } }, data: [{ label:'A', data: rD(10,30), fill: true, backgroundColor: C[0]+'80' }, { label:'B', data: rD(10,30), fill: true, backgroundColor: C[5]+'80' }] },
+      { t: "곡선 영역 (Smooth Area)", d: "tension + fill", data: [{ label:'A', data: rD(10,50), borderColor: C[6], backgroundColor: C[6]+'40', fill: true, tension: 0.4 }] },
+      { t: "특정 축 채우기 (Fill Value)", d: "특정 Y값(예: 25) 기준 채우기", data: [{ label:'A', data: rD(10,50), borderColor: C[3], backgroundColor: C[3]+'40', fill: {value: 25} }] }
+    ]
+  },
+  {
+    name: "4. 파이/도넛 (Pie/Doughnut)",
+    baseType: "pie",
+    variations: [
+      { t: "기본 파이 (Pie)", d: "원형 100% 비율", data: [{ data: rD(10,50), backgroundColor: C }] },
+      { t: "기본 도넛 (Doughnut)", d: "type: 'doughnut'", forceType: 'doughnut', data: [{ data: rD(10,50), backgroundColor: C }] },
+      { t: "얇은 도넛 (High Cutout)", d: "cutout: '80%'", forceType: 'doughnut', opts: { cutout: '80%' }, data: [{ data: rD(10,50), backgroundColor: C }] },
+      { t: "두꺼운 도넛 (Low Cutout)", d: "cutout: '20%'", forceType: 'doughnut', opts: { cutout: '20%' }, data: [{ data: rD(10,50), backgroundColor: C }] },
+      { t: "반원 도넛 (Half)", d: "rotation: -90, circumference: 180", forceType: 'doughnut', opts: { rotation: -90, circumference: 180 }, data: [{ data: rD(10,50), backgroundColor: C }] },
+      { t: "강조 (Exploded/Offset)", d: "특정 조각 분리 (offset)", data: [{ data: rD(10,50), backgroundColor: C, offset: [30, 0, 0, 0, 0, 0] }] },
+      { t: "다중 링 (Multi-level)", d: "데이터셋 2개 이상 배치", forceType: 'doughnut', data: [{ data: rD(10,50), backgroundColor: C }, { data: rD(10,50), backgroundColor: C.map(c=>c+'80') }] },
+      { t: "조각 간격 (Spacing)", d: "spacing 옵션으로 틈 생성", forceType: 'doughnut', data: [{ data: rD(10,50), backgroundColor: C, spacing: 5, borderRadius: 5 }] }
+    ]
+  },
+  {
+    name: "5. 방사/극좌표 (Radar/PolarArea)",
+    baseType: "radar",
+    variations: [
+      { t: "기본 방사형 (Radar)", d: "다각도 지표 비교", data: [{ label:'A', data: rD(10,50), borderColor: C[0], backgroundColor: C[0]+'40' }] },
+      { t: "곡선 방사형 (Smooth Radar)", d: "tension 적용", data: [{ label:'A', data: rD(10,50), borderColor: C[1], backgroundColor: C[1]+'40', tension: 0.4 }] },
+      { t: "다중 방사형 (Multi Radar)", d: "복수 데이터 비교", data: [{ label:'A', data: rD(10,50), borderColor: C[2], backgroundColor: C[2]+'40' }, { label:'B', data: rD(10,50), borderColor: C[3], backgroundColor: C[3]+'40' }] },
+      { t: "속이 빈 방사형 (No Fill)", d: "fill: false", data: [{ label:'A', data: rD(10,50), borderColor: C[4], borderDash: [5,5], fill: false }] },
+      { t: "극좌표형 (Polar Area)", d: "type: 'polarArea' (반지름=값)", forceType: 'polarArea', data: [{ data: rD(10,50), backgroundColor: C.map(c=>c+'80') }] }
+    ]
+  },
+  {
+    name: "6. 분산/버블 (Scatter/Bubble)",
+    baseType: "scatter",
+    variations: [
+      { t: "산점도 (Scatter)", d: "x, y 좌표 기반 배치", data: [{ label:'A', data: rScatter(15), backgroundColor: C[0], pointRadius: 6 }] },
+      { t: "다중 산점도 (Multi Scatter)", d: "그룹별 분포 비교", data: [{ label:'A', data: rScatter(15), backgroundColor: C[1], pointRadius:6 }, { label:'B', data: rScatter(15), backgroundColor: C[3], pointRadius:6 }] },
+      { t: "선 연결 산점도 (Scatter + Line)", d: "showLine: true", data: [{ label:'A', data: rScatter(10).sort((a,b)=>a.x-b.x), borderColor: C[4], backgroundColor: C[4], showLine: true }] },
+      { t: "기본 버블 (Bubble)", d: "type: 'bubble' (x, y, r)", forceType: 'bubble', data: [{ label:'A', data: rBubble(10), backgroundColor: C[5]+'80' }] },
+      { t: "다중 버블 (Multi Bubble)", d: "데이터셋 2개 이상의 버블", forceType: 'bubble', data: [{ label:'A', data: rBubble(8), backgroundColor: C[0]+'80' }, { label:'B', data: rBubble(8), backgroundColor: C[2]+'80' }] }
+    ]
+  },
+  {
+    name: "7. 복합 차트 (Mixed/Combo)",
+    baseType: "bar",
+    variations: [
+      { t: "막대 + 꺾은선 (Bar & Line)", d: "가장 일반적인 S&OP 콤보", data: [{ type: 'bar', label:'Plan', data: rD(10,50), backgroundColor: C[0] }, { type: 'line', label:'Actual', data: rD(10,50), borderColor: C[3], borderWidth: 3 }] },
+      { t: "누적막대 + 라인 (Pareto Style)", d: "파레토 분석 형태", opts: { scales: { x:{stacked:true}, y:{stacked:true} } }, data: [{ type: 'bar', label:'A', data: rD(10,30), backgroundColor: C[1] }, { type: 'bar', label:'B', data: rD(10,30), backgroundColor: C[2] }, { type: 'line', label:'Cumulative', data: [20, 40, 55, 75, 90, 100], borderColor: C[4] }] },
+      { t: "영역 + 꺾은선 (Area & Line)", d: "배경 트렌드와 포인트 값 비교", data: [{ type: 'line', label:'Trend', data: rD(10,50), fill: true, backgroundColor: C[5]+'40', borderColor: C[5] }, { type: 'line', label:'Value', data: rD(10,50), borderColor: C[0] }] },
+      { t: "수평막대 + 수직라인 (H-Combo)", d: "indexAxis: 'y'에서의 콤보", opts: { indexAxis: 'y' }, data: [{ type: 'bar', label:'Bar', data: rD(10,50), backgroundColor: C[6] }, { type: 'line', label:'Line', data: rD(10,50), borderColor: C[3] }] },
+      { t: "산점도 + 라인 트렌드", d: "분포도와 회귀선 느낌", data: [{ type: 'scatter', label:'Data', data: rScatter(15), backgroundColor: C[1] }, { type: 'line', label:'Trend', data: [{x:0,y:10},{x:50,y:40}], borderColor: C[3], borderDash: [5,5] }] }
+    ]
+  },
+  {
+    name: "8. 특수 축 & 스케일 (Scales)",
+    baseType: "line",
+    variations: [
+      { t: "다중 Y축 (Dual Y-Axis)", d: "좌/우 스케일 분리 (y, y1)", opts: { scales: { y: { type: 'linear', position: 'left' }, y1: { type: 'linear', position: 'right', grid: {drawOnChartArea: false} } } }, data: [{ label:'A', data: rD(10,50), yAxisID: 'y', borderColor: C[0] }, { label:'B', data: rD(1000,5000), yAxisID: 'y1', borderColor: C[3], type: 'bar', backgroundColor: C[3] }] },
+      { t: "로그 스케일 (Logarithmic)", d: "값의 편차가 매우 클 때", opts: { scales: { y: { type: 'logarithmic' } } }, data: [{ label:'A', data: [10, 100, 1000, 5000, 20000, 100000], borderColor: C[4] }] },
+      { t: "그리드 라인 숨김 (No Grid)", d: "배경선 제거로 깔끔하게", opts: { scales: { x: { grid: {display: false} }, y: { grid: {display: false} } } }, data: [{ label:'A', data: rD(10,50), type: 'bar', backgroundColor: C[1] }] },
+      { t: "축 반전 (Reverse Axis)", d: "Y축을 위에서 아래로", opts: { scales: { y: { reverse: true } } }, data: [{ label:'A', data: rD(10,50), borderColor: C[2] }] }
+    ]
+  }
+];
+
+// --- Rendering Engine ---
+const tabsContainer = document.getElementById('tabs');
+const gridContainer = document.getElementById('grid-container');
+let activeChartInstances = [];
+
+// 1. 탭 생성
+chartCategories.forEach((cat, index) => {
+  const btn = document.createElement('button');
+  btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+  btn.innerText = cat.name;
+  btn.onclick = () => renderCategory(index);
+  tabsContainer.appendChild(btn);
+});
+
+// 2. 패널 렌더링
+function renderCategory(catIndex) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === catIndex));
+  
+  // 기존 차트 메모리 해제
+  activeChartInstances.forEach(chart => chart.destroy());
+  activeChartInstances = [];
+  gridContainer.innerHTML = '';
+
+  const cat = chartCategories[catIndex];
+
+  cat.variations.forEach((vari, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const canvasId = `canvas-${catIndex}-${index}`;
+
+    card.innerHTML = `
+      <div class="c-title">${vari.t}</div>
+      <div class="c-desc">${vari.d}</div>
+      <div class="chart-box">
+        <canvas id="${canvasId}"></canvas>
+      </div>
+    `;
+    gridContainer.appendChild(card);
+
+    setTimeout(() => {
+      const ctx = document.getElementById(canvasId);
+      if(!ctx) return;
+
+      const cType = vari.forceType || cat.baseType;
+      const isAxisLess = ['pie', 'doughnut', 'polarArea'].includes(cType);
+      
+      // Default Options (여백 강제 할당)
+      let options = {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: isAxisLess ? 15 : 0 },
+        plugins: { legend: { display: false } }, // 범례 숨김으로 공간 확보
+        ...vari.opts
+      };
+
+      // 파이/도넛형 에러 방지 (Scale 객체 제거)
+      if (isAxisLess && options.scales) delete options.scales;
+      
+      // X축 데이터 포맷 조정
+      let chartLabels = LBL;
+      if (cType === 'scatter' || cType === 'bubble' || (vari.opts && vari.opts.type === 'scatter')) {
+         chartLabels = undefined; // 산점도/버블은 x축 라벨을 배열 값으로 대체함
+      }
+      if(isAxisLess && cType !== 'polarArea') {
+         chartLabels = LBL;
+      }
+
+      const newChart = new Chart(ctx, {
+        type: cType,
+        data: { labels: chartLabels, datasets: vari.data },
+        options: options
+      });
+      activeChartInstances.push(newChart);
+    }, 0);
+  });
+}
+
+// 초기화
+window.onload = () => {
+  renderCategory(0);
+};
+</script>
+</body>
+</html>

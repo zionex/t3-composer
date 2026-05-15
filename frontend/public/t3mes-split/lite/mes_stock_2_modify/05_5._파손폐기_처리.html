@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>5. 파손/폐기 처리</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #5: 5. 파손/폐기 처리 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+  <div class="sec-hdr"><div><h3>⑤ 파손 및 스크랩(Scrap) 폐기 처리</h3><span class="tip">사용 불가능한 재고를 장부에서 차감하고 '폐기 창고' 또는 '손실 비용'으로 완전히 넘깁니다.</span></div></div>
+  <div class="grid2">
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th><input type="checkbox" class="chk-box" checked></th><th>대상 품목</th><th class="num">가용재고</th><th>상태</th></tr></thead><tbody id="tb4"></tbody></table></div>
+    <div class="card" style="background:var(--surface2)">
+      <div class="card-title" style="color:var(--red)">선택 품목 일괄 폐기</div>
+      <div class="label">폐기 수량 입력</div><input type="number" class="inp" placeholder="수량" style="margin-bottom:12px">
+      <div class="label">폐기 사유 상세 설명</div><textarea class="inp" placeholder="파손 경위 등을 입력하세요" style="margin-bottom:16px"></textarea>
+      <div class="label">증빙 사진 첨부</div><div class="dd-zone" style="padding:10px;margin-bottom:16px">📸 클릭하여 사진 업로드</div>
+      <button class="btn btn-red" style="width:100%" onclick="showToast('폐기 승인 요청됨')">스크랩 처리 및 비용화</button>
+    </div>
+  </div>
+</div>

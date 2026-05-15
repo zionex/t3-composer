@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Capacity 슬라이더</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #8: Capacity 슬라이더 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p7">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑧ 설비/라인 Capacity 슬라이더 보정</h3>
+      <span class="tip">설비별 일간 가용 능력을 슬라이더로 보정하면 우측 부하율 차트가 실시간 재계산됩니다.</span>
+    </div>
+    <button class="btn btn-blue" onclick="showToast('Capacity 저장 완료')">💾 저장</button>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin:0"><div class="card-title">라인별 일간 Capacity 보정</div><div id="cap-sliders"></div></div>
+    <div class="card" style="margin:0"><div class="card-title">보정 후 부하율 (Load %)</div><div id="cap-bars"></div></div>
+  </div>
+</div>

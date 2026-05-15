@@ -1,0 +1,3115 @@
+{
+  "source": "target:T3SERIES",
+  "total": 333,
+  "leafs": 263,
+  "items": [
+    {
+      "menuId": "UI_SA_EXECUTIVE_DASHBOARD",
+      "menuNm": "경영 대시보드",
+      "menuPath": "/snop/executivedashboard",
+      "filePath": "/snop/dashboard/ExecutiveDashboard",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SALES_STATE",
+      "menuNm": "판매 현황",
+      "menuPath": "/snop/salesboard",
+      "filePath": "/demandplan/dashboard/SalesBoard",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_BASELINE_FORECAST_STATE",
+      "menuNm": "수요 예측 현황",
+      "menuPath": "/snop/baselineforecastboard",
+      "filePath": "/baselineforecast/report/BaselineForecastBoard",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_DEMAND_PLAN_STATE",
+      "menuNm": "수요 계획 현황",
+      "menuPath": "/snop/demandplanboard",
+      "filePath": "/demandplan/dashboard/DemandPlanBoard",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_INVENTORY_STATE",
+      "menuNm": "재고 현황",
+      "menuPath": "/snop/inventoryboard",
+      "filePath": "/inventoryplan/analysis/InventoryBoard",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_LOCATION_INVENTORY_STATE",
+      "menuNm": "거점 재고 현황",
+      "menuPath": "/snop/inventorylocationboard",
+      "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_MASTER_PLAN_STATE",
+      "menuNm": "공급 계획 현황",
+      "menuPath": "/snop/masterplanboard",
+      "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_PRODUCTION_PERFORMANCE",
+      "menuNm": "생산 실적 분석",
+      "menuPath": "/snop/productperformance",
+      "filePath": "/factoryplan/dashboard/ProductionPerformance",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_MEETING",
+      "menuNm": "회의",
+      "menuPath": "/snop/meeting",
+      "filePath": "/snop/Meeting",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SUPPLY_PLAN_KPI",
+      "menuNm": "공급계획 KPI",
+      "menuPath": "/snop/supplyplankpi",
+      "filePath": "/snop/mdb/SupplyPlanKpi",
+      "seq": 140,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SUPPLY_PLAN_KPI_DTL4",
+      "menuNm": "확정 FP 이행율",
+      "menuPath": "/snop/supplyplankpidtl4",
+      "filePath": "/snop/mdb/SupplyPlanKpiDtl4",
+      "seq": 144,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SUPPLY_MAT_PSI",
+      "menuNm": "공급자재 PSI",
+      "menuPath": "/snop/supplymatpsi",
+      "filePath": "/snop/mdb/SupplyMatPsi",
+      "seq": 146,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SUPPLY_MAT_PSI_DETAIL",
+      "menuNm": "자재 Short 상세 현황",
+      "menuPath": "/snop/supplymatpsidetail",
+      "filePath": "/snop/mdb/SupplyMatPsiDetail",
+      "seq": 147,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_OVERVIEW",
+      "menuNm": "개요",
+      "menuPath": "/snop/overview",
+      "filePath": "/dashboard/Overview",
+      "seq": 1001,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_SUPPLY_BOARD",
+      "menuNm": "공급 대시보드",
+      "menuPath": "/snop/supplyboard",
+      "filePath": "/dashboard/SupplyBoard",
+      "seq": 1002,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_SALES_BOARD",
+      "menuNm": "영업 대시보드",
+      "menuPath": "/snop/newsalesboard",
+      "filePath": "/dashboard/SalesBoard",
+      "seq": 1003,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_PSI_BOARD",
+      "menuNm": "PSI 대시보드",
+      "menuPath": "/snop/psiboard",
+      "filePath": "/dashboard/PsiBoard",
+      "seq": 1004,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_INVENTORY_BOARD",
+      "menuNm": "재고 대시보드",
+      "menuPath": "/snop/invenboard",
+      "filePath": "/dashboard/InvenBoard",
+      "seq": 1005,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_DASH_KPI_BOARD",
+      "menuNm": "KPI 대시보드",
+      "menuPath": "/snop/kpiboard",
+      "filePath": "/dashboard/KpiBoard",
+      "seq": 1006,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_BF_BASELINE_FORECAST_STATE",
+      "menuNm": "수요 예측 현황",
+      "menuPath": "/baselineforecast/baselineforecastestate",
+      "filePath": "/baselineforecast/report/BaselineForecastBoard",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_17",
+      "menuNm": "예측 대상 분석",
+      "menuPath": "/baselineforecast/eda/abcanalysis",
+      "filePath": "/baselineforecast/master/AbcAnalysis",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "사전 분석 (EDA)"
+      ]
+    },
+    {
+      "menuId": "UI_BF_58",
+      "menuNm": "실적 분석",
+      "menuPath": "/baselineforecast/eda/salesanalysis",
+      "filePath": "/baselineforecast/report/SalesAnalysis",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "사전 분석 (EDA)"
+      ]
+    },
+    {
+      "menuId": "UI_BF_57",
+      "menuNm": "인자 분석",
+      "menuPath": "/baselineforecast/eda/factoranalysis",
+      "filePath": "/baselineforecast/report/FactorAnalysis",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "사전 분석 (EDA)"
+      ]
+    },
+    {
+      "menuId": "UI_BF_56",
+      "menuNm": "인자 통계 보고서",
+      "menuPath": "/baselineforecast/eda/factorstats",
+      "filePath": "/baselineforecast/report/FactorStats",
+      "seq": 99,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "사전 분석 (EDA)"
+      ]
+    },
+    {
+      "menuId": "UI_BF_18",
+      "menuNm": "수요 예측",
+      "menuPath": "/baselineforecast/version/iscontrolboard",
+      "filePath": "/baselineforecast/version/IsControlBoard",
+      "seq": 11,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_50",
+      "menuNm": "수요 예측 결과",
+      "menuPath": "/baselineforecast/report/forecastresult",
+      "filePath": "/baselineforecast/report/ForecastResult",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_BF_55",
+      "menuNm": "예측 정확도",
+      "menuPath": "/baselineforecast/report/accuracy",
+      "filePath": "/baselineforecast/report/Accuracy",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_BF_59",
+      "menuNm": "결과 요약 보고서",
+      "menuPath": "/baselineforecast/report/accuracyanalysisreport",
+      "filePath": "/baselineforecast/report/AccuracyAnalysisReport",
+      "seq": 71,
+      "hasLangPack": true,
+      "parents": [
+        "수요 예측",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_SALES_STATE",
+      "menuNm": "판매 현황",
+      "menuPath": "/demandplan/salesstate",
+      "filePath": "/demandplan/dashboard/SalesBoard",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_DEMAND_PLAN_STATE",
+      "menuNm": "수요 계획 현황",
+      "menuPath": "/demandplan/demandplanboard",
+      "filePath": "/demandplan/dashboard/DemandPlanBoard",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_93",
+      "menuNm": "버전관리",
+      "menuPath": "/demandplan/version/controlboard",
+      "filePath": "/demandplan/version/ControlBoard",
+      "seq": 230,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "버전"
+      ]
+    },
+    {
+      "menuId": "UI_DP_94",
+      "menuNm": "진행상태",
+      "menuPath": "/demandplan/version/processstatus",
+      "filePath": "/demandplan/version/ProcessStatus",
+      "seq": 240,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "버전"
+      ]
+    },
+    {
+      "menuId": "UI_DP_22",
+      "menuNm": "계획 프로세스 설정",
+      "menuPath": "/demandplan/version/controlboardmaster",
+      "filePath": "/demandplan/setting/ControlBoardMaster",
+      "seq": 250,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "버전"
+      ]
+    },
+    {
+      "menuId": "UI_DP_36",
+      "menuNm": "계획 정책 설정",
+      "menuPath": "/demandplan/version/planpolicy",
+      "filePath": "/demandplan/setting/PlanPolicy",
+      "seq": 260,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "버전"
+      ]
+    },
+    {
+      "menuId": "UI_DP_ENTRY_LOG",
+      "menuNm": "수요계획 입력 로그",
+      "menuPath": "/demandplan/version/entrylog",
+      "filePath": "/demandplan/version/EntryLog",
+      "seq": 261,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "버전"
+      ]
+    },
+    {
+      "menuId": "UI_DP_95",
+      "menuNm": "계획입력",
+      "menuPath": "/demandplan/entry/entry",
+      "filePath": "/demandplan/entry/Entry",
+      "seq": 250,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_95_CHART",
+      "menuNm": "계획입력 (챠트)",
+      "menuPath": "/demandplan/entry/entrychart",
+      "filePath": "/demandplan/entry/EntryChart",
+      "seq": 250,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_97",
+      "menuNm": "계획입력(세로)",
+      "menuPath": "/demandplan/entry/entryext",
+      "filePath": "/demandplan/entry/EntryExtra",
+      "seq": 250,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_96",
+      "menuNm": "수요계획보고서",
+      "menuPath": "/demandplan/entry/allreport",
+      "filePath": "/demandplan/entry/AllReport",
+      "seq": 260,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_96_CHART",
+      "menuNm": "수요계획 보고서 (챠트)",
+      "menuPath": "/demandplan/entry/allreportchart",
+      "filePath": "/demandplan/entry/AllReportChart",
+      "seq": 260,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_ENTRY_NOTIFY",
+      "menuNm": "계획 점검",
+      "menuPath": "/demandplan/entry/entrynotify",
+      "filePath": "/demandplan/entry/EntryNotify",
+      "seq": 261,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_28",
+      "menuNm": "판매 성과",
+      "menuPath": "/demandplan/report/salesperformance",
+      "filePath": "/demandplan/report/SalesPerformance",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_30",
+      "menuNm": " 실적-판매 비교",
+      "menuPath": "/demandplan/report/comparesalesdp",
+      "filePath": "/demandplan/report/CompareSalesDp",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_32",
+      "menuNm": "판매 계획 점검 (거래처)",
+      "menuPath": "/demandplan/report/planchecksales",
+      "filePath": "/demandplan/report/PlanCheckSales",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_33",
+      "menuNm": "판매 계획 점검 (품목)",
+      "menuPath": "/demandplan/report/plancheckitem",
+      "filePath": "/demandplan/report/PlanCheckItem",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_31",
+      "menuNm": "공급가능 분석",
+      "menuPath": "/demandplan/report/rtfanalysis",
+      "filePath": "/demandplan/report/RtfAnalysis",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_40",
+      "menuNm": "버전별 수요계획 비교",
+      "menuPath": "/demandplan/report/compareversion",
+      "filePath": "/demandplan/report/CompareVersion",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_VER_COMP_PROG",
+      "menuNm": "버전 추이 비교",
+      "menuPath": "/demandplan/report/compareverprogress",
+      "filePath": "/demandplan/report/CompareVerProgress",
+      "seq": 71,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_BP_93",
+      "menuNm": "버전관리",
+      "menuPath": "/demandplan/yearlyplan/controlboard",
+      "filePath": "/demandplan/yearlyplan/ControlBoard",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_BP_94",
+      "menuNm": "진행 상태",
+      "menuPath": "/demandplan/yearlyplan/processstatus",
+      "filePath": "/demandplan/yearlyplan/ProcessStatus",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_BP_95",
+      "menuNm": "목표계획 입력 ",
+      "menuPath": "/demandplan/yearlyplan/entry",
+      "filePath": "/demandplan/yearlyplan/Entry",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_BP_95_CHART",
+      "menuNm": "목표계획 입력 (챠트)",
+      "menuPath": "/demandplan/yearlyplan/entrychart",
+      "filePath": "/demandplan/yearlyplan/EntryChart",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_BP_96",
+      "menuNm": "목표계획 주문 정보",
+      "menuPath": "/demandplan/yearlyplan/allreport",
+      "filePath": "/demandplan/yearlyplan/AllReport",
+      "seq": 5,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_BP_96_CHART",
+      "menuNm": "목표계획 주문 정보 (챠트)",
+      "menuPath": "/demandplan/yearlyplan/allreportchart",
+      "filePath": "/demandplan/yearlyplan/AllReportChart",
+      "seq": 6,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "목표계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_Z_MAKE_DATA",
+      "menuNm": "데모데이타 자동 생성",
+      "menuPath": "/demandplan/developer/devmakedata",
+      "filePath": "/demandplan/developer/DevMakeData",
+      "seq": 23,
+      "hasLangPack": true,
+      "parents": [
+        "수요 계획",
+        "For Developer"
+      ]
+    },
+    {
+      "menuId": "UI_SO_DPANALYSIS",
+      "menuNm": "수요 계획 분석",
+      "menuPath": "/supplyorder/dpanalysis",
+      "filePath": "/supplyorder/DpAnalysis",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "공급 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_SO_TRANSFORM",
+      "menuNm": "공급 주문 변환",
+      "menuPath": "/supplyorder/sotransform",
+      "filePath": "/supplyorder/SoTransform",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "공급 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_SO_ANALYSIS",
+      "menuNm": "공급 주문 분석",
+      "menuPath": "/supplyorder/soanalysis",
+      "filePath": "/supplyorder/SoAnalysis",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "공급 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_SO_ADJUST",
+      "menuNm": "공급 주문 보정",
+      "menuPath": "/supplyorder/soadjust",
+      "filePath": "/supplyorder/SoAdjust",
+      "seq": 5,
+      "hasLangPack": true,
+      "parents": [
+        "공급 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_SO_ITEMTREND",
+      "menuNm": "품목별 공급 주문 추이",
+      "menuPath": "/supplyorder/soitemtrend",
+      "filePath": "/supplyorder/SoItemTrend",
+      "seq": 6,
+      "hasLangPack": true,
+      "parents": [
+        "공급 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_IM_INVENTORY_STATE",
+      "menuNm": "재고 현황",
+      "menuPath": "/inventoryplan/inventoryboard",
+      "filePath": "/inventoryplan/analysis/InventoryBoard",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획"
+      ]
+    },
+    {
+      "menuId": "UI_IM_LOCATION_INVENTORY_STATE",
+      "menuNm": "거점 재고 현황",
+      "menuPath": "/inventoryplan/inventorylocationboard",
+      "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획"
+      ]
+    },
+    {
+      "menuId": "UI_IM_INVENTORY_DETAIL",
+      "menuNm": "재고 현황 상세",
+      "menuPath": "/inventoryplan/inventoryanalysis/inventorydetail",
+      "filePath": "/inventoryplan/analysis/InventoryDetail",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "재고 분석"
+      ]
+    },
+    {
+      "menuId": "UI_IM_SLOWMOVING_STATE",
+      "menuNm": "부진 재고 현황",
+      "menuPath": "/inventoryplan/inventoryanalysis/slowmovingstate",
+      "filePath": "/inventoryplan/analysis/SlowMoving",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "재고 분석"
+      ]
+    },
+    {
+      "menuId": "UI_IM_OBSOLETE_STATE",
+      "menuNm": "불용 재고 현황",
+      "menuPath": "/inventoryplan/inventoryanalysis/obsolete",
+      "filePath": "/inventoryplan/analysis/Obsolete",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "재고 분석"
+      ]
+    },
+    {
+      "menuId": "UI_IM_LOSS_INVENTORY",
+      "menuNm": "Loss 재고 현황",
+      "menuPath": "/inventoryplan/inventoryanalysis/lossinventory",
+      "filePath": "/inventoryplan/analysis/LossInventory",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "재고 분석"
+      ]
+    },
+    {
+      "menuId": "UI_IM_RETURN_INVENTORY",
+      "menuNm": "반품 재고 현황",
+      "menuPath": "/inventoryplan/inventoryanalysis/returninventory",
+      "filePath": "/inventoryplan/analysis/ReturnInventory",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "재고 분석"
+      ]
+    },
+    {
+      "menuId": "UI_IM_ABCXYZ_CLASSIFICATION",
+      "menuNm": "ABC-XYZ 분류",
+      "menuPath": "/inventoryplan/analysis/abcxyz",
+      "filePath": "/inventoryplan/analysis/Abcxyz",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "ABC-XYZ"
+      ]
+    },
+    {
+      "menuId": "UI_IM_ABCXYZ_ANALYSIS",
+      "menuNm": "ABC-XYZ 분석 상세",
+      "menuPath": "/inventoryplan/analysis/abcxyzanalysisresult",
+      "filePath": "/inventoryplan/analysis/AbcxyzAnalysisResult",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "ABC-XYZ"
+      ]
+    },
+    {
+      "menuId": "UI_IM_SALES_SHIPPING_HISTORY_CHECK",
+      "menuNm": "판매 (출하) 실적 점검",
+      "menuPath": "/inventoryplan/analysis/salesshippinghistorycheck",
+      "filePath": "/inventoryplan/analysis/SalesShippingHistoryCheck",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "ABC-XYZ"
+      ]
+    },
+    {
+      "menuId": "UI_IM_DEMAND_VARIABILITY_ANALYSIS",
+      "menuNm": "수요 변동성 분석",
+      "menuPath": "/inventoryplan/analysis/demandvariabilityanalysis",
+      "filePath": "/inventoryplan/analysis/DemandVariabilityAnalysis",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "ABC-XYZ"
+      ]
+    },
+    {
+      "menuId": "UI_IM_SUPPLY_VARIABILITY_ANALYSIS",
+      "menuNm": "공급 변동성 분석",
+      "menuPath": "/inventoryplan/analysis/supplyvariabilityanalysis",
+      "filePath": "/inventoryplan/analysis/SupplyVariabilityAnalysis",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "ABC-XYZ"
+      ]
+    },
+    {
+      "menuId": "UI_IM_TARGET_INVENTORY_SIMULATION",
+      "menuNm": "목표 재고 시뮬레이션",
+      "menuPath": "/inventoryplan/planningsimulation/targetinventorysimulation",
+      "filePath": "/inventoryplan/planningsimulation/TargetInventorySimulation",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_IM_TARGET_INVENTORY_RESULT",
+      "menuNm": "목표 재고 시뮬레이션 결과",
+      "menuPath": "/inventoryplan/planningsimulation/targetinventoryresult",
+      "filePath": "/inventoryplan/planningsimulation/TargetInventoryResult",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_IM_TARGET_INVENTORY_RESULT_PERIOD",
+      "menuNm": "기간별 목표 재고 시뮬레이션 결과",
+      "menuPath": "/inventoryplan/planningsimulation/targetinventoryresultperiod",
+      "filePath": "/inventoryplan/planningsimulation/TargetInventoryResultPeriod",
+      "seq": 25,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_IM_SIMUL_COMPARE",
+      "menuNm": "시뮬레이션 결과 비교",
+      "menuPath": "/inventoryplan/planningsimulation/imsimulationcompare",
+      "filePath": "/inventoryplan/planningsimulation/ImSimulationCompare",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "재고 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_RP_07",
+      "menuNm": "공급 주문",
+      "menuPath": "/replenishmentplan/preanalysis/demandoverview",
+      "filePath": "/replenishmentplan/planningsimulation/DemandOverview",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_RP_30",
+      "menuNm": "공급 주문 분포",
+      "menuPath": "/replenishmentplan/preanalysis/demanddistribution",
+      "filePath": "/replenishmentplan/planningsimulation/DemandDistribution",
+      "seq": 15,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_RP_POLICY",
+      "menuNm": "보충 발주 정책",
+      "menuPath": "/replenishmentplan/preanalysis/replenishmentpolicy",
+      "filePath": "/replenishmentplan/master/ReplenishmentPolicy",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_RP_09",
+      "menuNm": "보충 계획 시뮬레이션",
+      "menuPath": "/replenishmentplan/planningsimulation/rpsimulation",
+      "filePath": "/replenishmentplan/planningsimulation/RPSimulation",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_RP_08",
+      "menuNm": "계획 정책",
+      "menuPath": "/replenishmentplan/planningsimulation/planpolicy",
+      "filePath": "/replenishmentplan/planningsimulation/PlanPolicy",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_RP_28",
+      "menuNm": "계획 시나리오",
+      "menuPath": "/replenishmentplan/planningsimulation/planscenario",
+      "filePath": "/replenishmentplan/planningsimulation/PlanScenario",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_RP_10",
+      "menuNm": "주문 추적",
+      "menuPath": "/replenishmentplan/analysisreport/demandordertracking",
+      "filePath": "/replenishmentplan/analysisreport/DemandOrderTracking",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_RP_14",
+      "menuNm": "보충 계획 비교",
+      "menuPath": "/replenishmentplan/analysisreport/rpcomparative",
+      "filePath": "/replenishmentplan/analysisreport/RpComparative",
+      "seq": 140,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_RP_15",
+      "menuNm": "보충 계획 결과",
+      "menuPath": "/replenishmentplan/analysisreport/rpresult",
+      "filePath": "/replenishmentplan/analysisreport/RpResult",
+      "seq": 150,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_RP_25",
+      "menuNm": "발주 리스트",
+      "menuPath": "/replenishmentplan/analysisreport/polist",
+      "filePath": "/replenishmentplan/analysisreport/PoList",
+      "seq": 190,
+      "hasLangPack": true,
+      "parents": [
+        "보충 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_MASTER_PLAN_STATE",
+      "menuNm": "공급 계획 현황",
+      "menuPath": "/masterplan/masterplanboard",
+      "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_SUPPLY_TREND",
+      "menuNm": "거점별 공급/출하/재고 추이",
+      "menuPath": "/masterplan/supplytrend",
+      "filePath": "/masterplan/analysisreport/SupplyTrend",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_19",
+      "menuNm": "공급 주문",
+      "menuPath": "/masterplan/preanalysis/demandoverview",
+      "filePath": "/masterplan/planningsimulation/DemandOverview",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_MP_44",
+      "menuNm": "공급 주문 분포",
+      "menuPath": "/masterplan/preanalysis/demanddistribution",
+      "filePath": "/masterplan/planningsimulation/DemandDistribution",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_MP_02",
+      "menuNm": "재공",
+      "menuPath": "/masterplan/preanalysis/wip",
+      "filePath": "/masterplan/master/Wip",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "사전 분석"
+      ]
+    },
+    {
+      "menuId": "UI_MP_21",
+      "menuNm": "공급 계획 시뮬레이션",
+      "menuPath": "/masterplan/mpsimulation/mpsimulation",
+      "filePath": "/masterplan/planningsimulation/MPSimulation",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_MP_20",
+      "menuNm": "계획 정책",
+      "menuPath": "/masterplan/mpsimulation/planpolicy",
+      "filePath": "/masterplan/planningsimulation/PlanPolicy",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_MP_43",
+      "menuNm": "계획 시나리오",
+      "menuPath": "/masterplan/mpsimulation/planscenario",
+      "filePath": "/masterplan/planningsimulation/PlanScenario",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_MP_RTF",
+      "menuNm": "수요 - 공급 가능성 점검 (RTF)",
+      "menuPath": "/masterplan/analysisreport/rtf",
+      "filePath": "/masterplan/analysisreport/Rtf",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_RES_PROD_PLAN",
+      "menuNm": "자원 생산 계획",
+      "menuPath": "/masterplan/analysisreport/resprodplan",
+      "filePath": "/masterplan/analysisreport/ResProdPlan",
+      "seq": 15,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_42",
+      "menuNm": "자원 현황",
+      "menuPath": "/masterplan/analysisreport/resstatus",
+      "filePath": "/masterplan/analysisreport/ResStatus",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_31",
+      "menuNm": "자원 부하 분석",
+      "menuPath": "/masterplan/analysisreport/resutilization",
+      "filePath": "/masterplan/analysisreport/ResUtilization",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_GANTT_RESOURCE",
+      "menuNm": "자원 간트 차트",
+      "menuPath": "/masterplan/analysisreport/resourcegantt",
+      "filePath": "/masterplan/analysisreport/ResourceGantt",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_30",
+      "menuNm": "반제품 / 자재 소요계획",
+      "menuPath": "/masterplan/analysisreport/consumptionplan",
+      "filePath": "/masterplan/analysisreport/ConsumptionPlan",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_27",
+      "menuNm": "공급 계획 결과 (PSI)",
+      "menuPath": "/masterplan/analysisreport/mpresult",
+      "filePath": "/masterplan/analysisreport/MpResult",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_41",
+      "menuNm": "품목 현황",
+      "menuPath": "/masterplan/analysisreport/itemstatus",
+      "filePath": "/masterplan/analysisreport/ItemStatus",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_29",
+      "menuNm": "품목 생산 계획",
+      "menuPath": "/masterplan/analysisreport/resproductionplanning",
+      "filePath": "/masterplan/analysisreport/ResProductionPlanning",
+      "seq": 75,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_32",
+      "menuNm": "공급 주문 계획 결과",
+      "menuPath": "/masterplan/analysisreport/plandetail",
+      "filePath": "/masterplan/analysisreport/PlanDetail",
+      "seq": 80,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_22",
+      "menuNm": "공급 주문 추적",
+      "menuPath": "/masterplan/analysisreport/demandordertracking",
+      "filePath": "/masterplan/analysisreport/DemandOrderTracking",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_26",
+      "menuNm": "공급 계획 비교",
+      "menuPath": "/masterplan/analysisreport/mpcomparative",
+      "filePath": "/masterplan/analysisreport/MpComparative",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_SHORTAGE_MONITORING",
+      "menuNm": "결품 예정 모니터링",
+      "menuPath": "/masterplan/analysisreport/shortagemonitoring",
+      "filePath": "/masterplan/analysisreport/ShortageMonitoring",
+      "seq": 105,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_25",
+      "menuNm": "부족 / 지연 사유",
+      "menuPath": "/masterplan/analysisreport/shortlatereason",
+      "filePath": "/masterplan/planningsimulation/ShortLateReason",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_MP_34",
+      "menuNm": "문제 현황 비교",
+      "menuPath": "/masterplan/analysisreport/problemanalysis",
+      "filePath": "/masterplan/planningsimulation/ProblemAnalysis",
+      "seq": 120,
+      "hasLangPack": true,
+      "parents": [
+        "공급 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FO_REQUEST_ANALYSIS",
+      "menuNm": "생산 요청 분석",
+      "menuPath": "/factoryorder/requestanalysis",
+      "filePath": "/factoryorder/RequestAnalysis",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "생산 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_FO_ORDER_CREATION",
+      "menuNm": "생산 주문 생성",
+      "menuPath": "/factoryorder/ordercreation",
+      "filePath": "/factoryorder/OrderCreation",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "생산 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_FO_ORDER_ADJUSTMENT",
+      "menuNm": "생산 주문 분석 및 조정",
+      "menuPath": "/factoryorder/orderadjustment",
+      "filePath": "/factoryorder/OrderAdjustment",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "생산 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_FO_MRP",
+      "menuNm": "생산 요청 납기 기준 자재 소요량",
+      "menuPath": "/factoryorder/mrp",
+      "filePath": "/factoryorder/Mrp",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "생산 주문 관리"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PRODUCTION_PERFORMANCE",
+      "menuNm": "생산 실적 분석",
+      "menuPath": "/factoryplan/productperformance",
+      "filePath": "/factoryplan/dashboard/ProductionPerformance",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_VS_PERFORMANCE",
+      "menuNm": "실행 성과 분석",
+      "menuPath": "/factoryplan/fpversusperformance",
+      "filePath": "/factoryplan/dashboard/FpVersusPerformance",
+      "seq": 11,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_INPUT_ORDER_CHECK",
+      "menuNm": "투입 오더 점검",
+      "menuPath": "/factoryplan/inputorderboard",
+      "filePath": "/factoryplan/dashboard/InputOrderBoard",
+      "seq": 12,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_AGAINST_PRFM",
+      "menuNm": "계획 대비 실적",
+      "menuPath": "/factoryplan/planagainstperformance",
+      "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDashboard",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_AGAINST_PRFM_DETAIL",
+      "menuNm": "계획 대비 실적 상세",
+      "menuPath": "/factoryplan/planagainstperformancedetail",
+      "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDetailDashboard",
+      "seq": 21,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_IN_OUT_STATUS_DASHBOARD",
+      "menuNm": "투입 / 생산 현황",
+      "menuPath": "/factoryplan/inoutstatus",
+      "filePath": "/factoryplan/dashboard/InOutStatusDashboard",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD",
+      "menuNm": "투입 / 생산 현황 상세",
+      "menuPath": "/factoryplan/inoutstatusdetail",
+      "filePath": "/factoryplan/dashboard/InOutStatusDetailDashboard",
+      "seq": 31,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_WIP_EOH_OUT_DASHBOARD",
+      "menuNm": "재공 투입 / 생산 현황",
+      "menuPath": "/factoryplan/wipeohout",
+      "filePath": "/factoryplan/dashboard/WipEohOutDashboard",
+      "seq": 32,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMULATION",
+      "menuNm": "생산 계획 시뮬레이션",
+      "menuPath": "/factoryplan/simulation/simulation",
+      "filePath": "/factoryplan/simulation/Simulation",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMUL_SCENARIO",
+      "menuNm": "시뮬레이션 시나리오",
+      "menuPath": "/factoryplan/simulation/simulationscenario",
+      "filePath": "/factoryplan/simulation/SimulationScenario",
+      "seq": 5,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMUL_STEP",
+      "menuNm": "시뮬레이션 절차",
+      "menuPath": "/factoryplan/simulation/simulationstep",
+      "filePath": "/factoryplan/simulation/SimulationStep",
+      "seq": 6,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMUL_KPI",
+      "menuNm": "계획 결과 요약",
+      "menuPath": "/factoryplan/simulkpi",
+      "filePath": "/factoryplan/dashboard/SimulationKPIDashboard",
+      "seq": 7,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_PROBLEM_DASHBOARD",
+      "menuNm": "문제 현황",
+      "menuPath": "/factoryplan/analysis/planproblemdashboard",
+      "filePath": "/factoryplan/dashboard/PlanProblemDashboard",
+      "seq": 8,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMUL_COMPARE",
+      "menuNm": "계획 결과 비교",
+      "menuPath": "/factoryplan/simulation/simulationcompare",
+      "filePath": "/factoryplan/simulation/SimulationCompare",
+      "seq": 9,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ADJUST_GANTT",
+      "menuNm": "생산 계획 보정 (Gantt)",
+      "menuPath": "/factoryplan/simulation/adjustmentgantt",
+      "filePath": "/factoryplan/simulation/AdjustmentGantt",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ADJUST_GRID",
+      "menuNm": "생산 계획 보정 (그리드)",
+      "menuPath": "/factoryplan/simulation/adjustmentgrid",
+      "filePath": "/factoryplan/simulation/AdjustmentGrid",
+      "seq": 11,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_SIMUL_ADJ",
+      "menuNm": "생산 계획 조정",
+      "menuPath": "/factoryplan/simulation/simulationadjustment",
+      "filePath": "/factoryplan/simulation/SimulationAdjustment",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PROD_DISRUPTION_MONITORING",
+      "menuNm": "생산 차질 모니터링",
+      "menuPath": "/factoryplan/simulation/proddisruptionmonitoring",
+      "filePath": "/factoryplan/simulation/ProdDisruptionMonitoring",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "시뮬레이션"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_DETAIL",
+      "menuNm": "작업 상세",
+      "menuPath": "/factoryplan/analysis/plandetail",
+      "filePath": "/factoryplan/analysis/PlanDetail",
+      "seq": 55,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PLAN_RESULT",
+      "menuNm": "공정(라인)별 계획 결과",
+      "menuPath": "/factoryplan/analysis/planresult",
+      "filePath": "/factoryplan/analysis/PlanResult",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_RESRC_UTILIZATION",
+      "menuNm": "자원 가동률",
+      "menuPath": "/factoryplan/analysis/resourceutilization",
+      "filePath": "/factoryplan/analysis/ResourceUtilization",
+      "seq": 80,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_STOCK_RESULT",
+      "menuNm": "재고 사용 현황",
+      "menuPath": "/factoryplan/analysis/stockresult",
+      "filePath": "/factoryplan/analysis/StockResult",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_MATERIAL_PSI",
+      "menuNm": "자재 소요계획",
+      "menuPath": "/factoryplan/analysis/materialpsi",
+      "filePath": "/factoryplan/analysis/MaterialPsi",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_GANTT_RESOURCE",
+      "menuNm": "자원 간트 차트",
+      "menuPath": "/factoryplan/analysis/resourcegantt",
+      "filePath": "/factoryplan/analysis/ResourceGantt",
+      "seq": 120,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_GANTT_ORDER",
+      "menuNm": "주문 간트 차트",
+      "menuPath": "/factoryplan/analysis/ordergantt",
+      "filePath": "/factoryplan/analysis/OrderGantt",
+      "seq": 130,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ORDER_TRACKING",
+      "menuNm": "주문 추적",
+      "menuPath": "/factoryplan/analysis/ordertracking",
+      "filePath": "/factoryplan/analysis/OrderTracking",
+      "seq": 140,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ITEM_LEAD_TIME",
+      "menuNm": "품목별 L/T 분석",
+      "menuPath": "/factoryplan/analysis/itemleadtime",
+      "filePath": "/factoryplan/analysis/ItemLeadTime",
+      "seq": 150,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_JC_TIME_INFO",
+      "menuNm": "작업 교체 정보",
+      "menuPath": "/factoryplan/analysis/jobchangetimeinfo",
+      "filePath": "/factoryplan/analysis/JobChangeTimeInfo",
+      "seq": 160,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_DISPATCH",
+      "menuNm": "자원별 작업 배치",
+      "menuPath": "/factoryplan/analysis/dispatch",
+      "filePath": "/factoryplan/analysis/DispatchList",
+      "seq": 170,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_DELIVERY",
+      "menuNm": "주문 납기 분석",
+      "menuPath": "/factoryplan/analysis/delivery",
+      "filePath": "/factoryplan/analysis/DeliveryStatus",
+      "seq": 180,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PROD_CUSTOMER",
+      "menuNm": "고객별 생산 계획 분석",
+      "menuPath": "/factoryplan/analysis/prodcustomer",
+      "filePath": "/factoryplan/analysis/ProdCustomer",
+      "seq": 190,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_WIP_PROFILE",
+      "menuNm": "작업 대기 분석",
+      "menuPath": "/factoryplan/analysis/wipprofile",
+      "filePath": "/factoryplan/analysis/WipProfile",
+      "seq": 200,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_INOUT_STATUS",
+      "menuNm": "투입/생산 현황",
+      "menuPath": "/factoryplan/analysis/inoutstatus",
+      "filePath": "/factoryplan/analysis/InoutStatus",
+      "seq": 210,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_RES_PROD_PLAN",
+      "menuNm": "자원 생산 계획",
+      "menuPath": "/factoryplan/analysis/resprodplan",
+      "filePath": "/factoryplan/analysis/ResProdPlan",
+      "seq": 211,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_FP_PROD_SALES_STOCK_STATUS",
+      "menuNm": "생산/판매/재고 보고서",
+      "menuPath": "/factoryplan/analysis/prodsalesstockstatus",
+      "filePath": "/factoryplan/analysis/ProdSalesStockStatus",
+      "seq": 212,
+      "hasLangPack": true,
+      "parents": [
+        "생산 계획",
+        "보고서"
+      ]
+    },
+    {
+      "menuId": "UI_DP_42",
+      "menuNm": "판매 실적",
+      "menuPath": "/dataintegration/actual/actualsales",
+      "filePath": "/demandplan/master/ActualSales",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "운영 데이터"
+      ]
+    },
+    {
+      "menuId": "UI_IM_SHIPPING_ACTUAL",
+      "menuNm": "출하 실적",
+      "menuPath": "/dataintegration/actual/shippingactual",
+      "filePath": "/inventoryplan/master/ShippingActual",
+      "seq": 9,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "운영 데이터"
+      ]
+    },
+    {
+      "menuId": "UI_IM_12",
+      "menuNm": "창고 재고",
+      "menuPath": "/dataintegration/actual/warehousestock",
+      "filePath": "/inventoryplan/master/WarehouseStock",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "운영 데이터"
+      ]
+    },
+    {
+      "menuId": "UI_IM_13",
+      "menuNm": "이동중 재고",
+      "menuPath": "/dataintegration/actual/intransitstock",
+      "filePath": "/inventoryplan/master/InTransitStock",
+      "seq": 11,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "운영 데이터"
+      ]
+    },
+    {
+      "menuId": "UI_MP_18",
+      "menuNm": "자재 입고 예정",
+      "menuPath": "/dataintegration/masterplan/materialsupplycalendar",
+      "filePath": "/masterplan/master/MaterialSupplyCalendar",
+      "seq": 12,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "운영 데이터"
+      ]
+    },
+    {
+      "menuId": "UI_CM_01",
+      "menuNm": "일반 설정",
+      "menuPath": "/dataintegration/network/generalconfig",
+      "filePath": "/supplychainmodel/GeneralConfig",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_02",
+      "menuNm": "거점",
+      "menuPath": "/dataintegration/network/site",
+      "filePath": "/supplychainmodel/Site",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_18",
+      "menuNm": "품목",
+      "menuPath": "/dataintegration/network/item",
+      "filePath": "/supplychainmodel/Item",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_04",
+      "menuNm": "거점 품목",
+      "menuPath": "/dataintegration/network/siteitem",
+      "filePath": "/supplychainmodel/SiteItem",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_06",
+      "menuNm": "거점 BOD",
+      "menuPath": "/dataintegration/network/sitebod",
+      "filePath": "/supplychainmodel/SiteBod",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_07",
+      "menuNm": "출하 L/T",
+      "menuPath": "/dataintegration/network/shipmentlt",
+      "filePath": "/supplychainmodel/ShipmentLt",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_08",
+      "menuNm": "거점 출하 일정",
+      "menuPath": "/dataintegration/network/siteshipmentschedule",
+      "filePath": "/supplychainmodel/SiteShipmentSchedule",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_10",
+      "menuNm": "거점 수송",
+      "menuPath": "/dataintegration/network/transportation",
+      "filePath": "/supplychainmodel/Transportation",
+      "seq": 80,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_19",
+      "menuNm": "품목 출하 일정",
+      "menuPath": "/dataintegration/network/itemshipmentschedule",
+      "filePath": "/supplychainmodel/ItemShipmentSchedule",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_14",
+      "menuNm": "출하 통관 휴무 캘린더",
+      "menuPath": "/dataintegration/network/shippingcalendar",
+      "filePath": "/supplychainmodel/ShippingCalendar",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_05",
+      "menuNm": "글로벌 생산 BOM",
+      "menuPath": "/dataintegration/network/productionbom",
+      "filePath": "/supplychainmodel/ProductionBom",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_11",
+      "menuNm": "글로벌 계획 BOM",
+      "menuPath": "/dataintegration/network/planningbom",
+      "filePath": "/supplychainmodel/PlanningBom",
+      "seq": 120,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_12",
+      "menuNm": "수요 출하지",
+      "menuPath": "/dataintegration/network/demandmapping",
+      "filePath": "/supplychainmodel/DemandMapping",
+      "seq": 130,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_IM_11",
+      "menuNm": "저장 위치",
+      "menuPath": "/dataintegration/network/storagelocation",
+      "filePath": "/inventoryplan/master/StorageLocation",
+      "seq": 150,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_CM_SUPPLYCHAIN",
+      "menuNm": "공급망 뷰어",
+      "menuPath": "/dataintegration/network/supplychainviewer",
+      "filePath": "/supplychainmodel/SupplyChainViewer",
+      "seq": 200,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급망 네트워크"
+      ]
+    },
+    {
+      "menuId": "UI_BF_00",
+      "menuNm": "기준정보검증",
+      "menuPath": "/dataintegration/baselineforecast/validation",
+      "filePath": "/baselineforecast/master/Validation",
+      "seq": 0,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_07",
+      "menuNm": "품목별 인자",
+      "menuPath": "/dataintegration/baselineforecast/salesfactor",
+      "filePath": "/baselineforecast/master/SalesFactor",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_06",
+      "menuNm": "일자별 인자",
+      "menuPath": "/dataintegration/baselineforecast/datefactor",
+      "filePath": "/baselineforecast/master/DateFactor",
+      "seq": 2,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_05",
+      "menuNm": "판매 실적 보정",
+      "menuPath": "/dataintegration/baselineforecast/actualsales",
+      "filePath": "/baselineforecast/master/ActualSales",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_13",
+      "menuNm": "예측 대상",
+      "menuPath": "/dataintegration/baselineforecast/forecasttarget",
+      "filePath": "/baselineforecast/master/ForecastTarget",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_14",
+      "menuNm": "신-구 품목 매핑",
+      "menuPath": "/dataintegration/baselineforecast/newtargetsalesmap",
+      "filePath": "/baselineforecast/master/NewTargetSalesMap",
+      "seq": 5,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_09",
+      "menuNm": "기준 인자 설정",
+      "menuPath": "/setting/configbf/factor",
+      "filePath": "/baselineforecast/master/Factor",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_BF_01",
+      "menuNm": "환경 설정",
+      "menuPath": "/setting/configbf/config",
+      "filePath": "/baselineforecast/master/Config",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 예측"
+      ]
+    },
+    {
+      "menuId": "UI_DP_05",
+      "menuNm": "기준정보검증",
+      "menuPath": "/dataintegration/demandplan/validation",
+      "filePath": "/demandplan/master/Validation",
+      "seq": 0,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_02",
+      "menuNm": "레벨",
+      "menuPath": "/dataintegration/demandplan/level",
+      "filePath": "/demandplan/master/Level",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_08",
+      "menuNm": "품목 계층",
+      "menuPath": "/dataintegration/demandplan/itemhierarchy",
+      "filePath": "/demandplan/master/ItemHierarchy",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_09",
+      "menuNm": "품목",
+      "menuPath": "/dataintegration/demandplan/item",
+      "filePath": "/demandplan/master/Item",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_10",
+      "menuNm": "판매 계층",
+      "menuPath": "/dataintegration/demandplan/saleshierarchy",
+      "filePath": "/demandplan/master/SalesHierarchy",
+      "seq": 5,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_11",
+      "menuNm": "거래처",
+      "menuPath": "/dataintegration/demandplan/account",
+      "filePath": "/demandplan/master/Account",
+      "seq": 6,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_12",
+      "menuNm": "관리자-판매 관계",
+      "menuPath": "/dataintegration/demandplan/salesauthmap",
+      "filePath": "/demandplan/master/SalesAuthMap",
+      "seq": 7,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_13",
+      "menuNm": "사용자-품목 관계",
+      "menuPath": "/dataintegration/demandplan/useritemmap",
+      "filePath": "/demandplan/master/UserItemMap",
+      "seq": 8,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_USER_LEVEL_MAP",
+      "menuNm": "사용자-레벨 관계",
+      "menuPath": "/dataintegration/demandplan/userlevelmap",
+      "filePath": "/demandplan/master/UserLevelMap",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_15",
+      "menuNm": "사용자-품목-거래처관계",
+      "menuPath": "/dataintegration/demandplan/useritemaccountmap",
+      "filePath": "/demandplan/master/UserItemAccountMap",
+      "seq": 11,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_21",
+      "menuNm": "단위 가격",
+      "menuPath": "/dataintegration/demandplan/salesprice",
+      "filePath": "/demandplan/master/SalesPrice",
+      "seq": 12,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_07",
+      "menuNm": "환율",
+      "menuPath": "/dataintegration/demandplan/exchangerate",
+      "filePath": "/demandplan/master/ExchangeRate",
+      "seq": 13,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_41",
+      "menuNm": "Measure 데이터",
+      "menuPath": "/dataintegration/demandplan/measuredata",
+      "filePath": "/demandplan/master/MeasureData",
+      "seq": 14,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_16",
+      "menuNm": "Dimension 데이터",
+      "menuPath": "/dataintegration/demandplan/dimdata",
+      "filePath": "/demandplan/master/DimData",
+      "seq": 15,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_17",
+      "menuNm": "메져 기준 설정",
+      "menuPath": "/setting/configdp/measure",
+      "filePath": "/demandplan/setting/Measure",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_18",
+      "menuNm": "화면 디멘전 설정",
+      "menuPath": "/setting/configdp/dimensionset",
+      "filePath": "/demandplan/setting/DimensionSet",
+      "seq": 21,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_19",
+      "menuNm": "화면 메져 설정",
+      "menuPath": "/setting/configdp/measureset",
+      "filePath": "/demandplan/setting/MeasureSet",
+      "seq": 22,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DP_01",
+      "menuNm": "환경 설정",
+      "menuPath": "/setting/configdp/config",
+      "filePath": "/demandplan/setting/Config",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "수요 계획"
+      ]
+    },
+    {
+      "menuId": "UI_IM_03",
+      "menuNm": "등급 산정 대상",
+      "menuPath": "/dataintegration/inventoryplan/gradetarget",
+      "filePath": "/inventoryplan/master/GradeTarget",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "재고 계획"
+      ]
+    },
+    {
+      "menuId": "UI_IM_05",
+      "menuNm": "재고 비용",
+      "menuPath": "/dataintegration/inventoryplan/stockcost",
+      "filePath": "/inventoryplan/master/StockCost",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "재고 계획"
+      ]
+    },
+    {
+      "menuId": "UI_IM_DEMAND_RATE_CAL_BASE",
+      "menuNm": "수요율 산출 기준",
+      "menuPath": "/dataintegration/inventoryplan/demandratebase",
+      "filePath": "/inventoryplan/master/DemandRateBase",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "재고 계획"
+      ]
+    },
+    {
+      "menuId": "UI_RP_01",
+      "menuNm": "보충 계획 대상",
+      "menuPath": "/dataintegration/replenishmentplan/rptarget",
+      "filePath": "/replenishmentplan/master/RpTarget",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "보충 계획"
+      ]
+    },
+    {
+      "menuId": "UI_RP_04",
+      "menuNm": "발주 주기 캘린더",
+      "menuPath": "/dataintegration/replenishmentplan/ordercyclecalendar",
+      "filePath": "/replenishmentplan/master/OrderCycleCalendar",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "보충 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_VALIDATION",
+      "menuNm": "기준 정보 검증",
+      "menuPath": "/dataintegration/masterplan/validation",
+      "filePath": "/masterplan/master/Validation",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_05",
+      "menuNm": "자재 제약",
+      "menuPath": "/dataintegration/masterplan/materialconstraint",
+      "filePath": "/masterplan/master/MaterialConstraint",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_06",
+      "menuNm": "자원",
+      "menuPath": "/dataintegration/masterplan/resource",
+      "filePath": "/masterplan/master/Resource",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_38",
+      "menuNm": "공정",
+      "menuPath": "/dataintegration/masterplan/routing",
+      "filePath": "/masterplan/master/Routing",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_08",
+      "menuNm": "품목기준 자원 우선순위",
+      "menuPath": "/dataintegration/masterplan/itemrespreference",
+      "filePath": "/masterplan/master/ItemResPreference",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_09",
+      "menuNm": "품목기준 자원 생산능력",
+      "menuPath": "/dataintegration/masterplan/itemrescapacity",
+      "filePath": "/masterplan/master/ItemResCapacity",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_BYPRODUCT",
+      "menuNm": "연산품",
+      "menuPath": "/dataintegration/masterplan/byproduct",
+      "filePath": "/masterplan/master/ByProduct",
+      "seq": 51,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_LOC_HOLIDAY",
+      "menuNm": "거점 입고 캘린더",
+      "menuPath": "/dataintegration/masterplan/siteincomingcalendar",
+      "filePath": "/masterplan/master/SiteIncomingCalendar",
+      "seq": 55,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_11",
+      "menuNm": "공장 / 자원 캘린더",
+      "menuPath": "/dataintegration/masterplan/plantrescalendar",
+      "filePath": "/masterplan/master/PlantResCalendar",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_17",
+      "menuNm": "품목기준 생산 운영 캘린더",
+      "menuPath": "/dataintegration/masterplan/itemproductioncalendar",
+      "filePath": "/masterplan/master/ItemProductionCalendar",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_CM_03",
+      "menuNm": "품목 분류",
+      "menuPath": "/dataintegration/masterplan/itemclassification",
+      "filePath": "/masterplan/master/ItemClassification",
+      "seq": 80,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_14",
+      "menuNm": "생산주기 & 연속생산",
+      "menuPath": "/dataintegration/masterplan/cycleconsecutive",
+      "filePath": "/masterplan/master/CycleConsecutive",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_15",
+      "menuNm": "혼합생산 (최소할당)",
+      "menuPath": "/dataintegration/masterplan/productmixmin",
+      "filePath": "/masterplan/master/ProductMixMin",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_16",
+      "menuNm": "최대 생산 제약",
+      "menuPath": "/dataintegration/masterplan/productmixmax",
+      "filePath": "/masterplan/master/ProductMixMax",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_ROUTE_CLASSIFICATION",
+      "menuNm": "공정 분류",
+      "menuPath": "/dataintegration/masterplan/routeclassification",
+      "filePath": "/masterplan/master/RouteClassification",
+      "seq": 120,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_35",
+      "menuNm": "최대 운영 자원",
+      "menuPath": "/dataintegration/masterplan/maxopresgrp",
+      "filePath": "/masterplan/master/MaxOpresGrp",
+      "seq": 130,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_23",
+      "menuNm": "작업 교체 시간",
+      "menuPath": "/dataintegration/masterplan/jobchangetime",
+      "filePath": "/masterplan/master/JobChangeTime",
+      "seq": 140,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_13",
+      "menuNm": "선행생산 제약",
+      "menuPath": "/dataintegration/masterplan/prebuildlimit",
+      "filePath": "/masterplan/master/PreBuildLimit",
+      "seq": 150,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_MP_01",
+      "menuNm": "환경 설정",
+      "menuPath": "/setting/configmp/generalconfig",
+      "filePath": "/masterplan/master/GeneralConfig",
+      "seq": 500,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "공급 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_VALIDATION",
+      "menuNm": "기준 정보 검증",
+      "menuPath": "/dataintegration/factoryplan/validation",
+      "filePath": "/factoryplan/master/Validation",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ITEM",
+      "menuNm": "품목",
+      "menuPath": "/dataintegration/factoryplan/item",
+      "filePath": "/factoryplan/master/Item",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ROUTE",
+      "menuNm": "공정",
+      "menuPath": "/dataintegration/factoryplan/route",
+      "filePath": "/factoryplan/master/Route",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_BOM",
+      "menuNm": "BOM",
+      "menuPath": "/dataintegration/factoryplan/bom",
+      "filePath": "/factoryplan/master/Bom",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_BYPRODUCT",
+      "menuNm": "연산품",
+      "menuPath": "/dataintegration/factoryplan/byproduct",
+      "filePath": "/factoryplan/master/Byproduct",
+      "seq": 41,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_RESOURCE",
+      "menuNm": "자원",
+      "menuPath": "/dataintegration/factoryplan/resource",
+      "filePath": "/factoryplan/master/Resource",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_BOR",
+      "menuNm": "BOR",
+      "menuPath": "/dataintegration/factoryplan/bor",
+      "filePath": "/factoryplan/master/Bor",
+      "seq": 60,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_FLO",
+      "menuNm": "FLO",
+      "menuPath": "/dataintegration/factoryplan/flo",
+      "filePath": "/factoryplan/master/Flo",
+      "seq": 65,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_RESOURCE_CALENDAR",
+      "menuNm": "자원 캘린더",
+      "menuPath": "/dataintegration/factoryplan/resourcecalendar",
+      "filePath": "/factoryplan/master/ResourceCalendar",
+      "seq": 70,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_RESOURCE_DOWNTIME",
+      "menuNm": "자원 휴무 관리",
+      "menuPath": "/dataintegration/factoryplan/resourcedowntime",
+      "filePath": "/factoryplan/master/ResourceDownTime",
+      "seq": 80,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_JC_TIME",
+      "menuNm": "작업 교체 시간",
+      "menuPath": "/dataintegration/factoryplan/jobchangetime",
+      "filePath": "/factoryplan/master/JobChangeTime",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_STOCK",
+      "menuNm": "재고",
+      "menuPath": "/dataintegration/factoryplan/stock",
+      "filePath": "/factoryplan/master/Stock",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_WIP",
+      "menuNm": "재공",
+      "menuPath": "/dataintegration/factoryplan/wip",
+      "filePath": "/factoryplan/master/Wip",
+      "seq": 110,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_ORDER",
+      "menuNm": "주문",
+      "menuPath": "/dataintegration/factoryplan/order",
+      "filePath": "/factoryplan/master/Order",
+      "seq": 120,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_FP_CONFIGURATION",
+      "menuNm": "환경설정",
+      "menuPath": "/dataintegration/factoryplan/fpconfiguration",
+      "filePath": "/factoryplan/master/FpConfiguration",
+      "seq": 131,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "생산 계획"
+      ]
+    },
+    {
+      "menuId": "UI_DATA_IMPORT",
+      "menuNm": "데이터 일괄 처리",
+      "menuPath": "/dataintegration/dataloading/dataimport",
+      "filePath": "/util/DataImport",
+      "seq": 3,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "데이터 로딩 (CSV)"
+      ]
+    },
+    {
+      "menuId": "UI_DATA_IMPORT_HISTORY",
+      "menuNm": "데이터 일괄 처리 이력",
+      "menuPath": "/dataintegration/dataloading/dataimporthistory",
+      "filePath": "/util/DataImportHistory",
+      "seq": 4,
+      "hasLangPack": true,
+      "parents": [
+        "데이터 통합",
+        "데이터 로딩 (CSV)"
+      ]
+    },
+    {
+      "menuId": "UI_UT_01",
+      "menuNm": "게시판",
+      "menuPath": "/util/noticeboard",
+      "filePath": "/util/NoticeBoard",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "유틸"
+      ]
+    },
+    {
+      "menuId": "UI_UT_CALENDAR",
+      "menuNm": "일정",
+      "menuPath": "/util/calendar",
+      "filePath": "/snop/SnopCalendar",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "유틸"
+      ]
+    },
+    {
+      "menuId": "UI_UT_FLOWDIAGRAM",
+      "menuNm": "워크플로우 다이어그램",
+      "menuPath": "/util/flowdiagram",
+      "filePath": "/util/FlowDiagram",
+      "seq": 101,
+      "hasLangPack": true,
+      "parents": [
+        "유틸"
+      ]
+    },
+    {
+      "menuId": "UI_UT_ISSUE_MGMT",
+      "menuNm": "이슈 관리",
+      "menuPath": "/util/issuemgmt",
+      "filePath": "/util/IssueMgmt",
+      "seq": 102,
+      "hasLangPack": true,
+      "parents": [
+        "유틸"
+      ]
+    },
+    {
+      "menuId": "UI_UT_DASHBOARD_MGMT",
+      "menuNm": "UI_UT_DASHBOARD_MGMT",
+      "menuPath": "/util/DashboardTool",
+      "filePath": "/util/DashboardTool",
+      "seq": 103,
+      "hasLangPack": false,
+      "parents": [
+        "유틸"
+      ]
+    },
+    {
+      "menuId": "UI_AD_22",
+      "menuNm": "통합 권한 조회",
+      "menuPath": "/setting/userrole/totalpermission",
+      "filePath": "/system/permission/TotalPermission",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_02",
+      "menuNm": "사용자",
+      "menuPath": "/setting/userrole/users",
+      "filePath": "/system/usermgmt/Users",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_03",
+      "menuNm": "사용자 그룹",
+      "menuPath": "/setting/userrole/usergroup",
+      "filePath": "/system/usermgmt/UserGroup",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_05",
+      "menuNm": "사용자 권한",
+      "menuPath": "/setting/userrole/userpermission",
+      "filePath": "/system/permission/UserPermission",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_04",
+      "menuNm": "사용자 그룹 권한",
+      "menuPath": "/setting/userrole/grouppermission",
+      "filePath": "/system/permission/GroupPermission",
+      "seq": 40,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_18",
+      "menuNm": "사용자 위임",
+      "menuPath": "/setting/userrole/userdelegation",
+      "filePath": "/system/permission/UserDelegation",
+      "seq": 50,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "사용자 및 권한"
+      ]
+    },
+    {
+      "menuId": "UI_AD_PLAN_SCOPE",
+      "menuNm": "계획 범위",
+      "menuPath": "/setting/planscope/planscope",
+      "filePath": "/system/planscope/PlanScope",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "계획 범위"
+      ]
+    },
+    {
+      "menuId": "UI_AD_PLAN_SCOPE_USER",
+      "menuNm": "계획 범위 - 사용자",
+      "menuPath": "/setting/planscope/planscopeuser",
+      "filePath": "/system/planscope/PlanScopeUser",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "계획 범위"
+      ]
+    },
+    {
+      "menuId": "UI_AD_PLAN_SCOPE_USER_GRP",
+      "menuNm": "계획 범위 - 사용자 그룹",
+      "menuPath": "/setting/planscope/planscopeusergroup",
+      "filePath": "/system/planscope/PlanScopeUserGroup",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "계획 범위"
+      ]
+    },
+    {
+      "menuId": "UI_AD_01",
+      "menuNm": "공통 코드",
+      "menuPath": "/setting/systemconfig/commoncode",
+      "filePath": "/system/CommonCode",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "환경 설정"
+      ]
+    },
+    {
+      "menuId": "UI_AD_07",
+      "menuNm": "다국어",
+      "menuPath": "/setting/systemconfig/multilingual",
+      "filePath": "/system/Multilingual",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "환경 설정"
+      ]
+    },
+    {
+      "menuId": "UI_AD_GROUP_PREF",
+      "menuNm": "그리드 기본 구성 설정",
+      "menuPath": "/setting/systemconfig/preference",
+      "filePath": "/system/systemconfig/Preference",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "환경 설정"
+      ]
+    },
+    {
+      "menuId": "UI_AD_21",
+      "menuNm": "메뉴 뱃지",
+      "menuPath": "/setting/systemconfig/menubadge",
+      "filePath": "/system/systemconfig/MenuBadge",
+      "seq": 100,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "환경 설정"
+      ]
+    },
+    {
+      "menuId": "UI_AD_15",
+      "menuNm": "서버 현황",
+      "menuPath": "/setting/server/serverstatus",
+      "filePath": "/system/servermgmt/ServerStatus",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "서버"
+      ]
+    },
+    {
+      "menuId": "UI_AD_06",
+      "menuNm": "라이선스",
+      "menuPath": "/setting/server/license",
+      "filePath": "/system/servermgmt/License",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "서버"
+      ]
+    },
+    {
+      "menuId": "UI_AD_ENGINE_HISTORY",
+      "menuNm": "엔진 실행 내역",
+      "menuPath": "/setting/server/enginehistory",
+      "filePath": "/system/servermgmt/EngineHistory",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "서버"
+      ]
+    },
+    {
+      "menuId": "UI_AD_10",
+      "menuNm": "사용자 접속 이력",
+      "menuPath": "/setting/history/loginhistory",
+      "filePath": "/system/systemanalysis/LoginHistory",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "방문 기록"
+      ]
+    },
+    {
+      "menuId": "UI_AD_19",
+      "menuNm": "화면 실행 시간 이력",
+      "menuPath": "/setting/history/timehistory",
+      "filePath": "/system/systemanalysis/TimeHistory",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "방문 기록"
+      ]
+    },
+    {
+      "menuId": "UI_AD_MENU_MST",
+      "menuNm": "메뉴 관리",
+      "menuPath": "/setting/layout/menumgmt",
+      "filePath": "/system/MenuMgmt",
+      "seq": 10,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "레이아웃"
+      ]
+    },
+    {
+      "menuId": "UI_SA_WIDGET",
+      "menuNm": "위젯",
+      "menuPath": "/setting/layout/widgetmgmt",
+      "filePath": "/snop/WidgetMgmt",
+      "seq": 20,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "레이아웃"
+      ]
+    },
+    {
+      "menuId": "UI_AD_THEME",
+      "menuNm": "테마 관리",
+      "menuPath": "/setting/layout/theme",
+      "filePath": "/system/ThemeMgmt",
+      "seq": 30,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "레이아웃"
+      ]
+    },
+    {
+      "menuId": "UI_AD_SCHEDULER_JOB_MGMT",
+      "menuNm": "작업 일정",
+      "menuPath": "/setting/scheduler/schedulerjobmgmt",
+      "filePath": "/system/schedulerjob/SchedulerJobMgmt",
+      "seq": 506,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "작업 일정"
+      ]
+    },
+    {
+      "menuId": "UI_AD_SCHEDULER_JOB_HISTORY",
+      "menuNm": "작업 일정 실행 이력",
+      "menuPath": "/setting/scheduler/schedulerjobhistory",
+      "filePath": "/system/schedulerjob/SchedulerJobHistory",
+      "seq": 507,
+      "hasLangPack": true,
+      "parents": [
+        "설정",
+        "작업 일정"
+      ]
+    }
+  ]
+}

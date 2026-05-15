@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>모바일 바코드</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #23: 모바일 바코드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+  <div class="sec-hdr"><div><h3>㉓ 모바일 바코드 스캐너 앱</h3><span class="tip">창고에서 스마트폰 카메라로 박스를 찍어 모바일 수주를 넣습니다.</span></div></div>
+  <div class="mobile-frame"><div style="height:150px;background:#000;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer" onclick="doScan()">📷 (클릭시 가상 스캔)</div><div id="scan-list" style="padding:16px;height:300px;overflow-y:auto"></div><div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-orange" style="width:100%;padding:16px" onclick="showToast('수주 전송 완료')">전송하기</button></div></div>
+</div>

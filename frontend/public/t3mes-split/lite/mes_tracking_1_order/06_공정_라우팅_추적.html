@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>공정 라우팅 추적</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #6: 공정 라우팅 추적 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 생산 라우팅(공정) 세부 진척도 (Routing Progress)</h3><span class="tip">고객의 주문이 현재 공장 내의 어떤 설비, 어떤 공정(절단->용접->조립)을 타고 있는지 생산 현장 수준으로 깊게 들어갑니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title">주문번호: SO-MFG-001 (특수 밸브 500개)</div><div class="tbl-wrap" style="border:none;max-height:400px"><table class="tbl"><thead><tr><th>공정 순서 (Routing)</th><th>생산 수량 (WIP)</th><th>상태</th></tr></thead><tbody id="tb5"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column;justify-content:center;align-items:center">
+        <div style="font-size:60px;margin-bottom:20px;color:var(--cyan)">⚙️</div>
+        <div style="font-size:20px;font-weight:700">현재 [용접 공정] 진행중...</div>
+        <div class="tip" style="margin-top:10px;font-size:14px">설비: 자동 용접 로봇 3호기 | 작업자: 김용접</div>
+        <div class="prog-bg" style="width:80%;height:16px;margin-top:20px"><div class="prog-bar" style="width:40%;background:var(--cyan)"></div></div>
+        <div class="tip" style="margin-top:10px">공정 완료율: 40% (200 / 500)</div>
+      </div>
+    </div>
+  </div>

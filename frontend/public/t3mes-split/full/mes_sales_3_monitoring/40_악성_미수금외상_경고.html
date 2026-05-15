@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Monitoring Dashboard (50 Types) - Massive Full Data</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Sales & CRM Monitoring Theme */
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252a3d;
+  --border:#2a3050;--border2:#3a4570;
+  --green:#00d68f;--green-dim:#00d68f22;--red:#ff4d6d;--red-dim:#ff4d6d22;
+  --amber:#ffb347;--amber-dim:#ffb34722;--blue:#4d9fff;--blue-dim:#4d9fff22;
+  --pink:#ff66a3;--pink-dim:#ff66a322;--purple:#9d72ff;--purple-dim:#9d72ff22;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff22;--orange:#ff8a00;--orange-dim:#ff8a0022;
+  --text:#e8ecf4;--text2:#a0aabf;--text3:#5a6480;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (50 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;margin-left:8px;font-weight:700}
+
+/* Tab Group Colors */
+.t-1.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-1.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-2.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-3.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:700}.t-3.active .tab-num{color:var(--orange);background:var(--orange-dim)}
+.t-4.active{color:var(--pink);border-bottom-color:var(--pink);font-weight:700}.t-4.active .tab-num{color:var(--pink);background:var(--pink-dim)}
+.t-5.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-5.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.2);position:relative}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Data Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Visualization Utilities */
+.val{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--c, var(--text))}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.live-dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:pulse 1.5s infinite;display:inline-block}
+@keyframes pulse{0%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+@keyframes blinkRow{0%,100%{background:transparent}50%{background:var(--red-dim)}}
+.blink-row{animation:blinkRow 1s infinite}
+
+.gauge-wrap{position:relative;width:140px;height:140px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--surface3) 0);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.gauge-inner{width:110px;height:110px;background:var(--surface);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column}
+
+.prog-bg{background:var(--surface3);height:10px;border-radius:5px;overflow:hidden;flex:1}
+.prog-fill{height:100%;background:var(--c, var(--blue));transition:width 0.5s}
+.bar-h-wrap{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.chart-box{height:250px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);position:relative;display:flex;align-items:flex-end;gap:4px;padding:10px;overflow:hidden}
+.chart-bar-v{flex:1;background:var(--c, var(--blue));border-radius:4px 4px 0 0;min-width:10px;transition:height 0.3s}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.grid-dense{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+
+/* Map & Kanban */
+.map-wrap{position:relative;width:100%;height:500px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background-image:radial-gradient(var(--border) 1px, transparent 1px);background-size:20px 20px}
+.map-pin{position:absolute;width:15px;height:15px;background:var(--c);border-radius:50%;box-shadow:0 0 15px var(--c);transform:translate(-50%,-50%);animation:pulse 2s infinite}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:300px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+
+/* Funnel */
+.funnel-stage{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;margin:0 auto 4px;height:40px;background:var(--c);border-radius:4px;transition:width 0.3s}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+<div id="panels"></div>
+</div>
+
+<script>
+// --- Configuration ---
+const tabNames = [
+  // G1: 실시간 매출 & 수주 (Blue)
+  "일일 수주 요약","시간대별 매출 추이","실시간 수주 피드","월간 매출 달성률","전일/전주 대비 비교","대형 프로젝트 트래커","B2B vs B2C 비중","이번 달 Top 10 수주","수주 취소/반품 알림","영업사원 수주 랭킹",
+  // G2: 파이프라인 & CRM (Cyan)
+  "CRM 파이프라인 퍼널","마감 임박 계약","견적 발송/회수율","리드(Lead) 전환율","영업 활동 라이브러리","장기 미결재 경고","고객사별 계약 잔액","포괄계약 소진율","핵심(VIP) 고객 활동","지역별 수주 히트맵",
+  // G3: 제품 & 채널 분석 (Orange)
+  "품목별 파레토 분석","신제품 수주 현황","베스트셀러 Top 5","판매 채널별 비중","수주연동 재고부족경보","옵션(CPQ) 채택률","크로스셀 타격률","단가 하락/할인 감지","제품군별 마진율 추정","SaaS/구독 MRR 모니터",
+  // G4: 배송 & CS 연동 (Pink)
+  "수주 대비 출하 진척률","납기 지연(Backorder)경보","출하 대기 물동량","RMA 클레임 모니터","반품 사유 분석 파이","긴급 오더(Hot) 트래커","배송 완료(POD) 집계","예상 출하 캘린더 뷰","영업-생산 리드타임","악성 미수금/외상 경고",
+  // G5: 목표 & AI 예측 (Purple)
+  "지점별 목표 달성률","AI 매출/수요 예측","이탈 예상 고객 리스트","수요 급증(Spike) 알람","영업본부 통합 상황판","환율/단가 변동 영향","시장 점유율 시뮬레이터","경쟁사 실지(Lost) 분석","인센티브 누적 라이브","글로벌 수주 전광판"
+];
+
+const rInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const rFloat = (min, max) => (Math.random() * (max - min) + min).toFixed(1);
+const fNum = n => n.toLocaleString();
+const getEl = id => document.getElementById(id);
+
+const customers = ["삼성전자","현대차","SK하이닉스","LG화학","네이버","카카오","쿠팡","배달의민족","토스","당근마켓","포스코","현대모비스","한화솔루션","대한항공","CJ제일제당"];
+const products = ["서버 랙(42U)","엔터프라이즈 스토리지","AI GPU 서버","네트워크 스위치","보안 방화벽 장비","광케이블 100m","UPS 예비전원","산업용 쿨링팬","랙마운트 콘솔","스마트 랙 센서"];
+const reps = ["김영업","이수주","박매출","최달성","정계약","강실적","조파이프","윤견적","장마진","임대표"];
+
+// --- HTML Generators ---
+const tblTpl = (head, rows) => `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+const cardTpl = (t, c, st='') => `<div class="card" style="${st}"><div class="card-title">${t}</div>${c}</div>`;
+const progTpl = (p, c) => `<div class="prog-bg"><div class="prog-fill" style="width:${p}%;--c:var(--${c})"></div></div>`;
+const gaugeTpl = (p, c, label) => `<div class="gauge-wrap" style="--c:var(--${c});--p:${p}"><div class="gauge-inner"><span class="val live-val" style="--c:var(--${c})">${p}</span><span style="font-size:11px;color:var(--text2)">%</span></div></div><div style="text-align:center;margin-top:12px;font-weight:700">${label}</div>`;
+const svgLine = (c) => { let pts=''; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(10,90)} `; return `<svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--${c})" stroke-width="2"/></svg>`; };
+const svgArea = (c) => { let pts='0,100 '; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(20,80)} `; pts+='100,100'; return `<svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--${c}-dim)"/><polyline points="${pts.replace(/0,100 |100,100/g,'')}" fill="none" stroke="var(--${c})" stroke-width="2"/></svg>`; };
+
+// --- Initialize App ---
+function initTabs() {
+  const nav = getEl('tab-nav');
+  const panels = getEl('panels');
+  
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 10) + 1; 
+    let btn = document.createElement('button');
+    btn.className = `tab-btn t-${grp} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+
+    let panel = document.createElement('div');
+    panel.className = `panel ${i===0?'active':''}`;
+    panel.id = `p${i}`;
+    let isLive = [0,2,8,12,14,26,31,35,43,49].includes(i); // Some panels marked explicitly as Live
+    panel.innerHTML = `<div class="sec-hdr"><div><h3>${isLive?'<div class="live-dot" style="margin-right:8px"></div>':''}${i+1}. ${n} Dashboard</h3><span class="tip">실시간 업데이트 데이터입니다.</span></div></div><div id="v${i}"></div>`;
+    panels.appendChild(panel);
+  });
+
+  renderAll();
+
+  // Number mutator for live feeling
+  setInterval(() => {
+    const act = document.querySelector('.panel.active');
+    if(!act) return;
+    act.querySelectorAll('.live-val').forEach(el => {
+      let v = parseFloat(el.innerText.replace(/,/g,''));
+      if(isNaN(v)) return;
+      let next = v + (Math.random() - 0.5) * (v * 0.03); // +/- 1.5%
+      if(el.innerText.includes('%')) {
+        if(next>100) next=100; if(next<0) next=0;
+        el.innerText = next.toFixed(1);
+      } else {
+        el.innerText = Math.floor(next).toLocaleString();
+      }
+    });
+  }, 2500);
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  btnEl.classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function renderAll() {
+  for(let i=0; i<50; i++) {
+    if(typeof window['g'+i] === 'function') window['g'+i]();
+  }
+}
+
+// --- Group 1: Sales & Orders (Blue) ---
+function g0() {
+  getEl('v0').innerHTML = `<div class="grid4" style="margin-bottom:16px">
+    ${cardTpl('일일 총 수주액 (KRW)', '<div class="val live-val" style="font-size:40px;--c:var(--blue)">4,520,000,000</div>')}
+    ${cardTpl('일일 수주 건수', '<div class="val live-val" style="font-size:40px;--c:var(--cyan)">1,245</div>')}
+    ${cardTpl('평균 객단가', '<div class="val live-val" style="font-size:40px;--c:var(--text)">3,630,522</div>')}
+    ${cardTpl('목표 달성률 (Run-rate)', '<div class="val live-val" style="font-size:40px;--c:var(--green)">105.4%</div>')}
+  </div>` + cardTpl('시간대별 수주 누적 곡선', `<div style="height:250px;background:var(--surface3);border-radius:8px">${svgArea('blue')}</div>`);
+}
+function g1() {
+  let h=''; for(let i=0;i<24;i++) h+=`<div class="chart-bar-v" style="height:${rInt(10,90)}%;--c:var(--blue)" title="${i}시"></div>`;
+  getEl('v1').innerHTML = cardTpl('24시간 시간대별 매출 발생 트렌드 (막대)', `<div class="chart-box" style="gap:8px">${h}</div><div style="display:flex;justify-content:space-between;color:var(--text2);margin-top:8px"><span>00:00</span><span>12:00</span><span>23:59</span></div>`);
+}
+function g2() {
+  let rows=[]; for(let i=1;i<=100;i++) rows.push(`<tr><td style="color:var(--text2)">14:${String(rInt(0,59)).padStart(2,'0')}:${String(rInt(0,59)).padStart(2,'0')}</td><td style="font-family:var(--mono);color:var(--blue)">SO-${rInt(1000,9999)}</td><td>${customers[i%customers.length]}</td><td>${products[i%products.length]} 외 ${rInt(1,5)}건</td><td class="num val" style="font-size:14px;--c:var(--blue)">₩ ${fNum(rInt(1,500)*100000)}</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">확정</span></td></tr>`);
+  getEl('v2').innerHTML = cardTpl('실시간 전사 수주 스트림 (Live Feed)', tblTpl(['시간','SO 번호','고객사','요약','수주금액','상태'], rows));
+}
+function g3() {
+  let h=''; ['서버사업부','스토리지부','네트워크부','클라우드부','보안솔루션부'].forEach(n=>{
+    let p=rFloat(70, 110); let c=p>=100?'green':p>80?'blue':'amber';
+    h+=`<div class="bar-h-wrap"><div style="width:100px">${n}</div>${progTpl(p>100?100:p, c)}<div class="val" style="font-size:16px;width:60px;text-align:right;--c:var(--${c})"><span class="live-val">${p}</span>%</div></div>`;
+  });
+  getEl('v3').innerHTML = cardTpl('영업 부서별 월간 매출 달성률 (Mtd)', h);
+}
+function g4() {
+  let rows=[]; for(let i=1;i<=15;i++){ let p=rFloat(-15, 30); let c=p>0?'green':'red'; rows.push(`<tr><td>${products[i%products.length]}</td><td class="num live-val">${fNum(rInt(10,50)*1000000)}</td><td class="num live-val">${fNum(rInt(10,50)*1000000)}</td><td class="num" style="color:var(--${c});font-weight:700">${p>0?'▲':'▼'} ${Math.abs(p)}%</td></tr>`); }
+  getEl('v4').innerHTML = cardTpl('제품군별 전일 대비(DoD) 수주액 비교', tblTpl(['제품군','어제 수주액(₩)','오늘 현재 수주액(₩)','증감률'], rows));
+}
+function g5() {
+  let rows=[]; for(let i=1;i<=20;i++){ let r=rInt(10,90); rows.push(`<tr><td>Mega-Proj-2024-${i}</td><td>${customers[i%customers.length]}</td><td class="num val" style="font-size:14px;--c:var(--amber)">₩ ${fNum(rInt(5,50)*100000000)}</td><td>${progTpl(r, 'blue')}</td><td class="num">${r}%</td></tr>`); }
+  getEl('v5').innerHTML = cardTpl('대형 프로젝트(1억 이상) 납품 및 청구 트래커', tblTpl(['프로젝트 명','고객사','총 계약금액','매출 인식 진척도','비율'], rows));
+}
+function g6() {
+  getEl('v6').innerHTML = `<div class="grid2">${cardTpl('매출 비중 (B2B vs B2C)', '<div class="gauge-wrap" style="width:250px;height:250px;background:conic-gradient(var(--blue) 75%, var(--cyan) 75%);margin:20px auto"><div class="gauge-inner" style="width:180px;height:180px;font-size:20px;font-weight:700">B2B 75%<br><span style="color:var(--cyan)">B2C 25%</span></div></div>')}${cardTpl('상세 채널 비중', '<div style="margin-top:50px">'+['엔터프라이즈 (60%)','중소기업 (15%)','자사몰 (15%)','오픈마켓 (10%)'].map((n,i)=>`<div class="bar-h-wrap"><div style="width:120px">${n}</div>${progTpl([60,15,15,10][i],'blue')}</div>`).join('')+'</div>')}</div>`;
+}
+function g7() {
+  let h=''; for(let i=1;i<=10;i++) h+=`<div class="bar-h-wrap"><div style="width:20px">${i}</div><div style="width:120px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${customers[i%customers.length]}</div>${progTpl((11-i)*9, 'blue')}<div class="val" style="font-size:14px">₩ ${fNum((11-i)*120000000)}</div></div>`;
+  getEl('v7').innerHTML = cardTpl('이번 달 Top 10 최대 수주 (Big Deals)', h);
+}
+function g8() {
+  let rows=[]; for(let i=1;i<=30;i++){ let isNew=i<4; rows.push(`<tr class="${isNew?'blink-row':''}"><td>SO-CANC-${i}</td><td style="color:var(--red);font-weight:700">주문 취소</td><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(1,50)*100000)}</td><td>고객 단순 변심</td><td>${isNew?'방금 전':'어제'}</td></tr>`); }
+  getEl('v8').innerHTML = cardTpl('실시간 수주 취소 / 환불 경보 (Red Alert)', tblTpl(['SO 번호','유형','고객사','취소금액','사유','시간'], rows));
+}
+function g9() {
+  let rows=[]; for(let i=0;i<10;i++) rows.push(`<tr><td>${i+1}</td><td>${reps[i]}</td><td class="num val live-val" style="font-size:14px;--c:var(--blue)">₩ ${fNum((15-i)*80000000)}</td><td class="num">${rInt(10,50)} 건</td><td>${progTpl(rInt(60,120), 'green')}</td></tr>`);
+  getEl('v9').innerHTML = cardTpl('영업사원 누적 실적 랭킹보드', tblTpl(['순위','영업사원명','누적 수주액','수주 건수','목표달성 게이지'], rows));
+}
+
+// --- Group 2: Pipeline & CRM (Cyan) ---
+function g10() {
+  let h=''; let w=100; let c=['cyan','blue','indigo','purple','green'];
+  ['Lead (10,000건)','Qualification (4,500건)','Proposal (2,000건)','Negotiation (800건)','Closed Won (300건)'].forEach((n,i)=>{
+    h+=`<div class="funnel-stage" style="width:${w}%;--c:var(--${c[i]})">${n}</div>`; w-=18;
+  });
+  getEl('v10').innerHTML = cardTpl('전사 영업 파이프라인 퍼널 (Conversion Funnel)', `<div style="text-align:center;padding:20px">${h}</div><div style="text-align:center;color:var(--text2)">최종 전환율 (Lead to Won): <b style="color:var(--green)">3.0%</b></div>`);
+}
+function g11() {
+  let rows=[]; for(let i=1;i<=15;i++){ let d=rInt(1,7); rows.push(`<tr><td>OPP-24-${i}</td><td>${customers[i%customers.length]}</td><td class="num val" style="font-size:14px;--c:var(--cyan)">₩ ${fNum(rInt(5,50)*1000000)}</td><td style="color:var(--red);font-weight:700">D-${d}</td><td><span class="badge" style="background:var(--cyan-dim);color:var(--cyan)">협상중</span></td></tr>`); }
+  getEl('v11').innerHTML = cardTpl('이번 주 마감(Closing) 예정 계약 딜', tblTpl(['기회(Opp) 번호','고객사','예상 계약액','마감기한','현재 스테이지'], rows));
+}
+function g12() {
+  getEl('v12').innerHTML = `<div class="grid3">${gaugeTpl(85.2, 'cyan', '견적 발송 대비 회수율 (Response Rate)')}${gaugeTpl(42.5, 'blue', '견적 대비 수주 확정률 (Win Rate)')}${gaugeTpl(12.4, 'red', '견적 실지율 (Loss Rate)')}</div>`;
+}
+function g13() {
+  let rows=[]; for(let i=1;i<=20;i++){ let r=rFloat(1,10); rows.push(`<tr><td>마케팅 캠페인 ${i}</td><td class="num">${fNum(rInt(1000,5000))}</td><td class="num">${fNum(rInt(10,200))}</td><td class="num" style="color:var(--cyan);font-weight:700">${r}%</td></tr>`); }
+  getEl('v13').innerHTML = cardTpl('마케팅/인바운드 채널별 리드(Lead) 전환율', tblTpl(['유입 채널','총 Lead 생성수','MQL/SQL 전환수','전환율(%)'], rows));
+}
+function g14() {
+  let h=''; for(let i=1;i<=30;i++) h+=`<div style="padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><div><span class="badge" style="background:var(--surface3)">${['전화','미팅','이메일'][i%3]}</span> <span style="font-weight:700">${reps[i%reps.length]}</span> 님이 ${customers[i%customers.length]} 담당자와 컨택했습니다.</div><div style="color:var(--text2)">${rInt(1,60)}분 전</div></div>`;
+  getEl('v14').innerHTML = cardTpl('영업 사원 활동 로그 (Activities Live Feed)', `<div style="height:500px;overflow-y:auto">${h}</div>`);
+}
+function g15() {
+  let rows=[]; for(let i=1;i<=20;i++){ let d=rInt(30,120); rows.push(`<tr><td>OPP-STALE-${i}</td><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(1,50)*1000000)}</td><td style="color:var(--amber);font-weight:700">${d} 일째</td><td>${reps[i%reps.length]}</td><td><button class="btn btn-ghost btn-sm">리마인드 ✉️</button></td></tr>`); }
+  getEl('v15').innerHTML = cardTpl('장기 미결재/정체(Stagnant) 파이프라인 경고', tblTpl(['기회 번호','고객사','예상금액','현재 단계 체류일','담당자','액션'], rows));
+}
+function g16() {
+  let rows=[]; for(let i=1;i<=50;i++){ let t=rInt(10,100)*10000000; let b=rInt(1,t/1000000)*1000000; rows.push(`<tr><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(t)}</td><td class="num">₩ ${fNum(t-b)}</td><td class="num val" style="font-size:14px;--c:var(--cyan)">₩ ${fNum(b)}</td><td>${progTpl((b/t)*100,'cyan')}</td></tr>`); }
+  getEl('v16').innerHTML = cardTpl('고객사별 포괄계약 잔여 한도(Balance) 모니터링', tblTpl(['고객사','총 계약금액','기 청구금액','계약 잔액(수주가능액)','잔액 비율'], rows));
+}
+function g17() {
+  getEl('v17').innerHTML = `<div class="grid4">${[1,2,3,4].map(i=>cardTpl(`계약 갱신 임박 ${i}`, `<div class="val live-val" style="font-size:40px;text-align:center;--c:var(--amber);margin:20px 0">${rInt(80,99)}%</div><div style="text-align:center;color:var(--text2)">소진 완료됨</div>`)).join('')}</div>`;
+}
+function g18() {
+  let rows=[]; for(let i=1;i<=10;i++) rows.push(`<tr><td style="font-weight:700;color:var(--cyan)">★ ${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(50,500)*10000000)}</td><td class="num">${rInt(10,50)} 회</td><td style="color:var(--green)">안정적 (증가추세)</td></tr>`);
+  getEl('v18').innerHTML = cardTpl('Key Account (VIP) 헬스 및 활동 모니터링', tblTpl(['VIP 고객사명','YTD 누적매출','올해 터치포인트 수','상태 판정(AI)'], rows));
+}
+function g19() {
+  let h=''; for(let i=0;i<20;i++) h+=`<div class="map-pin" style="--c:var(--cyan);top:${rInt(20,80)}%;left:${rInt(20,80)}%"></div>`;
+  getEl('v19').innerHTML = cardTpl('전국 지역별 수주 활성도 히트맵', `<div class="map-wrap">${h}</div>`);
+}
+
+// --- Group 3: Product & Channel (Orange) ---
+function g20() {
+  let pts='0,250 '; for(let i=0;i<=10;i++) pts+=`${i*10},${250 - (i*20)} `; pts+='100,200';
+  getEl('v20').innerHTML = cardTpl('제품별 매출 파레토 차트 (Top 20% 품목 확인)', `<div class="chart-box" style="height:300px"><svg width="100%" height="100%" preserveAspectRatio="none" style="position:absolute;top:0;left:0;z-index:2"><polyline points="${pts.replace(/0,250 |100,200/g,'')}" fill="none" stroke="var(--orange)" stroke-width="3"/></svg>${[10,9,8,7,6,5,4,3,2,1].map(v=>`<div class="chart-bar-v" style="height:${v*10}%;--c:var(--surface3);border:1px solid var(--border)"></div>`).join('')}</div>`);
+}
+function g21() {
+  let rows=[]; for(let i=1;i<=20;i++){ let p=rInt(10,100); rows.push(`<tr><td>신규 런칭 모델 24-0${i}</td><td class="num">₩ ${fNum(rInt(1,50)*1000000)}</td><td class="num">${p}%</td><td>${progTpl(p,'orange')}</td></tr>`); }
+  getEl('v21').innerHTML = cardTpl('신제품(NPI) 출시 후 수주 목표 달성 트래커', tblTpl(['신제품 명','누적 수주액','초기 목표 달성률','진척도'], rows));
+}
+function g22() {
+  let h=''; for(let i=1;i<=5;i++) h+=`<div class="card" style="margin:0;border-top:4px solid var(--orange);text-align:center"><div style="font-size:40px;margin-bottom:10px">🏆 ${i}</div><div style="font-weight:700">${products[i]}</div><div class="val live-val" style="margin-top:10px;font-size:20px;--c:var(--orange)">${fNum(rInt(5000,20000))} EA</div></div>`;
+  getEl('v22').innerHTML = cardTpl('이번 달 Bestseller Top 5 (수량 기준)', `<div class="grid5">${h}</div>`);
+}
+function g23() {
+  getEl('v23').innerHTML = `<div class="grid2">${cardTpl('판매 채널별 매출 비중', `<div class="gauge-wrap" style="width:250px;height:250px;background:conic-gradient(var(--orange) 50%, var(--amber) 50% 80%, var(--cyan) 80%);margin:20px auto"></div><div style="text-align:center;font-weight:700">총판 대리점 (50%) / 자사몰 (30%) / 글로벌 (20%)</div>`)}${cardTpl('채널별 성장률', `<div style="margin-top:50px">${['총판 대리점','온라인 자사몰','글로벌 직수출'].map(n=>`<div class="bar-h-wrap"><div style="width:120px">${n}</div>${progTpl(rInt(40,100),'orange')}</div>`).join('')}</div>`)}</div>`;
+}
+function g24() {
+  let rows=[]; for(let i=1;i<=20;i++){ let r=rInt(-500,-10); rows.push(`<tr class="blink-row"><td>${products[i%products.length]}</td><td class="num">${fNum(rInt(100,500))}</td><td class="num">${fNum(rInt(600,2000))}</td><td class="num val" style="font-size:14px;--c:var(--red)">${r} EA</td><td><span class="badge" style="background:var(--red-dim);color:var(--red)">결품 위험</span></td></tr>`); }
+  getEl('v24').innerHTML = cardTpl('수주 연동 재고 부족(Shortage) 사전 경보', tblTpl(['품목명','현재 가용재고','수주 잔량(Backlog)','예상 부족 수량','상태'], rows));
+}
+function g25() {
+  let h=''; ['고급 메모리 추가','프리미엄 패키징','우선 배송 서비스','유지보수 3년 연장'].forEach(n=>{ h+=`<div class="bar-h-wrap"><div style="width:150px">${n}</div>${progTpl(rInt(10,80),'orange')}<div class="num">${rInt(10,80)}%</div></div>`; });
+  getEl('v25').innerHTML = cardTpl('CPQ 부가 옵션 채택률(Take Rate) 모니터링', h);
+}
+function g26() {
+  getEl('v26').innerHTML = `<div class="grid3">${[1,2,3].map(i=>cardTpl(`크로스셀 타격률 ${i}`, `<div class="val live-val" style="font-size:60px;text-align:center;padding:30px;--c:var(--orange)">${rFloat(15,35)}%</div><div style="text-align:center;color:var(--text2)">메인 제품 구매자 중 부속품 추가 구매율</div>`)).join('')}</div>`;
+}
+function g27() {
+  let rows=[]; for(let i=1;i<=30;i++){ let r=rFloat(15,40); rows.push(`<tr><td style="font-family:var(--mono)">SO-24-${i}</td><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(10,50)*100000)}</td><td class="num" style="color:var(--red);font-weight:700">${r}%</td><td>${reps[i%reps.length]}</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">이익 훼손 경고</span></td></tr>`); }
+  getEl('v27').innerHTML = cardTpl('과도한 할인율 적용 및 단가 하락 수주 감지', tblTpl(['수주번호','고객사','정상가 대비 할인액','할인율(%)','담당자','AI 판정'], rows));
+}
+function g28() {
+  let h=''; for(let i=1;i<=15;i++){ let p=rInt(5,45); let c=p<15?'red':'orange'; h+=`<div class="bar-h-wrap"><div style="width:150px">제품군 라인업 ${i}</div>${progTpl(p, c)}<div class="val" style="font-size:14px;width:50px;text-align:right;--c:var(--${c})">${p}%</div></div>`; }
+  getEl('v28').innerHTML = cardTpl('제품군별 평균 영업 이익률 (Gross Margin) 추정', h);
+}
+function g29() {
+  getEl('v29').innerHTML = `<div class="grid2">${cardTpl('SaaS 구독 MRR (월간 반복 매출)', '<div class="val live-val" style="font-size:60px;text-align:center;padding:50px;--c:var(--orange)">₩ 845,200,000</div>')}${cardTpl('Net Revenue Retention (NRR)', '<div class="val live-val" style="font-size:60px;text-align:center;padding:50px;--c:var(--cyan)">112.4%</div>')}</div>`;
+}
+
+// --- Group 4: Fulfillment & CS (Pink) ---
+function g30() {
+  let rows=[]; for(let i=1;i<=20;i++){ let p=rInt(10,100); let c=p===100?'green':'pink'; rows.push(`<tr><td style="font-family:var(--mono)">SO-2024-${i}</td><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(1,20)*1000000)}</td><td>${progTpl(p,c)}</td><td class="num" style="color:var(--${c});font-weight:700">${p}%</td></tr>`); }
+  getEl('v30').innerHTML = cardTpl('수주 대비 출하 진척률 (Order to Ship Progress)', tblTpl(['수주번호','고객사','수주액','출하 진행바','출하율(%)'], rows));
+}
+function g31() {
+  let rows=[]; for(let i=1;i<=20;i++){ let d=rInt(1,14); rows.push(`<tr class="blink-row"><td style="font-family:var(--mono)">SO-DELAY-${i}</td><td>${products[i%products.length]}</td><td style="color:var(--red);font-weight:700">D-${d} 지연</td><td>생산 파트 결품</td><td><button class="btn btn-ghost btn-sm">고객 안내 ✉️</button></td></tr>`); }
+  getEl('v31').innerHTML = cardTpl('납기 지연(Backorder) 위기 경보 리스트', tblTpl(['지연 수주번호','대상 품목','지연 일수','병목 원인','액션'], rows));
+}
+function g32() {
+  let h=''; for(let i=1;i<=8;i++) h+=`<div class="card" style="margin:0;border-color:var(--pink);text-align:center"><div style="font-size:12px;color:var(--text2)">출하 대기구역 ${i}</div><div class="val live-val" style="font-size:30px;--c:var(--pink);margin-top:10px">${rInt(100,999)} Box</div></div>`;
+  getEl('v32').innerHTML = cardTpl('포장 완료 후 출하(도크) 대기 물동량 볼륨', `<div class="grid4">${h}</div>`);
+}
+function g33() {
+  let rows=[]; for(let i=1;i<=30;i++){ rows.push(`<tr><td>RMA-${i}</td><td>${customers[i%customers.length]}</td><td style="color:var(--pink);font-weight:700">제품 파손 클레임</td><td><span class="badge" style="background:var(--pink-dim);color:var(--pink)">접수됨</span></td><td>${reps[i%reps.length]}</td></tr>`); }
+  getEl('v33').innerHTML = cardTpl('RMA (고객 반품/클레임) 실시간 접수 모니터', tblTpl(['RMA 번호','고객사','클레임 내용','상태','CS 담당자'], rows));
+}
+function g34() {
+  getEl('v34').innerHTML = `<div class="grid2">${cardTpl('반품 사유 분석', `<div class="gauge-wrap" style="width:250px;height:250px;background:conic-gradient(var(--pink) 40%, var(--purple) 40% 70%, var(--cyan) 70%);margin:20px auto"></div><div style="text-align:center;font-weight:700">단순변심 40% / 제품파손 30% / 오배송 30%</div>`)}${cardTpl('월간 반품률 추이', `<div style="height:300px;background:var(--surface3);border-radius:8px">${svgLine('pink')}</div>`)}</div>`;
+}
+function g35() {
+  let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr><td style="color:var(--pink);font-weight:700">🔥 HOT-ORDER-${i}</td><td>${customers[i%customers.length]}</td><td class="num">오늘 18:00</td><td><span class="badge badge-red">생산중 (긴급)</span></td></tr>`);
+  getEl('v35').innerHTML = cardTpl('최우선 처리 긴급 오더(Hot Order) 트래커', tblTpl(['수주번호','고객사','데드라인','공장 현상태'], rows));
+}
+function g36() {
+  let h=''; for(let i=1;i<=10;i++) h+=`<div style="padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><div><span class="badge" style="background:var(--green-dim);color:var(--green)">배송완료</span> ${customers[i%customers.length]} 수령 서명 확인됨.</div><div style="color:var(--text2)">${rInt(1,30)}분 전</div></div>`;
+  getEl('v36').innerHTML = cardTpl('모바일 POD(Proof of Delivery) 실시간 서명 집계', `<div style="height:500px;overflow-y:auto">${h}</div>`);
+}
+function g37() {
+  let h=''; const ds=['일','월','화','수','목','금','토']; ds.forEach(d=>h+=`<div style="text-align:center;padding:10px;background:var(--surface3);font-weight:700">${d}</div>`);
+  for(let i=1;i<=35;i++) { h+=`<div style="min-height:100px;background:var(--surface);border:1px solid var(--border);padding:8px"><div style="font-size:11px;color:var(--text2)">${i>30?i-30:i}</div><div style="font-size:18px;font-weight:700;color:var(--pink);text-align:right">${rInt(10,50)}건</div></div>`; }
+  getEl('v37').innerHTML = cardTpl('월간 예상 출하 캘린더 (수주 납기일 기준)', `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">${h}</div>`);
+}
+function g38() {
+  getEl('v38').innerHTML = `<div class="grid3">${[1,2,3].map(i=>cardTpl(`평균 리드타임 (제품군 ${i})`, `<div class="val live-val" style="font-size:60px;text-align:center;padding:30px;--c:var(--pink)">${rFloat(1.5, 5.0)} 일</div><div style="text-align:center;color:var(--text2)">수주 확정부터 출하까지</div>`)).join('')}</div>`;
+}
+function g39() {
+  let rows=[]; for(let i=1;i<=20;i++){ let d=rInt(30,120); rows.push(`<tr class="blink-row"><td>${customers[i%customers.length]}</td><td class="num val" style="font-size:14px;--c:var(--red)">₩ ${fNum(rInt(10,500)*1000000)}</td><td style="color:var(--red);font-weight:700">D+${d} 연체</td><td><button class="btn btn-red btn-sm">출하 락(Lock) 걸기</button></td></tr>`); }
+  getEl('v39').innerHTML = cardTpl('악성 장기 미수금 / 외상매출금 한도 초과 경고', tblTpl(['고객사','연체/초과 금액','상태','시스템 액션'], rows));
+}
+
+// --- Group 5: Goals & AI (Purple) ---
+function g40() {
+  let h=''; for(let i=1;i<=12;i++){ let p=rInt(50,110); let c=p>=100?'green':'purple'; h+=`<div class="bar-h-wrap"><div style="width:100px">지역 본부 ${i}</div>${progTpl(p>100?100:p,c)}<div class="val" style="width:60px;text-align:right;font-size:14px;--c:var(--${c})">${p}%</div></div>`; }
+  getEl('v40').innerHTML = cardTpl('전국 지점/본부별 영업 영업 목표 (Quota) 달성률', h);
+}
+function g41() {
+  let pts1='', pts2=''; for(let i=0;i<24;i++){ pts1+=`${i*40},${180-rInt(20,50)} `; pts2+=`${i*40},${180-rInt(30,60)} `; }
+  getEl('v41').innerHTML = cardTpl('AI 머신러닝 기반 차월 매출 / 수요 예측 트렌드', `<div class="chart-box" style="height:350px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="3"/><polyline points="${pts2}" fill="none" stroke="var(--text3)" stroke-width="2" stroke-dasharray="5,5"/></svg></div><div style="text-align:center;margin-top:10px"><span style="color:var(--purple);font-weight:700">── AI 예측선</span> &nbsp;&nbsp; <span style="color:var(--text3)">- - - 과거 평균선</span></div>`);
+}
+function g42() {
+  let rows=[]; for(let i=1;i<=15;i++){ let r=rInt(80,99); rows.push(`<tr><td>${customers[i%customers.length]}</td><td class="num val" style="font-size:14px;--c:var(--red)">${r}%</td><td style="color:var(--red)">최근 6개월 수주 없음 & 접속 뜸함</td><td><button class="btn btn-purple btn-sm">Win-back 캠페인</button></td></tr>`); }
+  getEl('v42').innerHTML = cardTpl('AI 산출: 이탈(Churn) 위험 점수 고위험군 고객 리스트', tblTpl(['고객사','AI 이탈 확률','주요 위험 팩터','추천 액션'], rows));
+}
+function g43() {
+  getEl('v43').innerHTML = `<div class="grid3">${[1,2,3].map(i=>cardTpl(`🔥 급상승 품목 ${i}`, `<div style="font-weight:700;font-size:18px;margin-bottom:10px">${products[i]}</div><div class="val live-val" style="font-size:40px;color:var(--purple)">+${rInt(200,500)}%</div><div class="tip">전주 대비 수주량 폭증 (AI 알람)</div>`, 'border-color:var(--purple);background:var(--purple-dim)')).join('')}</div>`;
+}
+function g44() {
+  getEl('v44').innerHTML = `<div style="height:600px;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center">
+    <div style="font-size:30px;color:var(--text2);margin-bottom:20px">최고 영업 책임자 (CRO) 전사 요약판</div>
+    <div class="val live-val" style="font-size:100px;--c:var(--purple)">₩ 42,450,000,000</div><div style="font-size:24px;color:var(--text2)">Total Pipeline Value</div>
+    <div style="font-size:40px;color:var(--green);margin-top:20px">▲ YoY 15.2% Growth</div>
+  </div>`;
+}
+function g45() {
+  let rows=[]; for(let i=1;i<=15;i++){ let p=rFloat(-5, 5); let c=p>0?'green':'red'; rows.push(`<tr><td>수출 계약 EX-${i}</td><td class="num">USD ${fNum(rInt(10,50)*10000)}</td><td class="num">₩ ${fNum(rInt(1,5)*1000)} / $</td><td class="num val" style="font-size:14px;--c:var(--${c})">${p>0?'이익':'손실'} ₩ ${fNum(rInt(10,100)*1000000)}</td></tr>`); }
+  getEl('v45').innerHTML = cardTpl('실시간 환율 변동에 따른 수출 수주 마진 증감 시뮬레이션', tblTpl(['수출 계약건','외화 수주액','계약 환율','현재 환율 기준 마진 영향'], rows));
+}
+function g46() {
+  getEl('v46').innerHTML = `<div class="grid2">${cardTpl('내수 시장 점유율 (M/S)', `<div class="gauge-wrap" style="width:250px;height:250px;background:conic-gradient(var(--purple) 45%, var(--surface3) 45%);margin:20px auto"><div class="gauge-inner" style="width:180px;height:180px;font-size:40px;font-family:var(--mono);font-weight:700;color:var(--purple)">45%</div></div>`)}${cardTpl('경쟁사 동향', `<div style="margin-top:50px">${['자사 (45%)','A경쟁사 (30%)','B경쟁사 (15%)','기타 (10%)'].map((n,i)=>`<div class="bar-h-wrap"><div style="width:120px">${n}</div>${progTpl([45,30,15,10][i],'purple')}</div>`).join('')}</div>`)}</div>`;
+}
+function g47() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>OPP-LOST-${i}</td><td>${customers[i%customers.length]}</td><td class="num">₩ ${fNum(rInt(10,50)*1000000)}</td><td style="color:var(--purple);font-weight:700">A경쟁사에 빼앗김</td><td>가격 경쟁력 부족 (단가 10% 차이)</td></tr>`);
+  getEl('v47').innerHTML = cardTpl('실지(Lost Deal) 사유 분석 및 경쟁사 동향 파악', tblTpl(['기회 번호','고객사','손실 금액','경쟁사 탈락','주요 원인 분석'], rows));
+}
+function g48() {
+  let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>${reps[i%reps.length]}</td><td class="num">₩ ${fNum(rInt(1,50)*100000000)}</td><td class="num">125%</td><td class="num val live-val" style="font-size:14px;--c:var(--green)">₩ ${fNum(rInt(5,20)*1000000)}</td></tr>`);
+  getEl('v48').innerHTML = cardTpl('영업사원 개인별 인센티브(Commission) 누적 예상액', tblTpl(['영업사원','누적 수주액','할당 목표 달성률','실시간 인센티브 누적액'], rows));
+}
+function g49() {
+  let h=''; for(let i=1;i<=20;i++) h+=`<span style="margin-right:30px;font-size:24px;font-weight:700"><span style="color:var(--text2)">${customers[i%customers.length]}</span> <span style="color:var(--green)">+ $${fNum(rInt(10,99)*1000)}</span></span>`;
+  getEl('v49').innerHTML = cardTpl('Global Real-time Sales Ticker', `<div style="background:#000;padding:20px;border-radius:8px;overflow:hidden;white-space:nowrap;display:flex"><div style="display:inline-block;animation:marquee 20s linear infinite">${h}${h}</div></div><style>@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}</style>`);
+}
+
+document.addEventListener("DOMContentLoaded", initTabs);
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #39 */
+(function(){var I=39;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

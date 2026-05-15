@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>스킬 검증</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #27: 스킬 검증 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 다기능공 자격(Skill Matrix) 사전 검증 지시</h3><span class="tip">위험물 취급이나 특수 용접 등 자격증(A등급)이 있는 작업자만 할당되도록 시스템이 스킬 레벨을 차단/허용하는 패턴입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">작업: 고압 가스 용접 (A등급 자격 필요)</div><div class="label">작업자 할당 스캔</div><input type="text" class="inp" placeholder="사원증 스캔..." id="skill-inp" oninput="doSkill()"><div id="skill-res" style="margin-top:16px;font-weight:700;font-size:14px;color:var(--red)"></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>사원명</th><th>보유 스킬 등급</th></tr></thead><tbody id="tb26"></tbody></table></div>
+    </div>
+  </div>

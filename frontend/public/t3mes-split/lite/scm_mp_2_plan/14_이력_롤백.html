@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>이력 롤백</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #14: 이력 롤백 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p13">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑭ 보정 이력 조회 & 버전 롤백</h3>
+      <span class="tip">과거 보정 이력 타임라인을 조회하고 롤백합니다.</span>
+    </div>
+    <button class="btn btn-amber" onclick="showToast('선택 버전 롤백 완료')">⟳ 선택 버전 롤백</button>
+  </div>
+  <div class="grid2" style="grid-template-columns:360px 1fr">
+    <div class="card" style="margin:0"><div class="card-title">타임라인</div><div id="hist-timeline" style="max-height:520px;overflow-y:auto"></div></div>
+    <div class="card" style="margin:0"><div class="card-title">버전 상세</div><div class="tbl-wrap" style="max-height:520px">
+      <table class="tbl"><thead><tr><th>발주번호</th><th>구분</th><th class="num">변경 전</th><th class="num">변경 후</th></tr></thead><tbody id="tb13"></tbody></table>
+    </div></div>
+  </div>
+</div>

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM Plan Results & Monitoring (30 Types - Error Free Version)</title>
+<style>
+/* 외부망 차단 환경을 고려하여 기본 시스템 폰트 폴백(Fallback)을 강력하게 추가했습니다. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0d16;--surface:#111827;--surface2:#1a2035;--surface3:#212840;--surface4:#2a3352;
+  --border:#2d3a5c;--border2:#3d4e7a;
+  --text:#dde4f5;--text2:#8a97b8;--text3:#4a5578;
+  --green:#00d68f;--green-dim:#00d68f18;--green-mid:#00d68f44;
+  --red:#ff4d6d;--red-dim:#ff4d6d18;--red-mid:#ff4d6d44;
+  --amber:#ffb347;--amber-dim:#ffb34718;--amber-mid:#ffb34744;
+  --blue:#4d9fff;--blue-dim:#4d9fff18;--blue-mid:#4d9fff44;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff18;--cyan-mid:#00e5ff44;
+  --purple:#9d72ff;--purple-dim:#9d72ff18;--purple-mid:#9d72ff44;
+  --mono:'IBM Plex Mono', Consolas, 'Courier New', monospace;
+  --sans:'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;line-height:1.5;overflow-y:scroll;overflow-x:hidden}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border2) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:6px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.tab-btn{flex-shrink:0;padding:10px 14px;border:none;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:1px 5px;border-radius:3px;font-weight:700}
+.t-b.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-b.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-g.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-g.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-a.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-a.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-r.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-r.active .tab-num{color:var(--red);background:var(--red-dim)}
+.t-p.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-p.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-c.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-c.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:flex;flex-direction:column;gap:16px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;flex-direction:column;flex:1;overflow:hidden}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;flex-shrink:0}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:11px;color:var(--text3);display:block;margin-top:4px}
+
+/* Table */
+.tbl-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);flex:1;min-height:300px;max-height:650px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:10px 12px;text-align:left;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num, .tbl th.num{text-align:right;font-family:var(--mono);font-size:12px}
+
+/* Badges & Buttons */
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.b-blue{background:var(--blue-dim);color:var(--blue)}.b-green{background:var(--green-dim);color:var(--green)}.b-amber{background:var(--amber-dim);color:var(--amber)}.b-red{background:var(--red-dim);color:var(--red)}.b-cyan{background:var(--cyan-dim);color:var(--cyan)}.b-purple{background:var(--purple-dim);color:var(--purple)}.b-gray{background:var(--surface3);color:var(--text3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:1px solid;border-radius:var(--radius);font-size:12px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s}
+.btn-blue{background:var(--blue-dim);border-color:var(--blue-mid);color:var(--blue)}.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
+
+/* Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* Visuals */
+.prog-bg{background:var(--surface3);height:6px;border-radius:3px;overflow:hidden;margin-top:6px;width:100%}
+.prog-bar{height:100%;border-radius:3px}
+.alert-box{border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.alert-red{background:var(--red-dim);border-left:3px solid var(--red)}
+.alert-amber{background:var(--amber-dim);border-left:3px solid var(--amber)}
+
+/* KPI */
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;justify-content:center}
+.kpi-num{font-family:var(--mono);font-size:28px;font-weight:700;margin:6px 0}
+.kpi-label{font-size:11px;color:var(--text2)}
+
+/* Charts */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:10px}
+.bar-col{flex:1;background:var(--blue-mid);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+
+/* Custom Gantt */
+.gt-wrap{display:flex;flex-direction:column;height:400px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.gt-hdr{display:flex;border-bottom:2px solid var(--border);background:var(--surface3);position:sticky;top:0;z-index:10}
+.gt-row{display:flex;border-bottom:1px solid var(--border);align-items:center;min-height:40px}
+.gt-lbl{width:200px;flex-shrink:0;padding:8px 12px;font-size:11px;border-right:1px solid var(--border);background:var(--surface)}
+.gt-tl{flex:1;display:flex;position:relative}
+.gt-cell{flex:1;border-right:1px solid var(--border);min-width:40px}
+.gt-bar{position:absolute;top:8px;height:24px;border-radius:4px;background:var(--surface3);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center}
+.gt-fill{height:100%;background:var(--cyan-mid);border-right:2px solid var(--cyan)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+<div class="app">
+  <div class="tab-nav" id="tab-nav"></div>
+  <div id="panels">
+    
+    <div class="panel" id="p0">
+      <div class="sec-hdr"><div><h3>1. 통합 KPI 대시보드 (Overall Dashboard)</h3><span class="tip">보정 확정된 생산 계획의 핵심 지표와 실시간 요약 현황을 한눈에 모니터링합니다.</span></div><button class="btn btn-blue" onclick="genP0()">⟳ 새로고침</button></div>
+      <div class="grid4" id="p0-kpis" style="flex-shrink:0"></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">월간 생산 계획 추이 (Trend)</div><div class="bar-chart" id="p0-chart"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">🚨 시스템 주요 알림 (Exceptions)</div><div id="p0-alerts" style="overflow-y:auto;height:120px;padding-right:4px"></div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p1">
+      <div class="sec-hdr"><div><h3>2. 일일 생산 지시 현황 (Daily Status)</h3><span class="tip">오늘 날짜 기준으로 현장에 배포된 작업지시별 실적 진척률을 조회합니다.</span></div><button class="btn btn-ghost">Excel ⬇</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>작업지시번호(WO)</th><th>할당 라인</th><th>품목명</th><th class="num">계획 수량</th><th class="num">현재 실적</th><th>실시간 진척률 (Progress)</th><th>상태</th></tr></thead><tbody id="tb1"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p2">
+      <div class="sec-hdr"><div><h3>3. 기간별 생산 계획 피벗 (Pivot Plan)</h3><span class="tip">가로축을 날짜로 두고, 품목별 일일 계획 수량과 합계를 엑셀처럼 조회합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead id="th2"></thead><tbody id="tb2"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p3">
+      <div class="sec-hdr"><div><h3>4. 공정별 재공/재고 흐름 (WIP Status)</h3><span class="tip">계획 진행에 따라 각 공정에 머물러 있는 재공품(WIP)을 추적합니다.</span></div></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">공정별 재공 누적 현황 (Funnel)</div><div id="p3-funnel" style="display:flex;flex-direction:column;gap:12px;margin-top:10px"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">상세 대기 내역 (Aging)</div><div class="tbl-wrap" style="border:none"><table class="tbl"><thead><tr><th>발주번호</th><th>현재 공정(위치)</th><th class="num">재공 수량</th><th class="num">체류 시간</th><th>상태</th></tr></thead><tbody id="tb3"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p4">
+      <div class="sec-hdr"><div><h3>5. 납기 지연 위험 경보 (Delay Risk)</h3><span class="tip">고객 요구일(CRD)을 맞추지 못할 것으로 예상되는 오더 목록과 페널티 리스크입니다.</span></div><button class="btn btn-ghost">지연 리포트 ⬇</button></div>
+      <div class="grid2" style="flex-shrink:0;gap:16px"><div class="card" style="margin:0;flex-direction:row;align-items:center;gap:20px"><div style="font-size:40px">🚨</div><div><div class="kpi-label">총 납기 지연 예상 금액 (Penalty Risk)</div><div class="kpi-num" style="color:var(--red);font-size:24px">₩ 145,200,000</div></div></div><div class="card" style="margin:0;justify-content:center"><div class="kpi-label">지연 사유별 비율</div><div style="display:flex;gap:4px;height:16px;margin:8px 0"><div style="flex:4;background:var(--red)" title="자재 결품"></div><div style="flex:3;background:var(--amber)" title="캐파 부족"></div><div style="flex:2;background:var(--blue)" title="품질 불량"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2)"><span>결품(40%)</span><span>캐파(30%)</span><span>품질(20%)</span></div></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위험도</th><th>발주번호</th><th>고객사 / 품목명</th><th class="num">요구일(CRD)</th><th class="num">예상 완료일</th><th class="num">지연 일수</th><th>주요 사유</th><th>대응 조치 제안</th></tr></thead><tbody id="tb4"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p5">
+      <div class="sec-hdr"><div><h3>6. 계획 미수립 오더 (Unplanned)</h3><span class="tip">영업 수주가 확정되었으나 캐파나 자재 문제로 스케줄에 배정되지 않은 목록입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>수주번호(SO)</th><th>영업 확정일</th><th class="num">미수립 체류일(Aging)</th><th>고객사</th><th>품목명</th><th class="num">주문 수량</th><th>미수립 사유 (시스템 판정)</th></tr></thead><tbody id="tb5"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p6">
+      <div class="sec-hdr"><div><h3>7. 자재 결품 예상 리스트 (Shortage)</h3><span class="tip">생산 계획 전개 시, 투입 시점에 현재고 및 입고 예정고가 부족해질 자재 목록입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>자재 코드</th><th>자재 분류 / 명칭</th><th class="num">총 소요 예상량</th><th class="num">가용 재고(ATP)</th><th class="num">결품(Shortage) 수량</th><th>주 공급사</th><th>입고 예정일</th></tr></thead><tbody id="tb6"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p7">
+      <div class="sec-hdr"><div><h3>8. 설비 과부하/병목 모니터링 (Bottleneck)</h3><span class="tip">부하율이 100%를 초과하거나 OEE가 낮아 병목을 유발하는 설비를 찾아냅니다.</span></div></div>
+      <div class="grid3" id="p7-cards" style="flex-shrink:0"></div>
+      <div class="card" style="margin:0"><div class="card-title">설비별 일간 부하율 Heatmap</div><div class="tbl-wrap" style="border:none;min-height:200px"><table class="tbl"><thead id="th7"></thead><tbody id="tb7"></tbody></table></div></div>
+    </div>
+
+    <div class="panel" id="p8">
+      <div class="sec-hdr"><div><h3>9. 계획 vs 실적 차이 분석 (Plan vs Actual)</h3><span class="tip">특정 기간의 계획 수량과 실제 생산된 수량의 편차(Gap)를 분석합니다.</span></div></div>
+      <div class="grid2" style="flex-shrink:0;margin-bottom:16px"><div class="kpi-card" style="padding:16px;flex-direction:row;justify-content:space-between;align-items:center"><div><div class="kpi-label">누적 계획 달성률</div><div class="kpi-num" style="color:var(--blue)">92.8%</div></div><div style="font-size:32px">📊</div></div><div class="kpi-card" style="padding:16px;flex-direction:row;justify-content:space-between;align-items:center"><div><div class="kpi-label">누적 생산 차질 (Variance)</div><div class="kpi-num" style="color:var(--red)">- 12,450 EA</div></div><div style="font-size:32px">📉</div></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>일자</th><th>생산 라인</th><th>품목명</th><th class="num">계획 수량(P)</th><th class="num">실적 수량(A)</th><th class="num">차이(Gap)</th><th class="num">달성률</th><th>주요 미달 사유</th></tr></thead><tbody id="tb8"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p9">
+      <div class="sec-hdr"><div><h3>10. 스케줄 준수율 트렌드 (Compliance Rate)</h3><span class="tip">약속된 스케줄대로 작업이 착수/종료되었는지 주차별 준수율을 추적합니다.</span></div></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">최근 12주 준수율 트렌드</div><div id="p9-chart" class="bar-chart" style="height:250px"></div><div style="text-align:center;margin-top:16px;font-size:24px;font-family:var(--mono);color:var(--green);font-weight:700">평균 92.4%</div></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>주차 (Week)</th><th class="num">총 대상 오더</th><th class="num">일정 준수</th><th class="num">위반(Late)</th><th class="num">준수율</th></tr></thead><tbody id="tb9"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p10">
+      <div class="sec-hdr"><div><h3>11. 라인별 가동률 현황 (Utilization)</h3><span class="tip">계획된 작업 시간 대비 실제 라인이 가동될 예정인 비율과 유휴 시간을 조회합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비/라인명</th><th class="num">총 가용 시간</th><th class="num">계획 배정 시간</th><th class="num">예상 가동률</th><th class="num">유휴/비가동(Idle)</th><th>비가동 내역 분석 (PM/Setup/유휴)</th></tr></thead><tbody id="tb10"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p11">
+      <div class="sec-hdr"><div><h3>12. 셋업/교체 시간 손실 (Setup Loss)</h3><span class="tip">품목 교체(Changeover)로 인해 발생한 비가동 손실 시간을 모니터링합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발생 일자</th><th>라인명</th><th>교체 전 ➔ 교체 후 품목</th><th>교체 유형</th><th class="num">표준 셋업시간</th><th class="num">실제 소요시간</th><th class="num">Loss/Gain</th></tr></thead><tbody id="tb11"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p12">
+      <div class="sec-hdr"><div><h3>13. 발주번호(PO) 상세 추적 (Tracking)</h3><span class="tip">특정 발주번호의 계획부터 생산, 출하까지의 모든 단계를 추적합니다.</span></div></div>
+      <div class="card" style="flex-shrink:0;margin-bottom:16px"><div class="flex-between" style="margin-bottom:16px"><div><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--cyan)">PO-2026-0994</span><span class="badge b-blue" style="margin-left:12px">생산 진행중</span></div><div style="text-align:right"><div style="font-size:11px;color:var(--text2)">고객사: 삼성전자 | 품목: 고성능 메인보드 V1</div><div style="font-weight:700">목표 수량: 5,000 EA</div></div></div><div id="p12-timeline"></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>하위 작업지시(WO)</th><th>공정명</th><th class="num">지시 수량</th><th class="num">완료 수량</th><th>진척률</th><th>상태</th></tr></thead><tbody id="tb12"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p13">
+      <div class="sec-hdr"><div><h3>14. 간트 차트 기반 진척률 (Gantt Progress)</h3><span class="tip">간트 차트 바 내부에 실제 진척률(%)을 채워서 직관적으로 시각화합니다.</span></div></div>
+      <div class="gt-wrap"><div class="gt-hdr"><div class="gt-lbl">작업지시 (WO) / 선행관계</div><div id="gt-days" style="display:flex;flex:1"></div></div><div id="gt-body"></div></div>
+    </div>
+
+    <div class="panel" id="p14">
+      <div class="sec-hdr"><div><h3>15. 공용 부품 소요량 전개 (Part Explosion)</h3><span class="tip">완제품 계획에 공통으로 들어가는 하위 부품의 총 소요량을 전개하여 집계합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공용 부품 코드 (Sub-BOM)</th><th>부품 규격 / 명칭</th><th class="num">조달 리드타임</th><th class="num">총 소요 예상량</th><th class="num">현재 가용 재고</th><th>사용처 (Where-used) 요약</th></tr></thead><tbody id="tb14"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p15">
+      <div class="sec-hdr"><div><h3>16. 고객사별 납기 달성률 (Cust. Delivery SLA)</h3><span class="tip">고객사별로 약속된 납기일을 준수한 비율을 추적하여 서비스 수준을 관리합니다.</span></div></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">주요 고객사 SLA 현황</div><div id="p15-sla" style="display:flex;flex-direction:column;gap:12px;margin-top:10px"></div></div>
+        <div class="tbl-wrap" style="margin:0;border:none"><table class="tbl"><thead><tr><th>고객사명</th><th>발주번호</th><th>품목</th><th class="num">요구 납기일</th><th class="num">예상 출하일</th><th>달성 여부</th></tr></thead><tbody id="tb15"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p16">
+      <div class="sec-hdr"><div><h3>17. 외주 가공 의뢰 현황 (Subcontracting)</h3><span class="tip">내부 캐파 부족으로 외주에 넘어간 계획의 진척도와 입고 예정일입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>외주 협력사</th><th>외주발주번호(Sub-PO)</th><th>의뢰 품목 / 공정</th><th class="num">의뢰 수량</th><th>상태 / 진척도</th><th class="num">입고 예정일(ETA)</th><th>품질 합격률</th></tr></thead><tbody id="tb16"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p17">
+      <div class="sec-hdr"><div><h3>18. 생산 비용/원가 예상 (Expected Cost)</h3><span class="tip">수립된 스케줄을 바탕으로 재료비, 노무비, 제조간접비 등 예상 원가를 집계합니다.</span></div></div>
+      <div class="grid3" style="flex-shrink:0;margin-bottom:16px">
+        <div class="kpi-card"><div class="kpi-label">월간 예상 총 제조원가</div><div class="kpi-num" style="color:var(--amber)">₩ 2,450.5 M</div></div>
+        <div class="kpi-card"><div class="kpi-label">예산 대비 초과 비용</div><div class="kpi-num" style="color:var(--red)">+ ₩ 120.0 M</div></div>
+        <div class="kpi-card"><div class="kpi-label">예상 평균 이익률 (Margin)</div><div class="kpi-num" style="color:var(--green)">18.4 %</div></div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발주번호</th><th>품목명</th><th class="num">직접 재료비 (M)</th><th class="num">직접 노무비 (L)</th><th class="num">제조 간접비 (OH)</th><th class="num">총 원가 합계</th><th>예상 이익률</th></tr></thead><tbody id="tb17"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p18">
+      <div class="sec-hdr"><div><h3>19. 탄소 배출/에너지 사용 예상 (Energy/Carbon)</h3><span class="tip">가동 시간을 기반으로 예상 전력 사용량과 탄소 배출량(tCO2e)을 계산합니다.</span></div></div>
+      <div class="grid2" style="flex-shrink:0;margin-bottom:16px">
+        <div class="card" style="margin:0"><div class="card-title">월간 탄소 배출량 쿼터 관리</div><div style="font-size:36px;font-family:var(--mono);text-align:center;font-weight:700;color:var(--amber)">1,240 <span style="font-size:12px;color:var(--text3)">tCO2e</span></div><div class="prog-bg" style="height:12px;margin:8px 0"><div class="prog-bar" style="width:82.6%;background:var(--amber)"></div></div><div class="flex-between" style="font-size:11px;color:var(--text2)"><span>누적 배출량</span><span>쿼터 1,500 대비 82.6% 도달</span></div></div>
+        <div class="card" style="margin:0"><div class="card-title">전력 사용량 (Peak vs Off-peak)</div><div style="display:flex;height:40px;margin:10px 0;border-radius:4px;overflow:hidden"><div style="flex:6;background:var(--red-mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--red)">Peak (60%) 고비용</div><div style="flex:4;background:var(--green-mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">Off-Peak (40%) 저비용</div></div><div style="text-align:center;font-size:11px;color:var(--text3)">AI 제안: 심야 시간대로 대형 로트 15% 이전 시 비용 절감 가능</div></div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비명 (소비처)</th><th class="num">예상 총 가동시간</th><th class="num">예상 전력량(kWh)</th><th class="num">예상 탄소배출(tCO2e)</th><th>에너지 효율 등급</th></tr></thead><tbody id="tb18"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p19">
+      <div class="sec-hdr"><div><h3>20. 작업자/인력 투입 계획 (Labor Input)</h3><span class="tip">스케줄 소화에 필요한 라인별/조별 예상 작업자 수와 과부족 현황입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>일자</th><th>라인명</th><th>근무조 (Shift)</th><th class="num">필요 인원(Req)</th><th class="num">배정 인원(Act)</th><th class="num">과부족(Gap)</th><th>필수 스킬 매칭률</th><th>조치 사항</th></tr></thead><tbody id="tb19"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p20">
+      <div class="sec-hdr"><div><h3>21. AI 예측 vs 확정 계획 비교 (Forecast vs Plan)</h3><span class="tip">AI가 예측한 수요량과 수립된 생산 계획 수량의 편차를 확인하여 결품/과잉을 예방합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명 / SKU</th><th class="num">AI 수요 예측량</th><th class="num">실제 생산 계획량</th><th class="num">편차 (Gap)</th><th>AI 신뢰도 (Confidence)</th><th>시스템 판정</th></tr></thead><tbody id="tb20"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p21">
+      <div class="sec-hdr"><div><h3>22. 대체 라인 전환 이력 (Line Switching)</h3><span class="tip">원래 할당된 라인에서 대체 라인으로 변경된 이력과 사유/비용 증감입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발주번호</th><th>원래 할당 라인</th><th>➔</th><th>대체 변경된 라인</th><th>변경 사유 (제약 회피)</th><th class="num">예상 비용 증감 효과</th><th>변경 일시</th></tr></thead><tbody id="tb21"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p22">
+      <div class="sec-hdr"><div><h3>23. 품질/수율 연동 계획 영향 (Yield Impact)</h3><span class="tip">최근 공정 수율 저하가 생산 스케줄(목표 미달 EA)에 미치는 시뮬레이션입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공정명 / 라인</th><th class="num">시스템 기준 수율(%)</th><th class="num">최근 3일 실적 수율(%)</th><th class="num">예상 수량 손실 (EA)</th><th>수율 저하 주요 원인</th><th>계획 할증 보정 상태</th></tr></thead><tbody id="tb22"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p23">
+      <div class="sec-hdr"><div><h3>24. 물류/출하 연동 스케줄 (Logistics Sync)</h3><span class="tip">생산 완료 시점과 출하 도크(Dock) 배차 및 트럭 운송 스케줄의 매칭 현황입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>출하(Ship) 번호</th><th class="num">생산 완료 예상 일시</th><th>출하 도크(Dock)</th><th>배차 차량 (Truck)</th><th class="num">차량 적재율(%)</th><th class="num">도크 대기 예상</th><th>매칭 상태</th></tr></thead><tbody id="tb23"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p24">
+      <div class="sec-hdr"><div><h3>25. 긴급 오더 처리 현황 (Hot Orders)</h3><span class="tip">스케줄에 새치기 삽입된 긴급 오더들의 남은 시간(Countdown) 특별 모니터링입니다.</span></div></div>
+      <div class="tbl-wrap" style="border:2px solid var(--red-mid)"><table class="tbl"><thead><tr><th>긴급 발주번호 (Hot PO)</th><th>요청자 (부서)</th><th>투입 라인</th><th class="num">목표 수량</th><th>실시간 진척률</th><th class="num">남은 납기 시간</th><th>현재 상태</th></tr></thead><tbody id="tb24"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p25">
+      <div class="sec-hdr"><div><h3>26. 재작업(Rework) 오더 발생 현황</h3><span class="tip">불량으로 인해 스케줄에 강제 추가된 재작업(RW) 지시의 진행 상태입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>재작업 지시번호 (RW-WO)</th><th>불량 원인 공정</th><th>불량 세부 사유</th><th class="num">재작업 수량</th><th class="num">재작업 예상 비용</th><th>투입 라인</th><th>진행 상태</th></tr></thead><tbody id="tb25"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p26">
+      <div class="sec-hdr"><div><h3>27. 안전재고(SS) 이탈 모니터링</h3><span class="tip">생산 출고로 인해 창고 재고가 안전재고 하한선 밑으로 떨어질 예정인 품목입니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명 / SKU</th><th class="num">안전재고(SS) 기준</th><th class="num">현재 예상재고</th><th class="num">이탈량 (부족)</th><th class="num">잔여 재고일수(DOC)</th><th>시스템 조치 상태</th></tr></thead><tbody id="tb26"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p27">
+      <div class="sec-hdr"><div><h3>28. 금형/치공구 스케줄 (Tooling Mgmt)</h3><span class="tip">계획에 맞춰 특정 라인에 언제 어떤 금형이 장착되어야 하는지 보여줍니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>금형/치공구 ID</th><th>장착 예정 라인</th><th>대상 생산 품목</th><th class="num">사용 예정 일시</th><th class="num">누적 타발수(Life) / 한계</th><th>상태 / 알림</th></tr></thead><tbody id="tb27"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p28">
+      <div class="sec-hdr"><div><h3>29. 계획 버전별 비교 조회 (Version Diff)</h3><span class="tip">어제 확정된 v1.0 계획과 오늘 보정된 v1.1 계획의 핵심 차이를 상세 분석합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>비교 항목 (KPI / Metric)</th><th class="num" style="background:var(--surface3)">v1.0 (어제 확정본)</th><th class="num" style="background:var(--surface4)">v1.1 (오늘 보정본)</th><th>차이(Diff) 상세 분석 내역</th></tr></thead><tbody id="tb28"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p29">
+      <div class="sec-hdr"><div><h3>30. 경영진 요약 리포트 (Executive Summary)</h3><span class="tip">임원 보고용으로 SCM Plan의 재무적 성과와 핵심 리스크만 압축한 대시보드입니다.</span></div><button class="btn btn-ghost">PDF 다운로드 ⬇</button></div>
+      <div class="grid2" style="flex-shrink:0;margin-bottom:16px"><div class="card" style="margin:0;background:var(--blue-dim);border-color:var(--blue)"><div class="card-title" style="color:var(--blue)">SCM Plan v1.1 요약 코멘트</div><div style="font-size:13px;line-height:1.8;color:var(--text)">금일 보정된 계획안은 AI 셋업 최적화와 일부 외주 이관을 통해 납기 준수율을 <b>94.2%</b>로 대폭 상향시켰습니다. 이에 따라 외주 가공비가 ₩7M 증가하였으나, 전체 지연 페널티 리스크 대비 <b>₩20M 이상의 순비용 절감 효과</b>가 기대됩니다. L3 조립 라인의 병목은 야간 가동 및 평준화(Heijunka)로 해소되었습니다.</div></div><div class="grid2"><div class="kpi-card" style="padding:16px"><div class="kpi-label">예상 매출 기여액 (Revenue)</div><div class="kpi-num" style="font-size:24px;color:var(--cyan)">₩ 14.5 Billion</div></div><div class="kpi-card" style="padding:16px"><div class="kpi-label">잔존 납기/결품 리스크</div><div class="kpi-num" style="font-size:24px;color:var(--red)">3 건</div></div></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>핵심 전략 과제 (Strategic Focus)</th><th>세부 내용 및 기대 효과</th><th>담당 부서</th><th>상태</th></tr></thead><tbody id="tb29"></tbody></table></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// --- 안정적인 전역 실행을 위해 모든 코드를 try/catch 로 래핑 ---
+try {
+  const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+  const rF = (a,b,d=1) => +(Math.random()*(b-a)+a).toFixed(d);
+  const rItem = arr => arr[rInt(0,arr.length-1)];
+  const fmt = n => n.toLocaleString();
+
+  const TABS = [
+    {c:'t-b'},{c:'t-b'},{c:'t-b'},{c:'t-b'},{c:'t-r'},{c:'t-r'},{c:'t-r'},{c:'t-r'},
+    {c:'t-g'},{c:'t-g'},{c:'t-g'},{c:'t-g'},{c:'t-c'},{c:'t-c'},{c:'t-c'},{c:'t-c'},
+    {c:'t-a'},{c:'t-a'},{c:'t-a'},{c:'t-a'},{c:'t-p'},{c:'t-p'},{c:'t-p'},{c:'t-p'},
+    {c:'t-r'},{c:'t-r'},{c:'t-a'},{c:'t-a'},{c:'t-b'},{c:'t-p'}
+  ];
+
+  const ITEMS = ['고성능 메인보드 V1','OLED 디스플레이 27"','마이크로 컨트롤러 M4','하우징 프레임 (알루미늄)','배터리 팩 5000mAh','전원 모듈 800W','정밀 센서 어셈블리','BLDC 모터 유닛'];
+  const LINES = ['L1-SMT(표면실장)','L2-Wave(수삽)','L3-Assembly(조립)','L4-Inspect(검사)','L5-Packing(포장)'];
+  const CUSTS = ['삼성전자','LG전자','현대모비스','테슬라','애플(APPL)'];
+  const ERRORS = ['자재 결품 대기','설비(CNC) 고장','작업자(숙련공) 결근','품질 불량 재작업','금형 마모 교체','외주 가공 입고 지연'];
+  const VENDORS = ['(주)에이테크','비전가공','성일정밀','동화전자'];
+
+  function switchTab(idx, el){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  }
+
+  // --- Generation Functions (하드코딩된 함수 배열 사용) ---
+  function genP0(){
+    let bars='';
+    for(let i=0;i<30;i++){
+      const h = rInt(30,100); bars+=`<div class="bar-col" title="${h}%"><div style="height:${h}%;background:var(--blue);width:80%;border-radius:2px 2px 0 0"></div></div>`;
+    }
+    const chart = document.getElementById('p0-chart'); if(chart) chart.innerHTML = bars;
+    
+    let alerts='';
+    for(let i=0;i<5;i++){
+      const isRed = i<2;
+      alerts+=`<div class="alert-box ${isRed?'alert-red':'alert-amber'}"><div class="alert-icon">${isRed?'🔴':'🟡'}</div><div><div style="font-weight:700;font-size:12px;margin-bottom:4px">${rItem(ERRORS)} 감지</div><div style="font-size:11px;color:var(--text2)">연관 오더: PO-2026-${String(rInt(1,999)).padStart(4,'0')} | 예상 지연: ${rInt(1,5)}일</div></div></div>`;
+    }
+    const alertBox = document.getElementById('p0-alerts'); if(alertBox) alertBox.innerHTML = alerts;
+    
+    const kpiBox = document.getElementById('p0-kpis');
+    if(kpiBox) {
+      kpiBox.innerHTML = `
+        <div class="kpi-card"><div class="kpi-label">월간 총 생산 계획 수량</div><div class="kpi-num" style="color:var(--blue)">124,500 <span style="font-size:14px;color:var(--text3)">EA</span></div><div style="font-size:11px;font-weight:700;color:var(--green)">+5.2%</div></div>
+        <div class="kpi-card"><div class="kpi-label">납기 준수 예상률</div><div class="kpi-num" style="color:var(--green)">94.2 <span style="font-size:14px;color:var(--text3)">%</span></div><div style="font-size:11px;font-weight:700;color:var(--red)">-0.5%p</div></div>
+        <div class="kpi-card"><div class="kpi-label">자재 결품 위험 건수</div><div class="kpi-num" style="color:var(--red)">8 <span style="font-size:14px;color:var(--text3)">건</span></div><div style="font-size:11px;font-weight:700;color:var(--amber)">조치요망</div></div>
+        <div class="kpi-card"><div class="kpi-label">평균 설비 가동 효율(OEE)</div><div class="kpi-num" style="color:var(--amber)">82.5 <span style="font-size:14px;color:var(--text3)">%</span></div><div style="font-size:11px;font-weight:700;color:var(--green)">+2.1%p</div></div>
+      `;
+    }
+  }
+
+  function genP1(){
+    let h = '';
+    for(let i=1; i<=40; i++){
+      const plan = rInt(10,50)*100; const act = rInt(0, plan); const rate = Math.round((act/plan)*100);
+      const stat = rate===100?'<span class="badge b-green">완료</span>':rate===0?'<span class="badge b-gray">대기</span>':'<span class="badge b-blue">가동중</span>';
+      h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">WO-2604-${String(i).padStart(3,'0')}</td><td style="font-weight:700">${rItem(LINES)}</td><td>${rItem(ITEMS)}</td><td class="num">${fmt(plan)}</td><td class="num" style="color:var(--cyan);font-weight:700">${fmt(act)}</td><td style="min-width:200px"><div style="display:flex;align-items:center;gap:10px"><div class="prog-bg" style="margin:0;flex:1"><div class="prog-bar" style="width:${rate}%;background:var(--blue)"></div></div><span style="font-family:var(--mono);width:30px;text-align:right">${rate}%</span></div></td><td>${stat}</td></tr>`;
+    }
+    const tb = document.getElementById('tb1'); if(tb) tb.innerHTML = h;
+  }
+
+  function genP2(){
+    let th = `<tr><th style="position:sticky;left:0;z-index:15;min-width:180px">품목명 / 라인</th>`;
+    for(let i=1; i<=14; i++) th+=`<th style="text-align:center">4/${i}</th>`;
+    th += `<th class="num" style="position:sticky;right:0;z-index:15;background:var(--surface4)">합계</th></tr>`;
+    const thEl = document.getElementById('th2'); if(thEl) thEl.innerHTML = th;
+    
+    let tb = '';
+    ITEMS.forEach(item => {
+      tb += `<tr><td style="position:sticky;left:0;z-index:5;background:var(--surface2)"><div style="font-weight:700">${item}</div><div style="font-size:10px;color:var(--text3)">${rItem(LINES)}</div></td>`;
+      let sum = 0;
+      for(let i=1; i<=14; i++){
+        const val = Math.random()>0.4 ? rInt(5,50)*100 : 0; sum+=val;
+        tb += `<td class="num" style="color:${val===0?'var(--text3)':'var(--text)'};background:${val>4000?'var(--blue-dim)':''}">${val===0?'-':fmt(val)}</td>`;
+      }
+      tb += `<td class="num" style="position:sticky;right:0;background:var(--surface4);font-weight:700;color:var(--cyan)">${fmt(sum)}</td></tr>`;
+    });
+    const tbEl = document.getElementById('tb2'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP3(){
+    let c = `<div style="display:flex;align-items:center;gap:16px;height:40px;margin-bottom:16px">`;
+    const stages = ['자재 투입 대기','조립 공정 진행(WIP)','검사 대기(Hold)','포장/출하 대기'];
+    const colors = ['var(--text2)','var(--blue)','var(--amber)','var(--green)'];
+    stages.forEach((s,i) => {
+      c+=`<div style="flex:1;background:var(--surface3);border-left:3px solid ${colors[i]};padding:8px 12px;border-radius:4px"><div style="font-size:10px;color:var(--text2)">${s}</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:${colors[i]}">${fmt(rInt(5,20)*1000)} <span style="font-size:10px">EA</span></div></div>`;
+    });
+    c += `</div>`;
+    const fnl = document.getElementById('p3-funnel'); if(fnl) fnl.innerHTML = c;
+    
+    let tb = '';
+    for(let i=1; i<=35; i++){
+      const age = rInt(1, 48); const isHold = age > 24;
+      tb+=`<tr style="${isHold?'background:var(--amber-dim)':''}"><td>PO-2026-${String(i).padStart(3,'0')}</td><td>${rItem(ITEMS)}</td><td style="font-weight:700">${rItem(stages)}</td><td class="num">${fmt(rInt(100,5000))}</td><td class="num" style="color:${isHold?'var(--amber)':'var(--text)'};font-weight:${isHold?700:400}">${age} 시간</td><td>${isHold?'<span class="badge b-amber">품질 이슈 홀딩</span>':'정상 진행 중'}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb3'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP4(){
+    let tb = '';
+    for(let i=1; i<=35; i++){
+      const diff = rInt(1, 14); const risk = diff>7?'b-red':diff>3?'b-amber':'b-gray'; const lbl = diff>7?'High':diff>3?'Med':'Low';
+      tb+=`<tr><td><span class="badge ${risk}">${lbl}</span></td><td style="font-family:var(--mono);color:var(--text)">PO-26-D${String(i).padStart(3,'0')}</td><td><div style="font-weight:700">${rItem(CUSTS)}</div><div style="font-size:10px;color:var(--text2)">${rItem(ITEMS)}</div></td><td class="num">4/10</td><td class="num" style="color:var(--red);font-weight:700">4/${10+diff}</td><td class="num" style="color:var(--red)">+${diff} 일</td><td style="color:var(--text2)">${rItem(ERRORS)}</td><td><button class="btn btn-ghost btn-sm" style="color:var(--amber);border-color:var(--amber)">협의/조치</button></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb4'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP5(){
+    let tb = '';
+    for(let i=1; i<=35; i++){
+      const age = rInt(1, 20);
+      tb+=`<tr style="${age>10?'background:var(--red-dim)':''}"><td>SO-26-${String(i).padStart(4,'0')}</td><td>2026-03-${String(30-age).padStart(2,'0')}</td><td class="num"><span style="color:${age>10?'var(--red)':'var(--text)'};font-weight:${age>10?700:400}">${age} 일</span></td><td style="font-weight:700">${rItem(CUSTS)}</td><td>${rItem(ITEMS)}</td><td class="num">${fmt(rInt(5,50)*100)}</td><td style="color:var(--amber)">${rItem(['L1 라인 캐파 100% 초과','핵심 자재(IC칩) 미확보','도면/BOM 미확정'])}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb5'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP6(){
+    let tb = '';
+    for(let i=1; i<=35; i++){
+      const req = rInt(10, 100)*1000; const atp = rInt(1, req-1000); const short = req - atp; const eta = rInt(10, 25);
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">MAT-IC-${String(i).padStart(3,'0')}</td><td><div style="font-weight:700">IC 칩 / 주요 센서</div><div style="font-size:10px;color:var(--text3)">${rItem(ITEMS)}용</div></td><td class="num">${fmt(req)}</td><td class="num">${fmt(atp)}</td><td class="num" style="color:var(--red);font-weight:700">-${fmt(short)}</td><td>삼성전기</td><td class="num" style="color:${eta>15?'var(--red)':'var(--text)'}">4/${eta}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb6'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP7(){
+    let c = '';
+    for(let i=0; i<3; i++){
+      const oee = rInt(60, 95); const a = rInt(70,95); const p = rInt(80,98); const q = rInt(90,99);
+      c+=`<div class="card" style="margin:0"><div class="card-title">${LINES[i]} OEE (종합효율)</div><div style="display:flex;align-items:center;gap:20px"><div style="font-family:var(--mono);font-size:36px;font-weight:700;color:${oee<75?'var(--red)':oee<85?'var(--amber)':'var(--green)'}">${oee}%</div><div style="flex:1;font-size:11px;color:var(--text2);display:flex;flex-direction:column;gap:4px"><div class="flex-between"><span>가용성(A)</span><span style="color:var(--text)">${a}%</span></div><div class="flex-between"><span>성능(P)</span><span style="color:var(--text)">${p}%</span></div><div class="flex-between"><span>품질(Q)</span><span style="color:var(--text)">${q}%</span></div></div></div></div>`;
+    }
+    const cEl = document.getElementById('p7-cards'); if(cEl) cEl.innerHTML = c;
+    
+    let th = `<tr><th style="position:sticky;left:0;z-index:15">설비/라인명</th><th>상태</th><th class="num">평균 부하율</th>`;
+    for(let i=1; i<=14; i++) th+=`<th style="text-align:center">4/${i}</th>`;
+    th += `</tr>`; 
+    const thEl = document.getElementById('th7'); if(thEl) thEl.innerHTML = th;
+    
+    let tb = '';
+    LINES.forEach(l => {
+      let sum=0; let cells='';
+      for(let i=1;i<=14;i++){
+        const ld=rInt(50,130); sum+=ld;
+        const bg=ld>100?'var(--red)':ld>80?'var(--amber)':'var(--green)';
+        cells+=`<td style="padding:2px"><div style="background:${bg};height:20px;border-radius:2px" title="${ld}%"></div></td>`;
+      }
+      const avg = Math.round(sum/14);
+      tb+=`<tr><td style="position:sticky;left:0;z-index:5;background:var(--surface2);font-weight:700">${l}</td><td><span class="badge ${avg>90?'b-red':'b-green'}">${avg>90?'병목':'정상'}</span></td><td class="num" style="color:${avg>90?'var(--red)':'var(--text)'};font-weight:700">${avg}%</td>${cells}</tr>`;
+    });
+    const tbEl = document.getElementById('tb7'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP8(){
+    let tb = '';
+    for(let i=1; i<=40; i++){
+      const p = rInt(20,50)*100; const a = p - rInt(0, 10)*100; const diff = a-p; const rate = Math.round((a/p)*100);
+      tb+=`<tr><td>2026-04-${String(i%10+1).padStart(2,'0')}</td><td style="font-weight:700">${rItem(LINES)}</td><td>${rItem(ITEMS)}</td><td class="num">${fmt(p)}</td><td class="num" style="color:var(--cyan);font-weight:700">${fmt(a)}</td><td class="num" style="color:${diff<0?'var(--red)':'var(--text3)'}">${diff<0?fmt(diff):'-'}</td><td class="num"><span style="color:${rate<90?'var(--red)':'var(--green)'};font-weight:700">${rate}%</span></td><td style="font-size:11px;color:var(--text2)">${rate<100?rItem(ERRORS):'-'}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb8'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP9(){
+    let bars='';
+    for(let i=0;i<12;i++){
+      const h = rInt(75,100); bars+=`<div class="bar-col" title="${h}%"><div style="height:${h}%;background:${h<90?'var(--red)':'var(--green)'};width:80%;border-radius:2px 2px 0 0"></div></div>`;
+    }
+    const ch = document.getElementById('p9-chart'); if(ch) ch.innerHTML = bars;
+    
+    let tb='';
+    for(let i=1; i<=12; i++){
+      const tot = rInt(200,400); const late = rInt(10, 50); const ok = tot - late; const rate = Math.round((ok/tot)*100);
+      tb+=`<tr><td>2026년 ${i}주차</td><td class="num">${tot}</td><td class="num" style="color:var(--green)">${ok}</td><td class="num" style="color:var(--red)">${late}</td><td class="num"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px"><div class="prog-bg" style="width:60px;margin:0"><div class="prog-bar" style="width:${rate}%;background:${rate<90?'var(--red)':'var(--blue)'}"></div></div><span style="font-weight:700">${rate}%</span></div></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb9'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP10(){
+    let tb = '';
+    LINES.forEach((l,i) => {
+      const t = 24*30; const p = rInt(15, 22)*30; const idle = t - p; const rate = Math.round((p/t)*100);
+      const pm = Math.round(idle*0.4); const setup = Math.round(idle*0.3); const noPlan = idle - pm - setup;
+      tb+=`<tr><td style="font-weight:700">${l}</td><td class="num">${t} H</td><td class="num" style="color:var(--blue)">${p} H</td><td class="num" style="font-weight:700;font-size:14px;color:var(--cyan)">${rate}%</td><td class="num" style="color:var(--amber)">${idle} H</td><td style="font-size:11px;color:var(--text2)">점검(PM) ${pm}H | 셋업 ${setup}H | 물량없음 ${noPlan}H</td></tr>`;
+    });
+    const tbEl = document.getElementById('tb10'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP11(){
+    let tb = '';
+    for(let i=1; i<=35; i++){
+      const std = rInt(30, 60); const act = std + rInt(-10, 30); const diff = act - std;
+      const type = rItem(['금형/지그 교체','컬러(도료) 변경','자재 릴(Reel) 교체','제어 프로그램 세팅']);
+      tb+=`<tr><td>4/${String(i%10+1).padStart(2,'0')}</td><td style="font-weight:700">${rItem(LINES)}</td><td style="font-size:11px">${rItem(ITEMS).slice(0,8)}... ➔ ${rItem(ITEMS).slice(0,8)}...</td><td><span class="badge b-gray">${type}</span></td><td class="num">${std} 분</td><td class="num" style="font-weight:700;color:var(--amber)">${act} 분</td><td class="num" style="color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--text)'}">${diff>0?'+':''}${diff} 분</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb11'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP12(){
+    const steps = ['영업 수주 확정','자재 불출 및 할당','L1-SMT 공정 투입','L3-조립 진행중','L4-검사 대기','포장 및 출하 준비'];
+    let stp = `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;padding:10px 20px;margin-bottom:10px">`;
+    stp += `<div style="position:absolute;top:20px;left:40px;right:40px;height:4px;background:var(--surface3);z-index:1"><div style="height:100%;width:60%;background:var(--blue)"></div></div>`;
+    steps.forEach((s,i) => {
+      const stat = i<3?'done':i===3?'act':'wait';
+      const col = stat==='done'?'var(--blue)':stat==='act'?'var(--cyan)':'var(--surface3)';
+      stp += `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2;width:80px">
+        <div style="width:24px;height:24px;border-radius:50%;background:${col};border:4px solid var(--bg);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">${stat==='done'?'✓':i+1}</div>
+        <div style="font-size:11px;font-weight:700;color:${stat==='wait'?'var(--text3)':'var(--text)'};text-align:center">${s}</div>
+      </div>`;
+    });
+    stp += `</div>`;
+    const tlEl = document.getElementById('p12-timeline'); if(tlEl) tlEl.innerHTML = stp;
+    
+    let tb = '';
+    for(let i=1; i<=6; i++){
+      const p=5000; const a=i<4?5000:i===4?3200:0; const r=Math.round((a/p)*100);
+      tb+=`<tr><td style="font-family:var(--mono)">WO-SUB-${i}</td><td>${steps[i-1]}</td><td class="num">${fmt(p)}</td><td class="num" style="color:var(--cyan);font-weight:700">${fmt(a)}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog-bg" style="width:100px;margin:0"><div class="prog-bar" style="width:${r}%;background:var(--cyan)"></div></div><span style="font-family:var(--mono);font-size:10px">${r}%</span></div></td><td><span class="badge ${r===100?'b-green':r>0?'b-blue':'b-gray'}">${r===100?'완료':r>0?'진행중':'대기'}</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb12'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP13(){
+    let dh=''; for(let i=1;i<=14;i++) dh+=`<div style="flex:1;text-align:center;font-size:10px;padding:8px 0;border-right:1px solid var(--border);color:var(--text3)">4/${i}</div>`;
+    const dEl = document.getElementById('gt-days'); if(dEl) dEl.innerHTML = dh;
+    
+    let tb='';
+    for(let i=1;i<=35;i++){
+      const s = rInt(0, 8); const w = rInt(3, 6); const p = rInt(10, 100);
+      tb+=`<div class="gt-row"><div class="gt-lbl"><div style="font-family:var(--mono);font-weight:700;color:var(--text)">WO-26-${String(i).padStart(3,'0')}</div><div style="font-size:9px;color:var(--text3);margin-top:2px">Line: ${rItem(LINES)}</div></div><div class="gt-tl">`;
+      for(let j=1;j<=14;j++) tb+=`<div class="gt-cell"></div>`;
+      tb+=`<div class="gt-bar" style="left:${(s/14)*100}%;width:${(w/14)*100}%"><div class="gt-fill" style="width:${p}%;background:${p===100?'var(--green-mid)':'var(--blue-mid)'};border-color:${p===100?'var(--green)':'var(--blue)'}"></div><span style="position:absolute;width:100%;text-align:center;font-size:9px;font-weight:700;font-family:var(--mono);color:var(--text)">${p}%</span></div></div></div>`;
+    }
+    const bEl = document.getElementById('gt-body'); if(bEl) bEl.innerHTML = tb;
+  }
+
+  function genP14(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const req = rInt(50, 500)*100; const inv = rInt(10, 600)*100; const sh = inv-req;
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">CM-RES-${String(i).padStart(4,'0')}</td><td style="font-weight:700">10K Ohm 저항기 세트 (공용)</td><td class="num">${rInt(3,14)} 일</td><td class="num" style="color:var(--text)">${fmt(req)} EA</td><td class="num" style="color:${sh<0?'var(--red)':'var(--green)'};font-weight:700">${fmt(inv)} EA</td><td style="font-size:11px;color:var(--text2)">${rItem(ITEMS)} 외 ${rInt(2,8)}건 모델에 사용됨</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb14'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP15(){
+    let c = '';
+    for(let i=0;i<3;i++){
+      const t=rInt(100,300); const ok=rInt(80,t); const r=Math.round((ok/t)*100);
+      c+=`<div style="display:flex;align-items:center;gap:16px;background:var(--bg);padding:12px;border-radius:6px;border:1px solid var(--border)"><div style="font-family:var(--mono);font-size:32px;font-weight:700;color:${r<90?'var(--red)':'var(--green)'};width:80px">${r}%</div><div style="flex:1"><div class="flex-between" style="font-weight:700;margin-bottom:4px"><span>${CUSTS[i]}</span><span style="font-size:10px;color:var(--text3)">총 ${t}건 발주</span></div><div class="prog-bg" style="margin:0"><div class="prog-bar" style="width:${r}%;background:${r<90?'var(--red)':'var(--green)'}"></div></div><div style="font-size:10px;color:var(--red);margin-top:6px;text-align:right">예상 페널티 리스크: ₩${fmt(rInt(1,50)*1000)}K</div></div></div>`;
+    }
+    const sEl = document.getElementById('p15-sla'); if(sEl) sEl.innerHTML = c;
+    
+    let tb = '';
+    for(let i=1; i<=30; i++){
+      const req=rInt(10,20); const act=req+rInt(-2, 4); const isLate=act>req;
+      tb+=`<tr><td style="font-weight:700">${rItem(CUSTS)}</td><td style="font-family:var(--mono)">PO-DLV-${i}</td><td>${rItem(ITEMS)}</td><td class="num">4/${req}</td><td class="num" style="color:${isLate?'var(--red)':'var(--text)'};font-weight:${isLate?700:400}">4/${act}</td><td><span class="badge ${isLate?'b-red':'b-green'}">${isLate?'Late (지연)':'On-time'}</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb15'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP16(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const qty = rInt(5,50)*1000; const p = rInt(10,100); const isLate = rInt(0,5)===0;
+      tb+=`<tr><td style="font-weight:700">${rItem(VENDORS)}</td><td style="font-family:var(--mono);color:var(--text2)">SPO-26-${String(i).padStart(3,'0')}</td><td>${rItem(ITEMS)} / ${rItem(['표면처리','CNC가공','SMT 임가공'])}</td><td class="num">${fmt(qty)}</td><td style="width:150px"><div style="display:flex;align-items:center;gap:8px"><div class="prog-bg" style="margin:0;flex:1"><div class="prog-bar" style="width:${p}%;background:var(--blue)"></div></div><span style="font-family:var(--mono);font-size:10px">${p}%</span></div></td><td class="num" style="color:${isLate?'var(--red)':'var(--text)'};font-weight:${isLate?700:400}">4/${rInt(15,25)} ${isLate?'(지연)':''}</td><td class="num" style="color:var(--green)">${rF(95,99.9,1)}%</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb16'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP17(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const m = rInt(10,50)*1000; const l = Math.round(m*rF(0.2,0.5,2)); const oh = Math.round(m*rF(0.1,0.3,2)); const tot = m+l+oh;
+      const margin = rF(5, 35, 1); const cl = margin<15?'var(--red)':'var(--green)';
+      tb+=`<tr><td style="font-family:var(--mono)">PO-COST-${String(i).padStart(3,'0')}</td><td><div style="font-weight:700">${rItem(ITEMS)}</div><div style="font-size:9px;color:var(--text3)">5,000 EA Batch</div></td><td class="num">₩ ${fmt(m)}</td><td class="num">₩ ${fmt(l)}</td><td class="num" style="color:var(--text3)">₩ ${fmt(oh)}</td><td class="num" style="font-weight:700;color:var(--amber);font-size:13px">₩ ${fmt(tot)}</td><td><span class="badge" style="background:transparent;border:1px solid ${cl};color:${cl}">${margin}%</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb17'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP18(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const l = rItem(LINES); const hr = rInt(100, 300); const kwh = hr * rInt(100,300); const co2 = (kwh * 0.45 / 1000).toFixed(1);
+      const gr = ['A','B','C','D'][rInt(0,3)]; const grC = gr==='A'?'b-green':gr==='B'?'b-blue':gr==='C'?'b-amber':'b-red';
+      tb+=`<tr><td style="font-weight:700">${l} (Line-${i})</td><td class="num">${hr} H</td><td class="num" style="font-family:var(--mono)">${fmt(kwh)} kWh</td><td class="num" style="color:var(--amber);font-weight:700;font-size:14px">${co2} t</td><td><span class="badge ${grC}">효율 Class ${gr}</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb18'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP19(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const req = rInt(5, 20); const act = req + rInt(-2, 1); const diff = act - req;
+      const shift = rItem(['주간 (08:00~17:00)','야간 (17:00~02:00)']); const skill = rInt(70,100);
+      tb+=`<tr><td style="font-family:var(--mono)">4/${String(i%10+1).padStart(2,'0')}</td><td style="font-weight:700">${rItem(LINES)}</td><td style="font-size:11px">${shift}</td><td class="num">${req} 명</td><td class="num">${act} 명</td><td class="num" style="color:${diff<0?'var(--red)':'var(--text)'};font-weight:700">${diff<0?diff:'-'}</td><td><div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)">숙련공 확보율: <div class="prog-bg" style="width:50px;margin:0"><div class="prog-bar" style="width:${skill}%;background:${skill<80?'var(--amber)':'var(--green)'}"></div></div> ${skill}%</div></td><td>${diff<0?'<button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)">대체 인력 파견 요청</button>':'-'}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb19'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP20(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const f = rInt(10,100)*100; const p = f + rInt(-10,10)*100; const diff = p - f; const conf = rF(80, 99, 1);
+      const judge = diff>1000?'<span class="badge b-amber">과잉생산 주의 (재고 증가)</span>':diff<-1000?'<span class="badge b-red">결품 위험 (수요 대응 불가)</span>':'<span class="badge b-green">적정 수준 매칭</span>';
+      tb+=`<tr><td style="font-weight:700">${rItem(ITEMS)}</td><td class="num" style="color:var(--text2)">${fmt(f)}</td><td class="num" style="font-weight:700">${fmt(p)}</td><td class="num" style="color:${diff>0?'var(--blue)':diff<0?'var(--red)':'var(--text)'}">${diff>0?'+':''}${fmt(diff)}</td><td><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><div class="prog-bg" style="width:40px;margin:0"><div class="prog-bar" style="width:${conf}%;background:var(--purple)"></div></div><span style="font-family:var(--mono);font-size:10px;color:var(--purple)">${conf}%</span></div></td><td>${judge}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb20'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP21(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const l1 = rItem(LINES); let l2 = rItem(LINES); while(l1===l2) l2=rItem(LINES);
+      const cost = rInt(-5, 10)*100000;
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">PO-SW-${String(i).padStart(3,'0')}</td><td style="color:var(--text3);text-decoration:line-through">${l1}</td><td>➔</td><td style="color:var(--green);font-weight:700">${l2}</td><td style="font-size:11px">${rItem(['L1 설비 고장으로 인한 작업 회피 배정','캐파 평준화(Heijunka) 알고리즘 자동 적용','긴급 오더 투입에 따른 후순위 밀어내기'])}</td><td class="num" style="color:${cost>0?'var(--red)':cost<0?'var(--green)':'var(--text)'}">${cost>0?'+':''}${fmt(cost)} ₩</td><td style="font-family:var(--mono);font-size:10px;color:var(--text3)">2026-04-0${rInt(1,9)} 14:30</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb21'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP22(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const std = 98.5; const act = rF(90, 99, 1); const diff = act - std;
+      const loss = diff < 0 ? Math.round(Math.abs(diff)/100 * 50000) : 0;
+      const cause = diff < -2 ? rItem(['자재 불량(표면 스크래치 다수)','설비 파라미터 셋업 오차 발생','신규 작업자 미숙으로 인한 파손']) : '-';
+      tb+=`<tr><td style="font-weight:700">${rItem(LINES)}</td><td class="num">${std}%</td><td class="num" style="color:${diff<-2?'var(--red)':'var(--green)'};font-weight:700;font-size:14px">${act}%</td><td class="num" style="color:var(--red)">${loss>0?'-'+fmt(loss)+' EA':'-'}</td><td style="font-size:11px;color:var(--text2)">${cause}</td><td>${loss>1000?'<span class="badge b-amber">투입량 +5% 자동 할증 보정됨</span>':'<span class="badge b-gray">조치 불필요</span>'}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb22'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP23(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const pD = rInt(10, 20); const pH = rInt(9, 18);
+      const truck = rItem(['11톤 윙바디 (서울81가1234)','5톤 카고 (경기12다4567)','25톤 트레일러 (인천99바9999)']);
+      const cap = rInt(60, 110); const wait = rInt(10, 120);
+      const stat = cap>100?'<span class="badge b-red">적재 용량 초과</span>':wait>60?'<span class="badge b-amber">도크 대기 지연</span>':'<span class="badge b-green">매칭 정상 진행</span>';
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">SHP-2026-${String(i).padStart(3,'0')}</td><td class="num">4/${pD} ${String(pH).padStart(2,'0')}:00</td><td style="font-weight:700">Dock-${rInt(1,6)} 구역</td><td style="font-size:11px;color:var(--text2)">${truck}</td><td class="num" style="color:${cap>100?'var(--red)':'var(--text)'};font-weight:${cap>100?700:400}">${cap}%</td><td class="num" style="color:${wait>60?'var(--amber)':'var(--text)'}">${wait} 분</td><td>${stat}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb23'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP24(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const req = rItem(['VVIP 전담 영업팀','김본부장 (긴급 특명)','글로벌 해외 수출팀']);
+      const p = rInt(10, 95); const left = rInt(2, 48);
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--red);font-weight:700;font-size:14px">HOT-2026-${String(i).padStart(3,'0')}</td><td style="font-size:11px">${req}</td><td style="font-weight:700">${rItem(LINES)}</td><td class="num">${fmt(rInt(5,50)*100)}</td><td style="min-width:150px"><div style="display:flex;align-items:center;gap:8px"><div class="prog-bg" style="margin:0;flex:1"><div class="prog-bar" style="width:${p}%;background:var(--red)"></div></div><span style="font-family:var(--mono);font-size:10px;color:var(--red)">${p}%</span></div></td><td class="num" style="font-family:var(--mono);font-size:16px;font-weight:700;color:${left<12?'var(--red)':'var(--amber)'}">T - ${left} 시간</td><td><span class="badge b-red" style="border:1px solid var(--red)">최우선 가동중 (점유)</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb24'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP25(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const cause = rItem(['L1-SMT 공정 납땜 온도 불량','L3-조립 공정 외관 스크래치 발생','L4-검사 공정 최종 전압 FAIL']);
+      const cost = rInt(5, 50) * 100000;
+      const stat = i%3===0?'<span class="badge b-blue">재작업 전용 라인 진행중</span>':'<span class="badge b-gray">재작업 대기 중</span>';
+      tb+=`<tr><td style="font-family:var(--mono);color:var(--amber)">RW-2026-${String(i).padStart(3,'0')}</td><td style="font-weight:700">${cause.split(' ')[0]}</td><td style="font-size:11px;color:var(--text2)">${cause.substring(cause.indexOf(' ')+1)}</td><td class="num" style="color:var(--amber);font-weight:700;font-size:14px">${rInt(10,500)} EA</td><td class="num" style="font-family:var(--mono)">₩ ${fmt(cost)}</td><td>RW-Special-Line</td><td>${stat}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb25'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP26(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const ss = rInt(10, 50)*1000; const cur = ss - rInt(1, 10)*1000; const doc = rF(1, 5, 1);
+      tb+=`<tr><td style="font-weight:700">${rItem(ITEMS)}</td><td class="num">${fmt(ss)}</td><td class="num" style="color:var(--red);font-weight:700;font-size:14px">${fmt(cur)}</td><td class="num" style="color:var(--red)">-${fmt(ss-cur)}</td><td class="num" style="color:${doc<2?'var(--red)':'var(--amber)'}">${doc} 일분</td><td><span class="badge b-amber">시스템 자동 보충(Make) 발주됨</span></td></tr>`;
+    }
+    const tbEl = document.getElementById('tb26'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP27(){
+    let tb='';
+    for(let i=1; i<=35; i++){
+      const life = rInt(80, 105)*1000; const limit = 100000; const warn = life > limit;
+      tb+=`<tr style="${warn?'background:var(--red-dim)':''}"><td>MOLD-A${String(i).padStart(3,'0')}</td><td style="font-weight:700">${rItem(LINES)}</td><td style="font-size:11px;color:var(--text2)">${rItem(ITEMS)}</td><td class="num" style="font-family:var(--mono)">4/${rInt(10,20)} 08:00</td><td class="num"><span style="color:${warn?'var(--red)':'var(--green)'};font-weight:700;font-size:14px">${fmt(life)}</span> / ${fmt(limit)}</td><td>${warn?'<span class="badge b-red">수명 초과! 금형 정비실 입고 요망</span>':'<span class="badge b-green">정상 사용 가능</span>'}</td></tr>`;
+    }
+    const tbEl = document.getElementById('tb27'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP28(){
+    let tb='';
+    const metrics = [
+      {m:'월간 총 생산 계획량', v1:'120,000 EA', v2:'124,500 EA', d:'+ 4,500 EA (긴급 수주 반영)', dc:'var(--green)'},
+      {m:'납기 준수율 예상', v1:'85.2 %', v2:'94.2 %', d:'+ 9.0 %p (AI 스케줄 최적화 결과)', dc:'var(--green)'},
+      {m:'설비 평균 부하율', v1:'92.1 %', v2:'82.5 %', d:'- 9.6 %p (일부 외주 전환으로 부하 분산)', dc:'var(--blue)'},
+      {m:'자재 결품 위험 건수', v1:'15 건', v2:'8 건', d:'- 7 건 (대체 자재 스왑 적용으로 해소)', dc:'var(--green)'},
+      {m:'예상 외주 가공 비용', v1:'₩ 45,000,000', v2:'₩ 52,000,000', d:'+ ₩ 7,000,000 (캐파 부족분 외주 이관)', dc:'var(--red)'},
+      {m:'총 셋업 교체 손실 시간', v1:'4,200 분', v2:'3,100 분', d:'- 1,100 분 (색상/금형별 Batch 최적화)', dc:'var(--green)'},
+      {m:'재고 회전율 예상', v1:'25.2 회', v2:'28.4 회', d:'+ 3.2 회 (재고 체류시간 감소)', dc:'var(--green)'}
+    ];
+    metrics.forEach(m => {
+      tb+=`<tr><td style="font-weight:700;font-size:13px">${m.m}</td><td class="num" style="color:var(--text2)">${m.v1}</td><td class="num" style="color:var(--cyan);font-weight:700;font-size:14px">${m.v2}</td><td style="color:${m.dc};font-weight:700">${m.d}</td></tr>`;
+    });
+    const tbEl = document.getElementById('tb28'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  function genP29(){
+    let tb='';
+    const tasks = [
+      {t:'L1 라인 셋업 최적화', d:'동일 스펙(색상/금형) 오더 그룹핑으로 주간 셋업 로스 120분 절감', r:'생산기술팀', s:'b-green', sl:'적용 완료'},
+      {t:'결품 자재 대체 스왑', d:'IC칩 결품 7건에 대해 호환 B형 칩으로 설계 변경 승인 및 시스템 스왑 처리', r:'연구소/자재팀', s:'b-green', sl:'적용 완료'},
+      {t:'삼성전자 긴급 오더 투입', d:'VVIP 요청 긴급건 2,000EA 최우선 슬롯 배정. 납기 4/15 무사 달성 가능', r:'영업/생산관리', s:'b-blue', sl:'진행 중'},
+      {t:'평택 2공장 물량 이관', d:'창원 1공장 과부하 분산을 위해 PCB 어셈블리 15,000EA 평택 공장으로 이관', r:'SCM 총괄본부', s:'b-blue', sl:'진행 중'},
+      {t:'외주 가공업체 캐파 확보', d:'조립 공정 부하 완화를 위해 A테크에 주당 5,000EA 임가공 추가 발주', r:'구매/외주팀', s:'b-amber', sl:'협의 중'}
+    ];
+    tasks.forEach(t => {
+      tb+=`<tr><td style="font-weight:700;color:var(--amber);font-size:13px">${t.t}</td><td style="color:var(--text);font-size:12px">${t.d}</td><td>${t.r}</td><td><span class="badge ${t.s}">${t.sl}</span></td></tr>`;
+    });
+    const tbEl = document.getElementById('tb29'); if(tbEl) tbEl.innerHTML = tb;
+  }
+
+  // Define an explicit array of functions mapped to each tab index
+  // This completely avoids using window['genP...'] calls which get blocked in strict frame environments
+  const renderers = [
+    genP0, genP1, genP2, genP3, genP4, genP5, genP6, genP7, genP8, genP9,
+    genP10, genP11, genP12, genP13, genP14, genP15, genP16, genP17, genP18, genP19,
+    genP20, genP21, genP22, genP23, genP24, genP25, genP26, genP27, genP28, genP29
+  ];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.getElementById('tab-nav');
+    if(!nav) return;
+    
+    // Explicitly add buttons instead of relying on DOM query
+    TABS.forEach((t, i) => {
+      const h3El = document.querySelector(`#p${i} h3`);
+      const title = h3El ? h3El.textContent.substring(h3El.textContent.indexOf('.')+2) : `Tab ${i+1}`;
+      
+      const btn = document.createElement('button');
+      btn.className = `tab-btn ${t.c} ${i===0?'active':''}`;
+      btn.innerHTML = `${title} <span class="tab-num">${i+1}</span>`;
+      btn.onclick = () => switchTab(i, btn);
+      nav.appendChild(btn);
+      
+      // Execute the associated rendering logic directly from the array
+      if(typeof renderers[i] === 'function') {
+        renderers[i]();
+      }
+    });
+  });
+
+} catch(err) {
+  // If ANY JS error happens, it will be printed on the screen instead of showing a blank page.
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = `
+      <div style="background:#220000; color:#ffaaaa; padding:40px; font-family:monospace; font-size:14px; height:100vh;">
+        <h2 style="color:#ff4444; margin-bottom:20px;">시스템 로드 오류 발생</h2>
+        <p>자바스크립트 실행 중 문제가 발생하여 화면을 그릴 수 없습니다. 로컬 파일 보안 정책(CORS) 또는 사내 시스템 브라우저 제약일 수 있습니다.</p>
+        <pre style="background:#000; padding:20px; border-radius:8px; margin-top:20px; white-space:pre-wrap; word-break:break-all;">${err.stack}</pre>
+      </div>`;
+  });
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #8 */
+(function(){var I=8;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

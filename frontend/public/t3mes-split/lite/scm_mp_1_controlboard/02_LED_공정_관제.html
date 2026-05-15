@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>LED 공정 관제</title>
+<!-- T3MES UI Pattern · scm_mp_1_controlboard · TabPage #2: LED 공정 관제 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+    <div class="sec-hdr">
+      <div>
+        <h3 style="font-size:22px;color:var(--cyan)">🏭 LED 4대 공정 MP/MRP 개별 제어 및 통합 관제</h3>
+        <span class="tip">MOD ➔ PKG ➔ FAB ➔ EPI (역방향 계획) 순서로 엔진을 독립 제어하며, 통합 대시보드의 모든 요소를 누락 없이 모니터링합니다.</span>
+      </div>
+      <button class="btn btn-blue" onclick="showToast('MOD ➔ EPI 역순으로 전체 일괄 배치 Run을 시작합니다.')">⚡ 4대 공정 일괄 배치 Run (Backward)</button>
+    </div>
+    
+    <div class="grid4" id="led-process-cards" style="margin-bottom:16px;">
+      </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">공정 간 파이프라인 진척도</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>1. MOD (모듈 조립) 계산</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>2. PKG (패키징) 계산</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-active">3</div><div style="flex:1"><div style="color:var(--cyan);font-weight:bold">3. FAB (칩 제조) 계산 중</div><div class="progress-bg"><div class="progress-bar" style="width:65%;background:var(--cyan)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">4</div><div style="flex:1;color:var(--text3)"><div>4. EPI (에피택시) 대기</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-title">노드 리소스 현황 (LED Cluster)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster CPU Avg</span><span style="color:var(--amber)">82%</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:82%;background:var(--amber)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster Memory</span><span style="color:var(--red)">95% (245GB/256GB)</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:95%;background:var(--red)"></div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto">
+          <div style="background:var(--surface3);padding:10px;border-radius:6px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--green)">16</div><div style="font-size:10px;color:var(--text2)">Active Nodes</div></div>
+          <div style="background:var(--red-dim);padding:10px;border-radius:6px;text-align:center;border:1px solid var(--red)"><div style="font-size:18px;font-weight:700;color:var(--red)">0</div><div style="font-size:10px;color:var(--red)">Dead Nodes</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--amber)">
+        <div class="card-title" style="color:var(--amber)">공정 간 자재 정합성 모니터링</div>
+        <div class="tbl-wrap" style="flex:1;border:none;background:transparent">
+          <table class="tbl">
+            <thead><tr><th>흐름 (Flow)</th><th>자재 아이템</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>MOD ➔ PKG</td><td>PKG 3528 SMD</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">SYNC OK</span></td></tr>
+              <tr><td>PKG ➔ FAB</td><td>Blue Chip 0.2W</td><td><span class="badge" style="background:var(--cyan-dim);color:var(--cyan)">CALC..</span></td></tr>
+              <tr><td>FAB ➔ EPI</td><td>Wafer 6inch</td><td><span class="badge" style="background:var(--surface3);color:var(--text2)">WAIT</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">최근 LED 엔진 구동 이력</div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>Job ID</th><th>소요시간</th><th>상태</th></tr></thead>
+            <tbody id="led-history"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--red)">
+        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)</div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>공정 모듈</th><th>에러 내용</th></tr></thead>
+            <tbody id="led-errors"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live Terminal (실시간 통합 로그)</div>
+        <div class="terminal" id="led-terminal" style="font-size:10px;height:100%;min-height:200px"></div>
+      </div>
+    </div>
+  </div>

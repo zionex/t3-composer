@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>💼 영업 관리</title>
+<!-- T3MES UI Pattern · scm_snop_1 · TabPage #2: 💼 영업 관리 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+    <div class="grid-top">
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">납기 준수율 (On-Time Delivery, OTD)</div>
+        <div style="display:flex;align-items:center;gap:30px">
+          <div class="donut-wrap" style="background:conic-gradient(var(--c-sal) 95%, var(--surface3) 0)">
+            <div class="donut-inner"><div class="donut-val c-sal">95%</div><div class="donut-lbl">목표: 98%</div></div>
+          </div>
+          <div>
+            <div style="margin-bottom:10px"><span style="color:var(--text2)">총 출하 건수:</span> <b style="font-size:18px;font-family:var(--mono)">1,240</b></div>
+            <div style="margin-bottom:10px"><span style="color:var(--text2)">지연 출하:</span> <b style="font-size:18px;font-family:var(--mono);color:var(--c-qal)">62</b></div>
+            <div><span class="trend t-up">▲ 2%p 개선</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">당월 수주 총액</div>
+        <div class="val-l c-sal">₩ 8.2B</div>
+        <div class="pg-wrap"><div class="pg-bar bg-sal" style="width:82%"></div></div>
+        <div class="tip" style="text-align:right;margin-top:8px">월 목표 10B 대비 82%</div>
+      </div>
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">평균 수주-출하 리드타임 (Lead Time)</div>
+        <div class="val-l">14.5 일</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <div style="flex:1;background:var(--surface3);height:12px;border-radius:6px;display:flex;overflow:hidden">
+            <div style="width:20%;background:var(--c-pur);font-size:9px;text-align:center;line-height:12px;color:#fff">승인(3)</div>
+            <div style="width:60%;background:var(--c-prd);font-size:9px;text-align:center;line-height:12px;color:#fff">생산(8.5)</div>
+            <div style="width:20%;background:var(--c-sal);font-size:9px;text-align:center;line-height:12px;color:#fff">물류(3)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-mid">
+      <div class="kpi-card">
+        <div class="card-title">📊 주간 수주 및 출하 실적 (Trend)</div>
+        <div class="chart-wrap" id="chart-sal-1"></div>
+        <div style="display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:11px">
+          <span style="color:var(--c-sal)">■ 수주액 (Order)</span>
+          <span style="color:var(--c-prd)">■ 출하액 (Shipment)</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">🏆 Top 5 고객사 매출 비중</div>
+        <table class="kpi-tbl">
+          <tr><td>1. 현대모비스</td><td class="num c-sal">35%</td></tr>
+          <tr><td>2. HL만도</td><td class="num c-sal">22%</td></tr>
+          <tr><td>3. 한온시스템</td><td class="num c-sal">15%</td></tr>
+          <tr><td>4. 삼성SDI</td><td class="num c-sal">10%</td></tr>
+          <tr><td>5. 기타</td><td class="num c-text3">18%</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>

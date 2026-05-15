@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>챗봇 대화형</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #29: 챗봇 대화형 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 챗봇 대화형 입고 지시 (Conversational UI)</h3><span class="tip">메신저 창에 텍스트를 치듯 자연어로 명령하면 챗봇이 찰떡같이 알아듣고 입고 전표를 만들어 냅니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;height:450px;display:flex;flex-direction:column">
+      <div style="flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="chat28">
+        <div style="max-width:80%;padding:12px;background:var(--surface3);border-radius:8px;align-self:flex-start">안녕하세요, 자재부 챗봇입니다. 어떤 물건이 들어왔나요?</div>
+        <div style="max-width:80%;padding:12px;background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan);border-radius:8px;align-self:flex-end">쿠팡에서 시킨 복사용지 A4 10박스 오늘 들어왔어. 기타 입고로 잡아줘.</div>
+        <div style="max-width:80%;padding:12px;background:var(--surface3);border-radius:8px;align-self:flex-start">네, 무발주/기타 입고로 A4 용지 10박스 생성했습니다. 확정할까요?</div>
+      </div>
+      <div style="padding:16px;border-top:1px solid var(--border)"><button class="btn btn-cyan" style="width:100%" onclick="$('chat28').innerHTML+=`<div style='max-width:80%;padding:12px;background:var(--surface3);border-left:3px solid var(--green);border-radius:8px;align-self:flex-start;margin-top:10px'>✅ 전표 GR-001 생성 및 재고 10 Box 증가 완료.</div>`;showToast('챗봇 입고 확정')">네, 확정해 (Click)</button></div>
+    </div>
+  </div>

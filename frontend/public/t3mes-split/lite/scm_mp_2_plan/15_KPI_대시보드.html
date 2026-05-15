@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>KPI 대시보드</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #15: KPI 대시보드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑮ 보정 후 KPI 대시보드 요약</h3>
+      <span class="tip">보정 확정 전 최종 KPI 변화를 시각적으로 확인합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="genP14()">⟳ 재계산</button>
+      <button class="btn btn-green" onclick="showToast('최종 확정 완료')">✅ 최종 확정</button>
+    </div>
+  </div>
+  <div class="grid4" id="kpi-cards" style="margin-bottom:16px"></div>
+  <div class="grid2">
+    <div class="card" style="margin:0"><div class="card-title">수량 비교</div><div class="tbl-wrap" style="max-height:280px">
+      <table class="tbl"><thead><tr><th>발주번호</th><th class="num">전</th><th class="num">후</th><th class="num">증감</th><th>위험도</th></tr></thead><tbody id="tb14-detail"></tbody></table>
+    </div></div>
+    <div class="card" style="margin:0"><div class="card-title">일별 부하 Heatmap</div><div id="heatmap14" style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:4px"></div></div>
+  </div>
+</div>

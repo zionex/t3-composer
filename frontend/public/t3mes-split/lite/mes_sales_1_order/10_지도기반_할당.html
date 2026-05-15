@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>지도기반 할당</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #10: 지도기반 할당 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+  <div class="sec-hdr"><div><h3>⑩ 지도/지역 기반 다중 할당</h3><span class="tip">지도의 핀을 클릭해 지점별 물량을 칩니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns: 2fr 1fr">
+    <div class="map-canvas">
+      <div class="map-pin" style="top:25%;left:25%" onclick="mapSet('서울 강남점')"></div><div style="position:absolute;top:25%;left:25%;transform:translate(15px, -10px);font-weight:700">강남점</div>
+      <div class="map-pin" style="top:60%;left:35%" onclick="mapSet('대전 둔산점')"></div><div style="position:absolute;top:60%;left:35%;transform:translate(15px, -10px);font-weight:700">대전 둔산점</div>
+      <div class="map-pin" style="top:75%;left:80%" onclick="mapSet('부산 해운대점')"></div><div style="position:absolute;top:75%;left:80%;transform:translate(15px, -10px);font-weight:700">해운대점</div>
+    </div>
+    <div class="card" style="margin:0"><div class="card-title" id="map-lbl" style="color:var(--cyan)">지점을 선택하세요</div><input type="number" class="inp" value="50" style="font-size:24px;margin-bottom:16px"><button class="btn btn-cyan" style="width:100%" onclick="showToast('수량 할당 완료')">수량 할당</button></div>
+  </div>
+</div>

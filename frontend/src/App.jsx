@@ -4,9 +4,10 @@ import { Box, AppBar, Toolbar, Typography, Button, Tabs, Tab, IconButton } from 
 import CloseIcon from '@mui/icons-material/Close';
 
 import T3Composer from './view/util/t3composer/T3Composer';
-import T3ComposerPatterns from './view/util/t3composerpatterns/T3ComposerPatterns';
+import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
 import T3ComposerHistory from './view/util/t3composerhistory/T3ComposerHistory';
+import T3Mockup from './view/util/t3mockup/T3Mockup';
 import PreviewLoader from './view/util/preview/PreviewLoader';
 import { ShowMessageHost } from '@wingui/common/imports';
 
@@ -23,10 +24,11 @@ import { ShowMessageHost } from '@wingui/common/imports';
  * 런타임 격리 메커니즘은 PreviewEmbed 와 공유 (preview/runtime.js).
  */
 const MENU_ITEMS = [
-    { key: 'composer', label: 'T3Composer', Component: T3Composer },
-    { key: 'history',  label: '이력',       Component: T3ComposerHistory },
-    { key: 'patterns', label: '패턴',       Component: T3ComposerPatterns },
-    { key: 'dict',     label: '갤러리',     Component: T3ComposerDict },
+    { key: 'composer', label: 'T3Composer',         Component: T3Composer },
+    { key: 'history',  label: 'History',             Component: T3ComposerHistory },
+    { key: 'mockup',   label: 'SCM UI Mockup',       Component: T3Mockup },
+    { key: 'patterns', label: 'UI Pattern',          Component: T3mesPatternCatalog },
+    { key: 'dict',     label: 'Gallery',            Component: T3ComposerDict },
 ];
 
 function findMenu(key) { return MENU_ITEMS.find((m) => m.key === key); }

@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>공정 드래그</title>
+<!-- T3MES UI Pattern · mes_production_2_result · TabPage #11: 공정 드래그 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p10"><div class="sec-hdr"><div><h3>⑪ 공정 흐름 (Flow-through) 드래그</h3><span class="tip">연속 공정에서 박스를 다음 단계로 넘기면 통과 처리됩니다.</span></div></div><div class="flow-wrap"><div class="flow-step"><div style="font-weight:700">1. 절단</div><div id="f1" style="margin-top:10px"></div></div><div class="flow-arrow">➔</div><div class="flow-step" style="border-color:var(--amber)" ondragover="event.preventDefault()" ondrop="kDrop(event,this)"><div style="font-weight:700;color:var(--amber)">2. 연마</div></div><div class="flow-arrow">➔</div><div class="flow-step" style="border-color:var(--green)" ondragover="event.preventDefault()" ondrop="kDropWon(event,this)"><div style="font-weight:700;color:var(--green)">3. 세척 (완료)</div></div></div></div>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Order UI (30 Types) - Massive Full Data</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* 기획/지시 화면이므로 Blue/Cyan 톤을 메인 테마로 잡습니다 */
+  --bg:#0f1219;--surface:#171b26;--surface2:#1d2331;--surface3:#262d40;
+  --border:#2f374e;--border2:#404b69;
+  --text:#ebedf2;--text2:#a5b0c7;--text3:#626f8d;
+  --blue:#3b82f6;--blue-dim:#3b82f622;--blue-mid:#3b82f655;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --green:#10b981;--green-dim:#10b98122;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --red:#ef4444;--red-dim:#ef444422;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (5 Groups x 6 Tabs = 30 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Tab Colors by Group */
+.t-b.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-b.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-c.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-c.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-g.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-g.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-a.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-a.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-p.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-p.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables (Sticky Header & Scroll optimized) */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Forms & Inputs */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border .15s}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-dim)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:var(--green-mid);color:var(--green)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-red{background:var(--red-dim);border-color:#ef444455;color:var(--red)}
+.btn-purple{background:var(--purple-dim);border-color:#8b5cf655;color:var(--purple)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+
+/* Grids */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* Special UI Patterns CSS */
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:320px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.cal-header{background:var(--surface3);text-align:center;padding:8px;font-size:12px;font-weight:700}
+.cal-day{background:var(--surface);min-height:100px;padding:6px;cursor:pointer}
+.cal-day:hover{background:var(--surface3)}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 단건 수동 작업지시 (Basic WO)</h3><span class="tip">가장 기본적인 1건의 작업지시를 폼 형태로 입력하고 지시를 내립니다. (우측 이력 50건 생성)</span></div><button class="btn btn-blue" onclick="showToast('작업지시(WO) 생성 및 배포 완료')">지시 발행 (Release)</button></div>
+    <div class="grid2">
+      <div>
+        <div class="card"><div class="card-title">지시 기본 정보</div><div class="grid2"><div><div class="label">지시품목</div><select class="inp"><option>A3-볼트 M10×40</option></select></div><div><div class="label">목표 지시수량</div><input type="number" class="inp" value="5000" style="font-size:16px;font-weight:700;color:var(--cyan)"></div></div></div>
+        <div class="card"><div class="card-title">일정 및 설비 할당</div><div class="grid2" style="margin-bottom:12px"><div><div class="label">계획 시작일시</div><input type="datetime-local" class="inp" value="2024-10-30T09:00"></div><div><div class="label">계획 종료일시</div><input type="datetime-local" class="inp" value="2024-10-30T18:00"></div></div><div class="label">할당 설비/라인</div><select class="inp"><option>CNC 선반 1호기</option><option>프레스 3호기</option></select></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;height:450px"><div class="card-title">최근 발행된 지시 목록 (50건)</div><div id="tb0" style="flex:1;overflow-y:auto;padding-right:8px"></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 엑셀 대량 일괄 지시 (Bulk Upload)</h3><span class="tip">ERP나 생산계획팀에서 엑셀로 내려온 주간/월간 생산계획 수백 건을 한 번에 시스템에 밀어 넣습니다. (500건 자동생성)</span></div></div>
+    <div style="border:2px dashed var(--blue);padding:40px;text-align:center;background:var(--surface);cursor:pointer;border-radius:12px;margin-bottom:16px" onclick="doUpload1()"><div style="font-size:40px;margin-bottom:10px">📁</div><div style="font-size:16px;font-weight:700;color:var(--blue)">여기를 클릭하여 주간 생산계획 엑셀 업로드</div></div>
+    <div class="tbl-wrap" style="display:none" id="wrap1"><table class="tbl"><thead><tr><th>행</th><th>계획품목</th><th>지시수량</th><th>납기일</th><th>BOM/라우팅 검증 결과</th></tr></thead><tbody id="tb1"></tbody></table><div style="text-align:right;padding:16px;background:var(--surface2)"><button class="btn btn-blue" onclick="showToast('정상 475건 일괄 작업지시 발행 완료')">오류 제외하고 일괄 지시 발행</button></div></div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 영업수주(SO) 연동 다이렉트 지시 (MTO)</h3><span class="tip">주문제조(Make-To-Order) 환경에서 영업팀이 확정한 수주(Sales Order) 리스트를 보고 즉시 작업지시로 1:1 변환합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title" style="color:var(--amber)">미처리 영업수주(SO) 리스트</div><div class="tbl-wrap" style="max-height:400px"><table class="tbl"><thead><tr><th>수주번호 / 고객사</th><th>품목 / 수량</th><th>납기일</th><th>액션</th></tr></thead><tbody id="tb2"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--cyan)">생성된 작업지시(WO) 미리보기</div><div class="tbl-wrap" style="max-height:400px"><table class="tbl"><thead><tr><th>생성된 지시번호</th><th>품목 / 지시수량</th><th>설비할당 (자동)</th></tr></thead><tbody id="tb2_wo"><tr><td colspan="3" style="text-align:center;padding:50px;color:var(--text3)">좌측에서 지시 변환 버튼을 누르세요.</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 하위 BOM 전개형 지시 (Explosion)</h3><span class="tip">완제품 1개를 조립하기 위해 필요한 하위 반제품(Sub-assembly)들의 작업지시를 트리 형태로 연쇄 발급합니다.</span></div></div>
+    <div style="display:flex;gap:12px;margin-bottom:16px"><select class="inp" style="width:300px"><option>완제품: 고성능 전기 자전거 세트</option></select><input type="number" class="inp" value="500" style="width:100px" placeholder="목표수량"><button class="btn btn-ghost" onclick="doBom()">하위 BOM 전개 및 지시량 계산 ↓</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>BOM 레벨 / 품목명</th><th>단위소요량</th><th style="color:var(--cyan)">필요 총수량</th><th>현재고</th><th style="color:var(--amber)">부족(지시필요)</th><th>하위 지시 발급</th></tr></thead><tbody id="tb3"><tr><td colspan="6" style="text-align:center;padding:50px">전개 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 공정 라우팅(Routing) 지정형 지시</h3><span class="tip">하나의 제품을 만들기 위해 거쳐야 하는 공정 순서(절단->용접->도장)를 드래그로 설정하여 지시를 내립니다.</span></div><button class="btn btn-blue" onclick="showToast('설정된 라우팅으로 지시 발급 완료')">라우팅 지시 확정</button></div>
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      <div class="card" style="width:300px"><div class="card-title">공정 마스터 (Drag)</div><div style="display:flex;flex-direction:column;gap:8px"><div class="badge badge-gray" style="padding:10px;font-size:13px;cursor:grab" draggable="true" ondragstart="rDrag(event)">절단 공정 (Cutting)</div><div class="badge badge-gray" style="padding:10px;font-size:13px;cursor:grab" draggable="true" ondragstart="rDrag(event)">용접 공정 (Welding)</div><div class="badge badge-gray" style="padding:10px;font-size:13px;cursor:grab" draggable="true" ondragstart="rDrag(event)">도장 공정 (Painting)</div><div class="badge badge-gray" style="padding:10px;font-size:13px;cursor:grab" draggable="true" ondragstart="rDrag(event)">조립 공정 (Assembly)</div><div class="badge badge-gray" style="padding:10px;font-size:13px;cursor:grab" draggable="true" ondragstart="rDrag(event)">최종 검사 (Inspection)</div></div></div>
+      <div style="flex:1;background:var(--surface2);border:2px dashed var(--border2);border-radius:12px;padding:20px;min-height:300px;display:flex;align-items:center;gap:10px;overflow-x:auto" id="r-drop" ondragover="event.preventDefault()" ondrop="rDrop(event)">
+        <div style="color:var(--text3);padding:0 20px">이곳으로 공정을 순서대로 드래그하세요 ➔</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 간트 차트(Gantt) 시각적 스케줄링</h3><span class="tip">시간 축 위에 작업지시(Bar)를 마우스로 드래그 앤 드롭하여 시작/종료 시간과 설비를 직관적으로 배치합니다.</span></div></div>
+    <div class="tbl-wrap" style="padding:20px;height:400px" id="tb5"></div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 월간 캘린더 드래그 앤 드롭 (Calendar)</h3><span class="tip">달력을 보며 일자별 부하를 파악하고, 미배정 지시를 특정 일자에 던져서 일정을 확정합니다.</span></div></div>
+    <div class="cal-grid" id="cal6"></div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 설비 할당형 매트릭스 (Machine Allocation)</h3><span class="tip">세로축은 시간, 가로축은 설비로 두고, 스프레드시트처럼 특정 설비의 빈 시간에 수량을 직접 타건하여 지시를 쪼개 넣습니다.</span></div><button class="btn btn-blue" onclick="showToast('설비 매트릭스 지시 저장 완료')">매트릭스 지시 저장</button></div>
+    <div class="tbl-wrap" style="max-height:500px"><table class="tbl"><thead id="th7"></thead><tbody id="tb7"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 작업자(Crew) 지정 및 공수 배분 지시</h3><span class="tip">플랜트/조선 등에서 하나의 거대한 작업지시에 여러 명의 작업자 팀을 미리 세팅하여 지시를 내립니다.</span></div></div>
+    <div class="grid2"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>현장 작업자 풀 (클릭하여 할당)</th></tr></thead><tbody id="tb8_1"></tbody></table></div><div class="card" style="margin:0"><div class="card-title">현재 할당된 팀원 (Crew)</div><div class="tbl-wrap" style="max-height:300px;margin-bottom:16px"><table class="tbl"><thead><tr><th>작업자</th><th>예상 공수(H)</th></tr></thead><tbody id="tb8_2"></tbody></table></div><button class="btn btn-cyan" style="width:100%" onclick="showToast('해당 인원들로 작업지시가 발급되었습니다.')">팀 할당 지시 발행</button></div></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 긴급 지시 (Hot Order) 새치기 끼워넣기</h3><span class="tip">이미 꽉 찬 현장 스케줄 큐(Queue)에 빨간색의 초긴급 오더를 드래그하여 최우선 순위로 강제 삽입합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 대기중인 긴급 오더 (Hot)</div><div class="badge badge-red" style="padding:16px;font-size:14px;cursor:grab;width:100%;text-align:center" draggable="true" ondragstart="hotDrag(event)">[긴급] 삼성전자 클레임 대체품 500개</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">현장 CNC 1호기 대기열 (Queue)</div><div style="display:flex;flex-direction:column;gap:8px;padding-bottom:20px" id="hot-queue" ondragover="event.preventDefault()" ondrop="hotDrop(event)"><div style="padding:12px;background:var(--surface);border:1px solid var(--border)">1순위: 일반 작업 (2,000개)</div><div style="padding:12px;background:var(--surface);border:1px solid var(--border)">2순위: 일반 작업 (5,000개)</div></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 작업지시 분할 (Order Split) 쪼개기</h3><span class="tip">10,000개짜리 대형 지시를 설비 캐파에 맞춰 3,000 / 3,000 / 4,000 등 여러 장의 하위 지시서로 찢습니다.</span></div></div>
+    <div class="card" style="display:flex;align-items:center;gap:20px;background:var(--blue-dim);border-color:var(--blue)"><div><div class="label">원본 지시번호</div><div style="font-size:20px;font-weight:700">WO-MASTER-001</div></div><div><div class="label">총 목표수량</div><div style="font-size:24px;font-weight:700;color:var(--blue)">10,000 EA</div></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>분할 지시번호 (생성예정)</th><th style="text-align:right">분할 수량 입력</th><th>할당 설비</th></tr></thead><tbody id="tb10"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-blue" onclick="showToast('마스터 지시 1건이 5건의 분할 지시로 쪼개졌습니다.')">수량 검증 및 분할 확정</button></div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 작업지시 병합 (Order Merge) 모아찍기</h3><span class="tip">열처리 노(Furnace)처럼 한 번에 여러 제품을 넣고 돌려야 할 때, 자잘한 지시들을 모아 하나의 'Batch 지시'로 묶습니다.</span></div></div>
+    <div class="grid2">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>자잘한 대기 지시 (체크하여 병합)</th></tr></thead><tbody id="tb11"></tbody></table></div>
+      <div class="card" style="text-align:center;display:flex;flex-direction:column;justify-content:center"><div style="font-size:50px">🔥</div><div style="font-size:18px;font-weight:700;margin:16px 0">열처리 로(Furnace) 배치(Batch) 지시 생성</div><button class="btn btn-amber" style="width:100%;padding:16px;font-size:16px" onclick="showToast('선택된 자잘한 지시들이 1개의 배치 지시로 병합되었습니다.')">체크 항목 병합 발급 (Merge) ➔</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 자재 가용성 및 결품 시뮬레이션 (Shortage Check)</h3><span class="tip">지시를 현장에 내리기 전, 창고(WMS)의 현재고를 긁어와서 부품이 모자라지 않는지 사전 검증(Pre-check)합니다.</span></div></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="font-size:16px;font-weight:700">작업지시: 스마트폰 조립 10,000대</div><button class="btn btn-cyan" onclick="doShortage()">결품 시뮬레이션 돌리기 ↻</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>소요 자재(BOM)</th><th>필요 총수량</th><th>WMS 현재고</th><th>가용성 판정</th></tr></thead><tbody id="tb12"><tr><td colspan="4" style="text-align:center;padding:30px">시뮬레이션 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 대체 자재 (Substitute) 임의 지정 지시</h3><span class="tip">결품이 났을 때, 표준 BOM 대신 대체 가능한 호환 부품(A스펙 -> B스펙)을 쓰라고 지시서에 강제 지정해 줍니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>원래 자재 (재고부족)</th><th>대체 가능 자재 리스트 (선택)</th><th>액션</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 금형 및 지그 (Tooling) 매핑 지시</h3><span class="tip">프레스/사출 공정에서 단순히 설비만 지정하는 게 아니라, '어떤 금형(Mold)'을 장착해서 찍어내라고 도구까지 묶어 지시합니다.</span></div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center;border-color:var(--blue)"><div style="font-size:12px;color:var(--text2)">1. 대상 설비</div><div style="font-size:20px;font-weight:700;margin-top:10px">사출기 1호기</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text3)">➕</div>
+      <div class="card" style="text-align:center;border-color:var(--cyan)"><div style="font-size:12px;color:var(--text2)">2. 장착할 금형 선택</div><select class="inp" style="margin-top:10px;text-align:center;font-weight:700;color:var(--cyan)"><option>스마트폰 후면커버 금형 (MOLD-A01)</option><option>노트북 하판 금형 (MOLD-B02)</option></select></div>
+    </div>
+    <button class="btn btn-cyan" style="width:100%;padding:14px" onclick="showToast('사출기 1호기에 MOLD-A01 금형 세팅 지시가 하달되었습니다.')">설비 + 금형 결합 지시 하달</button>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 레시피/파라미터(Recipe) 다운로드 지시</h3><span class="tip">작업자에게 종이 지시서를 주는 것을 넘어, 설비(PLC)로 온도/압력 설정값을 직접 쏴서(Download) 자동 세팅시킵니다.</span></div><span class="badge" style="background:var(--green);color:#fff">● 설비 양방향 통신 연결됨</span></div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl"><thead><tr><th>파라미터 명</th><th>표준 설정값 (Set Point)</th><th>허용 오차 (Tolerance)</th></tr></thead><tbody id="tb15"></tbody></table></div>
+    <button class="btn btn-blue" style="width:100%;padding:16px;font-size:16px" onclick="showToast('모든 설정값이 설비 PLC로 전송되어 자동 세팅되었습니다.')">설비로 레시피 설정값 전송 (Download) ➔</button>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ 도면 및 표준작업지도서(SOP) 첨부 지시</h3><span class="tip">현장 태블릿에서 작업지시를 열었을 때 해당 제품의 최신 3D CAD 도면이나 조립 매뉴얼 PDF를 바로 볼 수 있게 링크를 걸어줍니다.</span></div></div>
+    <div class="card" style="border:2px dashed var(--blue);text-align:center;padding:40px;cursor:pointer" onclick="showToast('가상 도면 첨부 완료')"><div style="font-size:40px">📄</div><div style="font-size:16px;font-weight:700;color:var(--blue);margin-top:10px">여기를 클릭하여 PDF/CAD 도면 파일 첨부</div></div>
+    <div class="tbl-wrap" style="max-height:200px"><table class="tbl"><thead><tr><th>첨부된 문서명</th><th>버전</th></tr></thead><tbody id="tb16"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 외주 가공 (Subcontracting) 발주 연동 지시</h3><span class="tip">사내 공정이 아닌 협력사(외주)로 물건을 보내 처리해야 할 때, 작업지시와 동시에 '외주 가공 발주서(PO)'를 엮어서 생성합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">내부 지시 정보</div><div class="label">외주 대상 품목</div><input type="text" class="inp" value="반도체 웨이퍼 (도금 공정)" disabled style="margin-bottom:12px"><div class="label">가공 수량</div><input type="number" class="inp" value="500" disabled></div>
+      <div class="card" style="border-color:var(--amber)"><div class="card-title" style="color:var(--amber)">외주 발주 연동 설정</div><div class="label">외주 가공업체 선택</div><select class="inp" style="margin-bottom:12px"><option>에이테크 도금(주)</option></select><div class="label">예상 가공 단가</div><input type="number" class="inp" value="15000"></div>
+    </div>
+    <button class="btn btn-amber" style="width:100%;padding:14px" onclick="showToast('작업지시 생성 및 에이테크 도금(주)로 외주 발주서(PO) 전송 완료')">작업지시 확정 및 외주 발주(PO) 동시 전송</button>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 자동 칸반(Kanban) 보충 트리거 지시</h3><span class="tip">현장 슈퍼마켓(창고)의 특정 부품 재고가 안전재고 밑으로 떨어지면 시스템이 알아서 보충(Make) 작업지시를 띄우는 화면입니다.</span></div><button class="btn btn-green" onclick="doKanban18()">재고 스캔 시뮬레이션 ↻</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">현재고</th><th style="text-align:right">안전재고 기준</th><th>자동 지시 트리거 상태</th></tr></thead><tbody id="tb18"><tr><td colspan="4" style="text-align:center;padding:30px">스캔 시뮬레이션 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ 불량품 재작업 (Rework) 전용 지시</h3><span class="tip">검사에서 떨어진 불량품들을 스크랩(폐기)하지 않고, 다시 살려내기 위해 특별한 라우팅을 타는 재작업 지시(RW-WO)를 발급합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>불량 발생 이력 (NG)</th><th>수량</th><th>재작업 지시(RW) 발급 액션</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 바코드 트래블러 (Traveler/Routing Sheet) 출력</h3><span class="tip">지시를 시스템에만 남기는 게 아니라, 현장 작업자가 제품 박스에 붙이고 다닐 바코드(QR) 포함 실물 종이 지시서를 미리보기/출력합니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;background:#fff;color:#000;padding:30px;border-radius:4px;box-shadow:0 0 20px rgba(255,255,255,0.2)">
+      <div style="border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0">PRODUCTION TRAVELER</h2>
+        <div style="font-family:var(--mono);font-size:24px;letter-spacing:2px">||| | |||| ||</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px">
+        <tr><th style="border:1px solid #000;padding:5px;background:#eee">WO No.</th><td style="border:1px solid #000;padding:5px;font-weight:700">WO-PRINT-991</td><th style="border:1px solid #000;padding:5px;background:#eee">Date</th><td style="border:1px solid #000;padding:5px">2024-10-30</td></tr>
+        <tr><th style="border:1px solid #000;padding:5px;background:#eee">Item</th><td colspan="3" style="border:1px solid #000;padding:5px;font-weight:700">고정밀 센서 어셈블리 (1,000 EA)</td></tr>
+      </table>
+      <div style="font-size:11px;color:#666;text-align:center">--- 하단 라우팅 바코드 스캔 영역 ---</div>
+      <button style="display:block;width:100%;padding:10px;margin-top:20px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:700" onclick="showToast('프린터로 출력이 전송되었습니다.')">🖨️ PDF 라벨 프린터로 인쇄</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 단계별 지시 생성 마법사 (Wizard)</h3><span class="tip">초보 관리자도 헷갈리지 않게 '품목선택 -> 수량입력 -> 설비할당 -> 확정'의 4단계를 순서대로 안내하는 UI입니다.</span></div></div>
+    <div class="card" style="text-align:center">
+      <div style="display:flex;justify-content:space-between;margin-bottom:30px;border-bottom:2px solid var(--border);padding-bottom:10px;font-weight:700"><span style="color:var(--green)">✓ 1. 품목 선택</span><span style="color:var(--cyan)">2. 공정/수량 (현재)</span><span style="color:var(--text3)">3. 설비 할당</span><span style="color:var(--text3)">4. 최종발행</span></div>
+      <div style="padding:40px 0"><input type="number" class="inp" placeholder="지시 수량을 입력하세요" style="width:300px;font-size:24px;text-align:center"></div>
+      <button class="btn btn-blue" onclick="showToast('다음 단계로 이동')">다음 단계로 (설비 할당) ➔</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ AI 휴리스틱 최적 스케줄링 (APS 연동)</h3><span class="tip">뒤죽박죽 섞인 100개의 작업지시를 AI가 셋업 변경(교체 시간)이 최소화되도록 최적의 가공 순서로 자동 재배치합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">현재 뒤죽박죽된 지시 순서</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>순번</th><th>품목 (색상/규격)</th></tr></thead><tbody id="tb22_1"></tbody></table></div></div>
+      <div class="card" style="border-color:var(--cyan)"><div class="card-title" style="color:var(--cyan);display:flex;justify-content:space-between"><span>✨ AI 최적화 순서 (셋업 최소화)</span><button class="btn btn-cyan btn-sm" onclick="doAiOpt()">AI 최적화 실행 ↻</button></div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>순번</th><th>품목 (유사 스펙끼리 묶임)</th></tr></thead><tbody id="tb22_2"><tr><td colspan="2" style="text-align:center;padding:50px">AI 버튼을 누르세요.</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ 모바일 지시 결재/승인 (Mobile Approval)</h3><span class="tip">현장 소장이나 공장장이 외근 중 스마트폰으로 올라온 주요 작업지시를 보고 터치로 승인(Release)해주는 화면입니다.</span></div></div>
+    <div style="width:360px;height:600px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--bg);overflow:hidden;position:relative">
+      <div style="padding:20px;background:var(--surface);border-bottom:1px solid var(--border);font-weight:700">📱 승인 대기중인 작업지시 (3건)</div>
+      <div style="padding:16px;height:480px;overflow-y:auto" id="tb23"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 3D 디지털 트윈 설비 직접 할당</h3><span class="tip">글자 표 대신, 공장의 3D 모델링 화면에서 비어있는(초록색) 설비 모델을 직접 클릭해 지시를 던져넣는 초직관적 UI입니다.</span></div></div>
+    <div class="grid2" style="height:500px">
+      <div style="background:#000;border-radius:12px;border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;width:120px;height:120px;background:var(--green-dim);border:2px solid var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;box-shadow:0 0 20px var(--green)" onclick="showToast('비어있는 CNC 3호기 선택됨')"><div style="font-size:40px">⚙️</div><div style="font-weight:700;color:var(--green);font-size:11px">CNC 3호기 (Idle)</div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">선택된 설비에 지시 하달</div><div class="label">할당할 지시번호</div><input type="text" class="inp" value="WO-3D-NEW" disabled style="margin-bottom:16px"><button class="btn btn-green" style="padding:16px;font-size:16px" onclick="showToast('해당 3D 설비로 작업지시가 꽂혔습니다.')">클릭한 설비(CNC 3호기)에 지시 확정</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ 반복/정기 작업지시 (Recurring Maintenance)</h3><span class="tip">매주 월요일 아침 '설비 청소 및 예열', '안전 점검' 같은 정기적으로 반복되는 비생산 작업지시를 세팅합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>정기 지시명</th><th>반복 패턴</th><th>다음 생성 예정일</th><th>액션</th></tr></thead><tbody id="tb25"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 다기능공 자격(Skill Matrix) 사전 검증 지시</h3><span class="tip">위험물 취급이나 특수 용접 등 자격증(A등급)이 있는 작업자만 할당되도록 시스템이 스킬 레벨을 차단/허용하는 패턴입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">작업: 고압 가스 용접 (A등급 자격 필요)</div><div class="label">작업자 할당 스캔</div><input type="text" class="inp" placeholder="사원증 스캔..." id="skill-inp" oninput="doSkill()"><div id="skill-res" style="margin-top:16px;font-weight:700;font-size:14px;color:var(--red)"></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>사원명</th><th>보유 스킬 등급</th></tr></thead><tbody id="tb26"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 설비 유지보수(PM) 연계 Block 체크</h3><span class="tip">지시를 특정 설비에 내리려 할 때, 해당 날짜에 정기 예방보전(PM) 일정이 잡혀있으면 시스템이 경고를 띄우고 지시를 막습니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>할당 요청 설비</th><th>요청 날짜</th><th>PM 스케줄 체크 상태</th></tr></thead><tbody id="tb27"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 챗봇/음성(Voice) 지시 생성기</h3><span class="tip">"내일 오전까지 A제품 500개 1라인에 지시 내려줘"라고 텍스트나 말로 치면 AI가 폼을 채워줍니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;text-align:center"><div style="font-size:60px;cursor:pointer;margin-bottom:20px" onclick="showToast('AI가 문장을 파싱하여 지시서 폼을 채웠습니다.')">🎙️</div><input type="text" class="inp" value="내일 오전까지 A제품 500개 1라인에 지시 내려줘" style="font-size:16px;text-align:center"><button class="btn btn-purple" style="margin-top:20px;width:100%">AI 지시 생성</button></div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 포장/팔레타이징 (Packing/Palletizing) 지시</h3><span class="tip">생산이 끝난 제품 100개를 단순히 박스에 넣는 게 아니라, '1박스에 10개씩, 1팔레트에 10박스씩 쌓아라'는 다단 포장 룰을 지시합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">포장 지시 규칙 세팅</div><div style="font-size:16px;margin-bottom:12px">총 생산품: <b>1,000 EA</b></div><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><input type="number" class="inp num" value="10" style="width:80px"> EA ➔ 1 Box</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><input type="number" class="inp num" value="50" style="width:80px"> Box ➔ 1 Pallet</div><button class="btn btn-blue" style="width:100%" onclick="showToast('2개의 가상 팔레트 지시가 생성되었습니다.')">포장 단위 변환 지시 계산 ↓</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>생성된 팔레트 지시</th><th>내용물 구성</th></tr></thead><tbody id="tb29"><tr><td colspan="2" style="text-align:center;padding:30px">계산 버튼을 누르세요.</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+const tabNames = ["단건 지시","엑셀 업로드","SO 연동지시","BOM 전개","라우팅 지정","간트 스케줄","캘린더 드래그","설비 매트릭스","작업자 배분","긴급 오더","지시 분할","지시 병합","자재결품 체크","대체자재 지정","금형/지그 매핑","레시피 다운로드","도면/SOP 첨부","외주 발주연동","칸반 보충지시","재작업 지시","바코드 출력","단계별 마법사","AI 최적화","모바일 승인","3D 설비할당","정기 반복지시","스킬 검증","PM일정 연동","음성 AI지시","포장/팔레트 지시"];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 6);
+    let cls = ['t-b', 't-c', 't-g', 't-a', 't-p'][grp] || 't-b';
+    let btn = document.createElement('button');
+    btn.className = `tab-btn ${cls} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try{ genP0(); genP2(); genP4(); genP6(); genP7(); genP8(); genP10(); genP11(); genP13(); genP15(); genP16(); genP18(); genP23(); genP25(); genP26(); genP27(); } catch(e){ console.error(e); }
+});
+
+function genP0(){
+  let h=''; for(let i=1;i<=50;i++){ h+=`<div style="padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="font-family:var(--mono);color:var(--blue)">WO-NEW-${String(i).padStart(3,'0')}</span><span class="num">${rInt(10,500)} EA</span></div>`; } $('tb0').innerHTML=h;
+}
+
+function doUpload1(){
+  $('wrap1').style.display='block'; let h='';
+  for(let i=1;i<=500;i++){
+    const err=i%20===0;
+    h+=`<tr style="${err?'background:var(--red-dim)':''}"><td>${i}</td><td>월간 계획 품목 ${i}</td><td class="num">${rInt(100,1000)}</td><td>2024-11-${String(rInt(1,30)).padStart(2,'0')}</td><td style="color:var(--${err?'red':'green'});font-weight:700">${err?'오류: 라우팅 마스터 없음':'정상 변환 가능'}</td></tr>`;
+  }
+  $('tb1').innerHTML=h; showToast('500건 엑셀 로드 및 검증 완료');
+}
+
+function genP2(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-2410-${i} (고객사${i})</td><td>수주품목 ${i} / ${rInt(10,100)}</td><td>11/05</td><td><button class="btn btn-ghost btn-sm" onclick="convertP2(this, ${i})">지시로 변환 ➔</button></td></tr>`; } $('tb2').innerHTML=h;
+}
+function convertP2(btn, i){
+  btn.disabled=true; btn.textContent='변환완료';
+  $('tb2_wo').innerHTML+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">WO-AUTO-${i}</td><td>수주품목 ${i}</td><td>CNC ${rInt(1,5)}호기</td></tr>`;
+  const ph = $('tb2_wo').querySelector('td[colspan="3"]'); if(ph) ph.parentElement.remove();
+  showToast('수주 1건이 생산지시로 1:1 변환되었습니다.');
+}
+
+function doBom(){
+  $('tb3').innerHTML=`
+    <tr><td><b>[L0] 고성능 전기 자전거 세트</b></td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">500</td><td class="num">0</td><td class="num" style="color:var(--amber);font-weight:700">500</td><td><button class="btn btn-blue btn-sm" onclick="showToast('세트 조립 지시 발급됨')">조립지시 발급</button></td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] 알루미늄 메인 프레임</td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">500</td><td class="num">200</td><td class="num" style="color:var(--amber);font-weight:700">300</td><td><button class="btn btn-cyan btn-sm" onclick="showToast('프레임 가공 지시 발급됨')">가공지시 발급</button></td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] 500W 전기 모터 모듈</td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">500</td><td class="num">500</td><td class="num" style="color:var(--green);font-weight:700">0</td><td><span class="badge badge-green">재고충분</span></td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] 육각 볼트 세트</td><td class="num">4</td><td class="num" style="color:var(--cyan);font-weight:700">2,000</td><td class="num">100</td><td class="num" style="color:var(--amber);font-weight:700">1,900</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('구매 발주 연동')">구매 발주요청</button></td></tr>
+  `;
+  showToast('BOM 역전개 및 필요 소요량 계산 완료');
+}
+
+// Drag & Drop Routing
+let rDrg=null;
+function rDrag(e){ rDrg=e.target; rDrg.style.opacity='0.5'; }
+document.addEventListener('dragend', () => { if(rDrg) rDrg.style.opacity='1'; });
+function rDrop(e){
+  e.preventDefault();
+  if(rDrg){
+    const clone = rDrg.cloneNode(true);
+    clone.style.opacity='1'; clone.style.cursor='default'; clone.draggable=false;
+    clone.style.border='2px solid var(--blue)'; clone.style.background='var(--blue-dim)'; clone.style.color='var(--blue)';
+    if($('r-drop').innerText.includes('드래그하세요')) $('r-drop').innerHTML='';
+    if($('r-drop').children.length>0){ const arrow=document.createElement('div'); arrow.innerText='➔'; arrow.style.color='var(--text3)'; $('r-drop').appendChild(arrow); }
+    $('r-drop').appendChild(clone);
+  }
+}
+
+function genP4(){
+  let h=''; for(let i=1;i<=20;i++){
+    const w=rInt(20,50); const l=rInt(0,30);
+    h+=`<div style="display:flex;align-items:center;margin-bottom:8px"><div style="width:100px;font-size:11px;color:var(--text2)">가공설비 ${i}호기</div><div style="flex:1;height:24px;background:var(--surface3);border-radius:4px;position:relative"><div style="position:absolute;left:${l}%;width:${w}%;height:100%;background:var(--blue-dim);border:1px solid var(--blue);border-radius:4px;cursor:pointer" onclick="showToast('이 시간대로 지시 이동/수정 팝업')"></div></div></div>`;
+  }
+  $('tb5').innerHTML=h;
+}
+
+function genP6(){
+  let h=''; const ds=['일','월','화','수','목','금','토']; ds.forEach(d=>h+=`<div class="cal-header">${d}</div>`);
+  for(let i=1;i<=35;i++){
+    h+=`<div class="cal-day" onclick="showToast('11월 ${i}일에 지시 드롭/등록')"><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${i>30?i-30:i}</div>`;
+    if(Math.random()>0.7) h+=`<div style="background:var(--blue-dim);color:var(--blue);font-size:10px;padding:2px;border-radius:3px">지시 ${rInt(1,3)}건 배정됨</div>`;
+    h+=`</div>`;
+  }
+  $('cal6').innerHTML=h;
+}
+
+function genP7(){
+  let h1='<tr><th style="min-width:100px">시간/설비</th>'; for(let i=1;i<=8;i++) h1+=`<th style="text-align:center">MC-${i}호기</th>`; h1+='</tr>'; $('th7').innerHTML=h1;
+  let h2=''; for(let i=9;i<=18;i++){
+    h2+=`<tr><td style="font-weight:700">${i}:00</td>`;
+    for(let j=1;j<=8;j++) h2+=`<td><input type="number" class="inp inp-sm num" value="${Math.random()>0.5 ? rInt(100,500) : 0}"></td>`;
+    h2+='</tr>';
+  }
+  $('tb7').innerHTML=h2;
+}
+
+function genP8(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<tr><td style="cursor:pointer" onclick="addP8('현장 크루 ${i}')">👤 현장 크루 ${i} (EMP-${i}) <span style="float:right;color:var(--cyan)">투입+</span></td></tr>`; } $('tb8_1').innerHTML=h;
+}
+function addP8(n){ $('tb8_2').innerHTML+=`<tr><td>${n}</td><td><input type="number" class="inp inp-sm num" value="8"></td></tr>`; showToast(n+' 투입 세팅됨'); }
+
+let hDrg=null;
+function hotDrag(e){ hDrg=e.target; }
+function hotDrop(e){ e.preventDefault(); if(hDrg){ $('hot-queue').prepend(hDrg); hDrg.style.border='2px solid var(--red)'; showToast('긴급 지시가 대기열 최상단에 강제 끼워넣기 되었습니다.'); } }
+
+function genP10(){
+  let h=''; for(let i=1;i<=5;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">WO-SPLIT-00${i}</td><td><input type="number" class="inp inp-sm num" value="2000" style="color:var(--cyan);font-weight:700"></td><td><select class="inp inp-sm"><option>설비 ${i}호기</option></select></td></tr>`; } $('tb10').innerHTML=h;
+}
+
+function genP11(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td><label style="cursor:pointer"><input type="checkbox"> 자잘한 지시 WO-S-${i} (수량: ${rInt(10,50)})</label></td></tr>`; } $('tb11').innerHTML=h;
+}
+
+function doShortage(){
+  $('tb12').innerHTML=`
+    <tr><td>메인 PCB 보드</td><td class="num">10,000</td><td class="num">15,000</td><td><span class="badge badge-green">가용(OK)</span></td></tr>
+    <tr><td>액정 디스플레이</td><td class="num">10,000</td><td class="num">12,000</td><td><span class="badge badge-green">가용(OK)</span></td></tr>
+    <tr style="background:var(--red-dim)"><td>배터리 팩 4000mAh</td><td class="num" style="color:var(--red);font-weight:700">10,000</td><td class="num">2,000</td><td><span class="badge badge-red">결품(Shortage 8,000)</span></td></tr>
+  `;
+  showToast('자재 가용성 체크 완료. 배터리 팩 결품으로 인해 지시가 제한됩니다.');
+}
+
+function genP13(){
+  let h=''; for(let i=1;i<=5;i++){ h+=`<tr><td style="color:var(--red);font-weight:700">결품자재 A-${i}</td><td><select class="inp inp-sm"><option>대체 호환자재 B-${i}</option></select></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('대체 자재 지정 완료')">지정 확정</button></td></tr>`; } $('tb13').innerHTML=h;
+}
+
+function genP15(){
+  let h='';
+  h+=`<tr><td>Main Temp (온도)</td><td class="num">250 ℃</td><td class="num">± 5 ℃</td></tr>`;
+  h+=`<tr><td>Pressure (압력)</td><td class="num">4.5 MPa</td><td class="num">± 0.2 MPa</td></tr>`;
+  h+=`<tr><td>Speed (속도)</td><td class="num">1500 RPM</td><td class="num">± 10 RPM</td></tr>`;
+  $('tb15').innerHTML=h;
+}
+
+function genP16(){
+  let h=''; for(let i=1;i<=3;i++){ h+=`<tr><td style="color:var(--blue);font-weight:700">📄 제품 조립 가이드_v${i}.pdf</td><td class="num">v${i}.0</td></tr>`; } $('tb16').innerHTML=h;
+}
+
+function doKanban18(){
+  $('tb18').innerHTML=`
+    <tr><td>M10 볼트</td><td class="num">5,000</td><td class="num">1,000</td><td><span class="badge badge-gray">충분 대기</span></td></tr>
+    <tr style="background:var(--amber-dim)"><td>A형 브라켓</td><td class="num" style="color:var(--amber);font-weight:700">200</td><td class="num">500</td><td><button class="btn btn-amber btn-sm" onclick="showToast('보충 지시가 가공팀으로 발급됨')">자동 보충지시 트리거됨</button></td></tr>
+  `;
+  showToast('센서가 재고 부족을 감지하여 보충(Make) 신호를 발생시켰습니다.');
+}
+
+function genP19(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--red)">NG-LOT-00${i}</td><td class="num">${rInt(10,50)}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('재작업 전용 라우팅 지시 발급 완료')">재작업 지시(RW-WO) 발급 ➔</button></td></tr>`; } $('tb19').innerHTML=h;
+}
+
+function doAiOpt(){
+  $('tb22_2').innerHTML=`
+    <tr><td class="num">1</td><td>A품목 (<b>빨강</b> / 원형)</td></tr>
+    <tr><td class="num">2</td><td>A품목 (<b>빨강</b> / 원형)</td></tr>
+    <tr><td class="num">3</td><td>A품목 (<b>빨강</b> / 사각) - 색상유지, 규격변경</td></tr>
+    <tr><td class="num">4</td><td>A품목 (<b>파랑</b> / 사각) - 색상세척(변경), 규격유지</td></tr>
+    <tr><td class="num">5</td><td>A품목 (<b>파랑</b> / 사각)</td></tr>
+  `;
+  showToast('AI가 색상 세척시간과 규격 변경 툴체인지 시간을 계산하여 최적 순서로 정렬했습니다.');
+}
+
+function genP23(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<div style="padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--mono);color:var(--blue);font-weight:700;margin-bottom:4px">WO-MOB-${i}</div><div>긴급 출하분 가공 지시</div></div><button class="btn btn-blue btn-sm" onclick="this.textContent='승인됨';this.disabled=true;showToast('모바일 결재 승인 완료')">승인 (Approve)</button></div>`; } $('tb23').innerHTML=h;
+}
+
+function genP25(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-weight:700">설비 ${i}호기 정밀 청소 및 윤활유 주입</td><td>매주 월요일 08:00</td><td style="color:var(--blue);font-family:var(--mono)">2024-11-04</td><td><button class="btn btn-ghost btn-sm">규칙 수정</button></td></tr>`; } $('tb25').innerHTML=h;
+}
+
+function doSkill(){
+  const val = $('skill-inp').value;
+  if(val.length > 3) {
+    if(val.includes('1')){ $('skill-res').textContent='❌ 스킬 등급 미달 (C등급). 할당 거부됨.'; $('skill-res').style.color='var(--red)'; showToast('해당 작업자는 위험물 취급 자격이 없습니다.');}
+    else { $('skill-res').textContent='✅ A등급 자격 확인됨. 할당 허용.'; $('skill-res').style.color='var(--green)'; showToast('자격이 검증되어 할당되었습니다.');}
+  }
+}
+function genP26(){
+  let h=''; const lvls=['A (고급)','B (중급)','C (초급)'];
+  for(let i=1;i<=15;i++){ h+=`<tr><td>사원 ${i}</td><td style="font-weight:700;color:var(--${i%3===0?'green':'text'})">${lvls[i%3]}</td></tr>`; } $('tb26').innerHTML=h;
+}
+
+function genP27(){
+  let h=''; for(let i=1;i<=10;i++){
+    const pm = i%4===0;
+    h+=`<tr style="${pm?'background:var(--red-dim)':''}"><td>가공 설비 ${i}호기</td><td>2024-11-10</td><td style="font-weight:700;color:var(--${pm?'red':'green'})">${pm?'🚨 당일 PM(수리) 일정 중복. 지시 불가!':'통과 (일정 없음)'}</td></tr>`;
+  }
+  $('tb27').innerHTML=h;
+}
+
+function doPack(){
+  $('tb29').innerHTML=`
+    <tr><td style="font-family:var(--mono);color:var(--blue);font-weight:700">PALLET-001</td><td>Box 1 ~ 50 (총 500 EA)</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--blue);font-weight:700">PALLET-002</td><td>Box 51 ~ 100 (총 500 EA)</td></tr>
+  `;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #3 */
+(function(){var I=3;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

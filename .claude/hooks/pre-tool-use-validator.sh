@@ -23,9 +23,10 @@
 # 12. sql-schema-whitelist.sh — .sql 파일 컬럼 화이트리스트 (TB_UT_USER_INFO/TB_AD_MENU/TB_AD_LANG_PACK)
 # 13. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단 (`_sql`/`_jsx`/`_java`)
 # 14. java-class-naming.sh   — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1 (LLM 축약 환각 차단)
+# 15. t3mockup.sh        — M1~M4 frontend/src/view/util/t3mockup/ 의 mockup 규약 (Phase 4a/b/c)
 #
 # 분리 전 단일 파일: pre-tool-use-validator.sh (937줄, 57KB)
-# 분리 후: 디스패처(이 파일) + validators/*.sh 14개
+# 분리 후: 디스패처(이 파일) + validators/*.sh 15개
 # =====================================================================
 
 set -euo pipefail
@@ -79,6 +80,7 @@ VALIDATORS_DIR="$HOOKS_DIR/validators"
 . "$VALIDATORS_DIR/sql-schema-whitelist.sh"
 . "$VALIDATORS_DIR/composer-artifact-path.sh"
 . "$VALIDATORS_DIR/java-class-naming.sh"
+. "$VALIDATORS_DIR/t3mockup.sh"
 
 # =====================================================================
 # 모든 검증 통과

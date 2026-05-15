@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>RFID 게이트</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #20: RFID 게이트 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ RFID 포탈 게이트 통과 대량 입고</h3><span class="tip">트럭이 RFID 안테나가 설치된 게이트를 스윽 통과하면, 박스 수백 개 안에 붙은 태그가 1초 만에 일괄 인식되어 입고 잡히는 쾌감!</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;border-color:var(--blue)">
+      <div style="font-size:60px;margin-bottom:20px;animation:pulse 1s infinite">📡</div>
+      <div style="font-size:24px;font-weight:700;color:var(--blue)">RFID 게이트 센서 감지 중... (Hands-free)</div>
+      <div style="color:var(--text2);margin-top:10px;margin-bottom:30px">지게차/트럭이 통과하면 입고가 자동 확정됩니다.</div>
+      <button class="btn btn-blue" style="padding:16px 30px;font-size:18px" onclick="doRfid()">가상 태그 500개 수신 시뮬레이션 ⚡</button>
+      <div id="rfid-res" style="margin-top:20px;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)"></div>
+    </div>
+  </div>

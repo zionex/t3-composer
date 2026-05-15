@@ -25,6 +25,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import StorageIcon from '@mui/icons-material/Storage';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsightsIcon from '@mui/icons-material/Insights';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DiamondIcon from '@mui/icons-material/Diamond';
@@ -34,7 +36,8 @@ import { getModule } from './constants';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
-import PatternPickerDialog   from './PatternPickerDialog';
+import MockupPickerDialog    from './MockupPickerDialog';
+import UiPatternPickerDialog from './UiPatternPickerDialog';
 import KpiChartPickerDialog  from './KpiChartPickerDialog';
 
 /**
@@ -67,19 +70,25 @@ const MODEL_OPTIONS = [
 const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
 
 /**
- * 선택된 패턴이 Chart/Dashboard 류인지 판별 — KPI/Chart 사전 선택 트리거 노출 여부.
- * 카테고리 코드 (LAYOUT_*) 또는 패턴 layout 문자열에 chart/dashboard/widget 포함 시 true.
+ * 선택된 SCM UI Mockup 이 Chart/Dashboard 류인지 판별 — KPI/Chart 사전 선택 트리거 노출 여부.
+ * layoutCategory(LAYOUT_*) 또는 patternCode 에 chart/dashboard/widget/kpi 포함 시 true.
  */
-function isChartOrDashboardPattern(p) {
-  if (!p) return false;
-  const cat    = (p.category || '').toUpperCase();
-  const layout = (p.layout   || '').toLowerCase();
-  const code   = (p.code     || '').toUpperCase();
+function isChartLikeMockup(m) {
+  if (!m) return false;
+  const cat  = (m.layoutCategory || '').toUpperCase();
+  const code = (m.patternCode    || '').toLowerCase();
   if (cat === 'LAYOUT_MONITORING' || cat === 'LAYOUT_CONTROLBOARD') return true;
-  if (/(chart|dashboard|widget|kpi)/.test(layout)) return true;
-  // 도메인 기본 패턴 — P01(위젯대시보드) / P05(검색+그리드+차트)
-  if (code === 'P01' || code === 'P05') return true;
-  return false;
+  return /(chart|dashboard|widget|kpi)/.test(code);
+}
+
+/**
+ * 선택된 UI Pattern (T3MES 카탈로그) 이 Chart/Dashboard 류인지 판별.
+ * 파일/그룹/라벨에 monitoring·dashboard·controlboard·chart·kpi 포함 시 true.
+ */
+function isChartLikeUiPattern(p) {
+  if (!p) return false;
+  const hay = `${p.file || ''} ${p.group || ''} ${p.tabLabel || ''}`.toLowerCase();
+  return /(monitoring|dashboard|controlboard|chart|kpi|대시보드|모니터링|차트)/.test(hay);
 }
 
 const EXAMPLE_PROMPTS = {
@@ -158,12 +167,17 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const [tableLookupLoading, setTableLookupLoading] = useState(false);
   const lookupDebounceRef = useRef(null);
 
-  // UI 패턴 선택 (선택사항) — POPUP 으로 PatternSelector 띄움
-  // selectedPattern: { code, name, layout, category, description } | null
-  const [selectedPattern, setSelectedPattern] = useState(null);
-  const [patternDlgOpen,  setPatternDlgOpen]  = useState(false);
+  // 선택사항 (1) — SCM UI Mockup 참조 ([SCM UI Mockup] 메뉴의 MOCKUP_ENTRIES)
+  const [selectedMockup, setSelectedMockup] = useState(null);
+  const [mockupDlgOpen,  setMockupDlgOpen]  = useState(false);
 
-  // KPI / Chart 사전 다중 선택 — 패턴이 Chart/Dashboard 류일 때만 트리거 노출
+  // 선택사항 (2) — UI Pattern 참조 ([UI Pattern] 메뉴의 T3MES 카탈로그 entry)
+  // selectedUiPatternSource: 선택 시 fetch 한 경량 HTML(lite) 마크업 — Claude 레이아웃 참조용
+  const [selectedUiPattern,       setSelectedUiPattern]       = useState(null);
+  const [selectedUiPatternSource, setSelectedUiPatternSource] = useState('');
+  const [uiPatternDlgOpen,        setUiPatternDlgOpen]        = useState(false);
+
+  // KPI / Chart 사전 다중 선택 — 선택한 Mockup/UI Pattern 이 Chart/Dashboard 류일 때만 트리거 노출
   // selectedKpis / selectedCharts: [{ code, name, category }]
   const [selectedKpis,    setSelectedKpis]    = useState([]);
   const [selectedCharts,  setSelectedCharts]  = useState([]);
@@ -172,7 +186,11 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   // AI 엔진(모델) 선택 — 기본 Sonnet 4.6, 사용자가 Opus 4.7 로 전환 가능
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
 
-  const showKpiTrigger = isChartOrDashboardPattern(selectedPattern);
+  // 하단 전용 D&D 영역 — 클릭 시 파일 탐색기, drop 시 첨부
+  const fileInputRef = useRef(null);
+  const [bottomDragOver, setBottomDragOver] = useState(false);
+
+  const showKpiTrigger = isChartLikeMockup(selectedMockup) || isChartLikeUiPattern(selectedUiPattern);
 
   const module = useMemo(() => getModule(moduleCode), [moduleCode]);
 
@@ -214,7 +232,9 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     setPrompt('');
     setSession(null);
     setError(null);
-    setSelectedPattern(null);
+    setSelectedMockup(null);
+    setSelectedUiPattern(null);
+    setSelectedUiPatternSource('');
     setSelectedKpis([]);
     setSelectedCharts([]);
     setSelectedModel(DEFAULT_MODEL_ID);
@@ -257,6 +277,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const handleFilesPicked = async (files) => {
     const arr = Array.from(files || []);
     if (arr.length === 0) return;
+    // ★ 3개 기능 단독 적용 — 파일 첨부 시 Mockup·UI Pattern 선택 해제
+    setSelectedMockup(null);
+    setSelectedUiPattern(null);
+    setSelectedUiPatternSource('');
     for (const file of arr) {
       try {
         const sizeKb = Math.round(file.size / 1024);
@@ -321,15 +345,30 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       + `공통 테이블 접두어: TB_${module.code}_  /  SP 접두어: SP_UI_${module.code}_\n`
       + `이 모듈에 자주 쓰이는 공통 테이블: ${module.commonTables.join(', ')}\n`;
 
-    // 사용자가 선택한 UI 패턴 — Claude 가 우선 적용해 화면 구성
-    if (selectedPattern) {
-      systemContext += '\n=== 사용자 선택 UI 패턴 (강제 적용) ===\n';
-      systemContext += `- 패턴 코드: ${selectedPattern.code}\n`;
-      if (selectedPattern.name)        systemContext += `- 패턴 이름: ${selectedPattern.name}\n`;
-      if (selectedPattern.category)    systemContext += `- 카테고리: ${selectedPattern.category}\n`;
-      if (selectedPattern.layout)      systemContext += `- 레이아웃 키: ${selectedPattern.layout}\n`;
-      if (selectedPattern.description) systemContext += `- 설명: ${selectedPattern.description}\n`;
-      systemContext += '⚠ 이 패턴을 화면 골격으로 사용하세요. 자연어 요구사항이 다른 패턴을 명시하지 않는 한 위 패턴 우선.\n';
+    // 사용자가 선택한 SCM UI Mockup — Claude 가 레이아웃 골격으로 참조
+    if (selectedMockup) {
+      systemContext += '\n=== 참조 SCM UI Mockup (레이아웃 골격) ===\n';
+      systemContext += `- Mockup 코드: ${selectedMockup.patternCode}\n`;
+      systemContext += `- 라벨: ${selectedMockup.patternLabel}\n`;
+      systemContext += `- 레이아웃 카테고리: ${selectedMockup.layoutCategory}\n`;
+      if (selectedMockup.category)    systemContext += `- 분류: ${selectedMockup.category}\n`;
+      if (selectedMockup.description) systemContext += `- 설명: ${selectedMockup.description}\n`;
+      systemContext += '⚠ 이 Mockup 의 레이아웃 골격(분할 구조·영역 구성)을 화면 기본 틀로 사용하세요.\n';
+    }
+
+    // 사용자가 선택한 UI Pattern — T3MES 카탈로그의 경량 HTML 마크업을 레이아웃 참조로 첨부
+    if (selectedUiPattern) {
+      systemContext += '\n=== 참조 UI Pattern (T3MES 카탈로그) ===\n';
+      systemContext += `- 분류: ${selectedUiPattern.section} > ${selectedUiPattern.group} > ${selectedUiPattern.fileLabel}\n`;
+      if (selectedUiPattern.tabLabel) systemContext += `- 패턴: ${selectedUiPattern.tabLabel}\n`;
+      if (selectedUiPatternSource) {
+        const src = selectedUiPatternSource.length > 20000
+          ? selectedUiPatternSource.slice(0, 20000) + '\n<!-- (이하 생략) -->'
+          : selectedUiPatternSource;
+        systemContext += '아래는 이 UI Pattern 의 경량 마크업 구조입니다 (영역 배치·표/카드 구성 참고용):\n';
+        systemContext += '```html\n' + src + '\n```\n';
+      }
+      systemContext += '⚠ 위 UI Pattern 의 화면 구성을 참고하되, 실제 산출물은 wingui 표준 컴포넌트(BaseGrid 등)로 구현하세요.\n';
     }
 
     // KPI / Chart 사전 선택 — Chart/Dashboard 패턴일 때 위젯 구성에 반영
@@ -515,7 +554,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               fullWidth
               multiline
               minRows={6}
-              placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}\n\n💡 파일을 여기 끌어다 놓으면 자동으로 참조됩니다 (텍스트 파일은 inline, 이미지/PDF/binary 는 첨부)`}
+              placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}\n\n💡 참조 파일은 아래 "참조 파일 첨부" 영역에 끌어다 놓으세요`}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               autoFocus
@@ -532,26 +571,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             )}
           </Box>
 
-          {/* 첨부된 파일 — chip 표시 + 삭제. 텍스트/binary 모두 동일 UX, 아이콘만 다름 */}
-          {attachments.length > 0 && (
-            <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ mb: 2, gap: 0.8 }}>
-              {attachments.map((a, i) => {
-                const icon = a.kind === 'text' ? '📄' : (/^image\//.test(a.mediaType) ? '🖼️' : '📎');
-                return (
-                  <Chip
-                    key={`${a.name}-${i}`}
-                    label={`${icon} ${a.name} (${a.sizeKb}KB)`}
-                    size="small"
-                    onDelete={() => removeAttachment(i)}
-                    sx={{
-                      bgcolor: a.kind === 'text' ? 'rgba(37,99,235,0.08)' : 'rgba(124,58,237,0.08)',
-                      fontSize: 11,
-                    }}
-                  />
-                );
-              })}
-            </Stack>
-          )}
+          {/* 첨부된 파일 chip 은 하단 "참조 파일 첨부" 영역에 표시 */}
 
           {/* AI 엔진(모델) 선택 — Sonnet(기본) / Opus */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
@@ -594,30 +614,48 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             </Typography>
           </Stack>
 
-          {/* UI 패턴 / KPI / Chart 사전 선택 (선택사항) */}
+          {/* SCM UI Mockup / UI Pattern / KPI / Chart 사전 선택 (선택사항) */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
                  sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(40,135,215,0.04)', borderRadius: 1.5,
-                       border: '1px dashed rgba(40,135,215,0.3)' }}>
+                       border: '1px dashed rgba(40,135,215,0.3)', gap: 1 }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
               선택사항:
             </Typography>
 
-            {/* 패턴 선택 트리거 */}
+            {/* (1) SCM UI Mockup 선택 트리거 — [SCM UI Mockup] 메뉴 카탈로그 */}
             <Button
               size="small"
-              variant={selectedPattern ? 'contained' : 'outlined'}
-              startIcon={<ViewQuiltIcon fontSize="small" />}
-              onClick={() => setPatternDlgOpen(true)}
+              variant={selectedMockup ? 'contained' : 'outlined'}
+              startIcon={<DashboardCustomizeIcon fontSize="small" />}
+              onClick={() => setMockupDlgOpen(true)}
               color="primary"
             >
-              {selectedPattern
-                ? `패턴: ${selectedPattern.code}${selectedPattern.name ? ` · ${selectedPattern.name}` : ''}`
-                : 'UI 패턴 선택'}
+              {selectedMockup ? `Mockup: ${selectedMockup.patternCode}` : 'SCM UI Mockup 선택'}
             </Button>
-            {selectedPattern && (
+            {selectedMockup && (
               <Chip
                 size="small" label="해제"
-                onClick={() => { setSelectedPattern(null); setSelectedKpis([]); setSelectedCharts([]); }}
+                onClick={() => setSelectedMockup(null)}
+                sx={{ height: 22 }}
+              />
+            )}
+
+            {/* (2) UI Pattern 선택 트리거 — [UI Pattern] 메뉴 T3MES 카탈로그 */}
+            <Button
+              size="small"
+              variant={selectedUiPattern ? 'contained' : 'outlined'}
+              startIcon={<ViewQuiltIcon fontSize="small" />}
+              onClick={() => setUiPatternDlgOpen(true)}
+              color="secondary"
+            >
+              {selectedUiPattern
+                ? `Pattern: ${(selectedUiPattern.tabLabel || selectedUiPattern.fileLabel || '').slice(0, 22)}`
+                : 'UI Pattern 선택'}
+            </Button>
+            {selectedUiPattern && (
+              <Chip
+                size="small" label="해제"
+                onClick={() => { setSelectedUiPattern(null); setSelectedUiPatternSource(''); }}
                 sx={{ height: 22 }}
               />
             )}
@@ -655,11 +693,9 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               );
             })()}
 
-            {!selectedPattern && (
-              <Typography variant="caption" color="text.disabled" sx={{ ml: 'auto' }}>
-                선택 안 해도 자연어로 진행 가능
-              </Typography>
-            )}
+            <Typography variant="caption" color="text.disabled" sx={{ ml: 'auto' }}>
+              SCM UI Mockup · UI Pattern · 파일 첨부는 1개만 적용됩니다 (단독)
+            </Typography>
           </Stack>
 
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -678,27 +714,125 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           </Stack>
         </Paper>
 
-        {/* Pattern POPUP */}
-        <PatternPickerDialog
-          open={patternDlgOpen}
-          onClose={() => setPatternDlgOpen(false)}
-          currentValue={selectedPattern?.code || null}
-          recommendedCodes={module?.commonPatterns || []}
-          onConfirm={(p) => {
-            setSelectedPattern(p);
-            const isChartLike = isChartOrDashboardPattern(p);
-            // 패턴이 Chart/Dashboard 가 아니면 이전에 선택했던 KPI/Chart 정리
-            if (!isChartLike) {
+        {/* ── 하단 전용 참조 파일 첨부 (D&D) 영역 ──
+            prompt 창과 분리된 명확한 drop zone. drop 또는 클릭(파일 탐색기) 으로 첨부. */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => { handleFilesPicked(e.target.files); e.target.value = ''; }}
+        />
+        <Paper
+          variant="outlined"
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setBottomDragOver(true); }}
+          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setBottomDragOver(false); }}
+          onDrop={(e) => {
+            e.preventDefault(); e.stopPropagation();
+            setBottomDragOver(false);
+            handleFilesPicked(e.dataTransfer?.files);
+          }}
+          onClick={() => fileInputRef.current?.click()}
+          sx={{
+            mb: 3, p: 2.5, borderRadius: 2, cursor: 'pointer',
+            border: '2px dashed',
+            borderColor: bottomDragOver ? '#2563eb' : 'rgba(0,0,0,0.18)',
+            bgcolor: bottomDragOver ? 'rgba(37,99,235,0.06)' : 'rgba(0,0,0,0.015)',
+            transition: 'all 0.15s',
+            '&:hover': { borderColor: '#2563eb', bgcolor: 'rgba(37,99,235,0.04)' },
+          }}
+        >
+          <Stack alignItems="center" spacing={0.5}>
+            <CloudUploadIcon sx={{ fontSize: 32, color: bottomDragOver ? '#2563eb' : '#94a3b8' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>
+              참조 파일 첨부 — 여기로 끌어다 놓거나 클릭
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              설계서·캡처·소스 등 참조 파일을 첨부하면 Claude 가 함께 분석합니다.
+              텍스트 파일은 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송됩니다. (파일당 최대 5MB)
+            </Typography>
+          </Stack>
+
+          {/* 첨부된 파일 chip — 텍스트/binary 모두 동일 UX, 아이콘만 다름 */}
+          {attachments.length > 0 && (
+            <Stack
+              direction="row" spacing={0.8} flexWrap="wrap" justifyContent="center"
+              sx={{ mt: 1.5, gap: 0.8 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {attachments.map((a, i) => {
+                const icon = a.kind === 'text' ? '📄' : (/^image\//.test(a.mediaType) ? '🖼️' : '📎');
+                return (
+                  <Chip
+                    key={`${a.name}-${i}`}
+                    label={`${icon} ${a.name} (${a.sizeKb}KB)`}
+                    size="small"
+                    onDelete={() => removeAttachment(i)}
+                    sx={{
+                      bgcolor: a.kind === 'text' ? 'rgba(37,99,235,0.08)' : 'rgba(124,58,237,0.08)',
+                      fontSize: 11,
+                    }}
+                  />
+                );
+              })}
+            </Stack>
+          )}
+        </Paper>
+
+        {/* SCM UI Mockup POPUP — [SCM UI Mockup] 메뉴 카탈로그에서 선택 */}
+        <MockupPickerDialog
+          open={mockupDlgOpen}
+          onClose={() => setMockupDlgOpen(false)}
+          currentValue={selectedMockup?.patternCode || null}
+          onConfirm={(m) => {
+            setSelectedMockup(m);
+            setMockupDlgOpen(false);
+            if (m) {
+              // ★ 3개 기능 단독 적용 — Mockup 선택 시 UI Pattern·파일 첨부 해제
+              setSelectedUiPattern(null);
+              setSelectedUiPatternSource('');
+              setAttachments([]);
+            }
+            const chartLike = isChartLikeMockup(m);
+            // Chart/Dashboard 류가 아니면 이전 KPI/Chart 정리
+            if (!chartLike) {
               setSelectedKpis([]);
               setSelectedCharts([]);
             }
-            setPatternDlgOpen(false);
-            // ★ 자동 chain — Chart/Dashboard 류 패턴 확인 시 KPI/Chart POPUP 을 곧바로 띄움.
-            //   사용자가 KPI 항목을 누락하지 않도록 한 흐름에서 마무리. 닫기 버튼으로 skip 가능.
-            //   이미 KPI/Chart 가 선택되어 있는 경우엔 chain 안 함 (재선택 강요 방지).
-            if (isChartLike && selectedKpis.length === 0 && selectedCharts.length === 0) {
-              // PatternPickerDialog 의 닫힘 애니메이션과 겹치지 않도록 짧은 지연
+            // 자동 chain — Chart/Dashboard 류 Mockup 확인 시 KPI/Chart POPUP 곧바로 띄움
+            if (chartLike && selectedKpis.length === 0 && selectedCharts.length === 0) {
               setTimeout(() => setKpiDlgOpen(true), 160);
+            }
+          }}
+        />
+
+        {/* UI Pattern POPUP — [UI Pattern] 메뉴 T3MES 카탈로그에서 선택.
+            확인 시 lite HTML 마크업을 fetch 해 systemContext 참조 소스로 사용 */}
+        <UiPatternPickerDialog
+          open={uiPatternDlgOpen}
+          onClose={() => setUiPatternDlgOpen(false)}
+          currentValue={selectedUiPattern ? `${selectedUiPattern.file}#${selectedUiPattern.tabIndex}` : null}
+          onConfirm={async (p) => {
+            setSelectedUiPattern(p);
+            setUiPatternDlgOpen(false);
+            if (p) {
+              // ★ 3개 기능 단독 적용 — UI Pattern 선택 시 Mockup·파일 첨부 해제
+              setSelectedMockup(null);
+              setAttachments([]);
+            }
+            if (!isChartLikeUiPattern(p)) {
+              setSelectedKpis([]);
+              setSelectedCharts([]);
+            }
+            if (p && p.liteUrl) {
+              try {
+                const r = await fetch(p.liteUrl);
+                setSelectedUiPatternSource(r.ok ? await r.text() : '');
+              } catch {
+                setSelectedUiPatternSource('');
+              }
+            } else {
+              setSelectedUiPatternSource('');
             }
           }}
         />

@@ -38,12 +38,13 @@ import { useTargetStore } from './targetStore';
  *   ② [NL]   소스 번들 프리뷰 → [시작] → ComposerWorkspace 자연어 대화
  *      [STEP] 소스 번들 수집 → StepByStepWizard 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
  */
-function ModeExistingModify({ onBack }) {
+function ModeExistingModify({ onBack, startWith = null }) {
   // 활성 Target System (운영 DB 직접 조회용)
   const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   // 서브모드 — 'NL' (자연어, 기존 흐름) | 'STEP' (단계별 Wizard)
-  const [subMode, setSubMode] = useState(null);
+  //   startWith 이 주어지면(랜딩에서 직접 선택) 내부 서브모드 선택 화면을 건너뜀
+  const [subMode, setSubMode] = useState(startWith);
 
   const [selectedMenu, setSelectedMenu]   = useState(null);
   const [sourceBundle, setSourceBundle]   = useState(null);
@@ -185,11 +186,12 @@ function ModeExistingModify({ onBack }) {
       <Button
         startIcon={<ArrowBackIcon fontSize="small" />}
         onClick={() => {
-          if (subMode) { reset(); setSubMode(null); } else { onBack?.(); }
+          // startWith 으로 진입한 경우 내부 서브모드 선택을 건너뛰었으므로 바로 onBack
+          if (subMode && !startWith) { reset(); setSubMode(null); } else { onBack?.(); }
         }}
         size="small"
       >
-        {subMode ? '서브모드 선택' : '모드 선택'}
+        {(subMode && !startWith) ? '서브모드 선택' : '모드 선택'}
       </Button>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
         <BorderColorIcon sx={{ color: '#fa7d5b' }} />

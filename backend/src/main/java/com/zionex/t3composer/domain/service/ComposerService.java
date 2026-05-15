@@ -335,6 +335,33 @@ public class ComposerService {
     }
 
     /**
+     * 세션의 모든 assistant 메시지를 다시 파싱해 아티팩트를 재추출한다.
+     *
+     * ArtifactExtractor 의 추출 정규식이 개선된 후, 기존 세션에서 본문이 비거나 누락된
+     * 아티팩트를 원본 응답 텍스트로부터 복구하는 용도. (LLM 응답을 다시 호출하지 않음)
+     * 재추출된 아티팩트는 saveWithSupersede 가 (sessionId, type, filePath) 기준으로
+     * 기존 것을 STATUS_DISCARDED 처리하고 새 버전으로 저장.
+     *
+     * @return 재추출된 아티팩트 수
+     */
+    @Transactional
+    public int reExtractArtifacts(String sessionId, String userId) {
+        List<ComposerMessage> msgs = messageRepo.findBySessionIdOrderByTurnSeqAsc(sessionId);
+        int total = 0;
+        for (ComposerMessage msg : msgs) {
+            if (!ComposerMessage.ROLE_ASSISTANT.equals(msg.getRole())) continue;
+            List<ComposerArtifact> artifacts =
+                    artifactExtractor.extract(sessionId, msg.getId(), userId, msg.getContent());
+            if (!artifacts.isEmpty()) {
+                artifactPersistService.saveWithSupersede(artifacts);
+                total += artifacts.size();
+            }
+        }
+        log.info("Composer 아티팩트 재추출: session={} 재추출={}", sessionId, total);
+        return total;
+    }
+
+    /**
      * DISCARDED (supersede 된 이전 버전) 아티팩트를 hard delete — 사용자 명시 cleanup.
      * @return 삭제된 행 수
      */

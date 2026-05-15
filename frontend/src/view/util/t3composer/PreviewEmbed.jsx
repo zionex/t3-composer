@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import {
     Box, Stack, Typography, CircularProgress, Alert, AlertTitle, Chip,
@@ -19,6 +19,42 @@ import { useTargetStore } from './targetStore';
 import REALGRID_LICENSE_KEY from '../../../shim/wingui/common/realgrid-license';
 
 /**
+ * 산출물 렌더 오류 포착용 ErrorBoundary — iframe React 루트 안에서 Component 를 감싼다.
+ * 'Element type is invalid' · 'xxx is not a function' 등 렌더 중 throw 를 잡아
+ * onError 콜백으로 보고 (자동보완 트리거) + iframe 안에 간단 메시지 표시.
+ */
+class PreviewErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, msg: '' };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, msg: (error && error.message) || String(error) };
+    }
+    componentDidCatch(error, info) {
+        if (this.props.onError) {
+            this.props.onError({
+                type: 'render',
+                message: (error && error.message) || String(error),
+                stack: (error && error.stack) || '',
+                componentStack: (info && info.componentStack) || '',
+            });
+        }
+    }
+    render() {
+        if (this.state.hasError) {
+            return React.createElement('div', {
+                style: {
+                    padding: 16, fontFamily: '"Noto Sans KR",system-ui,sans-serif',
+                    fontSize: 13, color: '#b91c1c', lineHeight: 1.6,
+                },
+            }, '화면 렌더 오류: ' + this.state.msg);
+        }
+        return this.props.children;
+    }
+}
+
+/**
  * 실행 화면 — 산출물 jsx 를 정식 화면처럼 inline 으로 띄움.
  *
  * 격리 (옵션 A + iframe): webpack dynamic import 제거 + iframe srcdoc 안에서 React 마운트.
@@ -32,12 +68,23 @@ import REALGRID_LICENSE_KEY from '../../../shim/wingui/common/realgrid-license';
  *   sid8      : 격리 prefix 8자 (표시용)
  *   viewSub   : view 하위 경로
  */
-function PreviewEmbed({ sessionId, sid8, viewSub }) {
+function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixing, autoFixLabel }) {
     const [phase, setPhase] = useState('idle');   // 'idle' | 'loading' | 'ready' | 'error'
     const [Comp, setComp] = useState(null);
     const [error, setError] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
     const targetCd = useTargetStore((s) => s.currentTargetCd);
+
+    // 오류 보고 — load(transform/execute) · render · runtime 모두 onError 로 전달.
+    // load 1회당 첫 오류만 보고 (자동보완 루프가 중복 트리거되지 않도록).
+    const onErrorRef = useRef(onError);
+    onErrorRef.current = onError;
+    const reportedRef = useRef(false);
+    const reportError = useCallback((info) => {
+        if (reportedRef.current) return;
+        reportedRef.current = true;
+        try { if (onErrorRef.current) onErrorRef.current(info); } catch (_) { /* no-op */ }
+    }, []);
 
     useEffect(() => {
         if (!sessionId || !viewSub) {
@@ -47,6 +94,7 @@ function PreviewEmbed({ sessionId, sid8, viewSub }) {
             return undefined;
         }
         let cancelled = false;
+        reportedRef.current = false;   // 새 load — 오류 보고 1회 카운터 리셋
         setPhase('loading');
         setError(null);
         setComp(null);
@@ -60,9 +108,38 @@ function PreviewEmbed({ sessionId, sid8, viewSub }) {
                 if (cancelled) return;
                 setError(e);
                 setPhase('error');
+                reportError({
+                    type: 'load',
+                    phase: e?.phase,
+                    message: e?.message || String(e),
+                    stack: e?.cause?.stack || e?.stack || '',
+                });
             });
         return () => { cancelled = true; };
-    }, [sessionId, viewSub, targetCd, reloadKey]);
+    }, [sessionId, viewSub, targetCd, reloadKey, reloadNonce, reportError]);
+
+    // 자동보완 진행 중 — phase 무관 최우선. 오류 화면 대신 진행 상태를 명확히 표시.
+    if (autoFixing) {
+        return (
+            <Box sx={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexDirection: 'column', gap: 2, p: 4, bgcolor: '#fffaf0',
+            }}>
+                <CircularProgress sx={{ color: '#d97706' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#92400e' }}>
+                    🤖 {autoFixLabel || 'AI 자동보완 중'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ lineHeight: 1.8 }}>
+                    화면 실행 중 발생한 오류를 AI 가 분석해<br />
+                    산출물(JSX / Java / SP)을 자동 수정하고 있습니다.<br />
+                    수정이 끝나면 화면이 <b>자동으로 다시 실행</b>됩니다.
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#a16207' }}>
+                    진행 대화는 좌측 하단 <b>작업 내역</b> 패널에서 실시간 확인할 수 있습니다.
+                </Typography>
+            </Box>
+        );
+    }
 
     if (phase === 'idle') {
         return (
@@ -126,7 +203,7 @@ function PreviewEmbed({ sessionId, sid8, viewSub }) {
                         {causeMsg && causeMsg !== error?.message ? '\n\n원인: ' + causeMsg : ''}
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                        💡 산출물 소스는 우측의 <b>[아티팩트 소스]</b> 탭에서 그대로 검토할 수 있습니다.
+                        💡 산출물 소스는 우측의 <b>[산출물 소스]</b> 탭에서 그대로 검토할 수 있습니다.
                         격리되어 있어 이 에러가 다른 화면에는 영향을 주지 않습니다.
                     </Typography>
                 </Alert>
@@ -136,7 +213,7 @@ function PreviewEmbed({ sessionId, sid8, viewSub }) {
 
     return (
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff' }}>
-            <PreviewIframe Component={Comp} targetCd={targetCd} />
+            <PreviewIframe Component={Comp} targetCd={targetCd} onReport={reportError} />
         </Box>
     );
 }
@@ -173,7 +250,7 @@ const PREVIEW_THEME = createTheme({
     },
 });
 
-function PreviewIframe({ Component, targetCd }) {
+function PreviewIframe({ Component, targetCd, onReport }) {
     const iframeRef = useRef(null);
     const reactRootRef = useRef(null);
 
@@ -230,6 +307,26 @@ function PreviewIframe({ Component, targetCd }) {
             // 객체이므로 main window 가 보는 flag 가 결과를 결정. 따라서 main window 에도 set.
             // PreviewEmbed unmount 시 cleanup 으로 false 처리.
             window.__PREVIEW_MOCK__ = true;
+
+            // 산출물 런타임 오류 감지 — iframe window 의 error / unhandledrejection.
+            //   (ResizeObserver loop · cross-origin Script error 는 양성 → 무시)
+            //   ErrorBoundary 가 못 잡는 이벤트핸들러/비동기 throw 를 보완.
+            const onWinError = (ev) => {
+                const m = (ev && (ev.message || (ev.error && ev.error.message))) || '';
+                if (/ResizeObserver loop|Script error/i.test(m)) return;
+                if (onReport) onReport({ type: 'runtime', message: m || '런타임 오류',
+                                         stack: (ev && ev.error && ev.error.stack) || '' });
+            };
+            const onWinRejection = (ev) => {
+                const r = ev && ev.reason;
+                if (onReport) onReport({ type: 'promise',
+                    message: (r && (r.message || String(r))) || 'unhandled rejection',
+                    stack: (r && r.stack) || '' });
+            };
+            try {
+                win.addEventListener('error', onWinError);
+                win.addEventListener('unhandledrejection', onWinRejection);
+            } catch (_) { /* no-op */ }
 
             // body 기본 스타일 reset
             doc.documentElement.style.height = '100%';
@@ -306,7 +403,9 @@ function PreviewIframe({ Component, targetCd }) {
             root.render(
                 React.createElement(CacheProvider, { value: cache },
                     React.createElement(ThemeProvider, { theme: PREVIEW_THEME },
-                        React.createElement(Component)
+                        React.createElement(PreviewErrorBoundary, { onError: onReport },
+                            React.createElement(Component)
+                        )
                     )
                 )
             );
@@ -318,6 +417,8 @@ function PreviewIframe({ Component, targetCd }) {
                         reactRootRef.current = null;
                     }
                 } catch (_) {}
+                try { win.removeEventListener('error', onWinError); } catch (_) {}
+                try { win.removeEventListener('unhandledrejection', onWinRejection); } catch (_) {}
                 // mock flag 복구 — Composer 자체 화면의 zAxios 호출에 영향 안 가도록.
                 try { window.__PREVIEW_MOCK__ = false; } catch (_) {}
             };

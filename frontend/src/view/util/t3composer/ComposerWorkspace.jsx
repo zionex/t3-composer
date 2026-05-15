@@ -14,6 +14,8 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckIcon from '@mui/icons-material/Check';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import DnsIcon from '@mui/icons-material/Dns';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 import { zAxios } from '@wingui/common/imports';
 
@@ -27,7 +29,7 @@ import { downloadDesignDoc, updateSessionModel, applyPreview, cancelPreview } fr
 
 /**
  * AI 엔진(모델) 선택지 — Anthropic Claude.
- * 아티팩트 생성 후 추가 채팅이나 History 이어하기 시점에도 동일한 픽커로 전환 가능.
+ * 산출물 생성 후 추가 채팅이나 History 이어하기 시점에도 동일한 픽커로 전환 가능.
  * (ModeNewGeneral 의 MODEL_OPTIONS 와 동기화 — 신규 생성 시점과 동일한 두 모델 노출)
  */
 const MODEL_OPTIONS = [
@@ -51,9 +53,48 @@ const MODEL_OPTIONS = [
 
 const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
 
+// 화면 실행 후 AI 자동보완 — 한 번의 [화면 실행] 당 최대 보완 시도 횟수.
+// 이 상한을 넘으면 자동보완을 멈춰 무한루프(오류 → 보완 → 재실행 → 오류 …)를 차단한다.
+const MAX_AUTOFIX = 3;
+
 function modelMeta(id) {
   return MODEL_OPTIONS.find((m) => m.id === id)
       || { id, label: id, sub: id, desc: '', Icon: BoltIcon, color: '#64748b' };
+}
+
+/**
+ * 화면 실행 런타임 오류 → AI 자동보완 요청 프롬프트 생성.
+ * PreviewEmbed 가 포착한 오류(type/message/stack/componentStack) 를 같은 세션의
+ * Composer 채팅으로 보내 산출물을 수정하게 한다.
+ */
+function buildFixPrompt(errInfo, previewMeta) {
+  const e = errInfo || {};
+  const lines = [
+    '[자동 오류 보완 요청]',
+    '방금 생성한 화면을 [화면 실행] 했을 때 아래 런타임 오류가 발생했습니다.',
+    '산출물(JSX/Java/SP)에서 원인을 찾아 수정하고, 수정한 파일 전체를 ===FILE: 형식으로 다시 출력해주세요.',
+    '',
+  ];
+  if (previewMeta?.viewSub) lines.push('화면 경로: ' + previewMeta.viewSub);
+  lines.push('오류 종류: ' + (e.type || 'runtime'));
+  lines.push('오류 메시지:');
+  lines.push(e.message || '(메시지 없음)');
+  if (e.componentStack) {
+    lines.push('', '컴포넌트 스택:',
+               String(e.componentStack).split('\n').slice(0, 8).join('\n'));
+  }
+  if (e.stack) {
+    lines.push('', '스택:',
+               String(e.stack).split('\n').slice(0, 6).join('\n'));
+  }
+  lines.push(
+    '',
+    '수정 지침:',
+    '- @wingui/common/imports 에서 shim 미보유 컴포넌트를 import 하면 "Element type is invalid: got undefined" 가 발생합니다. 사용 가능한 컴포넌트만 import 하세요.',
+    '- 리스트 state 는 useState([]) 초기값 + 렌더 직전 Array.isArray 가드를 적용하세요.',
+    '- 수정이 필요한 파일만 ===FILE: <경로>=== 블록으로 전체 다시 출력하세요.',
+  );
+  return lines.join('\n');
 }
 
 /**
@@ -64,16 +105,16 @@ function modelMeta(id) {
  *  - 레이아웃 토글 (chat-only / split / artifact-only)
  *  - 설계서 다운로드 (.xlsx)
  *  - 메뉴 등록  (MENU_SQL 만 실행 — TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)
- *  - 아티팩트 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
+ *  - 산출물 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
  */
 function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [menuDialogOpen, setMenuDialogOpen]   = useState(false);
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  // 아티팩트 선택 상태 — Tree(좌) ↔ CodeView(우 Tab) 동기화
+  // 산출물 선택 상태 — Tree(좌) ↔ CodeView(우 Tab) 동기화
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
-  // 우측 Tab — 0: 미리보기, 1: 아티팩트 소스. 초기값 0 (미리보기)
+  // 우측 Tab — 0: 미리보기, 1: 산출물 소스. 초기값 0 (미리보기)
   const [rightTab, setRightTab] = useState(0);
   // 미리보기 메타 (PreviewEmbed 가 이걸 보고 lazy import)
   const [previewMeta, setPreviewMeta] = useState(null);  // { sid8, viewSub }
@@ -81,16 +122,25 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   const [previewBusy, setPreviewBusy] = useState(false);
   const [previewStage, setPreviewStage] = useState(null);  // { phase, message, elapsedMs, targetUrl }
   const previewAbortRef = React.useRef(false);
-  // [Sample 데이터] CheckBox — 화면 실행 시 빈 응답에 휴리스틱 sample 자동 주입 여부.
-  //   default false. shim 의 BaseGrid 가 window.__composerSampleData 를 lookup.
-  //   새창(preview)도 같은 origin 이라 localStorage 동기화로 flag 공유.
-  const [useSampleData, setUseSampleData] = useState(() => {
-    try { return localStorage.getItem('composer.sampleData') === '1'; } catch (_) { return false; }
-  });
+  // [Sample 데이터] — 항상 ON (UI 체크박스 제거). 화면 실행 시 빈 응답에 휴리스틱 sample
+  //   자동 주입 + Java 적용·mvn compile·DevTools 재기동 SKIP. shim BaseGrid /
+  //   sample interceptor 가 window.__composerSampleData 를 lookup.
+  const useSampleData = true;
   useEffect(() => {
-    window.__composerSampleData = useSampleData;
-    try { localStorage.setItem('composer.sampleData', useSampleData ? '1' : '0'); } catch (_) { /* no-op */ }
-  }, [useSampleData]);
+    window.__composerSampleData = true;
+    try { localStorage.setItem('composer.sampleData', '1'); } catch (_) { /* no-op */ }
+  }, []);
+
+  // [오류 시 자동보완] — default ON. [화면 실행] 후 런타임 오류 발생 시 AI 가 오류를
+  //   분석해 산출물을 수정 → 자동으로 화면 재실행 (최대 MAX_AUTOFIX 회).
+  const [autoFixOnError, setAutoFixOnError] = useState(true);
+  const [previewNonce, setPreviewNonce] = useState(0);   // PreviewEmbed 강제 reload 트리거
+  const [autoFixActive, setAutoFixActive] = useState(false); // 자동보완 진행 중 — PreviewEmbed UI 표시용
+  const [autoFixLabel, setAutoFixLabel]   = useState('');    // 자동보완 진행 라벨 (예: "AI 자동보완 중 (1/3)")
+  const autoFixAttemptRef = React.useRef(0);             // 현재 화면실행 사이클의 보완 시도 횟수
+  const autoFixingRef = React.useRef(false);             // 자동보완 진행 중 재진입 가드
+  const lastAutoFixErrorRef = React.useRef('');          // 직전 보완 시점의 오류 메시지 (동일오류 반복 감지)
+  const chatRef = React.useRef(null);                    // ChatPanel — 프로그램적 채팅 전송용
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', title: '', message: '' });
 
   // AI 엔진(모델) 전환 — 세션 생성 후/이어하기 진입 후에도 변경 가능
@@ -171,6 +221,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       const targetUrl = link?.url;
       if (link?.viewSub && r.sid8) {
         setPreviewMeta({ sid8: r.sid8, viewSub: link.viewSub });
+        setPreviewNonce((n) => n + 1);  // viewSub 동일해도 PreviewEmbed 강제 reload
         setRightTab(0);  // [실행 화면] 탭 자동 활성
       }
       if (!targetUrl) {
@@ -183,7 +234,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         setPreviewStage({ phase: 'ready',
           message: sampleMode ? 'Sample 모드 — 실행 준비 완료 (재기동 생략)' : '실행 준비 완료',
           elapsedMs: 0, targetUrl });
-        setTimeout(() => { if (!previewAbortRef.current) setPreviewStage(null); }, 1500);
+        // 'ready' 일 때만 자동 닫기 — 그 사이 자동보완(autofixing)/실패 단계로 바뀌었으면 유지.
+        setTimeout(() => {
+          setPreviewStage((s) =>
+            (!previewAbortRef.current && s && s.phase === 'ready') ? null : s);
+        }, 1500);
         return;
       }
       // Java 있으면 health 폴링 → backend restart 감지 후 자동으로 ready
@@ -202,7 +257,10 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           if (h.ok && sawDown) {
             // 회복 완료 — 자동으로 화면 노출 (우측 Tab 0 에 이미 embed 됨)
             setPreviewStage({ phase: 'ready', message: '준비 완료 — 우측 [실행 화면] 탭에서 확인', elapsedMs: elapsed, targetUrl });
-            setTimeout(() => { if (!previewAbortRef.current) setPreviewStage(null); }, 2000);
+            setTimeout(() => {
+              setPreviewStage((s) =>
+                (!previewAbortRef.current && s && s.phase === 'ready') ? null : s);
+            }, 2000);
             return;
           }
           if (h.ok) {
@@ -240,6 +298,71 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     } catch (e) {
       setSnackbar({ open: true, severity: 'error', title: '정리 실패',
                     message: e?.response?.data?.message || e?.message });
+    }
+  };
+
+  // ───────────────────────────────────────────────────────────────────
+  // 화면 실행 후 런타임 오류 → AI 자동보완 (autoFixOnError ON 시)
+  //   PreviewEmbed 가 onError 로 오류를 보고 → AI 채팅으로 산출물 수정 →
+  //   handlePreview 재실행. 재실행 후 또 오류면 다시 호출되어 attempt+1.
+  //
+  //   ★ 무한루프 방지 — 3중 차단 (오류 → 보완 → 재실행 → 오류 … 반복 차단):
+  //     [1] 횟수 상한: autoFixAttemptRef 가 MAX_AUTOFIX(3) 에 도달하면 중단.
+  //         이 카운터는 사용자가 [화면 실행] 버튼을 직접 누를 때만 0 으로 리셋되고,
+  //         자동 재실행 경로(handlePreviewError → handlePreview)에서는 절대
+  //         리셋되지 않는다. 또한 보완 진행 중에는 버튼이 비활성(previewStage)이라
+  //         사이클 도중 리셋이 불가능 → 한 번의 [화면 실행] 당 자동보완 최대 3회.
+  //     [2] 동일오류 감지: 직전 보완 후에도 같은 오류 메시지가 재발하면
+  //         (= AI 가 못 고침) 남은 횟수와 무관하게 즉시 중단.
+  //     [3] 재진입 가드: autoFixingRef 로 보완 진행 중 중복 트리거 차단.
+  // ───────────────────────────────────────────────────────────────────
+  const handlePreviewError = async (errInfo) => {
+    if (!autoFixOnError) return;          // 자동보완 OFF — PreviewEmbed 자체 오류 UI 만 표시
+    if (autoFixingRef.current) return;    // [3] 이미 보완 진행 중 — 재진입 방지
+
+    const errMsg = String(errInfo?.message || '').trim();
+    // [2] 직전 보완 후에도 동일 오류 → AI 가 해결 못함. 추가 시도 무의미 → 즉시 중단.
+    if (errMsg && errMsg === lastAutoFixErrorRef.current && autoFixAttemptRef.current > 0) {
+      setPreviewStage({ phase: 'failed', elapsedMs: 0,
+        message: `자동보완 후에도 동일한 오류가 반복됩니다 (${autoFixAttemptRef.current}회 시도). `
+               + 'AI 가 자동으로 해결하지 못했습니다 — 우측 [산출물 소스] 탭에서 직접 확인하세요.' });
+      return;
+    }
+    // [1] 한 번의 [화면 실행] 당 최대 MAX_AUTOFIX 회.
+    if (autoFixAttemptRef.current >= MAX_AUTOFIX) {
+      setPreviewStage({ phase: 'failed', elapsedMs: 0,
+        message: `AI 자동보완을 ${MAX_AUTOFIX}회 시도했으나 오류가 계속됩니다. `
+               + '우측 [산출물 소스] 탭에서 직접 확인하거나 채팅으로 수정을 요청하세요.' });
+      return;
+    }
+    autoFixingRef.current = true;
+    autoFixAttemptRef.current += 1;
+    lastAutoFixErrorRef.current = errMsg;
+    const attempt = autoFixAttemptRef.current;
+    // PreviewEmbed 가 오류 화면 대신 '자동보완 중' 화면을 표시하도록 state ON.
+    setAutoFixActive(true);
+    setAutoFixLabel(`AI 자동보완 중 (${attempt}/${MAX_AUTOFIX})`);
+    try {
+      setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
+        message: `AI 가 오류를 분석해 산출물을 수정 중입니다 (${attempt}/${MAX_AUTOFIX})...` });
+      const ok = await chatRef.current?.sendMessage(buildFixPrompt(errInfo, previewMeta));
+      triggerRefresh();
+      if (!ok) {
+        setPreviewStage({ phase: 'failed', elapsedMs: 0,
+          message: 'AI 자동보완 요청이 실패했습니다. 좌측 작업 내역의 오류를 확인하세요.' });
+        return;
+      }
+      setSnackbar({ open: true, severity: 'info', title: `AI 자동보완 (${attempt}/${MAX_AUTOFIX})`,
+        message: '산출물을 수정했습니다. 화면을 다시 실행합니다.' });
+      setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
+        message: `보완 완료 — 화면을 다시 실행합니다 (${attempt}/${MAX_AUTOFIX})...` });
+      await handlePreview();   // 새 산출물로 재실행 — 또 오류면 PreviewEmbed 가 재호출
+    } catch (e) {
+      setPreviewStage({ phase: 'failed', elapsedMs: 0,
+        message: '자동보완 처리 오류: ' + (e?.message || '') });
+    } finally {
+      autoFixingRef.current = false;
+      setAutoFixActive(false);
     }
   };
 
@@ -407,7 +530,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                 startIcon={previewBusy
                   ? <CircularProgress size={14} color="inherit" />
                   : <LaunchIcon fontSize="small" />}
-                onClick={handlePreview}
+                onClick={() => {
+                  // 수동 [화면 실행] — 자동보완 카운터/동일오류 기록 리셋 (새 사이클 시작)
+                  autoFixAttemptRef.current = 0;
+                  lastAutoFixErrorRef.current = '';
+                  handlePreview();
+                }}
                 disabled={previewBusy || !!previewStage}
                 variant="contained"
                 color="info"
@@ -417,12 +545,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Button>
             </span>
           </Tooltip>
+          {/* [오류 시 자동보완] — 체크 시 화면 실행 후 런타임 오류를 AI 가 자동 수정·재실행 */}
           <Tooltip title={
-              "Sample 모드 — 두 가지 효과:\n"
-            + "① 그리드/차트 빈 응답에 컬럼 메타(dataType·name) 기준 휴리스틱 sample 자동 주입 (frontend shim 단)\n"
-            + "② [화면 실행] 시 Java 산출물 적용·mvn compile·DevTools 재기동 모두 SKIP — 10~20초 backend down 회피.\n"
-            + "    axios 요청은 shim 의 sample interceptor 가 가로채 합성 응답 제공.\n"
-            + "체크 후 [화면 실행] 클릭하면 즉시 ready (재기동 끊김 없음)."
+              "오류 시 자동보완 — 체크 시:\n"
+            + "[화면 실행] 후 런타임 오류가 발생하면 AI 가 오류 메시지를 분석해\n"
+            + "산출물(JSX/Java/SP)을 자동 수정한 뒤 화면을 다시 실행합니다.\n"
+            + "최대 3회까지 자동 반복하며, 해결되지 않으면 안내 후 멈춥니다."
           }>
             <FormControlLabel
               sx={{ ml: 0, mr: 0.5,
@@ -430,42 +558,78 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               control={
                 <Checkbox
                   size="small"
-                  checked={useSampleData}
-                  onChange={(e) => setUseSampleData(e.target.checked)}
+                  checked={autoFixOnError}
+                  onChange={(e) => setAutoFixOnError(e.target.checked)}
                   sx={{ p: 0.5 }}
                 />
               }
-              label="Sample"
+              label={
+                <Stack direction="row" alignItems="center" spacing={0.3}>
+                  <AutoFixHighIcon sx={{ fontSize: 14 }} />
+                  <span>오류 시 자동보완</span>
+                </Stack>
+              }
             />
           </Tooltip>
-          <Tooltip title="① 메뉴 등록 — MENU_SQL 만 실제 DB 에 적용 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)">
-            <span>
-              <Button
-                size="small"
-                startIcon={<AppRegistrationIcon fontSize="small" />}
-                onClick={() => setMenuDialogOpen(true)}
-                variant="outlined"
-                color="warning"
-                sx={{ mr: 0.5 }}
-              >
-                메뉴 등록
-              </Button>
-            </span>
-          </Tooltip>
-          <Tooltip title="② 아티팩트 실행 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행 (메뉴 등록 후 권장)">
-            <span>
-              <Button
-                size="small"
-                startIcon={<RocketLaunchIcon fontSize="small" />}
-                onClick={() => setApplyDialogOpen(true)}
-                variant="outlined"
-                color="secondary"
-                sx={{ mr: 1 }}
-              >
-                아티팩트 실행
-              </Button>
-            </span>
-          </Tooltip>
+          {/* ── [Target System 적용] 그룹 — 메뉴 등록 + 산출물 실행 두 기능 묶음 ── */}
+          <Box
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              pl: 0.8, pr: 0.8, pt: 0.7, pb: 0.5,
+              mr: 1,
+              border: '1px solid',
+              borderColor: 'primary.light',
+              borderRadius: 1.5,
+              bgcolor: 'rgba(124,167,224,0.07)',
+            }}
+          >
+            {/* fieldset legend — 그룹명 */}
+            <Typography
+              component="span"
+              sx={{
+                position: 'absolute', top: -7, left: 8,
+                px: 0.5,
+                fontSize: 9.5, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1.3,
+                color: 'primary.dark',
+                bgcolor: 'grey.50',
+                borderRadius: 0.5,
+                display: 'flex', alignItems: 'center', gap: 0.3,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <DnsIcon sx={{ fontSize: 11 }} />
+              Target System 적용
+            </Typography>
+            <Tooltip title="① 메뉴 등록 — MENU_SQL 만 실제 DB 에 적용 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)">
+              <span>
+                <Button
+                  size="small"
+                  startIcon={<AppRegistrationIcon fontSize="small" />}
+                  onClick={() => setMenuDialogOpen(true)}
+                  variant="outlined"
+                  color="warning"
+                >
+                  메뉴 등록
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip title="② 산출물 실행 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행 (메뉴 등록 후 권장)">
+              <span>
+                <Button
+                  size="small"
+                  startIcon={<RocketLaunchIcon fontSize="small" />}
+                  onClick={() => setApplyDialogOpen(true)}
+                  variant="outlined"
+                  color="secondary"
+                >
+                  산출물 실행
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
 
         </Stack>
       </Stack>
@@ -505,6 +669,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                 {previewStage.phase === 'applying'   && '⏳ 산출물 적용'}
                 {previewStage.phase === 'compiling'  && '⏳ 백엔드 컴파일'}
                 {previewStage.phase === 'restarting' && '🔄 백엔드 재기동'}
+                {previewStage.phase === 'autofixing' && '🤖 AI 자동보완'}
                 {previewStage.phase === 'ready'      && '✅ 실행 준비 완료'}
                 {previewStage.phase === 'failed'     && '⚠ 실행 준비 실패'}
               </Typography>
@@ -530,7 +695,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         </Box>
       )}
 
-      {/* ───── 본문 — 좌측 (작업내역 ↔ 아티팩트 트리) | 우측 (Tab: 미리보기 / 소스) ───── */}
+      {/* ───── 본문 — 좌측 (작업내역 ↔ 산출물 트리) | 우측 (Tab: 미리보기 / 소스) ───── */}
       <SplitPane
         direction="horizontal"
         initial={32}  /* 좌측 32%, 우측 68% (요청대로 우측이 큰 영역) */
@@ -538,7 +703,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         first={
           <SplitPane
             direction="vertical"
-            initial={55}  /* 위 (아티팩트 트리) 55%, 아래 (작업내역) 45% */
+            initial={55}  /* 위 (산출물 트리) 55%, 아래 (작업내역) 45% */
             min={20} max={75}
             first={
               <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fcfcfd' }}>
@@ -548,7 +713,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   selectedId={selectedArtifactId}
                   onSelect={(id) => {
                     setSelectedArtifactId(id);
-                    setRightTab(1);  /* 아티팩트 클릭 시 자동으로 소스 탭 이동 */
+                    setRightTab(1);  /* 산출물 클릭 시 자동으로 소스 탭 이동 */
                   }}
                 />
               </Box>
@@ -556,6 +721,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             second={
               <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
                 <ChatPanel
+                  ref={chatRef}
                   sessionId={session.id}
                   onNewAssistantMsg={triggerRefresh}
                   initialPrompt={initialPrompt}
@@ -566,7 +732,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           />
         }
         second={
-          <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
+          <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)' }}>
             <Box sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff',
                        display: 'flex', alignItems: 'center' }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -595,7 +761,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   <Tab
                     icon={<CodeIcon fontSize="small" />}
                     iconPosition="start"
-                    label="아티팩트 소스"
+                    label="산출물 소스"
                   />
                 </Tabs>
               </Box>
@@ -628,6 +794,10 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                 sessionId={session?.id}
                 sid8={previewMeta?.sid8}
                 viewSub={previewMeta?.viewSub}
+                reloadNonce={previewNonce}
+                onError={handlePreviewError}
+                autoFixing={autoFixActive}
+                autoFixLabel={autoFixLabel}
               />
             </Box>
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>

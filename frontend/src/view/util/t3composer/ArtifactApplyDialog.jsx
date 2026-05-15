@@ -36,7 +36,7 @@ import {
 } from './api';
 
 /**
- * 아티팩트 실행 다이얼로그 — MenuRegistrationDialog 와 분리.
+ * 산출물 실행 다이얼로그 — MenuRegistrationDialog 와 분리.
  * MENU_SQL 은 메뉴 등록 다이얼로그 전용이므로 여기선 제외.
  *
  * 적용 대상:
@@ -107,12 +107,12 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
         setPreflighting(false);
       }
 
-      // 2) 아티팩트 목록 — preflight 가 content 를 갱신했으므로 목록 조회는 그 후
+      // 2) 산출물 목록 — preflight 가 content 를 갱신했으므로 목록 조회는 그 후
       const res = await listArtifacts(sessionId);
       const all = Array.isArray(res.data) ? res.data : [];
       setArtifacts(all.filter((a) => a.artifactType !== 'MENU_SQL'));
     } catch (e) {
-      setError('아티팩트 목록 조회 실패: ' + (e?.message || ''));
+      setError('산출물 목록 조회 실패: ' + (e?.message || ''));
     } finally {
       setLoading(false);
     }
@@ -346,7 +346,7 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
       <DialogTitle>
         <Stack direction="row" alignItems="center" spacing={1}>
           <RocketLaunchIcon color="secondary" />
-          <Typography variant="h6" component="span">아티팩트 실행</Typography>
+          <Typography variant="h6" component="span">산출물 실행</Typography>
         </Stack>
       </DialogTitle>
 
@@ -639,7 +639,7 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              적용 대상 아티팩트 ({artifacts.length}개)
+              적용 대상 산출물 ({artifacts.length}개)
             </Typography>
             {loading && <CircularProgress size={14} />}
           </Stack>
@@ -751,7 +751,7 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
                 : <ErrorIcon color="error" sx={{ fontSize: 28 }} />}
               <Typography variant="h6" sx={{ fontWeight: 700,
                           color: result.success ? 'success.dark' : 'error.dark' }}>
-                {result.success ? '✅ 아티팩트 적용 완료' : '❌ 아티팩트 적용 실패'}
+                {result.success ? '✅ 산출물 적용 완료' : '❌ 산출물 적용 실패'}
               </Typography>
             </Stack>
             {result.error && (

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, Suspense } from 'react';
+import React, { useMemo, useState, useEffect, useRef, Suspense } from 'react';
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -71,6 +71,21 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
     [selected],
   );
   const PreviewComp = selectedEntry?.component || null;
+
+  // 우측 미리보기 — 패널 실제 폭을 측정해 mockup(1400px)을 꽉 차게 scale.
+  //   고정 배율(0.62)이면 패널보다 좁아 우측에 검은 여백이 생김 → 동적 배율로 제거.
+  const previewPaneRef = useRef(null);
+  const [paneW, setPaneW] = useState(0);
+  useEffect(() => {
+    const el = previewPaneRef.current;
+    if (!open || !el) return undefined;
+    const update = () => setPaneW(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open]);
+  const previewScale = paneW > 0 ? paneW / PREVIEW_W : PREVIEW_SCALE;
 
   const confirm = () => onConfirm(selectedEntry || null);
 
@@ -175,8 +190,15 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
             </Box>
           </Box>
 
-          {/* ── 우측 — 실제 mockup 미리보기 ── */}
-          <Box sx={{ flex: 1, minWidth: 0, bgcolor: '#0f1117', position: 'relative', overflow: 'hidden' }}>
+          {/* ── 우측 — 실제 mockup 미리보기 (패널 폭에 맞춰 꽉 차게 — 우측 검은 여백 제거) ── */}
+          <Box
+            ref={previewPaneRef}
+            sx={{
+              flex: 1, minWidth: 0, position: 'relative',
+              overflowX: 'hidden', overflowY: 'auto',
+              bgcolor: selectedEntry ? '#fff' : '#0f1117',
+            }}
+          >
             {!selectedEntry && (
               <Box sx={{
                 position: 'absolute', inset: 0, display: 'flex',
@@ -186,19 +208,21 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
               </Box>
             )}
             {selectedEntry && PreviewComp && (
-              <Box sx={{
-                position: 'absolute', top: 0, left: 0,
-                width: PREVIEW_W, height: PREVIEW_H,
-                transform: `scale(${PREVIEW_SCALE})`, transformOrigin: 'top left',
-                bgcolor: '#fff',
-              }}>
-                <Suspense fallback={
-                  <Box sx={{ p: 6, display: 'flex', justifyContent: 'center' }}>
-                    <CircularProgress />
-                  </Box>
-                }>
-                  <PreviewComp />
-                </Suspense>
+              // 외곽 wrapper — scale 적용된 실제 크기를 차지 (폭=패널폭 → 우측 여백 0, 세로는 스크롤).
+              <Box sx={{ width: PREVIEW_W * previewScale, height: PREVIEW_H * previewScale }}>
+                <Box sx={{
+                  width: PREVIEW_W, height: PREVIEW_H,
+                  transform: `scale(${previewScale})`, transformOrigin: 'top left',
+                  bgcolor: '#fff',
+                }}>
+                  <Suspense fallback={
+                    <Box sx={{ p: 6, display: 'flex', justifyContent: 'center' }}>
+                      <CircularProgress />
+                    </Box>
+                  }>
+                    <PreviewComp />
+                  </Suspense>
+                </Box>
               </Box>
             )}
           </Box>

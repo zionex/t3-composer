@@ -250,31 +250,32 @@ function T3mesPatternCatalog() {
       <ContentInner>
         <WorkArea>
           <Box sx={{
-            p: 0.75, borderBottom: '1px solid', borderColor: 'divider',
-            bgcolor: '#0f172a', color: '#fff', flexShrink: 0,
+            p: 0.75, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0,
+            bgcolor: 'rgba(255,255,255,0.62)', color: '#3A4A63',
+            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 14px -10px rgba(58,74,99,0.30), 0 1px 0 rgba(255,255,255,0.7) inset',
           }}>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Button
                 size="small" variant="outlined" startIcon={<ArrowBackIcon />}
                 onClick={closeEntry}
-                sx={{ color: '#fff', borderColor: '#475569' }}
               >
                 목록으로
               </Button>
-              <Divider orientation="vertical" flexItem sx={{ borderColor: '#475569' }} />
+              <Divider orientation="vertical" flexItem />
               <Chip
                 size="small"
                 label={active.section}
                 sx={{
                   height: 20, fontSize: 11, fontWeight: 700,
-                  bgcolor: `${active.sectionColor}33`, color: active.sectionColor,
-                  border: `1px solid ${active.sectionColor}77`,
+                  bgcolor: `${active.sectionColor}22`, color: active.sectionColor,
+                  border: `1px solid ${active.sectionColor}66`,
                 }}
               />
-              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              <Typography variant="caption" sx={{ color: '#6E7E96' }}>
                 {active.group}
               </Typography>
-              <Box component="span" sx={{ color: '#475569' }}>›</Box>
+              <Box component="span" sx={{ color: '#A6B2C4' }}>›</Box>
               {active.tabLabel ? (
                 <>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
@@ -285,8 +286,8 @@ function T3mesPatternCatalog() {
                     label={`#${active.tabIndex + 1}`}
                     sx={{
                       fontFamily: 'monospace', fontSize: 10, height: 18,
-                      bgcolor: '#1e293b', color: '#cbd5e1',
-                      border: '1px solid #334155',
+                      bgcolor: 'rgba(124,167,224,0.16)', color: '#5683C0',
+                      border: '1px solid rgba(124,167,224,0.35)',
                     }}
                   />
                 </>
@@ -300,8 +301,8 @@ function T3mesPatternCatalog() {
                 label={active.srcUrl.replace(/^\//, '')}
                 sx={{
                   fontFamily: 'monospace', fontSize: 10, height: 18,
-                  bgcolor: '#1e293b', color: '#94a3b8',
-                  border: '1px solid #334155',
+                  bgcolor: 'rgba(124,167,224,0.10)', color: '#6E7E96',
+                  border: '1px solid rgba(124,167,224,0.28)',
                 }}
               />
               <Box sx={{ flex: 1 }} />
@@ -310,7 +311,7 @@ function T3mesPatternCatalog() {
                   <Button
                     size="small" variant="outlined"
                     onClick={() => window.open(active.liteUrl, '_blank', 'noopener,noreferrer')}
-                    sx={{ color: '#7dd3fc', borderColor: '#475569', fontWeight: 700 }}
+                    sx={{ fontWeight: 700 }}
                   >
                     lite
                   </Button>
@@ -318,7 +319,7 @@ function T3mesPatternCatalog() {
               )}
               <Tooltip title="이 화면(full) 새 창으로 열기">
                 <IconButton
-                  size="small" sx={{ color: '#fff' }}
+                  size="small" sx={{ color: '#5683C0' }}
                   onClick={() => window.open(active.srcUrl, '_blank', 'noopener,noreferrer')}
                 >
                   <OpenInNewIcon fontSize="small" />
@@ -334,7 +335,7 @@ function T3mesPatternCatalog() {
               style={{
                 width: '100%', height: '100%',
                 border: 'none', display: 'block',
-                backgroundColor: '#0f1117',
+                backgroundColor: '#fff',
               }}
             />
           </Box>
@@ -348,29 +349,35 @@ function T3mesPatternCatalog() {
     <ContentInner>
       <WorkArea>
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-                   bgcolor: '#eef2f7', p: 1.2, gap: 1.2 }}>
+                   bgcolor: 'transparent', p: 1.2, gap: 1.2 }}>
 
-          {/* Hero */}
+          {/* Hero — 파스텔 글래스 */}
           <Paper elevation={0} sx={{
-            p: 2, borderRadius: 2.5, flexShrink: 0,
-            background: 'linear-gradient(135deg, #0c4a6e 0%, #1e3a8a 55%, #581c87 100%)',
-            color: '#fff', position: 'relative', overflow: 'hidden',
+            p: 2, borderRadius: 3, flexShrink: 0, position: 'relative', overflow: 'hidden',
+            background: 'linear-gradient(135deg, rgba(169,199,238,0.62) 0%, '
+                      + 'rgba(143,196,212,0.42) 52%, rgba(157,143,212,0.42) 100%)',
+            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+            border: '1px solid rgba(255,255,255,0.65)',
+            boxShadow: '0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 24px -10px rgba(58,74,99,0.26)',
+            color: '#3A4A63',
           }}>
             <Box sx={{ position: 'absolute', top: -40, right: -20, width: 200, height: 200,
-                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)' }} />
+                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.30)' }} />
             <Box sx={{ position: 'absolute', bottom: -50, left: 100, width: 180, height: 180,
-                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)' }} />
+                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.16)' }} />
             <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'relative' }}>
-              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff',
-                            width: 56, height: 56, border: '2px solid rgba(255,255,255,0.3)' }}>
+              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.78)', color: '#5683C0',
+                            width: 56, height: 56,
+                            border: '1px solid rgba(255,255,255,0.85)',
+                            boxShadow: '0 4px 12px -4px rgba(58,74,99,0.30)' }}>
                 <DashboardIcon sx={{ fontSize: 30 }} />
               </Avatar>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1,
-                                               textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: '#3A4A63',
+                                               textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}>
                   UI Pattern 취합본
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.3 }}>
+                <Typography variant="body2" sx={{ color: '#5A6B85', mt: 0.3 }}>
                   MES / SCM 도메인별 UI 패턴 — 각 TabPage 를 선택하면 본문에 해당 패턴이 즉시 활성화된 상태로 표시됩니다.
                 </Typography>
               </Box>
@@ -383,13 +390,17 @@ function T3mesPatternCatalog() {
                 ].map((s) => (
                   <Box key={s.label} sx={{
                     minWidth: 86, textAlign: 'center',
-                    bgcolor: 'rgba(255,255,255,0.12)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255,255,255,0.18)',
+                    bgcolor: 'rgba(255,255,255,0.55)',
+                    backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255,255,255,0.70)',
+                    boxShadow: '0 2px 8px -5px rgba(58,74,99,0.22)',
                     borderRadius: 2, px: 1.2, py: 0.8,
                   }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700 }}>{s.label}</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 0.2 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#5A6B85' }}>
+                      {s.label}
+                    </Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 0.2,
+                                                   color: '#3A4A63' }}>
                       {s.val}
                     </Typography>
                   </Box>
@@ -398,8 +409,14 @@ function T3mesPatternCatalog() {
             </Stack>
           </Paper>
 
-          {/* Toolbar */}
-          <Paper elevation={0} sx={{ p: 1, borderRadius: 2, flexShrink: 0, bgcolor: '#fff' }}>
+          {/* Toolbar — 파스텔 글래스 */}
+          <Paper elevation={0} sx={{
+            p: 1, borderRadius: 2.5, flexShrink: 0,
+            bgcolor: 'rgba(255,255,255,0.66)',
+            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            boxShadow: '0 6px 18px -12px rgba(58,74,99,0.28), 0 1px 0 rgba(255,255,255,0.7) inset',
+          }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
               <ToggleButtonGroup
                 value={sectionFilter} exclusive
@@ -408,8 +425,8 @@ function T3mesPatternCatalog() {
                 sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.4, fontWeight: 700 } }}
               >
                 <ToggleButton value="ALL">전체</ToggleButton>
-                <ToggleButton value="MES" sx={{ color: '#00b8d4 !important' }}>MES</ToggleButton>
-                <ToggleButton value="SCM" sx={{ color: '#9d72ff !important' }}>SCM</ToggleButton>
+                <ToggleButton value="MES" sx={{ color: '#6BA0B0 !important' }}>MES</ToggleButton>
+                <ToggleButton value="SCM" sx={{ color: '#9D8FD4 !important' }}>SCM</ToggleButton>
               </ToggleButtonGroup>
               <Divider orientation="vertical" flexItem />
               <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
@@ -417,9 +434,10 @@ function T3mesPatternCatalog() {
                   size="small" label="전체 그룹"
                   onClick={() => setGroupFilter('ALL')}
                   sx={{
-                    height: 26, fontWeight: 600,
-                    bgcolor: groupFilter === 'ALL' ? '#0f172a' : '#f1f5f9',
-                    color:   groupFilter === 'ALL' ? '#fff'    : '#475569',
+                    height: 26, fontWeight: 700,
+                    bgcolor: groupFilter === 'ALL' ? '#5683C0' : 'rgba(124,167,224,0.12)',
+                    color:   groupFilter === 'ALL' ? '#fff'    : '#6E7E96',
+                    '&:hover': { bgcolor: groupFilter === 'ALL' ? '#5683C0' : 'rgba(124,167,224,0.22)' },
                   }}
                 />
                 {groupOptions.map((g) => (
@@ -428,8 +446,9 @@ function T3mesPatternCatalog() {
                     onClick={() => setGroupFilter(g)}
                     sx={{
                       height: 26, fontWeight: 500,
-                      bgcolor: groupFilter === g ? '#3b82f6' : '#f1f5f9',
-                      color:   groupFilter === g ? '#fff'    : '#475569',
+                      bgcolor: groupFilter === g ? '#7CA7E0' : 'rgba(124,167,224,0.12)',
+                      color:   groupFilter === g ? '#fff'    : '#6E7E96',
+                      '&:hover': { bgcolor: groupFilter === g ? '#7CA7E0' : 'rgba(124,167,224,0.22)' },
                     }}
                   />
                 ))}

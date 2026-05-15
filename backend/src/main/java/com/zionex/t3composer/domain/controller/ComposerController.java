@@ -324,6 +324,20 @@ public class ComposerController {
     }
 
     /**
+     * 세션 아티팩트 재추출 — assistant 응답 텍스트를 다시 파싱.
+     * 추출기(ArtifactExtractor) 정규식 개선 후, 기존 세션의 빈/누락 아티팩트를
+     * LLM 재호출 없이 원본 응답으로부터 복구한다.
+     * @return { reExtracted: N }
+     */
+    @PostMapping("/sessions/{sessionId}/artifacts/re-extract")
+    public ResponseEntity<Map<String, Object>> reExtractArtifacts(@PathVariable String sessionId) {
+        int count = composerService.reExtractArtifacts(sessionId, currentUserId());
+        Map<String, Object> out = new HashMap<>();
+        out.put("reExtracted", count);
+        return ResponseEntity.ok(out);
+    }
+
+    /**
      * Supersede 된 이전 버전(STATUS_DISCARDED) 아티팩트를 일괄 hard delete.
      * 사용자가 "이전 버전 정리" 액션을 명시 호출했을 때만 실행.
      * @return { deleted: N }

@@ -452,6 +452,11 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 | webpack `devServer.static.watch` 를 `{ usePolling:true }` 로 둠 → public/t3mes-split 1460+ 파일 폴링 → 번들 0바이트 전송 끊김 | `static: { watch: false }` (src 변경은 watchOptions.poll 담당) — Hook `build-config.sh` W1 |
 | 소스 동기화 후 `docker/db/init-pg/` 신규 마이그레이션을 기존 composer-db 에 미적용 → `column "..." does not exist` | 누락 마이그레이션 수동 적용 (`psql ... < init-pg/<NN>_*.sql` — 멱등) §10 |
 | 동기화 후 `package.json` 신규 의존성을 컨테이너에 미설치 → `Module not found` | `npm install --legacy-peer-deps` 후 frontend 재시작 §10 |
+| 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 오류 무한루프 | 카운터는 수동 [화면 실행] 시에만 리셋 · MAX_AUTOFIX(3) 상한 + 동일오류 중단 §14.2 |
+| `handlePreview` 의 'ready' 자동닫기 setTimeout 이 'autofixing' 토스트를 무조건 제거 | 함수형 업데이트로 `phase==='ready'` 일 때만 닫기 §14.3 |
+| flex column 자식이 스크롤돼야 하는데 조상 Box 에 `minHeight:0` 누락 → 스크롤 미발생·콘텐츠 잘림 | 스크롤 자식까지 이어지는 모든 flex 조상에 `minHeight:0` §14.5 |
+| 다크 그라데이션 헤더/히어로 (`#0f172a`·`linear-gradient(#1e3a8a…)`) | theme.js 파스텔 글래스 — 반투명 그라데이션 + backdrop-blur + 흰 반투명 보더 §14.6 |
+| 미리보기를 고정 scale 로 축소 → 패널보다 좁아 검은 여백 | ResizeObserver 로 패널 폭 측정 → 동적 배율 (`패널폭/원본폭`) §14.6 |
 
 ## 12. T3MES UI Pattern 카탈로그 + 자연어 생성 참조 picker (2026-05-15)
 
@@ -480,6 +485,159 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 - 하나를 선택하면 나머지 둘은 자동 해제 — `selectedMockup` / `selectedUiPattern` / `attachments` 중 하나만 유효.
 - KPI/Chart 사전 선택 트리거는 선택한 Mockup/UI Pattern 이 Chart·Dashboard·Monitoring 류일 때만 노출.
 - 미리보기: Mockup 은 lazy 컴포넌트를 가상화면(1400×900) scale 렌더, UI Pattern 은 `srcUrl` iframe.
+
+## 13. 산출물 화면 실행 오류 재발 방지 — shim 완전성 + 디자인 규약 (2026-05-16)
+
+> 화면 생성 후 [화면 실행] 시 반복 발생하는 런타임 오류를 **구조적으로 차단**한다.
+> 핵심 원리: 단독 환경에서 산출물은 부모 wingui-core 가 아니라 **shim 으로 동작**하므로,
+> shim 이 산출물이 쓰는 표면을 100% 커버해야 한다.
+
+### 13.1 shim export ⇄ ComposerPromptBuilder 광고 목록 — 항상 동기 (강제)
+
+단독 환경에서 산출물 JSX 의 `import { ... } from '@wingui/common/imports'` 는 webpack alias 로
+**전부 `frontend/src/shim/wingui/common/imports.js`** 로 resolve 된다.
+shim 이 export 하지 않는 이름을 import 하면 그 심볼은 `undefined` →
+렌더 시 **`Element type is invalid: ... got: undefined`** 즉시 크래시.
+
+- `ComposerPromptBuilder` 의 BASE_SYSTEM 이 "★ @wingui/common/imports 의 실제 export 목록" 으로
+  광고하는 **모든** 컴포넌트는 shim 에 실제 `export` 가 존재해야 한다.
+- **두 곳은 한 쪽만 고치지 말 것** — 프롬프트에 컴포넌트를 추가하면 shim 에도 즉시 추가.
+- shim 현재 export 표면 (이 목록과 프롬프트 광고 목록이 일치해야 함):
+  - Layout: `ContentInner · SearchArea · SearchRow · WorkArea · ResultArea · StatusArea ·
+    ButtonArea · LeftButtonArea · RightButtonArea · VLayoutBox · HLayoutBox · SplitPanel ·
+    TabContainer · Tab · PopupDialog · GroupBox · FormArea · FormRow · FormItem`
+  - Input: `InputField · SearchMenuInput · Pagination`
+  - Grid: `BaseGrid · TreeGrid · GridCnt · GridAddRowButton · GridDeleteRowButton ·
+    GridSaveButton · GridExcelExportButton · GridExcelImportButton · LargeExcelDownload · LargeExcelUpload`
+  - Button: `CommonButton · SaveButton · SearchButton · RefreshButton`
+  - Store: `useViewStore · useContentStore · useUserStore · useMenuStore · useDashboardStore ·
+    useInsightSystemStore · useSearchPositionStore · getViewStore · getContentStore · getUserStore ·
+    storeApi · userStoreApi · getActiveViewId · useInputConstant · useIconStyles`
+  - HTTP/기타: `zAxios · callService · showMessage · ShowMessageHost · useFieldCascade ·
+    applyGridCascade · buildPopupFilterProps · loadRecentSimulationVersion · setHeaderColor`
+- **Hook 자동 검증**: `.claude/hooks/validators/composer-jsx.sh §CG-SHIM` 이 JSX Write/Edit 시
+  `@wingui/common/imports` named import 를 shim 의 실제 export 와 동적 대조 → 미보유 시 warn.
+
+### 13.2 화면 실행 반복 오류 카탈로그 (Anti-patterns)
+
+| # | 증상 | 근본 원인 | 차단 장치 |
+|---|---|---|---|
+| RT1 | `Element type is invalid: ... got: undefined` | 산출물이 import 한 컴포넌트를 shim 이 미보유 (예: `VLayoutBox`/`HLayoutBox` 누락 — 2026-05) | §13.1 shim 완전성 + Hook CG-SHIM |
+| RT2 | `xxx.find/map/flatMap is not a function` | 리스트 state 가 배열이 아닌 값(객체/undefined)으로 set 됨 — API 빈 응답·sample interceptor 객체 응답 | §13.4 배열 가드 |
+| RT3 | 산출물 소스가 전부 빈 0바이트 | LLM 이 `===FILE:` 마커를 자체 코드펜스로 감쌈 → `ArtifactExtractor` 정규식 미인식 | §13.5 + extractor 정규식 보강 (마커-본문 사이 고립 ``` 허용) |
+
+### 13.3 산출물 디자인 규약 — Target System 룩 정확 반영 (강제)
+
+산출물 화면은 **Target System(wingui) 의 표준 룩**을 그대로 따른다. LLM 이 임의 색 팔레트·여백을
+지어내면 운영 화면과 이질적이 된다 (예: MP Dashboard 가 베이지색 `#FBFAF6/#DCD6C7` 자체 팔레트 사용).
+
+- **표준 컴포넌트의 기본 룩에 의존** — `ContentInner · SearchArea · SearchRow · WorkArea ·
+  BaseGrid · InputField · GroupBox` 는 shim 이 이미 wingui 파스텔 sky-blue 룩을 입혀 둠.
+  산출물은 이 컴포넌트를 쓰기만 하면 룩이 자동 일치.
+- **임의 색 하드코딩 금지** — 위젯·카드·차트 색은 MUI 테마 토큰 또는 파스텔 팔레트에서 선택:
+  primary `#7CA7E0` · 정상/성공 `#86C7A8` · 주의 `#E6C079` · 위험 `#E0989A` · 정보 `#8FC4D4` ·
+  강조/AI `#9D8FD4` · 본문 텍스트 `#3A4A63` · 보조 텍스트 `#6E7E96` · 보더 `rgba(124,167,224,0.28)`.
+  베이지/세피아/다크 등 자체 테마 창작 금지.
+- **여백(spacing) 은 8px 그리드** — MUI `sx` 의 spacing 단위(`p:1`=8px, `gap:1.5`=12px) 사용.
+  카드/패널 내부 padding 은 `p: 1.5`~`2`, 위젯 간 gap 은 `gap: 2`, 행 간 gap 은 `gap: 1` 기준.
+- **패널·카드는 `GroupBox` 또는 일관 보더** — `border: '1px solid rgba(124,167,224,0.30)'` +
+  `borderRadius: 1` + 반투명 배경. 위젯마다 다른 보더 스타일 금지.
+- **타이포** — 화면/패널 제목 `fontSize: 14~16, fontWeight: 700`, 본문/셀 `12~13`, 캡션 `11`.
+  거대한 제목(`fontSize: 24+`) 금지.
+- 대시보드 KPI/차트는 `VLayoutBox`/`HLayoutBox` + `Box`(`flex`) 격자로 균등 배치 — 위젯 간
+  여백 일관, 폭이 화면을 넘으면 `WorkArea` 가 자동 스크롤.
+
+### 13.4 배열 상태 가드 (RT2 차단)
+
+목록 데이터를 받는 모든 state 는 **배열 보장**:
+```jsx
+const [kpis, setKpis] = useState([]);                 // 초기값 [] 필수
+// API 응답 — 배열이 아니면 [] 로 폴백
+zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
+// 렌더 — .map/.find/.flatMap 전 한 번 더 가드 (state 가 외부에서 오염될 수 있음)
+{(Array.isArray(kpis) ? kpis : []).map(k => <KpiCard key={k.kpiCd} kpi={k} />)}
+```
+- sample interceptor 가 객체를 돌려줄 수 있는 URL(`/summary` `/dashboard` 등)도 위 가드로 안전.
+
+### 13.5 ArtifactExtractor `===FILE:` 포맷
+
+- 권장 정규형: `===FILE: <path>===` 한 줄 → 바로 다음 줄 ` ```lang ` 펜스 → 본문 → ` ``` `.
+- LLM 이 마커를 자체 펜스로 감싼 변형(` ``` ` / `===FILE:...===` / ` ``` ` / ` ```lang `)도
+  `ArtifactExtractor.FILE_BLOCK` 정규식이 인식 (마커-본문 사이 고립 ` ``` ` 줄 선택 허용).
+- 기존 세션의 빈 산출물 복구: `POST /composer/sessions/{id}/artifacts/re-extract` —
+  assistant 응답을 LLM 재호출 없이 다시 파싱.
+
+## 14. 화면 실행 AI 자동보완 + 산출물 UI 보강 (2026-05-16)
+
+> [화면 실행] 후 런타임 오류가 나면 AI 가 산출물을 자동 수정·재실행한다.
+> 사용자가 오류를 직접 분석할 필요 없이 화면이 자동으로 고쳐진다.
+
+### 14.1 화면 실행 후 런타임 오류 → AI 자동보완
+
+- ComposerWorkspace 헤더 [화면 실행] 옆 **[오류 시 자동보완] 체크박스** (기본 ON).
+- 흐름: `PreviewEmbed` 오류 포착 → `onError` → `ComposerWorkspace.handlePreviewError`
+  → `ChatPanel.sendMessage(오류+스택)` (같은 세션 채팅) → AI 산출물 수정
+  → `handlePreview` 재실행. 재실행 후 또 오류면 attempt+1 로 반복.
+- **오류 포착 3경로** (`PreviewEmbed`):
+  - load 오류 (transform/execute) — `loadPreviewComponent().catch`
+  - render 오류 — `PreviewErrorBoundary` (iframe React 루트 안에서 산출물 Component 래핑)
+  - runtime/promise 오류 — iframe window 의 `error` / `unhandledrejection` 리스너
+    (`ResizeObserver loop` · `Script error` 는 양성 → 무시)
+  - **load 당 1회만** 보고 (`reportedRef` — 매 load 시작 시 리셋)
+- `ChatPanel` 은 `forwardRef` + `useImperativeHandle({ sendMessage })` 로
+  프로그램적 채팅 전송 노출. `send` 는 성공/실패를 boolean 으로 반환.
+
+### 14.2 무한루프 3중 차단 (필수)
+
+| # | 차단 | 메커니즘 |
+|---|---|---|
+| 1 | 횟수 상한 | `autoFixAttemptRef >= MAX_AUTOFIX(3)` 이면 중단. 카운터는 **수동 [화면 실행] 버튼**에서만 0 리셋, 자동 재실행 경로(handlePreviewError→handlePreview)는 리셋 안 함. 보완 중 버튼 비활성(previewStage) → 사이클 중 리셋 불가 |
+| 2 | 동일오류 감지 | `lastAutoFixErrorRef` — 보완 후에도 같은 오류 메시지 재발 시 남은 횟수 무관 즉시 중단 |
+| 3 | 재진입 가드 | `autoFixingRef` — 보완 진행 중 중복 트리거 차단 |
+
+### 14.3 자동보완 진행 가시화
+
+- `previewStage` 에 `'autofixing'` 단계 추가 — 헤더 토스트 `🤖 AI 자동보완 (N/3)`.
+- ⚠️ `handlePreview` 의 'ready' 자동닫기 `setTimeout` 은 **함수형 업데이트**로
+  `phase === 'ready'` 일 때만 닫는다 — 그 사이 autofixing/failed 로 바뀌었으면 유지
+  (안 그러면 자동보완 토스트가 1.5초 뒤 사라져 진행이 안 보임).
+- `PreviewEmbed` 는 `autoFixing` prop true 면 phase 무관 **'AI 자동보완 중' 전용 화면** 표시
+  (오류 화면 대신).
+
+### 14.4 Sample 모드 항상 ON
+
+- Sample 체크박스 UI 제거. `useSampleData = true` 상수 — 항상 ON
+  (빈 응답 휴리스틱 sample 주입 + Java 적용·mvn·재기동 SKIP).
+
+### 14.5 산출물 소스 패널 스크롤 — flex `minHeight:0` 체인
+
+- flex column 자식이 `overflow:auto` 로 스크롤되려면 **스크롤 자식까지 이어지는
+  모든 flex 조상에 `minHeight:0`** 이 있어야 한다 (없으면 콘텐츠 높이만큼 늘어나 스크롤 미발생).
+- 사고: ComposerWorkspace 우측 Tab 컨테이너 Box 에 `minHeight:0` 누락 → 산출물 소스가
+  길어도 스크롤 없이 잘림.
+
+### 14.6 디자인 일관성 — 파스텔 글래스 (theme.js)
+
+- **모든 화면** (Composer · History · UI Pattern · Gallery · picker 다이얼로그) 은
+  `theme.js` 파스텔 글래스 룩 적용. **다크 그라데이션 헤더/히어로 금지**.
+  - 히어로: 반투명 파스텔 그라데이션 (`rgba(169,199,238,…)` 계열) + `backdrop-filter:blur`
+    + 흰 반투명 보더 + inset 하이라이트 + 깊이 그림자. 글자는 `#3A4A63` 파스텔 다크.
+  - 팔레트: primary `#7CA7E0` · 성공 `#86C7A8` · 정보 `#8FC4D4` · 강조 `#9D8FD4`.
+- `MockupPickerDialog` 미리보기 — **고정 scale 금지**. `ResizeObserver` 로 패널 폭 측정 →
+  `배율 = 패널폭 / 원본폭(1400)` 동적 산정 → 우측 검은 여백 제거 + 세로 스크롤.
+- 엔진 선택(`ModeNewGeneral`) — 선택 엔진은 **단색 채움 + 흰 글자 + 체크 아이콘 + 확인 칩**
+  (미선택은 흰 바탕·흐린 회색) 으로 명확히 대비.
+
+### 14.7 Anti-patterns
+
+| ❌ | ✅ |
+|---|---|
+| 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 무한루프 | 수동 버튼에서만 리셋 · MAX 3 + 동일오류 중단 (§14.2) |
+| 'ready' 닫기 타이머가 autofixing 토스트 제거 | `setPreviewStage((s)=> s?.phase==='ready' ? null : s)` (§14.3) |
+| 자동보완 도는데 PreviewEmbed 가 오류 화면만 표시 | `autoFixing` prop → 'AI 자동보완 중' 전용 화면 (§14.3) |
+| 산출물 소스 스크롤 자식의 flex 조상에 `minHeight:0` 누락 | 조상 전체 `minHeight:0` 체인 (§14.5) |
+| 미리보기 고정 scale → 검은 여백 | ResizeObserver 동적 배율 (§14.6) |
+| 다크 그라데이션 헤더 | 파스텔 글래스 (§14.6) |
 
 ## 관련 파일
 

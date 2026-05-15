@@ -81,7 +81,7 @@ export const updateSessionStatus = (sessionId, status) =>
 
 /**
  * 세션의 AI 엔진(modelName) 변경.
- * - 아티팩트 생성 후 추가 채팅, History 이어하기 등 모든 단계에서 사용 가능.
+ * - 산출물 생성 후 추가 채팅, History 이어하기 등 모든 단계에서 사용 가능.
  * - 다음 chat 호출부터 새 모델로 Claude API 가 호출된다.
  * - modelName 빈 값 → 서버에서 DEFAULT_MODEL (Sonnet 4.6) 로 리셋.
  */
@@ -110,7 +110,7 @@ export const sendChat = (sessionId, message, attachmentArtifactIds, attachments)
 
 // ---- Artifacts ----
 
-/** 세션 아티팩트 목록.
+/** 세션 산출물 목록.
  *  history=false (기본) — supersede 된 이전 버전(DISCARDED) 제외, 최신만
  *  history=true — 전체 이력 (DISCARDED 포함)
  */
@@ -120,7 +120,7 @@ export const listArtifacts = (sessionId, { history = false } = {}) =>
     composerReq()
   );
 
-/** Supersede 된 이전 버전(DISCARDED) 아티팩트 일괄 hard delete. → { deleted: N } */
+/** Supersede 된 이전 버전(DISCARDED) 산출물 일괄 hard delete. → { deleted: N } */
 export const cleanupSupersededArtifacts = (sessionId) =>
   zAxios.post(
     `composer/sessions/${sessionId}/artifacts/cleanup`,
@@ -170,7 +170,7 @@ export const prefillFromSource = ({ sourceBundle, newMenuCd, newTitle, moduleCod
   );
 
 /**
- * 아티팩트 적용 직전 사전 검증 — 자주 발생하는 오류를 자동 보정.
+ * 산출물 적용 직전 사전 검증 — 자주 발생하는 오류를 자동 보정.
  * 응답: { success, totalFixCount, fileCount, files: [{ artifactType, filePath, fixes:[{rule,description}] }] }
  */
 export const preflightArtifacts = (sessionId) =>
@@ -195,7 +195,7 @@ export const prefillFromDesign = ({ parsedDesign, fileName, newMenuCd, newTitle,
 
 // ---- Menu Registration ----
 
-// sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 아티팩트 그대로 실행.
+// sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 산출물 그대로 실행.
 export const executeMenuSql = (sessionId, sqlOverride = null) =>
   zAxios.post(
     `composer/sessions/${sessionId}/execute-menu-sql`,
@@ -203,7 +203,7 @@ export const executeMenuSql = (sessionId, sqlOverride = null) =>
     composerReq()
   );
 
-// 아티팩트 자동 적용 — 파일 저장 / DDL 실행 / SP 실행
+// 산출물 자동 적용 — 파일 저장 / DDL 실행 / SP 실행
 // opts: { applyFiles, executeDdl, executeSp, overwrite }
 export const applyArtifacts = (sessionId, opts = {}) =>
   zAxios.post(

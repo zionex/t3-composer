@@ -16,8 +16,10 @@ import {
     Box, Button, TextField, Checkbox, MenuItem, IconButton, Stack, Tooltip,
     Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper,
     Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Typography,
-    Select, FormControlLabel,
+    Select, FormControlLabel, Divider,
+    Tabs as MuiTabs, Tab as MuiTab, Pagination as MuiPagination,
 } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
@@ -33,8 +35,9 @@ import BaseGridImpl, { lookupGrid as lookupGridImpl } from './BaseGrid';
 // ----- Layout wrappers — 부모 wingui-core SearchArea/SearchRow/ContentInner 룩 흉내 -----
 //   (AppCommonStyle.jsx 의 useSearchAreaStyles + AppInputStyle.jsx 의 INPUT_* 상수 기반)
 export const ContentInner = ({ children, sx }) => (
+    // overflow:auto — 콘텐츠가 영역을 넘어가면 스크롤바 노출, 맞으면 노출 안 함
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-               overflow: 'hidden', bgcolor: '#fafafa', ...sx }}>
+               overflow: 'auto', bgcolor: 'transparent', ...sx }}>
         {children}
     </Box>
 );
@@ -97,8 +100,11 @@ export const SearchArea = ({ children, onSearch, sx }) => {
         <Box sx={{
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px',
             width: '100%',
-            border: '1px solid #E0E0E0',
-            bgcolor: '#f4f6f8',
+            border: '1px solid rgba(124,167,224,0.30)',
+            bgcolor: 'rgba(255,255,255,0.55)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderRadius: '8px',
             padding: '6px 8px',
             flex: '0 0 auto',
             ...sx,
@@ -116,12 +122,12 @@ export const SearchArea = ({ children, onSearch, sx }) => {
                 sx={{
                     height: 32,
                     minWidth: 76,
-                    bgcolor: '#3b82f6',
+                    bgcolor: '#7CA7E0',
                     fontSize: 12, fontWeight: 700,
                     boxShadow: 'none',
                     flexShrink: 0,
                     alignSelf: 'flex-start',
-                    '&:hover': { bgcolor: '#2563eb', boxShadow: 'none' },
+                    '&:hover': { bgcolor: '#5683C0', boxShadow: 'none' },
                 }}
             >
                 조회
@@ -140,21 +146,31 @@ export const SearchRow = ({ children, sx }) => (
     </Box>
 );
 export const WorkArea = ({ children, sx }) => (
-    <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', ...sx }}>
+    // overflow:auto — 본문이 영역을 넘어가면 스크롤바 노출 (그리드는 내부 스크롤이라 평소엔 미노출)
+    <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', ...sx }}>
         {children}
     </Box>
 );
 export const ResultArea = WorkArea;
-export const StatusArea = ({ children, sx }) => <Box sx={{ p: 1, borderTop: '1px solid rgba(0,0,0,0.08)', ...sx }}>{children}</Box>;
+export const StatusArea = ({ children, sx }) => <Box sx={{ p: 1, borderTop: '1px solid rgba(124,167,224,0.20)', ...sx }}>{children}</Box>;
 export const ButtonArea = ({ children, sx }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-               px: 1.5, py: 0.8, gap: 1, bgcolor: '#fff',
-               borderBottom: '1px solid rgba(0,0,0,0.06)', ...sx }}>
+               px: 1.5, py: 0.8, gap: 1, bgcolor: 'rgba(255,255,255,0.60)',
+               borderBottom: '1px solid rgba(124,167,224,0.20)', ...sx }}>
         {children}
     </Box>
 );
 export const LeftButtonArea = ({ children }) => <Box sx={{ display: 'flex', gap: 0.8 }}>{children}</Box>;
 export const RightButtonArea = ({ children }) => <Box sx={{ display: 'flex', gap: 0.8 }}>{children}</Box>;
+
+// ----- VLayoutBox / HLayoutBox — wingui-core 의 수직/수평 flex 박스 -----
+//   산출물이 대시보드 등에서 위젯 격자 레이아웃에 사용. sx · children 만 받음.
+export const VLayoutBox = ({ children, sx }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0, ...sx }}>{children}</Box>
+);
+export const HLayoutBox = ({ children, sx }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'row', minWidth: 0, ...sx }}>{children}</Box>
+);
 
 // ----- Grid registry — BaseGrid (RealGrid2) 의 registry 를 그대로 사용 -----
 const lookupGrid = lookupGridImpl;
@@ -178,7 +194,7 @@ export const GridCnt = ({ grid, format }) => {
     })() : 0) : 0;
     const text = format ? String(format).replace('{0}', String(count)) : `${count} 건`;
     return (
-        <Typography variant="caption" sx={{ color: '#475569', fontWeight: 500, mr: 0.5 }}>
+        <Typography variant="caption" sx={{ color: '#6E7E96', fontWeight: 500, mr: 0.5 }}>
             {text}
         </Typography>
     );
@@ -280,22 +296,22 @@ export const LargeExcelDownload = GridExcelExportButton;
 const WG_INPUT_HEIGHT = 32;       // wingui 실측 (small 변형)
 const WG_INPUT_WIDTH  = 200;
 const WG_LABEL_WIDTH  = 78;
-const WG_LABEL_BG     = '#eef1f5';
-const WG_BORDER       = '#cfd6e0';
+const WG_LABEL_BG     = 'rgba(124,167,224,0.14)';
+const WG_BORDER       = 'rgba(124,167,224,0.34)';
 
 const wgWrapBoxSx = {
     display: 'inline-flex',
     alignItems: 'stretch',
     height: WG_INPUT_HEIGHT,
     border: `1px solid ${WG_BORDER}`,
-    borderRadius: '4px',
-    bgcolor: '#fff',
+    borderRadius: '6px',
+    bgcolor: 'rgba(255,255,255,0.65)',
     overflow: 'hidden',
 };
 const wgLabelBoxSx = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     minWidth: WG_LABEL_WIDTH, px: 1,
-    bgcolor: WG_LABEL_BG, color: '#334155',
+    bgcolor: WG_LABEL_BG, color: '#3A4A63',
     fontSize: 12, fontWeight: 600,
     borderRight: `1px solid ${WG_BORDER}`,
 };
@@ -323,7 +339,7 @@ export const InputField = ({
                 <Box sx={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: 36, cursor: 'pointer',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+                    '&:hover': { bgcolor: 'rgba(124,167,224,0.10)' },
                 }}>
                     {children || '…'}
                 </Box>
@@ -513,10 +529,13 @@ zAxios.interceptors.response.use((response) => {
         const reqUrl = error?.config?.url || '';
         if (urlIsSkippable(reqUrl)) return Promise.reject(error);
 
-        // URL 패턴에 따라 array vs object 추정
-        // (확실치 않으면 array — KPI/요약 endpoint 는 보통 'kpi'/'summary' 키워드 포함)
+        // URL 패턴에 따라 array vs object 추정.
+        //   ★ 객체를 array 기대 코드에 주면 .find/.map 이 즉시 크래시하지만,
+        //     array 를 객체 기대 코드에 주면 단지 빈 값(undefined) 으로 degrade 한다.
+        //     → 모호하면 array. 'kpi' 는 보통 kpi 행 목록(list) 이므로 array 로 본다.
+        //     object 는 명백한 단일 요약 endpoint (summary/overview/stat/total) 만.
         const u = String(reqUrl).toLowerCase();
-        const isObjectShape = /kpi|summary|stat|overview|total/.test(u);
+        const isObjectShape = /summary|overview|stat|total|dashboard\/?$/.test(u);
         const fakeData = isObjectShape
             ? generateSampleKpiObject()
             : generateSampleArrayFromUrl(reqUrl, 12);
@@ -586,18 +605,163 @@ export const buildPopupFilterProps = () => ({});
 export const getActiveViewId = () => useContentStore.getState().activeViewId;
 export const getActiveViewID = getActiveViewId;
 
+// =============================================================================
+// ★ 산출물 호환 — ComposerPromptBuilder 가 @wingui/common/imports export 로
+//   광고하는 컴포넌트 전체를 shim 에서도 제공 (누락 시 'Element type is invalid:
+//   undefined' 런타임 크래시). 프롬프트 export 목록과 이 파일 export 는 항상 동기.
+//   상세: .claude/rules/50-composer-standalone-runtime.md §13
+// =============================================================================
+
+// ----- SplitPanel — 수평/수직 분할 (단독 환경은 정적 분할, 드래그 리사이저 없음) -----
+export const SplitPanel = ({ direction = 'horizontal', sizes, minSize, sx, children }) => {
+    const kids = React.Children.toArray(children).filter(Boolean);
+    const col  = direction === 'vertical';
+    return (
+        <Box sx={{ display: 'flex', flexDirection: col ? 'column' : 'row',
+                   flex: 1, minHeight: 0, minWidth: 0, gap: '8px', ...sx }}>
+            {kids.map((kid, i) => (
+                <Box key={i} sx={{
+                    flex: `${(sizes && sizes[i]) || (100 / Math.max(1, kids.length))} 1 0`,
+                    minWidth:  col ? 0 : (minSize || 0),
+                    minHeight: col ? (minSize || 0) : 0,
+                    display: 'flex', flexDirection: 'column', overflow: 'auto',
+                }}>{kid}</Box>
+            ))}
+        </Box>
+    );
+};
+
+// ----- TabContainer / Tab — children <Tab value label> 기반 -----
+export const Tab = ({ children }) => <>{children}</>;
+export const TabContainer = ({ value, onChange, indicatorColor = 'primary', children, sx }) => {
+    const tabs = React.Children.toArray(children).filter(Boolean);
+    const [internal, setInternal] = useState(value ?? tabs[0]?.props?.value);
+    const active = value !== undefined ? value : internal;
+    const handle = (_e, v) => { setInternal(v); if (onChange) onChange(v); };
+    const activeTab = tabs.find((t) => t.props.value === active) || tabs[0];
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, ...sx }}>
+            <MuiTabs value={active} onChange={handle} indicatorColor={indicatorColor}
+                     variant="scrollable" sx={{ minHeight: 36,
+                            borderBottom: '1px solid rgba(124,167,224,0.20)' }}>
+                {tabs.map((t) => (
+                    <MuiTab key={t.props.value} value={t.props.value} label={t.props.label}
+                            sx={{ minHeight: 36, fontSize: 12, textTransform: 'none' }} />
+                ))}
+            </MuiTabs>
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1 }}>{activeTab}</Box>
+        </Box>
+    );
+};
+
+// ----- PopupDialog — MUI Dialog wrapper -----
+export const PopupDialog = ({ open, onClose, onSubmit, title, resizeWidth = 600,
+                              resizeHeight, type, checks, children, sx }) => (
+    <Dialog open={!!open} onClose={onClose}
+            PaperProps={{ sx: { width: resizeWidth, maxWidth: '96vw',
+                                ...(resizeHeight ? { height: resizeHeight } : {}) } }}>
+        {title && <DialogTitle sx={{ fontSize: 14, fontWeight: 700, py: 1.2 }}>{title}</DialogTitle>}
+        <DialogContent dividers sx={{ p: 1.5, ...sx }}>{children}</DialogContent>
+        {type !== 'NOBUTTONS' && (
+            <DialogActions sx={{ px: 2, py: 1 }}>
+                <Button size="small" onClick={onClose}>취소</Button>
+                <Button size="small" variant="contained" onClick={onSubmit}>확인</Button>
+            </DialogActions>
+        )}
+    </Dialog>
+);
+
+// ----- GroupBox / FormArea / FormRow / FormItem — 폼 레이아웃 -----
+export const GroupBox = ({ title, children, sx }) => (
+    <Box sx={{ border: '1px solid rgba(124,167,224,0.30)', borderRadius: 1,
+               p: 1.5, bgcolor: 'rgba(255,255,255,0.55)', ...sx }}>
+        {title && (
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#5683C0', mb: 1 }}>
+                {title}
+            </Typography>
+        )}
+        {children}
+    </Box>
+);
+export const FormArea = ({ children, sx }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 1, ...sx }}>{children}</Box>
+);
+export const FormRow = ({ children, sx }) => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, ...sx }}>{children}</Box>
+);
+export const FormItem = ({ label, children, sx }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ...sx }}>
+        {label && (
+            <Typography sx={{ fontSize: 12, minWidth: 78, color: '#3A4A63', fontWeight: 600 }}>
+                {label}
+            </Typography>
+        )}
+        {children}
+    </Box>
+);
+
+// ----- 버튼 — wingui CommonButton / SaveButton / SearchButton / RefreshButton -----
+export const CommonButton = ({ title, onClick, disabled, children, sx }) => (
+    <Button size="small" variant="outlined" onClick={onClick} disabled={disabled}
+            startIcon={children || undefined} sx={{ ...sx }}>{title}</Button>
+);
+export const SaveButton = ({ onClick, disabled, sx }) => (
+    <Button size="small" variant="contained" startIcon={<SaveIcon fontSize="small" />}
+            onClick={onClick} disabled={disabled} sx={{ ...sx }}>저장</Button>
+);
+export const SearchButton = ({ onClick, disabled, sx }) => (
+    <Button size="small" variant="contained" startIcon={<SearchIcon fontSize="small" />}
+            onClick={onClick} disabled={disabled} sx={{ ...sx }}>조회</Button>
+);
+export const RefreshButton = ({ onClick, disabled, sx }) => (
+    <Button size="small" variant="outlined" startIcon={<RefreshIcon fontSize="small" />}
+            onClick={onClick} disabled={disabled} sx={{ ...sx }}>새로고침</Button>
+);
+
+// ----- SearchMenuInput / Pagination -----
+export const SearchMenuInput = ({ value, onChange, placeholder, sx }) => (
+    <TextField size="small" value={value ?? ''} placeholder={placeholder}
+               onChange={(e) => onChange && onChange(e.target.value)}
+               sx={{ '& .MuiInputBase-root': { fontSize: 12 }, ...sx }}
+               InputProps={{ startAdornment: <SearchIcon sx={{ fontSize: 16, mr: 0.5, color: '#8aa0c0' }} /> }} />
+);
+export const Pagination = ({ count = 1, page = 1, onChange, sx }) => (
+    <MuiPagination count={count} page={page} size="small" sx={{ ...sx }}
+                   onChange={(_e, p) => onChange && onChange(p)} />
+);
+
+// ----- 엑셀 업로드 alias -----
+export const LargeExcelUpload = GridExcelImportButton;
+
+// ----- store helper — 산출물이 import 하는 보조 식별자 (no-op / 안전 반환) -----
+export const getViewStore    = () => useViewStore;
+export const getContentStore = () => useContentStore;
+export const getUserStore    = () => useUserStore;
+export const storeApi        = useViewStore;
+export const userStoreApi    = useUserStore;
+export const useSearchPositionStore = buildStore(() => ({ position: {}, setPosition: () => {} }));
+export const useInputConstant = () => ({});
+export const useIconStyles    = () => ({});
+
 // ----- 기타 -----
 export const loadRecentSimulationVersion = () => Promise.resolve(null);
 export const setHeaderColor = () => {};
 
 export default {
     ContentInner, WorkArea, SearchArea, SearchRow, ResultArea, StatusArea,
-    ButtonArea, LeftButtonArea, RightButtonArea,
+    ButtonArea, LeftButtonArea, RightButtonArea, VLayoutBox, HLayoutBox,
+    SplitPanel, TabContainer, Tab, PopupDialog,
+    GroupBox, FormArea, FormRow, FormItem,
+    CommonButton, SaveButton, SearchButton, RefreshButton,
+    SearchMenuInput, Pagination,
     BaseGrid, TreeGrid, GridCnt, GridAddRowButton, GridDeleteRowButton,
-    GridSaveButton, GridExcelExportButton, GridExcelImportButton, LargeExcelDownload,
+    GridSaveButton, GridExcelExportButton, GridExcelImportButton,
+    LargeExcelDownload, LargeExcelUpload,
     InputField, showMessage, ShowMessageHost, zAxios, callService,
     useViewStore, useContentStore, useUserStore, useMenuStore,
-    useDashboardStore, useInsightSystemStore,
+    useDashboardStore, useInsightSystemStore, useSearchPositionStore,
+    getViewStore, getContentStore, getUserStore, storeApi, userStoreApi,
+    useInputConstant, useIconStyles,
     useFieldCascade, applyGridCascade, buildPopupFilterProps,
     loadRecentSimulationVersion, setHeaderColor,
     getActiveViewId, getActiveViewID,

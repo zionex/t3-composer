@@ -39,35 +39,36 @@ import StepByStepWizard from './StepByStepWizard';
 import MockupPickerDialog    from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import KpiChartPickerDialog  from './KpiChartPickerDialog';
+import { useTargetStore } from './targetStore';
 
 /**
  * AI 엔진(모델) 선택지 — Anthropic Claude.
  * id 는 백엔드 ComposerService 가 createSession.modelName 으로 받아 그대로 Anthropic API 에 전달.
  *
  * 정책 (CLAUDE.md / ComposerService.DEFAULT_MODEL):
- *   - Sonnet 4.6 = 기본값. 화면 생성 기본은 속도·비용·품질 균형이 가장 좋음
- *   - Opus 4.7  = 고난이도·복잡 화면. 단 16K+ 출력 시 3~5분 소요되어 axios 타임아웃 위험 ↑
+ *   - Opus 4.7  = 기본값. 고품질 — 복잡 로직·고난이도 화면에 적합 (출력 많으면 다소 느림)
+ *   - Sonnet 4.6 = 빠름. 속도·비용 우선
  */
 const MODEL_OPTIONS = [
   {
     id:    'claude-sonnet-4-6',
     label: 'Sonnet',
-    sub:   'Sonnet 4.6 — 기본값',
-    desc:  '속도·비용·품질 균형. 일반 화면 생성에 권장.',
+    sub:   'Sonnet 4.6 — 빠름',
+    desc:  '속도·비용·품질 균형. 빠른 생성이 필요할 때.',
     Icon:  BoltIcon,
-    color: '#2563eb',
+    color: '#7CA7E0',
   },
   {
     id:    'claude-opus-4-7',
     label: 'Opus',
-    sub:   'Opus 4.7 — 고품질 (느림)',
+    sub:   'Opus 4.7 — 기본값 (고품질)',
     desc:  '복잡 로직·고난이도 화면에 적합. 출력이 매우 많으면(16K+) 응답에 3~5분+ 소요될 수 있음.',
     Icon:  DiamondIcon,
-    color: '#7c3aed',
+    color: '#9D8FD4',
   },
 ];
 
-const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
+const DEFAULT_MODEL_ID = 'claude-opus-4-7';
 
 /**
  * 선택된 SCM UI Mockup 이 Chart/Dashboard 류인지 판별 — KPI/Chart 사전 선택 트리거 노출 여부.
@@ -329,7 +330,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         mode: 'NEW_NL',
         title: `[${module.code}] ${prompt.slice(0, 60)}`,
         modelName: selectedModel,
-        targetCd: currentTargetCd,
+        targetCd: useTargetStore.getState().currentTargetCd,
       });
       setSession(res.data);
     } catch (e) {
@@ -470,8 +471,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         {Header}
         <Box sx={{ p: 4, maxWidth: 1100, mx: 'auto', flex: 1, overflow: 'auto' }}>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            생성 방식을 선택하세요. 두 방식 모두 생성 전 모듈 대그룹을 선택합니다.
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            생성 방식을 선택하세요.
           </Typography>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
@@ -543,9 +544,9 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               position: 'relative',
               borderRadius: 1,
               ...(dragOver && {
-                outline: '2px dashed #2563eb',
+                outline: '2px dashed #7CA7E0',
                 outlineOffset: 2,
-                bgcolor: 'rgba(37,99,235,0.04)',
+                bgcolor: 'rgba(124,167,224,0.06)',
               }),
               mb: 2,
             }}
@@ -563,8 +564,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               <Box sx={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, fontWeight: 700, color: '#2563eb',
-                bgcolor: 'rgba(37,99,235,0.08)', borderRadius: 1,
+                fontSize: 14, fontWeight: 700, color: '#5683C0',
+                bgcolor: 'rgba(124,167,224,0.12)', borderRadius: 1,
               }}>
                 파일을 여기에 놓으세요
               </Box>
@@ -575,8 +576,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
           {/* AI 엔진(모델) 선택 — Sonnet(기본) / Opus */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
-                 sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,58,237,0.04)', borderRadius: 1.5,
-                       border: '1px solid rgba(124,58,237,0.2)' }}>
+                 sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,167,224,0.06)', borderRadius: 1.5,
+                       border: '1px solid rgba(124,167,224,0.25)' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
               AI 엔진:
             </Typography>
@@ -586,38 +587,68 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               onChange={(_, v) => v && setSelectedModel(v)}
               size="small"
             >
-              {MODEL_OPTIONS.map((m) => (
-                <Tooltip key={m.id} title={m.desc} arrow placement="top">
-                  <ToggleButton
-                    value={m.id}
-                    sx={{
-                      textTransform: 'none', px: 2,
-                      '&.Mui-selected': { bgcolor: `${m.color}22`, color: m.color, fontWeight: 600 },
-                      '&.Mui-selected:hover': { bgcolor: `${m.color}33` },
-                    }}
-                  >
-                    <m.Icon fontSize="small" sx={{ mr: 0.7 }} />
-                    <Stack alignItems="flex-start" spacing={0} sx={{ lineHeight: 1.1 }}>
-                      <span style={{ fontWeight: 600 }}>{m.label}</span>
-                      <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.8 }}>
-                        {m.sub}
-                      </Typography>
-                    </Stack>
-                  </ToggleButton>
-                </Tooltip>
-              ))}
+              {MODEL_OPTIONS.map((m) => {
+                const sel = selectedModel === m.id;
+                return (
+                  <Tooltip key={m.id} title={m.desc} arrow placement="top">
+                    <ToggleButton
+                      value={m.id}
+                      sx={{
+                        textTransform: 'none', px: 2, py: 0.7,
+                        border: '1.5px solid rgba(124,167,224,0.35)',
+                        color: '#9aa7bd',          // 미선택 — 흐린 회색
+                        bgcolor: '#fff',
+                        transition: 'all .15s ease',
+                        '&:hover': { bgcolor: '#f2f6fc' },
+                        // 선택 엔진 — 진한 단색 배경 + 흰 글자 + 그림자 로 한눈에 구분
+                        '&.Mui-selected, &.Mui-selected:hover': {
+                          bgcolor: m.color,
+                          color: '#fff',
+                          borderColor: m.color,
+                          fontWeight: 800,
+                          boxShadow: `0 4px 12px -2px ${m.color}aa`,
+                        },
+                        '&.Mui-selected .MuiTypography-root': { color: 'rgba(255,255,255,0.95)' },
+                      }}
+                    >
+                      {sel
+                        ? <CheckCircleIcon fontSize="small" sx={{ mr: 0.7 }} />
+                        : <m.Icon fontSize="small" sx={{ mr: 0.7 }} />}
+                      <Stack alignItems="flex-start" spacing={0} sx={{ lineHeight: 1.15 }}>
+                        <span style={{ fontWeight: 700 }}>{m.label}</span>
+                        <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.9 }}>
+                          {sel ? '✓ 현재 선택' : m.sub}
+                        </Typography>
+                      </Stack>
+                    </ToggleButton>
+                  </Tooltip>
+                );
+              })}
             </ToggleButtonGroup>
-            <Typography variant="caption" color="text.disabled" sx={{ ml: 'auto' }}>
-              {selectedModel === DEFAULT_MODEL_ID
-                ? '기본 — 빠르고 균형 잡힘'
-                : 'Opus — 응답이 다소 느릴 수 있음'}
-            </Typography>
+            {/* 선택 확인 — 텍스트 칩으로도 명시 */}
+            {(() => {
+              const cur = MODEL_OPTIONS.find((m) => m.id === selectedModel);
+              if (!cur) return null;
+              return (
+                <Chip
+                  size="small"
+                  icon={<cur.Icon sx={{ fontSize: 14, color: cur.color + ' !important' }} />}
+                  label={`선택됨 · ${cur.label}`}
+                  sx={{
+                    height: 24, fontWeight: 700, fontSize: 11.5,
+                    color: cur.color,
+                    bgcolor: `${cur.color}1f`,
+                    border: `1.5px solid ${cur.color}`,
+                  }}
+                />
+              );
+            })()}
           </Stack>
 
           {/* SCM UI Mockup / UI Pattern / KPI / Chart 사전 선택 (선택사항) */}
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
-                 sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(40,135,215,0.04)', borderRadius: 1.5,
-                       border: '1px dashed rgba(40,135,215,0.3)', gap: 1 }}>
+                 sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,167,224,0.06)', borderRadius: 1.5,
+                       border: '1px dashed rgba(124,167,224,0.35)', gap: 1 }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
               선택사항:
             </Typography>
@@ -736,21 +767,24 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           sx={{
             mb: 3, p: 2.5, borderRadius: 2, cursor: 'pointer',
             border: '2px dashed',
-            borderColor: bottomDragOver ? '#2563eb' : 'rgba(0,0,0,0.18)',
-            bgcolor: bottomDragOver ? 'rgba(37,99,235,0.06)' : 'rgba(0,0,0,0.015)',
+            borderColor: bottomDragOver ? '#7CA7E0' : 'rgba(124,167,224,0.35)',
+            bgcolor: bottomDragOver ? 'rgba(124,167,224,0.10)' : 'rgba(255,255,255,0.45)',
             transition: 'all 0.15s',
-            '&:hover': { borderColor: '#2563eb', bgcolor: 'rgba(37,99,235,0.04)' },
+            '&:hover': { borderColor: '#7CA7E0', bgcolor: 'rgba(124,167,224,0.06)' },
           }}
         >
           <Stack alignItems="center" spacing={0.5}>
-            <CloudUploadIcon sx={{ fontSize: 32, color: bottomDragOver ? '#2563eb' : '#94a3b8' }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>
-              참조 파일 첨부 — 여기로 끌어다 놓거나 클릭
+            <CloudUploadIcon sx={{ fontSize: 32, color: bottomDragOver ? '#7CA7E0' : '#A6B2C4' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              참조 파일 첨부 — 끌어다 놓거나 클릭
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-              설계서·캡처·소스 등 참조 파일을 첨부하면 Claude 가 함께 분석합니다.
-              텍스트 파일은 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송됩니다. (파일당 최대 5MB)
-            </Typography>
+            <Tooltip title="설계서·캡처·소스 등 참조 파일. 텍스트 파일은 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB)">
+              <Typography variant="caption" color="text.secondary"
+                          sx={{ textAlign: 'center', cursor: 'help',
+                                borderBottom: '1px dotted', borderColor: 'divider' }}>
+                드래그 또는 클릭 · 파일당 최대 5MB
+              </Typography>
+            </Tooltip>
           </Stack>
 
           {/* 첨부된 파일 chip — 텍스트/binary 모두 동일 UX, 아이콘만 다름 */}
@@ -854,18 +888,18 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         {(tableLookupLoading || tableLookup.extracted.length > 0) && (
           <Paper variant="outlined" sx={{
             p: 2, mb: 3, borderRadius: 2,
-            borderColor: '#a855f7', bgcolor: '#fdf4ff',
+            borderColor: 'rgba(143,196,212,0.60)', bgcolor: 'rgba(143,196,212,0.08)',
           }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <StorageIcon fontSize="small" sx={{ color: '#a855f7' }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#7e22ce' }}>
+              <StorageIcon fontSize="small" sx={{ color: '#6BA0B0' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#5683C0' }}>
                 자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)
               </Typography>
-              {tableLookupLoading && <CircularProgress size={14} sx={{ color: '#a855f7' }} />}
+              {tableLookupLoading && <CircularProgress size={14} sx={{ color: '#6BA0B0' }} />}
             </Stack>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               prompt 안의 <code>TB_*</code> 테이블명을 백엔드 DB 에서 직접 조회 — 존재하면 기존 컬럼으로 Entity 매핑,
-              없으면 새 SQL_DDL 아티팩트로 생성. 결과는 Claude prompt 컨텍스트에 자동 첨부됩니다.
+              없으면 새 SQL_DDL 산출물로 생성. 결과는 Claude prompt 컨텍스트에 자동 첨부됩니다.
             </Typography>
             {tableLookup.extracted.length === 0 && !tableLookupLoading && (
               <Typography variant="caption" color="text.secondary">
@@ -913,7 +947,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                         )}
                         {!exists && (
                           <Typography variant="caption" sx={{ color: '#92400e' }}>
-                            존재하지 않음 — 새 SQL_DDL 아티팩트로 생성됩니다 (NEW_NL 모드 허용)
+                            존재하지 않음 — 새 SQL_DDL 산출물로 생성됩니다 (NEW_NL 모드 허용)
                           </Typography>
                         )}
                       </Stack>
@@ -1008,20 +1042,27 @@ function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, co
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
             {description}
           </Typography>
-          <Stack spacing={0.5} sx={{ mb: 1 }}>
-            {pros.map((p, i) => (
-              <Typography key={i} variant="caption" sx={{ color: 'success.main' }}>
-                + {p}
-              </Typography>
-            ))}
-          </Stack>
-          <Stack spacing={0.5}>
-            {cons.map((p, i) => (
-              <Typography key={i} variant="caption" sx={{ color: 'text.secondary' }}>
-                − {p}
-              </Typography>
-            ))}
-          </Stack>
+          <Tooltip
+            placement="bottom"
+            title={
+              <Box>
+                {pros.map((p, i) => (
+                  <Box key={`p${i}`} sx={{ color: '#B5DEC8' }}>+ {p}</Box>
+                ))}
+                {cons.map((p, i) => (
+                  <Box key={`c${i}`} sx={{ color: '#EDBEBF' }}>− {p}</Box>
+                ))}
+              </Box>
+            }
+          >
+            <Typography
+              variant="caption"
+              sx={{ color: 'primary.dark', fontWeight: 600, cursor: 'help',
+                    borderBottom: '1px dotted', borderColor: 'divider', width: 'fit-content' }}
+            >
+              장단점 보기
+            </Typography>
+          </Tooltip>
         </CardContent>
       </CardActionArea>
     </Card>

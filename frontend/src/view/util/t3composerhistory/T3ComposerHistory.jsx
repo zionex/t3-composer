@@ -317,7 +317,7 @@ function T3ComposerHistory() {
         <DialogTitle>세션 삭제</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            "{confirmDel?.title || confirmDel?.id}" 세션을 영구 삭제합니다. 메시지·아티팩트도 함께 제거됩니다.
+            "{confirmDel?.title || confirmDel?.id}" 세션을 영구 삭제합니다. 메시지·산출물도 함께 제거됩니다.
             계속 진행하시겠습니까?
           </DialogContentText>
         </DialogContent>

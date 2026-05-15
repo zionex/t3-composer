@@ -10,7 +10,7 @@
  *   Step6. 각 Area 의 Column 주종관계
  *   Step7. FilterBar 항목 추가 + 각 항목의 데이터 연결 · Column 설정
  *   Step8. FilterBar 주종관계 (cascade dependencies)
- *   Step9. 아티팩트 생성 + 메뉴 등록 (Claude 호출)
+ *   Step9. 산출물 생성 + 메뉴 등록 (Claude 호출)
  *
  * 용어: 사용자가 'Layer' 라고 부른 것을 React 관례와 맞추기 위해 'Area' 로 통일.
  * 생성 대상 JSON 은 `toLlmPayload(spec)` 로 직렬화하여 `newStepGuide` 프롬프트에 주입.

@@ -26,8 +26,19 @@ public class ArtifactExtractor {
 
     // ===FILE: <path>===  와  ===FILE: <path>  (트레일링 === 없음) 두 형식 모두 인식.
     // path 는 newline 이전까지 한 줄. 트레일링 === 가 있으면 그것까지 trim.
+    //
+    // 인식 포맷 2종 (LLM 이 둘 다 사용):
+    //   (A) ===FILE: <path>===          (B) ```                       ← LLM 이 마커를 자체 펜스로 감쌈
+    //       ```lang                         ===FILE: <path>===
+    //       content                         ```
+    //       ```                             ```lang
+    //                                       content
+    //                                       ```
+    // (B) 형식 — 마커와 본문 펜스 사이에 고립된 ``` 줄(마커 펜스의 닫는 줄)을 선택적으로 허용.
+    // 이게 없으면 (B) 에서 고립 ``` 가 본문 펜스로 오인돼 content 가 빈 문자열로 추출됨.
     private static final Pattern FILE_BLOCK = Pattern.compile(
             "===\\s*FILE:\\s*([^\\n]+?)(?:\\s*===)?\\s*\\r?\\n"
+          + "(?:```[ \\t]*\\r?\\n\\s*)?"
           + "```([a-zA-Z0-9+#_-]*)\\s*\\r?\\n"
           + "([\\s\\S]*?)"
           + "```",

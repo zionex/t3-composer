@@ -38,13 +38,13 @@ const PERMISSION_TYPES = [
  * 메뉴 등록 확인 다이얼로그.
  *
  * 흐름:
- *   1. 세션의 MENU_SQL 아티팩트 로드
+ *   1. 세션의 MENU_SQL 산출물 로드
  *   2. 부모 메뉴 코드 추출 + DB 존재 여부 검증
  *   3. 사용자에게 요약(화면ID·경로·부모) 표시 후 [등록 실행] 버튼
  *   4. 성공 시 실행 결과(executed / skipped / errors) 표시
  */
 function MenuRegistrationDialog({ open, sessionId, onClose }) {
-  const [menuSql, setMenuSql]       = useState(null);  // 아티팩트
+  const [menuSql, setMenuSql]       = useState(null);  // 산출물
   const [summary, setSummary]       = useState(null);  // { parent, path, fileName, screenId }
   const [parentOk, setParentOk]     = useState(null);  // null | true | false
   const [loading, setLoading]       = useState(false);
@@ -60,7 +60,7 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
   const [selectedPermTypes, setSelectedPermTypes] = useState(['READ']);   // 기본: 조회 권한
   // 실제 메뉴 트리 (초기 경로 복원용)
   const [menuTree, setMenuTree] = useState([]);
-  // (분리됨 2026-04-27) 아티팩트 적용은 별도 ArtifactApplyDialog 로 이전
+  // (분리됨 2026-04-27) 산출물 적용은 별도 ArtifactApplyDialog 로 이전
 
   useEffect(() => {
     if (!open || !sessionId) return;
@@ -150,11 +150,11 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       const items = Array.isArray(listRes.data) ? listRes.data : [];
       const menuItem = items.find((a) => a.artifactType === 'MENU_SQL');
       if (!menuItem) {
-        setError('MENU_SQL 아티팩트가 없습니다. Claude 응답에 메뉴 등록 SQL 이 포함되지 않았습니다.');
+        setError('MENU_SQL 산출물이 없습니다. Claude 응답에 메뉴 등록 SQL 이 포함되지 않았습니다.');
         return;
       }
 
-      // MENU_SQL + 전체 아티팩트를 함께 분석해 capability 감지
+      // MENU_SQL + 전체 산출물을 함께 분석해 capability 감지
       const full = await getArtifact(menuItem.id);
       setMenuSql(full.data);
 
@@ -376,7 +376,7 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
           <Stack alignItems="center" sx={{ py: 4 }}>
             <CircularProgress size={28} />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
-              MENU_SQL 아티팩트 로드 중...
+              MENU_SQL 산출물 로드 중...
             </Typography>
           </Stack>
         )}
@@ -605,7 +605,7 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
                     💡 MENU_SQL 이 실제 TB_AD_MENU 스키마와 맞지 않습니다.
                   </Typography>
                   <Typography variant="caption" sx={{ display: 'block' }}>
-                    Composer 채팅창에 아래 문구를 붙여 넣어 재생성하세요 (기존 아티팩트가 자동 대체됨):
+                    Composer 채팅창에 아래 문구를 붙여 넣어 재생성하세요 (기존 산출물이 자동 대체됨):
                   </Typography>
                   <Box component="pre" sx={{
                     m: 0, mt: 0.5, p: 1, fontSize: 11,
@@ -613,7 +613,7 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
                     fontFamily: 'Consolas, monospace',
                     borderRadius: 0.5, whiteSpace: 'pre-wrap',
                   }}>
-{`MENU_SQL 아티팩트를 다시 생성해주세요.
+{`MENU_SQL 산출물을 다시 생성해주세요.
 TB_AD_MENU 실제 컬럼만 사용:
   ID, PARENT_ID, MENU_CD, MENU_PATH, MENU_SEQ, MENU_FILE_PATH, USE_YN, CREATE_BY, CREATE_DTTM
 금지 컬럼: MENU_NM, PARENT_MENU_CD, URL, DEPTH, SORT_ORDER
@@ -654,7 +654,7 @@ TB_AD_MENU 실제 컬럼만 사용:
               )}
               {result.success && (
                 <Alert severity="info" icon={false} sx={{ mt: 1, py: 0.5, fontSize: 12, bgcolor: '#e0f2fe' }}>
-                  ✅ 메뉴 등록 완료. 파일 저장·DDL·SP 실행은 별도 <b>아티팩트 실행</b> 다이얼로그에서 진행하세요.
+                  ✅ 메뉴 등록 완료. 파일 저장·DDL·SP 실행은 별도 <b>산출물 실행</b> 다이얼로그에서 진행하세요.
                 </Alert>
               )}
             </Stack>
@@ -699,7 +699,7 @@ function Row({ label, value }) {
 }
 
 /**
- * MENU_SQL 아티팩트 content 에서 요약 정보 추출.
+ * MENU_SQL 산출물 content 에서 요약 정보 추출.
  * - parentMenuCd: WHERE MENU_CD = 'xxx' 패턴 (부모 lookup 서브쿼리용)
  * - menuPath/fileName: INSERT INTO TB_AD_MENU (cols...) SELECT|VALUES ... 에서
  *   MENU_PATH · MENU_FILE_PATH 컬럼 인덱스를 찾아 해당 위치 리터럴 값만 정확히 추출

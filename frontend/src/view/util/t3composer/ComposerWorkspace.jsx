@@ -63,18 +63,31 @@ function modelMeta(id) {
 }
 
 /**
- * 화면 실행 런타임 오류 → AI 자동보완 요청 프롬프트 생성.
- * PreviewEmbed 가 포착한 오류(type/message/stack/componentStack) 를 같은 세션의
- * Composer 채팅으로 보내 산출물을 수정하게 한다.
+ * 화면 실행 오류 → AI 자동보완 요청 프롬프트 생성.
+ * 포착한 오류(apply / runtime / render)를 같은 세션 Composer 채팅으로 보내 산출물을 수정.
  */
-function buildFixPrompt(errInfo, previewMeta) {
+function buildFixPrompt(errInfo, previewMeta, opts) {
   const e = errInfo || {};
+  const escalate = !!(opts && opts.escalate);
+  const msg = String(e.message || '');
+  // SQL 컬럼/객체 오류 — 산출물 SP 가 실제 테이블에 없는 컬럼을 사용한 케이스
+  const isSqlColErr = /invalid column|column name|invalid object name|컬럼/i.test(msg);
   const lines = [
     '[자동 오류 보완 요청]',
-    '방금 생성한 화면을 [화면 실행] 했을 때 아래 런타임 오류가 발생했습니다.',
-    '산출물(JSX/Java/SP)에서 원인을 찾아 수정하고, 수정한 파일 전체를 ===FILE: 형식으로 다시 출력해주세요.',
+    '방금 생성한 화면을 [화면 실행] 했을 때 아래 오류가 발생했습니다.',
+    '산출물(JSX/Java/SP/SQL)에서 원인을 찾아 수정하고, 수정한 파일 전체를 ===FILE: 형식으로 다시 출력해주세요.',
     '',
   ];
+  if (escalate) {
+    // 직전 보완으로도 같은 오류가 재발 — 표면적 수정 대신 근본 재검토를 강하게 요구.
+    lines.push(
+      '⚠️ 직전 수정으로도 동일한 오류가 다시 발생했습니다. 표면적 수정으로는 해결되지 않습니다.',
+      '   - 오류와 관련된 import 경로 · 컴포넌트 사용처 · SP 컬럼명을 처음부터 다시 점검하세요.',
+      '   - 확실하지 않은 외부 모듈/컴포넌트/컬럼은 사용을 제거하고 가장 단순한 표준 패턴으로 교체하세요.',
+      '   - 부분 수정이 아니라 문제 파일을 통째로 재작성해도 좋습니다.',
+      '',
+    );
+  }
   if (previewMeta?.viewSub) lines.push('화면 경로: ' + previewMeta.viewSub);
   lines.push('오류 종류: ' + (e.type || 'runtime'));
   lines.push('오류 메시지:');
@@ -87,11 +100,20 @@ function buildFixPrompt(errInfo, previewMeta) {
     lines.push('', '스택:',
                String(e.stack).split('\n').slice(0, 6).join('\n'));
   }
+  lines.push('', '수정 지침:');
+  if (isSqlColErr) {
+    lines.push(
+      '★ SQL 컬럼/객체 오류 — 산출물 SP/SQL 이 실제 테이블에 없는 컬럼명을 사용했습니다.',
+      '- ❌ 컬럼명을 추측하지 마세요. 기존 테이블(TB_*)을 사용하는 화면이면 그 테이블의 실제 컬럼명만 사용.',
+      '- ❌ 기존 테이블에 대한 CREATE TABLE 을 새로 만들지 마세요 — 이미 존재하는 테이블입니다.',
+      '- 참고: TB_AD_USER 의 실제 컬럼은 ID · USERNAME · PASSWORD · DISPLAY_NAME · ENABLED 등이며 USER_ID/USER_NM 이 아닙니다.',
+      '- 오류 메시지의 잘못된 컬럼명을 실제 컬럼으로 교체하고, SP 의 SELECT/INSERT/UPDATE/WHERE 절을 모두 정합화하세요.',
+      '- JSX 의 gridItems name/fieldName 도 SP 결과 컬럼명과 일치하도록 함께 수정하세요.',
+    );
+  }
   lines.push(
-    '',
-    '수정 지침:',
-    '- @wingui/common/imports 에서 shim 미보유 컴포넌트를 import 하면 "Element type is invalid: got undefined" 가 발생합니다. 사용 가능한 컴포넌트만 import 하세요.',
-    '- 리스트 state 는 useState([]) 초기값 + 렌더 직전 Array.isArray 가드를 적용하세요.',
+    '- @wingui/common/imports 에서 shim 미보유 컴포넌트 import 금지 ("Element type is invalid: got undefined" 원인).',
+    '- 리스트 state 는 useState([]) 초기값 + 렌더 직전 Array.isArray 가드 적용.',
     '- 수정이 필요한 파일만 ===FILE: <경로>=== 블록으로 전체 다시 출력하세요.',
   );
   return lines.join('\n');
@@ -208,10 +230,18 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       const r = res?.data || {};
       if (!r.success) {
         setPreviewStage(null);
-        setSnackbar({ open: true, severity: 'error', title: '화면 실행 준비 실패',
-                      message: r.error || 'JSX/SQL/MENU 처리 오류' });
+        const errMsg = r.error || 'JSX/SQL/MENU 처리 오류';
+        if (autoFixOnError) {
+          // 자동보완 ON — 오류 스낵바(차단창) 없이 곧바로 보완 흐름 진입.
+          //   SP/SQL/JSX apply 단계 오류도 AI 자동 수정 → 재실행 대상.
+          handlePreviewError({ type: 'apply', message: errMsg });
+        } else {
+          setSnackbar({ open: true, severity: 'error', title: '화면 실행 준비 실패',
+                        message: errMsg });
+        }
         return;
       }
+      setAutoFixActive(false);   // 산출물 적용 성공 — apply 오류 자동보완 중이었다면 해소
       setSnackbar({ open: true, severity: 'success', title: '화면 실행 준비 완료',
                     message: `JSX ${r.jsxOk} · DDL ${r.ddlOk} · SP ${r.spOk} · MENU ${r.menuOk} · Java ${r.javaOk || 0}`
                              + (sampleMode ? ' (Sample 모드)' : '') });
@@ -302,34 +332,35 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   };
 
   // ───────────────────────────────────────────────────────────────────
-  // 화면 실행 후 런타임 오류 → AI 자동보완 (autoFixOnError ON 시)
-  //   PreviewEmbed 가 onError 로 오류를 보고 → AI 채팅으로 산출물 수정 →
-  //   handlePreview 재실행. 재실행 후 또 오류면 다시 호출되어 attempt+1.
+  // 화면 실행 오류 → AI 자동보완 (autoFixOnError ON 시) — apply 오류 + 런타임 오류 공통
+  //   · apply 단계 오류 : handlePreview 의 !r.success 분기가 직접 호출
+  //   · 렌더/런타임 오류 : PreviewEmbed 의 onError(ErrorBoundary·window 리스너)가 호출
+  //   → AI 채팅으로 산출물 수정 → handlePreview 재실행. 또 오류면 attempt+1 로 반복.
   //
-  //   ★ 무한루프 방지 — 3중 차단 (오류 → 보완 → 재실행 → 오류 … 반복 차단):
-  //     [1] 횟수 상한: autoFixAttemptRef 가 MAX_AUTOFIX(3) 에 도달하면 중단.
-  //         이 카운터는 사용자가 [화면 실행] 버튼을 직접 누를 때만 0 으로 리셋되고,
-  //         자동 재실행 경로(handlePreviewError → handlePreview)에서는 절대
-  //         리셋되지 않는다. 또한 보완 진행 중에는 버튼이 비활성(previewStage)이라
-  //         사이클 도중 리셋이 불가능 → 한 번의 [화면 실행] 당 자동보완 최대 3회.
-  //     [2] 동일오류 감지: 직전 보완 후에도 같은 오류 메시지가 재발하면
-  //         (= AI 가 못 고침) 남은 횟수와 무관하게 즉시 중단.
-  //     [3] 재진입 가드: autoFixingRef 로 보완 진행 중 중복 트리거 차단.
+  //   ★ 원칙 — 오류가 나도 멈추지 않는다. 단, 무한루프/비용 폭주는 막아야 하므로
+  //     횟수 상한(MAX_AUTOFIX) 안에서 "멈춤 없이 계속 시도" 한다:
+  //     [1] 횟수 상한: autoFixAttemptRef 가 MAX_AUTOFIX(3) 에 도달하면 비로소 중단.
+  //         카운터는 사용자가 [화면 실행] 버튼을 직접 누를 때만 0 으로 리셋되고,
+  //         자동 재실행 경로(handlePreviewError → handlePreview)에서는 리셋되지 않는다.
+  //     [2] 동일오류 escalation: 직전 보완 후에도 같은 오류가 재발하면 — 멈추지 않고
+  //         더 강한(escalate) 지침의 프롬프트로 재시도 (buildFixPrompt escalate=true).
+  //         매 재시도 프롬프트가 더 근본적 재검토를 요구 → 단순 반복이 아님.
+  //     [3] 재진입 가드: autoFixingRef — 단, 재실행 호출 '전'에 해제하여
+  //         재실행의 동기 apply 오류도 보완 루프로 재진입 가능 (가드에 막히지 않음).
   // ───────────────────────────────────────────────────────────────────
   const handlePreviewError = async (errInfo) => {
-    if (!autoFixOnError) return;          // 자동보완 OFF — PreviewEmbed 자체 오류 UI 만 표시
+    if (!autoFixOnError) return;          // 자동보완 OFF — 오류 UI 만 표시
     if (autoFixingRef.current) return;    // [3] 이미 보완 진행 중 — 재진입 방지
 
     const errMsg = String(errInfo?.message || '').trim();
-    // [2] 직전 보완 후에도 동일 오류 → AI 가 해결 못함. 추가 시도 무의미 → 즉시 중단.
-    if (errMsg && errMsg === lastAutoFixErrorRef.current && autoFixAttemptRef.current > 0) {
-      setPreviewStage({ phase: 'failed', elapsedMs: 0,
-        message: `자동보완 후에도 동일한 오류가 반복됩니다 (${autoFixAttemptRef.current}회 시도). `
-               + 'AI 가 자동으로 해결하지 못했습니다 — 우측 [산출물 소스] 탭에서 직접 확인하세요.' });
-      return;
-    }
+    // [2] 직전 보완 후에도 동일 오류 → 같은 프롬프트 재시도는 무의미.
+    //     하지만 멈추지 않는다 — 더 강한(escalated) 지침으로 재시도한다.
+    //     ([1] 횟수 상한 안에서 반복되며, 매 시도 프롬프트가 더 근본적 재검토를 요구)
+    const sameError = !!errMsg && errMsg === lastAutoFixErrorRef.current
+                      && autoFixAttemptRef.current > 0;
     // [1] 한 번의 [화면 실행] 당 최대 MAX_AUTOFIX 회.
     if (autoFixAttemptRef.current >= MAX_AUTOFIX) {
+      setAutoFixActive(false);
       setPreviewStage({ phase: 'failed', elapsedMs: 0,
         message: `AI 자동보완을 ${MAX_AUTOFIX}회 시도했으나 오류가 계속됩니다. `
                + '우측 [산출물 소스] 탭에서 직접 확인하거나 채팅으로 수정을 요청하세요.' });
@@ -342,28 +373,36 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     // PreviewEmbed 가 오류 화면 대신 '자동보완 중' 화면을 표시하도록 state ON.
     setAutoFixActive(true);
     setAutoFixLabel(`AI 자동보완 중 (${attempt}/${MAX_AUTOFIX})`);
+    let ok = false;
     try {
       setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
         message: `AI 가 오류를 분석해 산출물을 수정 중입니다 (${attempt}/${MAX_AUTOFIX})...` });
-      const ok = await chatRef.current?.sendMessage(buildFixPrompt(errInfo, previewMeta));
+      ok = await chatRef.current?.sendMessage(
+        buildFixPrompt(errInfo, previewMeta, { escalate: sameError }));
       triggerRefresh();
-      if (!ok) {
-        setPreviewStage({ phase: 'failed', elapsedMs: 0,
-          message: 'AI 자동보완 요청이 실패했습니다. 좌측 작업 내역의 오류를 확인하세요.' });
-        return;
-      }
-      setSnackbar({ open: true, severity: 'info', title: `AI 자동보완 (${attempt}/${MAX_AUTOFIX})`,
-        message: '산출물을 수정했습니다. 화면을 다시 실행합니다.' });
-      setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
-        message: `보완 완료 — 화면을 다시 실행합니다 (${attempt}/${MAX_AUTOFIX})...` });
-      await handlePreview();   // 새 산출물로 재실행 — 또 오류면 PreviewEmbed 가 재호출
     } catch (e) {
+      ok = false;
       setPreviewStage({ phase: 'failed', elapsedMs: 0,
         message: '자동보완 처리 오류: ' + (e?.message || '') });
     } finally {
+      // ★ 재실행 전에 lock 해제 — 재실행의 apply 단계 '동기' 오류도 자동보완 재진입 가능.
+      //   (lock 을 재실행 await 동안 잡고 있으면 동기 오류가 [3] 가드에 막혀 루프가 끊김)
       autoFixingRef.current = false;
-      setAutoFixActive(false);
     }
+    if (!ok) {
+      setAutoFixActive(false);
+      setPreviewStage((s) => (s && s.phase === 'failed') ? s : ({
+        phase: 'failed', elapsedMs: 0,
+        message: 'AI 자동보완 요청이 실패했습니다. 좌측 작업 내역의 오류를 확인하세요.' }));
+      return;
+    }
+    setSnackbar({ open: true, severity: 'info', title: `AI 자동보완 (${attempt}/${MAX_AUTOFIX})`,
+      message: '산출물을 수정했습니다. 화면을 다시 실행합니다.' });
+    setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
+      message: `보완 완료 — 화면을 다시 실행합니다 (${attempt}/${MAX_AUTOFIX})...` });
+    // 재실행 — lock 해제 후 호출(await 안 함). 재실행이 또 실패하면 apply 오류(동기)·
+    //   런타임 오류(비동기) 모두 handlePreviewError 로 재진입 (attempt+1, 최대 MAX).
+    handlePreview();
   };
 
   const handleDownloadDesignDoc = async () => {

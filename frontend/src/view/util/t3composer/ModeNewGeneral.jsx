@@ -16,6 +16,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -30,6 +32,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsightsIcon from '@mui/icons-material/Insights';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import ViewInArIcon from '@mui/icons-material/ViewInAr';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 import { createSession, extractAndLookupTables } from './api';
 import { getModule } from './constants';
@@ -37,7 +42,9 @@ import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
 import MockupPickerDialog    from './MockupPickerDialog';
+import Mockup3DGallery       from './Mockup3DGallery';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
+import UiPattern3DGallery    from './UiPattern3DGallery';
 import KpiChartPickerDialog  from './KpiChartPickerDialog';
 import { useTargetStore } from './targetStore';
 
@@ -139,6 +146,55 @@ const EXAMPLE_PROMPTS = {
 };
 
 /**
+ * 신규 생성 입력 방식별 예시 — 우측 가이드 패널에 카테고리로 표시.
+ *   kind:'prompt' 항목은 클릭 시 프롬프트 입력란에 채워짐. kind:'info' 는 안내.
+ */
+const CREATION_EXAMPLES = [
+  {
+    group: '프롬프트만 입력', color: '#7CA7E0',
+    items: [
+      { tag: '기존 테이블 · SP 있음', kind: 'prompt',
+        text: 'TB_AD_USER 테이블과 SP_UI_AD_01_Q1 / _S1 / _D1 프로시저를 사용해 '
+            + '사용자 목록 조회·저장·삭제 화면을 만들어줘.' },
+      { tag: '기존 테이블 · SP 없음', kind: 'prompt',
+        text: '기존 TB_CM_ITEM_MST 테이블 기반 품목 마스터 관리(CRUD) 화면. '
+            + '조회/저장/삭제 SP 는 새로 생성해줘.' },
+      { tag: '쿼리 직접 지정', kind: 'prompt',
+        text: 'VW_INVENTORY_PLAN_CONFIRMED 뷰를 조회하는 재고 현황 화면 — '
+            + '검색조건은 거점·품목, 결과는 그리드.' },
+      { tag: '테이블 없음 · 신규 설계', kind: 'prompt',
+        text: '공지사항을 관리할 새 테이블을 설계하고 공지 등록·수정·삭제 화면을 만들어줘.' },
+    ],
+  },
+  {
+    group: 'SCM UI Mockup 선택', color: '#86C7A8',
+    items: [
+      { tag: 'Mockup + 프롬프트', kind: 'info',
+        text: '위 [SCM UI Mockup 선택] 으로 화면 목업을 고르면 그 레이아웃 골격을 '
+            + 'Claude 가 참조합니다. 프롬프트엔 데이터 요구만 적으면 됩니다. '
+            + '(UI Pattern 과는 둘 중 하나)' },
+    ],
+  },
+  {
+    group: 'UI Pattern 선택', color: '#9D8FD4',
+    items: [
+      { tag: 'UI Pattern + 프롬프트', kind: 'info',
+        text: '위 [UI Pattern 선택] 으로 T3MES 패턴을 고르면 그 화면 마크업을 '
+            + '참조해 생성합니다. (SCM UI Mockup 과는 둘 중 하나)' },
+    ],
+  },
+  {
+    group: '파일 첨부 (D&D)', color: '#E6C079',
+    items: [
+      { tag: 'SQL · 설계 이미지 첨부', kind: 'info',
+        text: '하단 [참조 파일 첨부] 영역에 SQL 파일 · 설계서 이미지 · 캡처 등을 '
+            + '최대 5개까지 끌어다 놓으면 함께 참조합니다. Mockup / UI Pattern 선택과 '
+            + '같이 사용할 수 있습니다.' },
+    ],
+  },
+];
+
+/**
  * 신규 개발 — 일반 생성.
  *
  * 3단계 진입:
@@ -171,12 +227,20 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   // 선택사항 (1) — SCM UI Mockup 참조 ([SCM UI Mockup] 메뉴의 MOCKUP_ENTRIES)
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [mockupDlgOpen,  setMockupDlgOpen]  = useState(false);
+  // 3D 모드 — 기본 ON. 체크 시 [SCM UI Mockup 선택] 클릭 → 전체화면 3D 갤러리(JARVIS 룩)
+  const [mockup3D,       setMockup3D]       = useState(true);
+  const [mockup3DOpen,   setMockup3DOpen]   = useState(false);
 
   // 선택사항 (2) — UI Pattern 참조 ([UI Pattern] 메뉴의 T3MES 카탈로그 entry)
   // selectedUiPatternSource: 선택 시 fetch 한 경량 HTML(lite) 마크업 — Claude 레이아웃 참조용
   const [selectedUiPattern,       setSelectedUiPattern]       = useState(null);
   const [selectedUiPatternSource, setSelectedUiPatternSource] = useState('');
   const [uiPatternDlgOpen,        setUiPatternDlgOpen]        = useState(false);
+  // 3D 모드 — 기본 ON. 체크 시 [UI Pattern 선택] 클릭 → 전체화면 3D 갤러리(JARVIS 룩)
+  const [uiPattern3D,     setUiPattern3D]     = useState(true);
+  const [uiPattern3DOpen, setUiPattern3DOpen] = useState(false);
+  // 우측 Layer 예시 — 화면 오픈 시 숨김, [예시 보기] 버튼으로 펼침
+  const [showExamples, setShowExamples] = useState(false);
 
   // KPI / Chart 사전 다중 선택 — 선택한 Mockup/UI Pattern 이 Chart/Dashboard 류일 때만 트리거 노출
   // selectedKpis / selectedCharts: [{ code, name, category }]
@@ -196,6 +260,49 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const module = useMemo(() => getModule(moduleCode), [moduleCode]);
 
   const examples = moduleCode ? (EXAMPLE_PROMPTS[moduleCode] || []) : [];
+
+  // SCM UI Mockup 선택 확정 — 일반 POPUP(MockupPickerDialog) / 3D 갤러리 공용 핸들러.
+  const handleMockupPicked = (m) => {
+    setSelectedMockup(m);
+    setMockupDlgOpen(false);
+    setMockup3DOpen(false);
+    if (m) {
+      // Mockup ⊕ UI Pattern 배타 — Mockup 선택 시 UI Pattern 만 해제 (파일 첨부는 독립)
+      setSelectedUiPattern(null);
+      setSelectedUiPatternSource('');
+    }
+    const chartLike = isChartLikeMockup(m);
+    if (!chartLike) { setSelectedKpis([]); setSelectedCharts([]); }
+    // 자동 chain — Chart/Dashboard 류 Mockup 확인 시 KPI/Chart POPUP 곧바로 띄움
+    if (chartLike && selectedKpis.length === 0 && selectedCharts.length === 0) {
+      setTimeout(() => setKpiDlgOpen(true), 160);
+    }
+  };
+
+  // UI Pattern 선택 확정 — 일반 POPUP(UiPatternPickerDialog) / 3D 갤러리 공용 핸들러.
+  const handleUiPatternPicked = async (p) => {
+    setSelectedUiPattern(p);
+    setUiPatternDlgOpen(false);
+    setUiPattern3DOpen(false);
+    if (p) {
+      // Mockup ⊕ UI Pattern 배타 — UI Pattern 선택 시 Mockup 만 해제 (파일 첨부는 독립)
+      setSelectedMockup(null);
+    }
+    if (!isChartLikeUiPattern(p)) {
+      setSelectedKpis([]);
+      setSelectedCharts([]);
+    }
+    if (p && p.liteUrl) {
+      try {
+        const r = await fetch(p.liteUrl);
+        setSelectedUiPatternSource(r.ok ? await r.text() : '');
+      } catch {
+        setSelectedUiPatternSource('');
+      }
+    } else {
+      setSelectedUiPatternSource('');
+    }
+  };
 
   // prompt 변경 시 600ms 디바운스 후 자동 테이블 lookup (NEW_NL 모드 진입 단계)
   useEffect(() => {
@@ -275,14 +382,21 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     r.readAsDataURL(file);
   });
 
+  const MAX_ATTACH = 5;
   const handleFilesPicked = async (files) => {
     const arr = Array.from(files || []);
     if (arr.length === 0) return;
-    // ★ 3개 기능 단독 적용 — 파일 첨부 시 Mockup·UI Pattern 선택 해제
-    setSelectedMockup(null);
-    setSelectedUiPattern(null);
-    setSelectedUiPatternSource('');
-    for (const file of arr) {
+    // 파일 첨부는 Mockup / UI Pattern 선택과 독립 — 함께 사용 가능. 최대 5개.
+    const room = MAX_ATTACH - attachments.length;
+    if (room <= 0) {
+      setError(`참조 파일은 최대 ${MAX_ATTACH}개까지 첨부할 수 있습니다. 기존 첨부를 삭제한 뒤 추가하세요.`);
+      return;
+    }
+    const take = arr.slice(0, room);
+    if (arr.length > room) {
+      setError(`참조 파일은 최대 ${MAX_ATTACH}개까지입니다 — ${take.length}개만 추가했습니다.`);
+    }
+    for (const file of take) {
       try {
         const sizeKb = Math.round(file.size / 1024);
         if (file.size > 5 * 1024 * 1024) {     // 5MB 한 파일당
@@ -524,7 +638,19 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {Header}
-      <Box sx={{ p: 4, maxWidth: 1000, mx: 'auto', flex: 1, overflow: 'auto' }}>
+      <Box sx={{ p: 3, width: '100%', maxWidth: 1600, mx: 'auto', flex: 1,
+                 overflow: 'auto', scrollbarGutter: 'stable both-edges' }}>
+        {/* ── 50:50 2분할 — 좌: 요구사항 입력~참조파일 첨부 · 우: 예시 Layer · 컬럼 간격 24px ── */}
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+          {/* ◀ 좌측 Layer — 별도 패널. 고정 폭 calc(50% - 12px), 내부 좌/우 여백 16px 균등 */}
+          <Box sx={{
+            width: 'calc(50% - 12px)', flexGrow: 0, flexShrink: 0,
+            p: 2, borderRadius: 2,
+            bgcolor: 'rgba(124,167,224,0.05)',
+            border: '1px solid rgba(124,167,224,0.30)',
+            boxShadow: '0 6px 20px -12px rgba(58,74,99,0.25)',
+          }}>
+
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             요구사항 입력
@@ -645,59 +771,108 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             })()}
           </Stack>
 
-          {/* SCM UI Mockup / UI Pattern / KPI / Chart 사전 선택 (선택사항) */}
-          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap"
-                 sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,167,224,0.06)', borderRadius: 1.5,
-                       border: '1px dashed rgba(124,167,224,0.35)', gap: 1 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              선택사항:
+          {/* SCM UI Mockup / UI Pattern 사전 선택 (선택사항) — 2개 Row */}
+          <Box sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,167,224,0.06)', borderRadius: 1.5,
+                     border: '1px dashed rgba(124,167,224,0.35)' }}>
+            <Typography variant="caption" color="text.secondary"
+                        sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+              선택사항 — SCM UI Mockup · UI Pattern 중 1개 선택 (서로 배타) · 파일 첨부는 별도 (하단 영역 · 최대 5개)
             </Typography>
 
-            {/* (1) SCM UI Mockup 선택 트리거 — [SCM UI Mockup] 메뉴 카탈로그 */}
-            <Button
-              size="small"
-              variant={selectedMockup ? 'contained' : 'outlined'}
-              startIcon={<DashboardCustomizeIcon fontSize="small" />}
-              onClick={() => setMockupDlgOpen(true)}
-              color="primary"
-            >
-              {selectedMockup ? `Mockup: ${selectedMockup.patternCode}` : 'SCM UI Mockup 선택'}
-            </Button>
-            {selectedMockup && (
-              <Chip
-                size="small" label="해제"
-                onClick={() => setSelectedMockup(null)}
-                sx={{ height: 22 }}
-              />
-            )}
+            {/* Row 1 — SCM UI Mockup 선택 + 3D 체크박스 */}
+            <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ gap: 1, mb: 1 }}>
+              <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
+                          fontWeight: 700, color: '#5683C0' }}>
+                SCM UI Mockup
+              </Typography>
+              <Button
+                size="medium"
+                variant={selectedMockup ? 'contained' : 'outlined'}
+                startIcon={<DashboardCustomizeIcon />}
+                onClick={() => (mockup3D ? setMockup3DOpen(true) : setMockupDlgOpen(true))}
+                color="primary"
+                sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
+              >
+                {selectedMockup ? `Mockup: ${selectedMockup.patternCode}` : 'SCM UI Mockup 선택'}
+              </Button>
+              {/* 3D 체크박스 — 체크 시 전체화면 JARVIS 3D 갤러리로 진입 */}
+              <Tooltip title="3D 체크 시 — [SCM UI Mockup 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 mockup 을 카테고리별로 배치하고, 드래그 이동·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.">
+                <FormControlLabel
+                  sx={{ ml: 0,
+                        '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
+                  control={
+                    <Checkbox size="small" checked={mockup3D}
+                              onChange={(e) => setMockup3D(e.target.checked)}
+                              sx={{ p: 0.5 }} />
+                  }
+                  label={
+                    <Stack direction="row" alignItems="center" spacing={0.3}>
+                      <ViewInArIcon sx={{ fontSize: 15 }} />
+                      <span>3D</span>
+                    </Stack>
+                  }
+                />
+              </Tooltip>
+              {selectedMockup && (
+                <Chip size="small" label="해제"
+                      onClick={() => setSelectedMockup(null)} sx={{ height: 22 }} />
+              )}
+            </Stack>
 
-            {/* (2) UI Pattern 선택 트리거 — [UI Pattern] 메뉴 T3MES 카탈로그 */}
-            <Button
-              size="small"
-              variant={selectedUiPattern ? 'contained' : 'outlined'}
-              startIcon={<ViewQuiltIcon fontSize="small" />}
-              onClick={() => setUiPatternDlgOpen(true)}
-              color="secondary"
-            >
-              {selectedUiPattern
-                ? `Pattern: ${(selectedUiPattern.tabLabel || selectedUiPattern.fileLabel || '').slice(0, 22)}`
-                : 'UI Pattern 선택'}
-            </Button>
-            {selectedUiPattern && (
-              <Chip
-                size="small" label="해제"
-                onClick={() => { setSelectedUiPattern(null); setSelectedUiPatternSource(''); }}
-                sx={{ height: 22 }}
-              />
-            )}
+            {/* Row 2 — UI Pattern 선택 + 3D 체크박스 */}
+            <Stack direction="row" alignItems="center" flexWrap="wrap"
+                   sx={{ gap: 1, mb: showKpiTrigger ? 1 : 0 }}>
+              <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
+                          fontWeight: 700, color: '#6F87AA' }}>
+                UI Pattern
+              </Typography>
+              <Button
+                size="medium"
+                variant={selectedUiPattern ? 'contained' : 'outlined'}
+                startIcon={<ViewQuiltIcon />}
+                onClick={() => (uiPattern3D ? setUiPattern3DOpen(true) : setUiPatternDlgOpen(true))}
+                color="secondary"
+                sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
+              >
+                {selectedUiPattern
+                  ? `Pattern: ${(selectedUiPattern.tabLabel || selectedUiPattern.fileLabel || '').slice(0, 22)}`
+                  : 'UI Pattern 선택'}
+              </Button>
+              {/* 3D 체크박스 — 체크 시 전체화면 JARVIS 3D 갤러리로 진입 */}
+              <Tooltip title="3D 체크 시 — [UI Pattern 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 패턴을 그룹별로 배치하고, 드래그 회전·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.">
+                <FormControlLabel
+                  sx={{ ml: 0,
+                        '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
+                  control={
+                    <Checkbox size="small" checked={uiPattern3D}
+                              onChange={(e) => setUiPattern3D(e.target.checked)}
+                              sx={{ p: 0.5 }} />
+                  }
+                  label={
+                    <Stack direction="row" alignItems="center" spacing={0.3}>
+                      <ViewInArIcon sx={{ fontSize: 15 }} />
+                      <span>3D</span>
+                    </Stack>
+                  }
+                />
+              </Tooltip>
+              {selectedUiPattern && (
+                <Chip size="small" label="해제"
+                      onClick={() => { setSelectedUiPattern(null); setSelectedUiPatternSource(''); }}
+                      sx={{ height: 22 }} />
+              )}
+            </Stack>
 
-            {/* Chart/Dashboard 패턴일 때만 KPI/Chart 사전 선택 트리거 노출 */}
+            {/* Row 3 — KPI/Chart (Chart/Dashboard 패턴일 때만) */}
             {showKpiTrigger && (() => {
               const totalSel = selectedKpis.length + selectedCharts.length;
-              const needsAttention = totalSel === 0;  // chart 패턴 + 미선택 → 강조
+              const needsAttention = totalSel === 0;
               return (
-                <>
-                  <Box sx={{ width: 1, height: 24, bgcolor: 'rgba(0,0,0,0.12)' }} />
+                <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ gap: 1 }}>
+                  <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
+                              fontWeight: 700, color: '#9D8FD4' }}>
+                    KPI / Chart
+                  </Typography>
                   <Button
                     size="small"
                     variant={totalSel > 0 ? 'contained' : 'outlined'}
@@ -705,10 +880,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                     onClick={() => setKpiDlgOpen(true)}
                     color="secondary"
                     sx={needsAttention ? {
-                      // 미선택 상태에서 미세한 pulse — 사용자에게 핵심 항목임을 시각적 안내.
-                      // boxShadow 가 0 ~ 8px 사이를 1.6초 주기로 호흡하듯 변화.
-                      borderColor: '#9333ea',
-                      borderWidth: 1.5,
+                      borderColor: '#9333ea', borderWidth: 1.5,
                       animation: 'kpiPulse 1.6s ease-in-out infinite',
                       '@keyframes kpiPulse': {
                         '0%, 100%': { boxShadow: '0 0 0 0 rgba(147,51,234,0)' },
@@ -720,14 +892,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                       ? `KPI ${selectedKpis.length} · Chart ${selectedCharts.length}`
                       : 'KPI / Chart 사전 항목 선택'}
                   </Button>
-                </>
+                </Stack>
               );
             })()}
-
-            <Typography variant="caption" color="text.disabled" sx={{ ml: 'auto' }}>
-              SCM UI Mockup · UI Pattern · 파일 첨부는 1개만 적용됩니다 (단독)
-            </Typography>
-          </Stack>
+          </Box>
 
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -776,13 +944,14 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           <Stack alignItems="center" spacing={0.5}>
             <CloudUploadIcon sx={{ fontSize: 32, color: bottomDragOver ? '#7CA7E0' : '#A6B2C4' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              참조 파일 첨부 — 끌어다 놓거나 클릭
+              참조 파일 첨부 — SQL · 설계서 이미지 등 (끌어다 놓거나 클릭)
             </Typography>
-            <Tooltip title="설계서·캡처·소스 등 참조 파일. 텍스트 파일은 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB)">
+            <Tooltip title="필요한 SQL 파일·설계서 이미지·캡처·소스 등을 최대 5개까지 첨부. 텍스트(.sql 등)는 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB). SCM UI Mockup·UI Pattern 선택과 함께 사용할 수 있습니다.">
               <Typography variant="caption" color="text.secondary"
                           sx={{ textAlign: 'center', cursor: 'help',
                                 borderBottom: '1px dotted', borderColor: 'divider' }}>
-                드래그 또는 클릭 · 파일당 최대 5MB
+                최대 {MAX_ATTACH}개 · 파일당 5MB — SQL · 이미지 · 설계서 등
+                {attachments.length > 0 && `  (현재 ${attachments.length}/${MAX_ATTACH})`}
               </Typography>
             </Tooltip>
           </Stack>
@@ -813,62 +982,35 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           )}
         </Paper>
 
-        {/* SCM UI Mockup POPUP — [SCM UI Mockup] 메뉴 카탈로그에서 선택 */}
+        {/* SCM UI Mockup POPUP — 일반 목록 / 3D 갤러리 (둘 다 handleMockupPicked 공용) */}
         <MockupPickerDialog
           open={mockupDlgOpen}
           onClose={() => setMockupDlgOpen(false)}
           currentValue={selectedMockup?.patternCode || null}
-          onConfirm={(m) => {
-            setSelectedMockup(m);
-            setMockupDlgOpen(false);
-            if (m) {
-              // ★ 3개 기능 단독 적용 — Mockup 선택 시 UI Pattern·파일 첨부 해제
-              setSelectedUiPattern(null);
-              setSelectedUiPatternSource('');
-              setAttachments([]);
-            }
-            const chartLike = isChartLikeMockup(m);
-            // Chart/Dashboard 류가 아니면 이전 KPI/Chart 정리
-            if (!chartLike) {
-              setSelectedKpis([]);
-              setSelectedCharts([]);
-            }
-            // 자동 chain — Chart/Dashboard 류 Mockup 확인 시 KPI/Chart POPUP 곧바로 띄움
-            if (chartLike && selectedKpis.length === 0 && selectedCharts.length === 0) {
-              setTimeout(() => setKpiDlgOpen(true), 160);
-            }
-          }}
+          onConfirm={handleMockupPicked}
+        />
+        <Mockup3DGallery
+          open={mockup3DOpen}
+          onClose={() => setMockup3DOpen(false)}
+          currentValue={selectedMockup?.patternCode || null}
+          onConfirm={handleMockupPicked}
         />
 
-        {/* UI Pattern POPUP — [UI Pattern] 메뉴 T3MES 카탈로그에서 선택.
+        {/* UI Pattern POPUP — 일반 목록 / 3D 갤러리 (둘 다 handleUiPatternPicked 공용).
             확인 시 lite HTML 마크업을 fetch 해 systemContext 참조 소스로 사용 */}
         <UiPatternPickerDialog
           open={uiPatternDlgOpen}
           onClose={() => setUiPatternDlgOpen(false)}
-          currentValue={selectedUiPattern ? `${selectedUiPattern.file}#${selectedUiPattern.tabIndex}` : null}
-          onConfirm={async (p) => {
-            setSelectedUiPattern(p);
-            setUiPatternDlgOpen(false);
-            if (p) {
-              // ★ 3개 기능 단독 적용 — UI Pattern 선택 시 Mockup·파일 첨부 해제
-              setSelectedMockup(null);
-              setAttachments([]);
-            }
-            if (!isChartLikeUiPattern(p)) {
-              setSelectedKpis([]);
-              setSelectedCharts([]);
-            }
-            if (p && p.liteUrl) {
-              try {
-                const r = await fetch(p.liteUrl);
-                setSelectedUiPatternSource(r.ok ? await r.text() : '');
-              } catch {
-                setSelectedUiPatternSource('');
-              }
-            } else {
-              setSelectedUiPatternSource('');
-            }
-          }}
+          currentValue={selectedUiPattern
+            ? `${selectedUiPattern.file}#${selectedUiPattern.tabIndex ?? '-'}` : null}
+          onConfirm={handleUiPatternPicked}
+        />
+        <UiPattern3DGallery
+          open={uiPattern3DOpen}
+          onClose={() => setUiPattern3DOpen(false)}
+          currentValue={selectedUiPattern
+            ? `${selectedUiPattern.file}#${selectedUiPattern.tabIndex ?? '-'}` : null}
+          onConfirm={handleUiPatternPicked}
         />
 
         {/* KPI / Chart 사전 POPUP */}
@@ -966,32 +1108,150 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             )}
           </Paper>
         )}
+          </Box>{/* /좌측 Layer */}
 
-        {examples.length > 0 && (
-          <>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              {module.code} 모듈 예시
+          {/* ▶ 우측 Layer — 별도 패널. 남는 50% 를 채움. 스크롤바를 양쪽에 균등 예약해
+              예시 펼침/스크롤 시에도 내부 좌/우 여백이 16px 로 동일하게 유지 */}
+          <Box sx={{
+            flex: '1 1 0', minWidth: 0,
+            position: 'sticky', top: 0,
+            maxHeight: 'calc(100vh - 150px)', overflowY: 'auto',
+            scrollbarGutter: 'stable both-edges',
+            p: 2, borderRadius: 2,
+            bgcolor: 'rgba(124,167,224,0.05)',
+            border: '1px solid rgba(124,167,224,0.30)',
+            boxShadow: '0 6px 20px -12px rgba(58,74,99,0.25)',
+          }}>
+        {/* 우측 상단 — [예시 보기] 토글 버튼 */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between"
+               sx={{ mb: showExamples ? 1.5 : 0 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#5683C0' }}>
+            신규 생성 예시
+          </Typography>
+          <Button
+            size="small" variant="outlined" color="primary"
+            startIcon={showExamples ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            onClick={() => setShowExamples((v) => !v)}
+          >
+            {showExamples ? '예시 숨기기' : '예시 보기'}
+          </Button>
+        </Stack>
+        {!showExamples && (
+          <Box>
+            <Typography variant="caption" color="text.secondary"
+                        sx={{ display: 'block', mt: 1 }}>
+              [예시 보기] 를 누르면 모듈 예시와 입력 방식별 예시가 펼쳐집니다.
             </Typography>
-            <Stack spacing={1}>
-              {examples.map((p, i) => (
-                <Chip
-                  key={i}
-                  label={p}
-                  onClick={() => setPrompt(p)}
-                  variant="outlined"
-                  sx={{
-                    height: 'auto',
-                    whiteSpace: 'normal',
-                    py: 1,
-                    px: 1.5,
-                    justifyContent: 'flex-start',
-                    '& .MuiChip-label': { whiteSpace: 'normal', textAlign: 'left' },
-                  }}
-                />
+            {/* 예시 접힘 상태 — 하단 여백에 자연어 생성 흐름 개념도를 배경처럼 (고투명) */}
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Box
+                component="img"
+                src="/t3composer-nl-flow.png"
+                alt=""
+                aria-hidden="true"
+                sx={{
+                  maxWidth: '72%',
+                  maxHeight: 'calc(100vh - 300px)',
+                  opacity: 0.4,
+                  display: 'block',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                }}
+              />
+            </Box>
+          </Box>
+        )}
+        {showExamples && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* 모듈 예시 */}
+          {examples.length > 0 && (
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: '#5683C0' }}>
+                {module.code} 모듈 예시
+              </Typography>
+              <Stack spacing={1}>
+                {examples.map((p, i) => (
+                  <Chip
+                    key={i}
+                    label={p}
+                    onClick={() => setPrompt(p)}
+                    variant="outlined"
+                    sx={{
+                      height: 'auto', whiteSpace: 'normal', py: 1, px: 1.5,
+                      justifyContent: 'flex-start',
+                      '& .MuiChip-label': { whiteSpace: 'normal', textAlign: 'left' },
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {/* 입력 방식별 예시 (프롬프트 / Mockup / UI Pattern / 파일첨부) */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: '#5683C0' }}>
+              신규 생성 예시 — 입력 방식별
+            </Typography>
+            <Stack spacing={1.2}>
+              {CREATION_EXAMPLES.map((g) => (
+                <Box key={g.group} sx={{
+                  border: '1px solid', borderColor: `${g.color}55`, borderRadius: 1.5,
+                  bgcolor: `${g.color}10`, p: 1.2,
+                }}>
+                  <Typography variant="caption"
+                              sx={{ fontWeight: 800, color: g.color, display: 'block', mb: 0.8 }}>
+                    {g.group}
+                  </Typography>
+                  <Stack spacing={0.7}>
+                    {g.items.map((it, idx) => {
+                      const clickable = it.kind === 'prompt';
+                      return (
+                        <Box
+                          key={idx}
+                          onClick={clickable ? () => setPrompt(it.text) : undefined}
+                          sx={{
+                            p: 1, borderRadius: 1, bgcolor: '#fff',
+                            border: '1px solid rgba(124,167,224,0.22)',
+                            cursor: clickable ? 'pointer' : 'default',
+                            transition: 'all .14s ease',
+                            ...(clickable && {
+                              '&:hover': {
+                                borderColor: g.color,
+                                boxShadow: `0 2px 10px -5px ${g.color}`,
+                              },
+                            }),
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={0.6}
+                                 flexWrap="wrap" sx={{ mb: 0.4, gap: 0.4 }}>
+                            <Chip
+                              size="small" label={it.tag}
+                              sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
+                                    bgcolor: `${g.color}26`, color: g.color }}
+                            />
+                            {clickable && (
+                              <Typography variant="caption"
+                                          sx={{ color: '#A6B2C4', fontSize: 9.5 }}>
+                                클릭 → 프롬프트에 입력
+                              </Typography>
+                            )}
+                          </Stack>
+                          <Typography variant="caption"
+                                      sx={{ color: '#3A4A63', lineHeight: 1.55, display: 'block' }}>
+                            {it.text}
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
               ))}
             </Stack>
-          </>
-        )}
+          </Box>
+        </Box>
+        )}{/* /showExamples */}
+          </Box>{/* /우측 예시 Layer */}
+        </Box>{/* /좌우 분할 */}
       </Box>
     </Box>
   );

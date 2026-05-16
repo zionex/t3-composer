@@ -71,3 +71,15 @@ if grep -qE '\bTB_AD_LANG_PACK\b' <<<"$CONTENT"; then
           "rules/32-sql-schema-verification.md §3 + 99-anti-patterns.md CP6"
   fi
 fi
+
+# ─── TB_AD_USER — 실제 컬럼: ID · USERNAME · PASSWORD · DISPLAY_NAME · ENABLED ───
+#   자주 오용: USER_ID · USER_NM · USER_NAME (USER_ID/USER_NM 은 TB_UT_USER_INFO 컬럼 — 혼동)
+#   2026-05 사고: 자연어 생성이 TB_AD_USER 화면 SP 를 USER_ID/USER_NM 으로 만들어
+#                'Invalid column name USER_ID' 실행 실패. 기존 테이블은 실제 컬럼만 사용.
+#   ※ TB_UT_USER_INFO 도 함께 참조하는 파일이면 USER_ID/USER_NM 이 정상이므로 제외.
+if grep -qE '\bTB_AD_USER\b' <<<"$CONTENT" && ! grep -qE '\bTB_UT_USER_INFO\b' <<<"$CONTENT"; then
+  if grep -qE '\b(USER_ID|USER_NM|USER_NAME)\b' <<<"$CONTENT"; then
+    block "TB_AD_USER 에 'USER_ID' / 'USER_NM' / 'USER_NAME' 컬럼은 존재하지 않습니다 — 실제 컬럼은 ID · USERNAME · PASSWORD · DISPLAY_NAME · ENABLED 입니다. (USER_ID/USER_NM 은 TB_UT_USER_INFO 의 컬럼) 기존 테이블을 쓰는 화면은 CREATE TABLE 을 새로 만들지 말고, 실제 컬럼명만 확인 후 SP 를 작성하세요." \
+          "rules/32-sql-schema-verification.md §3 + rules/30-database-schema.md §5"
+  fi
+fi

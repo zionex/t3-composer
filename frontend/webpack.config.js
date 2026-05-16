@@ -76,7 +76,21 @@ module.exports = (env, argv) => {
       port: 5173,
       host: '0.0.0.0',
       hot: true,
-      client: { overlay: { errors: true, warnings: false } },
+      client: {
+        overlay: {
+          // 컴파일 오류 오버레이는 유지 (개발 중 유용).
+          errors: true,
+          warnings: false,
+          // ★ 런타임 오류 오버레이는 끈다.
+          //   산출물 preview 는 iframe 안에서 메인 번들의 React 로 렌더되는데,
+          //   React dev 모드는 ErrorBoundary 가 잡은 오류도 메인 window 로 다시 throw 한다.
+          //   그러면 wds 오버레이가 전체 화면을 덮어 [화면 실행]·AI 자동보완 진행이
+          //   보이지 않고 "멈춘 것처럼" 보인다. preview 오류는 PreviewEmbed 의
+          //   ErrorBoundary + window 리스너가 잡아 자동보완 루프로 처리하므로
+          //   오버레이로 막을 필요가 없다 (멈춤 현상의 근본 원인 — 2026-05-16).
+          runtimeErrors: false,
+        },
+      },
       // 윈도우 host + Linux container 마운트에서는 inotify 가 cross-OS 로 동작하지 않아
       // src 변경 감지는 watchOptions.poll 로 처리한다.
       // public/ 정적 폴더(특히 t3mes-split 1460+ 파일)는 watch 를 끈다 —
@@ -115,6 +129,11 @@ module.exports = (env, argv) => {
              || req.url.endsWith('.js.map')
              || req.url.endsWith('.css')
              || req.url.endsWith('.css.map')) {
+              return req.url;
+            }
+            // public/ 정적 자산 (이미지·폰트 등) — webpack-dev-server static 으로 서빙
+            // (proxy 로 backend 에 보내면 404 — 산출물·개념도 이미지 등이 안 보임)
+            if (/\.(png|jpe?g|gif|svg|ico|webp|bmp|woff2?|ttf|eot)(\?.*)?$/i.test(req.url)) {
               return req.url;
             }
             return null;  // proxy 진행

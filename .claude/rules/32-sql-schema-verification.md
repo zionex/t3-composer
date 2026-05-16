@@ -53,8 +53,14 @@ find t3series-database -name "<TABLE_NAME>.sql"
 - `TB_UT_USER_INFO` 참조 + 컬럼명 `PHONE` (실제는 USER_TEL) — block
 - `TB_AD_MENU` 참조 + 컬럼명 `MENU_NM` 또는 `PARENT_MENU_CD` — block
 - `TB_AD_LANG_PACK` 참조 + 컬럼명 `UPDATE_BY` 또는 `UPDATE_DTTM` (실제는 MODIFY_BY/MODIFY_DTTM) — block
+- `TB_AD_USER` 참조 + 컬럼명 `USER_ID`/`USER_NM`/`USER_NAME` (실제는 ID/USERNAME/DISPLAY_NAME) — block
+  (단, 같은 파일이 `TB_UT_USER_INFO` 도 참조하면 그쪽 정상 컬럼이라 제외)
 
 신규 재사용 테이블 발견 시 이 hook 의 화이트리스트에 추가하는 게 원칙.
+
+> **자연어 신규 화면 생성 시 (Composer NEW_NL/NEW_GENERAL)**: 기존 테이블을 쓰면 그 테이블에
+> 대한 `CREATE TABLE` 을 새로 만들지 말고, 실제 컬럼을 먼저 확인한 뒤 SP 를 순차 생성한다.
+> 상세는 `rules/50-composer-standalone-runtime.md §13.6`.
 
 ## 1. 검증 필수 상황
 

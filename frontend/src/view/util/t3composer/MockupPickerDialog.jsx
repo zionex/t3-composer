@@ -190,13 +190,13 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
             </Box>
           </Box>
 
-          {/* ── 우측 — 실제 mockup 미리보기 (패널 폭에 맞춰 꽉 차게 — 우측 검은 여백 제거) ── */}
+          {/* ── 우측 — 실제 mockup 미리보기 (패널 폭에 맞춰 꽉 차게 · 흰색 배경) ── */}
           <Box
             ref={previewPaneRef}
             sx={{
               flex: 1, minWidth: 0, position: 'relative',
               overflowX: 'hidden', overflowY: 'auto',
-              bgcolor: selectedEntry ? '#fff' : '#0f1117',
+              bgcolor: '#fff',
             }}
           >
             {!selectedEntry && (

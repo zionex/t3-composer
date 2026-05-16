@@ -286,9 +286,41 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered }) {
                     </Tooltip>
                   );
                 })}
-                {/* 부족한 단(예: 기존 화면 수정 3단) 은 빈 영역 — 좌측 보드와 단 높이 정렬 */}
+                {/* 부족한 단 — 기존 화면 수정 보드 3단 빈 영역에 ScreenSpec 개념도 삽입 */}
                 {Array.from({ length: Math.max(0, 3 - options.length) }).map((_, i) => (
-                  <Box key={`spacer-${i}`} sx={{ flex: 1, minHeight: 92 }} />
+                  <Box key={`spacer-${i}`} sx={{ flex: 1, minHeight: 92, display: 'flex' }}>
+                    {cat.key === CATEGORY_MODIFY.key && (
+                      <Box sx={{
+                        flex: 1, minWidth: 0, minHeight: 0,
+                        display: 'flex', flexDirection: 'column', gap: 0.6,
+                        p: 1.4, borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.6)',
+                        border: `1px solid ${cat.accent}3a`,
+                        boxShadow: '0 1px 0 rgba(255,255,255,0.85) inset, '
+                                 + '0 6px 16px -12px rgba(58,74,99,0.30)',
+                      }}>
+                        <Box sx={{
+                          flex: 1, minHeight: 0, width: '100%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <Box
+                            component="img"
+                            src="/t3composer-concept.png"
+                            alt="T3Composer — ScreenSpec 개념도"
+                            sx={{ maxWidth: '100%', maxHeight: '100%',
+                                  objectFit: 'contain', display: 'block',
+                                  opacity: 0.4 }}
+                          />
+                        </Box>
+                        <Typography variant="caption" sx={{
+                          flexShrink: 0, textAlign: 'center',
+                          color: 'text.secondary', fontSize: 9.5, letterSpacing: 0.2,
+                        }}>
+                          다양한 입력 → ScreenSpec → 화면 산출물
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 ))}
               </Stack>
             </Paper>

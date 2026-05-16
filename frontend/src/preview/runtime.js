@@ -43,6 +43,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 import * as WinguiImports from '@wingui/common/imports';
+import * as WinguiFieldCascade from '@wingui/common/fieldCascade';
 import * as ZionexWinguiCore from '@zionex/wingui-core';
 import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
 import LlmMarkdown from '@wingui/view/common/LlmMarkdown';
@@ -100,6 +101,11 @@ const REGISTRY = {
 
     // wingui shim
     '@wingui/common/imports': esModule(WinguiImports),
+    // cascade — 산출물이 '@wingui/common/imports' 가 아닌 별도 경로로 import 하는 경우 대비.
+    //   (useFieldCascade / applyGridCascade / buildPopupFilterProps 가 여기 모두 들어있음)
+    '@wingui/common/fieldCascade': esModule(WinguiFieldCascade),
+    '@wingui/common/gridCascade': esModule(WinguiFieldCascade),
+    '@wingui/common/useFieldCascade': esModule(WinguiFieldCascade),
     '@zionex/wingui-core': esModule(ZionexWinguiCore),
     '@wingui/view/common/CommonCodeSelect': defaultModule(CommonCodeSelect),
     '@wingui/view/common/LlmMarkdown': defaultModule(LlmMarkdown),
@@ -138,6 +144,38 @@ function makeFallbackComponent(spec) {
     return defaultModule(Comp);
 }
 
+/**
+ * 미해결 모듈에 대한 Proxy 스텁 모듈.
+ *
+ * `makeFallbackComponent` 는 default export 하나만 가진 stub — 산출물이 그 모듈에서
+ * named export (예: `import { useFieldCascade } from '...'`) 를 꺼내 쓰면 `undefined`
+ * 가 되어 `useFieldCascade is not a function` 으로 화면이 크래시한다.
+ *
+ * Proxy 로 **어떤 이름을 꺼내든** 안전한 값을 돌려준다:
+ *   - 대문자 시작 (`BaseGrid` 등) → stub 컴포넌트 (대시 박스)
+ *   - 그 외 (`useXxx` 훅 · 유틸 함수) → 호출돼도 throw 하지 않는 no-op 함수
+ * → 미해결 모듈이 있어도 화면 렌더가 멈추지 않는다 (자동보완이 소스를 고칠 시간을 번다).
+ */
+function makeFallbackModule(spec) {
+    const lastSeg = String(spec).split('/').pop() || String(spec);
+    const stubComp = makeFallbackComponent(spec).default;
+    const noop = () => undefined;
+    // 경로 자체가 훅 (`.../useXxx`) 이면 default import 도 함수여야 함
+    const baseDefault = /^use[A-Z]/.test(lastSeg) ? noop : stubComp;
+    const target = { __esModule: true, default: baseDefault };
+    return new Proxy(target, {
+        get(t, prop) {
+            if (prop in t) return t[prop];
+            if (typeof prop !== 'string') return undefined;
+            // 대문자 시작 → 컴포넌트 stub · 그 외 → no-op 함수 (훅/유틸 호출 안전)
+            const v = /^[A-Z]/.test(prop) ? stubComp : noop;
+            t[prop] = v;   // 동일 export 가 매번 같은 참조이도록 캐시
+            return v;
+        },
+        has() { return true; },
+    });
+}
+
 function previewRequire(spec) {
     if (REGISTRY[spec]) return REGISTRY[spec];
 
@@ -148,11 +186,12 @@ function previewRequire(spec) {
         return stub;
     }
 
-    // @wingui/view/common/<X> — 사전 fetch (resolveAndPreload) 도 실패한 경우 stub
-    if (spec.startsWith('@wingui/view/common/') || spec.startsWith('@wingui/')) {
-        const stub = makeFallbackComponent(spec);
+    // @wingui/* · @zionex/* — 사전 fetch (preloadDependencies) 도 실패한 경우
+    //   Proxy 스텁으로 대체 → named/​default export 무엇을 꺼내도 크래시 없음.
+    if (spec.startsWith('@wingui/') || spec.startsWith('@zionex/')) {
+        const stub = makeFallbackModule(spec);
         REGISTRY[spec] = stub;
-        console.warn('[preview] missing module — substituted stub:', spec);
+        console.warn('[preview] missing module — substituted proxy stub:', spec);
         return stub;
     }
 
@@ -226,8 +265,8 @@ async function preloadDependencies({ source, targetCd, inflight }) {
         try {
             depSource = await fetchModuleSource({ spec, targetCd });
         } catch (e) {
-            console.warn('[preview] resolve-module 실패 — stub 으로 대체:', spec, e.message);
-            REGISTRY[spec] = makeFallbackComponent(spec);
+            console.warn('[preview] resolve-module 실패 — proxy stub 으로 대체:', spec, e.message);
+            REGISTRY[spec] = makeFallbackModule(spec);
             continue;
         }
         // 재귀 — 이 dep 의 import 들도 사전 해결
@@ -242,8 +281,8 @@ async function preloadDependencies({ source, targetCd, inflight }) {
                 : { __esModule: true, default: exp };
             REGISTRY[spec] = normalized;
         } catch (e) {
-            console.warn('[preview] dep 변환/실행 실패 — stub 으로 대체:', spec, e.message);
-            REGISTRY[spec] = makeFallbackComponent(spec);
+            console.warn('[preview] dep 변환/실행 실패 — proxy stub 으로 대체:', spec, e.message);
+            REGISTRY[spec] = makeFallbackModule(spec);
         }
     }
 }

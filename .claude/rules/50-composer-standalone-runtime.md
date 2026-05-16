@@ -525,6 +525,7 @@ shim 이 export 하지 않는 이름을 import 하면 그 심볼은 `undefined` 
 | RT1 | `Element type is invalid: ... got: undefined` | 산출물이 import 한 컴포넌트를 shim 이 미보유 (예: `VLayoutBox`/`HLayoutBox` 누락 — 2026-05) | §13.1 shim 완전성 + Hook CG-SHIM |
 | RT2 | `xxx.find/map/flatMap is not a function` | 리스트 state 가 배열이 아닌 값(객체/undefined)으로 set 됨 — API 빈 응답·sample interceptor 객체 응답 | §13.4 배열 가드 |
 | RT3 | 산출물 소스가 전부 빈 0바이트 | LLM 이 `===FILE:` 마커를 자체 코드펜스로 감쌈 → `ArtifactExtractor` 정규식 미인식 | §13.5 + extractor 정규식 보강 (마커-본문 사이 고립 ``` 허용) |
+| RT4 | `[SQL_SP · SP_UI_*.sql] 실행 실패: Invalid column name '...'` | 자연어 생성이 기존 테이블(예: `TB_AD_USER`)의 SP 를 작성하며 실제 없는 컬럼명(`USER_ID`/`USER_NM`)을 추측 — 또는 기존 테이블에 CREATE TABLE 을 새로 생성 | §13.6 + ComposerPromptBuilder rule 15 + Hook `sql-schema-whitelist.sh` + §14.1 apply 오류 자동보완 |
 
 ### 13.3 산출물 디자인 규약 — Target System 룩 정확 반영 (강제)
 
@@ -567,23 +568,70 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 - 기존 세션의 빈 산출물 복구: `POST /composer/sessions/{id}/artifacts/re-extract` —
   assistant 응답을 LLM 재호출 없이 다시 파싱.
 
+### 13.6 ★ 기존 테이블 사용 시 실제 컬럼 검증 — 필수 (RT4 차단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 자연어로 사용자 관리 화면을 생성하니 `SP_UI_AD_01_Q1/S1/D1` 이
+> `TB_AD_USER` 에 대해 `USER_ID` · `USER_NM` 컬럼을 사용 → 화면 실행 시
+> `Invalid column name 'USER_ID'` SP 실행 실패. `TB_AD_USER` 의 실제 컬럼은
+> `ID · USERNAME · PASSWORD · DISPLAY_NAME · ENABLED` (USER_ID/USER_NM 아님).
+
+**필수 규칙 (모든 생성 모드 — 특히 자연어 NEW_NL/NEW_GENERAL):**
+
+1. **기존 테이블 = CREATE TABLE 금지.** 화면이 이미 존재하는 `TB_*` 테이블을 사용하면 그
+   테이블에 대한 `CREATE TABLE` / `SQL_DDL` 아티팩트를 절대 새로 만들지 않는다 (apply 시
+   `tableCollisionBlocked` 로 차단되며, 만들었다는 사실 자체가 컬럼 추측의 신호).
+2. **컬럼 우선 검증 → SP 순차 생성.** SP 의 `SELECT/INSERT/UPDATE/DELETE/WHERE` 컬럼은 모두
+   그 테이블의 **실제 컬럼명**만 사용. 추측·축약·임의 추가 금지.
+   - 백엔드 `ComposerService.enrichUserContentWithTableLookup` 가 사용자 prompt 의 `TB_*`
+     언급을 감지하면 `INFORMATION_SCHEMA` 조회 결과(`=== 자동 테이블 존재 여부 확인 ===`)를
+     prompt 앞에 주입 — 이 블록의 컬럼 명세가 **권위 있는 진실**.
+   - 자연어 요청이 테이블명을 명시하지 않으면 이 블록이 없다 → LLM 은 컬럼을 추측하지 말고
+     `[가정]` 태그로 사용자에게 테이블/컬럼 확인을 요청.
+3. **3곳 정합화.** 실제 컬럼명을 SP 결과 ↔ Entity `@Column(name=...)` ↔ JSX `gridItems`
+   `name/fieldName` 세 곳에 일관 반영.
+4. **흔한 함정 테이블** (추측 금지 — 실제 컬럼):
+   - `TB_AD_USER` = `ID · USERNAME · PASSWORD · DISPLAY_NAME · ENABLED · JTI · SESSION_EXPIRED_DTTM`
+     (❌ `USER_ID`/`USER_NM`/`USER_NAME` — 이는 `TB_UT_USER_INFO` 의 컬럼)
+   - `TB_AD_MENU` = `ID · PARENT_ID · MENU_CD · MENU_PATH · MENU_SEQ · MENU_FILE_PATH · USE_YN`
+   - `TB_UT_USER_INFO` = `USER_ID · USER_NM · USER_EMAIL · USER_TEL` (❌ `EMAIL`/`PHONE`)
+
+**차단 장치:**
+- `ComposerPromptBuilder` INVARIANTS **rule 15** — 위 절차를 LLM system prompt 에 강제.
+- Hook `validators/sql-schema-whitelist.sh` — `.sql` 파일이 `TB_AD_USER` 참조 +
+  `USER_ID`/`USER_NM`/`USER_NAME` 사용 시 block (`TB_AD_MENU`·`TB_UT_USER_INFO`·
+  `TB_AD_LANG_PACK` 도 동일하게 허구 컬럼 차단).
+- 런타임: 위반이 실제 화면 실행까지 가더라도 apply 단계 SP 실행 실패 →
+  **§14.1 의 AI 자동보완**이 오류 메시지를 받아 산출물을 스스로 수정·재실행.
+
 ## 14. 화면 실행 AI 자동보완 + 산출물 UI 보강 (2026-05-16)
 
 > [화면 실행] 후 런타임 오류가 나면 AI 가 산출물을 자동 수정·재실행한다.
 > 사용자가 오류를 직접 분석할 필요 없이 화면이 자동으로 고쳐진다.
 
-### 14.1 화면 실행 후 런타임 오류 → AI 자동보완
+### 14.1 화면 실행 후 오류 → AI 자동보완 (apply 오류 + 런타임 오류 모두)
 
 - ComposerWorkspace 헤더 [화면 실행] 옆 **[오류 시 자동보완] 체크박스** (기본 ON).
-- 흐름: `PreviewEmbed` 오류 포착 → `onError` → `ComposerWorkspace.handlePreviewError`
+- 흐름: 오류 포착 → `ComposerWorkspace.handlePreviewError`
   → `ChatPanel.sendMessage(오류+스택)` (같은 세션 채팅) → AI 산출물 수정
   → `handlePreview` 재실행. 재실행 후 또 오류면 attempt+1 로 반복.
-- **오류 포착 3경로** (`PreviewEmbed`):
-  - load 오류 (transform/execute) — `loadPreviewComponent().catch`
-  - render 오류 — `PreviewErrorBoundary` (iframe React 루트 안에서 산출물 Component 래핑)
-  - runtime/promise 오류 — iframe window 의 `error` / `unhandledrejection` 리스너
-    (`ResizeObserver loop` · `Script error` 는 양성 → 무시)
-  - **load 당 1회만** 보고 (`reportedRef` — 매 load 시작 시 리셋)
+- **오류 포착 2계층** — 둘 다 자동보완 대상:
+  1. **apply(산출물 적용) 단계 오류** — `applyPreview` 가 `success:false` 반환
+     (JSX/SQL/MENU/Java 처리 실패. 특히 **SP 실행 실패 `Invalid column name`**, §13.6 RT4).
+     → `handlePreview` 의 `!r.success` 분기가 `autoFixOnError` ON 이면 **차단 스낵바 없이**
+     `handlePreviewError({type:'apply', message})` 호출 (오류 창을 띄우지 않고 곧장 보완).
+  2. **preview(화면 렌더) 단계 오류** — `PreviewEmbed` 3경로:
+     - load 오류 (transform/execute) — `loadPreviewComponent().catch`
+     - render 오류 — `PreviewErrorBoundary` (iframe React 루트 안에서 산출물 Component 래핑)
+     - runtime/promise 오류 — iframe window `error` / `unhandledrejection`
+       (`ResizeObserver loop` · `Script error` 는 양성 → 무시)
+     - **load 당 1회만** 보고 (`reportedRef` — 매 load 시작 시 리셋)
+- **재진입 설계** — `handlePreviewError` 는 재실행(`handlePreview`) 호출 **전에**
+  `autoFixingRef` lock 을 해제하고 재실행을 `await` 없이(fire-and-forget) 호출한다.
+  apply 단계 오류는 `handlePreview` 안에서 **동기적**으로 다시 발생하므로, lock 을 재실행
+  동안 잡고 있으면 재진입 가드(`if autoFixingRef.current return`)에 막혀 보완 루프가 끊긴다.
+- `buildFixPrompt` 는 오류 메시지에 `Invalid column`/`column name` 패턴이 있으면 SQL 컬럼
+  오류 전용 지침을 추가 — "기존 테이블 CREATE TABLE 금지, 실제 컬럼명만 사용, SP+Entity+
+  gridItems 3곳 정합화".
 - `ChatPanel` 은 `forwardRef` + `useImperativeHandle({ sendMessage })` 로
   프로그램적 채팅 전송 노출. `send` 는 성공/실패를 boolean 으로 반환.
 
@@ -638,6 +686,9 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 | 산출물 소스 스크롤 자식의 flex 조상에 `minHeight:0` 누락 | 조상 전체 `minHeight:0` 체인 (§14.5) |
 | 미리보기 고정 scale → 검은 여백 | ResizeObserver 동적 배율 (§14.6) |
 | 다크 그라데이션 헤더 | 파스텔 글래스 (§14.6) |
+| apply(SP 실행) 오류 시 차단 스낵바만 띄우고 자동보완 미진입 | `autoFixOnError` ON 이면 `!r.success` 분기가 `handlePreviewError({type:'apply'})` 호출 — 오류 창 없이 보완 (§14.1) |
+| `handlePreviewError` 가 `autoFixingRef` lock 을 재실행 `await` 동안 유지 → apply 동기 오류가 재진입 가드에 막힘 | lock 을 재실행 호출 **전** 해제 + 재실행 fire-and-forget (§14.1) |
+| 기존 테이블에 CREATE TABLE 생성 / 추측 컬럼명으로 SP 작성 | 실제 컬럼 검증 후 SP 순차 생성 (§13.6) |
 
 ## 관련 파일
 

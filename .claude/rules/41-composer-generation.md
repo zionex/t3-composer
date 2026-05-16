@@ -130,6 +130,11 @@ public class FeatureService {
 
 ## §1. 런타임 구조
 
+> **★ Target 런타임 환경 패리티** — 산출물(신규생성·복사·수정 모두)이 단독 환경 [화면 실행]
+> 미리보기에서 동작하려면 `rules/50 §13.0` (Target 런타임 환경 패리티)를 따른다. 미리보기
+> 환경(shim·registry·ambient·store)은 Target(wingui) 표면의 superset 으로 유지되며,
+> 산출물은 그 표면(특히 `@wingui/common/imports` 의 실제 export — §13.1) 안에서만 작성한다.
+
 ### §1.1 wingui 단독 구동 + SP 기반 CRUD (2026-04-27 정책 전환)
 - `wingui` = Tomcat + Spring Boot + JPA + REST Controller + **JdbcTemplate (SP 호출)**
 - 외부 엔진 (mpserver/dpserver/fpserver) 기동 없이 모든 신규 화면이 동작해야 함

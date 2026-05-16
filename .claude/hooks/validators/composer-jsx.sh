@@ -446,12 +446,15 @@ $VSUFFIX_HITS" \
     fi
 
     # CG-SHIM. @wingui/common/imports 에서 단독 shim 미보유 심볼 import 감지 (warn)
+    #   ── 이 체크는 rules/50 §13.0 "Target 런타임 환경 패리티"의 표면 #1
+    #      (import 컴포넌트/훅) 패리티를 Write/Edit 시점에 강제하는 enforcer 다.
     #   단독 t3-composer 환경에서 @wingui/common/imports 는 전부
     #   frontend/src/shim/wingui/common/imports.js 로 resolve 된다.
-    #   shim 이 export 하지 않는 이름을 import 하면 undefined → 화면 실행 시
-    #   'Element type is invalid: ... got: undefined' 런타임 크래시.
-    #   (2026-05 VLayoutBox/HLayoutBox 누락 사고) shim 의 실제 export 를 동적으로
-    #   읽어 대조하므로 shim 갱신 시 자동 추종. shim 파일을 못 찾으면 skip.
+    #   shim(=Composer 측 표면)이 export 하지 않는 이름을 import 하면 undefined → 화면 실행
+    #   시 'Element type is invalid: ... got: undefined' 런타임 크래시.
+    #   → 해법은 개별 import 제거가 아니라 shim 표면을 Target(wingui) 표면의 superset 으로
+    #     확장하는 것 (패리티). shim 의 실제 export 를 동적으로 읽어 대조하므로 shim 갱신
+    #     시 자동 추종. (2026-05 VLayoutBox/HLayoutBox 누락 사고) shim 파일 못 찾으면 skip.
     _VDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
     _SHIM="${_VDIR}/../../../frontend/src/shim/wingui/common/imports.js"
     if [ -f "$_SHIM" ]; then
@@ -472,9 +475,11 @@ $VSUFFIX_HITS" \
         if [ -n "$_MISSING" ]; then
           warn "@wingui/common/imports 에서 단독 shim 미보유 심볼 import:${_MISSING}
 단독 환경에서 이 이름들은 undefined 로 평가되어 [화면 실행] 시 'Element type is invalid: ... got: undefined' 크래시를 일으킵니다.
-조치 ① (권장) shim 에 export 추가 — frontend/src/shim/wingui/common/imports.js
+이는 Target 환경 패리티 위반입니다 — shim 표면이 Target(wingui) 표면의 superset 이어야 합니다.
+조치 ① (권장) shim 에 export 추가 = 표면 패리티 확장 — frontend/src/shim/wingui/common/imports.js
+         (+ ComposerPromptBuilder 광고목록 동기 — rules/50 §13.1)
 조치 ② 산출물이 해당 import 를 쓰지 않도록 수정.
-rules/50-composer-standalone-runtime.md §13"
+근본 원칙: rules/50-composer-standalone-runtime.md §13.0 (Target 런타임 환경 패리티)"
         fi
       fi
     fi

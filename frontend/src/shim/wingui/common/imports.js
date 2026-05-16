@@ -568,24 +568,38 @@ const buildStore = (init) => create((set, get) => init(set, get));
 // 두 store 모두에 activeViewId 를 노출.
 const STANDALONE_VIEW_ID = 'composer-standalone';
 
-export const useViewStore = buildStore((set, get) => ({
-    activeViewId: STANDALONE_VIEW_ID,            // 산출물의 잘못된 store 사용 케이스 호환
-    viewData: {},
-    setViewInfo: (viewId, key, value) => set((state) => {
-        const view = state.viewData[viewId] || {};
-        return { viewData: { ...state.viewData, [viewId]: { ...view, [key]: value } } };
-    }),
-    getViewInfo: (viewId, key) => (get().viewData[viewId] || {})[key],
-    getGlobalButtons: (viewId) => (get().viewData[viewId] || {}).globalButtons || [],
-    getViewIsUpdated: () => false,
-}));
-export const useContentStore = buildStore(() => ({
-    activeViewId: STANDALONE_VIEW_ID,
-    viewList: [],
-    contentBodyRefs: {},                          // 산출물 일부가 참조 (예: useContentStore(s=>s.contentBodyRefs))
-    addView: () => {},
-    removeView: () => {},
-}));
+// ★ useViewStore·useContentStore 는 **동일한 전체 멤버 union** 을 노출한다 (rules/50 §13.11).
+//   wingui 본 환경은 activeViewId←useContentStore / setViewInfo←useViewStore 로 분리돼 있으나,
+//   LLM 산출물은 다음처럼 비결정적으로 store 를 사용한다:
+//     · const [activeViewId] = useContentStore(s=>[s.activeViewId])     (표준)
+//     · const [setViewInfo]  = useViewStore(s=>[s.setViewInfo])         (표준)
+//     · const { setViewInfo, getActiveViewId } = useViewStore()         (no-selector destructure — 환각)
+//     · useViewStore(s => s.activeViewId)                               (swap — 환각)
+//   어느 store 에서 어떤 멤버를 꺼내든 항상 동작하도록 두 store 의 state 를 통일한다.
+//   → "getActiveViewId is not a function" 류 store-member-undefined 크래시 원천 차단.
+function buildViewStoreState(set, get) {
+    const activeId = () => (get() && get().activeViewId) || STANDALONE_VIEW_ID;
+    return {
+        activeViewId: STANDALONE_VIEW_ID,
+        viewData: {},
+        viewList: [],
+        contentBodyRefs: {},                      // 산출물 일부가 참조 (useContentStore(s=>s.contentBodyRefs))
+        setViewInfo: (viewId, key, value) => set((state) => {
+            const view = (state.viewData || {})[viewId] || {};
+            return { viewData: { ...(state.viewData || {}), [viewId]: { ...view, [key]: value } } };
+        }),
+        getViewInfo: (viewId, key) => ((get().viewData || {})[viewId] || {})[key],
+        getGlobalButtons: (viewId) => ((get().viewData || {})[viewId] || {}).globalButtons || [],
+        getViewIsUpdated: () => false,
+        getActiveViewId: activeId,                // 헬퍼 함수 형태로 꺼내쓰는 환각 호환
+        getActiveViewID: activeId,
+        setActiveViewId: () => {},                // no-op (단독 환경은 viewId 고정)
+        addView: () => {},
+        removeView: () => {},
+    };
+}
+export const useViewStore    = buildStore(buildViewStoreState);
+export const useContentStore = buildStore(buildViewStoreState);
 export const useUserStore = buildStore(() => ({
     userInfo: { userId: 'composer-dev', userName: 'Composer Dev' },
     setUserInfo: () => {},

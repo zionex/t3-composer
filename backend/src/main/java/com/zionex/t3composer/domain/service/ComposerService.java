@@ -46,12 +46,13 @@ import reactor.core.publisher.Mono;
 public class ComposerService {
 
     /**
-     * 기본 모델 — 화면 생성 기본값은 Sonnet 4.6 (속도·비용·품질 균형).
-     * Opus 4.7 는 16K 출력 시 3~5분+ 소요되어 axios / WebClient 5분 타임아웃과
-     * 겹쳐 "세션 만료" 오인 및 artifact DRAFT 중단이 빈발 → Sonnet 으로 변경.
-     * 고난이도 건은 세션 생성 시점에 model 을 명시 override 할 것.
+     * 기본 모델 — Opus 4.7 (최신·고품질). 신규생성·화면수정 등 모든 모드 공통 기본값
+     * (2026-05-16 사용자 요청 — frontend ComposerWorkspace.DEFAULT_MODEL_ID 와 동일).
+     * Opus 4.7 는 16K 출력 시 3~5분+ 소요되나, 단독 환경은
+     *   spring.mvc.async.request-timeout=2700000(45분) + 세션 heartbeat 로 타임아웃 완화됨.
+     * 빠른 반복이 필요하면 헤더 모델 픽커 / 세션 생성 시 model 명시로 Sonnet 전환.
      */
-    public static final String DEFAULT_MODEL = "claude-sonnet-4-6";
+    public static final String DEFAULT_MODEL = "claude-opus-4-7";
 
     /**
      * 기본 max_tokens — 화면 + Java + SQL 번들 한 턴에 끝내기 위해 100K.
@@ -135,7 +136,7 @@ public class ComposerService {
     /**
      * 세션의 AI 엔진(모델) 변경.
      * 다음 chat 호출부터 새 modelName 으로 Claude API 가 호출된다.
-     * 빈 값 / null 이면 DEFAULT_MODEL (Sonnet 4.6) 으로 리셋.
+     * 빈 값 / null 이면 DEFAULT_MODEL (Opus 4.7) 으로 리셋.
      */
     @Transactional
     public ComposerSession updateModel(String sessionId, String modelName) {

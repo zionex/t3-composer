@@ -97,6 +97,13 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 
 ## 2.1 단독 환경 핵심 인프라 (2026-05 개편)
 
+> **★ 제1원칙 — Target 런타임 환경 패리티** (`.claude/rules/50 §13.0`): 산출물 화면 실행
+> 오류 예방의 근간. Composer 의 생성·미리보기 환경은 선택된 Target(wingui) 의 런타임 표면을
+> **미러(superset)** 한다 — shim·registry·ambient·store 를 Target 표면의 상위집합으로 유지.
+> 미리보기 런타임 오류는 **개별 오류를 하나씩 패치하지 말고**, 그 오류가 속한 표면 클래스
+> (import 컴포넌트 / free variable / npm·MUI 서브모듈 / grid 객체 / store 멤버) **전체를
+> 확장**해 클래스 단위로 닫는다. RT 카탈로그(`rules/50 §13.2`)는 증상 기록일 뿐이다.
+
 ### Backend hot-reload (Phase 1)
 - backend 컨테이너가 `mvn spring-boot:run` 으로 기동 (jar 가 아님)
 - host `./backend` 가 컨테이너의 `/app` 에 마운트 → src 변경 즉시 가시

@@ -25,7 +25,7 @@ import MenuRegistrationDialog from './MenuRegistrationDialog';
 import ArtifactApplyDialog from './ArtifactApplyDialog';
 import SplitPane from './SplitPane';
 import PreviewEmbed from './PreviewEmbed';
-import { downloadDesignDoc, updateSessionModel, applyPreview, cancelPreview } from './api';
+import { downloadDesignDoc, updateSessionModel, applyPreview, cancelPreview, listArtifacts } from './api';
 
 /**
  * AI 엔진(모델) 선택지 — Anthropic Claude.
@@ -34,24 +34,27 @@ import { downloadDesignDoc, updateSessionModel, applyPreview, cancelPreview } fr
  */
 const MODEL_OPTIONS = [
   {
-    id:    'claude-sonnet-4-6',
-    label: 'Sonnet',
-    sub:   'Sonnet 4.6 — 기본값',
-    desc:  '속도·비용·품질 균형. 일반 화면 생성·수정에 권장.',
-    Icon:  BoltIcon,
-    color: '#2563eb',
-  },
-  {
     id:    'claude-opus-4-7',
     label: 'Opus',
-    sub:   'Opus 4.7 — 고품질 (느림)',
-    desc:  '복잡 로직·고난이도 화면. 16K+ 출력 시 3~5분+ 소요 가능.',
+    sub:   'Opus 4.7 — 기본값 (최신·고품질)',
+    desc:  '복잡 로직·고난이도 화면. 화면 생성·수정 모두 기본 권장.',
     Icon:  DiamondIcon,
     color: '#7c3aed',
   },
+  {
+    id:    'claude-sonnet-4-6',
+    label: 'Sonnet',
+    sub:   'Sonnet 4.6 — 빠름 (경량)',
+    desc:  '속도·비용 우선. 단순 화면이거나 빠른 반복 작업에 적합.',
+    Icon:  BoltIcon,
+    color: '#2563eb',
+  },
 ];
 
-const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
+// 기본 AI 모델 — Opus 최신 (claude-opus-4-7). 신규생성·화면수정 등 모든 모드 공통 기본값.
+//   세션 생성 시 modelName 미지정이면 backend ComposerService.DEFAULT_MODEL 도 동일하게 Opus.
+//   사용자는 헤더 모델 픽커로 언제든 전환 가능.
+const DEFAULT_MODEL_ID = 'claude-opus-4-7';
 
 // 화면 실행 후 AI 자동보완 — 한 번의 [화면 실행] 당 최대 보완 시도 횟수.
 // 이 상한을 넘으면 자동보완을 멈춰 무한루프(오류 → 보완 → 재실행 → 오류 …)를 차단한다.
@@ -154,9 +157,9 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     try { localStorage.setItem('composer.sampleData', '1'); } catch (_) { /* no-op */ }
   }, []);
 
-  // [오류 시 자동보완] — default ON. [화면 실행] 후 런타임 오류 발생 시 AI 가 오류를
-  //   분석해 산출물을 수정 → 자동으로 화면 재실행 (최대 MAX_AUTOFIX 회).
-  const [autoFixOnError, setAutoFixOnError] = useState(true);
+  // [오류 시 자동보완] — default OFF (2026-05-16 사용자 요청). 체크 시 [화면 실행] 후
+  //   런타임 오류 발생하면 AI 가 오류를 분석해 산출물을 수정 → 자동 재실행 (최대 MAX_AUTOFIX 회).
+  const [autoFixOnError, setAutoFixOnError] = useState(false);
   const [previewNonce, setPreviewNonce] = useState(0);   // PreviewEmbed 강제 reload 트리거
   const [autoFixActive, setAutoFixActive] = useState(false); // 자동보완 진행 중 — PreviewEmbed UI 표시용
   const [autoFixLabel, setAutoFixLabel]   = useState('');    // 자동보완 진행 라벨 (예: "AI 자동보완 중 (1/1)")
@@ -331,6 +334,41 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     message: e?.response?.data?.message || e?.message });
     }
   };
+
+  // ───────────────────────────────────────────────────────────────────
+  // 산출물 화면 자동 실행 — 세션에 JSX 산출물이 있으면 [화면 실행]을 자동 수행하고
+  //   우측 [실행 화면 LIVE] 탭을 노출한다. 신규개발·기존화면수정 공통 적용:
+  //     · mount 시       — 이어하기 / 기존화면수정(원본 소스 import 직후) 등 이미 산출물이
+  //                        있는 세션으로 이동하면 즉시 실행 화면을 보여줌
+  //     · 생성·수정 완료 후 — onNewAssistantMsg → triggerRefresh → refreshKey 증가
+  //   JSX 산출물 id 시그니처가 바뀔 때만 1회 실행 (동일 산출물 반복 실행 방지).
+  //   컴포넌트 재mount(다른 산출물 화면으로 이동) 시 ref 가 초기화되어 다시 실행됨.
+  // ───────────────────────────────────────────────────────────────────
+  const autoPreviewSigRef = React.useRef('');
+  useEffect(() => {
+    if (!session?.id) return undefined;
+    let cancelled = false;
+    // 생성 직후 서버의 아티팩트 추출·저장이 끝나도록 잠깐 대기 후 조회
+    const timer = setTimeout(async () => {
+      try {
+        const res = await listArtifacts(session.id);
+        const list = Array.isArray(res?.data) ? res.data : [];
+        const jsxIds = list
+          .filter((a) => a && a.artifactType === 'SCREEN_JSX' && a.status !== 'DISCARDED')
+          .map((a) => a.id)
+          .filter(Boolean)
+          .sort();
+        if (cancelled || jsxIds.length === 0) return;
+        const sig = jsxIds.join('|');
+        if (sig !== autoPreviewSigRef.current) {
+          autoPreviewSigRef.current = sig;
+          handlePreview();   // previewBusy 가드 내장 — 중복 호출 안전
+        }
+      } catch (_e) { /* 자동 실행 — 조용히 무시 */ }
+    }, 700);
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.id, refreshKey]);
 
   // ───────────────────────────────────────────────────────────────────
   // 화면 실행 오류 → AI 자동보완 (autoFixOnError ON 시) — apply 오류 + 런타임 오류 공통

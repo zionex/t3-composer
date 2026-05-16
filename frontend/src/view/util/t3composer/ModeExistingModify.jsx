@@ -17,7 +17,6 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SourceIcon from '@mui/icons-material/Source';
 import ChatIcon from '@mui/icons-material/Chat';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
@@ -282,12 +281,12 @@ function ModeExistingModify({ onBack, startWith = null }) {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {!selectedMenu ? (
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
-              <Stack alignItems="center" spacing={1.5}>
-                <SourceIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                <Typography variant="body2" color="text.secondary">
-                  좌측에서 수정할 화면을 선택하세요.
-                </Typography>
-              </Stack>
+              <Box
+                component="img"
+                src="/t3composer-nl-modify.png"
+                alt="좌측 메뉴에서 수정할 화면을 선택해주세요"
+                sx={{ width: '100%', maxWidth: 720, height: 'auto', opacity: 0.5, userSelect: 'none', pointerEvents: 'none' }}
+              />
             </Box>
           ) : (
             <>

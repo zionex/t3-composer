@@ -489,11 +489,58 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 - KPI/Chart 사전 선택 트리거는 선택한 Mockup/UI Pattern 이 Chart·Dashboard·Monitoring 류일 때만 노출.
 - 미리보기: Mockup 은 lazy 컴포넌트를 가상화면(1400×900) scale 렌더, UI Pattern 은 `srcUrl` iframe.
 
-## 13. 산출물 화면 실행 오류 재발 방지 — shim 완전성 + 디자인 규약 (2026-05-16)
+## 13. 산출물 화면 실행 오류 재발 방지 — Target 환경 패리티 (2026-05-16)
 
 > 화면 생성 후 [화면 실행] 시 반복 발생하는 런타임 오류를 **구조적으로 차단**한다.
 > 핵심 원리: 단독 환경에서 산출물은 부모 wingui-core 가 아니라 **shim 으로 동작**하므로,
-> shim 이 산출물이 쓰는 표면을 100% 커버해야 한다.
+> Composer 환경이 **선택된 Target(wingui) 의 런타임 표면을 미러(superset)** 해야 한다.
+> 개별 오류를 하나씩 패치하는 게 아니라 **환경 패리티**로 오류 클래스 전체를 닫는다 (§13.0).
+
+### 13.0 ★★ 제1원칙 — Target 런타임 환경 패리티 (오류 예방의 근간)
+
+> **2026-05-16 사용자 지침**: "오류가 발생할 때마다 하나씩 대응하면 끝이 없다. Target System
+> 을 선택하면 Target 기준의 환경을 동일하게 세팅해서 동일한 오류가 반복되지 않도록 하는 것이
+> 핵심이다." → Rule 을 이 기준으로 재정리.
+
+**원칙**: Composer 의 생성·미리보기 환경은 선택된 **Target(wingui) 의 런타임 표면을
+미러(mirror)** 한다. 산출물(신규생성·기존화면복사·기존화면수정 **모두**)은 Target 의 운영
+화면과 동일한 코드 표면 — 동일 컴포넌트·스토어·그리드 API·전역 헬퍼·모듈 — 위에서 동작해야
+한다. Target 화면이 동작하면 그 산출물(또는 복사본)도 동작해야 정상이다.
+
+**오류 = 환경 불일치**: 미리보기 격리 mini-runtime 이 Target 런타임의 *부분집합*만 재현하면,
+그 gap 을 건드리는 산출물이 크래시한다. 그래서 —
+
+- **1차 전략 = 패리티 (환경 표면 확장)**. shim·registry·ambient·store 가 항상 Target
+  표면의 **superset** 이 되도록 유지한다. 오류 한 건이 나면 그것이 속한 *표면 클래스 전체*를
+  닫는다 — 같은 클래스의 다음 오류가 안 나오도록.
+- **RT 카탈로그(§13.2)는 "증상 기록"이지 해법 목록이 아니다**. 오류 메시지 → 그것이 속한
+  표면 클래스 식별 → 그 클래스의 패리티 메커니즘을 확장. **한 오류만 패치하고 끝내지 않는다.**
+- graceful-degradation fallback (`SAFE_STUB`·no-op stub)은 **안전망**이지 정답이 아니다 —
+  크래시는 막지만 동작이 inert 라 미리보기 정확도가 떨어진다. 자주 쓰이는 표면은 실제 구현으로
+  패리티를 맞춘다.
+
+**산출물이 Target 런타임에서 건드리는 5개 표면 × 패리티 메커니즘** (이 표가 §13 의 척추):
+
+| # | 표면 | Target(wingui) 원본 | Composer 패리티 메커니즘 | 절 |
+|---|---|---|---|---|
+| 1 | import 컴포넌트/훅 | `@wingui/common/imports` | shim = 프롬프트 광고목록과 동기된 superset | §13.1 |
+| 2 | import 누락 free variable | 번들/부트스트랩 전역 (`useIconStyles`·`transLangKey`·`$`…) | `with(__ambient__)` ambient scope | §13.8 |
+| 3 | npm/MUI 서브모듈 | 전체 node_modules (`@mui/material/styles`…) | REGISTRY 실모듈 등록 + subpath 해석 + `SAFE_STUB` | §13.9 |
+| 4 | 그리드 객체 (`grid.gridView`·`grid.dataProvider`) | RealGrid GridView/LocalDataProvider | `wrapGridApi` — 실제 메서드 superset + no-op | §13.10 |
+| 5 | Zustand store 멤버 | `useViewStore`·`useContentStore` 멤버 | 두 store 동일 전체 멤버 union | §13.11 |
+
+**패리티 유지 절차** (새 화면 생성·복사 작업 시 / 런타임 gap 발견 시 — 강제):
+1. 산출물/원본이 쓰는 표면이 위 5개 중 어디에 속하는지 식별.
+2. 그 표면의 패리티 메커니즘이 해당 심볼·모듈·메서드·멤버를 커버하는지 확인.
+3. 미커버면 — **개별 오류가 아니라 그 표면 전체를 superset 으로 확장**:
+   shim 에 `export` 추가 / REGISTRY 에 실모듈 등록 / `buildViewStoreState` 에 멤버 추가 /
+   `wrapGridApi` 가 자동 흡수. 동시에 §13.1 의 프롬프트 광고목록과 동기.
+4. 같은 클래스의 잠재 gap 을 함께 점검 (예: store 멤버 하나가 빠졌으면 형제 멤버도 점검).
+5. RT 카탈로그(§13.2)에 *증상*을 한 줄 기록 — 단 해법 칸은 항상 "표면 클래스 확장"을 가리킨다.
+
+**Hook 의 역할**: `composer-jsx.sh §CG-SHIM` 이 산출물 JSX 의 `@wingui/common/imports` import 를
+shim 실제 export 와 대조 — 표면 #1 의 패리티를 Write/Edit 시점에 강제. 나머지 표면(#2~#5)은
+런타임 graceful-degradation 으로 방어 + 이 절차로 사람이 패리티를 유지한다.
 
 ### 13.1 shim export ⇄ ComposerPromptBuilder 광고 목록 — 항상 동기 (강제)
 
@@ -521,15 +568,24 @@ shim 이 export 하지 않는 이름을 import 하면 그 심볼은 `undefined` 
 - **Hook 자동 검증**: `.claude/hooks/validators/composer-jsx.sh §CG-SHIM` 이 JSX Write/Edit 시
   `@wingui/common/imports` named import 를 shim 의 실제 export 와 동적 대조 → 미보유 시 warn.
 
-### 13.2 화면 실행 반복 오류 카탈로그 (Anti-patterns)
+### 13.2 화면 실행 반복 오류 카탈로그 — 증상 기록 (Anti-patterns)
 
-| # | 증상 | 근본 원인 | 차단 장치 |
+> 아래 RT1~RT9 는 **증상 기록**이지 해법 목록이 아니다. "차단 장치" 칸은 항상 §13.0 의
+> **표면 클래스 확장**(패리티)을 가리킨다. 새 오류를 만나면 — 그 메시지가 속한 표면
+> 클래스(§13.0 의 5개 표면)를 식별해 그 클래스 전체를 superset 으로 확장하라.
+> **개별 오류 메시지 하나만 패치하고 끝내지 말 것** (그러면 오류는 끝이 없다).
+
+| # | 증상 | 근본 원인 | 차단 장치 (= §13.0 표면 클래스 확장) |
 |---|---|---|---|
 | RT1 | `Element type is invalid: ... got: undefined` | 산출물이 import 한 컴포넌트를 shim 이 미보유 (예: `VLayoutBox`/`HLayoutBox` 누락 — 2026-05) | §13.1 shim 완전성 + Hook CG-SHIM |
 | RT2 | `xxx.find/map/flatMap is not a function` | 리스트 state 가 배열이 아닌 값(객체/undefined)으로 set 됨 — API 빈 응답·sample interceptor 객체 응답 | §13.4 배열 가드 |
 | RT3 | 산출물 0개 / 소스가 빈 0바이트 | LLM 이 `===FILE:` 마커를 자체 코드펜스(` ```sql ` 등) 안에 넣음 → `ArtifactExtractor` 정규식 미인식 (변형 A/B/C — §13.5) | §13.5 + extractor 정규식 보강 (펜스-열기 줄 0~N개 선택 소비) |
 | RT4 | `[SQL_SP · SP_UI_*.sql] 실행 실패: Invalid column name '...'` | 자연어 생성이 기존 테이블(예: `TB_AD_USER`)의 SP 를 작성하며 실제 없는 컬럼명(`USER_ID`/`USER_NM`)을 추측 — 또는 기존 테이블에 CREATE TABLE 을 새로 생성 | §13.6 + ComposerPromptBuilder rule 15 + Hook `sql-schema-whitelist.sh` + §14.1 apply 오류 자동보완 |
 | RT5 | 사용자가 고른 테이블 대신 다른 테이블 사용 (`TB_AD_USER` 선택 → `TB_UT_USER_INFO` 생성) | 테이블 검증이 세션 Target 이 아닌 composer-db 조회 → "미존재" 오판 → LLM 이 학습된 표준 테이블로 표류 | §13.7 + `enrichUserContentWithTableLookup` targetCd 수정 + ComposerPromptBuilder §②-2 + Hook CREATE TABLE 차단 |
+| RT6 | `화면 렌더 오류: useIconStyles is not defined` (또는 `transLangKey`/`progressSpinner`/`$`/`clearErrors`/`exportGridtoExcel` 등이 `... is not defined`) | **원본 wingui 화면 자체**가 그 심볼을 `import` 없이 free variable 로 참조 (wingui 본 환경은 번들/부트스트랩으로 제공). 복사본은 원본과 **byte 동일** — LLM 결함 아님. 미리보기 격리 sandbox 는 그 ambient 를 미재현 | §13.8 + §13.9 — `runtime.js executeModule` 의 `with(__ambient__)` ambient scope (shim export + 비-shim 전역 stub) |
+| RT7 | `화면 렌더 오류: Cannot read properties of undefined (reading 'type'/'palette'/...)` | 원본이 `import` 한 **실제 npm 서브모듈**(`@mui/material/styles` 등)이 미리보기 모듈 레지스트리에 미등록 → `useTheme()` 가 generic stub 의 no-op → `undefined` 반환 → 그 결과에 `.type` 접근 시 TypeError | §13.9 — REGISTRY 에 실모듈 등록 + `@mui/material/*` subpath 스마트 해석 + `SAFE_STUB`(undefined 대신 안전값) |
+| RT8 | `화면 렌더 오류: Cannot read properties of undefined (reading 'setCheckBar'/'getCheckedRows'/'showToast'/...)` | 산출물이 `afterGridCreate` 의 grid 객체에서 `grid.gridView.xxx()` 호출 — 그러나 shim `BaseGrid` 의 grid 객체가 `gridView` 표면을 미보유 (`_view` 만 노출) → `grid.gridView` 가 undefined | §13.10 — shim BaseGrid grid 객체에 `gridView`(RealGrid GridView wrapper) + 완전한 `dataProvider` 표면 노출, 미존재 메서드는 no-op |
+| RT9 | `화면 렌더 오류: getActiveViewId is not a function` (또는 `setViewInfo`/`getViewInfo` 등 store 멤버가 `is not a function`) | LLM 산출물이 store 멤버를 비표준으로 꺼냄 — 예: `const { setViewInfo, getActiveViewId } = useViewStore()` (no-selector destructure). `getActiveViewId` 는 `useViewStore` state 멤버가 아니어서 `undefined` → 호출 시 TypeError | §13.11 — `useViewStore`·`useContentStore` shim 이 **동일한 전체 멤버 union** 노출 (activeViewId·setViewInfo·getViewInfo·getActiveViewId 등) |
 
 ### 13.3 산출물 디자인 규약 — Target System 룩 정확 반영 (강제)
 
@@ -644,6 +700,131 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 - `ArtifactApplyService.checkTableNameCollisions` — apply 시 (Target DB 기준으로)
   기존 테이블 재생성 차단 (`tableCollisionBlocked`).
 
+### 13.8 ★ 미리보기 ambient scope — import 누락 wingui 표면 내성 (RT6 차단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 기존화면 복사 → 자연어 수정 후 [화면 실행] 시
+> `화면 렌더 오류: useIconStyles is not defined`. 진단 결과 **복사 산출물(`Users.jsx`)은
+> 원본 wingui `view/system/usermgmt/users/Users.jsx` 와 byte 단위로 동일** — Composer 복사
+> 결함이 아니다. **원본 wingui 화면 자체**가 `const iconClasses = useIconStyles();` 처럼
+> `useIconStyles`(그리고 `transLangKey`·`showMessage`·`progressSpinner`·`$`·`clearErrors`·
+> `exportGridtoExcel`)를 **import 없이 free variable 로 참조**한다. wingui 본 환경은 이를
+> 번들/부트스트랩 수준에서 제공하므로 동작하지만, babel 이 ES module → CJS 로 변환해
+> `new Function` sandbox 에서 실행하는 미리보기는 그 ambient 를 미재현 → ReferenceError.
+
+**근본 수정 (적용 완료):** `frontend/src/preview/runtime.js` 의 `executeModule` 이
+변환된 CJS 코드를 `with (__ambient__) { ... }` 로 감싼다. `__ambient__` 는 `Object.create(null)`
+기반 **평범한 객체**:
+- `@wingui/common/imports` + `@wingui/common/fieldCascade` + `@zionex/wingui-core` shim 의
+  모든 named export (`useIconStyles`·`transLangKey`·`showMessage`·`ContentInner` …).
+- shim export 가 아닌 wingui 전역도 안전 stub 으로 보강 — `progressSpinner`(`''`) ·
+  `exportGridtoExcel`/`clearErrors`(noop) · `$`/`jQuery`(`.each`/`.ajax`/`.extend` 갖춘 최소 stub).
+- `with(plainObject)` — 그 객체가 가진 키만 그쪽으로 resolve, 나머지(`React`·`console`·`Math`)는
+  정상 scope chain 으로 fall-through. 산출물이 정상 import 한 심볼은 babel 지역 binding 이
+  ambient 를 가린다 → 충돌 없음. `Proxy(has:true)` 대신 평범한 객체 — 모든 free variable 을
+  가로채지 않아 안전.
+
+### 13.9 ★ 미리보기 모듈 레지스트리 완전성 + SAFE_STUB (RT7 차단 · 근본 진단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 기존화면 복사 → 자연어 수정 → [화면 실행] 시
+> `Cannot read properties of undefined (reading 'type')`. 원본 `Users.jsx` 는 line 10
+> `import { useTheme } from "@mui/material/styles";` · line 217 `theme.type === 'dark'`.
+> `@mui/material/styles` 가 미리보기 모듈 레지스트리에 **미등록** → `previewRequire` 가
+> generic Proxy stub 반환 → `useTheme()`(소문자=훅 취급) → no-op → `undefined` → `theme.type`
+> 에서 TypeError.
+
+**★ 근본 원인 (RT6·RT7 공통 — 진단 결론):** Composer 의 [화면 실행] 미리보기는 산출물 JSX 를
+**격리 mini-runtime** (`@babel/standalone` 변환 + `new Function` sandbox + 수작업 큐레이트
+모듈 레지스트리 + shim + ambient scope) 에서 실행한다 — wingui 의 전체 webpack 빌드가 아니다.
+격리는 의도된 설계 (깨진 산출물이 main bundle 을 못 깨뜨리도록). 그러나 **원본 wingui 화면은
+wingui 의 전체 런타임 표면**(① 모든 npm/`@mui`/`@wingui`/`@zionex` 모듈 그래프 ② 빌드·부트스트랩
+수준 ambient 전역)에 의존한다. mini-runtime 이 그 표면의 *부분집합*만 커버하므로, 누락분을
+건드리는 byte-동일 복사본은 크래시한다. 레지스트리가 수작업이라 실제 화면이 쓰는 표면을
+뒤따라가지 못해 **오류가 하나씩 순차로 드러난다** (whack-a-mole).
+
+**근본 수정 (적용 완료) — 3겹 내성:**
+1. **레지스트리 완전성** — `@mui/material/styles` 실모듈을 REGISTRY 에 등록.
+   `previewRequire` 가 `@mui/material/<sub>` (예: `@mui/material/Button`) 도 이미 로드된
+   `@mui/material` 네임스페이스에서 스마트 해석.
+2. **`SAFE_STUB`** — 미해결 모듈의 훅/유틸 stub 이 `undefined` 가 아닌 `SAFE_STUB` 반환.
+   `SAFE_STUB` 은 `.prop` 체이닝 · 호출 · `new` · `for..of`/구조분해 · 문자열 coercion 어디에도
+   throw 하지 않는 Proxy 값. → 레지스트리에 빠진 모듈이 있어도 `useXxx()` 결과에 속성 접근하는
+   산출물이 크래시하지 않고 best-effort 렌더 (RT7 같은 미등록 모듈을 일반적으로 방어).
+3. **ambient scope 보강** — §13.8 (import 누락 free variable).
+
+**원칙:** mini-runtime 은 wingui 전체 런타임을 100% 미러할 수 없다 (구조적 한계). 따라서
+전략은 **차단이 아니라 graceful degradation** — 미등록 모듈·미정의 전역을 만나도 *크래시 대신
+inert stub* 으로 렌더한다. 새 wingui 표면이 자주 쓰이면 (a) shim 에 정식 추가 (rules/50 §13.1)
+또는 (b) REGISTRY 에 실모듈 등록 — stub 에 영구히 기대지 말 것 (stub 은 동작이 inert 라 미리보기
+정확도가 떨어짐).
+
+### 13.10 ★ shim BaseGrid — grid 객체 표면 완전성 (RT8 차단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 기존화면 수정 → 자연어 수정 → [화면 실행] 시
+> `Cannot read properties of undefined (reading 'setCheckBar')`. 원본 `Users.jsx` 의
+> `function setOptions(){ userGrid.gridView.setCheckBar({visible:true}); ... }` —
+> `afterGridCreate` 콜백의 grid 객체에서 `grid.gridView` 를 쓴다. 그러나 shim
+> `BaseGrid.jsx` 의 grid 객체는 RealGrid GridView 를 `_view` 로만 노출하고 `gridView` 가
+> 없었다 → `grid.gridView` 가 `undefined` → `.setCheckBar` 에서 TypeError.
+
+**근본 원인:** RT6/RT7 과 동일 계열 — **shim 이 wingui 표면을 부분만 재현**. 여기서는
+*모듈/전역* 이 아니라 **`afterGridCreate` 가 넘기는 grid 객체의 메서드 표면**. 실제 wingui
+`BaseGrid` 의 grid 객체는 `gridView`(RealGrid GridView)·`dataProvider`(LocalDataProvider)
+양쪽을 노출하고, 산출물은 `grid.gridView.setCheckBar/setStateBar/commit/getCheckedRows/
+showToast/hideToast/id` 와 `grid.dataProvider.fillJsonData/getAllStateRows/getJsonRow/
+getRowCount` 를 자유롭게 호출한다.
+
+**근본 수정 (적용 완료) — `frontend/src/shim/wingui/common/BaseGrid.jsx`:**
+- grid 객체에 **`gridView`** 추가 — RealGrid `GridView` 를 `wrapGridApi` Proxy 로 감쌈.
+- **`wrapGridApi(raw, overrides)`** — raw 객체(GridView/LocalDataProvider)의 실제 메서드는
+  그대로 bind 해 노출, **미존재 메서드는 no-op 함수**로 대체. RealGrid 버전 차이·wingui
+  본 환경 전용 메서드를 산출물이 호출해도 `xxx is not a function` 크래시가 없다.
+- `dataProvider` 도 `wrapGridApi` 로 — `fillJsonData`(sample 주입)·`getAllStateRows`·
+  `getJsonRow` 만 override, `getRowCount` 등 나머지 LocalDataProvider 메서드는 전부 통과.
+- grid-level 편의 메서드 `commit`/`cancel`/`refresh` 추가 (shim `GridSaveButton` 의
+  `g.commit(true)` 호출 대응).
+- `afterGridCreate(grid, gridView, dataProvider)` 의 2·3번째 인자도 wrapper 로 전달.
+
+**원칙:** shim 컴포넌트가 콜백으로 넘기는 객체(grid·event 등)도 **wingui 의 표면과 1:1**
+이어야 한다. 새 메서드 누락이 의심되면 `wrapGridApi` 의 no-op fallback 이 1차 방어 —
+단 동작이 inert 라, 자주 쓰이는 메서드는 shim 에 실제 구현으로 추가할 것.
+
+### 13.11 ★ shim Zustand store — 멤버 표면 완전성 (RT9 차단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 신규 화면생성 → 자연어 생성으로 만든 **가장 기본적인 화면**에서
+> `화면 렌더 오류: getActiveViewId is not a function`. 원인: LLM 산출물이
+> `const { setViewInfo, getActiveViewId } = useViewStore();` `const activeViewId =
+> getActiveViewId();` 로 작성 — `getActiveViewId` 는 `useViewStore` 의 state 멤버가
+> **아니라** 별도 top-level export 다. no-selector destructure 로 꺼내면 `undefined` →
+> 호출 시 TypeError.
+
+**★ 근본 원인 (RT6~RT9 공통 — 진단 결론 확장):** 미리보기 격리 mini-runtime 이 wingui 의
+런타임 표면을 부분만 재현하는 구조적 한계 (§13.9). LLM 산출물은 store 접근을 **비결정적**으로
+쓴다 — `useContentStore(s=>[s.activeViewId])`(표준) · `useViewStore(s=>s.activeViewId)`(swap) ·
+`const {setViewInfo,getActiveViewId}=useViewStore()`(no-selector destructure) 등. shim 이
+일부 패턴만 지원하면 나머지가 `undefined` → "xxx is not a function" 크래시. **오류를 하나씩
+대응하면 끝이 없다 — 표면 자체를 완전하게 만들어야 한다.**
+
+**근본 수정 (적용 완료) — `frontend/src/shim/wingui/common/imports.js`:**
+- `buildViewStoreState(set, get)` 단일 팩토리 — `useViewStore` 와 `useContentStore` **두 store
+  모두** 동일한 **전체 멤버 union** 으로 생성:
+  `activeViewId · viewData · viewList · contentBodyRefs · setViewInfo · getViewInfo ·
+  getGlobalButtons · getViewIsUpdated · getActiveViewId · getActiveViewID · setActiveViewId ·
+  addView · removeView`.
+- → 어느 store 에서 어떤 멤버를 꺼내든(selector / no-selector / 어느 store 든) 항상 실제
+  동작하는 값/함수. store-member-undefined 크래시 클래스 전체 차단.
+
+**미리보기 4겹 graceful-degradation 아키텍처 (RT6~RT9 종합):**
+| 표면 | 방어 | 절 |
+|---|---|---|
+| import 누락 free variable (`useIconStyles`·`transLangKey`…) | `with(__ambient__)` ambient scope | §13.8 |
+| 미등록 npm/서브모듈 (`@mui/material/styles`…) | REGISTRY 등록 + subpath 해석 + `SAFE_STUB` | §13.9 |
+| grid 객체 메서드 (`grid.gridView.setCheckBar`…) | `wrapGridApi` — 실제+no-op | §13.10 |
+| Zustand store 멤버 (`getActiveViewId`·`setViewInfo`…) | 두 store 전체 멤버 union | §13.11 |
+
+**원칙:** shim 이 노출하는 store/객체 표면은 **wingui 표면의 상위집합(superset)** 이어야 한다.
+일부만 지원하면 LLM 의 비결정적 산출 패턴 중 미지원분이 크래시한다. 새 store 멤버 패턴이
+관찰되면 `buildViewStoreState` 에 추가 (rules/50 §13.1 의 shim↔prompt 동기화 원칙과 동일 계열).
+
 ## 14. 화면 실행 AI 자동보완 + 산출물 UI 보강 (2026-05-16)
 
 > [화면 실행] 후 런타임 오류가 나면 AI 가 산출물을 자동 수정·재실행한다.
@@ -651,7 +832,7 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 
 ### 14.1 화면 실행 후 오류 → AI 자동보완 (apply 오류 + 런타임 오류 모두)
 
-- ComposerWorkspace 헤더 [화면 실행] 옆 **[오류 시 자동보완] 체크박스** (기본 ON).
+- ComposerWorkspace 헤더 [화면 실행] 옆 **[오류 시 자동보완] 체크박스** (기본 OFF — 2026-05-16 사용자 요청. 사용자가 켜면 그때만 자동보완 동작).
 - 흐름: 오류 포착 → `ComposerWorkspace.handlePreviewError`
   → `ChatPanel.sendMessage(오류+스택)` (같은 세션 채팅) → AI 산출물 수정
   → `handlePreview` 재실행. 재실행 후 또 오류면 attempt+1 로 반복.
@@ -721,6 +902,8 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 
 | ❌ | ✅ |
 |---|---|
+| 산출물 화면 진입 후 사용자가 [화면 실행]을 매번 수동 클릭해야 함 | mount·생성완료 시 JSX 산출물 시그니처 변화 감지해 `handlePreview` 자동 호출 (§14.8) |
+| 자동 실행을 매 채팅·매 렌더마다 무조건 재호출 → `applyPreview` 낭비·화면 깜빡임 | `autoPreviewSigRef` 로 JSX id 시그니처 변화 시에만 1회 (§14.8) |
 | 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 무한루프 | 수동 버튼에서만 리셋 · MAX 3 + 동일오류 중단 (§14.2) |
 | 'ready' 닫기 타이머가 autofixing 토스트 제거 | `setPreviewStage((s)=> s?.phase==='ready' ? null : s)` (§14.3) |
 | 자동보완 도는데 PreviewEmbed 가 오류 화면만 표시 | `autoFixing` prop → 'AI 자동보완 중' 전용 화면 (§14.3) |
@@ -730,6 +913,25 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 | apply(SP 실행) 오류 시 차단 스낵바만 띄우고 자동보완 미진입 | `autoFixOnError` ON 이면 `!r.success` 분기가 `handlePreviewError({type:'apply'})` 호출 — 오류 창 없이 보완 (§14.1) |
 | `handlePreviewError` 가 `autoFixingRef` lock 을 재실행 `await` 동안 유지 → apply 동기 오류가 재진입 가드에 막힘 | lock 을 재실행 호출 **전** 해제 + 재실행 fire-and-forget (§14.1) |
 | 기존 테이블에 CREATE TABLE 생성 / 추측 컬럼명으로 SP 작성 | 실제 컬럼 검증 후 SP 순차 생성 (§13.6) |
+
+### 14.8 산출물 화면 자동 실행 (2026-05-16 사용자 요청)
+
+산출물 화면으로 이동하면 [화면 실행]을 **수동 클릭 없이 자동 수행**하고 우측 [실행 화면 LIVE]
+탭을 보여준다 — 신규개발·기존화면수정 **공통**.
+
+- 구현: `ComposerWorkspace.jsx` 의 `useEffect([session?.id, refreshKey])` —
+  `listArtifacts` 로 세션의 `SCREEN_JSX`(status≠DISCARDED) 산출물을 조회, **JSX 산출물
+  id 시그니처**가 바뀌면 `handlePreview()` 1회 자동 호출 (생성 직후 서버 추출 대기 700ms).
+- 발화 시점:
+  - **mount 시** — 이어하기(History) · 기존화면수정(원본 소스 `importSourceArtifacts`
+    직후) 등 이미 산출물이 있는 세션으로 이동 → 즉시 실행 화면 노출.
+  - **생성·수정 완료 후** — `ChatPanel.onNewAssistantMsg` → `triggerRefresh` →
+    `refreshKey` 증가 → 새 JSX id → 자동 재실행.
+- 중복 방지: `autoPreviewSigRef` — 동일 JSX id 시그니처면 skip. 컴포넌트 재mount(다른
+  산출물 화면으로 이동)면 ref 초기화 → 다시 실행. `handlePreview` 의 `previewBusy` 가드로
+  동시 호출 안전.
+- JSX 산출물이 없는 세션(생성 전 빈 신규 세션)은 자동 실행 안 함 — 무의미한 `applyPreview`
+  호출 회피.
 
 ## 15. Data Source 선택 — 뉴럴 별자리 맵 (2026-05-16)
 
@@ -846,6 +1048,10 @@ sample 데이터로 렌더되고 실제 SP 를 호출하지 않으므로, SP/DDL
   `saveWithSupersede` 가 baseline 을 자동 갱신(이전 버전 DISCARDED). 미변경 파일은 baseline 유지.
 - SP DDL 은 `collectSourceForLlm` 이 수집하지 못함(경로 미마운트) — JSX+Java 위주.
 - 메뉴 트리 UI(`MenuTreeBrowser`)는 파스텔 글래스 테마로 개편 (표시명 1행 · MENU_CD+경로 2행).
+- import 된 원본 화면은 `react-router-dom` 등 임의 npm 모듈을 쓸 수 있다 — 미리보기 런타임
+  (`src/preview/runtime.js`)이 `react-router-dom`/`react-router` 를 격리용 stub 으로 제공하고
+  (실제 라우터는 Router 컨텍스트 필요 → 훅·컴포넌트 stub), 그 외 미등록 npm 모듈도 하드 에러
+  대신 Proxy stub 으로 대체해 best-effort 렌더한다 (블로킹 "모듈 실행 실패" 모달 제거).
 
 ## 관련 파일
 

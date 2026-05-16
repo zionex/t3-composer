@@ -21,6 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
 import com.zionex.t3composer.domain.entity.TargetSystem;
 import com.zionex.t3composer.domain.repository.TargetSystemRepository;
+import com.zionex.t3composer.domain.schema.SchemaMetaCache;
 import com.zionex.t3composer.domain.service.ClaudeAssetImportService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class TargetSystemController {
     private final TargetSystemRepository    targetRepo;
     private final ClaudeAssetImportService  importService;
     private final TargetDataSourceRegistry  dsRegistry;
+    private final SchemaMetaCache           schemaMetaCache;
     /** Primary (composer-db PG) — DB 정보 update 시 jsonb 변환 우회용 직접 SQL */
     @Qualifier("composerJdbcTemplate")
     private final JdbcTemplate              composerDbJdbc;
@@ -96,6 +98,7 @@ public class TargetSystemController {
                 body.get("dbUrl"), body.get("dbUsername"), body.get("dbDriverClass"), targetCd);
         }
         dsRegistry.invalidate(targetCd);
+        schemaMetaCache.evict(targetCd);
         return targetRepo.findById(targetCd).orElseThrow();
     }
 

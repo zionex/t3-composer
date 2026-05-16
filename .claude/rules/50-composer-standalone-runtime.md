@@ -85,7 +85,9 @@ ArtifactPreviewService.applyPreview(sid)
    ├─ JSX → /workspace/preview/frontend/<sid8>/<viewSub>.jsx (host: ./frontend/src/view/_preview/...)
    ├─ Java → JavaArtifactRewriter 가 패키지/import 변환 후
    │         /app/src/main/java/com/zionex/t3composer/preview/s<sid8>/<feature>/...
-   ├─ SQL DDL/SP → composer-db 에 정식 이름 실행 (CREATE OR ALTER, SP_DROP_GUARD 화이트리스트)
+   ├─ SQL_DDL/SQL_SP → ★ Sample 모드(화면 실행 기본)에서는 **실행하지 않고 skip** (§14.4·§17).
+   │                    화면은 sample 데이터로 렌더되므로 SP 불필요. SP/DDL 검증·적용은
+   │                    [아티팩트 실행](ArtifactApplyService) 단계에서 세션 Target DB 기준으로 수행.
    ├─ MENU_SQL → MENU_CD/LANG_KEY 에 `__PV<sid8>` suffix + MENU_FILE_PATH 에 `/_preview/<sid8>` prefix 변환 후 INSERT
    └─ Java 1건 이상 → mvn compile 별도 daemon thread (waitFor 후 trigger-file touch)
    ↓ (즉시 응답)
@@ -452,7 +454,7 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 | webpack `devServer.static.watch` 를 `{ usePolling:true }` 로 둠 → public/t3mes-split 1460+ 파일 폴링 → 번들 0바이트 전송 끊김 | `static: { watch: false }` (src 변경은 watchOptions.poll 담당) — Hook `build-config.sh` W1 |
 | 소스 동기화 후 `docker/db/init-pg/` 신규 마이그레이션을 기존 composer-db 에 미적용 → `column "..." does not exist` | 누락 마이그레이션 수동 적용 (`psql ... < init-pg/<NN>_*.sql` — 멱등) §10 |
 | 동기화 후 `package.json` 신규 의존성을 컨테이너에 미설치 → `Module not found` | `npm install --legacy-peer-deps` 후 frontend 재시작 §10 |
-| 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 오류 무한루프 | 카운터는 수동 [화면 실행] 시에만 리셋 · MAX_AUTOFIX(3) 상한 + 동일오류 중단 §14.2 |
+| 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 오류 무한루프 | 카운터는 수동 [화면 실행] 시에만 리셋 · MAX_AUTOFIX(1) 상한 + 동일오류 중단 §14.2 |
 | `handlePreview` 의 'ready' 자동닫기 setTimeout 이 'autofixing' 토스트를 무조건 제거 | 함수형 업데이트로 `phase==='ready'` 일 때만 닫기 §14.3 |
 | flex column 자식이 스크롤돼야 하는데 조상 Box 에 `minHeight:0` 누락 → 스크롤 미발생·콘텐츠 잘림 | 스크롤 자식까지 이어지는 모든 flex 조상에 `minHeight:0` §14.5 |
 | 다크 그라데이션 헤더/히어로 (`#0f172a`·`linear-gradient(#1e3a8a…)`) | theme.js 파스텔 글래스 — 반투명 그라데이션 + backdrop-blur + 흰 반투명 보더 §14.6 |
@@ -474,15 +476,16 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
   `switchTab(N,null)` 단독 호출은 항상 0번 패널만 표시되는 버그 — 금지.
 
 ### 12.2 자연어 신규 생성 — 참조 선택 + D&D (ModeNewGeneral)
-자연어(NEW_NL) 입력 화면의 "선택사항" 영역 — 3개 기능 **단독(상호 배타) 적용**:
+자연어(NEW_NL) 입력 화면의 "선택사항" 영역:
 
-| 기능 | POPUP | Claude 전달 |
-|---|---|---|
-| SCM UI Mockup 선택 | `MockupPickerDialog` (좌 목록 + 우 컴포넌트 미리보기) | mockup 메타·레이아웃 카테고리 |
-| UI Pattern 선택 | `UiPatternPickerDialog` (좌 목록 + 우 iframe 미리보기) | 선택 패턴의 lite HTML 마크업 인라인 |
-| 참조 파일 첨부 | 하단 전용 D&D 영역 (drop / 클릭 파일탐색) | 텍스트=prompt inline · binary=attachments |
+| 기능 | POPUP | Claude 전달 | 배타성 |
+|---|---|---|---|
+| SCM UI Mockup 선택 | `MockupPickerDialog` (좌 목록 + 우 컴포넌트 미리보기) | mockup 메타·레이아웃 카테고리 | Mockup ↔ UI Pattern 상호 배타 |
+| UI Pattern 선택 | `UiPatternPickerDialog` (좌 목록 + 우 iframe 미리보기) | 선택 패턴의 lite HTML 마크업 인라인 | Mockup ↔ UI Pattern 상호 배타 |
+| 참조 파일 첨부 | 하단 전용 D&D 영역 (drop / 클릭 파일탐색) | 텍스트=prompt inline · binary=attachments | 독립 (병행 가능) |
+| **Data Source 선택** | `DataSourcePickerDialog` 3탭 (DB Entity·Ontology·Query Inline — §15) | `=== 데이터 소스 ===` 블록 (실제 컬럼/SP/쿼리) | **독립 · 다중 선택** |
 
-- 하나를 선택하면 나머지 둘은 자동 해제 — `selectedMockup` / `selectedUiPattern` / `attachments` 중 하나만 유효.
+- Mockup ↔ UI Pattern 만 상호 배타 (하나 선택 시 다른 하나 자동 해제). 파일 첨부·Data Source 는 독립 — 함께 사용 가능.
 - KPI/Chart 사전 선택 트리거는 선택한 Mockup/UI Pattern 이 Chart·Dashboard·Monitoring 류일 때만 노출.
 - 미리보기: Mockup 은 lazy 컴포넌트를 가상화면(1400×900) scale 렌더, UI Pattern 은 `srcUrl` iframe.
 
@@ -524,8 +527,9 @@ shim 이 export 하지 않는 이름을 import 하면 그 심볼은 `undefined` 
 |---|---|---|---|
 | RT1 | `Element type is invalid: ... got: undefined` | 산출물이 import 한 컴포넌트를 shim 이 미보유 (예: `VLayoutBox`/`HLayoutBox` 누락 — 2026-05) | §13.1 shim 완전성 + Hook CG-SHIM |
 | RT2 | `xxx.find/map/flatMap is not a function` | 리스트 state 가 배열이 아닌 값(객체/undefined)으로 set 됨 — API 빈 응답·sample interceptor 객체 응답 | §13.4 배열 가드 |
-| RT3 | 산출물 소스가 전부 빈 0바이트 | LLM 이 `===FILE:` 마커를 자체 코드펜스로 감쌈 → `ArtifactExtractor` 정규식 미인식 | §13.5 + extractor 정규식 보강 (마커-본문 사이 고립 ``` 허용) |
+| RT3 | 산출물 0개 / 소스가 빈 0바이트 | LLM 이 `===FILE:` 마커를 자체 코드펜스(` ```sql ` 등) 안에 넣음 → `ArtifactExtractor` 정규식 미인식 (변형 A/B/C — §13.5) | §13.5 + extractor 정규식 보강 (펜스-열기 줄 0~N개 선택 소비) |
 | RT4 | `[SQL_SP · SP_UI_*.sql] 실행 실패: Invalid column name '...'` | 자연어 생성이 기존 테이블(예: `TB_AD_USER`)의 SP 를 작성하며 실제 없는 컬럼명(`USER_ID`/`USER_NM`)을 추측 — 또는 기존 테이블에 CREATE TABLE 을 새로 생성 | §13.6 + ComposerPromptBuilder rule 15 + Hook `sql-schema-whitelist.sh` + §14.1 apply 오류 자동보완 |
+| RT5 | 사용자가 고른 테이블 대신 다른 테이블 사용 (`TB_AD_USER` 선택 → `TB_UT_USER_INFO` 생성) | 테이블 검증이 세션 Target 이 아닌 composer-db 조회 → "미존재" 오판 → LLM 이 학습된 표준 테이블로 표류 | §13.7 + `enrichUserContentWithTableLookup` targetCd 수정 + ComposerPromptBuilder §②-2 + Hook CREATE TABLE 차단 |
 
 ### 13.3 산출물 디자인 규약 — Target System 룩 정확 반영 (강제)
 
@@ -563,10 +567,14 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 ### 13.5 ArtifactExtractor `===FILE:` 포맷
 
 - 권장 정규형: `===FILE: <path>===` 한 줄 → 바로 다음 줄 ` ```lang ` 펜스 → 본문 → ` ``` `.
-- LLM 이 마커를 자체 펜스로 감싼 변형(` ``` ` / `===FILE:...===` / ` ``` ` / ` ```lang `)도
-  `ArtifactExtractor.FILE_BLOCK` 정규식이 인식 (마커-본문 사이 고립 ` ``` ` 줄 선택 허용).
-- 기존 세션의 빈 산출물 복구: `POST /composer/sessions/{id}/artifacts/re-extract` —
-  assistant 응답을 LLM 재호출 없이 다시 파싱.
+- `ArtifactExtractor.FILE_BLOCK` 정규식은 LLM 이 비결정적으로 쓰는 **3가지 변형**을 모두 인식
+  (마커 줄 다음의 '펜스-열기 줄'을 **0~N개 선택 소비**):
+  - (A) `===FILE:...===` → ` ```lang ` → 본문 → ` ``` ` (펜스-열기 1개)
+  - (B) ` ``` ` → `===FILE:...===` → ` ``` ` → ` ```lang ` → 본문 → ` ``` ` (펜스-열기 2개)
+  - (C) ` ```sql ` → `===FILE:...===` → 본문 → ` ``` ` (마커가 펜스 안쪽 — 펜스-열기 0개)
+  ★ 2026-05-16 사고: (C) 를 정규식이 못 잡아 한 세션 **산출물 0개**. 0~N 매칭으로 수정.
+- 기존 세션의 빈/누락 산출물 복구: `POST /composer/sessions/{id}/artifacts/re-extract` —
+  assistant 응답을 LLM 재호출 없이 보강된 정규식으로 다시 파싱.
 
 ### 13.6 ★ 기존 테이블 사용 시 실제 컬럼 검증 — 필수 (RT4 차단, 2026-05-16)
 
@@ -583,8 +591,9 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 2. **컬럼 우선 검증 → SP 순차 생성.** SP 의 `SELECT/INSERT/UPDATE/DELETE/WHERE` 컬럼은 모두
    그 테이블의 **실제 컬럼명**만 사용. 추측·축약·임의 추가 금지.
    - 백엔드 `ComposerService.enrichUserContentWithTableLookup` 가 사용자 prompt 의 `TB_*`
-     언급을 감지하면 `INFORMATION_SCHEMA` 조회 결과(`=== 자동 테이블 존재 여부 확인 ===`)를
-     prompt 앞에 주입 — 이 블록의 컬럼 명세가 **권위 있는 진실**.
+     언급을 감지하면 **세션 Target DB(targetCd)** 의 `INFORMATION_SCHEMA` 조회 결과
+     (`=== 자동 테이블 존재 여부 확인 ===`)를 prompt 앞에 주입 — 이 블록의 컬럼 명세가
+     **권위 있는 진실**. (★ targetCd 누락 시 composer-db 만 조회돼 "미존재" 오판 — §13.7)
    - 자연어 요청이 테이블명을 명시하지 않으면 이 블록이 없다 → LLM 은 컬럼을 추측하지 말고
      `[가정]` 태그로 사용자에게 테이블/컬럼 확인을 요청.
 3. **3곳 정합화.** 실제 컬럼명을 SP 결과 ↔ Entity `@Column(name=...)` ↔ JSX `gridItems`
@@ -602,6 +611,38 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
   `TB_AD_LANG_PACK` 도 동일하게 허구 컬럼 차단).
 - 런타임: 위반이 실제 화면 실행까지 가더라도 apply 단계 SP 실행 실패 →
   **§14.1 의 AI 자동보완**이 오류 메시지를 받아 산출물을 스스로 수정·재실행.
+
+### 13.7 ★ 사용자가 선택/지정한 데이터 소스 절대 대체 금지 (RT5 차단, 2026-05-16)
+
+> **사고 (2026-05-16)**: 사용자가 Data Source 별자리 맵에서 `TB_AD_USER` 를 직접 선택했는데
+> 생성 결과가 `TB_UT_USER_INFO`(레거시 사용자 부가정보 테이블)를 사용 → 충돌. 원인 2가지:
+> ① `enrichUserContentWithTableLookup` 이 세션 Target 이 아닌 composer-db(PG) 를 조회 →
+>    `TB_AD_USER` 를 `[✗ 미존재]` 로 오판 → LLM 이 "없는 테이블" 로 보고 학습된 표준
+>    예시(`TB_UT_USER_INFO` / `UserInfoMgmt`)로 표류.
+> ② 데이터 소스 지정이 '소프트 힌트' 수준이라 rules 예시의 강한 prior 에 밀림.
+
+**근본 수정 (적용 완료):**
+- `ComposerService.enrichUserContentWithTableLookup` · `ArtifactApplyService.checkTableNameCollisions`
+  → 세션의 `targetCd` 를 받아 운영 Target DB(MSSQL) 에 질의. (이전엔 targetCd 누락 →
+  composer-db PG 조회 → 모든 `TB_*` 가 "미존재" 오판)
+- `ModeNewGeneral` 의 자동 테이블 lookup 도 `currentTargetCd` 전달.
+
+**필수 규칙 (모든 생성 모드):**
+1. `=== 데이터 소스 (사용자가 DB 객체에서 직접 선택) ===` · `=== 자동 테이블 존재 여부 확인 ===`
+   블록에 명시된 테이블/SP 는 사용자가 Target DB 를 직접 탐색해 고른 **확정 데이터 소스**.
+   그 테이블/SP **만** 사용 — 이름이 비슷하거나 '더 표준적' 으로 보이는 다른 테이블로
+   **대체·교체·승격 절대 금지**.
+2. 특히 `TB_AD_USER ↔ TB_UT_USER_INFO` — '사용자 관리 화면' 표현만 보고 학습된 표준
+   테이블을 끌어오지 말 것. 사용자가 명시한 그 테이블이 진실.
+3. 명시 테이블의 도메인이 화면 MENU_CD 도메인과 달라도 그대로 사용
+   (UI_AD_* 화면이 TB_AD_USER 를 쓰는 것이 정상 — 도메인 일치를 이유로 교체 금지).
+
+**차단 장치:**
+- `ComposerPromptBuilder` INVARIANTS **§②-2** — anti-substitution 규칙을 생성 prompt 에 강제.
+- Hook `validators/sql-schema-whitelist.sh` — 운영 코어 테이블(TB_AD_USER 등)에
+  `CREATE TABLE` 생성 시 block.
+- `ArtifactApplyService.checkTableNameCollisions` — apply 시 (Target DB 기준으로)
+  기존 테이블 재생성 차단 (`tableCollisionBlocked`).
 
 ## 14. 화면 실행 AI 자동보완 + 산출물 UI 보강 (2026-05-16)
 
@@ -639,7 +680,7 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 
 | # | 차단 | 메커니즘 |
 |---|---|---|
-| 1 | 횟수 상한 | `autoFixAttemptRef >= MAX_AUTOFIX(3)` 이면 중단. 카운터는 **수동 [화면 실행] 버튼**에서만 0 리셋, 자동 재실행 경로(handlePreviewError→handlePreview)는 리셋 안 함. 보완 중 버튼 비활성(previewStage) → 사이클 중 리셋 불가 |
+| 1 | 횟수 상한 | `autoFixAttemptRef >= MAX_AUTOFIX(1)` 이면 중단 — 2026-05-16 사용자 요청으로 **1회만** 자동보완(1회 보완 후에도 오류면 즉시 멈추고 사용자에게 위임). 카운터는 **수동 [화면 실행] 버튼**에서만 0 리셋, 자동 재실행 경로는 리셋 안 함 |
 | 2 | 동일오류 감지 | `lastAutoFixErrorRef` — 보완 후에도 같은 오류 메시지 재발 시 남은 횟수 무관 즉시 중단 |
 | 3 | 재진입 가드 | `autoFixingRef` — 보완 진행 중 중복 트리거 차단 |
 
@@ -655,7 +696,7 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 ### 14.4 Sample 모드 항상 ON
 
 - Sample 체크박스 UI 제거. `useSampleData = true` 상수 — 항상 ON
-  (빈 응답 휴리스틱 sample 주입 + Java 적용·mvn·재기동 SKIP).
+  (빈 응답 휴리스틱 sample 주입 + Java 적용·mvn·재기동 SKIP + **SQL_DDL/SQL_SP 실행 SKIP** — §17).
 
 ### 14.5 산출물 소스 패널 스크롤 — flex `minHeight:0` 체인
 
@@ -689,6 +730,107 @@ zAxios.get('...').then(r => setKpis(Array.isArray(r.data) ? r.data : []));
 | apply(SP 실행) 오류 시 차단 스낵바만 띄우고 자동보완 미진입 | `autoFixOnError` ON 이면 `!r.success` 분기가 `handlePreviewError({type:'apply'})` 호출 — 오류 창 없이 보완 (§14.1) |
 | `handlePreviewError` 가 `autoFixingRef` lock 을 재실행 `await` 동안 유지 → apply 동기 오류가 재진입 가드에 막힘 | lock 을 재실행 호출 **전** 해제 + 재실행 fire-and-forget (§14.1) |
 | 기존 테이블에 CREATE TABLE 생성 / 추측 컬럼명으로 SP 작성 | 실제 컬럼 검증 후 SP 순차 생성 (§13.6) |
+
+## 15. Data Source 선택 — 뉴럴 별자리 맵 (2026-05-16)
+
+자연어 생성(`ModeNewGeneral`)의 **네 번째 참조 입력** — 화면이 읽고/쓰는 데이터(테이블·SP·
+온톨로지·쿼리)를 사용자가 직접 지정해 프롬프트에 **실제 스키마**를 주입한다. Mockup/UI Pattern
+과 달리 **독립 · 다중 선택**(상호 배타 아님 — §12.2). 컬럼 추측으로 인한 `Invalid column name`
+오류(§13.6 RT4)와 테이블 표류(§13.7 RT5)를 사용자 지정으로 원천 차단.
+
+### 15.1 UI — `DataSourcePickerDialog` (3탭 JARVIS 풀스크린)
+- 파일 D&D **아래** [Data Source 선택] 버튼 → 풀스크린 팝업. 하단에 선택 **바스켓**(누적).
+- 바스켓 item `{ kind, key, label, meta }` —
+  `kind ∈ TABLE | SP | ONTOLOGY_QA | ONTOLOGY_INTENT | ONTOLOGY_SP | INLINE_QUERY`.
+- **DB Entity 탭** — `DataConstellation` (Canvas 2D 별자리 맵): 도메인 접두어(TB_FP·SP_UI_CM…)
+  = 빛나는 "은하", 테이블/SP = "별". 은하 클릭 → 도메인 전개(테이블/SP 별 + FK·SP사용 엣지),
+  별 클릭 → 바스켓 토글. 휠 줌 0.12~9.0 (라벨 글자도 배율 비례 — 객체명 가독성).
+  `목록 보기` 토글 = 빠른 검색 fallback. 우측 패널에 hover/선택 노드의 실제 컬럼/파라미터.
+- **Ontology 탭** — `OntologyTab`: Q&A / 화면 의도(View 온톨로지) / UI 사용 SP 3섹션. `OntologyList` 공용.
+- **Query Inline 탭** — `QueryInlineTab`: SQL 직접 입력 + `쿼리에서 테이블 추출`(존재·컬럼 검증).
+
+### 15.2 Backend — 스키마 목록·그래프 endpoint
+`SchemaInspectionController` (`/composer/schema`):
+- `GET /tables?targetCd=` · `GET /procedures?targetCd=` — 전체 목록 (도메인 키 부여).
+- `GET /graph?targetCd=&domain=` — 한 도메인의 노드 + intra-domain 엣지(FK·SP사용 best-effort).
+- 모두 세션 Target DB(MSSQL)의 `INFORMATION_SCHEMA`/`sys.*` 조회 — `TargetDataSourceRegistry`
+  라우팅. 미연결 시 `connected:false` + 빈 결과 (throw/500 금지).
+- `SchemaMetaCache` — targetCd 별 10분 TTL 캐시. DB 연결정보 변경 시 `evict(targetCd)`.
+- `SchemaNaming.domainOf()` — 도메인 키 단일 규칙: `TB_FP_*`→`FP` · `SP_UI_CM_*`→`CM` ·
+  `SP_COMM_*`→`COMM` · `FN_G_*`→`G` · 접두어 규약 없으면 첫 토큰.
+
+### 15.3 프롬프트 주입
+`ModeNewGeneral` 의 `systemContext` 에 `=== 데이터 소스 (사용자가 DB 객체에서 직접 선택 —
+권위 있는 지정) ===` 블록 추가 — TABLE 은 실제 컬럼(+PK), SP 는 파라미터, 온톨로지/쿼리는 원문.
+**이 블록의 테이블/SP 는 절대 다른 테이블로 대체 금지** (§13.7 · `ComposerPromptBuilder`
+INVARIANTS §②-2). 컬럼/파라미터는 토큰 절감 명목으로도 자르지 않음 (§16.2).
+
+### 15.4 파일
+- frontend (`view/util/t3composer/`): `DataSourcePickerDialog · DataConstellation · DbEntityTab ·
+  OntologyTab · QueryInlineTab · OntologyList · dataSourceStore.js` · `ModeNewGeneral.jsx`(통합) ·
+  `api.js`(`listSchemaTables`/`listSchemaProcedures`/`getSchemaGraph`)
+- backend (`domain/schema/`): `SchemaInspectionController · SchemaInspectionService ·
+  ProcedureInspectionService · SchemaMetaCache · SchemaNaming · TableSummary · ProcedureSummary ·
+  SchemaGraph`
+
+## 16. 토큰 절감 — 대화 prefix 프롬프트 캐싱 (2026-05-16)
+
+Composer 의 Claude 호출 입력 토큰 절감. 출력 토큰(생성 코드 분량)은 줄일 수 없어 입력만 대상.
+
+### 16.1 대화 prefix 캐싱 (★ 핵심)
+- `ComposerService.buildRequest` → `applyMessageCacheBreakpoint(messages)`: **마지막 메시지의
+  마지막 content block 에 `cache_control: ephemeral`** breakpoint 부착.
+- 이전엔 system 블록 1개만 캐시 → messages(이전 응답 코드 15~30K + 첫 메시지 systemContext
+  15~25K)는 후속 턴·auto-continuation 마다 풀가격 재전송. 이제 **system + 대화 전체**가 캐시
+  prefix → 후속 호출이 90% 할인 `cache_read`.
+- Anthropic cache breakpoint 4개 한도 — system 1 + 메시지 1 = 2개.
+- 평문 String content 는 cache_control 부착 단일 text block 배열로, 멀티모달(첨부)은 마지막 block 에 추가.
+- 검증: backend 로그 `Anthropic prompt cache: ... cache_read=` — 후속 호출 `cache_read` 가
+  대화 분량까지 포함해 증가.
+
+### 16.2 per-message 페이로드 상한 (ModeNewGeneral systemContext)
+- UI Pattern lite HTML: 20K → **8K자** 상한 (실제 최대 ~7.2KB).
+- D&D 텍스트 첨부: 파일당 **12K자** inline 상한 (초과분 생략 표기).
+- 인라인 쿼리: 쿼리당 **4K자** 상한.
+- ★ 테이블 컬럼·SP 파라미터는 **상한 없음** — 환각 방지(§13.7·§15.3)의 핵심 페이로드, 절대 자르지 않음.
+
+### 16.3 system 프롬프트
+- `ComposerPromptBuilder.buildStaticSystemPrompt` 의 INVARIANTS §①~⑩ "재확인" recap(순수 중복)
+  삭제. INVARIANTS 전문은 BASE_SYSTEM 에 그대로 — 가드레일 본문 불변.
+- system 프롬프트는 이미 캐시되므로 심층 구조 개편은 안 함 (절감 효과 제한적 + 가드레일 약화 위험).
+
+### 16.4 Anti-patterns
+| ❌ | ✅ |
+|---|---|
+| `buildRequest` 에서 마지막 메시지 cache_control 제거 | 유지 — 없으면 대화 prefix 캐시가 깨져 후속 호출 풀가격 |
+| 테이블 컬럼/SP 파라미터를 토큰 절감 명목으로 잘라냄 | 컬럼/파라미터는 그대로 — 환각 방지 페이로드 (§13.7) |
+| `max_tokens`(100K) 를 토큰 절감 목적으로 낮춤 | max_tokens 는 출력 상한일 뿐 과금 아님 — 손대지 않음 |
+
+## 17. 화면 실행 SQL 미검증 + SQL 실행 Target DB 라우팅 (2026-05-16)
+
+**화면 실행(preview)은 SQL 을 검증하지 않는다.** 화면 실행 = Sample 모드(§14.4) — 화면은
+sample 데이터로 렌더되고 실제 SP 를 호출하지 않으므로, SP/DDL 이 존재·동작할 필요가 없다.
+
+### 17.1 preview — SQL_DDL/SQL_SP 실행 skip
+- `ArtifactPreviewService.applyPreview` 가 Sample 모드(`skipJava=true` — 화면 실행 기본)에서
+  `TYPE_SQL_DDL`·`TYPE_SQL_SP` 를 **실행하지 않고 skip** (Java 와 동일). `skippedSqlRec` 기록.
+- preview `success` = JSX 렌더(+MENU) 기준 — SP/DDL 실패가 화면 실행을 오류 처리하지 않는다.
+- 이전 버그: SP 를 (정적 DB 에) 실행 → 환경 불일치로 실패 → `spFail>0` → `success:false` →
+  화면은 정상인데 "오류로 인지" + 불필요한 AI 자동보완 트리거.
+- SP/DDL 의 실제 검증·적용은 **[아티팩트 실행]** 단계에서 수행.
+
+### 17.2 SQL 실행 — 세션 Target DB 라우팅
+- `ArtifactApplyService.execSqlBatch`/`executeRawDdl` 가 정적 `targetDataSource` 가 아닌
+  **세션 `targetCd` 의 Target DB**(`TargetDataSourceRegistry.getDataSource(targetCd)`)에서 실행
+  (`resolveExecDataSource`). Target 미설정·연결 불가 시 정적 `targetDataSource` 폴백.
+- 신규 화면 오류 여부(테이블 충돌·컬럼)도 Target DB 기준 — `checkTableNameCollisions(targetCd)`
+  (§13.7) + SP 실행이 모두 세션 Target DB 에서 판정.
+
+### 17.3 Anti-patterns
+| ❌ | ✅ |
+|---|---|
+| 화면 실행(Sample) 에서 SP/DDL 을 실행해 실패 시 화면을 오류로 판정 | preview 는 JSX 렌더만 판정 — SQL 검증은 [아티팩트 실행] 단계 |
+| SQL 을 정적 `targetDataSource` 에 실행해 세션 Target 과 불일치 | `resolveExecDataSource(a)` → 세션 targetCd 의 Target DB |
 
 ## 관련 파일
 

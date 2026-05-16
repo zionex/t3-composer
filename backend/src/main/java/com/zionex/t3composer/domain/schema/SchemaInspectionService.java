@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SchemaInspectionService {
 
     private final TargetDataSourceRegistry registry;
+    private final SchemaMetaCache metaCache;
+    private final ProcedureInspectionService procedureInspectionService;
 
     /** 테이블명 정규식 — 안전한 식별자만 허용 (SQL injection 방어) */
     private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
@@ -248,6 +250,140 @@ public class SchemaInspectionService {
             }
         }
         return out;
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 전체 목록 + 도메인 그래프 — Data Source 별자리 맵용
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Target DB 의 전체 테이블/뷰 목록 (도메인 키 부여). targetCd 별 10분 캐시.
+     * 미연결 시 빈 리스트.
+     */
+    public List<TableSummary> listTables(String targetCd) {
+        String key = SchemaMetaCache.tablesKey(targetCd);
+        List<TableSummary> cached = metaCache.get(key);
+        if (cached != null) return cached;
+
+        JdbcTemplate jdbc = registry.getJdbcTemplate(targetCd);
+        if (jdbc == null) return Collections.emptyList();
+        try {
+            List<TableSummary> list = jdbc.query(
+                "SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE" +
+                "  FROM INFORMATION_SCHEMA.TABLES" +
+                " WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW')" +
+                " ORDER BY TABLE_NAME",
+                (rs, n) -> {
+                    String name = rs.getString("TABLE_NAME");
+                    boolean isView = "VIEW".equalsIgnoreCase(rs.getString("TABLE_TYPE"));
+                    return new TableSummary(name, rs.getString("TABLE_SCHEMA"),
+                            isView ? "VIEW" : "TABLE", SchemaNaming.domainOf(name));
+                });
+            metaCache.put(key, list);
+            return list;
+        } catch (DataAccessException e) {
+            log.warn("listTables 실패 (target={}): {}", targetCd, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * 한 도메인(은하)의 서브 그래프 — 테이블/SP 노드 + intra-domain FK / SP→테이블 사용 엣지.
+     * SP 의존은 sys.sql_expression_dependencies 기반 best-effort (실패해도 FK 만으로 응답).
+     * targetCd+domain 별 10분 캐시. 미연결/잘못된 domain 이면 빈 그래프.
+     */
+    public SchemaGraph getDomainGraph(String targetCd, String domain) {
+        SchemaGraph empty = SchemaGraph.builder()
+                .targetCd(targetCd).domain(domain).connected(false)
+                .nodes(Collections.emptyList()).edges(Collections.emptyList())
+                .dependencyGraphAvailable(false).truncated(false).build();
+        if (!isValidIdentifier(domain)) return empty;
+        String dom = domain.toUpperCase();
+
+        String cacheKey = SchemaMetaCache.graphKey(targetCd, dom);
+        SchemaGraph cached = metaCache.get(cacheKey);
+        if (cached != null) return cached;
+
+        JdbcTemplate jdbc = registry.getJdbcTemplate(targetCd);
+        if (jdbc == null) return empty;
+
+        // 1) 노드 — 도메인의 테이블/뷰 + SP/Function
+        Map<String, SchemaGraph.Node> nodes = new LinkedHashMap<>();
+        for (TableSummary t : listTables(targetCd)) {
+            if (dom.equals(t.getDomain())) {
+                String id = t.getTableName().toUpperCase();
+                nodes.put(id, new SchemaGraph.Node(id, t.getTableName(), t.getTableType(), t.getDomain()));
+            }
+        }
+        for (ProcedureSummary p : procedureInspectionService.listProcedures(targetCd)) {
+            if (dom.equals(p.getDomain())) {
+                String id = p.getProcedureName().toUpperCase();
+                String type = "P".equals(p.getObjectType()) ? "SP" : "FN";
+                nodes.put(id, new SchemaGraph.Node(id, p.getProcedureName(), type, p.getDomain()));
+            }
+        }
+
+        List<SchemaGraph.Edge> edges = new ArrayList<>();
+
+        // 2) FK 엣지 — 전체 FK 를 받아 양 끝이 모두 이 도메인 노드인 것만 (sys.foreign_keys 는 소량)
+        try {
+            jdbc.query(
+                "SELECT pt.name AS parent_table, rt.name AS referenced_table" +
+                "  FROM sys.foreign_keys fk" +
+                "  JOIN sys.tables pt ON fk.parent_object_id     = pt.object_id" +
+                "  JOIN sys.tables rt ON fk.referenced_object_id = rt.object_id",
+                rs -> {
+                    String pk = upper(rs.getString("parent_table"));
+                    String rk = upper(rs.getString("referenced_table"));
+                    if (!pk.equals(rk) && nodes.containsKey(pk) && nodes.containsKey(rk)) {
+                        edges.add(new SchemaGraph.Edge(pk, rk, "FK"));
+                    }
+                });
+        } catch (DataAccessException e) {
+            log.warn("getDomainGraph FK 조회 실패 (target={}, domain={}): {}", targetCd, dom, e.getMessage());
+        }
+
+        // 3) SP→테이블 사용 엣지 — best-effort (동적 SQL 은 누락)
+        boolean depAvailable = true;
+        try {
+            jdbc.query(
+                "SELECT OBJECT_NAME(d.referencing_id) AS sp_name," +
+                "       d.referenced_entity_name      AS table_name" +
+                "  FROM sys.sql_expression_dependencies d" +
+                "  JOIN sys.objects o ON d.referencing_id = o.object_id" +
+                " WHERE o.type IN ('P','FN','TF','IF') AND o.is_ms_shipped = 0" +
+                "   AND d.referenced_id IS NOT NULL" +
+                "   AND (o.name LIKE ? ESCAPE '\\' OR o.name LIKE ? ESCAPE '\\' OR o.name LIKE ? ESCAPE '\\')",
+                rs -> {
+                    String sk = upper(rs.getString("sp_name"));
+                    String tk = upper(rs.getString("table_name"));
+                    if (nodes.containsKey(sk) && nodes.containsKey(tk)) {
+                        edges.add(new SchemaGraph.Edge(sk, tk, "SP_USES"));
+                    }
+                },
+                "SP\\_UI\\_" + dom + "\\_%", "SP\\_" + dom + "\\_%", "FN\\_" + dom + "\\_%");
+        } catch (DataAccessException e) {
+            depAvailable = false;
+            log.warn("getDomainGraph SP 의존 조회 실패 (target={}, domain={}): {}", targetCd, dom, e.getMessage());
+        }
+
+        boolean truncated = false;
+        final int EDGE_CAP = 1500;
+        if (edges.size() > EDGE_CAP) {
+            edges.subList(EDGE_CAP, edges.size()).clear();
+            truncated = true;
+        }
+
+        SchemaGraph graph = SchemaGraph.builder()
+                .targetCd(targetCd).domain(dom).connected(true)
+                .nodes(new ArrayList<>(nodes.values())).edges(edges)
+                .dependencyGraphAvailable(depAvailable).truncated(truncated).build();
+        metaCache.put(cacheKey, graph);
+        return graph;
+    }
+
+    private static String upper(String s) {
+        return s == null ? "" : s.toUpperCase();
     }
 
     // ──────────────────────────────────────────────────────────────────

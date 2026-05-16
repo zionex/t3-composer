@@ -110,6 +110,8 @@ public class ArtifactApplyService {
     private final SpScreenNoAllocator screenNoAllocator;
     private final com.zionex.t3composer.domain.schema.SchemaInspectionService schemaInspectionService;
     private final ComposerObjectsRegistry objectsRegistry;
+    /** 세션 Target DB 로 SQL 실행을 라우팅 — 정적 targetDataSource 가 아닌, 세션이 지정한 운영 DB 에서 검증·적용. */
+    private final com.zionex.t3composer.config.TargetDataSourceRegistry dsRegistry;
 
     public ArtifactApplyService(ApplicationProperties props,
                                 ComposerArtifactRepository artifactRepo,
@@ -120,7 +122,8 @@ public class ArtifactApplyService {
                                 ArtifactNormalizer artifactNormalizer,
                                 SpScreenNoAllocator screenNoAllocator,
                                 com.zionex.t3composer.domain.schema.SchemaInspectionService schemaInspectionService,
-                                ComposerObjectsRegistry objectsRegistry) {
+                                ComposerObjectsRegistry objectsRegistry,
+                                com.zionex.t3composer.config.TargetDataSourceRegistry dsRegistry) {
         this.props = props;
         this.artifactRepo = artifactRepo;
         this.sessionRepo = sessionRepo;
@@ -131,6 +134,7 @@ public class ArtifactApplyService {
         this.screenNoAllocator = screenNoAllocator;
         this.schemaInspectionService = schemaInspectionService;
         this.objectsRegistry = objectsRegistry;
+        this.dsRegistry = dsRegistry;
     }
 
     /**
@@ -205,6 +209,10 @@ public class ArtifactApplyService {
         if (artifacts.isEmpty()) {
             return failure("세션에 아티팩트가 없습니다.");
         }
+        // 테이블명 충돌 검사를 세션의 Target DB(targetCd) 기준으로 수행 —
+        // targetCd 누락 시 composer-db(PG) 만 조회돼 운영 테이블을 "미존재" 로 오판, 충돌 미검출.
+        String targetCd = sessionRepo.findById(sessionId)
+                .map((s) -> s.getTargetCd()).orElse(null);
 
         // 사전 검증 — 자주 발생하는 오류를 자동 보정 후 적용 (이중 안전망 — 사용자가 preflight
         // 를 명시적으로 호출하지 않아도 apply 시 자동 보정 + 변경분 persist).
@@ -262,7 +270,7 @@ public class ArtifactApplyService {
         // 정책: 존재하는 테이블은 기존 Entity 재사용 — 새 DDL 절대 금지.
         // ALTER TABLE 은 DDL_SAFE_ALTER 규칙으로 별도 허용되므로 여기서는 CREATE 만 검사.
         if (opts.executeDdl && !opts.overrideTableCollisionCheck) {
-            List<String> tblCollisions = checkTableNameCollisions(artifacts);
+            List<String> tblCollisions = checkTableNameCollisions(artifacts, targetCd);
             if (!tblCollisions.isEmpty()) {
                 Map<String, Object> out = new LinkedHashMap<>();
                 out.put("success", false);
@@ -724,6 +732,7 @@ public class ArtifactApplyService {
         List<String> errors = new ArrayList<>();
         int executed = 0;
         String[] stmts = splitSqlWithGoAsBatch(content);
+        DataSource execDs = resolveExecDataSource(a);   // 세션 Target DB (미설정 시 정적 폴백)
         for (int i = 0; i < stmts.length; i++) {
             String s = stmts[i].trim();
             if (s.isEmpty()) continue;
@@ -762,7 +771,7 @@ public class ArtifactApplyService {
                     String dropSql = buildDropSql(name, type, parent);
                     if (dropSql != null) {
                         try {
-                            executeRawDdl(dropSql);
+                            executeRawDdl(dropSql, execDs);
                             log.info("Composer-owned {} dropped before re-create: {}", type, name);
                         } catch (Exception dropEx) {
                             log.warn("Composer-owned DROP failed (skip) {} {}: {}",
@@ -775,7 +784,7 @@ public class ArtifactApplyService {
                 // raw JDBC Statement.execute() 로 실행 — Hibernate 의 T-SQL flow control
                 // (IF/BEGIN/END) · "0 rows affected" 오인 · N 리터럴 전처리 문제를 회피.
                 // DBeaver 등 툴과 동일한 실행 경로.
-                executeRawDdl(stmt);
+                executeRawDdl(stmt, execDs);
                 executed++;
                 // 성공 → registry 에 등록 (이후 재실행 시 owned 로 인식되어 자동 DROP)
                 for (Map<String, String> obj : createObjs) {
@@ -935,11 +944,30 @@ public class ArtifactApplyService {
      * - autoCommit 상태를 그대로 사용 (DDL 은 MSSQL 에서 implicit commit).
      * - 실패 시 SQLException 을 그대로 throw 해 상위에서 rootMessage 로 표시.
      */
-    private void executeRawDdl(String sql) throws Exception {
-        try (Connection conn = dataSource.getConnection();
+    private void executeRawDdl(String sql, DataSource ds) throws Exception {
+        try (Connection conn = ds.getConnection();
              Statement st = conn.createStatement()) {
             st.execute(sql);
         }
+    }
+
+    /**
+     * 아티팩트가 속한 세션의 Target DB DataSource — SQL 실행/검증은 그 화면이 참조하는 운영 DB 에서.
+     * Target 미설정·연결 불가 시 정적 targetDataSource 로 폴백.
+     */
+    private DataSource resolveExecDataSource(ComposerArtifact a) {
+        try {
+            String sid = (a == null) ? null : a.getSessionId();
+            String targetCd = (sid == null) ? null
+                    : sessionRepo.findById(sid).map(s -> s.getTargetCd()).orElse(null);
+            if (targetCd != null && !targetCd.isBlank()) {
+                DataSource ds = dsRegistry.getDataSource(targetCd);
+                if (ds != null) return ds;
+            }
+        } catch (Exception e) {
+            log.warn("Target DataSource 해석 실패 — 정적 targetDataSource 폴백: {}", rootMessage(e));
+        }
+        return dataSource;
     }
 
     private String shortSql(String s) {
@@ -1404,7 +1432,7 @@ public class ArtifactApplyService {
      *
      * @return 충돌 메시지 목록 (빈 리스트 = 충돌 없음)
      */
-    private List<String> checkTableNameCollisions(List<ComposerArtifact> artifacts) {
+    private List<String> checkTableNameCollisions(List<ComposerArtifact> artifacts, String targetCd) {
         if (schemaInspectionService == null) return List.of();
 
         List<String> collisions = new ArrayList<>();
@@ -1418,7 +1446,7 @@ public class ArtifactApplyService {
                 String tableName = m.group(1);
                 if (tableName == null || tableName.isBlank()) continue;
                 try {
-                    if (schemaInspectionService.tableExists(tableName)) {
+                    if (schemaInspectionService.tableExists(targetCd, tableName)) {
                         collisions.add(tableName + " (artifact id=" + a.getId() +
                                 " filePath=" + a.getFilePath() + ") " +
                                 "— 이 테이블이 이미 DB 에 존재합니다. 새 DDL 로 덮어쓰면 기존 데이터 유실 위험.");

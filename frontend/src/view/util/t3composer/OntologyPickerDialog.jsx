@@ -12,13 +12,7 @@ import {
   InputAdornment,
   Tabs,
   Tab,
-  List,
-  ListItemButton,
-  ListItemText,
-  Checkbox,
   Chip,
-  Alert,
-  CircularProgress,
   Box,
   Paper,
 } from '@mui/material';
@@ -35,6 +29,7 @@ import {
   listOntologyProcess,
   listOntologyEntity,
 } from './api';
+import OntologyList from './OntologyList';
 
 const CATEGORIES = [
   { key: 'VIEW',    label: 'View',    icon: ViewAgendaIcon,     color: '#5281b3',
@@ -190,58 +185,15 @@ function OntologyPickerDialog({ open, onClose, onSelect }) {
 
           <Stack direction="row" spacing={2} sx={{ flex: 1, minHeight: 0 }}>
             {/* 목록 */}
-            <Box sx={{ flex: 1, overflowY: 'auto', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 1, minHeight: 0 }}>
-              {loading[currentCat.key] && (
-                <Box sx={{ p: 2, textAlign: 'center' }}>
-                  <CircularProgress size={22} />
-                </Box>
-              )}
-              {error && <Alert severity="error" sx={{ m: 1 }}>{error}</Alert>}
-
-              {!loading[currentCat.key] && filtered.length === 0 && (
-                <Box sx={{ p: 3 }}>
-                  <Typography variant="body2" color="text.secondary" align="center">
-                    {currentItems.length === 0
-                      ? '등록된 온톨로지가 없습니다.'
-                      : '검색 결과가 없습니다.'}
-                  </Typography>
-                </Box>
-              )}
-
-              <List dense disablePadding>
-                {filtered.map((it) => {
-                  const sel = isSelected(it.category, it.key);
-                  return (
-                    <ListItemButton
-                      key={`${it.category}_${it.key}`}
-                      onClick={() => toggle(it)}
-                      sx={{ py: 0.5 }}
-                    >
-                      <Checkbox
-                        edge="start"
-                        checked={sel}
-                        tabIndex={-1}
-                        disableRipple
-                        size="small"
-                        sx={{ p: 0.5, mr: 1 }}
-                      />
-                      <ListItemText
-                        primary={
-                          <Typography variant="body2" sx={{ fontSize: 12, fontWeight: 500 }}>
-                            {it.title}
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography variant="caption" color="text.disabled" sx={{ fontSize: 10 }} noWrap>
-                            {it.subtitle}
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
-                  );
-                })}
-              </List>
-            </Box>
+            <OntologyList
+              items={filtered}
+              totalCount={currentItems.length}
+              loading={loading[currentCat.key]}
+              error={error}
+              isSelected={(it) => isSelected(it.category, it.key)}
+              onToggle={toggle}
+              emptyText="등록된 온톨로지가 없습니다."
+            />
 
             {/* 선택 패널 */}
             <Paper variant="outlined" sx={{ width: 300, p: 1.5, overflow: 'auto' }}>

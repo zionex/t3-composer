@@ -432,6 +432,30 @@ Hook pre-tool-use-validator.sh 가 Write/Edit 시 위 규약 자동 검증.
 fi
 
 # =====================================================================
+# 6b. Data Source 선택 (별자리 맵) · 토큰 절감 (프롬프트 캐싱) · 화면 실행 (preview)
+# =====================================================================
+if echo "$PROMPT_LC" | grep -qE "데이터 소스|data ?source|별자리|constellation|datasourcepicker|schema/tables|schema/procedures|토큰 절감|토큰 소모|프롬프트 캐싱|prompt cach|cache_control|화면 실행|화면실행|미리보기|applypreview|자동보완|autofix"; then
+  INJECTED="${INJECTED}
+<project_rule_reminder source=\"rules/50-composer-standalone-runtime.md §13~§17\">
+Composer 단독 환경 — Data Source 선택 / 토큰 절감 / 화면 실행 작업:
+· §15 Data Source 선택 — ModeNewGeneral 의 4번째 참조 입력 (Mockup/UI Pattern 과 독립 · 다중).
+  DataSourcePickerDialog 3탭: DB Entity(DataConstellation 별자리 맵) · Ontology · Query Inline.
+  백엔드 /composer/schema/{tables,procedures,graph} + SchemaMetaCache(10분 TTL) + SchemaNaming.
+  선택 항목은 systemContext 의 '=== 데이터 소스 ===' 블록으로 Claude 에 주입.
+· §15.3 · §13.7 — 사용자가 직접 고른 테이블/SP 는 권위 있는 지정. 다른 테이블로 대체 절대 금지.
+· §16 토큰 절감 — ComposerService.buildRequest 가 마지막 메시지에 cache_control:ephemeral
+  breakpoint 를 부착(대화 prefix 캐싱). 이 breakpoint 제거 금지.
+  per-message 상한: UI Pattern 8K · D&D 첨부 12K · 인라인 쿼리 4K 자.
+  ❌ 테이블 컬럼·SP 파라미터는 토큰 절감 명목으로도 자르지 말 것 — 환각 방지 핵심 페이로드.
+· §17 화면 실행(preview) — Sample 모드라 SQL_DDL/SQL_SP 를 실행하지 않는다(skip). preview success
+  는 JSX 렌더 기준 — SP/DDL 실패가 화면 실행을 오류 처리하지 않는다. SP/DDL 검증·적용 + 테이블
+  충돌 검사는 [아티팩트 실행] 단계에서 세션 Target DB(TargetDataSourceRegistry) 기준으로 수행.
+· §13~§14 — 화면 실행 오류 카탈로그(RT1~RT5) · AI 자동보완(1회 · MAX_AUTOFIX). buildRequest·
+  ArtifactExtractor·ArtifactPreviewService·ArtifactApplyService 수정 시 위 규약 위반 금지.
+</project_rule_reminder>"
+fi
+
+# =====================================================================
 # 7. 배치 · 스케줄러 · 메시징
 # =====================================================================
 if echo "$PROMPT_LC" | grep -qE "batch|배치|quartz|스케줄|schedule|kafka|websocket|활성큐|activemq"; then

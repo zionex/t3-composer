@@ -68,6 +68,22 @@ public class ArtifactPreviewService {
     }
 
     /**
+     * 화면 실행(Sample 모드) 에서 SQL_DDL/SP 를 실행하지 않고 건너뛴 결과 레코드.
+     * SP/DDL 의 실제 검증·적용은 [아티팩트 실행](ArtifactApplyService) 단계에서 Target DB 기준 수행.
+     */
+    private static Map<String, Object> skippedSqlRec(ComposerArtifact a, String kind) {
+        Map<String, Object> rec = new LinkedHashMap<>();
+        rec.put("id", a.getId());
+        rec.put("type", a.getArtifactType());
+        rec.put("fileName", a.getFileName());
+        rec.put("kind", kind);
+        rec.put("ok", true);
+        rec.put("execOk", true);
+        rec.put("skipped", "화면 실행(Sample) — SQL 검증 생략. [아티팩트 실행] 시 Target DB 기준 검증.");
+        return rec;
+    }
+
+    /**
      * @param skipJava Sample 모드용 빠른 미리보기 — Java 산출물 적용·mvn compile·DevTools 재기동 모두 생략.
      *                 frontend Sample shim 이 axios 응답을 가로채므로 backend 호출이 동작하지 않아도 OK.
      *                 JSX preview 만 빠르게 노출 (10~20초 backend down 회피).
@@ -143,11 +159,21 @@ public class ArtifactPreviewService {
                     if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
                 }
                 case ComposerArtifact.TYPE_SQL_DDL -> {
+                    if (skipJava) {
+                        // 화면 실행(Sample 모드) — SQL 검증 불필요. 화면은 sample 데이터로 렌더되고
+                        // SP/DDL 은 [아티팩트 실행] 단계에서 Target DB 기준으로 검증·적용된다.
+                        applied.add(skippedSqlRec(a, "DDL"));
+                        break;
+                    }
                     Map<String, Object> rec = applyService.executeAsBatchPublic(a, content, "DDL", true);
                     applied.add(rec);
                     if (Boolean.TRUE.equals(rec.get("execOk"))) ddlOk++; else ddlFail++;
                 }
                 case ComposerArtifact.TYPE_SQL_SP -> {
+                    if (skipJava) {
+                        applied.add(skippedSqlRec(a, "SP"));
+                        break;
+                    }
                     Map<String, Object> rec = applyService.executeAsBatchPublic(a, content, "SP", false);
                     applied.add(rec);
                     if (Boolean.TRUE.equals(rec.get("execOk"))) spOk++; else spFail++;

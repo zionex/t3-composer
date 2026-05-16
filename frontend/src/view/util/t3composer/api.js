@@ -282,6 +282,24 @@ export const lookupProcedures = (names, targetCd) =>
 export const extractAndLookupProcedures = (text, targetCd) =>
   zAxios.post(`composer/schema/procedures/extract`, { text, targetCd }, composerReq());
 
+// ---- Data Source 별자리 맵 (전체 목록 + 도메인 그래프) ----
+// Target Operational DB(MSSQL) 의 INFORMATION_SCHEMA / sys.objects 조회.
+// 미연결 시 connected=false + 빈 배열.
+
+/** 전체 테이블/뷰 목록 — { targetCd, connected, tables: [{tableName,tableSchema,tableType,domain}] } */
+export const listSchemaTables = (targetCd) =>
+  zAxios.get('composer/schema/tables', composerReq({ params: targetCd ? { targetCd } : {} }));
+
+/** 전체 SP/Function 목록 — { targetCd, connected, procedures: [{procedureName,procedureSchema,objectType,domain}] } */
+export const listSchemaProcedures = (targetCd) =>
+  zAxios.get('composer/schema/procedures', composerReq({ params: targetCd ? { targetCd } : {} }));
+
+/** 한 도메인의 서브 그래프 — { domain, connected, nodes, edges, dependencyGraphAvailable, truncated } */
+export const getSchemaGraph = (targetCd, domain) =>
+  zAxios.get('composer/schema/graph', composerReq({
+    params: { ...(targetCd ? { targetCd } : {}), ...(domain ? { domain } : {}) },
+  }));
+
 // ---- Design Doc Excel ----
 
 export const downloadDesignDoc = (sessionId) =>

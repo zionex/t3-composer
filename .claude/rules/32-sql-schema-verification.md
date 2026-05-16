@@ -178,6 +178,7 @@ SP 호출 시:
 | Q4 | TB_AD_LANG_PACK UPDATE 에 `UPDATE_BY/UPDATE_DTTM` 사용 | `MODIFY_BY/MODIFY_DTTM` 사용 |
 | Q5 | UUID 외래키에 MENU_CD 값 직접 INSERT | `(SELECT ID FROM ...)` 서브쿼리 lookup |
 | Q6 | 프런트 파라미터명과 SP 파라미터명 비교 안 함 | camelCase 매칭 확인, 미스매치면 한 쪽 수정 |
+| Q7 | 사용자가 명시·선택한 테이블을 비슷한 다른 테이블로 대체 (`TB_AD_USER` 선택 → `TB_UT_USER_INFO` 생성) | `=== 데이터 소스 ===` / `=== 자동 테이블 존재 여부 확인 ===` 블록의 **그 테이블만** 사용 — 학습된 표준 예시로 표류 금지 (rules/50 §13.7) |
 
 ## 7. 위반 감지 (Hook 자동 차단)
 

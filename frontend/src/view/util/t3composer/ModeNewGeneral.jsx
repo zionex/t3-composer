@@ -35,6 +35,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import HubIcon from '@mui/icons-material/Hub';
 
 import { createSession, extractAndLookupTables } from './api';
 import { getModule } from './constants';
@@ -46,6 +47,7 @@ import Mockup3DGallery       from './Mockup3DGallery';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import UiPattern3DGallery    from './UiPattern3DGallery';
 import KpiChartPickerDialog  from './KpiChartPickerDialog';
+import DataSourcePickerDialog from './DataSourcePickerDialog';
 import { useTargetStore } from './targetStore';
 
 /**
@@ -251,6 +253,11 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   // AI 엔진(모델) 선택 — 기본 Sonnet 4.6, 사용자가 Opus 4.7 로 전환 가능
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
 
+  // 선택사항 (4) — Data Source (DB Entity · Ontology · Query Inline) — Mockup/Pattern 과 독립·다중
+  const [dataSources,    setDataSources]    = useState([]);  // [{ kind, key, label, meta }]
+  const [dataSrcDlgOpen, setDataSrcDlgOpen] = useState(false);
+  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
+
   // 하단 전용 D&D 영역 — 클릭 시 파일 탐색기, drop 시 첨부
   const fileInputRef = useRef(null);
   const [bottomDragOver, setBottomDragOver] = useState(false);
@@ -314,7 +321,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     lookupDebounceRef.current = setTimeout(async () => {
       setTableLookupLoading(true);
       try {
-        const res = await extractAndLookupTables(prompt);
+        const res = await extractAndLookupTables(prompt, currentTargetCd);
         setTableLookup({
           extracted: res?.data?.extractedNames || [],
           results: res?.data?.results || {},
@@ -331,7 +338,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     return () => {
       if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current);
     };
-  }, [prompt, subMode]);
+  }, [prompt, subMode, currentTargetCd]);
 
   const reset = () => {
     // startWith 로 고정 진입한 경우엔 서브모드는 유지 (모듈·프롬프트만 초기화)
@@ -346,6 +353,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     setSelectedKpis([]);
     setSelectedCharts([]);
     setSelectedModel(DEFAULT_MODEL_ID);
+    setDataSources([]);
   };
 
   // ─── D&D 파일 첨부 ──────────────────────────────────────────────
@@ -477,8 +485,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       systemContext += `- 분류: ${selectedUiPattern.section} > ${selectedUiPattern.group} > ${selectedUiPattern.fileLabel}\n`;
       if (selectedUiPattern.tabLabel) systemContext += `- 패턴: ${selectedUiPattern.tabLabel}\n`;
       if (selectedUiPatternSource) {
-        const src = selectedUiPatternSource.length > 20000
-          ? selectedUiPatternSource.slice(0, 20000) + '\n<!-- (이하 생략) -->'
+        // 토큰 절감 — 실제 lite HTML 최대 ~7.2KB. 상한 8K 자면 충분 (이전 20K).
+        const UI_PATTERN_CAP = 8000;
+        const src = selectedUiPatternSource.length > UI_PATTERN_CAP
+          ? selectedUiPatternSource.slice(0, UI_PATTERN_CAP) + '\n<!-- (이하 생략) -->'
           : selectedUiPatternSource;
         systemContext += '아래는 이 UI Pattern 의 경량 마크업 구조입니다 (영역 배치·표/카드 구성 참고용):\n';
         systemContext += '```html\n' + src + '\n```\n';
@@ -510,12 +520,97 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       systemContext += '\n' + tableLookup.formattedForPrompt + '\n';
     }
 
+    // 사용자가 [Data Source 선택] 으로 지정한 데이터 소스 — 실제 컬럼/파라미터 주입
+    if (dataSources.length > 0) {
+      systemContext += '\n=== 데이터 소스 (사용자가 DB 객체에서 직접 선택 — 권위 있는 지정) ===\n';
+      const byKind = (k) => dataSources.filter((d) => d.kind === k);
+
+      const tbls = byKind('TABLE');
+      if (tbls.length > 0) {
+        systemContext += '[테이블]\n';
+        tbls.forEach((t) => {
+          const m = t.meta || {};
+          const cols = (m.columns || []).map((c) => {
+            let len = '';
+            if (c.characterMaximumLength != null) {
+              len = `(${c.characterMaximumLength === -1 ? 'MAX' : c.characterMaximumLength})`;
+            } else if (c.numericPrecision != null) {
+              len = `(${c.numericPrecision}${c.numericScale ? ',' + c.numericScale : ''})`;
+            }
+            return `${c.name} ${c.dataType}${len}${c.primaryKey ? ' PK' : ''}`;
+          });
+          systemContext += `· ${m.tableSchema ? m.tableSchema + '.' : ''}${t.key}`
+            + (cols.length ? ` — ${cols.join(', ')}\n` : '\n');
+        });
+      }
+
+      const sps = byKind('SP');
+      if (sps.length > 0) {
+        systemContext += '[Stored Procedure]\n';
+        sps.forEach((s) => {
+          const m = s.meta || {};
+          const params = (m.parameters || []).map(
+            (p) => `${p.name} ${p.dataType}${p.output ? ' OUT' : ''}`);
+          systemContext += `· ${m.procedureSchema ? m.procedureSchema + '.' : ''}${s.key}`
+            + (params.length ? ` (${params.join(', ')})\n` : '\n');
+        });
+      }
+
+      const qas = byKind('ONTOLOGY_QA');
+      if (qas.length > 0) {
+        systemContext += '[온톨로지 — Q&A]\n';
+        qas.forEach((q) => {
+          systemContext += `· ${q.label}`
+            + (q.meta?.subtitle ? ` — ${q.meta.subtitle}` : '') + '\n';
+        });
+      }
+
+      const intents = byKind('ONTOLOGY_INTENT');
+      if (intents.length > 0) {
+        systemContext += '[온톨로지 — 화면 의도]\n';
+        intents.forEach((it) => {
+          systemContext += `· ${it.label}`
+            + (it.meta?.subtitle ? ` (${it.meta.subtitle})` : '') + '\n';
+        });
+      }
+
+      const uisps = byKind('ONTOLOGY_SP');
+      if (uisps.length > 0) {
+        systemContext += '[UI 사용 SP]\n';
+        uisps.forEach((u) => { systemContext += `· ${u.key}\n`; });
+      }
+
+      const queries = byKind('INLINE_QUERY');
+      if (queries.length > 0) {
+        const QUERY_CAP = 4000;   // 토큰 절감 — 인라인 쿼리는 쿼리당 4K 자까지만 inline
+        systemContext += '[직접 입력 쿼리]\n';
+        queries.forEach((q) => {
+          const sql = q.meta?.sql || '';
+          const body = sql.length > QUERY_CAP
+            ? sql.slice(0, QUERY_CAP) + `\n-- ... (이하 생략 — 전체 ${sql.length}자)`
+            : sql;
+          systemContext += '```sql\n' + body + '\n```\n';
+        });
+      }
+
+      systemContext += '★ 절대 규칙: 위 데이터 소스는 사용자가 Target DB 탐색에서 직접 고른 항목입니다. '
+        + '여기 명시된 테이블/SP 만 사용하고, 이름이 비슷한 다른 테이블(예: TB_UT_USER_INFO 등)로 '
+        + '임의 대체·추측하지 마세요. 명시된 기존 테이블에는 새 CREATE TABLE 을 만들지 말고 '
+        + '위에 적힌 실제 컬럼명 그대로 Entity·SP·gridItems 를 작성하세요.\n';
+    }
+
     // D&D 첨부 분리 — 텍스트는 prompt 본문에 inline, binary 만 attachments 로 전송
     const textAttachs   = attachments.filter((a) => a && a.kind === 'text');
     const binaryAttachs = attachments.filter((a) => a && a.kind === 'binary');
+    // 토큰 절감 — 첨부 텍스트 파일은 파일당 12K 자까지만 inline (초과분 생략 표기).
+    const ATTACH_INLINE_CAP = 12000;
     let textInline = '';
     for (const t of textAttachs) {
-      textInline += `\n\n=== 첨부 파일: ${t.name} ===\n\`\`\`${t.lang || ''}\n${t.text}\n\`\`\`\n`;
+      const full = t.text || '';
+      const body = full.length > ATTACH_INLINE_CAP
+        ? full.slice(0, ATTACH_INLINE_CAP) + `\n... (이하 생략 — 전체 ${full.length}자)`
+        : full;
+      textInline += `\n\n=== 첨부 파일: ${t.name} ===\n\`\`\`${t.lang || ''}\n${body}\n\`\`\`\n`;
     }
 
     return (
@@ -897,20 +992,6 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             })()}
           </Box>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="caption" color="text.secondary">
-              Claude 는 모듈 규약(TB_{module.code}_ / SP_UI_{module.code}_)에 맞춰 생성합니다.
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={startNlSession}
-              disabled={starting || !prompt.trim()}
-              startIcon={<AutoAwesomeIcon />}
-            >
-              {starting ? '세션 생성 중...' : 'Claude 에게 생성 요청'}
-            </Button>
-          </Stack>
         </Paper>
 
         {/* ── 하단 전용 참조 파일 첨부 (D&D) 영역 ──
@@ -982,6 +1063,70 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           )}
         </Paper>
 
+        {/* ── Data Source 선택 — DB Entity · Ontology · Query Inline (D&D 아래) ── */}
+        <Paper
+          variant="outlined"
+          sx={{
+            mb: 3, p: 2, borderRadius: 2,
+            border: '1px solid rgba(124,167,224,0.35)', bgcolor: 'rgba(255,255,255,0.45)',
+          }}
+        >
+          <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ gap: 1.2 }}>
+            <Button
+              variant={dataSources.length > 0 ? 'contained' : 'outlined'}
+              startIcon={<HubIcon />}
+              onClick={() => setDataSrcDlgOpen(true)}
+              color="primary"
+              sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
+            >
+              {dataSources.length > 0
+                ? `Data Source — ${dataSources.length}개 선택됨`
+                : 'Data Source 선택'}
+            </Button>
+            <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 220 }}>
+              Target DB 테이블·SP · T3Insight 온톨로지 · 직접 쿼리를 별자리 맵으로 골라
+              화면이 읽고/쓰는 데이터를 지정합니다 (선택사항 · Mockup/UI Pattern 과 독립 · 다중 선택).
+            </Typography>
+            {dataSources.length > 0 && (
+              <Chip size="small" label="전체 해제"
+                    onClick={() => setDataSources([])} sx={{ height: 22 }} />
+            )}
+          </Stack>
+          {dataSources.length > 0 && (
+            <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.6, mt: 1.2 }}>
+              {dataSources.map((d) => (
+                <Chip
+                  key={`${d.kind}_${d.key}`}
+                  size="small"
+                  label={d.label}
+                  onDelete={() => setDataSources((p) =>
+                    p.filter((x) => !(x.kind === d.kind && x.key === d.key)))}
+                  sx={{ fontSize: 11, bgcolor: 'rgba(124,167,224,0.10)' }}
+                />
+              ))}
+            </Stack>
+          )}
+        </Paper>
+
+        {/* ── Claude 에게 생성 요청 — Data Source 선택 아래 · 큰 버튼 ── */}
+        {error && <Alert severity="error" sx={{ mb: 1.5 }}>{error}</Alert>}
+        <Stack direction="row" justifyContent="space-between" alignItems="center"
+               sx={{ mb: 3, gap: 2, flexWrap: 'wrap' }}>
+          <Typography variant="caption" color="text.secondary">
+            Claude 는 모듈 규약(TB_{module.code}_ / SP_UI_{module.code}_)에 맞춰 생성합니다.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={startNlSession}
+            disabled={starting || !prompt.trim()}
+            startIcon={<AutoAwesomeIcon />}
+            sx={{ px: 4, py: 1.4, fontSize: '1.05rem', fontWeight: 700 }}
+          >
+            {starting ? '세션 생성 중...' : 'Claude 에게 생성 요청'}
+          </Button>
+        </Stack>
+
         {/* SCM UI Mockup POPUP — 일반 목록 / 3D 갤러리 (둘 다 handleMockupPicked 공용) */}
         <MockupPickerDialog
           open={mockupDlgOpen}
@@ -1024,6 +1169,15 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             setSelectedCharts(charts);
             setKpiDlgOpen(false);
           }}
+        />
+
+        {/* Data Source 선택 POPUP — 3탭(DB Entity · Ontology · Query Inline) */}
+        <DataSourcePickerDialog
+          open={dataSrcDlgOpen}
+          onClose={() => setDataSrcDlgOpen(false)}
+          currentValue={dataSources}
+          onConfirm={(basket) => setDataSources(basket)}
+          targetCd={currentTargetCd}
         />
 
         {/* 테이블 자동 lookup 결과 — prompt 안의 TB_* 패턴을 백엔드 INFORMATION_SCHEMA 조회 */}

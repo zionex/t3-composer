@@ -102,6 +102,20 @@ public class ComposerPromptBuilder {
         "     · 위 블록이 없는데 새 테이블이 필요해 보이면 [가정] 태그로 사용자에게 확인 요청.",
         "   - ❌ 절대 금지: DB 에 이미 존재하는 테이블에 대한 CREATE TABLE DDL 생성 (apply 시 자동 차단 — tableCollisionBlocked)",
         "   - 변경이 필요하면 ALTER TABLE 구문으로만 (NEW_NL/NEW_GENERAL/EXISTING_MODIFY 모드)",
+        "",
+        "②-2 ★★★ 사용자가 선택/지정한 데이터 소스 절대 대체 금지 (2026-05-16 사고) ★★★",
+        "   - prompt 의 '=== 데이터 소스 (사용자가 DB 객체에서 직접 선택 ...) ===' 블록과",
+        "     '=== 자동 테이블 존재 여부 확인 ===' 블록에 명시된 테이블/SP/뷰는",
+        "     사용자가 Composer 의 Target DB 를 직접 탐색해 고른 **확정 데이터 소스**이다.",
+        "   - 거기 적힌 그 테이블/SP 만 사용하라. 이름이 비슷하거나 '더 표준적'·'더 일반적'·",
+        "     '문서 예시의 정석' 으로 보이는 다른 테이블로 **대체·교체·승격하지 말 것**.",
+        "   - 특히: 사용자가 TB_AD_USER 를 골랐으면 TB_UT_USER_INFO (또는 그 반대) 로 바꾸지 말 것.",
+        "     '사용자 관리 화면' 같은 표현만 보고 학습된 표준 테이블을 끌어오지 말 것 —",
+        "     사용자가 명시한 그 테이블·컬럼이 유일한 진실이다.",
+        "   - 명시된 테이블의 도메인이 화면 MENU_CD 도메인과 달라도 그대로 사용",
+        "     (예: UI_AD_* 화면이 TB_AD_USER 를 쓰는 것이 정상 — 도메인 일치를 이유로 교체 금지).",
+        "   - 데이터 소스 블록이 전혀 없고 prompt 도 테이블을 명시하지 않은 경우에만",
+        "     [가정] 태그로 사용자에게 어떤 테이블을 쓸지 확인 요청.",
         "   - web/domain/<module>/<feature>/ 아래 Java 산출물:",
         "     <Feature>.java           @Entity(TB_<DOMAIN>_<NAME>) extends BaseEntity · @JsonIgnoreProperties(ignoreUnknown=true) — SP 결과 매핑용",
         "     <Feature>Service.java    @Service @RequiredArgsConstructor · JdbcTemplate 인젝션 · jdbcTemplate.query(\"EXEC SP_UI_<...> ?, ?\", new BeanPropertyRowMapper<>(...), params) 패턴",
@@ -660,20 +674,8 @@ public class ComposerPromptBuilder {
             }
         }
 
-        // mode guide 뒤에 불변 원칙 재강조 — LLM 이 절대 우회하지 못하도록 최종 재확인
-        sb.append("\n\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n");
-        sb.append("재확인 — 위 모든 모드는 INVARIANTS (§①~⑩) 위반 불가:\n");
-        sb.append("  · §① 유사 원본 Read 후 '참조 원본:' 명시 + 트랙 A(JSX)/B(코드템플릿)/C(변환규칙) 분리\n");
-        sb.append("  · §② wingui 단독 구동 + SP_UI_*.sql DDL + Entity + Service(JdbcTemplate SP 호출) + Controller\n");
-        sb.append("  · §③ zAxios → RestController → JdbcTemplate → SP_UI_* (callService 엔진 경유 금지 · 엔진 service XML 생성 금지)\n");
-        sb.append("  · §④ MENU_CD/PATH/FILE_PATH 규약 + 부모 메뉴 정확\n");
-        sb.append("  · §⑤ JSX 표면 API 단일 진실 (BaseGrid items/afterGridCreate · grid 문자열 id 등)\n");
-        sb.append("  · §⑥ 위젯/정렬/편집기 매트릭스 — editable:true 컬럼별 점검\n");
-        sb.append("  · §⑦ Cascade 자동 (useFieldCascade · applyGridCascade)\n");
-        sb.append("  · §⑧ SP 카탈로그 컨텍스트 활용 (SP_COMM_RAISE_ERR · SP_COMM_AUTO_GEN_ID · FN_G_*)\n");
-        sb.append("  · §⑨ 수정 모드도 동일 원칙\n");
-        sb.append("═══════════════════════════════════════════════════════════════\n");
+        // INVARIANTS 전문은 BASE_SYSTEM 앞부분에 이미 수록 — mode guide 뒤 §①~⑩ 재요약(recap)은
+        // 순수 중복이라 토큰 절감 위해 제거 (2026-05-16). 규칙 본문은 그대로 유지된다.
         return sb.toString();
     }
 

@@ -55,7 +55,8 @@ const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
 
 // 화면 실행 후 AI 자동보완 — 한 번의 [화면 실행] 당 최대 보완 시도 횟수.
 // 이 상한을 넘으면 자동보완을 멈춰 무한루프(오류 → 보완 → 재실행 → 오류 …)를 차단한다.
-const MAX_AUTOFIX = 3;
+// 2026-05-16 사용자 요청 — 1회만 자동보완. 1회 보완 후에도 오류면 즉시 멈추고 사용자에게 위임.
+const MAX_AUTOFIX = 1;
 
 function modelMeta(id) {
   return MODEL_OPTIONS.find((m) => m.id === id)
@@ -158,7 +159,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   const [autoFixOnError, setAutoFixOnError] = useState(true);
   const [previewNonce, setPreviewNonce] = useState(0);   // PreviewEmbed 강제 reload 트리거
   const [autoFixActive, setAutoFixActive] = useState(false); // 자동보완 진행 중 — PreviewEmbed UI 표시용
-  const [autoFixLabel, setAutoFixLabel]   = useState('');    // 자동보완 진행 라벨 (예: "AI 자동보완 중 (1/3)")
+  const [autoFixLabel, setAutoFixLabel]   = useState('');    // 자동보완 진행 라벨 (예: "AI 자동보완 중 (1/1)")
   const autoFixAttemptRef = React.useRef(0);             // 현재 화면실행 사이클의 보완 시도 횟수
   const autoFixingRef = React.useRef(false);             // 자동보완 진행 중 재진입 가드
   const lastAutoFixErrorRef = React.useRef('');          // 직전 보완 시점의 오류 메시지 (동일오류 반복 감지)
@@ -339,7 +340,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   //
   //   ★ 원칙 — 오류가 나도 멈추지 않는다. 단, 무한루프/비용 폭주는 막아야 하므로
   //     횟수 상한(MAX_AUTOFIX) 안에서 "멈춤 없이 계속 시도" 한다:
-  //     [1] 횟수 상한: autoFixAttemptRef 가 MAX_AUTOFIX(3) 에 도달하면 비로소 중단.
+  //     [1] 횟수 상한: autoFixAttemptRef 가 MAX_AUTOFIX(1) 에 도달하면 비로소 중단.
   //         카운터는 사용자가 [화면 실행] 버튼을 직접 누를 때만 0 으로 리셋되고,
   //         자동 재실행 경로(handlePreviewError → handlePreview)에서는 리셋되지 않는다.
   //     [2] 동일오류 escalation: 직전 보완 후에도 같은 오류가 재발하면 — 멈추지 않고

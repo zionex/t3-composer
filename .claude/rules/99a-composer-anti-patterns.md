@@ -221,3 +221,18 @@ GridButton.jsx 실제 props 화이트리스트 (절대 다른 이름 사용 금�
   - JSX 의 export default 명이 "UserInfoMgmt" 인가?
   - 셋 (MENU_FILE_PATH 마지막, Java <Feature>, JSX 컴포넌트) 모두 글자수까지 동일한가?
 ```
+
+## M. 사용자 선택 데이터 소스 대체 (2026-05-16 · TB_AD_USER → TB_UT_USER_INFO 사고)
+
+> **사고 (2026-05-16)**: Data Source 별자리 맵에서 사용자가 `TB_AD_USER` 를 직접 선택했으나
+> 생성 결과가 `TB_UT_USER_INFO`(레거시 사용자 부가정보 테이블)를 사용 → 충돌. 원인 ① 테이블
+> 검증(`ComposerService.enrichUserContentWithTableLookup`)이 세션 Target 이 아닌 composer-db
+> 를 조회해 `TB_AD_USER` 를 "미존재" 오판 ② `.claude/rules` 의 사용자관리 예시가 전부
+> `TB_UT_USER_INFO` / `UserInfoMgmt` 라 LLM 이 그쪽으로 표류.
+
+| # | ❌ | ✅ | 검증 |
+|---|---|---|---|
+| CG-M1 | `=== 데이터 소스 ===` / `=== 자동 테이블 존재 여부 확인 ===` 블록의 테이블을 무시하고 이름이 비슷한 다른 테이블로 대체 (`TB_AD_USER`→`TB_UT_USER_INFO`) | 블록에 적힌 그 테이블/SP **만** 사용 — 학습된 표준 예시(`UserInfoMgmt`/`TB_UT_USER_INFO`)로 표류 금지 | ComposerPromptBuilder INVARIANTS §②-2 |
+| CG-M2 | 운영 코어 테이블(TB_AD_USER·TB_AD_MENU·TB_AD_LANG_PACK 등)에 `CREATE TABLE` 생성 | 기존 테이블은 실제 컬럼으로 Entity·SP 매핑 — CREATE 금지 | hook H (`sql-schema-whitelist.sh` CORE_TABLES) · apply `tableCollisionBlocked` |
+| CG-M3 | 테이블 검증을 targetCd 없이 호출 → composer-db(PG) 조회 → 모든 TB_* "미존재" 오판 | `enrichUserContentWithTableLookup` / `checkTableNameCollisions` 가 세션 `targetCd` 로 운영 DB 질의 (수정 완료 — rules/50 §13.7) | backend |
+| CG-M4 | 화면 MENU_CD 도메인과 다르다는 이유로 사용자 지정 테이블을 같은 도메인 테이블로 교체 | 도메인 불일치는 정상 (UI_AD_* 화면이 TB_AD_USER 사용) — 사용자 지정이 우선 | LLM/L |

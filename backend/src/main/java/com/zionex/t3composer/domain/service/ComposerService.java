@@ -163,10 +163,14 @@ public class ComposerService {
     public ComposerMessage appendUserMessage(String sessionId, String content) {
         int nextSeq = nextTurnSeq(sessionId);
         // 자동 테이블 존재 여부 분석 — 사용자가 prompt 에 TB_* 형식 테이블명을 언급하면
-        // INFORMATION_SCHEMA 를 조회해 [✓ 존재] / [✗ 미존재] 블록을 prompt 앞에 prepend.
-        // ComposerPromptBuilder 의 INVARIANTS 가 이 블록을 권위있는 결과로 해석하도록 명시.
-        // 정책: 존재하는 테이블은 새 DDL 생성 절대 금지, 미존재면 NEW_NL/NEW_GENERAL 모드만 DDL 허용.
-        String enriched = enrichUserContentWithTableLookup(content);
+        // 세션의 Target DB(targetCd) 의 INFORMATION_SCHEMA 를 조회해 [✓ 존재] / [✗ 미존재]
+        // 블록을 prompt 앞에 prepend. ComposerPromptBuilder 의 INVARIANTS 가 이 블록을
+        // 권위있는 결과로 해석. 정책: 존재 테이블은 새 DDL 금지, 미존재면 NEW_NL/NEW_GENERAL 만 DDL 허용.
+        // ★ targetCd 를 넘기지 않으면 composer-db(PG) 만 조회돼 운영 TB_* 가 모두 "미존재" 로 오판된다
+        //   — Composer 의 Target 지정을 그대로 따라 운영 DB(MSSQL) 에 질의해야 한다.
+        String targetCd = sessionRepo.findById(sessionId)
+                .map((s) -> s.getTargetCd()).orElse(null);
+        String enriched = enrichUserContentWithTableLookup(content, targetCd);
         ComposerMessage m = ComposerMessage.builder()
                 .sessionId(sessionId)
                 .turnSeq(nextSeq)
@@ -178,14 +182,17 @@ public class ComposerService {
     }
 
     /**
-     * 사용자 prompt 에서 TB_* 테이블명을 추출 → DB 존재여부 조회 → 결과 블록을 prompt 앞에 prepend.
-     * 추출되는 게 없으면 원본 그대로 반환 (불필요한 prompt 비용 방지).
+     * 사용자 prompt 에서 TB_* 테이블명을 추출 → 세션 Target DB 존재여부 조회 → 결과 블록을 prompt 앞에 prepend.
+     * 추출되는 게 없거나 targetCd 가 비어 있으면 원본 그대로 반환 (불필요한 prompt 비용 방지).
+     *
+     * @param targetCd 세션의 Target System 코드 — 운영 DB(MSSQL) 라우팅 키. null 이면 빈 결과.
      */
-    private String enrichUserContentWithTableLookup(String content) {
+    private String enrichUserContentWithTableLookup(String content, String targetCd) {
         if (content == null || content.isBlank()) return content;
         if (schemaInspectionService == null) return content;
         try {
-            java.util.Map<String, TableInfo> lookup = schemaInspectionService.lookupTablesInText(content);
+            java.util.Map<String, TableInfo> lookup =
+                    schemaInspectionService.lookupTablesInText(targetCd, content);
             if (lookup == null || lookup.isEmpty()) return content;
             String header = schemaInspectionService.formatLookupResultForPrompt(lookup);
             if (header == null || header.isBlank()) return content;
@@ -511,7 +518,7 @@ public class ComposerService {
         }
 
         // System prompt 를 정적/세션 두 블록으로 분리.
-        // 정적 블록(INVARIANTS + BASE_SYSTEM + 모드별 가이드 + 재확인 후미) 에 cache_control 부착 →
+        // 정적 블록(INVARIANTS + BASE_SYSTEM + 모드별 가이드) 에 cache_control 부착 →
         // 같은 모드의 후속 호출은 5분 TTL 안에서 input token 비용 90% 절감 (Anthropic Prompt Caching).
         String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getMode());
         String sessionPart = promptBuilder.buildSessionSystemPrompt(session);
@@ -528,6 +535,11 @@ public class ComposerService {
                     .text(sessionPart)
                     .build());
         }
+
+        // 대화 prefix 캐싱 — 마지막 메시지에 cache_control breakpoint 부착.
+        //   system 블록만 캐시되던 것을 → system + 이전 메시지 전체로 확장.
+        //   후속 턴·auto-continuation 이 재전송하는 대화 prefix 를 90% 할인된 cache_read 로 받음.
+        applyMessageCacheBreakpoint(messages);
 
         return MessagesRequest.builder()
                 .model(session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL)
@@ -566,6 +578,40 @@ public class ComposerService {
             blocks.add(block);
         }
         return blocks;
+    }
+
+    /**
+     * 마지막 메시지의 마지막 content block 에 cache_control(ephemeral) breakpoint 부착 →
+     * system + 이전 모든 메시지(첫 메시지의 systemContext 포함)가 캐시 prefix 가 된다.
+     * 다음 호출(후속 턴·auto-continuation)은 재전송되는 대화 전체를 cache_read(90% 할인)로 받음.
+     *
+     * Anthropic 은 cache breakpoint 4개까지 허용 — 현재 system 1개 + 메시지 1개 = 2개.
+     * 평문 String content 는 cache_control 부착 단일 text block 배열로 변환,
+     * 멀티모달 content(List) 는 마지막 block 에 cache_control 만 추가.
+     */
+    @SuppressWarnings("unchecked")
+    private void applyMessageCacheBreakpoint(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) return;
+        Message last = messages.get(messages.size() - 1);
+        Object content = last.getContent();
+        Map<String, Object> cacheControl = Map.of("type", "ephemeral");
+
+        if (content instanceof List) {
+            List<Object> blocks = (List<Object>) content;
+            if (blocks.isEmpty()) return;
+            Object lastBlock = blocks.get(blocks.size() - 1);
+            if (lastBlock instanceof Map) {
+                ((Map<String, Object>) lastBlock).put("cache_control", cacheControl);
+            }
+        } else {
+            Map<String, Object> block = new LinkedHashMap<>();
+            block.put("type", "text");
+            block.put("text", content == null ? "" : content.toString());
+            block.put("cache_control", cacheControl);
+            List<Object> blocks = new ArrayList<>();
+            blocks.add(block);
+            last.setContent(blocks);
+        }
     }
 
     private static String inferBlockType(String mediaType) {

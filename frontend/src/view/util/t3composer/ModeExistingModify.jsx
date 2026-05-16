@@ -25,7 +25,7 @@ import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
-import { createSession, collectSourceForLlm } from './api';
+import { createSession, collectSourceForLlm, importSourceArtifacts } from './api';
 import { createInitialSpecFromSource } from './wizardState';
 import { useTargetStore } from './targetStore';
 
@@ -101,12 +101,25 @@ function ModeExistingModify({ onBack, startWith = null }) {
         targetCd: activeTargetCd,
       });
 
+      // 선택 메뉴의 현재 소스 전체를 세션 아티팩트(DRAFT 원본)로 import →
+      // 사용자가 아티팩트 트리에서 현재 기준을 보고 필요한 파일만 수정. 수정 산출물이
+      // 같은 경로면 자동 supersede. import 실패해도 세션은 진행 (콘솔 경고만).
+      try {
+        await importSourceArtifacts(sessRes.data.id, sourceBundle);
+      } catch (impErr) {
+        // eslint-disable-next-line no-console
+        console.warn('[Composer] 소스 아티팩트 import 실패:', impErr?.message || impErr);
+      }
+
       const bundleText = formatBundleForPrompt(sourceBundle);
       const prompt = [
         `대상 메뉴: ${selectedMenu.id} (${selectedMenu.filePath})`,
         '',
-        '이 화면의 현재 소스를 아래에 제공합니다. 소스를 숙지한 후 다음 지시를 기다려주세요.',
-        '변경 요청이 오면 영향 범위의 파일을 전체 내용으로 재작성해 주세요.',
+        '이 화면의 현재 소스 전체를 아래에 제공합니다. 각 파일은 이 세션의 아티팩트',
+        '(현재 기준 baseline)로도 등록되어 있습니다. 소스를 숙지한 후 다음 지시를 기다려주세요.',
+        '변경 요청이 오면 영향 범위의 파일만 전체 내용으로 재작성하세요.',
+        '★ ===FILE: 경로는 아래 ---FILE: 의 원본 경로와 100% 동일하게 출력하세요',
+        '  (그래야 기존 아티팩트가 갱신됨). 변경되지 않는 파일은 다시 출력하지 마세요.',
         '',
         bundleText,
       ].join('\n');
@@ -403,14 +416,16 @@ function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, co
 function formatBundleForPrompt(bundle) {
   if (!bundle || typeof bundle !== 'object') return '(소스 번들 없음)';
 
+  // collectSourceForLlm 응답은 backend.* 중첩 구조 — flat 형식도 함께 지원.
+  const be = (bundle.backend && typeof bundle.backend === 'object') ? bundle.backend : bundle;
   const sections = [
-    ['SCREEN',       bundle.screen       ],
-    ['COMPONENTS',   bundle.components   ],
-    ['CONTROLLERS',  bundle.controllers  ],
-    ['SERVICES',     bundle.services     ],
-    ['REPOSITORIES', bundle.repositories ],
-    ['ENTITIES',     bundle.entities     ],
-    ['PROCEDURES',   bundle.procedures   ],
+    ['SCREEN',       bundle.screen                     ],
+    ['COMPONENTS',   bundle.components || be.components ],
+    ['CONTROLLERS',  be.controllers                    ],
+    ['SERVICES',     be.services                       ],
+    ['REPOSITORIES', be.repositories                   ],
+    ['ENTITIES',     be.entities                       ],
+    ['PROCEDURES',   be.procedures                     ],
   ];
 
   const out = [];

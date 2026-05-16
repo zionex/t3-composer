@@ -369,6 +369,83 @@ public class ComposerService {
     }
 
     /**
+     * EXISTING_MODIFY — 선택한 메뉴의 현재 소스(collectSourceForLlm 번들)를 세션 아티팩트로 import.
+     * 사용자가 "현재 기준" 의 모든 파일을 아티팩트 트리에서 보고, 필요한 파일만 수정하도록 한다.
+     *
+     * 각 파일은 DRAFT · messageId=null(=원본 baseline) 로 저장. 이후 Claude 가 같은 filePath 로
+     * 수정본을 출력하면 saveWithSupersede 가 (sessionId,type,filePath) 기준으로 baseline 을 갱신한다.
+     *
+     * @param bundle collectSourceForLlm 응답 — { screen, backend:{controllers,services,...} } 또는 flat
+     * @return import 된 아티팩트 수
+     */
+    @Transactional
+    public int importSourceArtifacts(String sessionId, String userId, Map<String, Object> bundle) {
+        if (bundle == null) return 0;
+        List<ComposerArtifact> arts = new ArrayList<>();
+
+        addBundleFile(arts, sessionId, userId, bundle.get("screen"), ComposerArtifact.TYPE_SCREEN_JSX);
+
+        Object backendObj = bundle.get("backend");
+        Map<String, Object> src = (backendObj instanceof Map) ? castMap(backendObj) : bundle;
+        addBundleList(arts, sessionId, userId, src.get("components"),   ComposerArtifact.TYPE_SCREEN_JSX);
+        addBundleList(arts, sessionId, userId, src.get("controllers"),  ComposerArtifact.TYPE_JAVA_CONTROLLER);
+        addBundleList(arts, sessionId, userId, src.get("services"),     ComposerArtifact.TYPE_JAVA_SERVICE);
+        addBundleList(arts, sessionId, userId, src.get("repositories"), ComposerArtifact.TYPE_JAVA_REPOSITORY);
+        addBundleList(arts, sessionId, userId, src.get("entities"),     ComposerArtifact.TYPE_JAVA_ENTITY);
+        addBundleList(arts, sessionId, userId, src.get("procedures"),   ComposerArtifact.TYPE_SQL_SP);
+
+        if (arts.isEmpty()) return 0;
+        artifactPersistService.saveWithSupersede(arts);
+        log.info("Composer 소스 아티팩트 import: session={} files={}", sessionId, arts.size());
+        return arts.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castMap(Object o) {
+        return (o instanceof Map) ? (Map<String, Object>) o : null;
+    }
+
+    private void addBundleList(List<ComposerArtifact> out, String sessionId, String userId,
+                               Object listObj, String type) {
+        if (!(listObj instanceof List)) return;
+        for (Object item : (List<?>) listObj) {
+            addBundleFile(out, sessionId, userId, item, type);
+        }
+    }
+
+    /** 번들의 파일 1개 — { path, source|content } — 를 아티팩트로 변환해 추가. */
+    private void addBundleFile(List<ComposerArtifact> out, String sessionId, String userId,
+                               Object fileObj, String type) {
+        Map<String, Object> f = castMap(fileObj);
+        if (f == null) return;
+        String path = f.get("path") == null ? null : String.valueOf(f.get("path"));
+        Object srcObj = f.get("source") != null ? f.get("source") : f.get("content");
+        String content = srcObj == null ? null : String.valueOf(srcObj);
+        if (path == null || path.isBlank() || content == null || content.isBlank()) return;
+
+        int idx = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        String fileName = idx >= 0 ? path.substring(idx + 1) : path;
+        String lower = fileName.toLowerCase();
+        String lang = lower.endsWith(".jsx") || lower.endsWith(".tsx") ? "jsx"
+                    : lower.endsWith(".java") ? "java"
+                    : lower.endsWith(".sql") ? "sql"
+                    : lower.endsWith(".js") ? "javascript" : "text";
+
+        out.add(ComposerArtifact.builder()
+                .sessionId(sessionId)
+                .artifactType(type)
+                .filePath(path)
+                .fileName(fileName)
+                .language(lang)
+                .content(content)
+                .versionNo(1)
+                .status(ComposerArtifact.STATUS_DRAFT)
+                .createBy(userId)
+                .createDttm(LocalDateTime.now())
+                .build());
+    }
+
+    /**
      * DISCARDED (supersede 된 이전 버전) 아티팩트를 hard delete — 사용자 명시 cleanup.
      * @return 삭제된 행 수
      */

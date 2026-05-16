@@ -832,6 +832,21 @@ sample 데이터로 렌더되고 실제 SP 를 호출하지 않으므로, SP/DDL
 | 화면 실행(Sample) 에서 SP/DDL 을 실행해 실패 시 화면을 오류로 판정 | preview 는 JSX 렌더만 판정 — SQL 검증은 [아티팩트 실행] 단계 |
 | SQL 을 정적 `targetDataSource` 에 실행해 세션 Target 과 불일치 | `resolveExecDataSource(a)` → 세션 targetCd 의 Target DB |
 
+## 18. EXISTING_MODIFY — 메뉴 소스를 세션 아티팩트로 import (2026-05-16)
+
+기존 화면 수정(자연어) 시작 시, 선택 메뉴의 **현재 소스 전체를 세션 아티팩트로 import** 한다 —
+사용자가 아티팩트 트리에서 "현재 기준 baseline" 을 보고 필요한 파일만 수정하도록.
+
+- `ModeExistingModify.handleStartNl` 가 `createSession` 후 `importSourceArtifacts(sid, sourceBundle)`
+  호출. `POST /composer/sessions/{id}/import-source-artifacts` → `ComposerService.importSourceArtifacts`.
+- `collectSourceForLlm` 번들(`screen` + `backend.{controllers,services,repositories,entities,procedures}`)
+  의 각 파일을 `ComposerArtifact` 로 저장: type 매핑(SCREEN_JSX·JAVA_*·SQL_SP) · `status=DRAFT` ·
+  `messageId=null`(=원본 baseline) · `filePath`=번들 경로 그대로.
+- 프롬프트는 "===FILE: 경로를 원본 그대로 출력" 을 지시 — Claude 수정본이 같은 filePath 면
+  `saveWithSupersede` 가 baseline 을 자동 갱신(이전 버전 DISCARDED). 미변경 파일은 baseline 유지.
+- SP DDL 은 `collectSourceForLlm` 이 수집하지 못함(경로 미마운트) — JSX+Java 위주.
+- 메뉴 트리 UI(`MenuTreeBrowser`)는 파스텔 글래스 테마로 개편 (표시명 1행 · MENU_CD+경로 2행).
+
 ## 관련 파일
 
 ### 백엔드 (Phase 1~2)

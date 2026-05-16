@@ -338,6 +338,21 @@ public class ComposerController {
     }
 
     /**
+     * EXISTING_MODIFY — 선택 메뉴의 소스 번들(collectSourceForLlm 응답)을 세션 아티팩트로 import.
+     * 사용자가 현재 기준 baseline 을 아티팩트 트리에서 보고 필요한 파일만 수정하도록 한다.
+     * body: collectSourceForLlm 응답 그대로. → { imported: N }
+     */
+    @PostMapping("/sessions/{sessionId}/import-source-artifacts")
+    public ResponseEntity<Map<String, Object>> importSourceArtifacts(
+            @PathVariable String sessionId,
+            @RequestBody Map<String, Object> bundle) {
+        int count = composerService.importSourceArtifacts(sessionId, currentUserId(), bundle);
+        Map<String, Object> out = new HashMap<>();
+        out.put("imported", count);
+        return ResponseEntity.ok(out);
+    }
+
+    /**
      * Supersede 된 이전 버전(STATUS_DISCARDED) 아티팩트를 일괄 hard delete.
      * 사용자가 "이전 버전 정리" 액션을 명시 호출했을 때만 실행.
      * @return { deleted: N }

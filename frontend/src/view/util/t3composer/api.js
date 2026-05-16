@@ -140,6 +140,13 @@ export const collectSourceForLlm = (menuCd, targetCd) =>
     composerReq()
   );
 
+/**
+ * EXISTING_MODIFY — collectSourceForLlm 로 받은 소스 번들을 세션 아티팩트(DRAFT 원본)로 import.
+ * 사용자가 현재 기준의 모든 파일을 아티팩트 트리에서 보고 필요한 부분만 수정. → { imported: N }
+ */
+export const importSourceArtifacts = (sessionId, bundle) =>
+  zAxios.post(`composer/sessions/${sessionId}/import-source-artifacts`, bundle || {}, composerReq());
+
 /** Target System DB 연결 정보 저장 / 테스트 */
 export const updateTargetDbConnection = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/db-connection`, payload, composerReq());

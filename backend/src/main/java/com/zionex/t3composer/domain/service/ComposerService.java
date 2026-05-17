@@ -484,9 +484,10 @@ public class ComposerService {
         }
 
         // System prompt 를 정적/세션 두 블록으로 분리.
-        // 정적 블록(INVARIANTS + BASE_SYSTEM + 모드별 가이드 + 재확인 후미) 에 cache_control 부착 →
-        // 같은 모드의 후속 호출은 5분 TTL 안에서 input token 비용 90% 절감 (Anthropic Prompt Caching).
-        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getMode());
+        // 정적 블록 (TB_CMP_TARGET_RULE + TB_CMP_TARGET_HOOK 의 content 합본) 에
+        // cache_control 부착 → 같은 target 의 후속 호출은 5분 TTL 안에서 input token
+        // 비용 90% 절감 (Anthropic Prompt Caching). targetCd 별로 캐시 키 자연 분리.
+        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getTargetCd());
         String sessionPart = promptBuilder.buildSessionSystemPrompt(session);
 
         List<SystemBlock> systemBlocks = new ArrayList<>();

@@ -38,7 +38,7 @@ function Step9Generate({ spec, module, pattern, onStart, starting, error, onChan
       />
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         아래 요약을 확인한 후 <b>생성 시작</b> 을 클릭하면 Claude 세션이 생성되고, 수집된 9단계 스펙이
-        LLM 에 전달되어 JSX · MENU_SQL 아티팩트가 생성됩니다.
+        LLM 에 전달되어 JSX · MENU_SQL 산출물이 생성됩니다.
       </Typography>
 
       {isCopyMode && (

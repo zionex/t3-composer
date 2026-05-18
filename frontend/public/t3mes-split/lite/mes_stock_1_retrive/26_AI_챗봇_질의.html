@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>AI 챗봇 질의</title>
+<!-- T3MES UI Pattern · mes_stock_1_retrive · TabPage #26: AI 챗봇 질의 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p25">
+  <div class="sec-hdr"><div><h3>㉖ 자연어 AI 챗봇 질의</h3><span class="tip">"강남 창고에 아이패드 몇 개 남아있어?" 라고 치면 AI가 쿼리를 변환해 결과를 줍니다.</span></div></div>
+  <div style="max-width:600px;margin:0 auto;height:450px;display:flex;flex-direction:column;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+    <div id="chat-box2" style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+      <div style="align-self:flex-end;background:var(--blue-dim);color:var(--blue);padding:10px 14px;border-radius:12px 12px 0 12px">부산 물류센터에 특정 그래픽카드 RTX 4090 재고 있어?</div>
+      <div style="align-self:flex-start;background:var(--surface3);padding:10px 14px;border-radius:12px 12px 12px 0;border-left:3px solid var(--blue)">🔍 데이터베이스 확인 결과입니다.<br><br><b>[RTX 4090 D6X 24GB]</b><br>📍 부산 물류센터: <b style="color:var(--green)">15개 가용</b> (총 18개 중 3개 예약됨)</div>
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="재고 관련 질문을 입력하세요..."><button class="btn btn-blue">전송</button></div>
+  </div>
+</div>

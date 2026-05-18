@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>분할/백오더</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #3: 분할/백오더 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 분할 출하 (Partial Shipment / Backorder)</h3><span class="tip">재고가 부족하여 수주량 500개 중 300개만 먼저 부분 출하하고, 200개는 백오더(잔량)로 남깁니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>고객사</th><th>품목명</th><th style="text-align:right">수주량</th><th style="text-align:right">현재고(WMS)</th><th style="text-align:right;color:var(--teal)">이번 출하량</th><th style="text-align:right;color:var(--rose)">백오더(이월잔량)</th><th>상태</th></tr></thead><tbody id="tb2"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-teal" onclick="showToast('분할 출하 처리 및 백오더 이월 완료')">분할 출하 승인</button></div>
+  </div>

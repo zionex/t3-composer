@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>품목 상세 폼</title>
+<!-- T3MES UI Pattern · mes_master_1 · TabPage #2: 품목 상세 폼 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+      <div class="sec-hdr"><div><h3>2. 품목 상세 속성 (Item Detail)</h3><span class="tip">좌측 리스트를 클릭하면 우측에 세부 제어 파라미터가 표시됩니다.</span></div></div>
+      <div class="grid2" style="grid-template-columns:320px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">품목 선택 (Master)</div><div class="tbl-wrap" style="border:none;max-height:500px"><table class="tbl"><tbody id="tb1-list"></tbody></table></div></div>
+        <div class="card" style="margin:0;padding:24px">
+          <div class="card-title" style="font-size:18px;color:var(--cyan);border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:20px" id="p1-title">품목을 선택하세요</div>
+          <div class="grid2" id="p1-form" style="opacity:0.3;pointer-events:none">
+            <div>
+              <div class="form-row"><div class="label">품목명 (Desc)</div><input class="inp" id="p1-desc" value=""></div>
+              <div class="form-row"><div class="label">규격 (Spec)</div><input class="inp" id="p1-spec" value=""></div>
+              <div class="form-row"><div class="label">조달유형</div><select class="inp" id="p1-type"><option>구매(Buy)</option><option>생산(Make)</option><option>외주(Sub)</option></select></div>
+              <div class="form-row"><div class="label">기본 단위 (UOM)</div><input class="inp" id="p1-uom" value=""></div>
+            </div>
+            <div>
+              <div class="form-row"><div class="label">안전재고 (SS)</div><input type="number" class="inp num" id="p1-ss" value=""></div>
+              <div class="form-row"><div class="label">최소발주량 (MOQ)</div><input type="number" class="inp num" id="p1-moq" value=""></div>
+              <div class="form-row"><div class="label">담당자 (PIC)</div><input class="inp" id="p1-pic" value=""></div>
+              <div class="form-row"><div class="label">사용 상태</div><select class="inp" id="p1-stat"><option>Active (사용중)</option><option>Obsolete (단종)</option></select></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;text-align:right"><button class="btn btn-blue" style="width:140px" onclick="showToast('품목 상세 정보가 저장되었습니다.')">수정 내용 저장</button></div>
+        </div>
+      </div>
+    </div>

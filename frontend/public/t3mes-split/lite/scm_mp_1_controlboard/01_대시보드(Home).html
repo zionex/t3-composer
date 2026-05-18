@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>대시보드(Home)</title>
+<!-- T3MES UI Pattern · scm_mp_1_controlboard · TabPage #1: 대시보드(Home) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr">
+      <div>
+        <h3 style="font-size:22px;color:var(--cyan)">🎛️ SCM Engine Master Dashboard</h3>
+        <span class="tip">엔진의 구동 상태, 파이프라인 진척도, 리소스, 로그 및 오류 내역을 한눈에 파악하고 제어하는 통합 관제소입니다.</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="background:var(--surface);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);display:flex;align-items:center;gap:10px;">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></span>
+          <span style="font-weight:700;font-family:var(--mono)">SYSTEM: ONLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card" style="border-color:var(--cyan)">
+        <div class="card-title" style="color:var(--cyan)">엔진 종합 제어 (Control)<span class="link-btn" onclick="goTab(2)">병렬설정 ➔</span></div>
+        <div style="background:var(--surface3);padding:16px;border-radius:8px;text-align:center;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text2)">현재 엔진 상태</div>
+          <div style="font-size:24px;font-weight:700;color:var(--green);margin-top:4px;font-family:var(--mono)">RUNNING (45%)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Job ID: RUN-2411-0089</div>
+        </div>
+        <div class="label">시나리오 대상 및 옵션</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="date" class="inp" value="2024-11-01">
+          <select class="inp"><option>Heuristic 최적화</option><option>LP 솔버</option></select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:auto">
+          <button class="btn btn-blue" style="flex:1" onclick="showToast('글로벌 엔진 구동을 시작합니다.')">▶ 전체 실행</button>
+          <button class="btn btn-red" style="flex:1" onclick="showToast('엔진 강제 중지 신호를 보냈습니다.')">■ 강제 중지</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">실시간 파이프라인 단계<span class="link-btn" onclick="goTab(8)">진척상세 ➔</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>1. I/F Data Extract</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>2. Master Data Check</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-active">3</div><div style="flex:1"><div style="color:var(--cyan);font-weight:bold">3. Heuristic Engine (Running)</div><div class="progress-bg"><div class="progress-bar" style="width:45%;background:var(--cyan)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">4</div><div style="flex:1;color:var(--text3)"><div>4. Post Processing</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">5</div><div style="flex:1;color:var(--text3)"><div>5. Result Publish</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">노드 리소스 현황<span class="link-btn" onclick="goTab(10)">관제화면 ➔</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster CPU Avg</span><span style="color:var(--amber)">78%</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:78%;background:var(--amber)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster Memory</span><span style="color:var(--red)">92% (118GB/128GB)</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:92%;background:var(--red)"></div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto">
+          <div style="background:var(--surface3);padding:10px;border-radius:6px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--green)">12</div><div style="font-size:10px;color:var(--text2)">Active Nodes</div></div>
+          <div style="background:var(--red-dim);padding:10px;border-radius:6px;text-align:center;border:1px solid var(--red)"><div style="font-size:18px;font-weight:700;color:var(--red)">1</div><div style="font-size:10px;color:var(--red)">Dead Nodes</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">최근 엔진 구동 이력<span class="link-btn" onclick="goTab(24)">결과비교 ➔</span></div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>Job ID</th><th>소요시간</th><th>상태</th></tr></thead>
+            <tbody id="dash-history"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--red)">
+        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)<span class="link-btn" style="color:var(--red)" onclick="goTab(12)">오류전체 ➔</span></div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>모듈</th><th>에러 내용</th></tr></thead>
+            <tbody id="dash-errors"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live Terminal (실시간 로그)<span class="link-btn" onclick="goTab(8)">로그상세 ➔</span></div>
+        <div class="terminal" id="dash-terminal" style="font-size:10px;height:100%;min-height:200px"></div>
+      </div>
+    </div>
+  </div>

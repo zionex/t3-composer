@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>QR 바코드 직조회</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #24: QR 바코드 직조회 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ QR/바코드 스캔 다이렉트 조회 (QR Scan)</h3><span class="tip">물건이 담긴 박스 표면의 QR코드를 스마트폰 카메라로 찍으면, 로그인 없이 즉시 해당 제품의 제조/배송 이력을 보여줍니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;border:2px dashed var(--rose);cursor:pointer" onclick="showToast('QR 스캔 완료 -> 정보 로드')">
+        <div style="width:150px;height:150px;background:#fff;padding:10px;display:flex;align-items:center;justify-content:center"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10,10 h30 v30 h-30 z M60,10 h30 v30 h-30 z M10,60 h30 v30 h-30 z M20,20 h10 v10 h-10 z M70,20 h10 v10 h-10 z M20,70 h10 v10 h-10 z M50,50 h10 v10 h-10 z' fill='%23000'/></svg>" width="100%" height="100%" style="opacity:0.8"></div>
+        <div style="margin-top:20px;font-weight:700;color:var(--rose)">클릭하여 가상 QR 스캔</div>
+      </div>
+      <div class="card" style="background:var(--surface2)">
+        <div class="card-title">스캔된 제품 인증 이력</div>
+        <div style="font-family:var(--mono);font-size:18px;color:var(--rose);font-weight:700;margin-bottom:12px">ID: SN-2024-ABCDEF</div>
+        <div class="tip">제조일: 2024-10-20 (정품 확인됨)</div>
+        <div class="tip">출하일: 2024-10-25</div>
+        <div class="tip">보증기간: 2025-10-25 까지</div>
+      </div>
+    </div>
+  </div>

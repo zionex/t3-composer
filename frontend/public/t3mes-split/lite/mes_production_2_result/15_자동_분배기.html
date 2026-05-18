@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>자동 분배기</title>
+<!-- T3MES UI Pattern · mes_production_2_result · TabPage #15: 자동 분배기 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14"><div class="sec-hdr"><div><h3>⑮ 자동 분배기 (Splitter) 마법사</h3><span class="tip">총 작업시간을 넣으면 작업량 비율대로 AI가 쪼개줍니다. (10개 품목 자동생성)</span></div></div><div class="card" style="display:flex;gap:12px;align-items:flex-end"><div style="flex:1"><div class="label">오늘 총 작업시간(분)</div><input type="number" class="inp" value="480" style="font-size:24px;font-weight:700;color:var(--amber)" id="split-tot"></div><button class="btn btn-amber" style="padding:14px" onclick="doSplit()">비율 자동 분배 ↓</button></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>작업지시</th><th>목표수량(가중치)</th><th style="color:var(--amber)">분배된 시간(분)</th></tr></thead><tbody id="tb14"></tbody></table></div></div>

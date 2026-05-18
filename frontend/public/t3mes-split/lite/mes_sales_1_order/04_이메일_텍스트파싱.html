@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>이메일 텍스트파싱</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #4: 이메일 텍스트파싱 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+  <div class="sec-hdr"><div><h3>④ 텍스트 파싱 (이메일 엑셀표 복붙)</h3><span class="tip">메일로 온 표를 붙여넣으면 AI가 그리드로 분리해 줍니다.</span></div><button class="btn btn-blue" onclick="doParse()">텍스트 파싱 실행 ↓</button></div>
+  <textarea class="inp" id="parse-inp" rows="10" style="font-family:var(--mono);font-size:12px;margin-bottom:16px">고객사명	품목명 (스펙)	주문수량	납기요청일
+삼성SDI	배터리 분리막 20um 롤	5000	2024-11-20
+LG에너지	음극재 코팅용 바인더	20000	2024-11-25
+SK온	알루미늄 파우치 필름	15000	2024-12-01
+에코프로	양극재 믹서 블레이드	100	2024-11-10
+포스코	흑연 분말 포대 (1톤)	500	2024-11-15</textarea>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>고객사</th><th>품목명</th><th>수량/단위</th><th>납기요청일</th></tr></thead><tbody id="tb3"><tr><td colspan="4" style="text-align:center;padding:30px">위 버튼을 누르면 파싱됩니다.</td></tr></tbody></table></div>
+</div>

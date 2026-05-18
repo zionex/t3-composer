@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단건 입고(PO)</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #1: 단건 입고(PO) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 발주 참조 단건 입고 (PO-based Receipt)</h3><span class="tip">가장 기본적인 1:1 발주(PO) 대비 입고 화면입니다. 트럭이 들어오면 송장과 PO를 대조합니다.</span></div><button class="btn btn-green" onclick="showToast('입고실적 생성 및 창고 재고 증가 완료')">입고 확정 (Receive)</button></div>
+    <div class="grid2">
+      <div>
+        <div class="card"><div class="card-title">입고 대상 발주(PO) 검색</div><div style="display:flex;gap:8px;margin-bottom:12px"><input type="text" class="inp" value="PO-2024-10-001" style="flex:1"><button class="btn btn-ghost">조회</button></div><div class="grid2"><div><div class="label">공급사</div><input type="text" class="inp" value="삼성전기 (수원)" disabled></div><div><div class="label">입고일자</div><input type="date" class="inp" value="2024-10-31"></div></div></div>
+        <div class="card"><div class="card-title">입고 품목 리스트 (Detail)</div><div class="tbl-wrap" style="max-height:250px"><table class="tbl"><thead><tr><th>품목</th><th>미입고잔량</th><th>실제 입고수량 입력</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">최근 입고 완료 이력 (50건)</div><div class="tbl-wrap" style="flex:1"><table class="tbl"><thead><tr><th>입고문서번호</th><th>공급사</th><th>총수량</th></tr></thead><tbody id="tb0_hist"></tbody></table></div></div>
+    </div>
+  </div>

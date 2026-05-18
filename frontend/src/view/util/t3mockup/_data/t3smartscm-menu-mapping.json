@@ -1,0 +1,2243 @@
+{
+  "stats": {
+    "totalMenus": 263,
+    "mappedCount": 263,
+    "mockupCoverage": {
+      "search_grid": {
+        "category": "core",
+        "count": 80
+      },
+      "widget_dashboard": {
+        "category": "core",
+        "count": 17
+      },
+      "grid_chart_stacked": {
+        "category": "core",
+        "count": 21
+      },
+      "v2_dual_grid": {
+        "category": "core",
+        "count": 22
+      },
+      "search_tab": {
+        "category": "core",
+        "count": 22
+      },
+      "P02b_grid_only": {
+        "category": "core",
+        "count": 5
+      },
+      "P09_chart_view": {
+        "category": "core",
+        "count": 0
+      },
+      "h2_tree_grid": {
+        "category": "core",
+        "count": 3
+      },
+      "rl_layout_design": {
+        "category": "core",
+        "count": 6
+      },
+      "cb_master_dashboard": {
+        "category": "core",
+        "count": 2
+      },
+      "pivot_table": {
+        "category": "core",
+        "count": 0
+      },
+      "split_master_detail": {
+        "category": "core",
+        "count": 0
+      },
+      "cb_gantt_master": {
+        "category": "domain",
+        "count": 0
+      },
+      "cb_chart_master": {
+        "category": "domain",
+        "count": 0
+      },
+      "pe_pivot_grid_edit": {
+        "category": "domain",
+        "count": 0
+      },
+      "pe_grid_edit": {
+        "category": "domain",
+        "count": 0
+      },
+      "pe_gantt_edit": {
+        "category": "domain",
+        "count": 0
+      },
+      "mn_kpi_dashboard": {
+        "category": "domain",
+        "count": 0
+      },
+      "mn_grid_alert": {
+        "category": "domain",
+        "count": 0
+      },
+      "mn_simple": {
+        "category": "domain",
+        "count": 0
+      },
+      "gantt_view": {
+        "category": "domain",
+        "count": 2
+      },
+      "v3_multi_grid": {
+        "category": "domain",
+        "count": 1
+      },
+      "v4_multi_grid": {
+        "category": "domain",
+        "count": 1
+      },
+      "h2_master_detail": {
+        "category": "domain",
+        "count": 0
+      },
+      "mix_split": {
+        "category": "domain",
+        "count": 4
+      },
+      "log_viewer": {
+        "category": "core",
+        "count": 3
+      },
+      "sim_compare": {
+        "category": "domain",
+        "count": 2
+      },
+      "analysis_report": {
+        "category": "core",
+        "count": 18
+      },
+      "fp_simulation_edit": {
+        "category": "domain",
+        "count": 4
+      },
+      "dev_tool": {
+        "category": "meta",
+        "count": 2
+      },
+      "dash_executive": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_overview": {
+        "category": "dashboard",
+        "count": 5
+      },
+      "dash_kpi_board": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_supply_kpi": {
+        "category": "dashboard",
+        "count": 4
+      },
+      "dash_ontime_sales": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_sales_growth": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_production_perf": {
+        "category": "dashboard",
+        "count": 2
+      },
+      "dash_simulation_kpi": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_inout_status": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_plan_problem": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_wip_eoh": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_sales_board": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_demand_board": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_supply_board": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_psi_board": {
+        "category": "dashboard",
+        "count": 0
+      },
+      "dash_inven_board": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "cb_bf_forecast": {
+        "category": "controlboard",
+        "count": 0
+      },
+      "cb_insight_prediction": {
+        "category": "controlboard",
+        "count": 1
+      },
+      "cb_dp_demand": {
+        "category": "controlboard",
+        "count": 0
+      },
+      "cb_bp_yearly": {
+        "category": "controlboard",
+        "count": 0
+      },
+      "popup": {
+        "category": "meta",
+        "count": 0
+      },
+      "widget_chart": {
+        "category": "meta",
+        "count": 0
+      },
+      "widget_grid": {
+        "category": "meta",
+        "count": 0
+      },
+      "widget_pivot": {
+        "category": "meta",
+        "count": 0
+      },
+      "widget_panel": {
+        "category": "meta",
+        "count": 0
+      },
+      "widget_misc": {
+        "category": "meta",
+        "count": 0
+      },
+      "subcomponent": {
+        "category": "meta",
+        "count": 0
+      },
+      "base_wrapper": {
+        "category": "meta",
+        "count": 0
+      },
+      "free_form": {
+        "category": "meta",
+        "count": 29
+      }
+    },
+    "byReasonTop": [
+      [
+        "inventory.patternCode",
+        206
+      ],
+      [
+        "folder: \\/analysis($|\\/)",
+        11
+      ],
+      [
+        "folder: \\/master($|\\/)",
+        8
+      ],
+      [
+        "folder: \\/dashboard($|\\/)",
+        5
+      ],
+      [
+        "folder: \\/analysisreport($|\\/)",
+        4
+      ],
+      [
+        "folder: \\/report($|\\/)",
+        3
+      ],
+      [
+        "keyword: entrylog|enginehistory|timehistory",
+        3
+      ],
+      [
+        "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart",
+        3
+      ],
+      [
+        "keyword: productionperformance",
+        2
+      ],
+      [
+        "keyword: supplyplankpi",
+        2
+      ],
+      [
+        "folder: \\/snop\\/mdb",
+        2
+      ],
+      [
+        "keyword: devmakedata|menubadge|systemconfig.*badge",
+        2
+      ],
+      [
+        "keyword: imsimulationcompare|simulationcompare|targetinventoryresultperiod",
+        2
+      ],
+      [
+        "keyword: ^\\/dashboard\\/salesboard|salesboard",
+        1
+      ],
+      [
+        "keyword: ^\\/dashboard\\/demandplanboard|demandplanboard",
+        1
+      ],
+      [
+        "keyword: ^\\/dashboard\\/invenboard|invenboard|inventoryboard",
+        1
+      ],
+      [
+        "keyword: iscontrolboard",
+        1
+      ],
+      [
+        "folder: \\/entry($|\\/)",
+        1
+      ],
+      [
+        "keyword: inoutstatusdashboard",
+        1
+      ],
+      [
+        "keyword: wipeohoutdashboard",
+        1
+      ],
+      [
+        "keyword: simulationkpidashboard|simulkpidashboard",
+        1
+      ],
+      [
+        "keyword: planproblemdashboard",
+        1
+      ],
+      [
+        "folder: \\/factoryplan\\/simulation($|\\/)",
+        1
+      ]
+    ]
+  },
+  "mockupToMenus": {
+    "widget_dashboard": [
+      {
+        "menuId": "UI_SA_EXECUTIVE_DASHBOARD",
+        "menuNm": "경영 대시보드",
+        "filePath": "/snop/dashboard/ExecutiveDashboard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_OVERVIEW",
+        "menuNm": "개요",
+        "filePath": "/dashboard/Overview",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_SUPPLY_BOARD",
+        "menuNm": "공급 대시보드",
+        "filePath": "/dashboard/SupplyBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_SALES_BOARD",
+        "menuNm": "영업 대시보드",
+        "filePath": "/dashboard/SalesBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_PSI_BOARD",
+        "menuNm": "PSI 대시보드",
+        "filePath": "/dashboard/PsiBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_INVENTORY_BOARD",
+        "menuNm": "재고 대시보드",
+        "filePath": "/dashboard/InvenBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DASH_KPI_BOARD",
+        "menuNm": "KPI 대시보드",
+        "filePath": "/dashboard/KpiBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_BASELINE_FORECAST_STATE",
+        "menuNm": "수요 예측 현황",
+        "filePath": "/baselineforecast/report/BaselineForecastBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_SALES_STATE",
+        "menuNm": "판매 현황",
+        "filePath": "/demandplan/dashboard/SalesBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_DEMAND_PLAN_STATE",
+        "menuNm": "수요 계획 현황",
+        "filePath": "/demandplan/dashboard/DemandPlanBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_INVENTORY_STATE",
+        "menuNm": "재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_LOCATION_INVENTORY_STATE",
+        "menuNm": "거점 재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_SLOWMOVING_STATE",
+        "menuNm": "부진 재고 현황",
+        "filePath": "/inventoryplan/analysis/SlowMoving",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_OBSOLETE_STATE",
+        "menuNm": "불용 재고 현황",
+        "filePath": "/inventoryplan/analysis/Obsolete",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_MASTER_PLAN_STATE",
+        "menuNm": "공급 계획 현황",
+        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_SUPPLYCHAIN",
+        "menuNm": "공급망 뷰어",
+        "filePath": "/supplychainmodel/SupplyChainViewer",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_DASHBOARD_MGMT",
+        "menuNm": "UI_UT_DASHBOARD_MGMT",
+        "filePath": "/util/DashboardTool",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "dash_sales_board": [
+      {
+        "menuId": "UI_SA_SALES_STATE",
+        "menuNm": "판매 현황",
+        "filePath": "/demandplan/dashboard/SalesBoard",
+        "reason": "keyword: ^\\/dashboard\\/salesboard|salesboard"
+      }
+    ],
+    "analysis_report": [
+      {
+        "menuId": "UI_SA_BASELINE_FORECAST_STATE",
+        "menuNm": "수요 예측 현황",
+        "filePath": "/baselineforecast/report/BaselineForecastBoard",
+        "reason": "folder: \\/report($|\\/)"
+      },
+      {
+        "menuId": "UI_SA_LOCATION_INVENTORY_STATE",
+        "menuNm": "거점 재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_SA_MASTER_PLAN_STATE",
+        "menuNm": "공급 계획 현황",
+        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+        "reason": "folder: \\/analysisreport($|\\/)"
+      },
+      {
+        "menuId": "UI_BF_56",
+        "menuNm": "인자 통계 보고서",
+        "filePath": "/baselineforecast/report/FactorStats",
+        "reason": "folder: \\/report($|\\/)"
+      },
+      {
+        "menuId": "UI_BF_59",
+        "menuNm": "결과 요약 보고서",
+        "filePath": "/baselineforecast/report/AccuracyAnalysisReport",
+        "reason": "folder: \\/report($|\\/)"
+      },
+      {
+        "menuId": "UI_IM_LOSS_INVENTORY",
+        "menuNm": "Loss 재고 현황",
+        "filePath": "/inventoryplan/analysis/LossInventory",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_IM_RETURN_INVENTORY",
+        "menuNm": "반품 재고 현황",
+        "filePath": "/inventoryplan/analysis/ReturnInventory",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_MP_SUPPLY_TREND",
+        "menuNm": "거점별 공급/출하/재고 추이",
+        "filePath": "/masterplan/analysisreport/SupplyTrend",
+        "reason": "folder: \\/analysisreport($|\\/)"
+      },
+      {
+        "menuId": "UI_MP_RTF",
+        "menuNm": "수요 - 공급 가능성 점검 (RTF)",
+        "filePath": "/masterplan/analysisreport/Rtf",
+        "reason": "folder: \\/analysisreport($|\\/)"
+      },
+      {
+        "menuId": "UI_MP_SHORTAGE_MONITORING",
+        "menuNm": "결품 예정 모니터링",
+        "filePath": "/masterplan/analysisreport/ShortageMonitoring",
+        "reason": "folder: \\/analysisreport($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_PLAN_DETAIL",
+        "menuNm": "작업 상세",
+        "filePath": "/factoryplan/analysis/PlanDetail",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_DISPATCH",
+        "menuNm": "자원별 작업 배치",
+        "filePath": "/factoryplan/analysis/DispatchList",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_DELIVERY",
+        "menuNm": "주문 납기 분석",
+        "filePath": "/factoryplan/analysis/DeliveryStatus",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_PROD_CUSTOMER",
+        "menuNm": "고객별 생산 계획 분석",
+        "filePath": "/factoryplan/analysis/ProdCustomer",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_WIP_PROFILE",
+        "menuNm": "작업 대기 분석",
+        "filePath": "/factoryplan/analysis/WipProfile",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_INOUT_STATUS",
+        "menuNm": "투입/생산 현황",
+        "filePath": "/factoryplan/analysis/InoutStatus",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_RES_PROD_PLAN",
+        "menuNm": "자원 생산 계획",
+        "filePath": "/factoryplan/analysis/ResProdPlan",
+        "reason": "folder: \\/analysis($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_PROD_SALES_STOCK_STATUS",
+        "menuNm": "생산/판매/재고 보고서",
+        "filePath": "/factoryplan/analysis/ProdSalesStockStatus",
+        "reason": "folder: \\/analysis($|\\/)"
+      }
+    ],
+    "dash_demand_board": [
+      {
+        "menuId": "UI_SA_DEMAND_PLAN_STATE",
+        "menuNm": "수요 계획 현황",
+        "filePath": "/demandplan/dashboard/DemandPlanBoard",
+        "reason": "keyword: ^\\/dashboard\\/demandplanboard|demandplanboard"
+      }
+    ],
+    "dash_inven_board": [
+      {
+        "menuId": "UI_SA_INVENTORY_STATE",
+        "menuNm": "재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryBoard",
+        "reason": "keyword: ^\\/dashboard\\/invenboard|invenboard|inventoryboard"
+      }
+    ],
+    "dash_production_perf": [
+      {
+        "menuId": "UI_SA_PRODUCTION_PERFORMANCE",
+        "menuNm": "생산 실적 분석",
+        "filePath": "/factoryplan/dashboard/ProductionPerformance",
+        "reason": "keyword: productionperformance"
+      },
+      {
+        "menuId": "UI_FP_PRODUCTION_PERFORMANCE",
+        "menuNm": "생산 실적 분석",
+        "filePath": "/factoryplan/dashboard/ProductionPerformance",
+        "reason": "keyword: productionperformance"
+      }
+    ],
+    "mix_split": [
+      {
+        "menuId": "UI_SA_MEETING",
+        "menuNm": "회의",
+        "filePath": "/snop/Meeting",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_33",
+        "menuNm": "판매 계획 점검 (품목)",
+        "filePath": "/demandplan/report/PlanCheckItem",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_01",
+        "menuNm": "공통 코드",
+        "filePath": "/system/CommonCode",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_06",
+        "menuNm": "라이선스",
+        "filePath": "/system/servermgmt/License",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "dash_supply_kpi": [
+      {
+        "menuId": "UI_SA_SUPPLY_PLAN_KPI",
+        "menuNm": "공급계획 KPI",
+        "filePath": "/snop/mdb/SupplyPlanKpi",
+        "reason": "keyword: supplyplankpi"
+      },
+      {
+        "menuId": "UI_SA_SUPPLY_PLAN_KPI_DTL4",
+        "menuNm": "확정 FP 이행율",
+        "filePath": "/snop/mdb/SupplyPlanKpiDtl4",
+        "reason": "keyword: supplyplankpi"
+      },
+      {
+        "menuId": "UI_SA_SUPPLY_MAT_PSI",
+        "menuNm": "공급자재 PSI",
+        "filePath": "/snop/mdb/SupplyMatPsi",
+        "reason": "folder: \\/snop\\/mdb"
+      },
+      {
+        "menuId": "UI_SA_SUPPLY_MAT_PSI_DETAIL",
+        "menuNm": "자재 Short 상세 현황",
+        "filePath": "/snop/mdb/SupplyMatPsiDetail",
+        "reason": "folder: \\/snop\\/mdb"
+      }
+    ],
+    "search_grid": [
+      {
+        "menuId": "UI_BF_17",
+        "menuNm": "예측 대상 분석",
+        "filePath": "/baselineforecast/master/AbcAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_97",
+        "menuNm": "계획입력(세로)",
+        "filePath": "/demandplan/entry/EntryExtra",
+        "reason": "folder: \\/entry($|\\/)"
+      },
+      {
+        "menuId": "UI_DP_40",
+        "menuNm": "버전별 수요계획 비교",
+        "filePath": "/demandplan/report/CompareVersion",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SO_ITEMTREND",
+        "menuNm": "품목별 공급 주문 추이",
+        "filePath": "/supplyorder/SoItemTrend",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_INVENTORY_DETAIL",
+        "menuNm": "재고 현황 상세",
+        "filePath": "/inventoryplan/analysis/InventoryDetail",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_ABCXYZ_ANALYSIS",
+        "menuNm": "ABC-XYZ 분석 상세",
+        "filePath": "/inventoryplan/analysis/AbcxyzAnalysisResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_SALES_SHIPPING_HISTORY_CHECK",
+        "menuNm": "판매 (출하) 실적 점검",
+        "filePath": "/inventoryplan/analysis/SalesShippingHistoryCheck",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_TARGET_INVENTORY_RESULT",
+        "menuNm": "목표 재고 시뮬레이션 결과",
+        "filePath": "/inventoryplan/planningsimulation/TargetInventoryResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_POLICY",
+        "menuNm": "보충 발주 정책",
+        "filePath": "/replenishmentplan/master/ReplenishmentPolicy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_25",
+        "menuNm": "발주 리스트",
+        "filePath": "/replenishmentplan/analysisreport/PoList",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_02",
+        "menuNm": "재공",
+        "filePath": "/masterplan/master/Wip",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_32",
+        "menuNm": "공급 주문 계획 결과",
+        "filePath": "/masterplan/analysisreport/PlanDetail",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_26",
+        "menuNm": "공급 계획 비교",
+        "filePath": "/masterplan/analysisreport/MpComparative",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_34",
+        "menuNm": "문제 현황 비교",
+        "filePath": "/masterplan/planningsimulation/ProblemAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FO_REQUEST_ANALYSIS",
+        "menuNm": "생산 요청 분석",
+        "filePath": "/factoryorder/RequestAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FO_ORDER_ADJUSTMENT",
+        "menuNm": "생산 주문 분석 및 조정",
+        "filePath": "/factoryorder/OrderAdjustment",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FO_MRP",
+        "menuNm": "생산 요청 납기 기준 자재 소요량",
+        "filePath": "/factoryorder/Mrp",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_SIMUL_STEP",
+        "menuNm": "시뮬레이션 절차",
+        "filePath": "/factoryplan/simulation/SimulationStep",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_PLAN_RESULT",
+        "menuNm": "공정(라인)별 계획 결과",
+        "filePath": "/factoryplan/analysis/PlanResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_RESRC_UTILIZATION",
+        "menuNm": "자원 가동률",
+        "filePath": "/factoryplan/analysis/ResourceUtilization",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_MATERIAL_PSI",
+        "menuNm": "자재 소요계획",
+        "filePath": "/factoryplan/analysis/MaterialPsi",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_ITEM_LEAD_TIME",
+        "menuNm": "품목별 L/T 분석",
+        "filePath": "/factoryplan/analysis/ItemLeadTime",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_JC_TIME_INFO",
+        "menuNm": "작업 교체 정보",
+        "filePath": "/factoryplan/analysis/JobChangeTimeInfo",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_42",
+        "menuNm": "판매 실적",
+        "filePath": "/demandplan/master/ActualSales",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_SHIPPING_ACTUAL",
+        "menuNm": "출하 실적",
+        "filePath": "/inventoryplan/master/ShippingActual",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_12",
+        "menuNm": "창고 재고",
+        "filePath": "/inventoryplan/master/WarehouseStock",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_13",
+        "menuNm": "이동중 재고",
+        "filePath": "/inventoryplan/master/InTransitStock",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_18",
+        "menuNm": "자재 입고 예정",
+        "filePath": "/masterplan/master/MaterialSupplyCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_02",
+        "menuNm": "거점",
+        "filePath": "/supplychainmodel/Site",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_18",
+        "menuNm": "품목",
+        "filePath": "/supplychainmodel/Item",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_04",
+        "menuNm": "거점 품목",
+        "filePath": "/supplychainmodel/SiteItem",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_07",
+        "menuNm": "출하 L/T",
+        "filePath": "/supplychainmodel/ShipmentLt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_08",
+        "menuNm": "거점 출하 일정",
+        "filePath": "/supplychainmodel/SiteShipmentSchedule",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_19",
+        "menuNm": "품목 출하 일정",
+        "filePath": "/supplychainmodel/ItemShipmentSchedule",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_14",
+        "menuNm": "출하 통관 휴무 캘린더",
+        "filePath": "/supplychainmodel/ShippingCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_12",
+        "menuNm": "수요 출하지",
+        "filePath": "/supplychainmodel/DemandMapping",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_11",
+        "menuNm": "저장 위치",
+        "filePath": "/inventoryplan/master/StorageLocation",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_BF_00",
+        "menuNm": "기준정보검증",
+        "filePath": "/baselineforecast/master/Validation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_07",
+        "menuNm": "품목별 인자",
+        "filePath": "/baselineforecast/master/SalesFactor",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_06",
+        "menuNm": "일자별 인자",
+        "filePath": "/baselineforecast/master/DateFactor",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_05",
+        "menuNm": "판매 실적 보정",
+        "filePath": "/baselineforecast/master/ActualSales",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_13",
+        "menuNm": "예측 대상",
+        "filePath": "/baselineforecast/master/ForecastTarget",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_09",
+        "menuNm": "기준 인자 설정",
+        "filePath": "/baselineforecast/master/Factor",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_09",
+        "menuNm": "품목",
+        "filePath": "/demandplan/master/Item",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_11",
+        "menuNm": "거래처",
+        "filePath": "/demandplan/master/Account",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_13",
+        "menuNm": "사용자-품목 관계",
+        "filePath": "/demandplan/master/UserItemMap",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_DP_15",
+        "menuNm": "사용자-품목-거래처관계",
+        "filePath": "/demandplan/master/UserItemAccountMap",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_41",
+        "menuNm": "Measure 데이터",
+        "filePath": "/demandplan/master/MeasureData",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_16",
+        "menuNm": "Dimension 데이터",
+        "filePath": "/demandplan/master/DimData",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_17",
+        "menuNm": "메져 기준 설정",
+        "filePath": "/demandplan/setting/Measure",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_18",
+        "menuNm": "화면 디멘전 설정",
+        "filePath": "/demandplan/setting/DimensionSet",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_19",
+        "menuNm": "화면 메져 설정",
+        "filePath": "/demandplan/setting/MeasureSet",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_05",
+        "menuNm": "재고 비용",
+        "filePath": "/inventoryplan/master/StockCost",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_DEMAND_RATE_CAL_BASE",
+        "menuNm": "수요율 산출 기준",
+        "filePath": "/inventoryplan/master/DemandRateBase",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_RP_01",
+        "menuNm": "보충 계획 대상",
+        "filePath": "/replenishmentplan/master/RpTarget",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_04",
+        "menuNm": "발주 주기 캘린더",
+        "filePath": "/replenishmentplan/master/OrderCycleCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_05",
+        "menuNm": "자재 제약",
+        "filePath": "/masterplan/master/MaterialConstraint",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_BYPRODUCT",
+        "menuNm": "연산품",
+        "filePath": "/masterplan/master/ByProduct",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_MP_LOC_HOLIDAY",
+        "menuNm": "거점 입고 캘린더",
+        "filePath": "/masterplan/master/SiteIncomingCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_17",
+        "menuNm": "품목기준 생산 운영 캘린더",
+        "filePath": "/masterplan/master/ItemProductionCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_14",
+        "menuNm": "생산주기 & 연속생산",
+        "filePath": "/masterplan/master/CycleConsecutive",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_35",
+        "menuNm": "최대 운영 자원",
+        "filePath": "/masterplan/master/MaxOpresGrp",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_13",
+        "menuNm": "선행생산 제약",
+        "filePath": "/masterplan/master/PreBuildLimit",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_VALIDATION",
+        "menuNm": "기준 정보 검증",
+        "filePath": "/factoryplan/master/Validation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_BYPRODUCT",
+        "menuNm": "연산품",
+        "filePath": "/factoryplan/master/Byproduct",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_RESOURCE",
+        "menuNm": "자원",
+        "filePath": "/factoryplan/master/Resource",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_FLO",
+        "menuNm": "FLO",
+        "filePath": "/factoryplan/master/Flo",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_RESOURCE_DOWNTIME",
+        "menuNm": "자원 휴무 관리",
+        "filePath": "/factoryplan/master/ResourceDownTime",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_STOCK",
+        "menuNm": "재고",
+        "filePath": "/factoryplan/master/Stock",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_WIP",
+        "menuNm": "재공",
+        "filePath": "/factoryplan/master/Wip",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_CONFIGURATION",
+        "menuNm": "환경설정",
+        "filePath": "/factoryplan/master/FpConfiguration",
+        "reason": "folder: \\/master($|\\/)"
+      },
+      {
+        "menuId": "UI_DATA_IMPORT_HISTORY",
+        "menuNm": "데이터 일괄 처리 이력",
+        "filePath": "/util/DataImportHistory",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_01",
+        "menuNm": "게시판",
+        "filePath": "/util/NoticeBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_ISSUE_MGMT",
+        "menuNm": "이슈 관리",
+        "filePath": "/util/IssueMgmt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_02",
+        "menuNm": "사용자",
+        "filePath": "/system/usermgmt/Users",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_18",
+        "menuNm": "사용자 위임",
+        "filePath": "/system/permission/UserDelegation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_07",
+        "menuNm": "다국어",
+        "filePath": "/system/Multilingual",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_10",
+        "menuNm": "사용자 접속 이력",
+        "filePath": "/system/systemanalysis/LoginHistory",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_THEME",
+        "menuNm": "테마 관리",
+        "filePath": "/system/ThemeMgmt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_SCHEDULER_JOB_HISTORY",
+        "menuNm": "작업 일정 실행 이력",
+        "filePath": "/system/schedulerjob/SchedulerJobHistory",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "grid_chart_stacked": [
+      {
+        "menuId": "UI_BF_58",
+        "menuNm": "실적 분석",
+        "filePath": "/baselineforecast/report/SalesAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_57",
+        "menuNm": "인자 분석",
+        "filePath": "/baselineforecast/report/FactorAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_50",
+        "menuNm": "수요 예측 결과",
+        "filePath": "/baselineforecast/report/ForecastResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_55",
+        "menuNm": "예측 정확도",
+        "filePath": "/baselineforecast/report/Accuracy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_ENTRY_NOTIFY",
+        "menuNm": "계획 점검",
+        "filePath": "/demandplan/entry/EntryNotify",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_28",
+        "menuNm": "판매 성과",
+        "filePath": "/demandplan/report/SalesPerformance",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_30",
+        "menuNm": " 실적-판매 비교",
+        "filePath": "/demandplan/report/CompareSalesDp",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_31",
+        "menuNm": "공급가능 분석",
+        "filePath": "/demandplan/report/RtfAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_VER_COMP_PROG",
+        "menuNm": "버전 추이 비교",
+        "filePath": "/demandplan/report/CompareVerProgress",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SO_DPANALYSIS",
+        "menuNm": "수요 계획 분석",
+        "filePath": "/supplyorder/DpAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SO_ANALYSIS",
+        "menuNm": "공급 주문 분석",
+        "filePath": "/supplyorder/SoAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SO_ADJUST",
+        "menuNm": "공급 주문 보정",
+        "filePath": "/supplyorder/SoAdjust",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_DEMAND_VARIABILITY_ANALYSIS",
+        "menuNm": "수요 변동성 분석",
+        "filePath": "/inventoryplan/analysis/DemandVariabilityAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_SUPPLY_VARIABILITY_ANALYSIS",
+        "menuNm": "공급 변동성 분석",
+        "filePath": "/inventoryplan/analysis/SupplyVariabilityAnalysis",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_14",
+        "menuNm": "보충 계획 비교",
+        "filePath": "/replenishmentplan/analysisreport/RpComparative",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_15",
+        "menuNm": "보충 계획 결과",
+        "filePath": "/replenishmentplan/analysisreport/RpResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_44",
+        "menuNm": "공급 주문 분포",
+        "filePath": "/masterplan/planningsimulation/DemandDistribution",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_RES_PROD_PLAN",
+        "menuNm": "자원 생산 계획",
+        "filePath": "/masterplan/analysisreport/ResProdPlan",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_31",
+        "menuNm": "자원 부하 분석",
+        "filePath": "/masterplan/analysisreport/ResUtilization",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_29",
+        "menuNm": "품목 생산 계획",
+        "filePath": "/masterplan/analysisreport/ResProductionPlanning",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_25",
+        "menuNm": "부족 / 지연 사유",
+        "filePath": "/masterplan/planningsimulation/ShortLateReason",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "cb_insight_prediction": [
+      {
+        "menuId": "UI_BF_18",
+        "menuNm": "수요 예측",
+        "filePath": "/baselineforecast/version/IsControlBoard",
+        "reason": "keyword: iscontrolboard"
+      }
+    ],
+    "cb_master_dashboard": [
+      {
+        "menuId": "UI_DP_93",
+        "menuNm": "버전관리",
+        "filePath": "/demandplan/version/ControlBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_93",
+        "menuNm": "버전관리",
+        "filePath": "/demandplan/yearlyplan/ControlBoard",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "free_form": [
+      {
+        "menuId": "UI_DP_94",
+        "menuNm": "진행상태",
+        "filePath": "/demandplan/version/ProcessStatus",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_22",
+        "menuNm": "계획 프로세스 설정",
+        "filePath": "/demandplan/setting/ControlBoardMaster",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_36",
+        "menuNm": "계획 정책 설정",
+        "filePath": "/demandplan/setting/PlanPolicy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_95",
+        "menuNm": "계획입력",
+        "filePath": "/demandplan/entry/Entry",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_95_CHART",
+        "menuNm": "계획입력 (챠트)",
+        "filePath": "/demandplan/entry/EntryChart",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_96",
+        "menuNm": "수요계획보고서",
+        "filePath": "/demandplan/entry/AllReport",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_96_CHART",
+        "menuNm": "수요계획 보고서 (챠트)",
+        "filePath": "/demandplan/entry/AllReportChart",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_94",
+        "menuNm": "진행 상태",
+        "filePath": "/demandplan/yearlyplan/ProcessStatus",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_95",
+        "menuNm": "목표계획 입력 ",
+        "filePath": "/demandplan/yearlyplan/Entry",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_95_CHART",
+        "menuNm": "목표계획 입력 (챠트)",
+        "filePath": "/demandplan/yearlyplan/EntryChart",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_96",
+        "menuNm": "목표계획 주문 정보",
+        "filePath": "/demandplan/yearlyplan/AllReport",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BP_96_CHART",
+        "menuNm": "목표계획 주문 정보 (챠트)",
+        "filePath": "/demandplan/yearlyplan/AllReportChart",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SO_TRANSFORM",
+        "menuNm": "공급 주문 변환",
+        "filePath": "/supplyorder/SoTransform",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_07",
+        "menuNm": "공급 주문",
+        "filePath": "/replenishmentplan/planningsimulation/DemandOverview",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_30",
+        "menuNm": "공급 주문 분포",
+        "filePath": "/replenishmentplan/planningsimulation/DemandDistribution",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_08",
+        "menuNm": "계획 정책",
+        "filePath": "/replenishmentplan/planningsimulation/PlanPolicy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_28",
+        "menuNm": "계획 시나리오",
+        "filePath": "/replenishmentplan/planningsimulation/PlanScenario",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_10",
+        "menuNm": "주문 추적",
+        "filePath": "/replenishmentplan/analysisreport/DemandOrderTracking",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_20",
+        "menuNm": "계획 정책",
+        "filePath": "/masterplan/planningsimulation/PlanPolicy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_43",
+        "menuNm": "계획 시나리오",
+        "filePath": "/masterplan/planningsimulation/PlanScenario",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FO_ORDER_CREATION",
+        "menuNm": "생산 주문 생성",
+        "filePath": "/factoryorder/OrderCreation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_SIMULATION",
+        "menuNm": "생산 계획 시뮬레이션",
+        "filePath": "/factoryplan/simulation/Simulation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_SIMUL_SCENARIO",
+        "menuNm": "시뮬레이션 시나리오",
+        "filePath": "/factoryplan/simulation/SimulationScenario",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_SIMUL_COMPARE",
+        "menuNm": "계획 결과 비교",
+        "filePath": "/factoryplan/simulation/SimulationCompare",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_STOCK_RESULT",
+        "menuNm": "재고 사용 현황",
+        "filePath": "/factoryplan/analysis/StockResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_01",
+        "menuNm": "환경 설정",
+        "filePath": "/masterplan/master/GeneralConfig",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_RESOURCE_CALENDAR",
+        "menuNm": "자원 캘린더",
+        "filePath": "/factoryplan/master/ResourceCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_CALENDAR",
+        "menuNm": "일정",
+        "filePath": "/snop/SnopCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_FLOWDIAGRAM",
+        "menuNm": "워크플로우 다이어그램",
+        "filePath": "/util/FlowDiagram",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "log_viewer": [
+      {
+        "menuId": "UI_DP_ENTRY_LOG",
+        "menuNm": "수요계획 입력 로그",
+        "filePath": "/demandplan/version/EntryLog",
+        "reason": "keyword: entrylog|enginehistory|timehistory"
+      },
+      {
+        "menuId": "UI_AD_ENGINE_HISTORY",
+        "menuNm": "엔진 실행 내역",
+        "filePath": "/system/servermgmt/EngineHistory",
+        "reason": "keyword: entrylog|enginehistory|timehistory"
+      },
+      {
+        "menuId": "UI_AD_19",
+        "menuNm": "화면 실행 시간 이력",
+        "filePath": "/system/systemanalysis/TimeHistory",
+        "reason": "keyword: entrylog|enginehistory|timehistory"
+      }
+    ],
+    "v2_dual_grid": [
+      {
+        "menuId": "UI_DP_32",
+        "menuNm": "판매 계획 점검 (거래처)",
+        "filePath": "/demandplan/report/PlanCheckSales",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_ABCXYZ_CLASSIFICATION",
+        "menuNm": "ABC-XYZ 분류",
+        "filePath": "/inventoryplan/analysis/Abcxyz",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_RP_09",
+        "menuNm": "보충 계획 시뮬레이션",
+        "filePath": "/replenishmentplan/planningsimulation/RPSimulation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_21",
+        "menuNm": "공급 계획 시뮬레이션",
+        "filePath": "/masterplan/planningsimulation/MPSimulation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_06",
+        "menuNm": "거점 BOD",
+        "filePath": "/supplychainmodel/SiteBod",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_10",
+        "menuNm": "거점 수송",
+        "filePath": "/supplychainmodel/Transportation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_11",
+        "menuNm": "글로벌 계획 BOM",
+        "filePath": "/supplychainmodel/PlanningBom",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_14",
+        "menuNm": "신-구 품목 매핑",
+        "filePath": "/baselineforecast/master/NewTargetSalesMap",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_BF_01",
+        "menuNm": "환경 설정",
+        "filePath": "/baselineforecast/master/Config",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_02",
+        "menuNm": "레벨",
+        "filePath": "/demandplan/master/Level",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_12",
+        "menuNm": "관리자-판매 관계",
+        "filePath": "/demandplan/master/SalesAuthMap",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_21",
+        "menuNm": "단위 가격",
+        "filePath": "/demandplan/master/SalesPrice",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_07",
+        "menuNm": "환율",
+        "filePath": "/demandplan/master/ExchangeRate",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_01",
+        "menuNm": "환경 설정",
+        "filePath": "/demandplan/setting/Config",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_08",
+        "menuNm": "품목기준 자원 우선순위",
+        "filePath": "/masterplan/master/ItemResPreference",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_03",
+        "menuNm": "품목 분류",
+        "filePath": "/masterplan/master/ItemClassification",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_03",
+        "menuNm": "사용자 그룹",
+        "filePath": "/system/usermgmt/UserGroup",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_05",
+        "menuNm": "사용자 권한",
+        "filePath": "/system/permission/UserPermission",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_04",
+        "menuNm": "사용자 그룹 권한",
+        "filePath": "/system/permission/GroupPermission",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_PLAN_SCOPE_USER",
+        "menuNm": "계획 범위 - 사용자",
+        "filePath": "/system/planscope/PlanScopeUser",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_PLAN_SCOPE_USER_GRP",
+        "menuNm": "계획 범위 - 사용자 그룹",
+        "filePath": "/system/planscope/PlanScopeUserGroup",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_GROUP_PREF",
+        "menuNm": "그리드 기본 구성 설정",
+        "filePath": "/system/systemconfig/Preference",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "dev_tool": [
+      {
+        "menuId": "UI_DP_Z_MAKE_DATA",
+        "menuNm": "데모데이타 자동 생성",
+        "filePath": "/demandplan/developer/DevMakeData",
+        "reason": "keyword: devmakedata|menubadge|systemconfig.*badge"
+      },
+      {
+        "menuId": "UI_AD_21",
+        "menuNm": "메뉴 뱃지",
+        "filePath": "/system/systemconfig/MenuBadge",
+        "reason": "keyword: devmakedata|menubadge|systemconfig.*badge"
+      }
+    ],
+    "search_tab": [
+      {
+        "menuId": "UI_IM_TARGET_INVENTORY_SIMULATION",
+        "menuNm": "목표 재고 시뮬레이션",
+        "filePath": "/inventoryplan/planningsimulation/TargetInventorySimulation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_19",
+        "menuNm": "공급 주문",
+        "filePath": "/masterplan/planningsimulation/DemandOverview",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_42",
+        "menuNm": "자원 현황",
+        "filePath": "/masterplan/analysisreport/ResStatus",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_30",
+        "menuNm": "반제품 / 자재 소요계획",
+        "filePath": "/masterplan/analysisreport/ConsumptionPlan",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_27",
+        "menuNm": "공급 계획 결과 (PSI)",
+        "filePath": "/masterplan/analysisreport/MpResult",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_41",
+        "menuNm": "품목 현황",
+        "filePath": "/masterplan/analysisreport/ItemStatus",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_GANTT_RESOURCE",
+        "menuNm": "자원 간트 차트",
+        "filePath": "/factoryplan/analysis/ResourceGantt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_03",
+        "menuNm": "등급 산정 대상",
+        "filePath": "/inventoryplan/master/GradeTarget",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_06",
+        "menuNm": "자원",
+        "filePath": "/masterplan/master/Resource",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_38",
+        "menuNm": "공정",
+        "filePath": "/masterplan/master/Routing",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_09",
+        "menuNm": "품목기준 자원 생산능력",
+        "filePath": "/masterplan/master/ItemResCapacity",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_11",
+        "menuNm": "공장 / 자원 캘린더",
+        "filePath": "/masterplan/master/PlantResCalendar",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_15",
+        "menuNm": "혼합생산 (최소할당)",
+        "filePath": "/masterplan/master/ProductMixMin",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_16",
+        "menuNm": "최대 생산 제약",
+        "filePath": "/masterplan/master/ProductMixMax",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_23",
+        "menuNm": "작업 교체 시간",
+        "filePath": "/masterplan/master/JobChangeTime",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_ITEM",
+        "menuNm": "품목",
+        "filePath": "/factoryplan/master/Item",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_BOM",
+        "menuNm": "BOM",
+        "filePath": "/factoryplan/master/Bom",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_BOR",
+        "menuNm": "BOR",
+        "filePath": "/factoryplan/master/Bor",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_JC_TIME",
+        "menuNm": "작업 교체 시간",
+        "filePath": "/factoryplan/master/JobChangeTime",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_ORDER",
+        "menuNm": "주문",
+        "filePath": "/factoryplan/master/Order",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DATA_IMPORT",
+        "menuNm": "데이터 일괄 처리",
+        "filePath": "/util/DataImport",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_PLAN_SCOPE",
+        "menuNm": "계획 범위",
+        "filePath": "/system/planscope/PlanScope",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "sim_compare": [
+      {
+        "menuId": "UI_IM_TARGET_INVENTORY_RESULT_PERIOD",
+        "menuNm": "기간별 목표 재고 시뮬레이션 결과",
+        "filePath": "/inventoryplan/planningsimulation/TargetInventoryResultPeriod",
+        "reason": "keyword: imsimulationcompare|simulationcompare|targetinventoryresultperiod"
+      },
+      {
+        "menuId": "UI_IM_SIMUL_COMPARE",
+        "menuNm": "시뮬레이션 결과 비교",
+        "filePath": "/inventoryplan/planningsimulation/ImSimulationCompare",
+        "reason": "keyword: imsimulationcompare|simulationcompare|targetinventoryresultperiod"
+      }
+    ],
+    "gantt_view": [
+      {
+        "menuId": "UI_MP_GANTT_RESOURCE",
+        "menuNm": "자원 간트 차트",
+        "filePath": "/masterplan/analysisreport/ResourceGantt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_GANTT_ORDER",
+        "menuNm": "주문 간트 차트",
+        "filePath": "/factoryplan/analysis/OrderGantt",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "rl_layout_design": [
+      {
+        "menuId": "UI_MP_22",
+        "menuNm": "공급 주문 추적",
+        "filePath": "/masterplan/analysisreport/DemandOrderTracking",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_05",
+        "menuNm": "글로벌 생산 BOM",
+        "filePath": "/supplychainmodel/ProductionBom",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_08",
+        "menuNm": "품목 계층",
+        "filePath": "/demandplan/master/ItemHierarchy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_10",
+        "menuNm": "판매 계층",
+        "filePath": "/demandplan/master/SalesHierarchy",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_ROUTE_CLASSIFICATION",
+        "menuNm": "공정 분류",
+        "filePath": "/masterplan/master/RouteClassification",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_FP_ROUTE",
+        "menuNm": "공정",
+        "filePath": "/factoryplan/master/Route",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "dash_overview": [
+      {
+        "menuId": "UI_FP_PLAN_VS_PERFORMANCE",
+        "menuNm": "실행 성과 분석",
+        "filePath": "/factoryplan/dashboard/FpVersusPerformance",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_INPUT_ORDER_CHECK",
+        "menuNm": "투입 오더 점검",
+        "filePath": "/factoryplan/dashboard/InputOrderBoard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_PLAN_AGAINST_PRFM",
+        "menuNm": "계획 대비 실적",
+        "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDashboard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_PLAN_AGAINST_PRFM_DETAIL",
+        "menuNm": "계획 대비 실적 상세",
+        "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDetailDashboard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD",
+        "menuNm": "투입 / 생산 현황 상세",
+        "filePath": "/factoryplan/dashboard/InOutStatusDetailDashboard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      }
+    ],
+    "dash_inout_status": [
+      {
+        "menuId": "UI_FP_IN_OUT_STATUS_DASHBOARD",
+        "menuNm": "투입 / 생산 현황",
+        "filePath": "/factoryplan/dashboard/InOutStatusDashboard",
+        "reason": "keyword: inoutstatusdashboard"
+      }
+    ],
+    "dash_wip_eoh": [
+      {
+        "menuId": "UI_FP_WIP_EOH_OUT_DASHBOARD",
+        "menuNm": "재공 투입 / 생산 현황",
+        "filePath": "/factoryplan/dashboard/WipEohOutDashboard",
+        "reason": "keyword: wipeohoutdashboard"
+      }
+    ],
+    "dash_simulation_kpi": [
+      {
+        "menuId": "UI_FP_SIMUL_KPI",
+        "menuNm": "계획 결과 요약",
+        "filePath": "/factoryplan/dashboard/SimulationKPIDashboard",
+        "reason": "keyword: simulationkpidashboard|simulkpidashboard"
+      }
+    ],
+    "dash_plan_problem": [
+      {
+        "menuId": "UI_FP_PLAN_PROBLEM_DASHBOARD",
+        "menuNm": "문제 현황",
+        "filePath": "/factoryplan/dashboard/PlanProblemDashboard",
+        "reason": "keyword: planproblemdashboard"
+      }
+    ],
+    "fp_simulation_edit": [
+      {
+        "menuId": "UI_FP_ADJUST_GANTT",
+        "menuNm": "생산 계획 보정 (Gantt)",
+        "filePath": "/factoryplan/simulation/AdjustmentGantt",
+        "reason": "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart"
+      },
+      {
+        "menuId": "UI_FP_ADJUST_GRID",
+        "menuNm": "생산 계획 보정 (그리드)",
+        "filePath": "/factoryplan/simulation/AdjustmentGrid",
+        "reason": "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart"
+      },
+      {
+        "menuId": "UI_FP_SIMUL_ADJ",
+        "menuNm": "생산 계획 조정",
+        "filePath": "/factoryplan/simulation/SimulationAdjustment",
+        "reason": "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart"
+      },
+      {
+        "menuId": "UI_FP_PROD_DISRUPTION_MONITORING",
+        "menuNm": "생산 차질 모니터링",
+        "filePath": "/factoryplan/simulation/ProdDisruptionMonitoring",
+        "reason": "folder: \\/factoryplan\\/simulation($|\\/)"
+      }
+    ],
+    "h2_tree_grid": [
+      {
+        "menuId": "UI_FP_ORDER_TRACKING",
+        "menuNm": "주문 추적",
+        "filePath": "/factoryplan/analysis/OrderTracking",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_MENU_MST",
+        "menuNm": "메뉴 관리",
+        "filePath": "/system/MenuMgmt",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_SA_WIDGET",
+        "menuNm": "위젯",
+        "filePath": "/snop/WidgetMgmt",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "P02b_grid_only": [
+      {
+        "menuId": "UI_CM_01",
+        "menuNm": "일반 설정",
+        "filePath": "/supplychainmodel/GeneralConfig",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_05",
+        "menuNm": "기준정보검증",
+        "filePath": "/demandplan/master/Validation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_VALIDATION",
+        "menuNm": "기준 정보 검증",
+        "filePath": "/masterplan/master/Validation",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_15",
+        "menuNm": "서버 현황",
+        "filePath": "/system/servermgmt/ServerStatus",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_AD_SCHEDULER_JOB_MGMT",
+        "menuNm": "작업 일정",
+        "filePath": "/system/schedulerjob/SchedulerJobMgmt",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "v3_multi_grid": [
+      {
+        "menuId": "UI_DP_USER_LEVEL_MAP",
+        "menuNm": "사용자-레벨 관계",
+        "filePath": "/demandplan/master/UserLevelMap",
+        "reason": "inventory.patternCode"
+      }
+    ],
+    "v4_multi_grid": [
+      {
+        "menuId": "UI_AD_22",
+        "menuNm": "통합 권한 조회",
+        "filePath": "/system/permission/TotalPermission",
+        "reason": "inventory.patternCode"
+      }
+    ]
+  },
+  "menuToMockup": {
+    "UI_SA_EXECUTIVE_DASHBOARD": "widget_dashboard",
+    "UI_SA_SALES_STATE": "dash_sales_board",
+    "UI_SA_BASELINE_FORECAST_STATE": "analysis_report",
+    "UI_SA_DEMAND_PLAN_STATE": "dash_demand_board",
+    "UI_SA_INVENTORY_STATE": "dash_inven_board",
+    "UI_SA_LOCATION_INVENTORY_STATE": "analysis_report",
+    "UI_SA_MASTER_PLAN_STATE": "analysis_report",
+    "UI_SA_PRODUCTION_PERFORMANCE": "dash_production_perf",
+    "UI_SA_MEETING": "mix_split",
+    "UI_SA_SUPPLY_PLAN_KPI": "dash_supply_kpi",
+    "UI_SA_SUPPLY_PLAN_KPI_DTL4": "dash_supply_kpi",
+    "UI_SA_SUPPLY_MAT_PSI": "dash_supply_kpi",
+    "UI_SA_SUPPLY_MAT_PSI_DETAIL": "dash_supply_kpi",
+    "UI_DASH_OVERVIEW": "widget_dashboard",
+    "UI_DASH_SUPPLY_BOARD": "widget_dashboard",
+    "UI_DASH_SALES_BOARD": "widget_dashboard",
+    "UI_DASH_PSI_BOARD": "widget_dashboard",
+    "UI_DASH_INVENTORY_BOARD": "widget_dashboard",
+    "UI_DASH_KPI_BOARD": "widget_dashboard",
+    "UI_BF_BASELINE_FORECAST_STATE": "widget_dashboard",
+    "UI_BF_17": "search_grid",
+    "UI_BF_58": "grid_chart_stacked",
+    "UI_BF_57": "grid_chart_stacked",
+    "UI_BF_56": "analysis_report",
+    "UI_BF_18": "cb_insight_prediction",
+    "UI_BF_50": "grid_chart_stacked",
+    "UI_BF_55": "grid_chart_stacked",
+    "UI_BF_59": "analysis_report",
+    "UI_DP_SALES_STATE": "widget_dashboard",
+    "UI_DP_DEMAND_PLAN_STATE": "widget_dashboard",
+    "UI_DP_93": "cb_master_dashboard",
+    "UI_DP_94": "free_form",
+    "UI_DP_22": "free_form",
+    "UI_DP_36": "free_form",
+    "UI_DP_ENTRY_LOG": "log_viewer",
+    "UI_DP_95": "free_form",
+    "UI_DP_95_CHART": "free_form",
+    "UI_DP_97": "search_grid",
+    "UI_DP_96": "free_form",
+    "UI_DP_96_CHART": "free_form",
+    "UI_DP_ENTRY_NOTIFY": "grid_chart_stacked",
+    "UI_DP_28": "grid_chart_stacked",
+    "UI_DP_30": "grid_chart_stacked",
+    "UI_DP_32": "v2_dual_grid",
+    "UI_DP_33": "mix_split",
+    "UI_DP_31": "grid_chart_stacked",
+    "UI_DP_40": "search_grid",
+    "UI_DP_VER_COMP_PROG": "grid_chart_stacked",
+    "UI_BP_93": "cb_master_dashboard",
+    "UI_BP_94": "free_form",
+    "UI_BP_95": "free_form",
+    "UI_BP_95_CHART": "free_form",
+    "UI_BP_96": "free_form",
+    "UI_BP_96_CHART": "free_form",
+    "UI_DP_Z_MAKE_DATA": "dev_tool",
+    "UI_SO_DPANALYSIS": "grid_chart_stacked",
+    "UI_SO_TRANSFORM": "free_form",
+    "UI_SO_ANALYSIS": "grid_chart_stacked",
+    "UI_SO_ADJUST": "grid_chart_stacked",
+    "UI_SO_ITEMTREND": "search_grid",
+    "UI_IM_INVENTORY_STATE": "widget_dashboard",
+    "UI_IM_LOCATION_INVENTORY_STATE": "widget_dashboard",
+    "UI_IM_INVENTORY_DETAIL": "search_grid",
+    "UI_IM_SLOWMOVING_STATE": "widget_dashboard",
+    "UI_IM_OBSOLETE_STATE": "widget_dashboard",
+    "UI_IM_LOSS_INVENTORY": "analysis_report",
+    "UI_IM_RETURN_INVENTORY": "analysis_report",
+    "UI_IM_ABCXYZ_CLASSIFICATION": "v2_dual_grid",
+    "UI_IM_ABCXYZ_ANALYSIS": "search_grid",
+    "UI_IM_SALES_SHIPPING_HISTORY_CHECK": "search_grid",
+    "UI_IM_DEMAND_VARIABILITY_ANALYSIS": "grid_chart_stacked",
+    "UI_IM_SUPPLY_VARIABILITY_ANALYSIS": "grid_chart_stacked",
+    "UI_IM_TARGET_INVENTORY_SIMULATION": "search_tab",
+    "UI_IM_TARGET_INVENTORY_RESULT": "search_grid",
+    "UI_IM_TARGET_INVENTORY_RESULT_PERIOD": "sim_compare",
+    "UI_IM_SIMUL_COMPARE": "sim_compare",
+    "UI_RP_07": "free_form",
+    "UI_RP_30": "free_form",
+    "UI_RP_POLICY": "search_grid",
+    "UI_RP_09": "v2_dual_grid",
+    "UI_RP_08": "free_form",
+    "UI_RP_28": "free_form",
+    "UI_RP_10": "free_form",
+    "UI_RP_14": "grid_chart_stacked",
+    "UI_RP_15": "grid_chart_stacked",
+    "UI_RP_25": "search_grid",
+    "UI_MP_MASTER_PLAN_STATE": "widget_dashboard",
+    "UI_MP_SUPPLY_TREND": "analysis_report",
+    "UI_MP_19": "search_tab",
+    "UI_MP_44": "grid_chart_stacked",
+    "UI_MP_02": "search_grid",
+    "UI_MP_21": "v2_dual_grid",
+    "UI_MP_20": "free_form",
+    "UI_MP_43": "free_form",
+    "UI_MP_RTF": "analysis_report",
+    "UI_MP_RES_PROD_PLAN": "grid_chart_stacked",
+    "UI_MP_42": "search_tab",
+    "UI_MP_31": "grid_chart_stacked",
+    "UI_MP_GANTT_RESOURCE": "gantt_view",
+    "UI_MP_30": "search_tab",
+    "UI_MP_27": "search_tab",
+    "UI_MP_41": "search_tab",
+    "UI_MP_29": "grid_chart_stacked",
+    "UI_MP_32": "search_grid",
+    "UI_MP_22": "rl_layout_design",
+    "UI_MP_26": "search_grid",
+    "UI_MP_SHORTAGE_MONITORING": "analysis_report",
+    "UI_MP_25": "grid_chart_stacked",
+    "UI_MP_34": "search_grid",
+    "UI_FO_REQUEST_ANALYSIS": "search_grid",
+    "UI_FO_ORDER_CREATION": "free_form",
+    "UI_FO_ORDER_ADJUSTMENT": "search_grid",
+    "UI_FO_MRP": "search_grid",
+    "UI_FP_PRODUCTION_PERFORMANCE": "dash_production_perf",
+    "UI_FP_PLAN_VS_PERFORMANCE": "dash_overview",
+    "UI_FP_INPUT_ORDER_CHECK": "dash_overview",
+    "UI_FP_PLAN_AGAINST_PRFM": "dash_overview",
+    "UI_FP_PLAN_AGAINST_PRFM_DETAIL": "dash_overview",
+    "UI_FP_IN_OUT_STATUS_DASHBOARD": "dash_inout_status",
+    "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD": "dash_overview",
+    "UI_FP_WIP_EOH_OUT_DASHBOARD": "dash_wip_eoh",
+    "UI_FP_SIMULATION": "free_form",
+    "UI_FP_SIMUL_SCENARIO": "free_form",
+    "UI_FP_SIMUL_STEP": "search_grid",
+    "UI_FP_SIMUL_KPI": "dash_simulation_kpi",
+    "UI_FP_PLAN_PROBLEM_DASHBOARD": "dash_plan_problem",
+    "UI_FP_SIMUL_COMPARE": "free_form",
+    "UI_FP_ADJUST_GANTT": "fp_simulation_edit",
+    "UI_FP_ADJUST_GRID": "fp_simulation_edit",
+    "UI_FP_SIMUL_ADJ": "fp_simulation_edit",
+    "UI_FP_PROD_DISRUPTION_MONITORING": "fp_simulation_edit",
+    "UI_FP_PLAN_DETAIL": "analysis_report",
+    "UI_FP_PLAN_RESULT": "search_grid",
+    "UI_FP_RESRC_UTILIZATION": "search_grid",
+    "UI_FP_STOCK_RESULT": "free_form",
+    "UI_FP_MATERIAL_PSI": "search_grid",
+    "UI_FP_GANTT_RESOURCE": "search_tab",
+    "UI_FP_GANTT_ORDER": "gantt_view",
+    "UI_FP_ORDER_TRACKING": "h2_tree_grid",
+    "UI_FP_ITEM_LEAD_TIME": "search_grid",
+    "UI_FP_JC_TIME_INFO": "search_grid",
+    "UI_FP_DISPATCH": "analysis_report",
+    "UI_FP_DELIVERY": "analysis_report",
+    "UI_FP_PROD_CUSTOMER": "analysis_report",
+    "UI_FP_WIP_PROFILE": "analysis_report",
+    "UI_FP_INOUT_STATUS": "analysis_report",
+    "UI_FP_RES_PROD_PLAN": "analysis_report",
+    "UI_FP_PROD_SALES_STOCK_STATUS": "analysis_report",
+    "UI_DP_42": "search_grid",
+    "UI_IM_SHIPPING_ACTUAL": "search_grid",
+    "UI_IM_12": "search_grid",
+    "UI_IM_13": "search_grid",
+    "UI_MP_18": "search_grid",
+    "UI_CM_01": "P02b_grid_only",
+    "UI_CM_02": "search_grid",
+    "UI_CM_18": "search_grid",
+    "UI_CM_04": "search_grid",
+    "UI_CM_06": "v2_dual_grid",
+    "UI_CM_07": "search_grid",
+    "UI_CM_08": "search_grid",
+    "UI_CM_10": "v2_dual_grid",
+    "UI_CM_19": "search_grid",
+    "UI_CM_14": "search_grid",
+    "UI_CM_05": "rl_layout_design",
+    "UI_CM_11": "v2_dual_grid",
+    "UI_CM_12": "search_grid",
+    "UI_IM_11": "search_grid",
+    "UI_CM_SUPPLYCHAIN": "widget_dashboard",
+    "UI_BF_00": "search_grid",
+    "UI_BF_07": "search_grid",
+    "UI_BF_06": "search_grid",
+    "UI_BF_05": "search_grid",
+    "UI_BF_13": "search_grid",
+    "UI_BF_14": "v2_dual_grid",
+    "UI_BF_09": "search_grid",
+    "UI_BF_01": "v2_dual_grid",
+    "UI_DP_05": "P02b_grid_only",
+    "UI_DP_02": "v2_dual_grid",
+    "UI_DP_08": "rl_layout_design",
+    "UI_DP_09": "search_grid",
+    "UI_DP_10": "rl_layout_design",
+    "UI_DP_11": "search_grid",
+    "UI_DP_12": "v2_dual_grid",
+    "UI_DP_13": "search_grid",
+    "UI_DP_USER_LEVEL_MAP": "v3_multi_grid",
+    "UI_DP_15": "search_grid",
+    "UI_DP_21": "v2_dual_grid",
+    "UI_DP_07": "v2_dual_grid",
+    "UI_DP_41": "search_grid",
+    "UI_DP_16": "search_grid",
+    "UI_DP_17": "search_grid",
+    "UI_DP_18": "search_grid",
+    "UI_DP_19": "search_grid",
+    "UI_DP_01": "v2_dual_grid",
+    "UI_IM_03": "search_tab",
+    "UI_IM_05": "search_grid",
+    "UI_IM_DEMAND_RATE_CAL_BASE": "search_grid",
+    "UI_RP_01": "search_grid",
+    "UI_RP_04": "search_grid",
+    "UI_MP_VALIDATION": "P02b_grid_only",
+    "UI_MP_05": "search_grid",
+    "UI_MP_06": "search_tab",
+    "UI_MP_38": "search_tab",
+    "UI_MP_08": "v2_dual_grid",
+    "UI_MP_09": "search_tab",
+    "UI_MP_BYPRODUCT": "search_grid",
+    "UI_MP_LOC_HOLIDAY": "search_grid",
+    "UI_MP_11": "search_tab",
+    "UI_MP_17": "search_grid",
+    "UI_CM_03": "v2_dual_grid",
+    "UI_MP_14": "search_grid",
+    "UI_MP_15": "search_tab",
+    "UI_MP_16": "search_tab",
+    "UI_MP_ROUTE_CLASSIFICATION": "rl_layout_design",
+    "UI_MP_35": "search_grid",
+    "UI_MP_23": "search_tab",
+    "UI_MP_13": "search_grid",
+    "UI_MP_01": "free_form",
+    "UI_FP_VALIDATION": "search_grid",
+    "UI_FP_ITEM": "search_tab",
+    "UI_FP_ROUTE": "rl_layout_design",
+    "UI_FP_BOM": "search_tab",
+    "UI_FP_BYPRODUCT": "search_grid",
+    "UI_FP_RESOURCE": "search_grid",
+    "UI_FP_BOR": "search_tab",
+    "UI_FP_FLO": "search_grid",
+    "UI_FP_RESOURCE_CALENDAR": "free_form",
+    "UI_FP_RESOURCE_DOWNTIME": "search_grid",
+    "UI_FP_JC_TIME": "search_tab",
+    "UI_FP_STOCK": "search_grid",
+    "UI_FP_WIP": "search_grid",
+    "UI_FP_ORDER": "search_tab",
+    "UI_FP_CONFIGURATION": "search_grid",
+    "UI_DATA_IMPORT": "search_tab",
+    "UI_DATA_IMPORT_HISTORY": "search_grid",
+    "UI_UT_01": "search_grid",
+    "UI_UT_CALENDAR": "free_form",
+    "UI_UT_FLOWDIAGRAM": "free_form",
+    "UI_UT_ISSUE_MGMT": "search_grid",
+    "UI_UT_DASHBOARD_MGMT": "widget_dashboard",
+    "UI_AD_22": "v4_multi_grid",
+    "UI_AD_02": "search_grid",
+    "UI_AD_03": "v2_dual_grid",
+    "UI_AD_05": "v2_dual_grid",
+    "UI_AD_04": "v2_dual_grid",
+    "UI_AD_18": "search_grid",
+    "UI_AD_PLAN_SCOPE": "search_tab",
+    "UI_AD_PLAN_SCOPE_USER": "v2_dual_grid",
+    "UI_AD_PLAN_SCOPE_USER_GRP": "v2_dual_grid",
+    "UI_AD_01": "mix_split",
+    "UI_AD_07": "search_grid",
+    "UI_AD_GROUP_PREF": "v2_dual_grid",
+    "UI_AD_21": "dev_tool",
+    "UI_AD_15": "P02b_grid_only",
+    "UI_AD_06": "mix_split",
+    "UI_AD_ENGINE_HISTORY": "log_viewer",
+    "UI_AD_10": "search_grid",
+    "UI_AD_19": "log_viewer",
+    "UI_AD_MENU_MST": "h2_tree_grid",
+    "UI_SA_WIDGET": "h2_tree_grid",
+    "UI_AD_THEME": "search_grid",
+    "UI_AD_SCHEDULER_JOB_MGMT": "P02b_grid_only",
+    "UI_AD_SCHEDULER_JOB_HISTORY": "search_grid"
+  }
+}

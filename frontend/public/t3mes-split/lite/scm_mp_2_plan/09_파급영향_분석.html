@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>파급영향 분석</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #9: 파급영향 분석 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p8">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑨ 파급 영향 분석 & 연쇄 보정 (Ripple Effect)</h3>
+      <span class="tip">납기 변경 시 하위 공정/재고에 미치는 연쇄 영향을 트리로 보여줍니다.</span>
+    </div>
+    <button class="btn btn-amber" onclick="showToast('연쇄 자동 보정 완료')">⚡ 연쇄 자동 보정</button>
+  </div>
+  <div class="grid2" style="grid-template-columns:340px 1fr">
+    <div class="card" style="margin:0">
+      <div class="card-title">보정 트리거 선택</div>
+      <select class="inp" style="margin-bottom:10px"><option>PO-2026-0042</option></select>
+      <select class="inp" style="margin-bottom:10px"><option>납기일 변경 (+3일)</option></select>
+      <button class="btn btn-blue" style="width:100%" onclick="genP8()">분석 실행 ▶</button>
+    </div>
+    <div class="card" style="margin:0;max-height:500px;overflow-y:auto">
+      <div class="card-title">파급 영향 트리 <span id="impact-stat" class="badge b-gray">분석 전</span></div>
+      <div id="impact-tree"></div>
+    </div>
+  </div>
+</div>

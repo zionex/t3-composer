@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>8D Report 폼</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #15: 8D Report 폼 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 8D Report (근본원인 개선대책) 입력 폼</h3><span class="tip">중대 클레임 발생 시 고객에게 제출하는 표준 품질 개선 양식(8 Disciplines)의 단계별 텍스트 입력 창입니다.</span></div></div>
+    <div class="card">
+      <div class="grid2" style="margin-bottom:16px"><div><div class="label">D1. 팀 구성 (Team Formation)</div><input type="text" class="inp" value="품질팀장, 생산팀장, 기술연구소"></div><div><div class="label">D2. 문제 설명 (Problem Description)</div><input type="text" class="inp" value="전원 인가 시 발열 쇼트 (불량률 2.5%)"></div></div>
+      <div class="label">D3. 임시 봉쇄 조치 (Containment Action)</div><textarea class="inp" rows="2" style="margin-bottom:16px">창고 내 동일 생산일자 재고 전량 출하 정지(Hold) 및 전수검사 지시</textarea>
+      <div class="label" style="color:var(--red)">D4. 근본 원인 분석 (Root Cause Analysis - 5 Whys)</div><textarea class="inp" rows="3" style="border-color:var(--red);margin-bottom:16px">1. 칩 표면 파티클 유입 -> 2. 클린룸 필터 교체주기 초과 -> 3. 유지보수 알람 시스템 미비...</textarea>
+      <div class="label" style="color:var(--green)">D5/D6. 영구 시정 조치 (Corrective Action)</div><textarea class="inp" rows="2" style="margin-bottom:16px">클린룸 HEPA 필터 즉시 교체 및 IoT 차압 센서 연동 알람 시스템 구축</textarea>
+      <button class="btn btn-purple" style="width:100%;padding:14px" onclick="showToast('8D Report가 고객 양식(PDF)으로 출력됩니다.')">8D Report 승인 및 문서(PDF) 발행</button>
+    </div>
+  </div>

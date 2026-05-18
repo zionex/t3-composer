@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>결품 원인 심층분석</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #18: 결품 원인 심층분석 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 결품 (Shortage) 원인 심층 분석 트래커</h3><span class="tip">주문이 멈춰있을 때 "왜 안 가지?"를 클릭하면, "하위 부품 C가 결품인데, 그 부품을 공급하는 업체 트럭이 퍼졌음"까지 깊게 파고듭니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red);background:var(--red-dim)"><div class="card-title" style="color:var(--red)">🚨 배송 보류 (Hold) 오더</div><div style="font-size:18px;font-weight:700">SO-HOLD-999 (특수 로봇 조립)</div><div style="margin-top:10px">사유: 생산 라인 결품(Shortage)으로 인한 생산 중단</div></div>
+      <div class="card"><div class="card-title">Root Cause (근본 원인) 역추적</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-bottom:8px">1. 조립 공정 중단 (사유: 모터 컨트롤러 부품 없음)</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-bottom:8px;margin-left:20px">2. WMS 재고 조회 (사유: 컨트롤러 현재고 0개)</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-left:40px;background:var(--surface3)">3. 구매 PO 추적: 공급사(성진전자) <b>납기 5일 지연 통보</b> 확인됨</div>
+      </div>
+    </div>
+  </div>

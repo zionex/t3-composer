@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>가상 바코드</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #17: 가상 바코드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ 사내 바코드 라벨(Label) 가상 생성/출력</h3><span class="tip">외부 협력사가 바코드 없이 맹물로 물건을 보냈을 때, 우리 회사 시스템의 관리용 1D/2D 바코드를 즉시 발급하여 박스에 붙입니다.</span></div></div>
+    <div class="grid2">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>무바코드 입고 자재 (라벨 발행대상)</th><th>수량</th><th>액션</th></tr></thead><tbody id="tb16"></tbody></table></div>
+      <div class="card" style="margin:0;text-align:center;display:flex;flex-direction:column;justify-content:center;background:#fff;color:#000">
+        <div style="font-size:18px;font-weight:700;margin-bottom:10px" id="lbl-name">선택된 자재명</div>
+        <div style="font-family:var(--mono);font-size:50px;letter-spacing:2px;margin:20px 0">||| | |||| ||</div>
+        <div style="font-family:var(--mono);font-size:16px;margin-bottom:20px" id="lbl-id">RM-2024-XXXX</div>
+        <button class="btn btn-blue" style="margin-top:auto" onclick="showToast('바코드 프린터(Zebra)로 인쇄 지시가 전송되었습니다.')">🖨️ Zebra 라벨 프린터로 인쇄</button>
+      </div>
+    </div>
+  </div>

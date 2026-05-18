@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>병합 출하</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #4: 병합 출하 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 병합 출하 (Consolidated Shipment) 모아보내기</h3><span class="tip">동일한 고객(예: 쿠팡 동탄물류)에게 가는 자잘한 수주 10건을 하나로 묶어서(Merge) 운송비와 포장비를 아낍니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title">출하 대기중인 자잘한 오더들 (동일 고객사)</div><div class="tbl-wrap" style="max-height:400px"><table class="tbl"><thead><tr><th><input type="checkbox" checked disabled></th><th>오더번호</th><th>품목</th><th>수량</th></tr></thead><tbody id="tb3"></tbody></table></div></div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:var(--surface2)">
+        <div style="font-size:50px;margin-bottom:16px">📦</div><div style="font-size:18px;font-weight:700">1개의 통합 출하 명세서 (Packing List) 발행</div>
+        <div style="color:var(--text2);margin:12px 0;text-align:center">총 <b style="color:var(--teal)">25건</b>의 오더가 하나의 팔레트로 병합됩니다.<br>배송비 절감 예상: ₩ 150,000</div>
+        <button class="btn btn-teal" style="padding:16px;width:80%" onclick="showToast('통합 출하 문서가 발행되었습니다.')">통합 출하 (Merge & Ship) ➔</button>
+      </div>
+    </div>
+  </div>

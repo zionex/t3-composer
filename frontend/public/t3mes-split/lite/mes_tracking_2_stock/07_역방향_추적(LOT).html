@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>역방향 추적(LOT)</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #7: 역방향 추적(LOT) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 역방향 추적 (Backward Traceability: Prod ➔ Mat)</h3><span class="tip">고객 클레임이 들어온 완제품 LOT를 입력하면, 그 제품을 만들 때 들어갔던 모든 원자재 LOT와 작업자/설비를 역추적합니다.</span></div></div>
+    <div class="card" style="display:flex;align-items:center;gap:16px;background:var(--rose-dim);border-color:var(--rose)"><div class="label" style="color:var(--rose);margin:0">클레임 완제품 LOT</div><input type="text" class="inp" value="PROD-LOT-999-ERR" style="font-family:var(--mono);font-weight:700;width:200px;border-color:var(--rose)"><button class="btn btn-rose" onclick="showToast('투입 원자재 역전개 완료')">원인 자재 역추적 ➔</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>투입된 공정</th><th>투입된 원자재 LOT</th><th>자재명</th><th>공급사</th><th>당시 작업자/설비</th></tr></thead><tbody id="tb6"></tbody></table></div>
+  </div>

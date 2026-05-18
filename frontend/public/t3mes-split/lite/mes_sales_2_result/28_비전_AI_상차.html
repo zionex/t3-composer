@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>비전 AI 상차</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #28: 비전 AI 상차 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 비전 AI 상차 검수 (Vision AI Loading)</h3><span class="tip">도크 도어에 설치된 카메라가 트럭에 실리는 박스들을 초당 수십 개씩 이미지로 분석해 바코드를 스캔할 필요도 없이 자동 상차 처리합니다.</span></div></div>
+    <div class="grid2">
+      <div style="height:300px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative"><span style="font-size:40px;opacity:0.5">🎥 AI Camera View</span><div style="position:absolute;width:100%;height:4px;background:var(--cyan);top:50%;box-shadow:0 0 10px var(--cyan);animation:scanVision 2s infinite"></div></div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="font-size:40px;color:var(--green)">✅</div><div style="font-size:16px;font-weight:700;margin:16px 0">트럭 내 적재 완료 (150 Box)</div><button class="btn btn-cyan" style="padding:16px" onclick="showToast('비전 AI 기반 자동 출하 완료')">카메라 인식 데이터로 출하 확정</button></div>
+    </div><style>@keyframes scanVision{0%{top:0}50%{top:100%}100%{top:0}}</style>
+  </div>

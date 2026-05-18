@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Retrieval UI (30 Types) - Advanced Data Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252a3d;
+  --border:#2a3050;--border2:#3a4570;
+  --green:#00d68f;--green-dim:#00d68f22;--red:#ff4d6d;--red-dim:#ff4d6d22;
+  --amber:#ffb347;--amber-dim:#ffb34722;--blue:#4d9fff;--blue-dim:#4d9fff22;
+  --pink:#ff66a3;--pink-dim:#ff66a322;--purple:#9d72ff;--purple-dim:#9d72ff22;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff22;--orange:#ff8a00;--orange-dim:#ff8a0022;
+  --text:#e8ecf4;--text2:#a0aabf;--text3:#5a6480;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-btn.active{background:var(--surface2);color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:700}
+.tab-btn.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.tab-btn.grp2{color:var(--cyan)}.tab-btn.grp2.active{color:var(--cyan);border-bottom-color:var(--cyan)}.tab-btn.grp2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.tab-btn.grp3{color:var(--green)}.tab-btn.grp3.active{color:var(--green);border-bottom-color:var(--green)}.tab-btn.grp3.active .tab-num{color:var(--green);background:var(--green-dim)}
+.tab-btn.grp4{color:var(--orange)}.tab-btn.grp4.active{color:var(--orange);border-bottom-color:var(--orange)}.tab-btn.grp4.active .tab-num{color:var(--orange);background:var(--orange-dim)}
+.tab-btn.grp5{color:var(--pink)}.tab-btn.grp5.active{color:var(--pink);border-bottom-color:var(--pink)}.tab-btn.grp5.active .tab-num{color:var(--pink);background:var(--pink-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1}
+.panel.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables & Grids */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.tbl tr.child-row td{background:var(--surface2);color:var(--text2)}
+
+/* Forms & Buttons */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none}
+.inp:focus{border-color:var(--blue)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);border-color:#4d9fff55;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#00e5ff55;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.btn-orange{background:var(--orange-dim);border-color:#ff8a0055;color:var(--orange)}
+.btn-pink{background:var(--pink-dim);border-color:#ff66a355;color:var(--pink)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* Layouts & Utils */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.badge{padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700;display:inline-block}
+.b-green{background:var(--green-dim);color:var(--green)}.b-red{background:var(--red-dim);color:var(--red)}.b-amber{background:var(--amber-dim);color:var(--amber)}
+
+/* Custom UI Patterns */
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.img-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;position:relative}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px}
+.k-col{width:300px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px}
+.map-canvas{position:relative;width:100%;height:400px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background-image:radial-gradient(var(--border) 1px, transparent 1px);background-size:20px 20px}
+.map-pin{position:absolute;width:16px;height:16px;background:var(--blue);border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px rgba(0,0,0,0.5);cursor:pointer}
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative}
+.rack-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;background:var(--surface3);padding:16px;border-radius:var(--radius)}
+.rack-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);cursor:pointer}
+.watch-frame{width:220px;height:220px;border:10px solid #222;border-radius:50%;margin:0 auto;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;overflow:hidden;position:relative}
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--blue)}
+
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">기본 그리드<span class="tab-num">1</span></button>
+  <button class="tab-btn" onclick="switchTab(1)">이미지 갤러리<span class="tab-num">2</span></button>
+  <button class="tab-btn" onclick="switchTab(2)">멀티 창고 매트릭스<span class="tab-num">3</span></button>
+  <button class="tab-btn" onclick="switchTab(3)">BOM/트리 전개<span class="tab-num">4</span></button>
+  <button class="tab-btn" onclick="switchTab(4)">다중 UOM 조회<span class="tab-num">5</span></button>
+  <button class="tab-btn" onclick="switchTab(5)">수불부 (Cardex)<span class="tab-num">6</span></button>
+  
+  <button class="tab-btn grp2" onclick="switchTab(6)">안전재고(ROP) 경고<span class="tab-num">7</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(7)">유통기한/로트 추적<span class="tab-num">8</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(8)">시리얼 넘버 드릴다운<span class="tab-num">9</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(9)">상태 칸반(Kanban)<span class="tab-num">10</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(10)">품질(QC) 보류 상태<span class="tab-num">11</span></button>
+  <button class="tab-btn grp2" onclick="switchTab(11)">장기 체화(Aging) 재고<span class="tab-num">12</span></button>
+  
+  <button class="tab-btn grp3" onclick="switchTab(12)">지도 기반 분포<span class="tab-num">13</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(13)">3D 랙(Rack) 맵<span class="tab-num">14</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(14)">빈(Bin) 적재율 히트맵<span class="tab-num">15</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(15)">KPI 대시보드<span class="tab-num">16</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(16)">시즌별 트렌드 히트맵<span class="tab-num">17</span></button>
+  <button class="tab-btn grp3" onclick="switchTab(17)">ATP 타임라인<span class="tab-num">18</span></button>
+
+  <button class="tab-btn grp4" onclick="switchTab(18)">ABC 등급 분류<span class="tab-num">19</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(19)">크로스도킹 매핑<span class="tab-num">20</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(20)">키트/조립 가능량<span class="tab-num">21</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(21)">의류/옵션 매트릭스<span class="tab-num">22</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(22)">실사(Cycle Count) 입력<span class="tab-num">23</span></button>
+  <button class="tab-btn grp4" onclick="switchTab(23)">공급사(Vendor) 포털<span class="tab-num">24</span></button>
+
+  <button class="tab-btn grp5" onclick="switchTab(24)">모바일 바코드 스캐너<span class="tab-num">25</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(25)">AI 챗봇 질의<span class="tab-num">26</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(26)">음성 검색 (Voice)<span class="tab-num">27</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(27)">스마트워치 퀵뷰<span class="tab-num">28</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(28)">사용자정의 엑셀 추출<span class="tab-num">29</span></button>
+  <button class="tab-btn grp5" onclick="switchTab(29)">오프라인 캐시 모드<span class="tab-num">30</span></button>
+</div>
+
+<div class="panel active" id="p0">
+  <div class="sec-hdr"><div><h3>① 마스터 그리드 뷰</h3><span class="tip">가장 기본적인 엑셀 형태의 재고 조회. 다양한 조건으로 필터링합니다.</span></div></div>
+  <div class="card"><div class="grid4"><div><input type="text" class="inp" placeholder="품목코드/명 검색"></div><div><select class="inp"><option>모든 창고</option><option>본사 물류센터</option></select></div><div><select class="inp"><option>카테고리 전체</option></select></div><div><button class="btn btn-blue" style="width:100%" onclick="genP0()">조회</button></div></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th>카테고리</th><th>창고</th><th class="num">현재고</th><th class="num">가용재고</th><th class="num">단가</th><th>상태</th></tr></thead><tbody id="tb0"></tbody></table></div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="sec-hdr"><div><h3>② 이미지 갤러리 뷰</h3><span class="tip">B2B 몰이나 직관적인 제품 확인이 필요할 때 이미지를 중심으로 재고를 확인합니다.</span></div></div>
+  <div class="img-grid" id="tb1"></div>
+</div>
+
+<div class="panel" id="p2">
+  <div class="sec-hdr"><div><h3>③ 다중 창고 교차(Cross-tab) 매트릭스</h3><span class="tip">하나의 품목이 전국 여러 창고에 얼마나 분산되어 있는지 한눈에 봅니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead id="th2"></thead><tbody id="tb2"></tbody></table></div>
+</div>
+
+<div class="panel" id="p3">
+  <div class="sec-hdr"><div><h3>④ BOM / 계층형 구조 재고 조회</h3><span class="tip">완제품의 재고뿐만 아니라, 하위 구성품(Assy, Raw Material)의 재고를 트리 형태로 펼쳐봅니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>구조</th><th>품목명</th><th>BOM소요량</th><th class="num">현재고</th><th class="num">부족분</th></tr></thead><tbody id="tb3"></tbody></table></div>
+</div>
+
+<div class="panel" id="p4">
+  <div class="sec-hdr"><div><h3>⑤ 다중 단위(UOM) 동시 조회</h3><span class="tip">단일 재고를 Pallet, Box, EA 단위로 실시간 환산하여 보여줍니다.</span></div></div>
+  <div class="grid4" id="tb4"></div>
+</div>
+
+<div class="panel" id="p5">
+  <div class="sec-hdr"><div><h3>⑥ 품목 수불부 (Cardex / Ledger)</h3><span class="tip">특정 품목의 과거 입출고 내역과 기말재고 변화 흐름을 추적합니다.</span></div></div>
+  <div class="card" style="padding:12px;background:var(--surface3);margin-bottom:12px"><b style="color:var(--blue)">ITM-9923 (고성능 모터)</b> - 현재고: 1,500 EA</div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>일자</th><th>트랜잭션 유형</th><th>참조문서</th><th class="num">입고(+)</th><th class="num">출고(-)</th><th class="num">재고잔액</th></tr></thead><tbody id="tb5"></tbody></table></div>
+</div>
+
+<div class="panel" id="p6">
+  <div class="sec-hdr"><div><h3>⑦ 안전재고(ROP) 미달 알림 보드</h3><span class="tip">재고가 안전재고 수량 밑으로 떨어진 품목만 모아 즉시 발주를 유도합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th class="num">안전재고 기준</th><th class="num">현재고</th><th>부족상태</th><th>액션</th></tr></thead><tbody id="tb6"></tbody></table></div>
+</div>
+
+<div class="panel" id="p7">
+  <div class="sec-hdr"><div><h3>⑧ 유통기한 및 로트(Lot) 추적</h3><span class="tip">FIFO 원칙에 따라 먼저 폐기될 위험이 있는 로트를 색상으로 경고합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>로트(Lot) 번호</th><th>품목명</th><th class="num">로트 재고량</th><th>제조일자</th><th>만료일자</th><th>잔여일수 상태</th></tr></thead><tbody id="tb7"></tbody></table></div>
+</div>
+
+<div class="panel" id="p8">
+  <div class="sec-hdr"><div><h3>⑨ 개별 시리얼 번호(S/N) 이력 조회</h3><span class="tip">고가 장비나 전자기기의 개별 시리얼 번호를 검색하여 현재 위치와 상태를 확인합니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns:300px 1fr">
+    <div class="card"><div class="label">시리얼 번호 스캔/입력</div><input type="text" class="inp" value="SN-2024-X8890" style="margin-bottom:12px"><button class="btn btn-blue" style="width:100%" onclick="showToast('조회 완료')">추적</button></div>
+    <div class="card"><div class="card-title">S/N: SN-2024-X8890 상태 이력</div><div id="tb8"></div></div>
+  </div>
+</div>
+
+<div class="panel" id="p9">
+  <div class="sec-hdr"><div><h3>⑩ 재고 건전성 칸반 (Kanban) 보드</h3><span class="tip">과잉재고, 적정, 부족, 품절 상태로 품목 카드를 분류하여 시각적으로 관리합니다.</span></div></div>
+  <div class="kanban" id="tb9"></div>
+</div>
+
+<div class="panel" id="p10">
+  <div class="sec-hdr"><div><h3>⑪ 품질 관리(QC) 보류 상태 조회</h3><span class="tip">전체 재고 중 검사 대기, 불량 보류 등으로 인해 '가용 불가능'한 재고를 분리합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th class="num">전체재고</th><th class="num" style="color:var(--green)">가용재고(정상)</th><th class="num" style="color:var(--amber)">QC 검사대기</th><th class="num" style="color:var(--red)">불량/보류</th></tr></thead><tbody id="tb10"></tbody></table></div>
+</div>
+
+<div class="panel" id="p11">
+  <div class="sec-hdr"><div><h3>⑫ 장기 체화 (Aging) 악성 재고 조회</h3><span class="tip">마지막 출고일로부터 오랫동안 움직이지 않아 창고 비용을 발생시키는 재고를 색출합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th class="num">현재고</th><th>마지막 출고일</th><th>체화 기간</th><th class="num">재고 자산액</th></tr></thead><tbody id="tb11"></tbody></table></div>
+</div>
+
+<div class="panel" id="p12">
+  <div class="sec-hdr"><div><h3>⑬ 지도 기반 권역별 재고 분포</h3><span class="tip">특정 품목이 전국 어느 창고에 얼마나 있는지 지리적으로 파악합니다.</span></div></div>
+  <div class="grid2" style="grid-template-columns:2fr 1fr">
+    <div class="map-canvas">
+      <div class="map-pin" style="top:30%;left:30%" onclick="showToast('서울: 5,000 EA')"></div><div style="position:absolute;top:30%;left:30%;transform:translate(20px,-5px)">서울 (5K)</div>
+      <div class="map-pin" style="top:60%;left:40%" onclick="showToast('대전: 2,000 EA')"></div><div style="position:absolute;top:60%;left:40%;transform:translate(20px,-5px)">대전 (2K)</div>
+      <div class="map-pin" style="top:80%;left:75%" onclick="showToast('부산: 8,000 EA')"></div><div style="position:absolute;top:80%;left:75%;transform:translate(20px,-5px)">부산 (8K)</div>
+    </div>
+    <div class="card"><div class="card-title">품목: [갤럭시 S24 울트라]</div><div class="label">총 권역 재고</div><h2 style="color:var(--blue)">15,000 EA</h2><hr style="border-color:var(--border);margin:16px 0"><div id="tb12"></div></div>
+  </div>
+</div>
+
+<div class="panel" id="p13">
+  <div class="sec-hdr"><div><h3>⑭ 3D 창고 랙(Rack) 평면도 뷰</h3><span class="tip">창고의 물리적 선반(Rack) 위치를 도식화하여 어느 칸에 재고가 있는지 시각화합니다.</span></div></div>
+  <div class="card"><div style="margin-bottom:12px">A열 (섹터 1)</div><div class="rack-grid" id="tb13_a"></div><div style="margin:20px 0">B열 (섹터 2)</div><div class="rack-grid" id="tb13_b"></div></div>
+</div>
+
+<div class="panel" id="p14">
+  <div class="sec-hdr"><div><h3>⑮ Bin(적재함) 용적률 히트맵</h3><span class="tip">각 적재 공간(Bin)이 얼마나 꽉 차 있는지 퍼센티지로 확인하여 공간을 최적화합니다.</span></div></div>
+  <div class="grid4" id="tb14"></div>
+</div>
+
+<div class="panel" id="p15">
+  <div class="sec-hdr"><div><h3>⑯ 재고 관리자 KPI 대시보드</h3><span class="tip">총 자산 가치, 회전율 등 핵심 지표를 위젯 형태로 모아봅니다.</span></div></div>
+  <div class="grid3" style="margin-bottom:16px">
+    <div class="card" style="text-align:center"><div class="label">총 재고 자산 가치</div><h2 style="color:var(--green)">₩ 1,245,000,000</h2></div>
+    <div class="card" style="text-align:center"><div class="label">평균 재고 회전율 (월)</div><h2 style="color:var(--blue)">4.2 회</h2></div>
+    <div class="card" style="text-align:center"><div class="label">안전재고 미달 품목</div><h2 style="color:var(--red)">12 건</h2></div>
+  </div>
+  <div class="card"><div class="card-title">최근 대량 입출고 동향</div><div id="tb15"></div></div>
+</div>
+
+<div class="panel" id="p16">
+  <div class="sec-hdr"><div><h3>⑰ 시즌별 트렌드 캘린더 히트맵</h3><span class="tip">연간 일자별 재고 소진량을 색상 짙기로 표현하여 성수기 패턴을 분석합니다.</span></div></div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;background:var(--surface);padding:20px;border-radius:var(--radius-lg);border:1px solid var(--border)" id="tb16"></div>
+</div>
+
+<div class="panel" id="p17">
+  <div class="sec-hdr"><div><h3>十八 ATP (Available To Promise) 타임라인</h3><span class="tip">미래의 입고 예정(PO)과 출고 예정(SO)을 계산하여 특정 날짜에 가용한 실제 재고를 보여줍니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>일자</th><th>이벤트 내역</th><th class="num">예상 입고(+)</th><th class="num">예상 출고(-)</th><th class="num" style="color:var(--blue)">ATP (가용 잔여량)</th></tr></thead><tbody id="tb17"></tbody></table></div>
+</div>
+
+<div class="panel" id="p18">
+  <div class="sec-hdr"><div><h3>⑲ ABC 파레토 등급 분류 뷰</h3><span class="tip">재고 가치 기여도에 따라 A(상위 80%), B(15%), C(5%) 등급으로 자동 분류해 조회합니다.</span></div></div>
+  <div class="grid3">
+    <div class="card" style="border-top:4px solid var(--red)"><h3 style="color:var(--red);margin-bottom:12px">A 등급 (집중관리)</h3><div id="tb18_a"></div></div>
+    <div class="card" style="border-top:4px solid var(--amber)"><h3 style="color:var(--amber);margin-bottom:12px">B 등급 (일반관리)</h3><div id="tb18_b"></div></div>
+    <div class="card" style="border-top:4px solid var(--green)"><h3 style="color:var(--green);margin-bottom:12px">C 등급 (자동발주)</h3><div id="tb18_c"></div></div>
+  </div>
+</div>
+
+<div class="panel" id="p19">
+  <div class="sec-hdr"><div><h3>⑳ 크로스도킹 (Cross-docking) 입출 매핑</h3><span class="tip">입고된 물건이 창고에 적재되지 않고 즉시 출하장으로 넘어가야 하는 매핑 상태를 보여줍니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>도착 예정 (PO)</th><th>품목</th><th class="num">수량</th><th>상태</th><th>즉시 출하 대상 (SO)</th></tr></thead><tbody id="tb19"></tbody></table></div>
+</div>
+
+<div class="panel" id="p20">
+  <div class="sec-hdr"><div><h3>㉑ Kitting (조립) 가능량 시뮬레이터</h3><span class="tip">현재 보유한 원자재 재고를 바탕으로 완성품 세트를 최대 몇 개 만들 수 있는지 계산합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="label">대상 세트 상품</div><select class="inp" style="margin-bottom:12px"><option>명절 프리미엄 한우 세트</option></select><div style="font-size:40px;color:var(--orange);font-weight:700;text-align:center" id="tb20_max">Max 42 세트</div><div style="text-align:center;margin-top:10px;color:var(--text2)">현재 원자재 기준 조립 가능 수량</div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>원부자재</th><th>소요량</th><th>현재고</th><th>병목(Bottleneck) 확인</th></tr></thead><tbody id="tb20"></tbody></table></div>
+  </div>
+</div>
+
+<div class="panel" id="p21">
+  <div class="sec-hdr"><div><h3>㉒ 의류(Apparel) 컬러/사이즈 매트릭스</h3><span class="tip">하나의 상품 코드를 옵션 축(가로:사이즈, 세로:색상) 매트릭스로 펼쳐서 한눈에 봅니다.</span></div></div>
+  <div class="card" style="margin-bottom:8px"><b>나이키 에센셜 후디 (NK-HD-001)</b></div>
+  <div class="tbl-wrap"><table class="tbl"><thead id="th21"></thead><tbody id="tb21"></tbody></table></div>
+</div>
+
+<div class="panel" id="p22">
+  <div class="sec-hdr"><div><h3>㉓ 재고 실사 (Cycle Count) 입력 보드</h3><span class="tip">시스템 상의 장부 재고와 창고 작업자가 실제 세어본 실사 재고의 차이(Variance)를 입력합니다.</span></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위치</th><th>품목</th><th class="num">장부 재고(A)</th><th class="num">실사 입력(B)</th><th class="num">차이(B-A)</th><th>사유코드</th></tr></thead><tbody id="tb22"></tbody></table></div>
+</div>
+
+<div class="panel" id="p23">
+  <div class="sec-hdr"><div><h3>㉔ 공급사(Vendor) 위탁재고 포털 뷰</h3><span class="tip">외부 공급사가 자사의 위탁(Consignment) 재고가 본사 창고에 얼마나 남았는지 외부망에서 확인하는 뷰입니다.</span></div></div>
+  <div class="card" style="border:1px solid var(--orange)"><div style="display:flex;justify-content:space-between"><div><span class="badge b-amber">Vendor View</span><h3 style="margin-top:8px">파트너사: 삼성전기</h3></div><button class="btn btn-orange">납품 예약하기</button></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>납품한 품목</th><th>우리측 창고</th><th class="num">잔여 재고</th><th class="num">이번 달 소진량</th></tr></thead><tbody id="tb23"></tbody></table></div>
+</div>
+
+<div class="panel" id="p24">
+  <div class="sec-hdr"><div><h3>㉕ 모바일 바코드 스캐너(PDA) 뷰</h3><span class="tip">현장 작업자가 스마트폰 카메라나 PDA로 바코드를 찍었을 때 즉시 나타나는 퀵 조회 화면입니다.</span></div></div>
+  <div class="mobile-frame">
+    <div style="height:250px;background:#111;position:relative"><div style="position:absolute;top:50%;left:10%;width:80%;height:2px;background:red;box-shadow:0 0 10px red"></div><div style="position:absolute;bottom:10px;width:100%;text-align:center;color:#fff;font-size:11px">카메라 활성화 중...</div></div>
+    <div style="padding:20px">
+      <div style="color:var(--text2);font-size:11px">스캔 결과</div>
+      <h2 style="color:var(--blue);margin-bottom:10px">880104301111</h2>
+      <div style="background:var(--surface3);padding:12px;border-radius:8px;margin-bottom:12px"><b>코카콜라 500ml (PET)</b><br>위치: A동 3열 선반-2</div>
+      <div style="display:flex;justify-content:space-between;font-size:24px;font-weight:700"><span>현재고:</span><span style="color:var(--green)">142 EA</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p25">
+  <div class="sec-hdr"><div><h3>㉖ 자연어 AI 챗봇 질의</h3><span class="tip">"강남 창고에 아이패드 몇 개 남아있어?" 라고 치면 AI가 쿼리를 변환해 결과를 줍니다.</span></div></div>
+  <div style="max-width:600px;margin:0 auto;height:450px;display:flex;flex-direction:column;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+    <div id="chat-box2" style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+      <div style="align-self:flex-end;background:var(--blue-dim);color:var(--blue);padding:10px 14px;border-radius:12px 12px 0 12px">부산 물류센터에 특정 그래픽카드 RTX 4090 재고 있어?</div>
+      <div style="align-self:flex-start;background:var(--surface3);padding:10px 14px;border-radius:12px 12px 12px 0;border-left:3px solid var(--blue)">🔍 데이터베이스 확인 결과입니다.<br><br><b>[RTX 4090 D6X 24GB]</b><br>📍 부산 물류센터: <b style="color:var(--green)">15개 가용</b> (총 18개 중 3개 예약됨)</div>
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="재고 관련 질문을 입력하세요..."><button class="btn btn-blue">전송</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p26">
+  <div class="sec-hdr"><div><h3>㉗ 지게차 운전자용 음성 검색 (Voice)</h3><span class="tip">손을 쓸 수 없는 현장에서 마이크 버튼을 눌러 음성으로 재고 위치를 묻습니다.</span></div></div>
+  <div style="text-align:center;padding:50px">
+    <div style="width:120px;height:120px;border-radius:50%;background:var(--surface3);border:3px solid var(--pink);display:inline-flex;align-items:center;justify-content:center;font-size:50px;cursor:pointer;box-shadow:0 0 20px var(--pink-dim)" onclick="showToast('음성 인식: 1번 랙 재고 현황 알려줘')">🎙️</div>
+    <div style="margin-top:30px;font-size:18px;color:var(--pink)">"음성으로 품목명이나 로케이션을 말씀하세요"</div>
+  </div>
+</div>
+
+<div class="panel" id="p27">
+  <div class="sec-hdr"><div><h3>㉘ 스마트워치 극소형 퀵뷰</h3><span class="tip">관리자가 이동 중 손목에서 특정 중요 품목의 재고량만 빠르게 체크하는 원형 UI입니다.</span></div></div>
+  <div class="watch-frame">
+    <div style="font-size:10px;color:#888;margin-bottom:5px">12:30 PM</div>
+    <div style="font-size:11px;color:var(--cyan)">반도체 Wafer-A</div>
+    <div style="font-size:36px;font-weight:700;margin:10px 0;font-family:var(--mono)">842<span style="font-size:14px">장</span></div>
+    <div style="font-size:10px;background:#333;padding:2px 8px;border-radius:10px">정상 구역</div>
+  </div>
+</div>
+
+<div class="panel" id="p28">
+  <div class="sec-hdr"><div><h3>㉙ 사용자 정의 데이터 추출(Export) 빌더</h3><span class="tip">필요한 컬럼(열)만 체크박스로 선택하여 원하는 형태의 엑셀/CSV로 재고를 다운로드합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">추출할 컬럼 선택</div><div class="grid2" style="gap:8px" id="tb28"></div></div>
+    <div class="card" style="background:var(--surface2)"><div class="card-title">미리보기 (Preview)</div><div style="font-family:var(--mono);font-size:11px;color:var(--text2);background:#000;padding:10px;border-radius:4px;height:200px">ItemCode, Qty, BinLoc<br>ITM-001, 150, A-1<br>ITM-002, 20, B-3...</div><button class="btn btn-green" style="margin-top:16px;width:100%" onclick="showToast('CSV 다운로드 시작')">⬇️ 선택 항목 CSV 다운로드</button></div>
+  </div>
+</div>
+
+<div class="panel" id="p29">
+  <div class="sec-hdr"><div><h3>㉚ 오프라인(음영지역) 캐시 모드</h3><span class="tip">냉동 창고 등 Wi-Fi가 안 터지는 곳에서 마지막 동기화된 캐시 데이터를 보여줍니다.</span></div></div>
+  <div class="card" style="border-color:var(--text3);background:repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 10px, var(--surface) 10px, var(--surface) 20px)"><div style="display:flex;justify-content:space-between;align-items:center"><div style="color:var(--text2)">⚠️ 네트워크 연결 끊김 (오프라인 모드)</div><div style="font-size:11px;background:#333;padding:4px 8px;border-radius:4px">마지막 동기화: 15분 전</div></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th class="num">로컬 캐시 재고</th><th>상태</th></tr></thead><tbody id="tb29"></tbody></table></div>
+</div>
+
+</div>
+<div id="toast">메시지</div>
+
+<script>
+function switchTab(i){
+  document.querySelectorAll('.tab-btn').forEach((t,idx)=>t.classList.toggle('active',idx===i));
+  document.querySelectorAll('.panel').forEach((p,idx)=>p.classList.toggle('active',idx===i));
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function rInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+window.onload = () => {
+  genP0(); genP1(); genP2(); genP3(); genP4(); genP5(); genP6(); genP7(); genP8(); genP9(); 
+  genP10(); genP11(); genP12(); genP13(); genP14(); genP15(); genP16(); genP17(); genP18(); genP19(); 
+  genP20(); genP21(); genP22(); genP23(); genP28(); genP29();
+};
+
+function genP0(){
+  let h=''; const sts=['<span class="badge b-green">적정</span>','<span class="badge b-red">부족</span>','<span class="badge b-amber">과잉</span>'];
+  for(let i=1;i<=25;i++){
+    const q=rInt(0,1000); const a=Math.max(0,q-rInt(0,100));
+    h+=`<tr><td><b style="color:var(--blue)">ITM-${String(i).padStart(4,'0')}</b></td><td>일반 자재 ${i}</td><td>원부자재</td><td>창고-A</td><td class="num">${q}</td><td class="num">${a}</td><td class="num">₩${(rInt(1,50)*1000).toLocaleString()}</td><td>${sts[i%3]}</td></tr>`;
+  }
+  document.getElementById('tb0').innerHTML=h;
+}
+
+function genP1(){
+  let h='';
+  for(let i=1;i<=16;i++){
+    const q=rInt(0,500);
+    h+=`<div class="img-card"><div style="height:100px;background:var(--surface3);border-radius:4px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:30px">📦</div><div style="font-size:11px;color:var(--text2)">PRD-00${i}</div><div style="font-weight:700;margin:4px 0">상품 이미지 ${i}</div><div style="color:${q<50?'var(--red)':'var(--green)'};font-family:var(--mono);font-size:14px;font-weight:700">${q} EA</div></div>`;
+  }
+  document.getElementById('tb1').innerHTML=h;
+}
+
+function genP2(){
+  let th='<tr><th>품목명</th><th>서울(본사)</th><th>경기(물류)</th><th>대전(허브)</th><th>부산(항만)</th><th style="color:var(--blue)">총합계</th></tr>';
+  document.getElementById('th2').innerHTML=th;
+  let h='';
+  for(let i=1;i<=15;i++){
+    const v=[rInt(10,500),rInt(0,1000),rInt(50,300),rInt(0,200)]; const tot=v.reduce((a,b)=>a+b,0);
+    h+=`<tr><td><b>유통 품목 ${i}</b></td><td class="num">${v[0]}</td><td class="num">${v[1]}</td><td class="num">${v[2]}</td><td class="num">${v[3]}</td><td class="num" style="color:var(--blue);font-weight:700">${tot}</td></tr>`;
+  }
+  document.getElementById('tb2').innerHTML=h;
+}
+
+function genP3(){
+  document.getElementById('tb3').innerHTML=`
+    <tr><td><b style="color:var(--cyan)">[완제품] 전기자전거 X1</b></td><td>완제품 조립</td><td>1</td><td class="num">50</td><td class="num">-</td></tr>
+    <tr class="child-row"><td style="padding-left:24px">↳ [반제품] 구동 모터부</td><td>서브 어셈블리</td><td>1</td><td class="num">120</td><td class="num">-</td></tr>
+    <tr class="child-row"><td style="padding-left:48px">↳ 구리 코일 롤</td><td>원자재</td><td>2</td><td class="num" style="color:var(--red);font-weight:700">10</td><td class="num" style="color:var(--red)">-90</td></tr>
+    <tr class="child-row"><td style="padding-left:48px">↳ 네오디뮴 자석</td><td>원자재</td><td>4</td><td class="num">500</td><td class="num">-</td></tr>
+    <tr class="child-row"><td style="padding-left:24px">↳ [반제품] 배터리 팩</td><td>서브 어셈블리</td><td>1</td><td class="num">80</td><td class="num">-</td></tr>
+  `;
+}
+
+function genP4(){
+  let h='';
+  for(let i=1;i<=4;i++){
+    const base=rInt(1000,5000);
+    h+=`<div class="card" style="text-align:center"><div style="font-weight:700;margin-bottom:12px">생수 2L 세트 ${i}</div><div style="font-size:24px;font-family:var(--mono);color:var(--blue);font-weight:700">${base} <span style="font-size:12px">EA(낱개)</span></div><hr style="border-color:var(--border);margin:12px 0"><div style="display:flex;justify-content:space-between;color:var(--text2)"><span>Box (x20):</span><b style="color:var(--text)">${Math.floor(base/20)}</b></div><div style="display:flex;justify-content:space-between;color:var(--text2);margin-top:4px"><span>Pallet (x400):</span><b style="color:var(--text)">${(base/400).toFixed(1)}</b></div></div>`;
+  }
+  document.getElementById('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h=''; let bal=1500;
+  for(let i=1;i<=10;i++){
+    const inQ=Math.random()>0.5?rInt(100,500):0; const outQ=inQ===0?rInt(50,300):0; bal=bal+inQ-outQ;
+    h+=`<tr><td>2024-10-${String(20-i).padStart(2,'0')}</td><td>${inQ>0?'<span class="badge b-green">입고(PO)</span>':'<span class="badge b-red">출고(SO)</span>'}</td><td>DOC-0${i}</td><td class="num" style="color:var(--green)">${inQ||'-'}</td><td class="num" style="color:var(--red)">${outQ||'-'}</td><td class="num" style="font-weight:700">${bal}</td></tr>`;
+  }
+  document.getElementById('tb5').innerHTML=h;
+}
+
+function genP6(){
+  let h='';
+  for(let i=1;i<=10;i++){
+    const s=rInt(100,500); const c=rInt(0,s-10);
+    h+=`<tr><td>필수 부품 ${i}</td><td class="num">${s}</td><td class="num" style="color:var(--red);font-weight:700">${c}</td><td><div class="prog-bg"><div class="prog-bar" style="width:${(c/s)*100}%;background:var(--red)"></div></div></td><td><button class="btn btn-sm btn-ghost" onclick="showToast('발주서 팝업')">긴급 발주</button></td></tr>`;
+  }
+  document.getElementById('tb6').innerHTML=h;
+}
+
+function genP7(){
+  let h='';
+  for(let i=1;i<=12;i++){
+    const d=rInt(-10,100); const c=d<0?'var(--red)':(d<30?'var(--amber)':'var(--green)');
+    h+=`<tr><td style="font-family:var(--mono)">LOT-24X-${i}</td><td>식음료 베이스 ${i}</td><td class="num">${rInt(50,500)}</td><td>2024-01-15</td><td style="color:${c}">2024-11-${String(Math.abs(d)).padStart(2,'0')}</td><td><span class="badge" style="background:${c}22;color:${c}">${d<0?'만료됨':'D-'+d}</span></td></tr>`;
+  }
+  document.getElementById('tb7').innerHTML=h;
+}
+
+function genP8(){
+  document.getElementById('tb8').innerHTML=`
+    <div style="padding:10px;border-left:2px solid var(--border);margin-bottom:10px"><b>[현재]</b> 출하 대기 (포장존 B) - 2024-10-25</div>
+    <div style="padding:10px;border-left:2px solid var(--border);margin-bottom:10px"><b>[과거]</b> 품질검사(QC) 합격 - 2024-10-24</div>
+    <div style="padding:10px;border-left:2px solid var(--border);margin-bottom:10px"><b>[과거]</b> 제조 완료 (Line 3) - 2024-10-23</div>
+  `;
+}
+
+function genP9(){
+  const k=[{n:'과잉 (Overstock)',c:'var(--cyan)',id:'kb9_1'},{n:'적정 (Healthy)',c:'var(--green)',id:'kb9_2'},{n:'부족 (Low)',c:'var(--amber)',id:'kb9_3'},{n:'품절 (OOS)',c:'var(--red)',id:'kb9_4'}];
+  let h='';
+  k.forEach(col=>{
+    h+=`<div class="k-col"><div style="font-weight:700;color:${col.c}">${col.n}</div>`;
+    for(let i=0;i<rInt(2,5);i++) h+=`<div style="background:var(--surface2);padding:10px;border-radius:6px;border:1px solid var(--border)">Item-${rInt(100,999)}<br><span style="font-size:11px;color:var(--text2)">현재고: ${rInt(0,1000)}</span></div>`;
+    h+=`</div>`;
+  });
+  document.getElementById('tb9').innerHTML=h;
+}
+
+function genP10(){
+  let h='';
+  for(let i=1;i<=8;i++){
+    const t=rInt(1000,5000); const b=rInt(0,100); const w=rInt(0,200); const g=t-b-w;
+    h+=`<tr><td>원자재 롤 ${i}</td><td class="num">${t}</td><td class="num" style="color:var(--green)">${g}</td><td class="num" style="color:var(--amber)">${w}</td><td class="num" style="color:var(--red)">${b}</td></tr>`;
+  }
+  document.getElementById('tb10').innerHTML=h;
+}
+
+function genP11(){
+  let h='';
+  for(let i=1;i<=10;i++){
+    const d=rInt(180,600); const q=rInt(10,100);
+    h+=`<tr><td>AG-${i}</td><td>구형 모델 부속품 ${i}</td><td class="num">${q}</td><td>2023-0${rInt(1,9)}-15</td><td><b style="color:var(--red)">${d} 일</b></td><td class="num">₩${(q*50000).toLocaleString()}</td></tr>`;
+  }
+  document.getElementById('tb11').innerHTML=h;
+}
+
+function genP12(){
+  let h='';
+  ['서울 물류센터','인천 항만창고','대전 허브','대구 지사','부산 신항'].forEach(loc=>{
+    h+=`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${loc}</span><b style="font-family:var(--mono)">${rInt(500,5000)}</b></div>`;
+  });
+  document.getElementById('tb12').innerHTML=h;
+}
+
+function genP13(){
+  const drawRack = (id) => {
+    let h='';
+    for(let i=0;i<40;i++){
+      const f=Math.random(); const c=f>0.8?'var(--red)':(f>0.4?'var(--green)':'var(--surface)');
+      h+=`<div class="rack-cell" style="background:${c};color:${f>0.4?'#000':'var(--text2)'}" onclick="showToast('선반 ${i}번 조회')">${i+1}</div>`;
+    }
+    document.getElementById(id).innerHTML=h;
+  };
+  drawRack('tb13_a'); drawRack('tb13_b');
+}
+
+function genP14(){
+  let h='';
+  for(let i=1;i<=12;i++){
+    const pct=rInt(10,100); const c=pct>90?'var(--red)':(pct>50?'var(--blue)':'var(--surface3)');
+    h+=`<div class="card" style="text-align:center;padding:20px;margin:0"><div style="font-size:11px;color:var(--text2);margin-bottom:8px">BIN-00${i}</div><div style="width:60px;height:60px;border-radius:50%;background:${c};margin:0 auto;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">${pct}%</div></div>`;
+  }
+  document.getElementById('tb14').innerHTML=h;
+}
+
+function genP15(){
+  let h='';
+  for(let i=1;i<=5;i++) h+=`<div style="padding:10px;border-bottom:1px solid var(--border)">[입고] 중국 공장 컨테이너 분 ${i} - <span style="color:var(--green)">+5,000 EA</span></div>`;
+  document.getElementById('tb15').innerHTML=h;
+}
+
+function genP16(){
+  let h='';
+  for(let i=0;i<180;i++){
+    const v=Math.random(); const bg=v>0.8?'var(--pink)':(v>0.5?'var(--pink-dim)':'var(--surface3)');
+    h+=`<div style="width:14px;height:14px;background:${bg};border-radius:2px" title="출고량: ${Math.floor(v*100)}"></div>`;
+  }
+  document.getElementById('tb16').innerHTML=h;
+}
+
+function genP17(){
+  let h=''; let atp=500;
+  for(let i=1;i<=7;i++){
+    const po=i%3===0?300:0; const so=rInt(50,150); atp=atp+po-so;
+    h+=`<tr><td>11월 0${i}일</td><td>일일 출하 지시</td><td class="num" style="color:var(--green)">${po||'-'}</td><td class="num" style="color:var(--red)">${so}</td><td class="num" style="color:var(--blue);font-weight:700">${atp}</td></tr>`;
+  }
+  document.getElementById('tb17').innerHTML=h;
+}
+
+function genP18(){
+  const drawABC = (id, cnt) => {
+    let h=''; for(let i=1;i<=cnt;i++) h+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>Item-${rInt(100,999)}</span><b style="font-family:var(--mono)">${rInt(10,100)}</b></div>`;
+    document.getElementById(id).innerHTML=h;
+  };
+  drawABC('tb18_a', 5); drawABC('tb18_b', 8); drawABC('tb18_c', 12);
+}
+
+function genP19(){
+  let h='';
+  for(let i=1;i<=8;i++) h+=`<tr><td>PO-2024-${i}</td><td>수입산 연어 ${i}박스</td><td class="num">${rInt(10,50)}</td><td><span class="badge b-amber">도킹장 대기</span></td><td>SO-99${i} (이마트 배송)</td></tr>`;
+  document.getElementById('tb19').innerHTML=h;
+}
+
+function genP20(){
+  let h='';
+  ['프리미엄 한우 1++','아이스팩','고급 포장박스','보자기'].forEach(n=>{
+    const req=rInt(1,3); const cur=rInt(50,200); const pos=Math.floor(cur/req);
+    h+=`<tr><td>${n}</td><td class="num">${req}</td><td class="num">${cur}</td><td>${pos<50?'<span class="badge b-red">부족 주의</span>':'-'}</td></tr>`;
+  });
+  document.getElementById('tb20').innerHTML=h;
+}
+
+function genP21(){
+  const sz=['S','M','L','XL']; const cl=['Black','White','Red'];
+  let th='<tr><th>Color \\ Size</th>'; sz.forEach(s=>th+=`<th>${s}</th>`); th+='</tr>';
+  document.getElementById('th21').innerHTML=th;
+  let h='';
+  cl.forEach(c=>{
+    h+=`<tr><td><b>${c}</b></td>`;
+    sz.forEach(s=>{ const q=rInt(0,50); h+=`<td class="num" style="color:${q===0?'var(--red)':'var(--text)'}">${q}</td>`; });
+    h+=`</tr>`;
+  });
+  document.getElementById('tb21').innerHTML=h;
+}
+
+function genP22(){
+  let h='';
+  for(let i=1;i<=10;i++){
+    const a=rInt(100,200); const b=Math.random()>0.7?a-rInt(1,5):a;
+    h+=`<tr><td>Bin A-${i}</td><td>부속 스크류 ${i}</td><td class="num">${a}</td><td><input type="number" class="inp inp-sm num" value="${b}"></td><td class="num" style="color:${b-a<0?'var(--red)':'var(--text)'}">${b-a}</td><td><select class="inp inp-sm"><option>정상</option><option>분실/파손</option></select></td></tr>`;
+  }
+  document.getElementById('tb22').innerHTML=h;
+}
+
+function genP23(){
+  let h='';
+  for(let i=1;i<=6;i++) h+=`<tr><td>카메라 모듈 타입 ${i}</td><td>구미 제1창고</td><td class="num" style="font-weight:700">${rInt(1000,5000)}</td><td class="num" style="color:var(--red)">-${rInt(100,500)}</td></tr>`;
+  document.getElementById('tb23').innerHTML=h;
+}
+
+function genP28(){
+  const cols=['품목코드','품목명','카테고리','단위(UOM)','현재고','가용재고','예약재고','안전재고','단가','총자산가치','위치(Bin)','Lot/Serial'];
+  let h=''; cols.forEach(c=>h+=`<div><label style="cursor:pointer"><input type="checkbox" checked> ${c}</label></div>`);
+  document.getElementById('tb28').innerHTML=h;
+}
+
+function genP29(){
+  let h='';
+  for(let i=1;i<=10;i++) h+=`<tr><td>냉동 식자재 ${i}</td><td class="num">${rInt(50,200)}</td><td><span style="color:var(--text3)">동기화 대기중</span></td></tr>`;
+  document.getElementById('tb29').innerHTML=h;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #19 */
+(function(){var I=19;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

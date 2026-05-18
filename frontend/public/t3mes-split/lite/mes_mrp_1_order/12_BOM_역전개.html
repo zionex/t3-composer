@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>BOM 역전개</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #12: BOM 역전개 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 다단계 BOM 역전개 발주 (Multilevel Explosion)</h3><span class="tip">자동차/장비 등 복잡한 조립품의 상위 생산계획 수량을 입력하면 하위 수십 개 부품의 필요량이 트리로 전개되어 발주를 유도합니다.</span></div></div>
+    <div style="display:flex;gap:12px;margin-bottom:16px"><select class="inp" style="width:300px"><option>[ASSY-01] 스마트 팩토리 로봇 팔 세트</option></select><input type="number" class="inp" value="50" style="width:100px" placeholder="생산 목표"><button class="btn btn-ghost" onclick="doBom11()">하위 자재 역전개 (Explode) ↓</button></div>
+    <div class="tbl-wrap" style="max-height:500px"><table class="tbl"><thead><tr><th>BOM 레벨 / 자재코드</th><th>품목명</th><th>1대당 소요</th><th style="text-align:right">총 소요량</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--amber)">발주필요량</th></tr></thead><tbody id="tb11"><tr><td colspan="6" style="text-align:center;padding:50px">전개 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>

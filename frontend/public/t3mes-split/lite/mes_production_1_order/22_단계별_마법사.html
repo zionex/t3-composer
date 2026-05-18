@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단계별 마법사</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #22: 단계별 마법사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 단계별 지시 생성 마법사 (Wizard)</h3><span class="tip">초보 관리자도 헷갈리지 않게 '품목선택 -> 수량입력 -> 설비할당 -> 확정'의 4단계를 순서대로 안내하는 UI입니다.</span></div></div>
+    <div class="card" style="text-align:center">
+      <div style="display:flex;justify-content:space-between;margin-bottom:30px;border-bottom:2px solid var(--border);padding-bottom:10px;font-weight:700"><span style="color:var(--green)">✓ 1. 품목 선택</span><span style="color:var(--cyan)">2. 공정/수량 (현재)</span><span style="color:var(--text3)">3. 설비 할당</span><span style="color:var(--text3)">4. 최종발행</span></div>
+      <div style="padding:40px 0"><input type="number" class="inp" placeholder="지시 수량을 입력하세요" style="width:300px;font-size:24px;text-align:center"></div>
+      <button class="btn btn-blue" onclick="showToast('다음 단계로 이동')">다음 단계로 (설비 할당) ➔</button>
+    </div>
+  </div>

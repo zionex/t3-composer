@@ -1,0 +1,2226 @@
+{
+  "summary": {
+    "dbSeedFiles": 8,
+    "dbSeedRows": 255,
+    "dbSeedUniqueCodes": 255,
+    "dbSeedDuplicates": 0,
+    "dbSeedUniqueLayouts": 255,
+    "previewRenderers": 255,
+    "phase1Patterns": 25,
+    "phase1Screens": 992
+  },
+  "intersections": {
+    "dbAndPreview": {
+      "count": 255,
+      "keys": [
+        "approval_list",
+        "calendar",
+        "card_list",
+        "cb_ai_chatbot",
+        "cb_alert_threshold",
+        "cb_approval",
+        "cb_batch_schedule",
+        "cb_bottleneck",
+        "cb_composite_process",
+        "cb_custom_widget",
+        "cb_data_imputation",
+        "cb_erp_publish",
+        "cb_error_log",
+        "cb_geo_map",
+        "cb_io_interface",
+        "cb_job_queue",
+        "cb_kpi_compare",
+        "cb_late_orders",
+        "cb_live_log",
+        "cb_manual_override",
+        "cb_master_dashboard",
+        "cb_mdm_check",
+        "cb_node_recovery",
+        "cb_node_status",
+        "cb_parallel_scenario",
+        "cb_param_tuning",
+        "cb_pipeline_progress",
+        "cb_rca_analysis",
+        "cb_resource_monitor",
+        "cb_safety_alert",
+        "cb_supply_demand",
+        "cb_ticket_assign",
+        "cb_topology",
+        "cb_version_diff",
+        "chart_grid_horizontal",
+        "chart_grid_vertical",
+        "chat",
+        "code_editor",
+        "control_board",
+        "diff_view",
+        "doc_viewer",
+        "drilldown",
+        "flo_diagram",
+        "form_detail_grid",
+        "gantt",
+        "grid_2x2",
+        "grid_chart_stacked",
+        "h2_category_items",
+        "h2_channel_chat",
+        "h2_chart_grid",
+        "h2_filetree_editor",
+        "h2_filter_cards",
+        "h2_form_grid",
+        "h2_form_preview",
+        "h2_grid_chart",
+        "h2_list_editform",
+        "h2_list_preview",
+        "h2_master_detail",
+        "h2_menu_content",
+        "h2_nav_main",
+        "h2_searchcond_result",
+        "h2_tree_detail_form",
+        "h2_tree_grid",
+        "h3_category_grid_chart",
+        "h3_filter_list_detail",
+        "h3_folder_editor_output",
+        "h3_folder_file_preview",
+        "h3_left_main_right",
+        "h3_menu_list_editor",
+        "h3_source_diff_target",
+        "h3_step_form_result",
+        "h3_tree_chart_grid",
+        "h3_tree_grid_detail",
+        "h4_drill_drill_drill_detail",
+        "h4_filter_category_list_chart",
+        "h4_menu_center_center_tool",
+        "h4_menu_tree_grid_detail",
+        "h4_nav_tree_editor_output",
+        "h5_menu_category_list_detail_action",
+        "h5_nav_tree_grid_detail_toolbar",
+        "heatmap",
+        "infinite_list",
+        "kanban",
+        "kpi_chart",
+        "map",
+        "mix_accordion_main",
+        "mix_drawer_main",
+        "mix_explorer_3",
+        "mix_explorer_5",
+        "mix_grid_2x2",
+        "mix_grid_2x3",
+        "mix_grid_3x2",
+        "mix_grid_3x3",
+        "mix_h2_right_v2",
+        "mix_h2_right_v3",
+        "mix_h2_right_v3b",
+        "mix_h3_mid_v2",
+        "mix_h3_mid_v3",
+        "mix_header_nav_content_status",
+        "mix_master_tabbed_detail",
+        "mix_master_v2_detail",
+        "mix_master_v_tabbed_detail",
+        "mix_notice_drawer_main",
+        "mix_report_v3",
+        "mix_ribbon_h2",
+        "mix_ribbon_main",
+        "mix_side_v3",
+        "mix_sidetab_main",
+        "mix_stepper_tab",
+        "mix_strip_horizontal",
+        "mix_strip_vertical",
+        "mix_tab_h2",
+        "mix_tab_h3",
+        "mix_tab_v2",
+        "mix_v2_accordion_grid",
+        "mix_v2_form_tab",
+        "mix_v2_h2_master_detail",
+        "mix_v2_h2_search_tree_grid",
+        "mix_v2_h2v2_toolbar_tree_chart_grid",
+        "mix_v2_h2v2_tree_chart_grid",
+        "mix_v2_h3_filter_grid_detail",
+        "mix_v2_kpi_tab",
+        "mix_v2_tab_bottom",
+        "mix_v3_kpi_mid_detail",
+        "mix_v3_mid_h2",
+        "mn_bottleneck",
+        "mn_compliance_trend",
+        "mn_customer_sla",
+        "mn_daily_work_order",
+        "mn_delay_risk",
+        "mn_energy_carbon",
+        "mn_exec_summary",
+        "mn_expected_cost",
+        "mn_forecast_vs_plan",
+        "mn_gantt_progress",
+        "mn_hot_orders",
+        "mn_kpi_dashboard",
+        "mn_labor_input",
+        "mn_line_switching",
+        "mn_line_utilization",
+        "mn_logistics_sync",
+        "mn_material_shortage",
+        "mn_part_explosion",
+        "mn_pivot_plan",
+        "mn_plan_vs_actual",
+        "mn_po_tracking",
+        "mn_rework_status",
+        "mn_safety_stock_alert",
+        "mn_setup_loss",
+        "mn_subcontracting",
+        "mn_tooling_mgmt",
+        "mn_unplanned_orders",
+        "mn_version_diff",
+        "mn_wip_flow",
+        "mn_yield_impact",
+        "network_graph",
+        "pe_ai_copilot",
+        "pe_altpart_swap",
+        "pe_bulk_inline_edit",
+        "pe_calendar_drag",
+        "pe_capacity_slider",
+        "pe_constraint_guide",
+        "pe_diff_viewer",
+        "pe_excel_upload_edit",
+        "pe_gantt_drag_edit",
+        "pe_heijunka_matrix",
+        "pe_history_rollback",
+        "pe_kpi_summary",
+        "pe_lock_based_edit",
+        "pe_multi_plant_transfer",
+        "pe_pivot_grid_edit",
+        "pe_rank_reschedule",
+        "pe_ratio_slider",
+        "pe_ripple_effect",
+        "pe_scenario_compare",
+        "pe_setup_batching",
+        "pivot_entry",
+        "pivot_table",
+        "process_status",
+        "report_tabs",
+        "rl_layout_design",
+        "rl_layout_simulation",
+        "rl_layout_wip",
+        "scheduler",
+        "search_grid",
+        "search_tab",
+        "settings_form",
+        "sidebar_main",
+        "split_master_detail",
+        "tab_chart",
+        "timeline",
+        "tree_grid",
+        "tree_grid_detail",
+        "v2_breadcrumb_content",
+        "v2_chart_grid",
+        "v2_filter_list",
+        "v2_form_chart",
+        "v2_form_grid",
+        "v2_grid_chart",
+        "v2_header_tab",
+        "v2_header_timeline",
+        "v2_info_grid",
+        "v2_kpi_chart",
+        "v2_kpi_grid",
+        "v2_master_master",
+        "v2_notice_main",
+        "v2_progress_content",
+        "v2_search_calendar",
+        "v2_search_cards",
+        "v2_search_chart",
+        "v2_search_flo",
+        "v2_search_gantt",
+        "v2_search_grid",
+        "v2_search_map",
+        "v2_search_pivot",
+        "v2_search_tree",
+        "v2_title_canvas",
+        "v2_toolbar_grid",
+        "v3_condition_preview_result",
+        "v3_filter_cards_pagination",
+        "v3_header_lines_summary",
+        "v3_header_main_action",
+        "v3_kpi_chart_grid",
+        "v3_kpi_grid_chart",
+        "v3_notice_kpi_grid",
+        "v3_progress_grid_action",
+        "v3_search_chart_grid",
+        "v3_search_gantt_grid",
+        "v3_search_grid_chart",
+        "v3_search_grid_log",
+        "v3_search_kpi_grid",
+        "v3_search_map_grid",
+        "v3_search_master_detail_v",
+        "v3_search_network_grid",
+        "v3_search_pivot_chart",
+        "v3_search_tab_detail",
+        "v3_stepper_form_button",
+        "v3_toolbar_grid_status",
+        "v4_filter_cards_grid_chart",
+        "v4_header_kpi_tab_detail",
+        "v4_header_tab_grid_action",
+        "v4_notice_filter_list_pagination",
+        "v4_search_kpi_chart_grid",
+        "v4_search_kpi_grid_chart",
+        "v4_search_pivot_grid_chart",
+        "v4_search_toolbar_grid_detail",
+        "v4_stepper_search_grid_detail",
+        "v4_toolbar_search_grid_footer",
+        "v5_header_stepper_tab_content_action",
+        "v5_header_toolbar_tree_grid_log",
+        "v5_nav_search_kpi_grid_status",
+        "v5_notice_filter_kpi_grid_pagination",
+        "v5_search_kpi_chart_grid_detail",
+        "widget_dashboard",
+        "wizard_stepper"
+      ]
+    },
+    "dbOnly": {
+      "count": 0,
+      "keys": []
+    },
+    "previewOnly": {
+      "count": 0,
+      "keys": []
+    },
+    "phase1InPreview": {
+      "count": 9,
+      "keys": [
+        "cb_master_dashboard",
+        "grid_chart_stacked",
+        "h2_master_detail",
+        "h2_tree_grid",
+        "mn_kpi_dashboard",
+        "rl_layout_design",
+        "search_grid",
+        "search_tab",
+        "widget_dashboard"
+      ]
+    },
+    "phase1NotInPreview": {
+      "count": 16,
+      "keys": [
+        "P02b_grid_only",
+        "P09_chart_view",
+        "base_wrapper",
+        "free_form",
+        "gantt_view",
+        "mix_split",
+        "mn_grid_alert",
+        "popup",
+        "subcomponent",
+        "v2_dual_grid",
+        "v3_multi_grid",
+        "v4_multi_grid",
+        "widget_chart",
+        "widget_grid",
+        "widget_misc",
+        "widget_pivot"
+      ]
+    },
+    "newPhase1Codes": {
+      "count": 16,
+      "keys": [
+        "P02b_grid_only",
+        "P09_chart_view",
+        "base_wrapper",
+        "free_form",
+        "gantt_view",
+        "mix_split",
+        "mn_grid_alert",
+        "popup",
+        "subcomponent",
+        "v2_dual_grid",
+        "v3_multi_grid",
+        "v4_multi_grid",
+        "widget_chart",
+        "widget_grid",
+        "widget_misc",
+        "widget_pivot"
+      ]
+    }
+  },
+  "unusedPreviewKeys": {
+    "count": 246,
+    "keys": [
+      "approval_list",
+      "calendar",
+      "card_list",
+      "cb_ai_chatbot",
+      "cb_alert_threshold",
+      "cb_approval",
+      "cb_batch_schedule",
+      "cb_bottleneck",
+      "cb_composite_process",
+      "cb_custom_widget",
+      "cb_data_imputation",
+      "cb_erp_publish",
+      "cb_error_log",
+      "cb_geo_map",
+      "cb_io_interface",
+      "cb_job_queue",
+      "cb_kpi_compare",
+      "cb_late_orders",
+      "cb_live_log",
+      "cb_manual_override",
+      "cb_mdm_check",
+      "cb_node_recovery",
+      "cb_node_status",
+      "cb_parallel_scenario",
+      "cb_param_tuning",
+      "cb_pipeline_progress",
+      "cb_rca_analysis",
+      "cb_resource_monitor",
+      "cb_safety_alert",
+      "cb_supply_demand",
+      "cb_ticket_assign",
+      "cb_topology",
+      "cb_version_diff",
+      "chart_grid_horizontal",
+      "chart_grid_vertical",
+      "chat",
+      "code_editor",
+      "control_board",
+      "diff_view",
+      "doc_viewer",
+      "drilldown",
+      "flo_diagram",
+      "form_detail_grid",
+      "gantt",
+      "grid_2x2",
+      "h2_category_items",
+      "h2_channel_chat",
+      "h2_chart_grid",
+      "h2_filetree_editor",
+      "h2_filter_cards",
+      "h2_form_grid",
+      "h2_form_preview",
+      "h2_grid_chart",
+      "h2_list_editform",
+      "h2_list_preview",
+      "h2_menu_content",
+      "h2_nav_main",
+      "h2_searchcond_result",
+      "h2_tree_detail_form",
+      "h3_category_grid_chart",
+      "h3_filter_list_detail",
+      "h3_folder_editor_output",
+      "h3_folder_file_preview",
+      "h3_left_main_right",
+      "h3_menu_list_editor",
+      "h3_source_diff_target",
+      "h3_step_form_result",
+      "h3_tree_chart_grid",
+      "h3_tree_grid_detail",
+      "h4_drill_drill_drill_detail",
+      "h4_filter_category_list_chart",
+      "h4_menu_center_center_tool",
+      "h4_menu_tree_grid_detail",
+      "h4_nav_tree_editor_output",
+      "h5_menu_category_list_detail_action",
+      "h5_nav_tree_grid_detail_toolbar",
+      "heatmap",
+      "infinite_list",
+      "kanban",
+      "kpi_chart",
+      "map",
+      "mix_accordion_main",
+      "mix_drawer_main",
+      "mix_explorer_3",
+      "mix_explorer_5",
+      "mix_grid_2x2",
+      "mix_grid_2x3",
+      "mix_grid_3x2",
+      "mix_grid_3x3",
+      "mix_h2_right_v2",
+      "mix_h2_right_v3",
+      "mix_h2_right_v3b",
+      "mix_h3_mid_v2",
+      "mix_h3_mid_v3",
+      "mix_header_nav_content_status",
+      "mix_master_tabbed_detail",
+      "mix_master_v2_detail",
+      "mix_master_v_tabbed_detail",
+      "mix_notice_drawer_main",
+      "mix_report_v3",
+      "mix_ribbon_h2",
+      "mix_ribbon_main",
+      "mix_side_v3",
+      "mix_sidetab_main",
+      "mix_stepper_tab",
+      "mix_strip_horizontal",
+      "mix_strip_vertical",
+      "mix_tab_h2",
+      "mix_tab_h3",
+      "mix_tab_v2",
+      "mix_v2_accordion_grid",
+      "mix_v2_form_tab",
+      "mix_v2_h2_master_detail",
+      "mix_v2_h2_search_tree_grid",
+      "mix_v2_h2v2_toolbar_tree_chart_grid",
+      "mix_v2_h2v2_tree_chart_grid",
+      "mix_v2_h3_filter_grid_detail",
+      "mix_v2_kpi_tab",
+      "mix_v2_tab_bottom",
+      "mix_v3_kpi_mid_detail",
+      "mix_v3_mid_h2",
+      "mn_bottleneck",
+      "mn_compliance_trend",
+      "mn_customer_sla",
+      "mn_daily_work_order",
+      "mn_delay_risk",
+      "mn_energy_carbon",
+      "mn_exec_summary",
+      "mn_expected_cost",
+      "mn_forecast_vs_plan",
+      "mn_gantt_progress",
+      "mn_hot_orders",
+      "mn_labor_input",
+      "mn_line_switching",
+      "mn_line_utilization",
+      "mn_logistics_sync",
+      "mn_material_shortage",
+      "mn_part_explosion",
+      "mn_pivot_plan",
+      "mn_plan_vs_actual",
+      "mn_po_tracking",
+      "mn_rework_status",
+      "mn_safety_stock_alert",
+      "mn_setup_loss",
+      "mn_subcontracting",
+      "mn_tooling_mgmt",
+      "mn_unplanned_orders",
+      "mn_version_diff",
+      "mn_wip_flow",
+      "mn_yield_impact",
+      "network_graph",
+      "pe_ai_copilot",
+      "pe_altpart_swap",
+      "pe_bulk_inline_edit",
+      "pe_calendar_drag",
+      "pe_capacity_slider",
+      "pe_constraint_guide",
+      "pe_diff_viewer",
+      "pe_excel_upload_edit",
+      "pe_gantt_drag_edit",
+      "pe_heijunka_matrix",
+      "pe_history_rollback",
+      "pe_kpi_summary",
+      "pe_lock_based_edit",
+      "pe_multi_plant_transfer",
+      "pe_pivot_grid_edit",
+      "pe_rank_reschedule",
+      "pe_ratio_slider",
+      "pe_ripple_effect",
+      "pe_scenario_compare",
+      "pe_setup_batching",
+      "pivot_entry",
+      "pivot_table",
+      "process_status",
+      "report_tabs",
+      "rl_layout_simulation",
+      "rl_layout_wip",
+      "scheduler",
+      "settings_form",
+      "sidebar_main",
+      "split_master_detail",
+      "tab_chart",
+      "timeline",
+      "tree_grid",
+      "tree_grid_detail",
+      "v2_breadcrumb_content",
+      "v2_chart_grid",
+      "v2_filter_list",
+      "v2_form_chart",
+      "v2_form_grid",
+      "v2_grid_chart",
+      "v2_header_tab",
+      "v2_header_timeline",
+      "v2_info_grid",
+      "v2_kpi_chart",
+      "v2_kpi_grid",
+      "v2_master_master",
+      "v2_notice_main",
+      "v2_progress_content",
+      "v2_search_calendar",
+      "v2_search_cards",
+      "v2_search_chart",
+      "v2_search_flo",
+      "v2_search_gantt",
+      "v2_search_grid",
+      "v2_search_map",
+      "v2_search_pivot",
+      "v2_search_tree",
+      "v2_title_canvas",
+      "v2_toolbar_grid",
+      "v3_condition_preview_result",
+      "v3_filter_cards_pagination",
+      "v3_header_lines_summary",
+      "v3_header_main_action",
+      "v3_kpi_chart_grid",
+      "v3_kpi_grid_chart",
+      "v3_notice_kpi_grid",
+      "v3_progress_grid_action",
+      "v3_search_chart_grid",
+      "v3_search_gantt_grid",
+      "v3_search_grid_chart",
+      "v3_search_grid_log",
+      "v3_search_kpi_grid",
+      "v3_search_map_grid",
+      "v3_search_master_detail_v",
+      "v3_search_network_grid",
+      "v3_search_pivot_chart",
+      "v3_search_tab_detail",
+      "v3_stepper_form_button",
+      "v3_toolbar_grid_status",
+      "v4_filter_cards_grid_chart",
+      "v4_header_kpi_tab_detail",
+      "v4_header_tab_grid_action",
+      "v4_notice_filter_list_pagination",
+      "v4_search_kpi_chart_grid",
+      "v4_search_kpi_grid_chart",
+      "v4_search_pivot_grid_chart",
+      "v4_search_toolbar_grid_detail",
+      "v4_stepper_search_grid_detail",
+      "v4_toolbar_search_grid_footer",
+      "v5_header_stepper_tab_content_action",
+      "v5_header_toolbar_tree_grid_log",
+      "v5_nav_search_kpi_grid_status",
+      "v5_notice_filter_kpi_grid_pagination",
+      "v5_search_kpi_chart_grid_detail",
+      "wizard_stepper"
+    ]
+  },
+  "unusedDbSeeds": {
+    "count": 246,
+    "list": [
+      {
+        "code": "CB_02",
+        "layout": "cb_composite_process",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_03",
+        "layout": "cb_parallel_scenario",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_04",
+        "layout": "cb_param_tuning",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_05",
+        "layout": "cb_batch_schedule",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_06",
+        "layout": "cb_mdm_check",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_07",
+        "layout": "cb_approval",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_08",
+        "layout": "cb_node_status",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_09",
+        "layout": "cb_pipeline_progress",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_10",
+        "layout": "cb_live_log",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_11",
+        "layout": "cb_resource_monitor",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_12",
+        "layout": "cb_io_interface",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_13",
+        "layout": "cb_job_queue",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_14",
+        "layout": "cb_error_log",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_15",
+        "layout": "cb_alert_threshold",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_16",
+        "layout": "cb_node_recovery",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_17",
+        "layout": "cb_data_imputation",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_18",
+        "layout": "cb_ticket_assign",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_19",
+        "layout": "cb_rca_analysis",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_20",
+        "layout": "cb_supply_demand",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_21",
+        "layout": "cb_kpi_compare",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_22",
+        "layout": "cb_safety_alert",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_23",
+        "layout": "cb_late_orders",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_24",
+        "layout": "cb_bottleneck",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_25",
+        "layout": "cb_version_diff",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_26",
+        "layout": "cb_erp_publish",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_27",
+        "layout": "cb_manual_override",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_28",
+        "layout": "cb_ai_chatbot",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_29",
+        "layout": "cb_geo_map",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_30",
+        "layout": "cb_topology",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "CB_31",
+        "layout": "cb_custom_widget",
+        "category": "LAYOUT_CONTROLBOARD",
+        "file": "db_update_script_composer_pattern_controlboard.sql"
+      },
+      {
+        "code": "H2_03",
+        "layout": "h2_form_grid",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_04",
+        "layout": "h2_chart_grid",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_05",
+        "layout": "h2_menu_content",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_06",
+        "layout": "h2_list_editform",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_07",
+        "layout": "h2_nav_main",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_08",
+        "layout": "h2_filetree_editor",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_09",
+        "layout": "h2_category_items",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_10",
+        "layout": "h2_searchcond_result",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_11",
+        "layout": "h2_grid_chart",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_12",
+        "layout": "h2_tree_detail_form",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_13",
+        "layout": "h2_list_preview",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_14",
+        "layout": "h2_form_preview",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_15",
+        "layout": "h2_filter_cards",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H2_16",
+        "layout": "h2_channel_chat",
+        "category": "LAYOUT_H2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_01",
+        "layout": "h3_tree_grid_detail",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_02",
+        "layout": "h3_menu_list_editor",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_03",
+        "layout": "h3_category_grid_chart",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_04",
+        "layout": "h3_tree_chart_grid",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_05",
+        "layout": "h3_left_main_right",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_06",
+        "layout": "h3_folder_editor_output",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_07",
+        "layout": "h3_filter_list_detail",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_08",
+        "layout": "h3_folder_file_preview",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_09",
+        "layout": "h3_step_form_result",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H3_10",
+        "layout": "h3_source_diff_target",
+        "category": "LAYOUT_H3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H4_01",
+        "layout": "h4_menu_tree_grid_detail",
+        "category": "LAYOUT_H4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H4_02",
+        "layout": "h4_filter_category_list_chart",
+        "category": "LAYOUT_H4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H4_03",
+        "layout": "h4_nav_tree_editor_output",
+        "category": "LAYOUT_H4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H4_04",
+        "layout": "h4_drill_drill_drill_detail",
+        "category": "LAYOUT_H4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H4_05",
+        "layout": "h4_menu_center_center_tool",
+        "category": "LAYOUT_H4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H5_01",
+        "layout": "h5_nav_tree_grid_detail_toolbar",
+        "category": "LAYOUT_H5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "H5_02",
+        "layout": "h5_menu_category_list_detail_action",
+        "category": "LAYOUT_H5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_01",
+        "layout": "mix_v2_h2_search_tree_grid",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_02",
+        "layout": "mix_v2_h2v2_tree_chart_grid",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_03",
+        "layout": "mix_v2_h3_filter_grid_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_04",
+        "layout": "mix_v2_h2_master_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_05",
+        "layout": "mix_v2_h2v2_toolbar_tree_chart_grid",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_06",
+        "layout": "mix_v2_tab_bottom",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_07",
+        "layout": "mix_v2_kpi_tab",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_08",
+        "layout": "mix_v2_form_tab",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_09",
+        "layout": "mix_v3_mid_h2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_10",
+        "layout": "mix_v3_kpi_mid_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_11",
+        "layout": "mix_h2_right_v2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_12",
+        "layout": "mix_h2_right_v3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_13",
+        "layout": "mix_h2_right_v3b",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_14",
+        "layout": "mix_h3_mid_v2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_15",
+        "layout": "mix_h3_mid_v3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_16",
+        "layout": "mix_tab_h2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_17",
+        "layout": "mix_tab_v2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_18",
+        "layout": "mix_tab_h3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_19",
+        "layout": "mix_stepper_tab",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_20",
+        "layout": "mix_sidetab_main",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_21",
+        "layout": "mix_accordion_main",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_22",
+        "layout": "mix_v2_accordion_grid",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_23",
+        "layout": "mix_drawer_main",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_24",
+        "layout": "mix_notice_drawer_main",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_25",
+        "layout": "mix_grid_2x2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_26",
+        "layout": "mix_grid_2x3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_27",
+        "layout": "mix_grid_3x2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_28",
+        "layout": "mix_grid_3x3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_29",
+        "layout": "mix_strip_horizontal",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_30",
+        "layout": "mix_strip_vertical",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_31",
+        "layout": "mix_explorer_5",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_32",
+        "layout": "mix_explorer_3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_33",
+        "layout": "mix_header_nav_content_status",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_34",
+        "layout": "mix_ribbon_main",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_35",
+        "layout": "mix_ribbon_h2",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_36",
+        "layout": "mix_master_tabbed_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_37",
+        "layout": "mix_master_v_tabbed_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_38",
+        "layout": "mix_master_v2_detail",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_39",
+        "layout": "mix_report_v3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MIX_40",
+        "layout": "mix_side_v3",
+        "category": "LAYOUT_MIXED",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "MN_02",
+        "layout": "mn_daily_work_order",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_03",
+        "layout": "mn_pivot_plan",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_04",
+        "layout": "mn_wip_flow",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_05",
+        "layout": "mn_delay_risk",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_06",
+        "layout": "mn_unplanned_orders",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_07",
+        "layout": "mn_material_shortage",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_08",
+        "layout": "mn_bottleneck",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_09",
+        "layout": "mn_plan_vs_actual",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_10",
+        "layout": "mn_compliance_trend",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_11",
+        "layout": "mn_line_utilization",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_12",
+        "layout": "mn_setup_loss",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_13",
+        "layout": "mn_po_tracking",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_14",
+        "layout": "mn_gantt_progress",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_15",
+        "layout": "mn_part_explosion",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_16",
+        "layout": "mn_customer_sla",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_17",
+        "layout": "mn_subcontracting",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_18",
+        "layout": "mn_expected_cost",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_19",
+        "layout": "mn_energy_carbon",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_20",
+        "layout": "mn_labor_input",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_21",
+        "layout": "mn_forecast_vs_plan",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_22",
+        "layout": "mn_line_switching",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_23",
+        "layout": "mn_yield_impact",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_24",
+        "layout": "mn_logistics_sync",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_25",
+        "layout": "mn_hot_orders",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_26",
+        "layout": "mn_rework_status",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_27",
+        "layout": "mn_safety_stock_alert",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_28",
+        "layout": "mn_tooling_mgmt",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_29",
+        "layout": "mn_version_diff",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "MN_30",
+        "layout": "mn_exec_summary",
+        "category": "LAYOUT_MONITORING",
+        "file": "db_update_script_composer_pattern_monitoring.sql"
+      },
+      {
+        "code": "P04",
+        "layout": "split_master_detail",
+        "category": "GRID",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P06",
+        "layout": "pivot_entry",
+        "category": "ENTRY",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P07",
+        "layout": "control_board",
+        "category": "WORKFLOW",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P08",
+        "layout": "process_status",
+        "category": "WORKFLOW",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P09",
+        "layout": "gantt",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P10",
+        "layout": "flo_diagram",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P11",
+        "layout": "map",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P12",
+        "layout": "pivot_table",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P13",
+        "layout": "kpi_chart",
+        "category": "DASHBOARD",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P14",
+        "layout": "chart_grid_horizontal",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P15",
+        "layout": "chart_grid_vertical",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P16",
+        "layout": "grid_2x2",
+        "category": "DASHBOARD",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P17",
+        "layout": "tab_chart",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P18",
+        "layout": "drilldown",
+        "category": "DASHBOARD",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P19",
+        "layout": "tree_grid",
+        "category": "GRID",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P20",
+        "layout": "card_list",
+        "category": "GRID",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P21",
+        "layout": "form_detail_grid",
+        "category": "ENTRY",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P22",
+        "layout": "wizard_stepper",
+        "category": "ENTRY",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P23",
+        "layout": "timeline",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P24",
+        "layout": "tree_grid_detail",
+        "category": "GRID",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P25",
+        "layout": "calendar",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P26",
+        "layout": "report_tabs",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P27",
+        "layout": "scheduler",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P28",
+        "layout": "network_graph",
+        "category": "VISUALIZATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P29",
+        "layout": "heatmap",
+        "category": "ANALYSIS",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P30",
+        "layout": "approval_list",
+        "category": "WORKFLOW",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P31",
+        "layout": "kanban",
+        "category": "WORKFLOW",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P32",
+        "layout": "code_editor",
+        "category": "SPECIAL",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P33",
+        "layout": "doc_viewer",
+        "category": "SPECIAL",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P34",
+        "layout": "settings_form",
+        "category": "ENTRY",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P35",
+        "layout": "infinite_list",
+        "category": "GRID",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P36",
+        "layout": "sidebar_main",
+        "category": "NAVIGATION",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P37",
+        "layout": "diff_view",
+        "category": "SPECIAL",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "P38",
+        "layout": "chat",
+        "category": "SPECIAL",
+        "file": "db_update_script_composer_pattern.sql"
+      },
+      {
+        "code": "PE_01",
+        "layout": "pe_pivot_grid_edit",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_02",
+        "layout": "pe_gantt_drag_edit",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_03",
+        "layout": "pe_excel_upload_edit",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_04",
+        "layout": "pe_diff_viewer",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_05",
+        "layout": "pe_scenario_compare",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_06",
+        "layout": "pe_calendar_drag",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_07",
+        "layout": "pe_constraint_guide",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_08",
+        "layout": "pe_capacity_slider",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_09",
+        "layout": "pe_ripple_effect",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_10",
+        "layout": "pe_ratio_slider",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_11",
+        "layout": "pe_bulk_inline_edit",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_12",
+        "layout": "pe_lock_based_edit",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_13",
+        "layout": "pe_ai_copilot",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_14",
+        "layout": "pe_history_rollback",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_15",
+        "layout": "pe_kpi_summary",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_16",
+        "layout": "pe_rank_reschedule",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_17",
+        "layout": "pe_altpart_swap",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_18",
+        "layout": "pe_heijunka_matrix",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_19",
+        "layout": "pe_setup_batching",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "PE_20",
+        "layout": "pe_multi_plant_transfer",
+        "category": "LAYOUT_PLANEDIT",
+        "file": "db_update_script_composer_pattern_planedit.sql"
+      },
+      {
+        "code": "RL_02",
+        "layout": "rl_layout_wip",
+        "category": "LAYOUT_ROUTELAYOUT",
+        "file": "db_update_script_composer_pattern_routelayout.sql"
+      },
+      {
+        "code": "RL_03",
+        "layout": "rl_layout_simulation",
+        "category": "LAYOUT_ROUTELAYOUT",
+        "file": "db_update_script_composer_pattern_routelayout.sql"
+      },
+      {
+        "code": "V2_01",
+        "layout": "v2_search_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_02",
+        "layout": "v2_search_chart",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_03",
+        "layout": "v2_search_cards",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_04",
+        "layout": "v2_search_tree",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_05",
+        "layout": "v2_search_pivot",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_06",
+        "layout": "v2_filter_list",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_07",
+        "layout": "v2_toolbar_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_08",
+        "layout": "v2_kpi_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_09",
+        "layout": "v2_kpi_chart",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_10",
+        "layout": "v2_grid_chart",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_11",
+        "layout": "v2_chart_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_12",
+        "layout": "v2_form_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_13",
+        "layout": "v2_form_chart",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_14",
+        "layout": "v2_header_tab",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_15",
+        "layout": "v2_master_master",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_16",
+        "layout": "v2_info_grid",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_17",
+        "layout": "v2_search_gantt",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_18",
+        "layout": "v2_search_map",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_19",
+        "layout": "v2_search_flo",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_20",
+        "layout": "v2_title_canvas",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_21",
+        "layout": "v2_notice_main",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_22",
+        "layout": "v2_progress_content",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_23",
+        "layout": "v2_header_timeline",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_24",
+        "layout": "v2_search_calendar",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V2_25",
+        "layout": "v2_breadcrumb_content",
+        "category": "LAYOUT_V2",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_01",
+        "layout": "v3_search_grid_chart",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_02",
+        "layout": "v3_search_chart_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_03",
+        "layout": "v3_search_kpi_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_04",
+        "layout": "v3_header_main_action",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_05",
+        "layout": "v3_toolbar_grid_status",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_06",
+        "layout": "v3_search_tab_detail",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_07",
+        "layout": "v3_kpi_grid_chart",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_08",
+        "layout": "v3_search_master_detail_v",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_09",
+        "layout": "v3_search_grid_log",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_10",
+        "layout": "v3_stepper_form_button",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_11",
+        "layout": "v3_filter_cards_pagination",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_12",
+        "layout": "v3_search_gantt_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_13",
+        "layout": "v3_search_pivot_chart",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_14",
+        "layout": "v3_header_lines_summary",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_15",
+        "layout": "v3_kpi_chart_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_16",
+        "layout": "v3_search_map_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_17",
+        "layout": "v3_search_network_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_18",
+        "layout": "v3_progress_grid_action",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_19",
+        "layout": "v3_condition_preview_result",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V3_20",
+        "layout": "v3_notice_kpi_grid",
+        "category": "LAYOUT_V3",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_01",
+        "layout": "v4_search_kpi_grid_chart",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_02",
+        "layout": "v4_search_toolbar_grid_detail",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_03",
+        "layout": "v4_header_tab_grid_action",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_04",
+        "layout": "v4_stepper_search_grid_detail",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_05",
+        "layout": "v4_filter_cards_grid_chart",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_06",
+        "layout": "v4_search_kpi_chart_grid",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_07",
+        "layout": "v4_toolbar_search_grid_footer",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_08",
+        "layout": "v4_header_kpi_tab_detail",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_09",
+        "layout": "v4_search_pivot_grid_chart",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V4_10",
+        "layout": "v4_notice_filter_list_pagination",
+        "category": "LAYOUT_V4",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V5_01",
+        "layout": "v5_search_kpi_chart_grid_detail",
+        "category": "LAYOUT_V5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V5_02",
+        "layout": "v5_header_toolbar_tree_grid_log",
+        "category": "LAYOUT_V5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V5_03",
+        "layout": "v5_nav_search_kpi_grid_status",
+        "category": "LAYOUT_V5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V5_04",
+        "layout": "v5_header_stepper_tab_content_action",
+        "category": "LAYOUT_V5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      },
+      {
+        "code": "V5_05",
+        "layout": "v5_notice_filter_kpi_grid_pagination",
+        "category": "LAYOUT_V5",
+        "file": "db_update_script_composer_pattern_seed_ext.sql"
+      }
+    ]
+  },
+  "duplicateSeeds": {
+    "count": 0,
+    "list": []
+  },
+  "patternUsage": [
+    {
+      "patternCode": "popup",
+      "usage": 223,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "free_form",
+      "usage": 209,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "search_grid",
+      "usage": 101,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "widget_chart",
+      "usage": 94,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "widget_misc",
+      "usage": 49,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "widget_dashboard",
+      "usage": 48,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "P02b_grid_only",
+      "usage": 47,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "grid_chart_stacked",
+      "usage": 32,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "v2_dual_grid",
+      "usage": 28,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "search_tab",
+      "usage": 27,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "widget_grid",
+      "usage": 27,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "P09_chart_view",
+      "usage": 23,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "rl_layout_design",
+      "usage": 22,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "subcomponent",
+      "usage": 16,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "widget_pivot",
+      "usage": 13,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "h2_tree_grid",
+      "usage": 8,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "base_wrapper",
+      "usage": 7,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "mix_split",
+      "usage": 6,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "cb_master_dashboard",
+      "usage": 4,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "v3_multi_grid",
+      "usage": 2,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "gantt_view",
+      "usage": 2,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "mn_grid_alert",
+      "usage": 1,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "mn_kpi_dashboard",
+      "usage": 1,
+      "inDbSeed": true,
+      "inPreview": true
+    },
+    {
+      "patternCode": "v4_multi_grid",
+      "usage": 1,
+      "inDbSeed": false,
+      "inPreview": false
+    },
+    {
+      "patternCode": "h2_master_detail",
+      "usage": 1,
+      "inDbSeed": true,
+      "inPreview": true
+    }
+  ]
+}

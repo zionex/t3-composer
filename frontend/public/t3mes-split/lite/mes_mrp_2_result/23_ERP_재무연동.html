@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>ERP 재무연동</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #23: ERP 재무연동 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ ERP / 재무 매입채권(AP) 자동 생성 연동</h3><span class="tip">입고 확정 버튼을 누름과 동시에, "우리 창고에 물건 들어왔으니 돈 줘야 함" 이라는 매입채권(AP, Account Payable) 전표를 재무팀 ERP로 넘깁니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">입고 내역 (GR)</div><div class="label">입고 품목</div><input type="text" class="inp" value="최고급 원두 1,000 kg" disabled style="margin-bottom:12px"><div class="label">입고 단가 (PO 기준)</div><input type="text" class="inp" value="₩ 15,000" disabled></div>
+      <div class="card" style="background:var(--surface2);border-color:var(--amber)"><div class="card-title" style="color:var(--amber)">재무/회계팀 매입채권(AP) 연동</div><div class="label">생성될 지급 결의(AP) 금액</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;color:var(--amber);margin-bottom:20px">₩ 15,000,000</div><button class="btn btn-amber" style="width:100%;padding:16px" onclick="showToast('입고(GR) 확정 및 매입채권(AP) 전표 ERP 전송 완료')">입고 확정 및 AP 전표 생성</button></div>
+    </div>
+  </div>

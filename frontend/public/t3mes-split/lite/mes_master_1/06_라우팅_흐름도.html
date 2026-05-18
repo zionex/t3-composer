@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>라우팅 흐름도</title>
+<!-- T3MES UI Pattern · mes_master_1 · TabPage #6: 라우팅 흐름도 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+      <div class="sec-hdr"><div><h3>6. 생산 라우팅 (Routing Sequence)</h3><span class="tip">좌측에서 대상 품목을 선택하면 우측에 흐름도(Flow)와 상세 정보가 조회됩니다.</span></div></div>
+      <div class="grid2" style="grid-template-columns:300px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">대상 품목 (Master)</div><div class="tbl-wrap" style="border:none"><table class="tbl"><tbody id="tb5-list"></tbody></table></div></div>
+        <div class="card" style="margin:0">
+          <div class="card-title flex-between"><span>라우팅 시퀀스 & 흐름도</span> <span class="badge b-cyan" id="p5-rtg-title">선택 대기</span></div>
+          <div class="rtg-flow-wrap" id="p5-rtg-flow">
+            <div style="padding:20px;text-align:center;color:var(--text3);width:100%">좌측에서 품목을 선택해주세요.</div>
+          </div>
+          <div class="tbl-wrap" style="border:none;min-height:200px"><table class="tbl"><thead><tr><th>Seq</th><th>공정코드</th><th>공정명</th><th>할당 설비그룹</th><th class="num">준비시간(Setup)</th><th class="num">가동시간(Run)</th></tr></thead><tbody id="tb5-rtg"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">좌측에서 품목을 선택해주세요.</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>

@@ -34,6 +34,10 @@
 | `./.claude/hooks/` | PreToolUse / PostToolUse / SessionStart / Stop hook 스크립트 (부모와 동일) |
 | `./.claude/settings.json` | Hook 등록 + permission allow/deny + 환경변수 |
 | `./docs/reference/` | 대용량 카탈로그 (테이블/뷰/SP/모듈별 상세) — grep 기반 조회 |
+| `./docs/UI-ANALYSIS-OVERVIEW.md` | Phase 1~4c — 운영 화면 956개 정적 분석 + 54개 mockup + 메뉴 매핑 |
+| `./frontend/src/view/util/t3mockup/` | **T3Mockup 갤러리** — 54개 mockup (정규/도메인/Dashboard/ControlBoard/메타). `index.js` 의 `MOCKUP_ENTRIES` 가 단일 진실 저장소 |
+| `./frontend/src/view/util/t3mockup/_data/t3smartscm-menu-mapping.json` | 운영 메뉴 263개 ↔ mockup 매핑 (Phase 4b). 검색·연결 lookup 용 |
+| `./scripts/` | UI 분석 4종 (`ui-inventory` · `ui-patterns-gen` · `pattern-coverage` · `mockup-menu-mapping`) |
 | `./docs/ui-patterns/` | UI 패턴 가이드 |
 
 ## 1. 이 레포 고유 규칙 (부모 규칙 위에 추가)
@@ -92,6 +96,13 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 - **단독 dev 환경 인프라** (Docker DevTools / 화면 실행 / RealGrid2 / shim 구조) — `.claude/rules/50-composer-standalone-runtime.md`
 
 ## 2.1 단독 환경 핵심 인프라 (2026-05 개편)
+
+> **★ 제1원칙 — Target 런타임 환경 패리티** (`.claude/rules/50 §13.0`): 산출물 화면 실행
+> 오류 예방의 근간. Composer 의 생성·미리보기 환경은 선택된 Target(wingui) 의 런타임 표면을
+> **미러(superset)** 한다 — shim·registry·ambient·store 를 Target 표면의 상위집합으로 유지.
+> 미리보기 런타임 오류는 **개별 오류를 하나씩 패치하지 말고**, 그 오류가 속한 표면 클래스
+> (import 컴포넌트 / free variable / npm·MUI 서브모듈 / grid 객체 / store 멤버) **전체를
+> 확장**해 클래스 단위로 닫는다. RT 카탈로그(`rules/50 §13.2`)는 증상 기록일 뿐이다.
 
 ### Backend hot-reload (Phase 1)
 - backend 컨테이너가 `mvn spring-boot:run` 으로 기동 (jar 가 아님)
@@ -155,6 +166,33 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 - `ResponseMessage.ofSuccess()` / `ofFail(msg)` 별칭 — LLM 환각 패턴 자동 호환
 - shim `GridSaveButton` / `GridDeleteRowButton` 이 `getAllStateRows()` 전 `g.commit(true)` 자동 호출 (RealGrid `Client is editing` 오류 회피)
 - AI prefill SP 오분류 방어 — Backend prompt + Frontend `mergeAiSpecIntoBaseSpec` 사후 정합화 (`source='SP'` AND SP 필드 빈 + baseUrl/entity 있음 → JPA_ENTITY 강제 전환)
+
+### T3Mockup 갤러리 (Phase 4a/b/c — 2026-05-15)
+- **위치**: `frontend/src/view/util/t3mockup/`
+- **접근**: 상단 메뉴 바 [SCM UI Mockup] Tab (App.jsx `MENU_ITEMS` 순서: T3Composer · History · **SCM UI Mockup** · UI Pattern · Gallery)
+- **`index.js` 의 `MOCKUP_ENTRIES`** — 54개 mockup entry (단일 진실 저장소)
+  - 그룹: `T3SMART_SCM_ENTRIES` (54) · `PLANEL_ENTRIES` (placeholder)
+  - 자동 부여: `productLine` (T3SmartSCM/PlaNEL) · `menus[]` (운영 메뉴 매핑)
+- **카테고리** (5종): `core` (12) · `domain` (13) · `dashboard` (16) · `controlboard` (4) · `meta` (9)
+- **운영 메뉴 매핑**: `_data/t3smartscm-menu-mapping.json` — T3SERIES 운영 263개 메뉴 100% 매핑 (78% ui-inventory 분류기 결과 활용)
+- **공통 sub**: `_shared/{MockShell,BoardWidgetTile,CbStepper,CbLogPane}.jsx` — 모든 mockup 이 `MockShell` 을 최상위 래퍼로 사용
+- **검색·필터**: productLine → category → 검색바 (코드/라벨/설명/메뉴ID/메뉴명/경로) → 카드 클릭 시 mockup 본문 + `[사용 메뉴 N개]` 토글로 매핑 메뉴 테이블 펼침
+- **브라우저 뒤로가기 ↔ active state 연동**: `history.pushState` + `popstate` 로 T3Mockup 안에서만 한 단계씩 이동 (Composer 의 다른 Tab/Route 로 빠지지 않음)
+- **신규 mockup 추가 절차**:
+  1. `frontend/src/view/util/t3mockup/<patternCode>/<File>Mockup.jsx` 작성 (MockShell 사용 필수)
+  2. `index.js` 의 `T3SMART_SCM_ENTRIES` 또는 `PLANEL_ENTRIES` 배열에 entry 추가 (lazy import path)
+  3. 운영 메뉴 매핑 갱신: `node scripts/mockup-menu-mapping.cjs`
+  4. hook 검증: `.claude/hooks/validators/t3mockup.sh` (M1~M4)
+
+### T3MES UI Pattern 카탈로그 (2026-05-15)
+- **위치**: `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` · 접근: 상단 메뉴 [UI Pattern] Tab
+- **원본 → 분리**: `frontend/public/t3mes/*.html` (T3MES 퍼블리싱 29개) → `scripts/split-t3mes-tabs.cjs` 가 TabPage 단위 분리
+  - `frontend/public/t3mes-split/full/` (730개 독립 HTML — iframe 표시) · `lite/` (730개 경량 마크업 — AI 참조용)
+  - `_data/t3mes-tabs.json` — 파일별 TabPage 메타. `ALL_ENTRIES` export (picker 재사용)
+  - 신규/수정 시: `node scripts/split-t3mes-tabs.cjs` 재실행 (full/lite + json 일괄 재생성)
+- **자연어 생성 연동**: `ModeNewGeneral` 선택사항 영역 — `SCM UI Mockup` / `UI Pattern` / `파일 D&D` 중 **1개 단독** 적용
+  (`MockupPickerDialog` · `UiPatternPickerDialog` 미리보기 포함 · 하단 전용 D&D 영역)
+- 상세: `.claude/rules/50-composer-standalone-runtime.md §12`
 
 ## 3. 부모 폴더와의 관계 (sync 시점 외)
 

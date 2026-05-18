@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>PO 칸반보드</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #8: PO 칸반보드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 발주 진행상태 칸반 (PO Kanban)</h3><span class="tip">부족 발생부터 기안, 발주 전송, 입고 대기까지의 흐름을 카드로 드래그하며 직관적으로 관리합니다.</span></div></div>
+    <div class="kanban">
+      <div class="k-col"><div style="font-weight:700;color:var(--red)">🚨 발주요망 (Shortage)</div><div id="k7_1"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--amber)">📝 기안/결재중 (Pending)</div><div id="k7_2"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--teal)">✉️ PO 전송완료 (Sent)</div><div id="k7_3"></div></div>
+      <div class="k-col" style="border-color:var(--green-mid);background:var(--green-dim)" ondragover="event.preventDefault()" ondrop="kDropWon(event, this)"><div style="font-weight:700;color:var(--green)">🚚 입고 대기중 (In Transit)</div><div id="k7_4"><div style="color:var(--text3);text-align:center;padding:50px 0" id="k7-ph">여기로 카드를 드래그하세요.</div></div></div>
+    </div>
+  </div>

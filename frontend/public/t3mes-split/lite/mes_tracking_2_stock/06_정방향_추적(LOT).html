@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>정방향 추적(LOT)</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #6: 정방향 추적(LOT) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 정방향 추적 (Forward Traceability: Mat ➔ Prod)</h3><span class="tip">불량 원자재 LOT 번호를 입력하면, 그 자재가 투입되어 만들어진 모든 반제품/완제품과 최종 출하처(고객)를 찾아냅니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--cyan)"><div class="card-title" style="color:var(--cyan)">1. 원자재 LOT 입력 (불량 의심)</div><div style="display:flex;gap:8px;margin-bottom:16px"><input type="text" class="inp" value="RAW-LOT-2024-889" style="font-family:var(--mono);font-weight:700;font-size:16px"><button class="btn btn-cyan" onclick="showToast('해당 원자재가 쓰인 완제품 전개 완료')">추적 ➔</button></div><div class="tip">입고일: 10/01 | 공급사: 성진화학 | 수량: 10,000 kg</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">2. 이 자재로 만들어진 완제품 / 출하처</div><div class="tbl-wrap" style="max-height:300px;border:none"><table class="tbl"><thead><tr><th>생산된 완제품 LOT</th><th>최종 출하처 (고객사)</th><th>리콜(Recall) 대상 여부</th></tr></thead><tbody id="tb5"></tbody></table></div></div>
+    </div>
+  </div>

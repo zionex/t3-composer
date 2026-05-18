@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>온도 로거 콜드체인</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #27: 온도 로거 콜드체인 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 콜드체인 온도/상태 이력 추적 (Condition Log)</h3><span class="tip">백신이나 신선식품이 배송되는 동안 트럭 안의 온도가 떨어지진 않았는지, 충격을 받진 않았는지 위치와 함께 실시간 그래프로 그립니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 400px">
+      <div class="card" style="margin:0;display:flex;align-items:center;justify-content:center;background:var(--surface3);position:relative">
+        <span style="font-size:24px;color:var(--text3);position:absolute;top:10px;left:10px">실시간 온도 그래프 📈</span>
+        <svg width="80%" height="60%" viewBox="0 0 100 50"><polyline points="0,25 20,22 40,28 60,15 80,26 100,24" fill="none" stroke="var(--purple)" stroke-width="2"/><line x1="0" y1="10" x2="100" y2="10" stroke="var(--red)" stroke-dasharray="2,2"/><text x="80" y="8" fill="var(--red)" font-size="4">상한선 (8도)</text></svg>
+      </div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title">센서 실시간 데이터 (IoT)</div>
+        <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border)"><span>현재 온도</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green)">4.2 ℃</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border)"><span>습도</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--blue)">45 %</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px"><span>충격 감지(G)</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">0.1 G (안전)</span></div>
+      </div>
+    </div>
+  </div>

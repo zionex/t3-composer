@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zionex.t3composer.config.TargetDataSourceRegistry;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +38,40 @@ public class SchemaInspectionController {
 
     private final SchemaInspectionService schemaInspectionService;
     private final ProcedureInspectionService procedureInspectionService;
+    private final TargetDataSourceRegistry registry;
+
+    // ──────────────────────────────────────────────────────────────────
+    // Data Source 별자리 맵 — 전체 목록 + 도메인 그래프
+    // ──────────────────────────────────────────────────────────────────
+
+    /** Target DB 의 전체 테이블/뷰 목록. GET /composer/schema/tables?targetCd=T3SERIES */
+    @GetMapping("/tables")
+    public Map<String, Object> listTables(@RequestParam(value = "targetCd", required = false) String targetCd) {
+        List<TableSummary> tables = schemaInspectionService.listTables(targetCd);
+        Map<String, Object> out = new HashMap<>();
+        out.put("targetCd", targetCd);
+        out.put("connected", registry.isConnected(targetCd));
+        out.put("tables", tables);
+        return out;
+    }
+
+    /** Target DB 의 전체 SP/Function 목록. GET /composer/schema/procedures?targetCd=T3SERIES */
+    @GetMapping("/procedures")
+    public Map<String, Object> listProcedures(@RequestParam(value = "targetCd", required = false) String targetCd) {
+        List<ProcedureSummary> procedures = procedureInspectionService.listProcedures(targetCd);
+        Map<String, Object> out = new HashMap<>();
+        out.put("targetCd", targetCd);
+        out.put("connected", registry.isConnected(targetCd));
+        out.put("procedures", procedures);
+        return out;
+    }
+
+    /** 한 도메인의 서브 그래프 (노드+엣지). GET /composer/schema/graph?targetCd=T3SERIES&domain=FP */
+    @GetMapping("/graph")
+    public SchemaGraph domainGraph(@RequestParam(value = "targetCd", required = false) String targetCd,
+                                   @RequestParam(value = "domain", required = false) String domain) {
+        return schemaInspectionService.getDomainGraph(targetCd, domain);
+    }
 
     @GetMapping("/tables/{tableName}/exists")
     public Map<String, Object> tableExists(@PathVariable String tableName,

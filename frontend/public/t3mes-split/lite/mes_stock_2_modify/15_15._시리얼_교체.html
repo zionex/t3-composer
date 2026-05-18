@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>15. 시리얼 교체</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #15: 15. 시리얼 교체 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14">
+  <div class="sec-hdr"><div><h3>⑮ 개별 시리얼(S/N) 스왑/폐기</h3><span class="tip">특정 기기의 불량으로 인해 장부 상의 A 시리얼을 빼고 B 시리얼을 새로 집어넣습니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="label">불량 출고(Minus) 시리얼 스캔</div><input type="text" class="inp err" value="SN-OLD-001"><div class="tip" style="color:var(--red);margin-top:8px">상태: 파손 폐기 처리됨</div></div>
+    <div class="card"><div class="label">대체 입고(Plus) 시리얼 스캔</div><input type="text" class="inp" style="border-color:var(--green)" value="SN-NEW-999"><div class="tip" style="color:var(--green);margin-top:8px">상태: 신규 가용 재고로 등록됨</div></div>
+  </div>
+  <div style="text-align:center"><button class="btn btn-blue" style="width:200px">1:1 시리얼 교체 처리</button></div>
+</div>

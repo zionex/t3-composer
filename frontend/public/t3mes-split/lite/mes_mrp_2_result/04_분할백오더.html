@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>분할/백오더</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #4: 분할/백오더 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 분할 입고 및 잔량 관리 (Partial / Backorder)</h3><span class="tip">발주량 1,000개 중 오늘 400개만 먼저 들어왔을 때, 게이지 바를 통해 40% 입고를 잡고 600개는 백오더(미입고잔량)로 남깁니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사 / 품목명</th><th style="text-align:right">발주수량</th><th>입고 진행률 (게이지)</th><th style="text-align:right;color:var(--green)">오늘 입고량 입력</th><th style="text-align:right;color:var(--red)">미입고 잔량</th><th>상태</th></tr></thead><tbody id="tb3"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-green" onclick="showToast('분할 입고 승인 및 백오더 갱신 완료')">분할 입고 승인 (Partial Receipt)</button></div>
+  </div>

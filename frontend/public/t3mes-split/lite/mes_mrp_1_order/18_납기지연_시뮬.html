@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>납기지연 시뮬</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #18: 납기지연 시뮬 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 납기 지연(Delay) 생산 차질 시뮬레이터</h3><span class="tip">공급사가 "납기가 5일 지연된다"고 통보했을 때, 그 자재를 쓰는 우리의 생산 라인이 언제 멈추는지(Impact) 분석합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title" style="color:var(--rose)">지연 통보 자재 입력</div><select class="inp" style="margin-bottom:12px"><option>차량용 메인 하네스 (배선)</option></select><div class="label">지연 일수 (Delay Days)</div><input type="number" class="inp" value="5" style="font-size:24px;font-weight:700;color:var(--rose);margin-bottom:16px"><button class="btn btn-rose" style="width:100%" onclick="doSim17()">생산 차질 Impact 분석 ↓</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">생산 스케줄 영향도 (Impact)</div><div id="sim-res17" style="margin-top:20px"><div style="text-align:center;color:var(--text3);padding:30px 0">분석 버튼을 누르세요.</div></div></div>
+    </div>
+  </div>

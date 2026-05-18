@@ -17,7 +17,6 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SourceIcon from '@mui/icons-material/Source';
 import ChatIcon from '@mui/icons-material/Chat';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
@@ -25,7 +24,7 @@ import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
-import { createSession, collectSourceForLlm } from './api';
+import { createSession, collectSourceForLlm, importSourceArtifacts } from './api';
 import { createInitialSpecFromSource } from './wizardState';
 import { useTargetStore } from './targetStore';
 
@@ -38,12 +37,13 @@ import { useTargetStore } from './targetStore';
  *   ② [NL]   소스 번들 프리뷰 → [시작] → ComposerWorkspace 자연어 대화
  *      [STEP] 소스 번들 수집 → StepByStepWizard 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
  */
-function ModeExistingModify({ onBack }) {
+function ModeExistingModify({ onBack, startWith = null }) {
   // 활성 Target System (운영 DB 직접 조회용)
   const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   // 서브모드 — 'NL' (자연어, 기존 흐름) | 'STEP' (단계별 Wizard)
-  const [subMode, setSubMode] = useState(null);
+  //   startWith 이 주어지면(랜딩에서 직접 선택) 내부 서브모드 선택 화면을 건너뜀
+  const [subMode, setSubMode] = useState(startWith);
 
   const [selectedMenu, setSelectedMenu]   = useState(null);
   const [sourceBundle, setSourceBundle]   = useState(null);
@@ -100,12 +100,25 @@ function ModeExistingModify({ onBack }) {
         targetCd: activeTargetCd,
       });
 
+      // 선택 메뉴의 현재 소스 전체를 세션 아티팩트(DRAFT 원본)로 import →
+      // 사용자가 아티팩트 트리에서 현재 기준을 보고 필요한 파일만 수정. 수정 산출물이
+      // 같은 경로면 자동 supersede. import 실패해도 세션은 진행 (콘솔 경고만).
+      try {
+        await importSourceArtifacts(sessRes.data.id, sourceBundle);
+      } catch (impErr) {
+        // eslint-disable-next-line no-console
+        console.warn('[Composer] 소스 아티팩트 import 실패:', impErr?.message || impErr);
+      }
+
       const bundleText = formatBundleForPrompt(sourceBundle);
       const prompt = [
         `대상 메뉴: ${selectedMenu.id} (${selectedMenu.filePath})`,
         '',
-        '이 화면의 현재 소스를 아래에 제공합니다. 소스를 숙지한 후 다음 지시를 기다려주세요.',
-        '변경 요청이 오면 영향 범위의 파일을 전체 내용으로 재작성해 주세요.',
+        '이 화면의 현재 소스 전체를 아래에 제공합니다. 각 파일은 이 세션의 아티팩트',
+        '(현재 기준 baseline)로도 등록되어 있습니다. 소스를 숙지한 후 다음 지시를 기다려주세요.',
+        '변경 요청이 오면 영향 범위의 파일만 전체 내용으로 재작성하세요.',
+        '★ ===FILE: 경로는 아래 ---FILE: 의 원본 경로와 100% 동일하게 출력하세요',
+        '  (그래야 기존 아티팩트가 갱신됨). 변경되지 않는 파일은 다시 출력하지 마세요.',
         '',
         bundleText,
       ].join('\n');
@@ -185,11 +198,12 @@ function ModeExistingModify({ onBack }) {
       <Button
         startIcon={<ArrowBackIcon fontSize="small" />}
         onClick={() => {
-          if (subMode) { reset(); setSubMode(null); } else { onBack?.(); }
+          // startWith 으로 진입한 경우 내부 서브모드 선택을 건너뛰었으므로 바로 onBack
+          if (subMode && !startWith) { reset(); setSubMode(null); } else { onBack?.(); }
         }}
         size="small"
       >
-        {subMode ? '서브모드 선택' : '모드 선택'}
+        {(subMode && !startWith) ? '서브모드 선택' : '모드 선택'}
       </Button>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
         <BorderColorIcon sx={{ color: '#fa7d5b' }} />
@@ -267,12 +281,12 @@ function ModeExistingModify({ onBack }) {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {!selectedMenu ? (
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
-              <Stack alignItems="center" spacing={1.5}>
-                <SourceIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                <Typography variant="body2" color="text.secondary">
-                  좌측에서 수정할 화면을 선택하세요.
-                </Typography>
-              </Stack>
+              <Box
+                component="img"
+                src="/t3composer-nl-modify.png"
+                alt="좌측 메뉴에서 수정할 화면을 선택해주세요"
+                sx={{ width: '100%', maxWidth: 720, height: 'auto', opacity: 0.5, userSelect: 'none', pointerEvents: 'none' }}
+              />
             </Box>
           ) : (
             <>
@@ -401,14 +415,16 @@ function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, co
 function formatBundleForPrompt(bundle) {
   if (!bundle || typeof bundle !== 'object') return '(소스 번들 없음)';
 
+  // collectSourceForLlm 응답은 backend.* 중첩 구조 — flat 형식도 함께 지원.
+  const be = (bundle.backend && typeof bundle.backend === 'object') ? bundle.backend : bundle;
   const sections = [
-    ['SCREEN',       bundle.screen       ],
-    ['COMPONENTS',   bundle.components   ],
-    ['CONTROLLERS',  bundle.controllers  ],
-    ['SERVICES',     bundle.services     ],
-    ['REPOSITORIES', bundle.repositories ],
-    ['ENTITIES',     bundle.entities     ],
-    ['PROCEDURES',   bundle.procedures   ],
+    ['SCREEN',       bundle.screen                     ],
+    ['COMPONENTS',   bundle.components || be.components ],
+    ['CONTROLLERS',  be.controllers                    ],
+    ['SERVICES',     be.services                       ],
+    ['REPOSITORIES', be.repositories                   ],
+    ['ENTITIES',     be.entities                       ],
+    ['PROCEDURES',   be.procedures                     ],
   ];
 
   const out = [];

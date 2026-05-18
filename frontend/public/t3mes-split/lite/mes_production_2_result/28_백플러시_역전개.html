@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>백플러시 역전개</title>
+<!-- T3MES UI Pattern · mes_production_2_result · TabPage #28: 백플러시 역전개 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p27"><div class="sec-hdr"><div><h3>㉘ 자재 백플러시(Backflush) 역전개 시뮬레이터</h3><span class="tip">완제품 100개를 생산했다고 치면, 소요된 원자재 리스트(BOM)가 즉시 마이너스(-) 전개되어 창고 재고를 깎습니다. (15개 부품 생성)</span></div></div><div class="card" style="display:flex;align-items:center;gap:16px"><div class="label">완제품 생산수량 입력</div><input type="number" class="inp" value="100" style="width:200px;font-size:24px;font-weight:700;color:var(--blue)"><button class="btn btn-ghost" onclick="showToast('역전개 완료')">소요 자재 역전개 ↓</button></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>소요 자재명 (Child BOM)</th><th style="text-align:right">자동 차감 지시량</th></tr></thead><tbody id="tb27"></tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-blue" onclick="showToast('완제품 생산 및 자재 자동차감 완료')">실적 및 백플러시 확정</button></div></div>

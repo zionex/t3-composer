@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Pivot Grid 직접보정</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #1: Pivot Grid 직접보정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+  <div class="sec-hdr">
+    <div>
+      <h3>① 날짜 Pivot Grid 직접 보정</h3>
+      <span class="tip">행=발주/품목, 열=일자(D+1~D+30). 셀을 직접 수정하면 하이라이트되고, 누적 보정량과 차이가 자동 계산됩니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="resetP0()">⟳ 원복</button>
+      <button class="btn btn-amber btn-sm" onclick="showToast('변경 셀 검증 완료')">변경 검증</button>
+      <button class="btn btn-blue" onclick="showToast('Pivot 보정 저장 완료')">💾 보정 저장</button>
+    </div>
+  </div>
+  <div class="tag-row">
+    <span class="badge b-blue">보정대상: 계획수량</span>
+    <span class="badge b-amber">● 수정됨</span>
+    <span class="badge b-red">● 용량초과</span>
+    <span class="badge b-gray">회색=주말</span>
+  </div>
+  <div class="pivot-wrap" id="pivot0"></div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">보정 요약</div>
+    <div class="grid4" id="pivot-summary">
+      <div style="text-align:center"><div class="label">수정 셀 수</div><div style="font-family:var(--mono);font-size:22px;color:var(--amber)" id="sum-cnt">0</div></div>
+      <div style="text-align:center"><div class="label">증가 합계</div><div style="font-family:var(--mono);font-size:22px;color:var(--green)" id="sum-inc">0</div></div>
+      <div style="text-align:center"><div class="label">감소 합계</div><div style="font-family:var(--mono);font-size:22px;color:var(--red)" id="sum-dec">0</div></div>
+      <div style="text-align:center"><div class="label">용량초과 일수</div><div style="font-family:var(--mono);font-size:22px;color:var(--red)" id="sum-over">0</div></div>
+    </div>
+  </div>
+</div>

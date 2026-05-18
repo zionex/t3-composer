@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>재고 실명제(수주연동)</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #31: 재고 실명제(수주연동) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p30">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉛ 수주 연동 재고 실명제 (Inventory Real-Name System & Genealogy)</h3>
+        <span class="tip">창고에 쌓인 특정 재고 LOT가 "어느 영업부서의 누구(담당자)가 딴 수주(SO) 때문에" 만들어졌는지 역추적하여, 악성 재고의 원인 제공자를 투명하게 관리하는 토폴로지 연동 뷰입니다.</span>
+      </div>
+    </div>
+    
+    <div class="grid2">
+      <div class="card" style="margin:0;display:flex;flex-direction:column">
+        <div class="card-title">재고 LOT 마스터 (영업담당자 매핑)</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select class="inp" style="flex:1"><option>전체 영업부서</option><option>국내영업 1팀</option><option>해외영업팀</option></select>
+          <input type="text" class="inp" placeholder="담당자 이름 검색" style="flex:1">
+          <button class="btn btn-cyan">필터</button>
+        </div>
+        <div class="tbl-wrap" style="flex:1">
+          <table class="tbl">
+            <thead><tr><th>재고 LOT</th><th>품목명</th><th style="text-align:right">현재고</th><th style="color:var(--cyan)">재고실명(영업담당)</th><th>보유기간</th></tr></thead>
+            <tbody id="tb30_master"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column">
+        <div class="card-title" id="topo30_title" style="color:var(--cyan)">재고 발생 연원 (Genealogy) 상세 분석</div>
+        <div class="topo-wrap" id="topo30_content" style="flex:1;background:var(--surface);border-color:var(--border2);align-items:flex-start">
+          <div style="text-align:center;color:var(--text3);width:100%;padding:50px 0">좌측 마스터 테이블에서 재고 LOT를 클릭하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>

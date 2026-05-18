@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Before/After 비교</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #4: Before/After 비교 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+  <div class="sec-hdr">
+    <div>
+      <h3>④ Before / After 차이 비교 뷰 (Diff Viewer)</h3>
+      <span class="tip">보정 전·후를 한 화면에서 비교 확인 후 선택적으로 적용합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="genP3()">⟳ 새 비교</button>
+      <button class="btn btn-green" onclick="showToast('선택 변경사항 적용 완료')">✓ 선택 적용</button>
+      <button class="btn btn-blue" onclick="showToast('전체 변경사항 적용 완료')">전체 적용</button>
+    </div>
+  </div>
+  <div class="tbl-wrap" style="max-height:580px">
+    <table class="tbl">
+      <thead><tr><th><input type="checkbox" onchange="toggleAll3(this)"></th><th>발주번호</th><th>품목명</th><th>납기일</th><th class="num">계획수량(전)</th><th class="num">계획수량(후)</th><th class="num">차이</th><th>구분</th></tr></thead>
+      <tbody id="tb3"></tbody>
+    </table>
+  </div>
+</div>

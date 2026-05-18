@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>가로형 진행 스텝</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #3: 가로형 진행 스텝 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 가로형 스텝 프로그레스 (Horizontal Stepper)</h3><span class="tip">아마존, 쿠팡 등 B2C/B2B 커머스에서 고객에게 주로 보여주는 직관적인 가로형 진행 단계 표시 바입니다.</span></div></div>
+    <div class="card" style="padding:40px;text-align:center">
+      <div style="font-size:24px;font-weight:700;margin-bottom:10px">주문번호: SO-AMZ-9912</div>
+      <div style="color:var(--text2);margin-bottom:40px">배송지: 서울특별시 강남구 테헤란로 123</div>
+      <div class="h-stepper">
+        <div class="h-step done"><div class="h-cir">✓</div><div style="font-size:12px;font-weight:700">결제완료</div><div class="tip">10/25</div></div>
+        <div class="h-step done"><div class="h-cir">✓</div><div style="font-size:12px;font-weight:700">상품준비중</div><div class="tip">10/26</div></div>
+        <div class="h-step active"><div class="h-cir">3</div><div style="font-size:12px;font-weight:700;color:var(--blue)">배송시작</div><div class="tip">10/27 (오늘)</div></div>
+        <div class="h-step"><div class="h-cir">4</div><div style="font-size:12px;color:var(--text3)">배송중</div></div>
+        <div class="h-step"><div class="h-cir">5</div><div style="font-size:12px;color:var(--text3)">배송완료</div></div>
+      </div>
+      <button class="btn btn-ghost" onclick="showToast('상세 배송조회 팝업 오픈')">상세 배송 이력 보기</button>
+    </div>
+  </div>

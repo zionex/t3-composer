@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>사진첨부 입고</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #10: 사진첨부 입고 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 모바일 카메라 사진 첨부 입고 (파손 증빙)</h3><span class="tip">트럭에서 물건을 내리는데 박스가 찌그러져 있습니다. 작업자가 즉시 스마트폰으로 사진을 찍어 입고 실적에 파손 증빙으로 첨부합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border:2px dashed var(--blue);text-align:center;padding:50px;cursor:pointer" onclick="showToast('가상 이미지 파일이 첨부되었습니다.')"><div style="font-size:50px">📸</div><div style="font-size:16px;font-weight:700;color:var(--blue);margin-top:10px">여기를 클릭하여 파손/불량 사진 업로드 (Drag & Drop)</div><div class="tip">스마트폰 브라우저 접속 시 카메라 앱이 즉시 실행됩니다.</div></div>
+      <div class="card" style="margin:0"><div class="card-title">파손(Damage) 입고 보고서</div><div class="label">대상 PO</div><input type="text" class="inp" value="PO-DAMAGE-001" disabled style="margin-bottom:12px"><div class="label">파손 수량</div><input type="number" class="inp" value="5" style="color:var(--red);font-weight:700;margin-bottom:12px"><div class="label">현장 의견</div><textarea class="inp" rows="3" style="margin-bottom:16px">하차 중 파렛트 모서리 붕괴로 하단 5박스 찌그러짐 발견됨. 사진 첨부함.</textarea><button class="btn btn-blue" style="width:100%" onclick="showToast('사진 첨부된 조건부 입고가 보고되었습니다.')">사진 첨부하여 입고 보류 보고</button></div>
+    </div>
+  </div>

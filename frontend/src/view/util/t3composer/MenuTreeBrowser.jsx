@@ -7,21 +7,22 @@ import {
   InputAdornment,
   List,
   ListItemButton,
-  ListItemText,
   Collapse,
   Chip,
   Stack,
   CircularProgress,
   Alert,
-  Button,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import FolderIcon from '@mui/icons-material/Folder';
-import ArticleIcon from '@mui/icons-material/Article';
+import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { transLangKey } from '@zionex/wingui-core/lang/i18n-func';
 import { loadTargetMenuTree, syncTargetMenusFromWingui, syncTargetLangpackFromWingui } from './api';
@@ -31,7 +32,26 @@ import { loadTargetMenuTree, syncTargetMenusFromWingui, syncTargetLangpackFromWi
  *
  * Target DB (예: target-mssql TB_AD_MENU + TB_AD_LANG_PACK) 에서 트리를 받아 표시.
  * 리프(화면 — filePath 있음)만 선택 가능.
+ *
+ * 디자인: 파스텔 글래스 테마 (theme.js — primary #7CA7E0). 2026-05-16 시각 개편.
  */
+
+// 파스텔 팔레트 (theme.js 와 일치)
+const C = {
+  primary:    '#7CA7E0',
+  primaryDk:  '#5683C0',
+  amber:      '#C99A3F',
+  text:       '#3A4A63',
+  textLeaf:   '#46566F',
+  textSub:    '#8A9AB3',
+  textMuted:  '#A6B2C4',
+  chevron:    '#9DB4D4',
+  selBg:      'rgba(124,167,224,0.20)',
+  selBgHover: 'rgba(124,167,224,0.26)',
+  hoverBg:    'rgba(124,167,224,0.085)',
+  border:     'rgba(124,167,224,0.30)',
+};
+
 function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
   const [menus, setMenus]     = useState(null);
   const [loading, setLoading] = useState(false);
@@ -46,10 +66,8 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      // 1) menus.js → TB_AD_MENU
       const menuRes = await syncTargetMenusFromWingui();
       const m = menuRes?.data || {};
-      // 2) db_update_script.sql → TB_AD_LANG_PACK (메뉴 라벨)
       const langRes = await syncTargetLangpackFromWingui();
       const lp = langRes?.data || {};
       const allErr = [...(m.errors || []), ...(lp.errors || [])];
@@ -87,17 +105,27 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
 
   const rootItems = menus?.items || [];
 
+  // 리프(화면) 개수 — 헤더 표시용
+  const screenCount = useMemo(() => {
+    let n = 0;
+    const walk = (nodes) => {
+      for (const node of (nodes || [])) {
+        if (node.items && node.items.length > 0) walk(node.items);
+        else if (node.filePath) n += 1;
+      }
+    };
+    walk(rootItems);
+    return n;
+  }, [rootItems]);
+
   const filteredTree = useMemo(() => {
     if (!query.trim()) return rootItems;
     const q = query.toLowerCase();
-
-    // 재귀 필터 — 자식 중 하나라도 매치되면 유지
     const filter = (nodes) => {
       if (!nodes) return [];
       const result = [];
       for (const n of nodes) {
         const childMatched = filter(n.items);
-        // displayName(LangPack) + 번역된 메뉴명도 검색 대상에 포함
         const displayName = (n.displayName || '').toString().toLowerCase();
         const translatedName = (transLangKey(n.id) || '').toString().toLowerCase();
         const selfMatched = (n.id || '').toLowerCase().includes(q) ||
@@ -135,77 +163,119 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
   const toggle = (id) => setExpanded((e) => ({ ...e, [id]: !e[id] }));
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <Box sx={{ p: 1.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0,
+               bgcolor: 'rgba(238,243,250,0.55)' }}>
+      {/* ── 헤더 ── */}
+      <Box sx={{
+        p: 1.25, flexShrink: 0,
+        borderBottom: `1px solid ${C.border}`,
+        background: 'linear-gradient(180deg, rgba(124,167,224,0.13), rgba(124,167,224,0.02))',
+      }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            메뉴 트리 (Target DB)
-          </Typography>
-          <Stack direction="row" spacing={0.5}>
-            <Button
-              size="small"
-              startIcon={syncing ? <CircularProgress size={12} /> : <CloudSyncIcon fontSize="small" />}
-              onClick={handleSync}
-              disabled={loading || syncing}
-              sx={{ minWidth: 0, py: 0.2 }}
-              title="부모 wingui 의 menus.js 를 Target DB 의 TB_AD_MENU 에 동기화"
-            >
-              wingui sync
-            </Button>
-            <Button
-              size="small"
-              startIcon={<RefreshIcon fontSize="small" />}
-              onClick={() => setReloadKey((k) => k + 1)}
-              disabled={loading || syncing}
-              sx={{ minWidth: 0, py: 0.2 }}
-            >
-              새로고침
-            </Button>
+          <Stack direction="row" spacing={0.8} alignItems="center" sx={{ minWidth: 0 }}>
+            <AccountTreeIcon sx={{ fontSize: 18, color: C.primaryDk }} />
+            <Typography sx={{ fontWeight: 800, fontSize: 13, color: C.text, letterSpacing: 0.2 }}>
+              메뉴 트리
+            </Typography>
+            {activeTargetCd && (
+              <Chip
+                label={activeTargetCd}
+                size="small"
+                sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
+                      bgcolor: 'rgba(124,167,224,0.18)', color: C.primaryDk,
+                      border: `1px solid ${C.border}` }}
+              />
+            )}
+            {screenCount > 0 && (
+              <Typography sx={{ fontSize: 10.5, color: C.textSub, whiteSpace: 'nowrap' }}>
+                화면 {screenCount}
+              </Typography>
+            )}
+          </Stack>
+          <Stack direction="row" spacing={0.2}>
+            <Tooltip title="부모 wingui 의 menus.js 를 Target DB 의 TB_AD_MENU 에 동기화">
+              <span>
+                <IconButton
+                  size="small" onClick={handleSync} disabled={loading || syncing}
+                  sx={{ color: C.textSub, '&:hover': { color: C.primaryDk,
+                        bgcolor: 'rgba(124,167,224,0.14)' } }}
+                >
+                  {syncing ? <CircularProgress size={14} /> : <CloudSyncIcon sx={{ fontSize: 17 }} />}
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="메뉴 트리 새로고침">
+              <span>
+                <IconButton
+                  size="small" onClick={() => setReloadKey((k) => k + 1)} disabled={loading || syncing}
+                  sx={{ color: C.textSub, '&:hover': { color: C.primaryDk,
+                        bgcolor: 'rgba(124,167,224,0.14)' } }}
+                >
+                  <RefreshIcon sx={{ fontSize: 17 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Stack>
         </Stack>
+
         {syncMsg && (
-          <Alert severity={syncMsg.kind} sx={{ mb: 1, py: 0.3, fontSize: 11 }} onClose={() => setSyncMsg(null)}>
+          <Alert severity={syncMsg.kind} sx={{ mb: 1, py: 0.2, fontSize: 11, borderRadius: 1.5 }}
+                 onClose={() => setSyncMsg(null)}>
             {syncMsg.text}
           </Alert>
         )}
+
         <TextField
           fullWidth
           size="small"
-          placeholder="메뉴 코드·명칭·경로 검색..."
+          placeholder="메뉴 코드·명칭·경로 검색"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
+                <SearchIcon sx={{ fontSize: 17, color: '#9DB4D4' }} />
               </InputAdornment>
             ),
+            sx: { borderRadius: 2, bgcolor: '#fff', fontSize: 12.5 },
+          }}
+          sx={{
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: C.border },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: `${C.primary} !important` },
+            '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: `${C.primaryDk} !important` },
           }}
         />
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+      {/* ── 트리 본문 ── */}
+      <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0, py: 0.5 }}>
         {loading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={20} />
-            <Typography variant="caption" sx={{ ml: 1, color: '#64748b' }}>
+          <Stack alignItems="center" spacing={1} sx={{ py: 5 }}>
+            <CircularProgress size={22} sx={{ color: C.primary }} />
+            <Typography variant="caption" sx={{ color: C.textSub }}>
               Target DB 메뉴 트리 로딩...
             </Typography>
-          </Box>
+          </Stack>
         )}
         {error && !loading && (
           <Box sx={{ p: 1.5 }}>
-            <Alert severity="error" sx={{ fontSize: 12 }}>{error}</Alert>
+            <Alert severity="error" sx={{ fontSize: 12, borderRadius: 1.5 }}>{error}</Alert>
           </Box>
         )}
         {!loading && !error && rootItems.length === 0 && (
           <Box sx={{ p: 1.5 }}>
-            <Alert severity="info" sx={{ fontSize: 12 }}>
+            <Alert severity="info" sx={{ fontSize: 12, borderRadius: 1.5 }}>
               Target DB 의 TB_AD_MENU 에 등록된 메뉴가 없습니다.
             </Alert>
           </Box>
         )}
-        {!loading && !error && rootItems.length > 0 && (
+        {!loading && !error && rootItems.length > 0 && filteredTree.length === 0 && (
+          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center',
+                      color: C.textSub, py: 4 }}>
+            검색 결과가 없습니다.
+          </Typography>
+        )}
+        {!loading && !error && filteredTree.length > 0 && (
           <TreeList
             nodes={filteredTree}
             level={0}
@@ -233,88 +303,83 @@ function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd }
           <React.Fragment key={node.id}>
             <ListItemButton
               onClick={() => {
-                if (hasChildren) {
-                  onToggle(node.id);
-                } else if (node.filePath) {
-                  // 리프(화면)만 선택 가능
-                  onSelect(node);
-                }
+                if (hasChildren) onToggle(node.id);
+                else if (node.filePath) onSelect(node);
               }}
               selected={isSelected}
-              sx={{ pl: 1.5 + level * 1.5, py: 0.5 }}
+              sx={{
+                pl: `${8 + level * 15}px`, pr: 1, py: 0.6,
+                mx: 0.6, my: '2px', borderRadius: 1.5,
+                transition: 'background-color .13s ease',
+                bgcolor: isSelected ? C.selBg : 'transparent',
+                boxShadow: isSelected ? `inset 3px 0 0 0 ${C.primaryDk}` : 'none',
+                '&:hover': { bgcolor: isSelected ? C.selBgHover : C.hoverBg },
+                '&.Mui-selected':       { bgcolor: C.selBg },
+                '&.Mui-selected:hover': { bgcolor: C.selBgHover },
+              }}
             >
-              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ width: '100%' }}>
+              <Stack direction="row" spacing={0.6} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+                {/* 펼침 화살표 */}
                 {hasChildren ? (
-                  isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />
+                  isExpanded
+                    ? <ExpandMoreIcon sx={{ fontSize: 17, color: C.chevron, flexShrink: 0 }} />
+                    : <ChevronRightIcon sx={{ fontSize: 17, color: C.chevron, flexShrink: 0 }} />
                 ) : (
-                  <Box sx={{ width: 20 }} />
+                  <Box sx={{ width: 17, flexShrink: 0 }} />
                 )}
-                {hasChildren ? (
-                  <FolderIcon fontSize="small" sx={{ color: '#ffb100' }} />
-                ) : (
-                  <ArticleIcon fontSize="small" sx={{ color: '#5281b3' }} />
-                )}
-                <ListItemText
-                  disableTypography
-                  primary={
-                    <Box sx={{
-                      display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0, flexWrap: 'wrap',
+
+                {/* 아이콘 타일 */}
+                <Box sx={{
+                  width: 22, height: 22, flexShrink: 0, borderRadius: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  bgcolor: hasChildren ? 'rgba(230,192,121,0.20)' : 'rgba(124,167,224,0.16)',
+                }}>
+                  {hasChildren
+                    ? <FolderRoundedIcon sx={{ fontSize: 15, color: C.amber }} />
+                    : <DescriptionRoundedIcon sx={{ fontSize: 14, color: C.primaryDk }} />}
+                </Box>
+
+                {/* 텍스트 — 1행: 표시명 · 2행: MENU_CD + 파일경로 */}
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    component="div"
+                    title={node.hasLangPack ? undefined : `${node.id} — LangPack 미등록`}
+                    sx={{
+                      fontSize: 12.5,
+                      fontWeight: hasChildren ? 700 : 600,
+                      color: hasChildren ? C.text : C.textLeaf,
+                      fontStyle: node.hasLangPack ? 'normal' : 'italic',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {node.displayName || transLangKey(node.id) || node.id}
+                  </Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="center"
+                         sx={{ minWidth: 0, mt: '1px' }}>
+                    <Box component="span" sx={{
+                      fontSize: 9, fontFamily: 'monospace', fontWeight: 700,
+                      color: isSelected ? C.primaryDk : C.textSub,
+                      bgcolor: isSelected ? 'rgba(124,167,224,0.24)' : 'rgba(124,167,224,0.11)',
+                      borderRadius: 0.7, px: 0.55, py: '1px',
+                      flexShrink: 0, whiteSpace: 'nowrap',
                     }}>
-                      {/* MENU_CD chip — ID 표시 */}
-                      <Typography
-                        component="span"
-                        sx={{
-                          fontSize: 10,
-                          fontFamily: 'monospace',
-                          color: isSelected ? '#1d4ed8' : '#475569',
-                          bgcolor: isSelected ? '#dbeafe' : '#f1f5f9',
-                          border: `1px solid ${isSelected ? '#93c5fd' : '#e2e8f0'}`,
-                          borderRadius: 0.5,
-                          px: 0.5, py: 0,
-                          fontWeight: 700,
-                          flexShrink: 0,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {node.id}
-                      </Typography>
-                      {/* 표시명 — TB_AD_LANG_PACK 값 또는 file-path basename 폴백 */}
-                      <Typography
-                        component="span"
-                        sx={{
-                          fontSize: 12,
-                          fontWeight: hasChildren ? 600 : 500,
-                          fontStyle: node.hasLangPack ? 'normal' : 'italic',  // 폴백이면 이탤릭
-                          color: node.hasLangPack ? '#0f172a' : '#64748b',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          flexShrink: 1, minWidth: 0,
-                        }}
-                        title={node.hasLangPack ? node.id : `${node.id} — LangPack 미등록 (file-path 기반 표시)`}
-                      >
-                        {node.displayName || transLangKey(node.id) || node.id}
-                      </Typography>
+                      {node.id}
                     </Box>
-                  }
-                  secondary={
-                    !hasChildren && node.filePath ? (
-                      <Typography
-                        component="span"
-                        sx={{
-                          fontSize: 9,
-                          fontFamily: 'monospace',
-                          color: '#94a3b8',
-                          display: 'block',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          mt: 0.1,
-                        }}
-                      >
+                    {!hasChildren && node.filePath && (
+                      <Typography component="span" sx={{
+                        fontSize: 9.5, fontFamily: 'monospace', color: C.textMuted,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        minWidth: 0,
+                      }}>
                         {node.filePath}
                       </Typography>
-                    ) : null
-                  }
-                />
+                    )}
+                  </Stack>
+                </Box>
               </Stack>
             </ListItemButton>
+
             {hasChildren && (
               <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                 <TreeList

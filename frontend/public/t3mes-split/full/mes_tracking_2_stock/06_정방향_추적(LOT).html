@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Tracking UI (31 Types) - Massive Full Data & Real-Name System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Stock Tracking Theme */
+  --bg:#090d14;--surface:#131926;--surface2:#1a2333;--surface3:#243046;
+  --border:#2e3c56;--border2:#3f5175;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --green:#10b981;--green-dim:#10b98122;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --rose:#f43f5e;--rose-dim:#f43f5e22;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --fuchsia:#d946ef;--fuchsia-dim:#d946ef22;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Group Colors */
+.t-1.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-1.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-2.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-3.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-3.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-4.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-4.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-5.active{color:var(--rose);border-bottom-color:var(--rose);font-weight:700}.t-5.active .tab-num{color:var(--rose);background:var(--rose-dim)}
+.t-6.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-6.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-7.active{color:var(--fuchsia);border-bottom-color:var(--fuchsia);font-weight:700}.t-7.active .tab-num{color:var(--fuchsia);background:var(--fuchsia-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.2)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.tbl tr.highlight td{background:var(--surface3)}
+
+/* Forms & Buttons */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none}
+.inp:focus{border-color:var(--cyan)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:#10b98155;color:var(--green)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-rose{background:var(--rose-dim);border-color:#f43f5e55;color:var(--rose)}
+.btn-purple{background:var(--purple-dim);border-color:#8b5cf655;color:var(--purple)}
+.btn-fuchsia{background:var(--fuchsia-dim);border-color:#d946ef55;color:var(--fuchsia)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-cyan{background:var(--cyan-dim);color:var(--cyan)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.badge-red{background:var(--rose-dim);color:var(--rose)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}
+.badge-fuchsia{background:var(--fuchsia-dim);color:var(--fuchsia)}
+
+/* Grids & Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--cyan)}
+
+/* Topology / Root Cause Tree */
+.topo-wrap{display:flex;gap:30px;overflow-x:auto;padding:30px;align-items:center;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);min-height:300px}
+.topo-col{display:flex;flex-direction:column;gap:20px;position:relative;min-width:240px}
+.topo-node{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:var(--radius);padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.2);position:relative;transition:all .2s;cursor:default}
+.topo-node:hover{transform:translateY(-2px);border-color:var(--fuchsia)}
+.topo-node.err{border-left-color:var(--rose)}
+.topo-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-weight:700;font-size:12px;white-space:nowrap}
+.topo-line{width:40px;height:2px;background:var(--border2);position:relative;margin:4px 0}
+.topo-line::after{content:'';position:absolute;right:-2px;top:-4px;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid var(--border2)}
+
+/* Special Layouts */
+.rack-3d{background:#000;border-radius:12px;border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;height:400px}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--cyan);color:var(--cyan);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 실시간 재고 현황판 (Real-time Inventory)</h3><span class="tip">창고, 로케이션, 품목별 현재고(On-hand)와 가용재고(Available)를 실시간으로 조회합니다. (500건 자동생성)</span></div><button class="btn btn-blue" onclick="showToast('엑셀 다운로드 완료')">엑셀 다운로드</button></div>
+    <div class="grid4" style="margin-bottom:16px"><select class="inp"><option>전체 창고</option><option>원자재 창고 (W1)</option></select><select class="inp"><option>전체 품목군</option></select><input type="text" class="inp" placeholder="품목코드/명 검색"><button class="btn btn-blue">검색 ↻</button></div>
+    <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>No</th><th>창고 (WH)</th><th>로케이션 (Bin)</th><th>품목코드</th><th>품목명</th><th style="text-align:right">현재고 (On-Hand)</th><th style="text-align:right;color:var(--cyan)">가용재고 (Avail)</th><th style="text-align:right;color:var(--rose)">할당/보류 (Alloc/Hold)</th><th>단위</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 재고 수불부 이력 (Inventory Transaction Ledger)</h3><span class="tip">특정 품목이 언제 입고(GR)되고 출고(GI)되었는지 기초/기말 재고와 함께 모든 트랜잭션을 추적합니다. (200건 생성)</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="card" style="margin:0"><div class="card-title">수불 트랜잭션 상세 내역</div><div class="tbl-wrap" style="max-height:550px"><table class="tbl"><thead><tr><th>일시</th><th>수불유형</th><th>품목명</th><th>문서/전표번호</th><th style="text-align:right">입고(IN)</th><th style="text-align:right">출고(OUT)</th><th style="text-align:right;color:var(--cyan)">잔고(BAL)</th></tr></thead><tbody id="tb1"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--blue)">단일 품목 수불 요약</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:16px">특수 알루미늄 합금 10T</div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>기초 재고 (월초)</span><span class="num">1,500</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>총 입고량 (+)</span><span class="num" style="color:var(--green)">3,200</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>총 출고량 (-)</span><span class="num" style="color:var(--rose)">4,100</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;font-size:18px;font-weight:700;color:var(--cyan)"><span>기말 재고 (현재)</span><span class="num">600</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 안전재고 및 품절 경고 (Safety Stock Alert)</h3><span class="tip">현재고가 안전재고(Safety Stock) 밑으로 떨어진 위험 품목들만 시뻘겋게 필터링하여 보여줍니다.</span></div><button class="btn btn-blue" onclick="showToast('부족 품목 일괄 발주 기안 전송')">부족분 일괄 발주 생성</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th style="text-align:right">현재고</th><th style="text-align:right">안전재고 기준</th><th style="text-align:right;color:var(--rose)">부족 수량 (Shortage)</th><th>위험도 상태</th></tr></thead><tbody id="tb2"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 기간별 재고 보유량 추이 (Time-series Trend)</h3><span class="tip">특정 부품의 재고가 지난 한 달간 어떻게 오르내렸는지 날짜별 매트릭스와 시각적 바 차트로 파악합니다.</span></div></div>
+    <div class="tbl-wrap" style="overflow-x:auto"><table class="tbl"><thead id="th3"></thead><tbody id="tb3"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 다중 창고 통합 뷰 (Multi-Warehouse Aggregation)</h3><span class="tip">동일한 품목이 전국 여러 창고(본사, 물류센터, 대리점)에 얼마나 분산되어 있는지 가로로 펼쳐서 보여줍니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right;color:var(--cyan)">총 통합재고</th><th style="text-align:right">A동 (원자재)</th><th style="text-align:right">B동 (반제품)</th><th style="text-align:right">C동 (완제품)</th><th style="text-align:right">D동 (외주)</th></tr></thead><tbody id="tb4"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 정방향 추적 (Forward Traceability: Mat ➔ Prod)</h3><span class="tip">불량 원자재 LOT 번호를 입력하면, 그 자재가 투입되어 만들어진 모든 반제품/완제품과 최종 출하처(고객)를 찾아냅니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--cyan)"><div class="card-title" style="color:var(--cyan)">1. 원자재 LOT 입력 (불량 의심)</div><div style="display:flex;gap:8px;margin-bottom:16px"><input type="text" class="inp" value="RAW-LOT-2024-889" style="font-family:var(--mono);font-weight:700;font-size:16px"><button class="btn btn-cyan" onclick="showToast('해당 원자재가 쓰인 완제품 전개 완료')">추적 ➔</button></div><div class="tip">입고일: 10/01 | 공급사: 성진화학 | 수량: 10,000 kg</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">2. 이 자재로 만들어진 완제품 / 출하처</div><div class="tbl-wrap" style="max-height:300px;border:none"><table class="tbl"><thead><tr><th>생산된 완제품 LOT</th><th>최종 출하처 (고객사)</th><th>리콜(Recall) 대상 여부</th></tr></thead><tbody id="tb5"></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 역방향 추적 (Backward Traceability: Prod ➔ Mat)</h3><span class="tip">고객 클레임이 들어온 완제품 LOT를 입력하면, 그 제품을 만들 때 들어갔던 모든 원자재 LOT와 작업자/설비를 역추적합니다.</span></div></div>
+    <div class="card" style="display:flex;align-items:center;gap:16px;background:var(--rose-dim);border-color:var(--rose)"><div class="label" style="color:var(--rose);margin:0">클레임 완제품 LOT</div><input type="text" class="inp" value="PROD-LOT-999-ERR" style="font-family:var(--mono);font-weight:700;width:200px;border-color:var(--rose)"><button class="btn btn-rose" onclick="showToast('투입 원자재 역전개 완료')">원인 자재 역추적 ➔</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>투입된 공정</th><th>투입된 원자재 LOT</th><th>자재명</th><th>공급사</th><th>당시 작업자/설비</th></tr></thead><tbody id="tb6"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 시리얼 번호(S/N) 생애주기 (Lifecycle Timeline)</h3><span class="tip">LOT(묶음) 관리가 아닌 고가 장비(가전, 자동차대수)의 단일 시리얼 번호(Serial Number) 1개가 태어나서 수리받기까지의 전체 이력입니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 300px">
+      <div class="card" style="margin:0"><div class="card-title">시리얼 번호 (S/N) 검색</div><div style="display:flex;gap:8px;margin-bottom:16px"><input type="text" class="inp" value="SN-KOR-24X-99812A" style="font-family:var(--mono);font-weight:700"><button class="btn btn-cyan">조회</button></div><div class="tbl-wrap" style="max-height:400px;border:none"><table class="tbl"><thead><tr><th>모델명</th><th>현재 보증 상태</th><th>최종 위치</th></tr></thead><tbody><tr><td>최고급 공기청정기 PRO</td><td><span class="badge badge-green">보증기간 내 (In Warranty)</span></td><td>고객 (김*석)</td></tr></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--cyan)">단일 시리얼 생애 타임라인</div>
+        <div style="display:flex;flex-direction:column;gap:16px;padding-left:16px;border-left:2px solid var(--border2);margin-top:10px">
+          <div style="position:relative"><div style="position:absolute;left:-23px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue-dim)"></div><div style="font-size:11px;color:var(--text2)">24-01-10</div><div style="font-weight:700">생산/포장 완료 (공장)</div></div>
+          <div style="position:relative"><div style="position:absolute;left:-23px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue-dim)"></div><div style="font-size:11px;color:var(--text2)">24-01-15</div><div style="font-weight:700">물류센터 입고</div></div>
+          <div style="position:relative"><div style="position:absolute;left:-23px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue-dim)"></div><div style="font-size:11px;color:var(--text2)">24-02-01</div><div style="font-weight:700">고객 판매 및 출하 (SO-99)</div></div>
+          <div style="position:relative"><div style="position:absolute;left:-23px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan-dim)"></div><div style="font-size:11px;color:var(--cyan)">24-10-05</div><div style="font-weight:700;color:var(--cyan)">A/S 센터 입고 (수리 이력)</div><div class="tip">모터 소음으로 교체</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 유통기한 / 만료일 추적 (Shelf-life / Expiration)</h3><span class="tip">식품, 화학, 제약 산업에서 유통기한이 임박한(30일 이내) 재고를 시뻘겋게 띄워 폐기 전 선입선출(FIFO)을 유도합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th>LOT 번호</th><th style="text-align:right">현재고</th><th>입고일자</th><th style="color:var(--rose)">유통기한 (만료일)</th><th>잔여 일수</th></tr></thead><tbody id="tb8"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 3D 창고 로케이션 추적 (3D Bin Map)</h3><span class="tip">재고가 창고 도면상 어디에 박혀있는지 3D 랙(Rack) 뷰로 시각화하여 지게차 작업자가 물건을 빨리 찾게 해줍니다.</span></div></div>
+    <div class="grid2" style="height:450px">
+      <div class="rack-3d">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;width:120px;height:180px;background:var(--cyan-dim);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 20px var(--cyan);cursor:pointer" onclick="showToast('해당 랙의 재고 상세 리스트 오픈')">
+          <div style="font-weight:700;color:var(--cyan);font-size:14px">Rack A-05</div><div style="font-size:11px;margin-top:10px">OLED 패널<br>5,000 EA 적재됨</div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">선택된 로케이션 재고 명세</div><div class="tbl-wrap" style="flex:1;border:none"><table class="tbl"><thead><tr><th>품목</th><th>LOT</th><th>수량</th></tr></thead><tbody id="tb9"></tbody></table></div><button class="btn btn-cyan" style="padding:16px;margin-top:16px" onclick="showToast('지게차 터미널로 위치 전송 완료')">이 위치로 지게차 작업 지시 ➔</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 창고 간 이동 지시/추적 (Inter-Warehouse Transfer)</h3><span class="tip">원자재 창고에서 조립 공장 창고로 물건을 이동시킬 때 발급하는 이동 지시서(Transfer Order)입니다.</span></div><button class="btn btn-green" onclick="showToast('이동 지시 50건 발행 완료')">이동 지시 발행</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>이동 지시번호 (TO)</th><th>품목명</th><th style="text-align:right">이동 수량</th><th>출발 창고 (From)</th><th>도착 창고 (To)</th><th>진행 상태</th></tr></thead><tbody id="tb10"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 빈 간 이동 (Bin-to-Bin Transfer)</h3><span class="tip">같은 창고 안에서 공간 효율화를 위해 A열 선반에서 B열 선반으로 물건의 위치만 바꿀 때 사용하는 쾌속 UI입니다.</span></div></div>
+    <div class="grid3">
+      <div class="card"><div class="card-title">1. 이동할 재고 스캔</div><input type="text" class="inp" value="LOT-BIN-991" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-bottom:12px"><div class="tip">품목: 고장력 볼트 1,000 EA</div></div>
+      <div class="card"><div class="card-title">2. 출발지 (From Bin)</div><div style="font-size:24px;font-weight:700;color:var(--text2);margin-top:10px">ZONE-A-01</div></div>
+      <div class="card" style="border-color:var(--green);background:var(--green-dim)"><div class="card-title" style="color:var(--green)">3. 도착지 (To Bin) 스캔</div><input type="text" class="inp" placeholder="새로운 위치 바코드 스캔" style="border-color:var(--green)"><button class="btn btn-green" style="width:100%;margin-top:16px" onclick="showToast('위치 이동 확정 완료')">이동 확정 ➔</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 입/출고 대기(In-Transit) 재고 모니터링</h3><span class="tip">A창고에서 출고는 되었으나 B창고에 입고되지 않고 트럭 위에 떠 있는(In-Transit) 가상 창고의 재고를 봅니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>문서번호</th><th>품목</th><th style="text-align:right">수량</th><th>출발 (출고일)</th><th>목적지</th><th style="color:var(--amber)">체공 시간 (공중에 떠있는 시간)</th></tr></thead><tbody id="tb12"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 재고 실사 (Physical Inventory Counting)</h3><span class="tip">연말/월말에 전산 재고와 실제 창고에 있는 물건 개수가 맞는지 장부를 뽑아 사람이 직접 세어서 입력하는 화면입니다.</span></div><button class="btn btn-green" onclick="showToast('100건 실사 결과 임시 저장')">실사 데이터 일괄 저장</button></div>
+    <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>로케이션</th><th>품목명</th><th style="text-align:right;color:var(--text3)">전산 재고 (System)</th><th style="text-align:right;color:var(--green)">실제 실사 수량 입력 (Actual)</th><th>차이 (Variance)</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 실사 차이 조정 승인 (Inventory Adjustment)</h3><span class="tip">실사(14번 패턴) 결과, 전산장부와 실제 개수가 달라서 억지로 장부를 끼워 맞추는(조정/감모) 재무적 승인 화면입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목</th><th style="text-align:right">전산수량</th><th style="text-align:right">실사수량</th><th style="text-align:right;color:var(--rose)">차이 수량</th><th style="text-align:right;color:var(--rose)">손실 금액(₩)</th><th>사유 코드</th><th>조정 승인 액션</th></tr></thead><tbody id="tb14"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 품질 보류 / 격리 재고 (Quarantine / Hold)</h3><span class="tip">불량이 의심되어 출하/생산 투입을 강제로 막아둔(Hold) 빨간 딱지 재고들의 현황을 관리합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>격리된 LOT 번호</th><th>품목</th><th style="text-align:right">수량</th><th style="color:var(--amber)">보류 사유 (Hold Reason)</th><th>보류 지정일</th><th>품질팀 해제 액션</th></tr></thead><tbody id="tb15"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ 불량 / 폐기 재고 추적 (Scrap Tracking)</h3><span class="tip">더 이상 살릴 수 없어 쓰레기통(Scrap)으로 던져진 재고들이 언제, 왜, 누구에 의해 버려졌는지 추적합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>폐기 처리일</th><th>품목명</th><th style="text-align:right;color:var(--rose)">폐기 수량</th><th>폐기 사유 (Defect Code)</th><th>손실 비용 (Cost)</th><th>처리자</th></tr></thead><tbody id="tb16"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 재작업 재고 관리 (Rework Stock)</h3><span class="tip">불량이 났으나 고쳐서(Rework) 다시 정상품으로 만들 수 있는 재고들이 임시로 머무는 루프(Loop) 창고입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>재작업 LOT</th><th>품목</th><th style="text-align:right">수량</th><th style="color:var(--amber)">재작업 공정 지시</th><th>상태</th></tr></thead><tbody id="tb17"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 고객 반품 재고 (RMA / Return Stock)</h3><span class="tip">고객이 쓰다가 고장나서 반품시킨 물건이 입고되었을 때, 이를 수리할지 폐기할지 판정 대기하는 재고입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>RMA 접수번호</th><th>고객사</th><th>반품 품목</th><th>수량</th><th>고객 클레임 사유</th><th>판정 액션 (Disposition)</th></tr></thead><tbody id="tb18"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ 공급사 위탁 재고 (VMI - Vendor Managed)</h3><span class="tip">물건은 우리 공장 창고에 있지만 소유권은 협력사에게 있어서, 우리가 쓸 때마다 돈을 지불하는 특수 재고 뷰입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>소유자 (협력사명)</th><th>위탁 품목</th><th style="text-align:right">현재고 (사내 적치)</th><th style="text-align:right;color:var(--amber)">당월 당사 사용량</th><th>정산 상태</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 바코드 / QR 스캔 재고 즉시 조회</h3><span class="tip">창고 작업자가 스마트폰 카메라나 PDA로 박스의 바코드를 찍으면 즉시 재고 상세 스펙이 로드되는 모바일 뷰입니다.</span></div></div>
+    <div style="width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.5)">
+      <div style="padding:20px;background:var(--rose);color:#fff;font-weight:700;text-align:center">📱 재고 조회 스캐너</div>
+      <div style="padding:20px;text-align:center">
+        <div style="height:120px;background:#000;border:2px dashed var(--rose);border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="$('m-scan-res').style.display='block';showToast('바코드 스캔 완료')"><span style="font-size:40px">📷 Scan</span></div>
+        <div id="m-scan-res" style="display:none;text-align:left;background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
+          <div style="font-family:var(--mono);color:var(--rose);font-weight:700;margin-bottom:8px">LOT-SCAN-9912</div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:8px">고성능 서보 모터</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>현재고:</span><span class="num" style="color:var(--green);font-weight:700">1,250 EA</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>위치:</span><span>Zone B - 05</span></div>
+          <div style="display:flex;justify-content:space-between"><span>상태:</span><span class="badge badge-green">정상(가용)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ RFID 게이트 대량 통과 감지 (Mass Tracking)</h3><span class="tip">지게차가 팔레트를 들고 게이트를 지나가면 수백 개의 RFID 태그가 1초 만에 스캔되어 위치가 일괄 변경됩니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;border-color:var(--rose)">
+      <div style="font-size:60px;margin-bottom:20px;animation:pulse 1s infinite">📡</div>
+      <div style="font-size:24px;font-weight:700;color:var(--rose)">RFID 게이트 A 통과 감지 중...</div>
+      <div style="color:var(--text2);margin-top:10px;margin-bottom:30px">지게차 이동 시 재고 위치(로케이션)가 자동 갱신됩니다.</div>
+      <button class="btn btn-rose" style="padding:16px 30px;font-size:18px" onclick="showToast('가상 태그 500개 인식! 위치 이동 완료')">가상 태그 500개 수신 시뮬레이션 ⚡</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ AI 안전재고 최적화 권장 (AI Opt.)</h3><span class="tip">과거 수요(Demand) 패턴을 AI가 머신러닝하여 "이 부품은 안전재고를 줄여도 됩니다, 저건 늘리세요"라고 가이드를 줍니다.</span></div><button class="btn btn-rose" onclick="showToast('권장 안전재고 마스터 갱신 완료')">AI 권장치 일괄 수용</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">기존 안전재고</th><th style="text-align:right;color:var(--rose)">AI 권장 안전재고</th><th>AI 분석 사유 (Reason)</th><th>상태/액션</th></tr></thead><tbody id="tb22"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ 장기 체화 / 악성 재고 분석 (Dead Stock)</h3><span class="tip">창고 구석에서 1년 넘게 단 한 번도 움직이지 않은 돈 먹는 하마(악성 재고)들을 찾아내 폐기나 헐값 매각을 유도합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목 (악성 재고)</th><th style="text-align:right">현재고</th><th style="text-align:right">재고 금액 (원)</th><th style="color:var(--rose)">마지막 수불일 (경과일)</th><th>처분 권장 액션</th></tr></thead><tbody id="tb23"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 재고 회전율 및 ABC 등급 분석 (ABC Analysis)</h3><span class="tip">가치가 높고 자주 팔리는 A등급 자재와 1년에 한 번 쓰일까 말까 한 C등급 자재를 분류하여 관리 수준을 다르게 합니다.</span></div></div>
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="card" style="text-align:center;border-color:var(--green)"><div class="card-title" style="justify-content:center;color:var(--green)">A 등급 (핵심 자재)</div><div class="tip">재고 금액 비중 70%, 수량 비중 10%</div><div style="font-size:30px;font-weight:700;margin-top:10px">125 종</div></div>
+      <div class="card" style="text-align:center;border-color:var(--blue)"><div class="card-title" style="justify-content:center;color:var(--blue)">B 등급 (일반 자재)</div><div class="tip">재고 금액 비중 20%, 수량 비중 20%</div><div style="font-size:30px;font-weight:700;margin-top:10px">450 종</div></div>
+      <div class="card" style="text-align:center;border-color:var(--text3)"><div class="card-title" style="justify-content:center;color:var(--text3)">C 등급 (C-Parts/소모품)</div><div class="tip">재고 금액 비중 10%, 수량 비중 70%</div><div style="font-size:30px;font-weight:700;margin-top:10px">2,140 종</div></div>
+    </div>
+    <div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>품목</th><th>연간 사용량</th><th>단가</th><th>총 가치 (Value)</th><th>시스템 분류 등급</th></tr></thead><tbody id="tb24"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ 선입선출 (FIFO) 위반 감사 추적</h3><span class="tip">시스템이 "먼저 들어온 옛날 재고부터 빼라"고 지시했는데, 작업자가 편하다고 어제 들어온 새 재고를 빼갔을 때 잡히는 감사(Audit) 로그입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발생 일시</th><th>품목명</th><th>출고된 LOT (신규)</th><th style="color:var(--purple)">무시된 LOT (구형)</th><th>작업자</th><th>조치 상태</th></tr></thead><tbody id="tb25"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 재고 자산 평가액 추적 (Valuation / Costing)</h3><span class="tip">단순한 개수(Qty)가 아니라, 재무팀 관점에서 "우리 창고에 있는 물건들 다 팔면 얼마야?"를 보여주는 돈(Money) 관점의 뷰입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목군 (Category)</th><th style="text-align:right">총 수량</th><th style="text-align:right">평균 이동 단가 (Moving Avg)</th><th style="text-align:right;color:var(--purple)">총 재고 평가액 (KRW)</th></tr></thead><tbody id="tb26"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 블록체인 이력 무결성 추적 (Blockchain Provenance)</h3><span class="tip">의약품이나 방산/항공 부품처럼 재고 수불 이력이 절대 조작(해킹)되어서는 안 될 때, 트랜잭션 해시값을 기록해 증명합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>트랜잭션 일시</th><th>품목/LOT</th><th>수불 유형</th><th style="color:var(--purple)">블록체인 Tx Hash (무결성 증명)</th></tr></thead><tbody id="tb27"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉙ 재고 불일치 원인분석 토폴로지 (Discrepancy Root Cause Tree)</h3>
+        <span class="tip">"입고는 100개가 됐는데 왜 창고엔 92개밖에 없지?" 라는 재고 구멍(Loss)의 원인을, 노드 기반의 토폴로지 트리로 파고들어 찾아냅니다.</span>
+      </div>
+    </div>
+    <div class="topo-wrap" style="min-height:300px">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">1. 최초 입고 (GR)</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">PO-24-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">공급사 납품 원물</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">입고완료</span><span class="num" style="color:var(--cyan);font-weight:700">100 EA</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분기 (Split)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 품질 검사 & 적치</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">IQC-PASS</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">정상 창고 적치 (Put-away)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">정상</span><span class="num">95 EA</span></div>
+        </div>
+        <div class="topo-node err">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:4px">IQC-FAIL (원인 1)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">수입검사 불량 격리</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-red">보류(Hold)</span><span class="num" style="color:var(--rose);font-weight:700">5 EA 🔻</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">생산 투입<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 생산 라인 소진</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-PROD-01</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">정상 생산 소진 (Backflush)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-blue">소진</span><span class="num">92 EA</span></div>
+        </div>
+        <div class="topo-node err">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:4px">SCRAP-01 (원인 2)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">작업자 실수 파손 폐기</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-red">Scrap</span><span class="num" style="color:var(--rose);font-weight:700">3 EA 🔻</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 모바일 재고 추적 챗봇 (Conversational Tracker)</h3><span class="tip">"창고에 볼트 몇 개 있어?", "어제 폐기된 재고 내역 줘"라고 자연어로 치면 AI가 DB를 조회해 대답합니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;display:flex;flex-direction:column;height:450px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:16px;background:var(--purple);color:#fff;font-weight:700;text-align:center">재고 분석 AI 챗봇 🤖</div>
+      <div style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--surface3);align-self:flex-start;border-bottom-left-radius:2px">무엇이든 물어보세요! 특정 LOT의 행방이나 재고 수량을 찾아드립니다.</div>
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);align-self:flex-end;border-bottom-right-radius:2px;margin-left:auto">A창고에 M10 볼트 재고 얼마나 있어?</div>
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--surface3);align-self:flex-start;border-bottom-left-radius:2px">조회 결과입니다.<br><br>📦 <b>M10 볼트 (ITM-101)</b><br>현재 A창고에 총 <b>4,500 EA</b> 존재합니다.<br>- Zone A-1: 2,000 EA<br>- Zone B-3: 2,500 EA</div>
+      </div>
+      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="메시지 입력..."><button class="btn btn-purple" onclick="showToast('답변 렌더링 시뮬레이션')">전송</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p30">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉛ 수주 연동 재고 실명제 (Inventory Real-Name System & Genealogy)</h3>
+        <span class="tip">창고에 쌓인 특정 재고 LOT가 "어느 영업부서의 누구(담당자)가 딴 수주(SO) 때문에" 만들어졌는지 역추적하여, 악성 재고의 원인 제공자를 투명하게 관리하는 토폴로지 연동 뷰입니다.</span>
+      </div>
+    </div>
+    
+    <div class="grid2">
+      <div class="card" style="margin:0;display:flex;flex-direction:column">
+        <div class="card-title">재고 LOT 마스터 (영업담당자 매핑)</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select class="inp" style="flex:1"><option>전체 영업부서</option><option>국내영업 1팀</option><option>해외영업팀</option></select>
+          <input type="text" class="inp" placeholder="담당자 이름 검색" style="flex:1">
+          <button class="btn btn-cyan">필터</button>
+        </div>
+        <div class="tbl-wrap" style="flex:1">
+          <table class="tbl">
+            <thead><tr><th>재고 LOT</th><th>품목명</th><th style="text-align:right">현재고</th><th style="color:var(--cyan)">재고실명(영업담당)</th><th>보유기간</th></tr></thead>
+            <tbody id="tb30_master"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column">
+        <div class="card-title" id="topo30_title" style="color:var(--cyan)">재고 발생 연원 (Genealogy) 상세 분석</div>
+        <div class="topo-wrap" id="topo30_content" style="flex:1;background:var(--surface);border-color:var(--border2);align-items:flex-start">
+          <div style="text-align:center;color:var(--text3);width:100%;padding:50px 0">좌측 마스터 테이블에서 재고 LOT를 클릭하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// --- Navigation & Core Logic ---
+const tabNames = [
+  "실시간 재고","수불부 이력","안전재고 경고","기간별 추이","다중 창고통합", // Grp 1 (Basic)
+  "정방향 추적(LOT)","역방향 추적(LOT)","S/N 생애주기","유통기한 만료","3D 위치조회", // Grp 2 (Trace)
+  "창고간 이동","Bin 간 이동","공중재고(WIP)","재고 실사","실사 차이조정", // Grp 3 (Move)
+  "품질 보류(Hold)","폐기/불량 추적","재작업 재고","고객반품(RMA)","공급사위탁(VMI)", // Grp 4 (Quality)
+  "바코드 스캔","RFID 게이트","AI 최적화 권장","장기 체화재고","ABC 회전율분석", // Grp 5 (Advanced)
+  "FIFO 위반추적","재고 평가액","블록체인 무결성","원인분석 토폴로지","모바일 챗봇", // Grp 6 (Finance/Smart)
+  "재고 실명제(수주연동)" // Grp 7 (Topology/Real-Name) -> 31st Tab
+];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.min(Math.floor(i / 5) + 1, 7); 
+    let cls = grp === 7 ? 't-7' : `t-${grp}`;
+    let btn = document.createElement('button');
+    btn.className = `tab-btn ${cls} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try {
+    genP0(); genP1(); genP2(); genP3(); genP4();
+    genP5(); genP6(); genP8(); genP9();
+    genP10(); genP12(); genP13(); genP14();
+    genP15(); genP16(); genP17(); genP18(); genP19();
+    genP22(); genP23(); genP24(); genP25(); genP26(); genP27();
+    genP30(); // 31st Pattern Initialization
+  } catch(e) { console.error(e); }
+});
+
+function genP0(){
+  let h=''; const wh=["원자재 창고","반제품 창고","완제품 창고"]; 
+  for(let i=1;i<=500;i++){
+    const onh=rInt(100,5000); const hld=rInt(0,50); const avl=onh-hld;
+    h+=`<tr><td class="num">${i}</td><td>${wh[i%3]}</td><td>Zone ${['A','B','C'][i%3]}-${rInt(1,9)}</td><td style="font-family:var(--mono);color:var(--blue)">ITM-${String(i).padStart(4,'0')}</td><td>스마트폰 부품 ${i}</td><td class="num" style="font-weight:700">${onh.toLocaleString()}</td><td class="num" style="color:var(--cyan);font-weight:700">${avl.toLocaleString()}</td><td class="num" style="color:var(--rose)">${hld}</td><td>EA</td></tr>`;
+  } $('tb0').innerHTML=h;
+}
+
+function genP1(){
+  let h=''; const ty=["입고(GR)","출고(GI)","이동(TR)","조정(ADJ)"];
+  let bal=1500;
+  for(let i=1;i<=200;i++){
+    const t=ty[rInt(0,3)]; let inq=0, outq=0;
+    if(t==="입고(GR)"||t==="조정(ADJ)"){ inq=rInt(100,500); bal+=inq; } else { outq=rInt(50,300); bal-=outq; }
+    h+=`<tr><td>2024-10-${String(rInt(1,31)).padStart(2,'0')} 14:${String(rInt(10,59))}</td><td><span class="badge badge-gray">${t}</span></td><td>특수 알루미늄 합금 10T</td><td style="font-family:var(--mono)">DOC-24-${i}</td><td class="num" style="color:var(--green)">${inq>0?'+'+inq:''}</td><td class="num" style="color:var(--rose)">${outq>0?'-'+outq:''}</td><td class="num" style="color:var(--cyan);font-weight:700">${bal}</td></tr>`;
+  } $('tb1').innerHTML=h;
+}
+
+function genP2(){
+  let h=''; for(let i=1;i<=30;i++){
+    const safe=rInt(500,2000); const onh=rInt(0, safe-100); const sh=safe-onh;
+    h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">MAT-WARN-${i}</td><td>핵심 결품주의 자재 ${i}</td><td class="num">${onh.toLocaleString()}</td><td class="num">${safe.toLocaleString()}</td><td class="num" style="color:var(--rose);font-weight:700">-${sh.toLocaleString()}</td><td><span class="badge badge-red">위험 (발주 시급)</span></td></tr>`;
+  } $('tb2').innerHTML=h;
+}
+
+function genP3(){
+  let h1='<tr><th style="min-width:150px">품목명</th>'; for(let d=1;d<=10;d++) h1+=`<th style="text-align:center">10/${String(d+20).padStart(2,'0')}</th>`; h1+='</tr>'; $('th3').innerHTML=h1;
+  let h2=''; for(let i=1;i<=15;i++){
+    h2+=`<tr><td><b>추적 대상 품목 ${i}</b></td>`; let v=rInt(1000,5000);
+    for(let d=1;d<=10;d++){ v+=rInt(-200,300); h2+=`<td class="num">${v.toLocaleString()}</td>`; } h2+='</tr>';
+  } $('tb3').innerHTML=h2;
+}
+
+function genP4(){
+  let h=''; for(let i=1;i<=40;i++){
+    const a=rInt(100,500); const b=rInt(50,300); const c=rInt(200,800); const d=rInt(0,100); const t=a+b+c+d;
+    h+=`<tr><td>전국 통합 자재 ${i}</td><td class="num" style="color:var(--cyan);font-weight:700">${t.toLocaleString()}</td><td class="num">${a}</td><td class="num">${b}</td><td class="num">${c}</td><td class="num">${d}</td></tr>`;
+  } $('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr class="child-row"><td style="padding-left:30px">↳ 완제품 PROD-LOT-${i}</td><td>고객사 ${['A','B','C'][i%3]}</td><td><span class="badge badge-red">리콜 요망</span></td></tr>`; } $('tb5').innerHTML=h;
+}
+function genP6(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>조립 공정 ${i}</td><td style="font-family:var(--mono);color:var(--rose)">RAW-LOT-ERR-${i}</td><td>불량 원인 부품 ${i}</td><td>협력사 ${i}</td><td>김작업 / 조립 1호기</td></tr>`; } $('tb6').innerHTML=h;
+}
+
+function genP8(){
+  let h=''; for(let i=1;i<=20;i++){
+    const days=rInt(1,60); const c=days<30?'var(--rose)':'var(--text)'; const b=days<30?'badge-red':'badge-gray';
+    h+=`<tr><td>화학 원료 ${i}</td><td style="font-family:var(--mono)">CHEM-LOT-${i}</td><td class="num">${rInt(100,500)} L</td><td>2024-01-10</td><td style="color:${c};font-weight:700">2024-12-${String(rInt(1,30)).padStart(2,'0')}</td><td><span class="badge ${b}">${days}일 남음</span></td></tr>`;
+  } $('tb8').innerHTML=h;
+}
+
+function genP9(){
+  let h=''; for(let i=1;i<=5;i++){ h+=`<tr><td>OLED 패널 Type-${i}</td><td style="font-family:var(--mono)">LOT-A05-${i}</td><td class="num">1,000 EA</td></tr>`; } $('tb9').innerHTML=h;
+}
+
+function genP10(){
+  let h=''; for(let i=1;i<=20;i++){
+    const stat=i%4===0?'완료':'이동중'; const c=stat==='완료'?'var(--green)':'var(--amber)';
+    h+=`<tr><td style="font-family:var(--mono);color:var(--cyan)">TO-24-${String(i).padStart(3,'0')}</td><td>반제품 모듈 ${i}</td><td class="num">${rInt(50,200)}</td><td>A동 창고</td><td>B동 조립장</td><td><span class="badge" style="background:var(--${stat==='완료'?'green':'amber'}-dim);color:${c}">${stat}</span></td></tr>`;
+  } $('tb10').innerHTML=h;
+}
+
+function genP12(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono)">TR-DOC-${i}</td><td>이동중인 자재 ${i}</td><td class="num">${rInt(100,500)}</td><td>10/29 14:00</td><td>물류센터 B</td><td style="color:var(--amber);font-weight:700">+ ${rInt(2,10)} 시간째</td></tr>`; } $('tb12').innerHTML=h;
+}
+
+function genP13(){
+  let h=''; for(let i=1;i<=50;i++){
+    const s=rInt(100,500);
+    h+=`<tr><td>Zone-A-${i}</td><td>실사 대상 품목 ${i}</td><td class="num" style="color:var(--text3)">${s}</td><td><input type="number" class="inp inp-sm num" value="${s}" style="color:var(--green);font-weight:700;width:80px"></td><td class="num">0</td></tr>`;
+  } $('tb13').innerHTML=h;
+}
+
+function genP14(){
+  let h=''; for(let i=1;i<=10;i++){
+    const diff = rInt(-10, -1); const cost = diff * rInt(1000, 5000);
+    h+=`<tr><td>차이발생 품목 ${i}</td><td class="num">100</td><td class="num">${100+diff}</td><td class="num" style="color:var(--rose);font-weight:700">${diff}</td><td class="num" style="color:var(--rose)">₩ ${cost.toLocaleString()}</td><td>LOSS-01 (분실)</td><td><button class="btn btn-ghost btn-sm">조정 승인</button></td></tr>`;
+  } $('tb14').innerHTML=h;
+}
+
+function genP15(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--amber)">HOLD-LOT-${i}</td><td>품질보류 자재 ${i}</td><td class="num">${rInt(50,200)}</td><td style="color:var(--amber);font-weight:700">수입검사 불합격 (격리중)</td><td>10/25</td><td><button class="btn btn-ghost btn-sm">Hold 해제(폐기/정상)</button></td></tr>`; } $('tb15').innerHTML=h;
+}
+
+function genP16(){
+  let h=''; for(let i=1;i<=20;i++){
+    const cost = rInt(5,50)*10000;
+    h+=`<tr><td>2024-10-28</td><td>완전폐기 부품 ${i}</td><td class="num" style="color:var(--rose);font-weight:700">${rInt(10,50)}</td><td>녹 발생 / 파손</td><td class="num">₩ ${cost.toLocaleString()}</td><td>김품질</td></tr>`;
+  } $('tb16').innerHTML=h;
+}
+
+function genP17(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-family:var(--mono)">RW-LOT-${i}</td><td>재작업 대상품 ${i}</td><td class="num">${rInt(10,30)}</td><td style="color:var(--amber)">연마 공정으로 재투입</td><td><span class="badge badge-amber">대기중</span></td></tr>`; } $('tb17').innerHTML=h;
+}
+
+function genP18(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono)">RMA-24-${i}</td><td>고객사 ${i}</td><td>고장난 완제품 ${i}</td><td class="num">1</td><td>전원 안켜짐</td><td><select class="inp inp-sm"><option>수리 (Repair)</option><option>폐기 (Scrap)</option></select></td></tr>`; } $('tb18').innerHTML=h;
+}
+
+function genP19(){
+  let h=''; for(let i=1;i<=10;i++){
+    const v=rInt(1000,5000); const u=rInt(100,v);
+    h+=`<tr><td>협력사 (주)벤더${i}</td><td>VMI 공유자재 ${i}</td><td class="num">${v.toLocaleString()}</td><td class="num" style="color:var(--amber);font-weight:700">${u.toLocaleString()}</td><td><button class="btn btn-ghost btn-sm">사용분 정산 ➔</button></td></tr>`;
+  } $('tb19').innerHTML=h;
+}
+
+function scanP20(){
+  $('m-scan-res').style.display='block'; showToast('바코드 스캔 완료. 상세 정보 로드됨.');
+}
+
+function genP22(){
+  let h=''; for(let i=1;i<=15;i++){
+    const o=rInt(1000,2000); const n=rInt(500,900);
+    h+=`<tr><td>안전재고 최적화 자재 ${i}</td><td class="num">${o}</td><td class="num" style="color:var(--rose);font-weight:700">${n} 🔻</td><td>최근 6개월 수요 급감 (트렌드 반영)</td><td><button class="btn btn-ghost btn-sm">수용 (Apply)</button></td></tr>`;
+  } $('tb22').innerHTML=h;
+}
+
+function genP23(){
+  let h=''; for(let i=1;i<=20;i++){
+    const val=rInt(100,500)*10000; const days=rInt(400,900);
+    h+=`<tr><td>악성 장기체화 재고 ${i}</td><td class="num">${rInt(100,500)}</td><td class="num">₩ ${val.toLocaleString()}</td><td style="color:var(--rose);font-weight:700">2022-05-10 (${days}일째 방치)</td><td><button class="btn btn-ghost btn-sm" style="color:var(--rose)">폐기/매각 기안</button></td></tr>`;
+  } $('tb23').innerHTML=h;
+}
+
+function genP24(){
+  let h=''; for(let i=1;i<=15;i++){
+    const v=rInt(10,100)*100000; const cls=i<=3?'A (핵심)':i<=10?'B (일반)':'C (소모품)';
+    h+=`<tr><td>ABC 분석 자재 ${i}</td><td class="num">${rInt(1000,5000)}</td><td class="num">₩ ${rInt(10,50)*1000}</td><td class="num">₩ ${v.toLocaleString()}</td><td style="font-weight:700;color:var(--${i<=3?'green':i<=10?'blue':'text3'})">${cls}</td></tr>`;
+  } $('tb24').innerHTML=h;
+}
+
+function genP25(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>10-28 14:00</td><td>FIFO 위반 품목 ${i}</td><td style="font-family:var(--mono)">LOT-NEW-0${i}</td><td style="font-family:var(--mono);color:var(--purple)">LOT-OLD-9${i} (무시됨)</td><td>박작업</td><td><span class="badge badge-gray">사유 소명 대기중</span></td></tr>`; } $('tb25').innerHTML=h;
+}
+
+function genP26(){
+  let h=''; let tot=0;
+  for(let i=1;i<=10;i++){
+    const q=rInt(1000,5000); const p=rInt(10,50)*1000; const v=q*p; tot+=v;
+    h+=`<tr><td>자산 그룹 Category ${i}</td><td class="num">${q.toLocaleString()}</td><td class="num">₩ ${p.toLocaleString()}</td><td class="num" style="color:var(--purple);font-weight:700">₩ ${v.toLocaleString()}</td></tr>`;
+  }
+  h+=`<tr><td colspan="3" style="text-align:right;font-weight:700">공장 전체 재고 자산 평가액 합계</td><td class="num" style="color:var(--purple);font-weight:700;font-size:16px">₩ ${tot.toLocaleString()}</td></tr>`;
+  $('tb26').innerHTML=h;
+}
+
+function genP27(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>2024-10-2${i} 10:00</td><td>약품/정밀부품 ${i}</td><td>입고 (수령)</td><td style="font-family:var(--mono);color:var(--purple);font-size:11px">0x${Math.random().toString(16).slice(2,15)}...</td></tr>`; } $('tb27').innerHTML=h;
+}
+
+// --- Pattern 31 (Inventory Real-Name System & Topology) Logic ---
+const p30Data = [];
+const depts = ["국내영업 1팀", "국내영업 2팀", "해외영업팀", "B2B 특판팀"];
+const reps = ["김영업", "박수주", "이매출", "최실적", "정목표"];
+
+function genP30() {
+  for(let i=1; i<=100; i++) {
+    p30Data.push({
+      lot: `LOT-STK-${String(i).padStart(4,'0')}`,
+      item: `고급 어셈블리 부품 ${i}호`,
+      qty: rInt(50, 1000),
+      so: `SO-2024-${rInt(1000,9999)}`,
+      po: `PO-WMS-${rInt(1000,9999)}`,
+      dept: depts[i%depts.length],
+      rep: reps[i%reps.length],
+      days: rInt(5, 400),
+      zone: `Zone-${['A','B','C'][rInt(0,2)]}-${rInt(1,9)}`
+    });
+  }
+
+  let h = '';
+  p30Data.forEach((d, i) => {
+    const isWarn = d.days > 180;
+    const c = isWarn ? 'var(--rose)' : 'var(--text)';
+    const bg = isWarn ? 'background:var(--rose-dim)' : '';
+    h += `<tr style="cursor:pointer; ${bg}" onclick="showTopo30(${i}, this)" class="${isWarn?'highlight':''}">
+        <td style="font-family:var(--mono);color:var(--fuchsia);font-weight:700">${d.lot}</td>
+        <td>${d.item}</td>
+        <td class="num">${d.qty.toLocaleString()}</td>
+        <td style="font-family:var(--mono)">${d.so}</td>
+        <td style="font-weight:700;color:var(--cyan)">[${d.dept}] ${d.rep}</td>
+        <td style="color:${c};font-weight:${isWarn?'700':'400'}">${d.days}일</td>
+    </tr>`;
+  });
+  $('tb30_master').innerHTML = h;
+  showTopo30(0, null); // initialize first item
+}
+
+function showTopo30(idx, el) {
+  if(el) {
+    document.querySelectorAll('#tb30_master tr').forEach(tr => {
+      tr.style.borderLeft = 'none';
+      if(!tr.classList.contains('highlight')) tr.style.background = '';
+    });
+    el.style.background = 'var(--surface3)';
+    el.style.borderLeft = '3px solid var(--fuchsia)';
+  }
+  
+  const d = p30Data[idx];
+  $('topo30_title').innerHTML = `재고 발생 연원 상세 분석: <span style="color:var(--fuchsia)">${d.lot}</span>`;
+  
+  const isWarn = d.days > 180;
+  const statusBadge = isWarn ? `<span class="badge badge-red">장기체화 (악성재고)</span>` : `<span class="badge badge-green">정상 가용재고</span>`;
+  const nodeClass = isWarn ? 'err' : '';
+  const nodeStyle = isWarn ? 'border-color:var(--rose)' : '';
+
+  $('topo30_content').innerHTML = `
+    <div class="topo-col">
+      <div style="font-weight:700;color:var(--text2);margin-bottom:5px">1. 영업 수주 (원인 제공)</div>
+      <div class="topo-node">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">${d.so}</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">고객사 주문 접수 연동</div>
+        <div style="font-size:11px;color:var(--cyan);margin-bottom:10px;font-weight:700">재고실명: ${d.dept} ${d.rep}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-blue">수주확정 완료</span></div>
+      </div>
+    </div>
+
+    <div class="topo-arrow">
+      발주/생산 전개
+      <div class="topo-line"></div>
+    </div>
+
+    <div class="topo-col">
+      <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 구매/생산 (조달)</div>
+      <div class="topo-node">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">${d.po}</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">해당 수주 연동 자재 조달</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">담당: 구매자재팀 / 외부 협력사</div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-purple">입고처리 완료</span></div>
+      </div>
+    </div>
+
+    <div class="topo-arrow">
+      WMS 창고 적치
+      <div class="topo-line"></div>
+    </div>
+
+    <div class="topo-col">
+      <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 현재 창고 재고 상태</div>
+      <div class="topo-node ${nodeClass}" style="${nodeStyle}">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--fuchsia);margin-bottom:4px;font-weight:700">${d.lot}</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">현재고 보관중 (<span class="num" style="color:var(--cyan)">${d.qty.toLocaleString()} EA</span>)</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: ${d.zone} <br> 체류기간: <b>${d.days}일</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">${statusBadge}</div>
+      </div>
+    </div>
+  `;
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #5 */
+(function(){var I=5;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

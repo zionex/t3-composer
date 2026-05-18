@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM 2D Factory Layout & Routing Flow (w/ Stacking)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0a0d16; --surface:#111827; --surface2:#1a2035; --surface3:#212840; --surface4:#2a3352;
+  --border:#2d3a5c; --border2:#3d4e7a;
+  --text:#dde4f5; --text2:#8a97b8; --text3:#4a5578;
+  --green:#00d68f; --red:#ff4d6d; --amber:#ffb347; --blue:#4d9fff; --cyan:#00e5ff; --purple:#9d72ff;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  --sans:'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --radius:8px;
+  /* Grid size for snapping */
+  --grid-size: 20px; 
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 12px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Header */
+.header { padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.header h1 { font-size: 16px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border: 1px solid; border-radius: var(--radius); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; background: var(--surface3); color: var(--text); border-color: var(--border2); }
+.btn:hover { background: var(--surface4); }
+.btn-blue { background: rgba(77, 159, 255, 0.15); border-color: rgba(77, 159, 255, 0.5); color: var(--blue); }
+.btn-blue:hover { background: rgba(77, 159, 255, 0.25); }
+.btn-red { background: rgba(255, 77, 109, 0.15); border-color: rgba(255, 77, 109, 0.5); color: var(--red); }
+.btn-cyan { background: rgba(0, 229, 255, 0.15); border-color: rgba(0, 229, 255, 0.5); color: var(--cyan); }
+
+/* Main Layout */
+.layout-app { display: flex; flex: 1; overflow: hidden; }
+
+/* Left Panel: Tree */
+.left-panel { width: 240px; background: var(--surface2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index:20; }
+.panel-header { padding: 12px 16px; font-weight: 700; border-bottom: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; flex-shrink: 0; }
+.tree-container { flex: 1; overflow-y: auto; padding: 12px; }
+.tree-node { padding: 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text2); transition: background 0.15s; }
+.tree-node:hover { background: var(--surface3); color: var(--text); }
+.tree-node.active { background: rgba(0, 229, 255, 0.15); color: var(--cyan); font-weight: 700; border: 1px solid rgba(0, 229, 255, 0.3); }
+.tree-indent { margin-left: 20px; border-left: 1px solid var(--border2); padding-left: 8px; position: relative; }
+.tree-indent::before { content: ''; position: absolute; left: 0; top: 50%; width: 6px; height: 1px; background: var(--border2); }
+
+/* Center: 2D Canvas */
+.center-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; overflow: hidden; }
+.canvas-toolbar { padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text2); flex-shrink: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.canvas-area { flex: 1; position: relative; overflow: auto; background-color: var(--bg); 
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+.canvas-inner { width: 4000px; height: 3000px; position: relative; transform-origin: top left; }
+
+/* Right Panel: Palette */
+.right-panel { width: 320px; background: var(--surface2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index:20; }
+.palette-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
+.p-tab { flex: 1; text-align: center; padding: 12px 6px; cursor: pointer; font-size:11px; font-weight: 700; color: var(--text2); border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+.p-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); background: var(--surface2); }
+.palette-content { flex: 1; overflow-y: auto; padding: 16px; display: none; flex-direction: column; gap: 12px; }
+.palette-content.active { display: flex; }
+
+/* Draggable Palette Items */
+.drag-item { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; padding: 12px; cursor: grab; transition: all 0.15s; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+.drag-item:hover { border-color: var(--cyan); background: var(--surface3); transform: translateY(-2px); }
+.drag-item:active { cursor: grabbing; }
+.item-icon { width: 40px; height: 40px; background: var(--surface4); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid var(--border); flex-shrink: 0; }
+.item-info { flex: 1; overflow: hidden; }
+.item-title { font-weight: 700; color: var(--text); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.item-desc { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+/* Canvas Placed Items */
+#canvas-items { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+
+/* 1. Line Style */
+.placed-line { position: absolute; border: 2px dashed rgba(77, 159, 255, 0.5); background: rgba(77, 159, 255, 0.04); border-radius: 8px; padding: 34px 10px 10px 10px; cursor: grab; min-width: 200px; min-height: 100px; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); transition: border-color 0.2s, background 0.2s; }
+.placed-line:hover { border-style: solid; border-color: var(--blue); background: rgba(77, 159, 255, 0.1); }
+.placed-line:active { cursor: grabbing; border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,229,255,0.2); }
+.line-label { position: absolute; top: 0; left: 0; right: 0; background: rgba(77, 159, 255, 0.2); color: var(--cyan); font-weight: 700; font-size: 11px; padding: 6px 12px; border-radius: 6px 6px 0 0; pointer-events: none; border-bottom: 1px solid rgba(77, 159, 255, 0.4); display: flex; justify-content: space-between; align-items: center;}
+
+/* 2. Storage/Warehouse Style */
+.placed-storage { position: absolute; border: 2px dashed rgba(255, 179, 71, 0.5); background: rgba(255, 179, 71, 0.05); border-radius: 8px; padding: 34px 10px 10px 10px; cursor: grab; min-width: 100px; min-height: 100px; box-shadow: inset 0 0 30px rgba(0,0,0,0.4); transition: border-color 0.2s, background 0.2s; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.placed-storage:hover { border-style: solid; border-color: var(--amber); background: rgba(255, 179, 71, 0.15); }
+.placed-storage:active { cursor: grabbing; border-color: #ffd166; }
+.storage-label { position: absolute; top: 0; left: 0; right: 0; background: rgba(255, 179, 71, 0.25); color: var(--amber); font-weight: 700; font-size: 11px; padding: 6px 12px; border-radius: 6px 6px 0 0; pointer-events: none; border-bottom: 1px solid rgba(255, 179, 71, 0.5); display: flex; justify-content: space-between; align-items: center;}
+.storage-icon-bg { font-size: 48px; opacity: 0.2; pointer-events: none; }
+
+/* 3. Equipment Style */
+.placed-eqp { position: absolute; background: var(--surface3); border: 2px solid var(--border2); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab; width: 60px; height: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.15s, transform 0.15s; z-index: 5; }
+.placed-eqp:hover { border-color: var(--cyan); z-index: 10; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transform: translateY(-2px); }
+.placed-eqp:active { cursor: grabbing; border-color: var(--amber); transform: translateY(0); }
+.placed-eqp .eqp-icon { font-size: 26px; pointer-events: none; }
+.placed-eqp .eqp-lbl { font-size: 9px; font-weight: 700; font-family: var(--mono); color: var(--text); position: absolute; bottom: -22px; white-space: nowrap; background: var(--surface); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+/* 4. Equipment Stacking Badges (NEW) */
+.stack-badge { position: absolute; top: -10px; left: -10px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; font-family: var(--mono); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 30; border: 2px solid var(--surface); pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+/* SVG Flow Lines */
+#flow-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.flow-path { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-dasharray: 10, 8; animation: flowAnim 1.5s linear infinite; opacity: 0.8; filter: drop-shadow(0 0 6px var(--cyan)); }
+.flow-path-alt { fill: none; stroke: var(--amber); stroke-width: 3; stroke-dasharray: 10, 8; animation: flowAnim 1.5s linear infinite; opacity: 0.8; filter: drop-shadow(0 0 6px var(--amber)); }
+@keyframes flowAnim { from { stroke-dashoffset: 18; } to { stroke-dashoffset: 0; } }
+
+/* Delete Button on canvas items */
+.del-btn { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; background: var(--red); color: #fff; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid var(--surface); z-index: 20; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+.placed-line:hover > .del-btn, .placed-eqp:hover > .del-btn, .placed-storage:hover > .del-btn { display: flex; }
+.del-btn:hover { transform: scale(1.15); background: #ff1a40; }
+
+/* Toast */
+#toast{position:fixed;bottom:30px;right:30px;background:var(--surface);border:1px solid var(--cyan);color:var(--cyan);padding:14px 28px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity 0.25s;pointer-events:none;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+#toast.show{opacity:1}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>🚀</span> SCM 2D Factory Layout & Rich Routing Flow</h1>
+  <div style="display:flex; gap:10px">
+    <button class="btn btn-red" onclick="clearCanvas()">🗑️ 캔버스 전체 초기화</button>
+    <button class="btn btn-blue" onclick="saveLayout()">💾 레이아웃 마스터 저장</button>
+  </div>
+</div>
+
+<div class="layout-app">
+  <aside class="left-panel">
+    <div class="panel-header">도면 계층 트리 (Locations)</div>
+    <div class="tree-container" id="plant-tree">
+      </div>
+  </aside>
+
+  <main class="center-panel">
+    <div class="canvas-toolbar">
+      <div id="current-location" style="font-weight:700; color:var(--cyan); font-size:14px; display:flex; align-items:center; gap:6px">
+        <span style="font-size:18px">📍</span> 창원 제1공장 > 1층 메인 생산동
+      </div>
+      <div style="display:flex; gap:20px; align-items:center">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--cyan); background:var(--blue-dim); padding:6px 12px; border-radius:6px; border:1px solid var(--blue-mid)">
+          <input type="checkbox" id="toggle-flow" checked onchange="drawFlowLines()" style="accent-color:var(--cyan); transform:scale(1.2)"> 
+          <b>물류 흐름선 (Routing Flow) 시각화</b>
+        </label>
+        <span style="color:var(--text3)">|</span>
+        <span style="font-family:var(--mono); color:var(--text2)">Grid Snap: <b style="color:var(--amber)">20px</b></span>
+        <span style="color:var(--text3)">|</span>
+        <span style="color:var(--text2)">설비를 같은 곳에 놓으면 중첩(Stack)됩니다.</span>
+      </div>
+    </div>
+    
+    <div class="canvas-area" id="scroll-area">
+      <div class="canvas-inner" id="canvas" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <svg id="flow-svg">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="var(--cyan)" />
+            </marker>
+            <marker id="arrowhead-alt" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="var(--amber)" />
+            </marker>
+          </defs>
+          <g id="flow-paths"></g>
+        </svg>
+        
+        <div id="canvas-items"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div class="palette-tabs">
+      <div class="p-tab active" onclick="switchPalette(0, this)">구역 (Lines)</div>
+      <div class="p-tab" onclick="switchPalette(1, this)">창고 (Storage)</div>
+      <div class="p-tab" onclick="switchPalette(2, this)">설비 (Equip)</div>
+    </div>
+    
+    <div class="palette-content active" id="pal-lines"></div>
+    <div class="palette-content" id="pal-storages"></div>
+    <div class="palette-content" id="pal-eqps"></div>
+  </aside>
+</div>
+
+<div id="toast">알림 메시지</div>
+
+<script>
+// --- 1. Master Data Definitions ---
+const factories = [
+  { id: 'F1', name: '창원 제1공장 (조립/가공)', floors: [
+      { id: 'F1-L1', name: '1층 메인 생산동 (샘플)' },
+      { id: 'F1-L2', name: '2층 정밀 가공실' }
+    ]
+  },
+  { id: 'F2', name: '평택 SMT 센터', floors: [
+      { id: 'F2-L1', name: '1층 SMT 전용라인' }
+    ]
+  }
+];
+
+// Pre-defined Master Lines
+const masterLines = [
+  { id: 'L-SMT', name: 'SMT 표면실장 라인', desc: '마운터, 리플로우 포함', width: 460, height: 160, 
+    defaultEqps: [
+      { type: 'eqp', masterId: 'E-LDR', relX: 20, relY: 60 },
+      { type: 'eqp', masterId: 'E-PRT', relX: 100, relY: 60 },
+      { type: 'eqp', masterId: 'E-MNT', relX: 180, relY: 60 },
+      { type: 'eqp', masterId: 'E-RFL', relX: 260, relY: 60 },
+      { type: 'eqp', masterId: 'E-AOI', relX: 360, relY: 60 }
+    ] 
+  },
+  { id: 'L-ASSY', name: '메인 조립 라인', desc: '자동화 로봇 및 컨베이어', width: 380, height: 200,
+    defaultEqps: [
+      { type: 'eqp', masterId: 'E-CVY', relX: 20, relY: 80 },
+      { type: 'eqp', masterId: 'E-RBT', relX: 120, relY: 80 },
+      { type: 'eqp', masterId: 'E-RBT', relX: 200, relY: 80 },
+      { type: 'eqp', masterId: 'E-WRK', relX: 280, relY: 80 }
+    ]
+  },
+  { id: 'L-CNC', name: 'CNC 가공 라인', desc: '정밀 금속 절삭 가공', width: 340, height: 160,
+    defaultEqps: [
+      { type: 'eqp', masterId: 'E-CNC', relX: 20, relY: 60 },
+      { type: 'eqp', masterId: 'E-CNC', relX: 120, relY: 60 },
+      { type: 'eqp', masterId: 'E-WRK', relX: 240, relY: 60 }
+    ]
+  },
+  { id: 'L-INSP', name: '품질 검사 라인', desc: '출하 전 전수 육안검사', width: 260, height: 160,
+    defaultEqps: [
+      { type: 'eqp', masterId: 'E-AOI', relX: 20, relY: 60 },
+      { type: 'eqp', masterId: 'E-WRK', relX: 140, relY: 60 }
+    ]
+  },
+  { id: 'L-PKG', name: '포장 및 출하 라인', desc: '라벨링 및 박싱', width: 280, height: 160,
+    defaultEqps: [
+      { type: 'eqp', masterId: 'E-PKG', relX: 20, relY: 60 },
+      { type: 'eqp', masterId: 'E-LBL', relX: 100, relY: 60 },
+      { type: 'eqp', masterId: 'E-CVY', relX: 180, relY: 60 }
+    ]
+  }
+];
+
+// Pre-defined Master Storages
+const masterStorages = [
+  { id: 'W-RAW', name: '원자재 입고장', desc: '자재 대기 및 불출 구역', width: 140, height: 280, icon: '🏭' },
+  { id: 'W-WIP1', name: 'L1 적치장 (WIP)', desc: '반제품 대기 버퍼', width: 120, height: 160, icon: '🗄️' },
+  { id: 'W-WIP2', name: '가공 적치장 (WIP)', desc: 'CNC 후처리 대기', width: 120, height: 160, icon: '🗄️' },
+  { id: 'W-RWK', name: '재작업소 (Rework)', desc: '불량품 임시 적치', width: 140, height: 140, icon: '♻️' },
+  { id: 'W-TOOL', name: '치공구실 (Tooling)', desc: '금형 및 지그 보관', width: 140, height: 140, icon: '🧰' },
+  { id: 'W-FG', name: '완제품 출하장', desc: '최종 출하 대기', width: 180, height: 400, icon: '📦' }
+];
+
+// Pre-defined Master Equipments
+const masterEqps = [
+  { id: 'E-LDR', name: 'Loader (로더)', icon: '📥', desc: 'PCB 보드 투입기' },
+  { id: 'E-PRT', name: 'Printer (스크린프린터)', icon: '🖨️', desc: '납땜 페이스트 도포' },
+  { id: 'E-MNT', name: 'Mounter (마운터)', icon: '🦾', desc: '부품 고속 실장' },
+  { id: 'E-RFL', name: 'Reflow (리플로우)', icon: '🔥', desc: '열풍 건조 및 납땜' },
+  { id: 'E-AOI', name: 'AOI (비전검사기)', icon: '🔍', desc: '광학 불량 검사' },
+  { id: 'E-CVY', name: 'Conveyor (컨베이어)', icon: '🛤️', desc: '물류 이송 라인' },
+  { id: 'E-RBT', name: 'Robot (다관절로봇)', icon: '🤖', desc: '자동화 조립 로봇' },
+  { id: 'E-WRK', name: 'Worktable (수작업대)', icon: '🧑‍🔧', desc: '육안검사/수작업대' },
+  { id: 'E-PKG', name: 'Packager (포장기)', icon: '📦', desc: '박스 씰링 포장' },
+  { id: 'E-LBL', name: 'Labeler (라벨부착기)', icon: '🏷️', desc: '바코드 라벨 부착' },
+  { id: 'E-CNC', name: 'CNC Machining', icon: '⚙️', desc: '정밀 금속 절삭가공' },
+  { id: 'E-AGV', name: 'AGV (무인운반차)', icon: '🛒', desc: '자재 자동 이송 로봇' },
+  { id: 'E-RCK', name: '현장 Rack', icon: '🗃️', desc: '자재 보관용 선반' },
+  { id: 'E-PC', name: '제어 PC', icon: '💻', desc: '작업자 단말기' }
+];
+
+// Routing Flow Master Data
+const routingFlows = [
+  { color: 'cyan', path: ['W-RAW', 'L-SMT', 'W-WIP1', 'L-ASSY', 'L-PKG', 'W-FG'] },
+  { color: 'amber', path: ['W-RAW', 'L-CNC', 'W-WIP2', 'L-INSP', 'W-FG'] }
+];
+
+// State Management
+let currentFloorId = 'F1-L1';
+let layoutData = {
+  'F1-L1': [], 'F1-L2': [], 'F2-L1': [], 'F2-L2': []
+};
+let uidCounter = 1;
+const GRID_SIZE = 20;
+
+// Utility functions
+const $ = id => document.getElementById(id);
+function showToast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function snap(val) { return Math.round(val / GRID_SIZE) * GRID_SIZE; }
+function getUID() { return 'u_' + (uidCounter++); }
+function getMasterData(type, id) {
+  if(type === 'line') return masterLines.find(l => l.id === id);
+  if(type === 'eqp') return masterEqps.find(e => e.id === id);
+  if(type === 'storage') return masterStorages.find(s => s.id === id);
+  return null;
+}
+
+// --- 2. Initialization & Renderers ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderTree();
+  renderPalette();
+  // 🌟 Load initial rich sample data (Including stacked CNC line)
+  loadRichSampleData();
+  renderCanvas();
+});
+
+function renderTree() {
+  let h = '';
+  factories.forEach(f => {
+    h += `<div style="font-weight:700; color:var(--text); margin:12px 0 4px 4px; display:flex; align-items:center; gap:6px;">🏢 ${f.name}</div>`;
+    f.floors.forEach(fl => {
+      const isActive = fl.id === currentFloorId ? 'active' : '';
+      h += `<div class="tree-indent"><div class="tree-node ${isActive}" onclick="selectFloor('${fl.id}', '${f.name} > ${fl.name}')">📄 ${fl.name}</div></div>`;
+    });
+  });
+  $('plant-tree').innerHTML = h;
+}
+
+function selectFloor(floorId, displayName) {
+  currentFloorId = floorId;
+  $('current-location').innerHTML = `<span style="font-size:18px">📍</span> ${displayName}`;
+  renderTree(); 
+  renderCanvas();
+  showToast(`${displayName} 도면을 불러왔습니다.`);
+}
+
+function switchPalette(idx, btn) {
+  document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  $('pal-lines').style.display = idx === 0 ? 'flex' : 'none';
+  $('pal-storages').style.display = idx === 1 ? 'flex' : 'none';
+  $('pal-eqps').style.display = idx === 2 ? 'flex' : 'none';
+}
+
+function renderPalette() {
+  let hl = '';
+  masterLines.forEach(l => {
+    hl += `<div class="drag-item" draggable="true" ondragstart="handleDragStart(event, 'palette', 'line', '${l.id}')">
+      <div class="item-icon" style="color:var(--cyan); border-color:var(--cyan-mid)">🟦</div>
+      <div class="item-info"><div class="item-title">${l.name}</div><div class="item-desc">${l.id}</div></div>
+    </div>`;
+  });
+  $('pal-lines').innerHTML = hl;
+
+  let hs = '';
+  masterStorages.forEach(s => {
+    hs += `<div class="drag-item" draggable="true" ondragstart="handleDragStart(event, 'palette', 'storage', '${s.id}')">
+      <div class="item-icon" style="color:var(--amber); border-color:var(--amber-mid)">${s.icon}</div>
+      <div class="item-info"><div class="item-title">${s.name}</div><div class="item-desc">${s.id}</div></div>
+    </div>`;
+  });
+  $('pal-storages').innerHTML = hs;
+
+  let he = '';
+  masterEqps.forEach(e => {
+    he += `<div class="drag-item" draggable="true" ondragstart="handleDragStart(event, 'palette', 'eqp', '${e.id}')">
+      <div class="item-icon" style="font-size:20px">${e.icon}</div>
+      <div class="item-info"><div class="item-title">${e.name}</div><div class="item-desc">${e.id}</div></div>
+    </div>`;
+  });
+  $('pal-eqps').innerHTML = he;
+}
+
+// 🌟 Generate Extremely Rich End-to-End Sample Data
+function loadRichSampleData() {
+  const f1 = layoutData['F1-L1'];
+
+  const addLine = (floor, mId, x, y) => {
+    const m = getMasterData('line', mId);
+    const uid = getUID();
+    const children = m.defaultEqps.map(e => ({uid: getUID(), type: 'eqp', masterId: e.masterId, x: e.relX, y: e.relY, parentId: uid}));
+    floor.push({uid, type: 'line', masterId: mId, x, y, width: m.width, height: m.height, children});
+  };
+  const addStorage = (floor, mId, x, y) => {
+    const m = getMasterData('storage', mId);
+    floor.push({uid: getUID(), type: 'storage', masterId: mId, x, y, width: m.width, height: m.height});
+  };
+  const addEqp = (floor, mId, x, y) => {
+    floor.push({uid: getUID(), type: 'eqp', masterId: mId, x, y, parentId: null});
+  };
+
+  // Shared Storages
+  addStorage(f1, 'W-RAW', 40, 200);   
+  addStorage(f1, 'W-FG', 1860, 140);  
+
+  // Flow 1 (Top Route): SMT -> WIP1 -> ASSY -> PKG
+  addLine(f1, 'L-SMT', 280, 80);
+  addStorage(f1, 'W-WIP1', 820, 80);
+  addLine(f1, 'L-ASSY', 1020, 60);
+  addLine(f1, 'L-PKG', 1480, 80);
+
+  // Flow 2 (Bottom Route): CNC -> WIP2 -> INSP
+  // 🌟 Inject L-CNC with STACKED equipments at the exact same coordinate (x:40, y:60)
+  const uidCNC = getUID();
+  f1.push({
+    uid: uidCNC, type: 'line', masterId: 'L-CNC', x: 280, y: 460, width: 340, height: 160,
+    children: [
+      {uid: getUID(), type: 'eqp', masterId: 'E-CNC', x: 40, y: 60, parentId: uidCNC},
+      {uid: getUID(), type: 'eqp', masterId: 'E-CNC', x: 40, y: 60, parentId: uidCNC},
+      {uid: getUID(), type: 'eqp', masterId: 'E-CNC', x: 40, y: 60, parentId: uidCNC},
+      {uid: getUID(), type: 'eqp', masterId: 'E-CNC', x: 40, y: 60, parentId: uidCNC},
+      {uid: getUID(), type: 'eqp', masterId: 'E-WRK', x: 240, y: 60, parentId: uidCNC}
+    ]
+  });
+
+  addStorage(f1, 'W-WIP2', 720, 460);
+  addLine(f1, 'L-INSP', 940, 460);
+
+  // Extra Storages
+  addStorage(f1, 'W-RWK', 1480, 460); 
+  addStorage(f1, 'W-TOOL', 40, 600);  
+
+  // Scatter Loose Equipments
+  addEqp(f1, 'E-AGV', 200, 220);
+  addEqp(f1, 'E-AGV', 200, 360);
+  addEqp(f1, 'E-AGV', 600, 320);
+  addEqp(f1, 'E-AGV', 1200, 340);
+  
+  // 🌟 Also place a loose stack of Racks on the canvas
+  addEqp(f1, 'E-RCK', 640, 460);
+  addEqp(f1, 'E-RCK', 640, 460);
+  addEqp(f1, 'E-RCK', 640, 460);
+
+  addEqp(f1, 'E-PC', 260, 400);
+  addEqp(f1, 'E-WRK', 1380, 480);
+}
+
+// --- 3. Drag & Drop Engine ---
+
+let dragState = { source: null, type: null, masterId: null, uid: null, offsetX: 0, offsetY: 0, parentId: null };
+
+function handleDragStart(e, source, type, idOrUid) {
+  const rect = e.target.getBoundingClientRect();
+  dragState = {
+    source: source, type: type,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top
+  };
+
+  if (source === 'palette') {
+    dragState.masterId = idOrUid;
+    e.dataTransfer.setData('text/plain', 'palette');
+  } else {
+    dragState.uid = idOrUid;
+    const item = findItemByUid(idOrUid);
+    if(item) dragState.parentId = item.parentId;
+    e.dataTransfer.setData('text/plain', 'canvas');
+    setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
+  }
+  e.dataTransfer.effectAllowed = "copyMove";
+}
+
+document.addEventListener('dragend', (e) => {
+  if (e.target && e.target.style) e.target.style.opacity = '1';
+});
+
+function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
+function handleLineDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation(); 
+
+  const isDropOnLine = e.currentTarget.classList.contains('placed-line');
+  const isDropOnStorage = e.currentTarget.classList.contains('placed-storage');
+  const dropTargetUid = isDropOnLine ? e.currentTarget.id : null;
+  const targetRect = e.currentTarget.getBoundingClientRect();
+  
+  let dropX = snap(e.clientX - targetRect.left - dragState.offsetX);
+  let dropY = snap(e.clientY - targetRect.top - dragState.offsetY);
+  dropX = Math.max(0, dropX);
+  dropY = Math.max(0, dropY);
+
+  if (dragState.source === 'palette') {
+    if (dragState.type === 'line' || dragState.type === 'storage') {
+      if (isDropOnLine || isDropOnStorage) { showToast('구역 안에 다른 구역을 넣을 수 없습니다.'); return; }
+      createContainerItem(dragState.type, dragState.masterId, dropX, dropY);
+    } else if (dragState.type === 'eqp') {
+      if(isDropOnStorage) { showToast('창고/적치장에는 개별 설비를 배치할 수 없습니다.'); return; }
+      createNewEqp(dragState.masterId, dropX, dropY, dropTargetUid);
+    }
+  } 
+  else if (dragState.source === 'canvas') {
+    const item = findItemByUid(dragState.uid);
+    if (!item) return;
+
+    if ((item.type === 'line' || item.type === 'storage') && (isDropOnLine || isDropOnStorage)) {
+      showToast('구역 안에 다른 구역을 넣을 수 없습니다.'); return;
+    }
+
+    if (item.type === 'eqp') {
+      if(isDropOnStorage) { showToast('창고/적치장에는 개별 설비를 배치할 수 없습니다.'); return; }
+      removeItemFromTree(item.uid);
+      item.parentId = dropTargetUid;
+      item.x = dropX;
+      item.y = dropY;
+      
+      if(dropTargetUid) {
+        const parentLine = layoutData[currentFloorId].find(l => l.uid === dropTargetUid);
+        if(parentLine) parentLine.children.push(item);
+      } else {
+        layoutData[currentFloorId].push(item);
+      }
+    } else {
+      // Line or Storage moved
+      item.x = dropX;
+      item.y = dropY;
+    }
+    renderCanvas();
+  }
+}
+
+// --- 4. DOM Rendering & Manipulation ---
+
+function createContainerItem(type, masterId, x, y) {
+  const master = getMasterData(type, masterId);
+  const newUid = getUID();
+  const newItem = { uid: newUid, type: type, masterId: masterId, x: x, y: y, width: master.width, height: master.height };
+  
+  if (type === 'line') {
+    newItem.children = [];
+    master.defaultEqps.forEach(eqp => {
+      newItem.children.push({ uid: getUID(), type: 'eqp', masterId: eqp.masterId, x: eqp.relX, y: eqp.relY, parentId: newUid });
+    });
+  }
+  layoutData[currentFloorId].push(newItem);
+  renderCanvas();
+  showToast(`${master.name} 배치 완료`);
+}
+
+function createNewEqp(masterId, x, y, parentUid) {
+  const newEqp = { uid: getUID(), type: 'eqp', masterId: masterId, x: x, y: y, parentId: parentUid };
+  if (parentUid) {
+    const parentLine = layoutData[currentFloorId].find(l => l.uid === parentUid);
+    if (parentLine) parentLine.children.push(newEqp);
+  } else {
+    layoutData[currentFloorId].push(newEqp);
+  }
+  renderCanvas();
+}
+
+function findItemByUid(uid) {
+  const items = layoutData[currentFloorId];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].uid === uid) return items[i];
+    if (items[i].type === 'line' && items[i].children) {
+      const child = items[i].children.find(c => c.uid === uid);
+      if (child) return child;
+    }
+  }
+  return null;
+}
+
+function removeItemFromTree(uid) {
+  const items = layoutData[currentFloorId];
+  const idx = items.findIndex(i => i.uid === uid);
+  if(idx > -1) { items.splice(idx, 1); return; }
+  items.forEach(line => {
+    if(line.type === 'line' && line.children) {
+      const cIdx = line.children.findIndex(c => c.uid === uid);
+      if(cIdx > -1) line.children.splice(cIdx, 1);
+    }
+  });
+}
+
+function deleteItem(uid, e) {
+  e.stopPropagation();
+  removeItemFromTree(uid);
+  renderCanvas();
+}
+
+// 🌟 Render Grouped/Stacked Equipments
+function renderEqpGroup(eqpList, containerElement) {
+  const groupMap = {};
+  
+  // Group by identical X,Y coordinates
+  eqpList.forEach(eqp => {
+    const key = `${eqp.x},${eqp.y}`;
+    if(!groupMap[key]) groupMap[key] = [];
+    groupMap[key].push(eqp);
+  });
+  
+  Object.values(groupMap).forEach(stack => {
+    stack.forEach((eqp, idx) => {
+      containerElement.appendChild(createEqpDOM(eqp, idx, stack.length));
+    });
+  });
+}
+
+function createEqpDOM(item, stackIdx = 0, stackCount = 1) {
+  const master = getMasterData('eqp', item.masterId);
+  const eqpDiv = document.createElement('div');
+  eqpDiv.className = 'placed-eqp';
+  eqpDiv.id = item.uid;
+  
+  // 🌟 Visual Offset for Stacking
+  const offset = stackIdx * 6; // 6px offset per item
+  eqpDiv.style.left = (item.x + offset) + 'px';
+  eqpDiv.style.top = (item.y + offset) + 'px';
+  eqpDiv.style.zIndex = 5 + stackIdx;
+  
+  // Depth shadow for realism
+  if (stackCount > 1) {
+    eqpDiv.style.boxShadow = '-2px -2px 6px rgba(0,0,0,0.4), 2px 2px 6px rgba(0,0,0,0.2)';
+  }
+
+  eqpDiv.draggable = true;
+  eqpDiv.ondragstart = (e) => handleDragStart(e, 'canvas', 'eqp', item.uid);
+  eqpDiv.ondragover = (e) => e.stopPropagation(); 
+  eqpDiv.ondrop = (e) => e.stopPropagation();
+
+  // 🌟 Badge for Top Item
+  let badgeHtml = '';
+  if (stackCount > 1 && stackIdx === stackCount - 1) {
+    badgeHtml = `<div class="stack-badge" title="중첩된 설비 수">${stackCount}</div>`;
+  }
+
+  eqpDiv.innerHTML = `
+    ${badgeHtml}
+    <div class="eqp-icon">${master.icon}</div>
+    <div class="eqp-lbl" title="${master.name}">${master.id}</div>
+    <div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>
+  `;
+  return eqpDiv;
+}
+
+function renderCanvas() {
+  const canvasItems = $('canvas-items');
+  canvasItems.innerHTML = ''; 
+  const items = layoutData[currentFloorId] || [];
+
+  items.forEach(item => {
+    if (item.type === 'line') {
+      const master = getMasterData('line', item.masterId);
+      const lineDiv = document.createElement('div');
+      lineDiv.className = 'placed-line';
+      lineDiv.id = item.uid;
+      lineDiv.style.left = item.x + 'px';
+      lineDiv.style.top = item.y + 'px';
+      lineDiv.style.width = item.width + 'px';
+      lineDiv.style.height = item.height + 'px';
+      lineDiv.draggable = true;
+      lineDiv.ondragstart = (e) => handleDragStart(e, 'canvas', 'line', item.uid);
+      lineDiv.ondragover = handleLineDragOver;
+      lineDiv.ondrop = handleDrop;
+
+      lineDiv.innerHTML = `
+        <div class="line-label"><span>${master.name}</span> <span style="color:var(--text2);font-weight:400;font-family:var(--mono)">${item.uid}</span></div>
+        <div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>
+      `;
+      
+      // Render equipment stack logic inside Line
+      if (item.children) {
+        renderEqpGroup(item.children, lineDiv);
+      }
+      canvasItems.appendChild(lineDiv);
+    } 
+    else if (item.type === 'storage') {
+      const master = getMasterData('storage', item.masterId);
+      const storageDiv = document.createElement('div');
+      storageDiv.className = 'placed-storage';
+      storageDiv.id = item.uid;
+      storageDiv.style.left = item.x + 'px';
+      storageDiv.style.top = item.y + 'px';
+      storageDiv.style.width = item.width + 'px';
+      storageDiv.style.height = item.height + 'px';
+      storageDiv.draggable = true;
+      storageDiv.ondragstart = (e) => handleDragStart(e, 'canvas', 'storage', item.uid);
+
+      storageDiv.innerHTML = `
+        <div class="storage-label"><span>${master.name}</span></div>
+        <div class="storage-icon-bg">${master.icon}</div>
+        <div class="del-btn" onclick="deleteItem('${item.uid}', event)">X</div>
+      `;
+      canvasItems.appendChild(storageDiv);
+    }
+  });
+
+  // Render Loose Equipment stack logic on Canvas
+  const looseEqps = items.filter(i => i.type === 'eqp');
+  renderEqpGroup(looseEqps, canvasItems);
+
+  // Draw the Multi-Routing Flow Lines
+  drawFlowLines();
+}
+
+// --- 5. SVG Routing Flow Engine ---
+
+function drawFlowLines() {
+  const g = $('flow-paths');
+  g.innerHTML = ''; 
+  
+  const isFlowOn = $('toggle-flow').checked;
+  if(!isFlowOn) return;
+
+  const items = layoutData[currentFloorId] || [];
+  
+  routingFlows.forEach(flowObj => {
+    const flowNodes = [];
+    flowObj.path.forEach(masterId => {
+      const nodeItem = items.find(i => (i.type === 'line' || i.type === 'storage') && i.masterId === masterId);
+      if(nodeItem) flowNodes.push(nodeItem);
+    });
+
+    for(let i = 0; i < flowNodes.length - 1; i++) {
+      const source = flowNodes[i];
+      const target = flowNodes[i+1];
+
+      const startX = source.x + source.width;
+      const startY = source.y + (source.height / 2);
+      const endX = target.x;
+      const endY = target.y + (target.height / 2);
+
+      const curveOffset = Math.max(Math.abs(endX - startX) / 2, 50); 
+      const pathData = `M ${startX},${startY} C ${startX + curveOffset},${startY} ${endX - curveOffset},${endY} ${endX},${endY}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathData);
+      
+      if(flowObj.color === 'amber') {
+        path.setAttribute('class', 'flow-path-alt');
+        path.setAttribute('marker-end', 'url(#arrowhead-alt)');
+      } else {
+        path.setAttribute('class', 'flow-path');
+        path.setAttribute('marker-end', 'url(#arrowhead)');
+      }
+      
+      g.appendChild(path);
+    }
+  });
+}
+
+function clearCanvas() {
+  if(confirm('현재 도면의 모든 배치를 삭제하시겠습니까?')){
+    layoutData[currentFloorId] = [];
+    renderCanvas();
+    showToast('도면이 초기화 되었습니다.');
+  }
+}
+
+function saveLayout() {
+  const lines = layoutData[currentFloorId].filter(i=>i.type==='line').length;
+  const storages = layoutData[currentFloorId].filter(i=>i.type==='storage').length;
+  let eqps = 0;
+  layoutData[currentFloorId].forEach(i => {
+    if(i.type==='line') eqps += i.children.length;
+    else if(i.type==='eqp') eqps++;
+  });
+  showToast(`[저장완료] 라인 ${lines}개, 창고 ${storages}개, 개별설비 ${eqps}개 위치 저장 성공!`);
+}
+</script>
+</body>
+</html>

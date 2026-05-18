@@ -178,3 +178,61 @@ GridButton.jsx 실제 props 화이트리스트 (절대 다른 이름 사용 금�
 | CG-K3 | 헤더 Target 변경했는데 메뉴 트리/소스 결과가 안 바뀜 | `MenuTreeBrowser` / `ModeNewFromCopy` / `ModeExistingModify` 가 `activeTargetCd` prop 으로 명시 받아야 함. `useTargetStore.currentTargetCd` 의존 누락 시 발생 |  |
 | CG-K4 | TargetSystem 의 jsonb 컬럼 (`artifact_naming` 등) 때문에 `targetRepo.save(t)` 실패 — `column "artifact_naming" is of type jsonb but expression is of type character varying` | DB 정보 update 는 `composerJdbcTemplate.update("UPDATE dbo.tb_cmp_target_system SET ...")` 직접 SQL 로 우회. JPA save() 미사용 |  |
 | CG-K5 | TargetMenuController 가 `targetJdbcTemplate` 만 사용 (활성 Target 무시) | `pickJdbc(targetCd)` 헬퍼 — registry 에서 live DataSource 시도, 실패하면 로컬 폴백. 응답에 `source: "target:<cd>" | "local"` 표시 |  |
+
+## L. Java 클래스 네이밍 충돌 (2026-05-15 · 연속 생성 사고)
+
+> **사고 (2026-05-15)**: 사용자가 신규 화면을 연속적으로 생성. LLM 이 매번 클래스명을 **축약** (MENU_CD `UI_UT_USER_INFO_MGMT` 의 expected `UserInfoMgmt` 를 `UserInfo` 로 단축) → 다른 메뉴들도 모두 `UserInfo*.java` 환각 → Spring Bean 이름 충돌(`ConflictingBeanDefinitionException`) · wingui sync 시 silent 덮어쓰기 · JSX-Java 일관성 깨짐. 사용자 강력 차단 요청.
+
+### L-1. 도출식 (rules/41b §5.6.0 단일 기준)
+- `<Feature>` = MENU_FILE_PATH 마지막 segment **그대로** (글자수까지 1:1)
+- `<feature_dir>` = `LOWER(<Feature>)` — 단일 lowercase 토큰
+- 4종 파일: `<Feature>.java` · `<Feature>Controller.java` · `<Feature>Service.java` · `<Feature>Repository.java` (선택)
+- package: `com.zionex.t3series.web.domain.<module>.<feature_dir>`
+
+| # | ❌ | ✅ | 검증 |
+|---|---|---|---|
+| CG-L1 | MENU_FILE_PATH `/util/UserInfoMgmt` 인데 Java 만 `UserInfo*.java` 로 축약 → 다른 메뉴 (`UserInfoView`, `UserInfoDetail`) 도 동일하게 `UserInfo*.java` 환각 → wingui sync 시 덮어쓰기 / Spring Bean 충돌 / JSX-Java mismatch | `UserInfoMgmt.java` / `UserInfoMgmtController.java` / `UserInfoMgmtService.java` — MENU_FILE_PATH 마지막 segment 글자수까지 1:1 보존 | hook H (`java-class-naming.sh`) block |
+| CG-L2 | 디렉토리는 `userinfomgmt` 인데 안의 클래스는 `UserInfo*.java` — `lowercase(stripSuffix(ClassName)) ≠ feature_dir` | 디렉토리 `userinfomgmt` 안에 `UserInfoMgmt*.java`. `lowercase("UserInfoMgmt") == "userinfomgmt"` 확인 | hook H block |
+| CG-L3 | 디렉토리에 하이픈/언더스코어 (`user-info-mgmt` · `user_info_mgmt`) | 단일 lowercase concat (`userinfomgmt`) — Java 패키지 segment 는 식별자 1개 | hook H block |
+| CG-L4 | `@Service("userInfoService")` / `@Controller("user")` 등 명시 빈 이름 사용 — 다른 산출물이 같은 빈 이름 지정 시 충돌 | 빈 이름 명시 안 함 — Spring 기본 (클래스 첫 글자 lowercase) 자동 사용 (`userInfoMgmtService`) | hook H warn |
+| CG-L5 | JSX 의 `export default UserInfo` 인데 Java 의 클래스명은 `UserInfoMgmt` (또는 반대) — 단어 수준 불일치 | JSX 의 `export default <X>` 와 Java 의 `<Feature>` 그리고 MENU_FILE_PATH 마지막 segment **셋 모두 동일** | LLM/L |
+| CG-L6 | 산출물에 `BaseEntity`/`ResponseMessage` 등 공용 클래스를 신규 생성 → 기존 wingui 의 같은 이름 클래스와 충돌 | 공용 클래스는 산출물 대상 외 — 항상 import 만. 신규로 만들지 말 것 | LLM/L |
+
+### L 의 자기 검증 (Java 산출물 출력 직전 — 모든 신규 화면 모드)
+
+```
+사용자 요청 MENU_CD: UI_UT_USER_INFO_MGMT
+사용자 요청 MENU_FILE_PATH: /util/UserInfoMgmt
+                            ────────────
+                            └─ <Feature> = "UserInfoMgmt" (이대로)
+                               <feature_dir> = "userinfomgmt" (LOWER)
+
+작성할 파일:
+[✓] backend/.../web/domain/util/userinfomgmt/UserInfoMgmt.java
+[✓] backend/.../web/domain/util/userinfomgmt/UserInfoMgmtController.java
+[✓] backend/.../web/domain/util/userinfomgmt/UserInfoMgmtService.java
+[✓] backend/.../web/domain/util/userinfomgmt/UserInfoMgmtRepository.java  (선택)
+[✓] frontend/.../view/util/userinfomgmt/UserInfoMgmt.jsx
+    └─ export default UserInfoMgmt;
+
+대조 확인:
+  - 4개 .java 의 basename 이 모두 "UserInfoMgmt" prefix 인가?
+  - 4개 모두 동일 디렉토리 "userinfomgmt/" 인가?
+  - JSX 의 export default 명이 "UserInfoMgmt" 인가?
+  - 셋 (MENU_FILE_PATH 마지막, Java <Feature>, JSX 컴포넌트) 모두 글자수까지 동일한가?
+```
+
+## M. 사용자 선택 데이터 소스 대체 (2026-05-16 · TB_AD_USER → TB_UT_USER_INFO 사고)
+
+> **사고 (2026-05-16)**: Data Source 별자리 맵에서 사용자가 `TB_AD_USER` 를 직접 선택했으나
+> 생성 결과가 `TB_UT_USER_INFO`(레거시 사용자 부가정보 테이블)를 사용 → 충돌. 원인 ① 테이블
+> 검증(`ComposerService.enrichUserContentWithTableLookup`)이 세션 Target 이 아닌 composer-db
+> 를 조회해 `TB_AD_USER` 를 "미존재" 오판 ② `.claude/rules` 의 사용자관리 예시가 전부
+> `TB_UT_USER_INFO` / `UserInfoMgmt` 라 LLM 이 그쪽으로 표류.
+
+| # | ❌ | ✅ | 검증 |
+|---|---|---|---|
+| CG-M1 | `=== 데이터 소스 ===` / `=== 자동 테이블 존재 여부 확인 ===` 블록의 테이블을 무시하고 이름이 비슷한 다른 테이블로 대체 (`TB_AD_USER`→`TB_UT_USER_INFO`) | 블록에 적힌 그 테이블/SP **만** 사용 — 학습된 표준 예시(`UserInfoMgmt`/`TB_UT_USER_INFO`)로 표류 금지 | ComposerPromptBuilder INVARIANTS §②-2 |
+| CG-M2 | 운영 코어 테이블(TB_AD_USER·TB_AD_MENU·TB_AD_LANG_PACK 등)에 `CREATE TABLE` 생성 | 기존 테이블은 실제 컬럼으로 Entity·SP 매핑 — CREATE 금지 | hook H (`sql-schema-whitelist.sh` CORE_TABLES) · apply `tableCollisionBlocked` |
+| CG-M3 | 테이블 검증을 targetCd 없이 호출 → composer-db(PG) 조회 → 모든 TB_* "미존재" 오판 | `enrichUserContentWithTableLookup` / `checkTableNameCollisions` 가 세션 `targetCd` 로 운영 DB 질의 (수정 완료 — rules/50 §13.7) | backend |
+| CG-M4 | 화면 MENU_CD 도메인과 다르다는 이유로 사용자 지정 테이블을 같은 도메인 테이블로 교체 | 도메인 불일치는 정상 (UI_AD_* 화면이 TB_AD_USER 사용) — 사용자 지정이 우선 | LLM/L |

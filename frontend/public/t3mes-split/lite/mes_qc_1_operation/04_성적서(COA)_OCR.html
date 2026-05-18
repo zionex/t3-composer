@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>성적서(COA) OCR</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #4: 성적서(COA) OCR -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 성적서(COA) 스캔 및 파일 업로드 (OCR)</h3><span class="tip">협력사가 물건과 함께 보낸 종이 성적서(Certificate of Analysis)를 스캔해 업로드하고 시스템에 보관합니다.</span></div></div>
+    <div class="grid2">
+      <div style="border:2px dashed var(--blue);padding:60px;text-align:center;border-radius:12px;background:var(--surface);cursor:pointer" onclick="showToast('성적서 PDF 파일이 업로드 되었습니다.')"><div style="font-size:50px;margin-bottom:10px">📄</div><div style="font-size:16px;font-weight:700;color:var(--blue)">여기를 클릭하여 COA PDF 파일 첨부</div></div>
+      <div class="card" style="margin:0"><div class="card-title">첨부된 COA 이력 리스트</div><div class="tbl-wrap" style="max-height:200px;border:none"><table class="tbl"><thead><tr><th>LOT 번호</th><th>파일명</th><th>업로드 일자</th></tr></thead><tbody id="tb3"></tbody></table></div></div>
+    </div>
+  </div>

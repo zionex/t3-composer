@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>모바일 챗봇</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #30: 모바일 챗봇 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 모바일 재고 추적 챗봇 (Conversational Tracker)</h3><span class="tip">"창고에 볼트 몇 개 있어?", "어제 폐기된 재고 내역 줘"라고 자연어로 치면 AI가 DB를 조회해 대답합니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;display:flex;flex-direction:column;height:450px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:16px;background:var(--purple);color:#fff;font-weight:700;text-align:center">재고 분석 AI 챗봇 🤖</div>
+      <div style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--surface3);align-self:flex-start;border-bottom-left-radius:2px">무엇이든 물어보세요! 특정 LOT의 행방이나 재고 수량을 찾아드립니다.</div>
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);align-self:flex-end;border-bottom-right-radius:2px;margin-left:auto">A창고에 M10 볼트 재고 얼마나 있어?</div>
+        <div style="max-width:80%;padding:10px 14px;border-radius:12px;background:var(--surface3);align-self:flex-start;border-bottom-left-radius:2px">조회 결과입니다.<br><br>📦 <b>M10 볼트 (ITM-101)</b><br>현재 A창고에 총 <b>4,500 EA</b> 존재합니다.<br>- Zone A-1: 2,000 EA<br>- Zone B-3: 2,500 EA</div>
+      </div>
+      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="메시지 입력..."><button class="btn btn-purple" onclick="showToast('답변 렌더링 시뮬레이션')">전송</button></div>
+    </div>
+  </div>

@@ -10,6 +10,7 @@ import {
   Divider,
   Stack,
   Button,
+  CircularProgress,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -77,7 +78,7 @@ function groupArtifacts(items) {
 }
 
 /**
- * 아티팩트 목록 + 선택된 아티팩트 상세 미리보기 패널.
+ * 산출물 목록 + 선택된 산출물 상세 미리보기 패널.
  */
 function ArtifactPanel({ sessionId, refreshKey }) {
   const [items, setItems] = useState([]);
@@ -184,12 +185,12 @@ function ArtifactPanel({ sessionId, refreshKey }) {
 
   return (
     <Box sx={{ display: 'flex', height: '100%', minHeight: 0 }}>
-      {/* Layer 2 — 아티팩트 Tree */}
+      {/* Layer 2 — 산출물 Tree */}
       <Box sx={{ width: 320, borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', bgcolor: '#fcfcfd' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.2 }}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
-              📁 아티팩트 ({items.length})
+              📁 산출물 ({items.length})
             </Typography>
             {supersededCount > 0 && (
               <Tooltip title={`이전 버전(supersede) ${supersededCount}개 — 클릭해서 표시 토글`}>
@@ -395,7 +396,7 @@ export default ArtifactPanel;
 // ============================================================================
 
 /**
- * 아티팩트 Tree 만 — controlled.
+ * 산출물 Tree 만 — controlled.
  * props: sessionId, refreshKey, selectedId, onSelect(id)
  */
 export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }) {
@@ -447,7 +448,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.2 }}>
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
-            📁 아티팩트 ({items.length})
+            📁 산출물 ({items.length})
           </Typography>
           {supersededCount > 0 && (
             <Tooltip title={`이전 버전 ${supersededCount}개`}>
@@ -566,19 +567,29 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
 }
 
 /**
- * 아티팩트 코드 미리보기 — controlled (selectedId 만 받음, 자체 fetch).
+ * 산출물 코드 미리보기 — controlled (selectedId 만 받음, 자체 fetch).
  */
 export function ArtifactCodeView({ selectedId }) {
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [err, setErr]           = useState(null);
 
   useEffect(() => {
-    if (!selectedId) { setSelected(null); return; }
+    if (!selectedId) { setSelected(null); setErr(null); setLoading(false); return undefined; }
     let cancelled = false;
+    setLoading(true);
+    setErr(null);
     (async () => {
       try {
         const res = await getArtifact(selectedId);
-        if (!cancelled) setSelected(res.data);
-      } catch { if (!cancelled) setSelected(null); }
+        if (!cancelled) { setSelected(res.data); setLoading(false); }
+      } catch (e) {
+        if (!cancelled) {
+          setSelected(null);
+          setLoading(false);
+          setErr(e?.response?.data?.message || e?.message || '산출물 소스를 불러오지 못했습니다.');
+        }
+      }
     })();
     return () => { cancelled = true; };
   }, [selectedId]);
@@ -609,13 +620,35 @@ export function ArtifactCodeView({ selectedId }) {
     URL.revokeObjectURL(url);
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+        <Stack alignItems="center" spacing={1.5}>
+          <CircularProgress size={28} />
+          <Typography variant="body2" color="text.secondary">산출물 소스 불러오는 중...</Typography>
+        </Stack>
+      </Box>
+    );
+  }
+
+  if (err) {
+    return (
+      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+        <Stack alignItems="center" spacing={1}>
+          <DescriptionIcon sx={{ fontSize: 44, color: 'error.light' }} />
+          <Typography variant="body2" color="error">{err}</Typography>
+        </Stack>
+      </Box>
+    );
+  }
+
   if (!selected) {
     return (
       <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4, bgcolor: '#fafafa' }}>
         <Stack alignItems="center" spacing={1.5}>
           <DescriptionIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
           <Typography variant="body2" color="text.secondary">
-            아티팩트 트리에서 파일을 선택하세요.
+            산출물 트리에서 파일을 선택하세요.
           </Typography>
         </Stack>
       </Box>
@@ -625,7 +658,7 @@ export function ArtifactCodeView({ selectedId }) {
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}
-             sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff' }}>
+             sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)', bgcolor: '#fff', flexShrink: 0 }}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
             {selected.fileName}

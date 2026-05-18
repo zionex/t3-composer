@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>구간 리드타임 분석</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #30: 구간 리드타임 분석 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 출하 리드타임 분석 (Lead Time Analytics)</h3><span class="tip">단건 추적을 넘어, 수만 건의 오더 데이터를 분석해 "주문 접수부터 포장까지 며칠 걸렸는지" 병목 구간을 찾아내는 분석 차트입니다.</span></div></div>
+    <div class="card" style="padding:30px">
+      <div class="card-title">구간별 평균 리드타임 (전월 데이터 15,000건 기준)</div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">접수 ➔ 생산완료</span><div style="flex:1;height:30px;background:var(--blue);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:40%">2.4 일</div></div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">생산 ➔ 포장대기</span><div style="flex:1;height:30px;background:var(--red);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:60%">3.5 일 (병목!)</div></div>
+      <div style="display:flex;align-items:center"><span style="width:120px">포장 ➔ 배송완료</span><div style="flex:1;height:30px;background:var(--green);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:20%">1.2 일</div></div>
+    </div>
+  </div>

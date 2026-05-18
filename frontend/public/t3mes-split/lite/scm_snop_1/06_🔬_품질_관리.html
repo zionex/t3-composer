@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>🔬 품질 관리</title>
+<!-- T3MES UI Pattern · scm_snop_1 · TabPage #6: 🔬 품질 관리 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+    <div class="grid-top">
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">초초수율 (First Pass Yield, FPY)</div>
+        <div style="display:flex;align-items:center;gap:30px">
+          <div class="donut-wrap" style="background:conic-gradient(var(--c-all) 98.5%, var(--surface3) 0)">
+            <div class="donut-inner"><div class="donut-val c-all">98.5%</div><div class="donut-lbl">재작업 Zero</div></div>
+          </div>
+          <div>
+            <div style="margin-bottom:10px"><span style="color:var(--text2)">최종수율 (Final):</span> <b style="font-size:18px;font-family:var(--mono)">99.8%</b></div>
+            <div class="trend t-up">▲ 0.5%p 향상</div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">공정 불량률 (PPM)</div>
+        <div class="val-l c-qal">1,450</div>
+        <div class="pg-wrap"><div class="pg-bar bg-qal" style="width:45%"></div></div>
+        <div class="tip" style="margin-top:8px;text-align:right">목표: 1,000 PPM 이하</div>
+      </div>
+      <div class="kpi-card" style="grid-column: span 2;">
+        <div class="card-title">품질 실패 비용 (COPQ)</div>
+        <div class="val-l c-qal">₩ 125M <span style="font-size:14px;color:var(--text2)">/ 월</span></div>
+        <div style="margin-top:10px;font-size:12px;color:var(--text2);display:flex;justify-content:space-between">
+          <span>내부 실패(스크랩): 80M</span><span>외부 실패(클레임): 45M</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid-mid">
+      <div class="kpi-card">
+        <div class="card-title">📉 주간 불량률(PPM) 추이</div>
+        <div style="position:relative;height:200px;width:100%;margin-top:20px" id="svg-wrap-qal-1"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">🛑 주요 불량 원인 (Pareto)</div>
+        <div style="margin-top:10px">
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>표면 스크래치 (외관)</span><span class="num">42%</span></div><div class="pg-wrap"><div class="pg-bar bg-qal" style="width:42%"></div></div></div>
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>치수 미달 (가공)</span><span class="num">25%</span></div><div class="pg-wrap"><div class="pg-bar bg-pur" style="width:25%"></div></div></div>
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>조립 누락</span><span class="num">15%</span></div><div class="pg-wrap"><div class="pg-bar bg-sal" style="width:15%"></div></div></div>
+          <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px"><span>오염/이물질</span><span class="num">10%</span></div><div class="pg-wrap"><div class="pg-bar bg-prd" style="width:10%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>

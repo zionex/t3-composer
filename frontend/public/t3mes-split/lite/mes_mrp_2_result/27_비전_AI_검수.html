@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>비전 AI 검수</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #27: 비전 AI 검수 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 비전 AI (Vision AI) 파렛트 체적/수량 인식</h3><span class="tip">지게차가 파렛트를 들고 오면 카메라가 찰칵 찍어서 딥러닝으로 박스 개수를 세고 파손 여부를 판독해 줍니다.</span></div></div>
+    <div class="grid2">
+      <div style="height:350px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid var(--border)"><span style="font-size:50px;opacity:0.5">🎥 AI Vision Camera</span><div style="position:absolute;width:100%;height:4px;background:var(--cyan);top:50%;box-shadow:0 0 10px var(--cyan);animation:scanVision 2s infinite"></div></div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="font-size:40px;color:var(--cyan)">📦</div><div style="font-size:18px;font-weight:700;margin:16px 0">AI 판독 결과: 120 Box (파손 없음)</div><div class="tip" style="margin-bottom:20px">PO 수량(120 Box)과 정확히 일치합니다.</div><button class="btn btn-cyan" style="padding:16px" onclick="showToast('비전 AI 판독 결과로 입고 확정 완료')">AI 판독값으로 입고 확정</button></div>
+    </div><style>@keyframes scanVision{0%{top:0}50%{top:100%}100%{top:0}}</style>
+  </div>

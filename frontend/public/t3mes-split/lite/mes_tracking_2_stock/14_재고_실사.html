@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>재고 실사</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #14: 재고 실사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 재고 실사 (Physical Inventory Counting)</h3><span class="tip">연말/월말에 전산 재고와 실제 창고에 있는 물건 개수가 맞는지 장부를 뽑아 사람이 직접 세어서 입력하는 화면입니다.</span></div><button class="btn btn-green" onclick="showToast('100건 실사 결과 임시 저장')">실사 데이터 일괄 저장</button></div>
+    <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>로케이션</th><th>품목명</th><th style="text-align:right;color:var(--text3)">전산 재고 (System)</th><th style="text-align:right;color:var(--green)">실제 실사 수량 입력 (Actual)</th><th>차이 (Variance)</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>

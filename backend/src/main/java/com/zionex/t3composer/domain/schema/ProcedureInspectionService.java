@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProcedureInspectionService {
 
     private final TargetDataSourceRegistry registry;
+    private final SchemaMetaCache metaCache;
 
     /** SP 식별자 정규식 — 안전한 식별자만 허용 (SQL injection 방어) */
     private static final Pattern PROC_NAME_PATTERN = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
@@ -261,6 +262,42 @@ public class ProcedureInspectionService {
         }
         sb.append("⚠ 사용자가 명시한 SP 만 처리. 명시되지 않은 SP (예: 삭제 SP) 를 임의로 추가 생성 금지.\n");
         return sb.toString();
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 전체 목록 — Data Source 별자리 맵용
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Target DB 의 전체 SP/Function 목록 (도메인 키 부여). targetCd 별 10분 캐시.
+     * 미연결 시 빈 리스트.
+     */
+    public List<ProcedureSummary> listProcedures(String targetCd) {
+        String key = SchemaMetaCache.proceduresKey(targetCd);
+        List<ProcedureSummary> cached = metaCache.get(key);
+        if (cached != null) return cached;
+
+        JdbcTemplate jdbc = registry.getJdbcTemplate(targetCd);
+        if (jdbc == null) return Collections.emptyList();
+        try {
+            List<ProcedureSummary> list = jdbc.query(
+                "SELECT s.name AS schema_name, o.name AS object_name, o.type AS object_type" +
+                "  FROM sys.objects o" +
+                "  JOIN sys.schemas s ON o.schema_id = s.schema_id" +
+                " WHERE o.type IN ('P','FN','TF','IF') AND o.is_ms_shipped = 0" +
+                " ORDER BY o.name",
+                (rs, n) -> {
+                    String name = rs.getString("object_name");
+                    String type = rs.getString("object_type");
+                    return new ProcedureSummary(name, rs.getString("schema_name"),
+                            type == null ? "P" : type.trim(), SchemaNaming.domainOf(name));
+                });
+            metaCache.put(key, list);
+            return list;
+        } catch (DataAccessException e) {
+            log.warn("listProcedures 실패 (target={}): {}", targetCd, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────

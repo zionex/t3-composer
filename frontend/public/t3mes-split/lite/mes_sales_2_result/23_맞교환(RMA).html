@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>맞교환(RMA)</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #23: 맞교환(RMA) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ 반품/환입 연계 맞교환 출하 (RMA / Replacement)</h3><span class="tip">고객이 불량품을 반품(RMA) 보냄과 동시에, 창고에서 새 제품을 맞교환으로 쏘아보내는 동시 처리 UI입니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--rose)"><div class="card-title" style="color:var(--rose)">📥 반품 입고 (RMA Receive)</div><div class="label">반품 사유: 전원 불량</div><input type="text" class="inp" value="모니터 불량 회수분 1EA" disabled style="margin-bottom:10px"><div style="color:var(--rose);font-weight:700">불량창고(Scrap) 로 입고 잡힘</div></div>
+      <div class="card" style="border-color:var(--fuchsia)"><div class="card-title" style="color:var(--fuchsia)">📤 무상 교환 출하 (Ship)</div><div class="label">출하 품목</div><input type="text" class="inp" value="모니터 새제품 1EA" disabled style="margin-bottom:10px"><button class="btn btn-fuchsia" style="width:100%" onclick="showToast('맞교환 트랜잭션이 동시 처리되었습니다.')">맞교환 0원 출하 확정</button></div>
+    </div>
+  </div>

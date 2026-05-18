@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zionex.t3composer.domain.client.AnthropicApiException;
@@ -106,9 +107,14 @@ public class ComposerController {
 
     // ---- Preview (Phase 2a — JSX/SQL/MENU 만 docker 안에서 검증) ----
 
+    /**
+     * @param skipJava Sample 모드용 빠른 미리보기 — Java 산출물 적용·mvn compile·DevTools 재기동 생략.
+     *                 frontend Sample shim 이 axios 응답을 가로채므로 backend 미동작 OK (10~20초 down 회피).
+     */
     @PostMapping("/sessions/{sessionId}/preview/apply")
-    public Map<String, Object> previewApply(@PathVariable String sessionId) {
-        return artifactPreviewService.applyPreview(sessionId);
+    public Map<String, Object> previewApply(@PathVariable String sessionId,
+                                            @RequestParam(name = "skipJava", required = false, defaultValue = "false") boolean skipJava) {
+        return artifactPreviewService.applyPreview(sessionId, skipJava);
     }
 
     @PostMapping("/sessions/{sessionId}/preview/confirm")
@@ -315,6 +321,35 @@ public class ComposerController {
         return composerService.getArtifact(artifactId)
                 .map(a -> ResponseEntity.ok(ArtifactDto.full(a)))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * 세션 아티팩트 재추출 — assistant 응답 텍스트를 다시 파싱.
+     * 추출기(ArtifactExtractor) 정규식 개선 후, 기존 세션의 빈/누락 아티팩트를
+     * LLM 재호출 없이 원본 응답으로부터 복구한다.
+     * @return { reExtracted: N }
+     */
+    @PostMapping("/sessions/{sessionId}/artifacts/re-extract")
+    public ResponseEntity<Map<String, Object>> reExtractArtifacts(@PathVariable String sessionId) {
+        int count = composerService.reExtractArtifacts(sessionId, currentUserId());
+        Map<String, Object> out = new HashMap<>();
+        out.put("reExtracted", count);
+        return ResponseEntity.ok(out);
+    }
+
+    /**
+     * EXISTING_MODIFY — 선택 메뉴의 소스 번들(collectSourceForLlm 응답)을 세션 아티팩트로 import.
+     * 사용자가 현재 기준 baseline 을 아티팩트 트리에서 보고 필요한 파일만 수정하도록 한다.
+     * body: collectSourceForLlm 응답 그대로. → { imported: N }
+     */
+    @PostMapping("/sessions/{sessionId}/import-source-artifacts")
+    public ResponseEntity<Map<String, Object>> importSourceArtifacts(
+            @PathVariable String sessionId,
+            @RequestBody Map<String, Object> bundle) {
+        int count = composerService.importSourceArtifacts(sessionId, currentUserId(), bundle);
+        Map<String, Object> out = new HashMap<>();
+        out.put("imported", count);
+        return ResponseEntity.ok(out);
     }
 
     /**

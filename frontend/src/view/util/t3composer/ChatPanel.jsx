@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 
 import {
   Box,
@@ -27,11 +27,12 @@ import { listMessages, sendChat } from './api';
  *
  * props:
  *   sessionId         : 필수. 부모가 세션 생성 후 전달.
- *   onNewAssistantMsg : Claude 응답 도착 후 호출 (아티팩트 리스트 새로고침용)
+ *   onNewAssistantMsg : Claude 응답 도착 후 호출 (산출물 리스트 새로고침용)
  *   placeholder       : 입력창 placeholder
  *   initialPrompt     : 세션 최초 진입 시 자동 전송할 사용자 메시지 (선택)
  */
-function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments }) {
+const ChatPanel = forwardRef(function ChatPanel(
+  { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments }, ref) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -89,12 +90,14 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, i
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, initialPrompt]);
 
+  // send — 사용자/프로그램(자동보완) 공용. 성공 시 true, 실패 시 false 반환.
   const send = async (text, attachments) => {
     const message = (text ?? input).trim();
-    if (!message) return;
+    if (!message) return false;
     setInput('');
     setSending(true);
     setError(null);
+    let ok = false;
     try {
       // 사용자 메시지를 먼저 화면에 낙관적으로 추가
       setMessages((prev) => [
@@ -111,6 +114,7 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, i
       await sendChat(sessionId, message, undefined, attachments);
       await reload();
       if (onNewAssistantMsg) onNewAssistantMsg();
+      ok = true;
     } catch (e) {
       // 백엔드가 502 (Anthropic 오류) · 400 · 500 등을 반환하는 경우
       // data.message 에 사용자 친화적 메시지가 있음
@@ -132,35 +136,48 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, i
             setMessages(msgs);
             if (onNewAssistantMsg) onNewAssistantMsg();
             setError(null);
-            return;
+            ok = true;   // 실제로는 성공
           }
         } catch (_e) { /* no-op — 계속 에러 처리 */ }
-        msg = '인증 세션이 만료되었거나 다른 탭/브라우저에서 재로그인이 발생했습니다. '
-            + '로그아웃 후 다시 로그인 해주세요. (서버 로그: JwtTokenProvider.validateToken 참조)';
+        if (!ok) {
+          msg = '인증 세션이 만료되었거나 다른 탭/브라우저에서 재로그인이 발생했습니다. '
+              + '로그아웃 후 다시 로그인 해주세요. (서버 로그: JwtTokenProvider.validateToken 참조)';
+        }
       }
-      // axios timeout (ECONNABORTED) — 세션 만료 아님을 명시.
-      // 서버 측 continuation 루프는 클라이언트 단절 후에도 계속 진행되므로
-      // 리로드만 하면 최종 결과를 볼 수 있음을 안내.
-      if (e?.code === 'ECONNABORTED' || /timeout/i.test(e?.message || '')) {
-        msg = 'Claude 응답 대기 시간 초과 (30분).\n'
-            + '서버에서는 자동 continuation 이 계속 진행 중일 수 있습니다.\n'
-            + '잠시 후 아래 "대화 새로고침" 을 눌러 최종 결과를 확인하세요.';
-        // 자동 폴링 — 30초마다 listMessages reload 시도 (5분 최대)
-        let attempts = 0;
-        const pollId = setInterval(async () => {
-          attempts += 1;
-          try { await reload(); } catch (_e) { /* no-op */ }
-          if (onNewAssistantMsg) onNewAssistantMsg();
-          if (attempts >= 10) clearInterval(pollId);
-        }, 30_000);
+      if (!ok) {
+        // axios timeout (ECONNABORTED) — 세션 만료 아님을 명시.
+        // 서버 측 continuation 루프는 클라이언트 단절 후에도 계속 진행되므로
+        // 리로드만 하면 최종 결과를 볼 수 있음을 안내.
+        if (e?.code === 'ECONNABORTED' || /timeout/i.test(e?.message || '')) {
+          msg = 'Claude 응답 대기 시간 초과 (30분).\n'
+              + '서버에서는 자동 continuation 이 계속 진행 중일 수 있습니다.\n'
+              + '잠시 후 아래 "대화 새로고침" 을 눌러 최종 결과를 확인하세요.';
+          // 자동 폴링 — 30초마다 listMessages reload 시도 (5분 최대)
+          let attempts = 0;
+          const pollId = setInterval(async () => {
+            attempts += 1;
+            try { await reload(); } catch (_e) { /* no-op */ }
+            if (onNewAssistantMsg) onNewAssistantMsg();
+            if (attempts >= 10) clearInterval(pollId);
+          }, 30_000);
+        }
+        setError(msg);
+        // 낙관적으로 추가한 temp 메시지 롤백
+        setMessages((prev) => prev.filter((m) => !String(m.id || '').startsWith('temp-')));
       }
-      setError(msg);
-      // 낙관적으로 추가한 temp 메시지 롤백
-      setMessages((prev) => prev.filter((m) => !String(m.id || '').startsWith('temp-')));
     } finally {
       setSending(false);
     }
+    return ok;
   };
+
+  // 부모(ComposerWorkspace) 가 자동보완 시 프로그램적으로 채팅 전송할 수 있도록 노출.
+  // sendRef 로 항상 최신 send 클로저를 참조 → stale state 회피.
+  const sendRef = useRef(send);
+  sendRef.current = send;
+  useImperativeHandle(ref, () => ({
+    sendMessage: (text) => sendRef.current(text),
+  }), []);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -250,7 +267,7 @@ function ChatPanel({ sessionId, onNewAssistantMsg, placeholder, initialPrompt, i
       </Box>
     </Box>
   );
-}
+});
 
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';

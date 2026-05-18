@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM Engine Control Board (LED Process Master Edition)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1219;--surface:#171b26;--surface2:#1d2331;--surface3:#262d40;
+  --border:#2f374e;--border2:#404b69;
+  --text:#ebedf2;--text2:#a5b0c7;--text3:#626f8d;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --green:#10b981;--green-dim:#10b98122;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --red:#ef4444;--red-dim:#ef444422;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Tab Colors by Group */
+.t-b.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-b.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-c.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-c.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-r.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-r.active .tab-num{color:var(--red);background:var(--red-dim)}
+.t-p.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-p.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-g.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-g.active .tab-num{color:var(--green);background:var(--green-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1); display:flex; flex-direction:column;}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+
+/* Inputs, Buttons & Badges */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border .15s}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-dim)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-red{background:var(--red-dim);border-color:#ef444455;color:var(--red)}
+.btn-green{background:var(--green-dim);border-color:#10b98155;color:var(--green)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:6px 12px;font-size:11px}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+
+/* Grids & Special UI */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.terminal{background:#000;color:#0f0;font-family:var(--mono);font-size:11px;padding:12px;border-radius:var(--radius);height:180px;overflow-y:auto;line-height:1.6;border:1px solid var(--border)}
+.progress-bg{width:100%;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-bar{height:100%;border-radius:4px;transition:width 0.5s}
+.link-btn{font-size:11px;color:var(--blue);cursor:pointer;text-decoration:none;font-weight:700}
+.link-btn:hover{text-decoration:underline}
+.step-item{display:flex;align-items:center;margin-bottom:12px;gap:10px}
+.step-circle{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;background:var(--surface3);color:var(--text3);flex-shrink:0}
+.step-active{background:var(--cyan);color:#000;box-shadow:0 0 10px var(--cyan)}
+.step-done{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr">
+      <div>
+        <h3 style="font-size:22px;color:var(--cyan)">🎛️ SCM Engine Master Dashboard</h3>
+        <span class="tip">엔진의 구동 상태, 파이프라인 진척도, 리소스, 로그 및 오류 내역을 한눈에 파악하고 제어하는 통합 관제소입니다.</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="background:var(--surface);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);display:flex;align-items:center;gap:10px;">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></span>
+          <span style="font-weight:700;font-family:var(--mono)">SYSTEM: ONLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card" style="border-color:var(--cyan)">
+        <div class="card-title" style="color:var(--cyan)">엔진 종합 제어 (Control)<span class="link-btn" onclick="goTab(2)">병렬설정 ➔</span></div>
+        <div style="background:var(--surface3);padding:16px;border-radius:8px;text-align:center;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text2)">현재 엔진 상태</div>
+          <div style="font-size:24px;font-weight:700;color:var(--green);margin-top:4px;font-family:var(--mono)">RUNNING (45%)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Job ID: RUN-2411-0089</div>
+        </div>
+        <div class="label">시나리오 대상 및 옵션</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="date" class="inp" value="2024-11-01">
+          <select class="inp"><option>Heuristic 최적화</option><option>LP 솔버</option></select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:auto">
+          <button class="btn btn-blue" style="flex:1" onclick="showToast('글로벌 엔진 구동을 시작합니다.')">▶ 전체 실행</button>
+          <button class="btn btn-red" style="flex:1" onclick="showToast('엔진 강제 중지 신호를 보냈습니다.')">■ 강제 중지</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">실시간 파이프라인 단계<span class="link-btn" onclick="goTab(8)">진척상세 ➔</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>1. I/F Data Extract</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>2. Master Data Check</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-active">3</div><div style="flex:1"><div style="color:var(--cyan);font-weight:bold">3. Heuristic Engine (Running)</div><div class="progress-bg"><div class="progress-bar" style="width:45%;background:var(--cyan)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">4</div><div style="flex:1;color:var(--text3)"><div>4. Post Processing</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">5</div><div style="flex:1;color:var(--text3)"><div>5. Result Publish</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">노드 리소스 현황<span class="link-btn" onclick="goTab(10)">관제화면 ➔</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster CPU Avg</span><span style="color:var(--amber)">78%</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:78%;background:var(--amber)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster Memory</span><span style="color:var(--red)">92% (118GB/128GB)</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:92%;background:var(--red)"></div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto">
+          <div style="background:var(--surface3);padding:10px;border-radius:6px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--green)">12</div><div style="font-size:10px;color:var(--text2)">Active Nodes</div></div>
+          <div style="background:var(--red-dim);padding:10px;border-radius:6px;text-align:center;border:1px solid var(--red)"><div style="font-size:18px;font-weight:700;color:var(--red)">1</div><div style="font-size:10px;color:var(--red)">Dead Nodes</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">최근 엔진 구동 이력<span class="link-btn" onclick="goTab(24)">결과비교 ➔</span></div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>Job ID</th><th>소요시간</th><th>상태</th></tr></thead>
+            <tbody id="dash-history"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--red)">
+        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)<span class="link-btn" style="color:var(--red)" onclick="goTab(12)">오류전체 ➔</span></div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>모듈</th><th>에러 내용</th></tr></thead>
+            <tbody id="dash-errors"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live Terminal (실시간 로그)<span class="link-btn" onclick="goTab(8)">로그상세 ➔</span></div>
+        <div class="terminal" id="dash-terminal" style="font-size:10px;height:100%;min-height:200px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr">
+      <div>
+        <h3 style="font-size:22px;color:var(--cyan)">🏭 LED 4대 공정 MP/MRP 개별 제어 및 통합 관제</h3>
+        <span class="tip">MOD ➔ PKG ➔ FAB ➔ EPI (역방향 계획) 순서로 엔진을 독립 제어하며, 통합 대시보드의 모든 요소를 누락 없이 모니터링합니다.</span>
+      </div>
+      <button class="btn btn-blue" onclick="showToast('MOD ➔ EPI 역순으로 전체 일괄 배치 Run을 시작합니다.')">⚡ 4대 공정 일괄 배치 Run (Backward)</button>
+    </div>
+    
+    <div class="grid4" id="led-process-cards" style="margin-bottom:16px;">
+      </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">공정 간 파이프라인 진척도</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>1. MOD (모듈 조립) 계산</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>2. PKG (패키징) 계산</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle step-active">3</div><div style="flex:1"><div style="color:var(--cyan);font-weight:bold">3. FAB (칩 제조) 계산 중</div><div class="progress-bg"><div class="progress-bar" style="width:65%;background:var(--cyan)"></div></div></div></div>
+          <div class="step-item"><div class="step-circle">4</div><div style="flex:1;color:var(--text3)"><div>4. EPI (에피택시) 대기</div><div class="progress-bg"><div class="progress-bar" style="width:0%"></div></div></div></div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-title">노드 리소스 현황 (LED Cluster)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster CPU Avg</span><span style="color:var(--amber)">82%</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:82%;background:var(--amber)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster Memory</span><span style="color:var(--red)">95% (245GB/256GB)</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:95%;background:var(--red)"></div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto">
+          <div style="background:var(--surface3);padding:10px;border-radius:6px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--green)">16</div><div style="font-size:10px;color:var(--text2)">Active Nodes</div></div>
+          <div style="background:var(--red-dim);padding:10px;border-radius:6px;text-align:center;border:1px solid var(--red)"><div style="font-size:18px;font-weight:700;color:var(--red)">0</div><div style="font-size:10px;color:var(--red)">Dead Nodes</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--amber)">
+        <div class="card-title" style="color:var(--amber)">공정 간 자재 정합성 모니터링</div>
+        <div class="tbl-wrap" style="flex:1;border:none;background:transparent">
+          <table class="tbl">
+            <thead><tr><th>흐름 (Flow)</th><th>자재 아이템</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>MOD ➔ PKG</td><td>PKG 3528 SMD</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">SYNC OK</span></td></tr>
+              <tr><td>PKG ➔ FAB</td><td>Blue Chip 0.2W</td><td><span class="badge" style="background:var(--cyan-dim);color:var(--cyan)">CALC..</span></td></tr>
+              <tr><td>FAB ➔ EPI</td><td>Wafer 6inch</td><td><span class="badge" style="background:var(--surface3);color:var(--text2)">WAIT</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-title">최근 LED 엔진 구동 이력</div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>Job ID</th><th>소요시간</th><th>상태</th></tr></thead>
+            <tbody id="led-history"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--red)">
+        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)</div>
+        <div class="tbl-wrap" style="max-height:220px;border:none">
+          <table class="tbl">
+            <thead><tr><th>공정 모듈</th><th>에러 내용</th></tr></thead>
+            <tbody id="led-errors"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live Terminal (실시간 통합 로그)</div>
+        <div class="terminal" id="led-terminal" style="font-size:10px;height:100%;min-height:200px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>② 다중 시나리오 병렬 구동 (Parallel Run)</h3><span class="tip">안전재고 설정값이나 CAPA 한도를 다르게 한 여러 시나리오를 동시에 병렬로 구동하여 결과를 비교하기 위해 사용합니다.</span></div><button class="btn btn-blue" onclick="showToast('3개의 시나리오가 병렬로 구동 시작되었습니다.')">▶ 병렬 실행 (Run All)</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th><input type="checkbox" checked></th><th>시나리오명</th><th>Demand 변동율</th><th>Capa 한도</th><th>상태</th></tr></thead><tbody id="tb2"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>③ 엔진 파라미터 튜닝 (Parameter Tuning)</h3><span class="tip">엔진의 제약조건 가중치(납기 vs 원가)나 페널티 값을 미세 조정하여 최적의 플랜을 도출합니다.</span></div><button class="btn btn-ghost" onclick="showToast('파라미터가 저장되었습니다.')">설정 저장</button></div>
+    <div class="grid3" id="param-grid"></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>④ 배치 스케줄 등록 (Job Scheduling)</h3><span class="tip">매일 자정, ERP 데이터 수집 후 자동으로 엔진이 돌도록 Crontab 스타일의 스케줄을 등록합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Job ID</th><th>스케줄 명칭</th><th>실행 주기 (Cron)</th><th>다음 실행 시간</th><th>상태</th><th>액션</th></tr></thead><tbody id="tb4"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑤ 마스터 데이터 사전 검증 (MDM Check)</h3><span class="tip">엔진 구동 전, BOM 사이클 오류나 리드타임 누락 등 치명적인 마스터 데이터 오류를 사전 검출합니다.</span></div><button class="btn btn-amber" onclick="doMdmCheck()">검증 실행 ↻</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>검증 항목 (Rule)</th><th>대상 건수</th><th>오류 건수</th><th>상태 판정</th></tr></thead><tbody id="tb5"><tr><td colspan="4" style="text-align:center;padding:50px">검증 실행 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑥ 실행 승인 및 결재 (Approval)</h3><span class="tip">운영 환경에 영향을 미치는 대규모 엔진 확정 전, 책임자의 시스템 결재를 득하는 화면입니다.</span></div></div>
+    <div class="grid2" id="tb6"></div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑦ 전체 노드 상태 (Global Node Status)</h3><span class="tip">분산 서버 환경에서 각 엔진 노드(서버)의 상태(Idle, Running, Error)를 카드 형태로 모니터링합니다.</span></div></div>
+    <div class="grid4" id="tb7"></div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑧ 파이프라인 진척도 (Pipeline Progress)</h3><span class="tip">데이터 로드 -> Heuristic -> LP -> 후처리 등 파이프라인 단계별 진행률을 바(Bar) 형태로 보여줍니다.</span></div></div>
+    <div class="card" style="margin-bottom:0" id="tb8"></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑨ 실시간 엔진 로그 (Live Terminal Log)</h3><span class="tip">엔진 내부에서 발생하는 상세 처리 로그와 계산 로그를 CLI 터미널처럼 실시간 스트리밍합니다.</span></div><button class="btn btn-cyan btn-sm" onclick="showToast('로그 다운로드 완료')">로그 다운로드</button></div>
+    <div class="terminal" id="terminal-log">Waiting for engine start...<br></div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑩ 리소스(CPU/Mem) 모니터링 (Resource)</h3><span class="tip">메모리 초과(OOM) 오류를 방지하기 위해 엔진이 구동 중인 서버의 하드웨어 리소스를 관제합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">CPU Usage (%)</div><div style="height:200px;background:var(--surface3);border-radius:4px;display:flex;align-items:flex-end;padding:10px;gap:4px" id="cpu-chart"></div></div>
+      <div class="card"><div class="card-title">Memory Usage (GB)</div><div style="height:200px;background:var(--surface3);border-radius:4px;display:flex;align-items:flex-end;padding:10px;gap:4px" id="mem-chart"></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑪ I/O 인터페이스 상태 (Data Ingestion)</h3><span class="tip">ERP 등 외부 레거시 시스템으로부터 수집되는 I/F 데이터의 수신 현황 및 트래픽을 관제합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>인터페이스 (I/F ID)</th><th>소스 시스템</th><th>수신 건수</th><th>마지막 수신 시간</th><th>상태</th></tr></thead><tbody id="tb11"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑫ 작업 대기열 큐 관리 (Job Queue)</h3><span class="tip">현재 엔진에 쌓여있는 큐(Queue)를 보고 우선순위를 드래그로 조정하거나 대기 중인 잡을 취소합니다.</span></div></div>
+    <div class="card" style="background:var(--surface2)"><div class="card-title">엔진 대기열 (Drag to Reorder)</div><div style="display:flex;flex-direction:column;gap:8px" id="job-queue"></div></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑬ 통합 오류/예외 로그 (Global Error Grid)</h3><span class="tip">전체 시스템에서 발생한 Error, Warning 로그를 한눈에 볼 수 있는 통합 그리드입니다.</span></div><button class="btn btn-red" onclick="showToast('필터링된 오류 목록 추출 완료')">Export CSV</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발생 일시</th><th>수준 (Level)</th><th>에러 코드</th><th>모듈</th><th>메시지 내용</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑭ 알람 임계치 설정 (Alert Threshold)</h3><span class="tip">에러 발생 횟수나 지연 시간에 대한 임계치를 설정하여 관리자에게 이메일/문자로 발송하는 룰을 세팅합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>알람 룰 명칭</th><th>트리거 조건 (Threshold)</th><th>수신자 (Email)</th><th>활성화</th></tr></thead><tbody id="tb14"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑮ 장애 노드 원격 제어 (Node Recovery)</h3><span class="tip">장애가 발생하여 Dead 상태가 된 엔진 노드를 강제로 Kill 하고 재시작(Restart) 시키는 강력한 제어 패널입니다.</span></div></div>
+    <div class="grid3" id="tb15"></div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑯ 데이터 결측치 보정 (Data Imputation)</h3><span class="tip">수요나 재고 데이터에 Null 등 결측치가 있을 때 엔진이 뻗지 않도록 룰에 따라 자동 보정(0 처리, 평균값 등)합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>대상 테이블</th><th>컬럼명</th><th>결측 건수</th><th>보정 룰 (Action)</th><th>처리 결과</th></tr></thead><tbody id="tb16"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑰ 오류 담당자 할당 (Ticket Assign)</h3><span class="tip">해결되지 않은 예외 건을 IT나 현업 담당자에게 티켓 형태로 강제 할당하여 처리를 유도합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>티켓 ID</th><th>오류 요약</th><th>담당 부서/자</th><th>처리 기한</th><th>상태</th></tr></thead><tbody id="tb17"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑱ 장애 분석 리포트 (Root Cause Analysis)</h3><span class="tip">엔진 실패 시, AI가 Stack Trace를 분석하여 실패의 근본 원인(Root Cause)과 조치 가이드를 제공합니다.</span></div></div>
+    <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">최근 치명적 실패 원인 분석 (RCA-2411-001)</div><div style="font-family:var(--mono);line-height:1.8;padding:10px;background:#000;color:var(--text);border-radius:4px"><span style="color:var(--red)">[Root Cause]</span> Memory Limit Exceeded during LP Matrix generation.<br><span style="color:var(--amber)">[Detail]</span> The variable size reached 15,000,000 exceeding the 32GB RAM limit on Node-03.<br><span style="color:var(--green)">[Recommendation]</span> 1. Increase memory limit to 64GB or 2. Reduce scheduling horizon from 365 days to 180 days.</div></div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑲ 수요/공급 밸런스 결과 (Supply-Demand)</h3><span class="tip">엔진이 도출한 기간별 수요 대비 생산/공급량의 밸런스를 확인합니다. (붉은색은 공급 부족 구간)</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>기간 (Week)</th><th class="num">총 수요 (A)</th><th class="num">총 공급 (B)</th><th class="num">Balance (B-A)</th><th>상태</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>⑳ 핵심 KPI 전/후 비교 (KPI Before/After)</h3><span class="tip">엔진 구동 이전(계획 전)과 엔진이 도출한 최적화 결과 간의 핵심 KPI 향상도를 비교합니다.</span></div></div>
+    <div class="grid3" id="tb20"></div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉑ 안전재고 위반 경고 (Safety Stock Alert)</h3><span class="tip">엔진 계획상 미래의 특정 주차에 안전재고(SS) 밑으로 재고가 뚫리는 품목 리스트를 모아 보여줍니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위반 품목</th><th>발생 예상 주차</th><th class="num">안전재고 기준</th><th class="num">예상 재고</th><th>위험도</th></tr></thead><tbody id="tb21"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉒ 납기 지연 예상 오더 (Late Orders)</h3><span class="tip">설비 캐파나 자재 제약으로 인해 고객이 요청한 납기를 도저히 맞출 수 없는 수주(SO) 목록입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>영업수주 (SO)</th><th>고객사</th><th>요청 납기일</th><th>예상 출하일</th><th>지연 일수</th></tr></thead><tbody id="tb22"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉓ 자원 병목 구간 하이라이트 (Bottlenecks)</h3><span class="tip">가동률이 95% 이상을 초과하여 전체 공정의 흐름을 막고 있는 병목 설비(Resource)를 식별합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비/자원명</th><th>필요 Capa (H)</th><th>가용 Capa (H)</th><th>가동률 부하 (%)</th><th>상태</th></tr></thead><tbody id="tb23"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉔ 엔진 버전 비교 (Version Diff)</h3><span class="tip">어제 돌린 버전(V1)과 오늘 룰을 바꿔 돌린 버전(V2) 간의 주요 결과 차이를 좌우로 나란히 비교합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">Version 1.0 (어제)</div><div class="label">총 생산량: 45,000 EA</div><div class="label">납기 준수율: 92%</div><div class="label">평균 재고금액: 1.2M</div></div>
+      <div class="card"><div class="card-title" style="color:var(--purple)">Version 1.1 (오늘)</div><div class="label" style="color:var(--green)">총 생산량: 46,500 EA (▲)</div><div class="label" style="color:var(--green)">납기 준수율: 95% (▲)</div><div class="label" style="color:var(--red)">평균 재고금액: 1.4M (▼)</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉕ 결과 승인 및 ERP 확정 (Publish)</h3><span class="tip">엔진 결과가 만족스러울 경우, 최종 승인 버튼을 눌러 확정된 생산계획을 ERP 시스템으로 전송합니다.</span></div><button class="btn btn-green" onclick="showToast('계획이 확정되어 ERP로 전송되었습니다.')">✅ 최종 확정 및 ERP 인터페이스</button></div>
+    <div class="card" style="text-align:center;padding:50px"><div style="font-size:40px;margin-bottom:10px">📤</div><div style="font-size:16px;color:var(--text2)">현재 조회 중인 시나리오(V1.1)의 결과를<br>공식 확정 플랜(Official Plan)으로 릴리즈합니다.</div></div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉖ 수동 오버라이드 (Manual Override)</h3><span class="tip">엔진이 계산한 결과값을 무시하고, 관리자의 직관에 따라 특정 품목의 생산량을 강제로 수정 고정(Fix)합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th class="num">엔진 권장수량</th><th class="num">수동 확정수량</th><th>Override 사유</th></tr></thead><tbody id="tb26"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉗ AI 챗봇 헬프데스크 (AI Assistant)</h3><span class="tip">프롬프트 창에 자연어로 질문("이번 주 납기 지연 예상되는 수주 보여줘")하면 AI가 쿼리하여 결과를 표출합니다.</span></div></div>
+    <div class="card" style="display:flex;flex-direction:column;height:400px"><div style="flex:1;background:var(--surface2);border-radius:4px;padding:16px;margin-bottom:10px;color:var(--text2)">[AI] 무엇을 도와드릴까요?</div><div style="display:flex;gap:10px"><input type="text" class="inp" placeholder="자연어로 질문을 입력하세요..."><button class="btn btn-green">질문하기</button></div></div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉘ 글로벌 물류망 맵 뷰 (Geo-Map View)</h3><span class="tip">다거점(Multi-site) 환경에서 각 공장과 물류센터 간의 물동량 흐름을 지도 형태로 시각화하는 컨트롤 타워 화면입니다.</span></div></div>
+    <div style="height:400px;background:radial-gradient(circle, var(--surface) 0%, #000 100%);border:1px solid var(--border);border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center"><div style="color:var(--text3);font-size:20px;letter-spacing:5px">[ MAP VISUALIZATION COMPONENT ]</div></div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉙ 마이크로서비스 토폴로지 (Topology)</h3><span class="tip">SCM 엔진을 구성하는 수많은 마이크로서비스(API, DB, Cache) 간의 연결 상태와 트래픽 병목을 시각화합니다.</span></div></div>
+    <div style="height:400px;border:2px dashed var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center"><span class="badge badge-gray" style="font-size:14px;padding:10px 20px">Topology Graph Component Area</span></div>
+  </div>
+
+  <div class="panel" id="p30">
+    <div class="sec-hdr"><div><h3>㉚ 사용자 커스텀 대시보드 (Custom Grid)</h3><span class="tip">관리자가 자주 보는 차트나 위젯을 드래그 앤 드롭으로 자유롭게 배치하여 자신만의 메인 화면을 구성합니다.</span></div><button class="btn btn-ghost">위젯 추가 +</button></div>
+    <div class="grid3">
+      <div class="card" style="height:200px;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3)">Widget 1</div>
+      <div class="card" style="height:200px;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3)">Widget 2</div>
+      <div class="card" style="height:200px;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3)">Widget 3</div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// 31 Tabs definitions (Dashboard + LED + 29 Patterns)
+const tabNames = ["대시보드(Home)","LED 공정 관제","병렬 시나리오","파라미터 튜닝","배치 스케줄","MDM 검증","실행 결재","노드 상태","진척도(Pipeline)","실시간 로그","리소스 관제","I/O 현황","대기열(Queue)","통합 오류 로그","알람 임계치","노드 원격복구","결측치 보정","오류 할당","장애 분석(RCA)","수급 밸런스","KPI 변화비교","안전재고 경고","납기지연 오더","자원 병목구간","엔진버전 비교","ERP 확정/전송","수동 오버라이드","AI 챗봇 질의","물류망 Map","토폴로지 View","커스텀 위젯"];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 6);
+    let cls = ['t-b', 't-c', 't-r', 't-p', 't-g'][grp] || 't-b';
+    if(i===0) cls = 't-b'; // Dashboard stands out
+    if(i===1) cls = 't-c'; // LED Tab stands out
+    let btn = document.createElement('button');
+    btn.className = `tab-btn ${cls} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i===0 ? '★' : (i===1 ? 'LED' : i-1)}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+// Inter-tab navigation shortcut function
+function goTab(idx) {
+  switchTab(idx, document.querySelectorAll('.tab-btn')[idx]);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try { 
+    genDashboard(); 
+    genLedDash(); // LED 공정 탭 데이터 생성
+    genP2(); genP3(); genP4(); genP6(); genP7(); genP8(); genLog(); genP10(); genP11(); genP12(); genP13(); genP14(); genP15(); genP16(); genP17(); genP19(); genP20(); genP21(); genP22(); genP23(); genP26(); 
+  } catch(e){ console.error(e); }
+});
+
+// --- Tab 0 (Dashboard) Specific Data Generators ---
+function genDashboard() {
+  let h_hist=''; for(let i=1;i<=5;i++){ h_hist+=`<tr><td style="font-family:var(--mono);color:var(--blue)">RUN-2411-${String(90-i).padStart(2,'0')}</td><td>2m ${rInt(10,59)}s</td><td><span class="badge" style="background:var(--${i===2?'red':'green'}-dim);color:var(--${i===2?'red':'green'})">${i===2?'Error':'Success'}</span></td></tr>`; } $('dash-history').innerHTML=h_hist;
+  let h_err=''; for(let i=1;i<=5;i++){ h_err+=`<tr><td style="font-weight:bold;color:var(--text2)">${['Solver','DataLoad','MDM','Heuristic','PostProc'][i-1]}</td><td style="color:var(--text)">${['Memory Limit Exceeded','Missing LT values','Cycle detected in BOM','Timeout during calculation','Failed to write to DB'][i-1]}</td></tr>`; } $('dash-errors').innerHTML=h_err;
+  let h_term=''; for(let i=0;i<20;i++){ h_term+=`[14:${String(rInt(10,59)).padStart(2,'0')}:${String(rInt(0,59)).padStart(2,'0')}] INFO Processing batch ${rInt(1000,9999)}...<br>`; } $('dash-terminal').innerHTML=h_term + `<span style="color:var(--cyan)">[14:59:00] ENGINE RUNNING... (45%)</span>`;
+}
+
+// --- Tab 1 (LED Process) Specific Data Generators ---
+function genLedDash() {
+  // LED 공정 순서 (역전개): MOD -> PKG -> FAB -> EPI
+  const procs = [
+    { name: '1. MOD (모듈 조립)', color: 'var(--green)', 
+      mp: { state: '완료', c: 'green', time: '14:30 | 12m 30s 소요' }, 
+      mrp: { state: '완료', c: 'green', time: '14:35 | 05m 10s 소요' } },
+    { name: '2. PKG (패키징)', color: 'var(--amber)', 
+      mp: { state: '실행중', c: 'cyan', time: '진행율 65% | 08m 진행중...' }, 
+      mrp: { state: '대기', c: 'text3', time: 'MP 완료 후 대기' } },
+    { name: '3. FAB (칩 제조)', color: 'var(--blue)', 
+      mp: { state: '대기', c: 'text3', time: '-' }, 
+      mrp: { state: '대기', c: 'text3', time: '-' } },
+    { name: '4. EPI (에피택시)', color: 'var(--purple)', 
+      mp: { state: '대기', c: 'text3', time: '-' }, 
+      mrp: { state: '대기', c: 'text3', time: '-' } }
+  ];
+
+  let h = '';
+  procs.forEach(p => {
+    h += `<div class="card" style="border-top:3px solid ${p.color}; margin-bottom:0">
+      <div class="card-title">${p.name}</div>
+      
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-blue btn-sm" style="flex:1" onclick="showToast('${p.name} MP 엔진 단독 실행 시작')">▶ MP 실행</button>
+        <button class="btn btn-cyan btn-sm" style="flex:1" onclick="showToast('${p.name} MRP 엔진 단독 실행 시작')">▶ MRP 실행</button>
+      </div>
+
+      <div style="background:var(--surface3);padding:10px;border-radius:6px;font-size:11px;color:var(--text2)">
+        <div style="margin-bottom:6px">
+          <strong style="color:var(--text)">[MP]</strong> 상태: <span style="color:var(--${p.mp.c})">${p.mp.state}</span>
+          <div style="color:var(--text3);margin-top:2px">${p.mp.time}</div>
+        </div>
+        <div style="border-top:1px dashed var(--border);padding-top:6px">
+          <strong style="color:var(--text)">[MRP]</strong> 상태: <span style="color:var(--${p.mrp.c})">${p.mrp.state}</span>
+          <div style="color:var(--text3);margin-top:2px">${p.mrp.time}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  $('led-process-cards').innerHTML = h;
+
+  // LED Dashboard 전용 History, Errors, Terminal
+  let h_hist=''; for(let i=1;i<=5;i++){ h_hist+=`<tr><td style="font-family:var(--mono);color:var(--blue)">LED-RUN-${String(90-i).padStart(2,'0')}</td><td>5m ${rInt(10,59)}s</td><td><span class="badge" style="background:var(--${i===3?'red':'green'}-dim);color:var(--${i===3?'red':'green'})">${i===3?'Error':'Success'}</span></td></tr>`; } $('led-history').innerHTML=h_hist;
+  let h_err=''; for(let i=1;i<=5;i++){ h_err+=`<tr><td style="font-weight:bold;color:var(--text2)">${['MOD-MP','PKG-MRP','FAB-MP','EPI-MRP','I/F-Load'][i-1]}</td><td style="color:var(--text)">${['Missing BOM Data','Shortage Detected','Capa Exceeded','Solver Timeout','DB Connection Lost'][i-1]}</td></tr>`; } $('led-errors').innerHTML=h_err;
+  let h_term=''; for(let i=0;i<20;i++){ h_term+=`[15:${String(rInt(10,59)).padStart(2,'0')}:${String(rInt(0,59)).padStart(2,'0')}] INFO [PKG-MP] Optimizing batch ${rInt(1000,9999)}...<br>`; } $('led-terminal').innerHTML=h_term + `<span style="color:var(--cyan)">[15:59:00] PKG MP ENGINE RUNNING... (65%)</span>`;
+}
+
+// --- Data Generators for Tabs 2~30 (Shifted by 1) ---
+function genP2(){ let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td><input type="checkbox" checked></td><td>SCENARIO_OPT_${i}</td><td class="num">${rInt(-20,20)}%</td><td class="num">${rInt(80,120)}%</td><td><span class="badge" style="background:var(--blue-dim);color:var(--blue)">Ready</span></td></tr>`; } $('tb2').innerHTML=h; }
+function genP3(){ let h=''; const params=['납기 지연 페널티','재고 유지 페널티','셋업 변경 페널티','생산 평활화 가중치','외주 허용 비율(%)','안전재고 위반 페널티']; params.forEach(p=>{ h+=`<div class="card"><div class="card-title">${p}</div><input type="number" class="inp" value="${rInt(10,1000)}"></div>`; }); $('param-grid').innerHTML=h; }
+function genP4(){ let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>SCH-${i}</td><td>Daily Night Batch ${i}</td><td style="font-family:var(--mono)">0 2 * * *</td><td>2024-11-10 02:00</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">Active</span></td><td><button class="btn btn-ghost btn-sm">Pause</button></td></tr>`; } $('tb4').innerHTML=h; }
+function doMdmCheck(){
+  $('tb5').innerHTML=`
+    <tr><td>BOM 순환(Cycle) 구조 체크</td><td class="num">150,000</td><td class="num">0</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">Pass</span></td></tr>
+    <tr><td>라우팅/리드타임 누락 체크</td><td class="num">45,000</td><td class="num" style="color:var(--amber);font-weight:700">12</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">Warning</span></td></tr>
+    <tr style="background:var(--red-dim)"><td>단종 품목 수요 연결 체크</td><td class="num">8,500</td><td class="num" style="color:var(--red);font-weight:700">5</td><td><span class="badge" style="background:var(--red);color:#fff">Fail</span></td></tr>
+  `; showToast('마스터 데이터 3종 룰 검증 완료');
+}
+function genP6(){ let h=''; for(let i=1;i<=4;i++){ h+=`<div class="card"><div class="card-title">결재 요청: SCM V2.0 확정</div><div class="label">기안자: 생산계획팀</div><div class="label">요약: 납기 95%, 재고 1.2M</div><div style="margin-top:10px"><button class="btn btn-blue btn-sm">승인</button> <button class="btn btn-ghost btn-sm">반려</button></div></div>`; } $('tb6').innerHTML=h; }
+function genP7(){ let h=''; for(let i=1;i<=16;i++){ const isErr=i===11; h+=`<div class="card" style="border-color:var(--${isErr?'red':'border'})"><div class="card-title" style="color:var(--${isErr?'red':'text'})">Node-${String(i).padStart(2,'0')}</div><div class="label">Status: ${isErr?'Error (OOM)':'Running'}</div><div class="label">CPU: ${rInt(10,99)}%</div></div>`; } $('tb7').innerHTML=h; }
+function genP8(){
+  const steps=['Data Extract','MDM Check','Heuristic Build','LP Solve','Result Save']; let h='';
+  steps.forEach((s,i)=>{ const p=i<2?100:(i===2?45:0); h+=`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between"><span>Step ${i+1}: ${s}</span><span style="font-family:var(--mono)">${p}%</span></div><div class="progress-bg"><div class="progress-bar" style="width:${p}%;background:var(--${p===100?'green':(p>0?'cyan':'surface3')})"></div></div></div>`; });
+  $('tb8').innerHTML=h;
+}
+function genLog(){ let h=''; for(let i=0;i<50;i++){ h+=`[2024-11-08 14:${String(rInt(10,59)).padStart(2,'0')}:${String(rInt(0,59)).padStart(2,'0')}] INFO [EngineCore] Processing item batch ${rInt(1000,9999)}...<br>`; } $('terminal-log').innerHTML=h; }
+function genP10(){ let c='', m=''; for(let i=0;i<30;i++){ c+=`<div style="flex:1;background:var(--cyan);height:${rInt(20,100)}%"></div>`; m+=`<div style="flex:1;background:var(--purple);height:${rInt(40,80)}%"></div>`; } $('cpu-chart').innerHTML=c; $('mem-chart').innerHTML=m; }
+function genP11(){ let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-family:var(--mono)">IF-ERP-${String(i).padStart(3,'0')}</td><td>SAP ERP</td><td class="num">${rInt(100,50000)}</td><td>14:30:00</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">Success</span></td></tr>`; } $('tb11').innerHTML=h; }
+function genP12(){ let h=''; for(let i=1;i<=5;i++){ h+=`<div style="padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:4px;cursor:grab;display:flex;justify-content:space-between"><span>Rank ${i} - Job_ID_${rInt(1000,9999)}</span><span class="badge" style="background:var(--surface3)">Waiting</span></div>`; } $('job-queue').innerHTML=h; }
+function genP13(){ let h=''; for(let i=1;i<=100;i++){ const isErr=i%10===0; h+=`<tr style="${isErr?'background:var(--red-dim)':''}"><td>2024-11-08 15:00</td><td style="color:var(--${isErr?'red':'amber'})">${isErr?'ERROR':'WARN'}</td><td style="font-family:var(--mono)">ERR-${rInt(100,999)}</td><td>Solver</td><td>Matrix exceeds dimensional limit.</td></tr>`; } $('tb13').innerHTML=h; }
+function genP14(){ let h=''; for(let i=1;i<=5;i++){ h+=`<tr><td>엔진 구동 실패 알람</td><td>Error Count > 0</td><td>admin@scm.com</td><td><input type="checkbox" checked></td></tr>`; } $('tb14').innerHTML=h; }
+function genP15(){ let h=''; for(let i=1;i<=6;i++){ h+=`<div class="card" style="text-align:center"><div style="font-size:24px;margin-bottom:10px;color:var(--red)">🖥️ Worker-${i}</div><button class="btn btn-red btn-sm">Force Kill & Restart</button></div>`; } $('tb15').innerHTML=h; }
+function genP16(){ let h=''; for(let i=1;i<=8;i++){ h+=`<tr><td>DEMAND_PLAN</td><td>QTY</td><td class="num">${rInt(10,500)}</td><td>Fill with 0</td><td><span style="color:var(--green)">Applied</span></td></tr>`; } $('tb16').innerHTML=h; }
+function genP17(){ let h=''; for(let i=1;i<=8;i++){ h+=`<tr><td style="font-family:var(--mono)">TCK-${rInt(1000,9999)}</td><td>Master Data Not Found</td><td>IT-DBA 팀</td><td>Today</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">Open</span></td></tr>`; } $('tb17').innerHTML=h; }
+function genP19(){ let h=''; for(let i=1;i<=12;i++){ const d=rInt(1000,5000); const s=d-rInt(-200,500); const bal=s-d; h+=`<tr style="${bal<0?'background:var(--red-dim)':''}"><td>W${i}</td><td class="num">${d}</td><td class="num">${s}</td><td class="num" style="color:var(--${bal<0?'red':'green'})">${bal}</td><td>${bal<0?'Shortage':'OK'}</td></tr>`; } $('tb19').innerHTML=h; }
+function genP20(){ let h=''; const kpis=[['Fill Rate','85%','96%','var(--green)'],['Total Inv','2.5B','1.8B','var(--green)'],['Late Orders','150','12','var(--green)']]; kpis.forEach(k=> h+=`<div class="card"><div class="card-title">${k[0]}</div><div style="font-size:12px;color:var(--text2)">AS-IS: ${k[1]}</div><div style="font-size:24px;color:${k[3]};font-weight:700;margin-top:8px">TO-BE: ${k[2]}</div></div>`); $('tb20').innerHTML=h; }
+function genP21(){ let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td>Item_SKU_${rInt(100,999)}</td><td>Week ${rInt(1,10)}</td><td class="num">500</td><td class="num" style="color:var(--red);font-weight:700">${rInt(10,400)}</td><td><span class="badge badge-red">High</span></td></tr>`; } $('tb21').innerHTML=h; }
+function genP22(){ let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-24-${rInt(1000,9999)}</td><td>Client ${String.fromCharCode(65+rInt(0,5))}</td><td>11/15</td><td style="color:var(--amber)">11/${15+rInt(1,5)}</td><td class="num" style="color:var(--red)">+${rInt(1,5)} Days</td></tr>`; } $('tb22').innerHTML=h; }
+function genP23(){ let h=''; for(let i=1;i<=10;i++){ const util=rInt(70,110); h+=`<tr style="${util>95?'background:var(--red-dim)':''}"><td>Line-${i} / Machine-${i}</td><td class="num">${rInt(100,200)}</td><td class="num">160</td><td class="num" style="font-weight:700;color:var(--${util>95?'red':(util>85?'amber':'green')})">${util}%</td><td>${util>95?'Overloaded':'Normal'}</td></tr>`; } $('tb23').innerHTML=h; }
+function genP26(){ let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>Item_${i}</td><td class="num">${rInt(100,500)}</td><td class="num" style="padding:4px"><input type="number" class="inp inp-sm num" value="${rInt(100,500)}" style="color:var(--amber);font-weight:700"></td><td><input type="text" class="inp inp-sm" placeholder="사유 입력"></td></tr>`; } $('tb26').innerHTML=h; }
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #12 */
+(function(){var I=12;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

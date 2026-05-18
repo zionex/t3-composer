@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>대체 자재 스왑</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #17: 대체 자재 스왑 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p16">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑰ 대체 자재 스왑 보정 (Alt-Part Substitution)</h3>
+      <span class="tip">결품 오더에 대체 가능 자재(Alt-Part)를 스왑하여 보류를 해제합니다.</span>
+    </div>
+    <button class="btn btn-green" onclick="showToast('스왑 반영 완료')">✓ 스왑 반영</button>
+  </div>
+  <div class="tbl-wrap" style="max-height:600px">
+    <table class="tbl"><thead><tr><th>발주번호</th><th>생산품목</th><th>결품 자재</th><th>수량</th><th>상태</th><th>대체 자재 (선택)</th></tr></thead><tbody id="tb16"></tbody></table>
+  </div>
+</div>

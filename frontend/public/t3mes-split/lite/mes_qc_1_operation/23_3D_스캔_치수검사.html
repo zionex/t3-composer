@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>3D 스캔 치수검사</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #23: 3D 스캔 치수검사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ 3D 스캐너 형상/치수 검사 (3D Point Cloud)</h3><span class="tip">금속 가공품을 3D 레이저로 스캔하여, 원본 CAD 도면과 겹쳐보고(Overlay) 튀어나오거나 파인 곳을 색상 지도(Color Map)로 보여줍니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px;background:var(--surface3);border-color:var(--cyan)">
+      <div style="font-size:50px;margin-bottom:20px;color:var(--cyan)">🧊</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:10px">3D CAD Overlay 검사 완료</div>
+      <div class="tip" style="font-size:14px">형상 공차(GD&T) 허용 범위 이내 (Max Deviation: 0.02mm)</div>
+      <button class="btn btn-cyan" style="margin-top:20px" onclick="showToast('3D 측정 데이터 합격 처리')">합격 판정</button>
+    </div>
+  </div>

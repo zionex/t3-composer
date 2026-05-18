@@ -114,6 +114,7 @@ alwaysApply: true
 | J7 | `wingui` 가 아닌 모듈에 `spring-boot-starter-security` 추가 | Security 는 `wingui` **독점** | [H] POM |
 | **J8** | **`ResponseMessage.builder().message(...).build()` 호출** | `ResponseMessage` 는 Lombok @Builder 가 없는 일반 클래스 — `builder()` 메서드 미존재 → **컴파일 실패로 wingui 전체 기동 안 됨 → 모든 endpoint 500**. 실제 API: `ResponseMessage.ok()` / `ok(String)` / `error(String)` / `of(HttpStatus[, String])`. 정의: `web/util/data/ResponseMessage.java`. Hook 자동 차단 | [H] hook |
 | **J9** | **사용자 정의 `@Value("${app.x.y}")` 에 default 누락** | Spring Boot 3.x 의 PropertyPlaceholderHelper 는 YAML 의 빈 값 (`x.y:` 콜론만) 을 placeholder 미해결로 처리 → `IllegalArgumentException: Could not resolve placeholder` → **startup 실패 (모든 endpoint 500)**. 해결: `@Value("${app.x.y:}")` 형식으로 default 빈 문자열 추가. 자동 키 (`server.port` 등) 는 예외. Hook 자동 차단 | [H] hook |
+| **J10** | **Java 클래스명 ↔ 디렉토리 ↔ MENU_FILE_PATH 마지막 segment 불일치** (LLM 축약 환각). 예: MENU_FILE_PATH `/util/UserInfoMgmt` 인데 Java 만 `UserInfo*.java` 로 단축. 결과: 다른 메뉴 (`UserInfoView`, `UserInfoDetail` 등) 도 같은 `UserInfo*.java` 환각 → ① Spring Bean 이름 충돌 (`ConflictingBeanDefinitionException`) → backend startup 실패 ② wingui sync 시 silent overwrite ③ JSX-Java 일관성 깨짐. **모든 신규 화면 모드 (NEW_GENERAL/NL/STEP/FROM_COPY/FROM_DESIGN) 적용**. 상세: `rules/41b §5.6.0` + `99a §L CG-L1~L6`. Hook 자동 차단 | [H] hook (`java-class-naming.sh`) |
 
 ## 5. 기술 스택 · 라이브러리
 

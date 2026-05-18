@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Tracking UI (32 Types) - Master/Detail Topology</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Order Tracking Theme */
+  --bg:#0b0f19;--surface:#151b2b;--surface2:#1e2638;--surface3:#2a344a;
+  --border:#323d57;--border2:#455477;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --green:#10b981;--green-dim:#10b98122;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --rose:#f43f5e;--rose-dim:#f43f5e22;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --fuchsia:#d946ef;--fuchsia-dim:#d946ef22;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Group Colors */
+.t-1.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-1.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-2.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-2.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-3.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-3.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-4.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-4.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-5.active{color:var(--rose);border-bottom-color:var(--rose);font-weight:700}.t-5.active .tab-num{color:var(--rose);background:var(--rose-dim)}
+.t-6.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-6.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-7.active{color:var(--fuchsia);border-bottom-color:var(--fuchsia);font-weight:700}.t-7.active .tab-num{color:var(--fuchsia);background:var(--fuchsia-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.tbl tr.child-row td{background:var(--surface2);color:var(--text2)}
+
+/* Forms & Buttons */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none}
+.inp:focus{border-color:var(--blue)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:#10b98155;color:var(--green)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-rose{background:var(--rose-dim);border-color:#f43f5e55;color:var(--rose)}
+.btn-purple{background:var(--purple-dim);border-color:#8b5cf655;color:var(--purple)}
+.btn-fuchsia{background:var(--fuchsia-dim);border-color:#d946ef55;color:var(--fuchsia)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.badge-rose{background:var(--rose-dim);color:var(--rose)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}
+
+/* Grids & Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--blue)}
+
+/* Specific UI Patterns */
+.timeline{display:flex;flex-direction:column;gap:16px;padding-left:16px;border-left:2px solid var(--border2);margin-top:10px}
+.tl-item{position:relative}
+.tl-dot{position:absolute;left:-23px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--surface3);border:2px solid var(--border2)}
+.tl-item.done .tl-dot{background:var(--blue);border-color:var(--blue);box-shadow:0 0 8px var(--blue-dim)}
+.tl-item.active .tl-dot{background:var(--amber);border-color:var(--amber);animation:pulse 1.5s infinite}
+
+.h-stepper{display:flex;justify-content:space-between;align-items:center;position:relative;margin-bottom:30px}
+.h-stepper::before{content:'';position:absolute;top:15px;left:30px;right:30px;height:2px;background:var(--border);z-index:0}
+.h-step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.h-cir{width:32px;height:32px;border-radius:50%;background:var(--surface3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700}
+.h-step.done .h-cir{background:var(--green);border-color:var(--green);color:#fff}
+.h-step.active .h-cir{background:var(--blue);border-color:var(--blue);color:#fff}
+
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:300px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+
+.map-canvas{position:relative;width:100%;height:450px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background-image:radial-gradient(var(--border) 1px, transparent 1px);background-size:20px 20px}
+.map-pin{position:absolute;font-size:24px;cursor:pointer;transition:transform .2s;transform:translate(-50%,-50%);z-index:2}
+.map-pin:hover{transform:translate(-50%,-50%) scale(1.3);z-index:3}
+.map-lbl{position:absolute;background:var(--surface);padding:4px 8px;border-radius:4px;font-size:11px;white-space:nowrap;border:1px solid var(--border);z-index:2;font-weight:700;transform:translate(15px,-15px)}
+
+.mobile-frame{width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.chat-wrap{display:flex;flex-direction:column;height:100%;background:var(--surface)}
+.msg{max-width:80%;padding:10px 14px;border-radius:12px;font-size:13px;margin-bottom:10px}
+.msg.bot{background:var(--surface3);align-self:flex-start;border-bottom-left-radius:2px}
+.msg.user{background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue);align-self:flex-end;border-bottom-right-radius:2px;margin-left:auto}
+
+/* Topology Specific CSS (Pattern 31 & 32) */
+.topo-wrap{display:flex;gap:30px;overflow-x:auto;padding:30px;align-items:center;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);min-height:300px}
+.topo-col{display:flex;flex-direction:column;gap:20px;position:relative;min-width:240px}
+.topo-node{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:var(--radius);padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.2);position:relative;transition:all .2s;cursor:pointer}
+.topo-node:hover{transform:translateY(-2px);border-color:var(--fuchsia);box-shadow:0 6px 12px rgba(217,70,239,0.2)}
+.topo-node.ext{border-left-color:var(--purple)}
+.topo-node.warn{border-left-color:var(--rose)}
+.topo-node.active{border:2px solid var(--fuchsia);background:var(--fuchsia-dim)}
+.topo-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-weight:700;font-size:12px;white-space:nowrap}
+.topo-line{width:40px;height:2px;background:var(--border2);position:relative;margin:4px 0}
+.topo-line::after{content:'';position:absolute;right:-2px;top:-4px;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid var(--border2)}
+
+/* Toggle Button Group */
+.toggle-group{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.toggle-btn{background:transparent;color:var(--text2);border:none;padding:8px 16px;cursor:pointer;font-family:var(--sans);font-size:13px;transition:all .2s}
+.toggle-btn.active{background:var(--fuchsia-dim);color:var(--fuchsia);font-weight:700}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+@keyframes pulse{0%{opacity:1;box-shadow:0 0 0 0 var(--amber-dim)}50%{opacity:0.5;box-shadow:0 0 0 10px transparent}100%{opacity:1;box-shadow:0 0 0 0 transparent}}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 단건 상세 수직 타임라인 (Vertical Timeline)</h3><span class="tip">특정 주문 1건에 대해 접수부터 배송완료까지의 상세 이력을 세로형 타임라인으로 보여주는 가장 고전적이고 확실한 UI입니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="card" style="margin:0"><div class="card-title">전체 주문 목록 (클릭하여 추적)</div><div class="tbl-wrap" style="max-height:550px"><table class="tbl"><thead><tr><th>주문번호 (SO)</th><th>고객사 / 수취인</th><th>품목</th><th>상태</th></tr></thead><tbody id="tb0"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--blue);font-size:18px" id="tl-title">SO-2024-1001 추적</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">품목: 고성능 서버 랙 세트<br>도착예정: 2024-11-05</div>
+        <div class="timeline" id="tl0">
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-25 09:00</div><div style="font-weight:700">주문 접수 (Order Received)</div></div>
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-26 14:30</div><div style="font-weight:700">생산 완료 (Production Done)</div></div>
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text2)">10-27 10:00</div><div style="font-weight:700">포장 및 상차 (Packed & Loaded)</div></div>
+          <div class="tl-item active"><div class="tl-dot"></div><div style="font-size:11px;color:var(--amber)">10-28 08:15</div><div style="font-weight:700;color:var(--amber)">배송 중 (In Transit)</div><div class="tip">현재 위치: 대전 허브 터미널</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div style="font-size:11px;color:var(--text3)">예정</div><div style="color:var(--text3)">배송 완료 (Delivered)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 엑셀형 대량 그리드 추적 (Massive Grid)</h3><span class="tip">관리자가 수백 건의 오더 진행률을 엑셀처럼 띄워놓고 한눈에 파악합니다. 프로그레스 바로 직관성을 높였습니다. (100건 자동생성)</span></div><button class="btn btn-blue" onclick="showToast('엑셀 다운로드 완료')">엑셀 다운로드</button></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th>No</th><th>주문번호</th><th>고객사</th><th>주문품목</th><th>주문일자</th><th>전체 진행률 (Progress)</th><th>현재 상태 (Milestone)</th><th>도착예정일(ETA)</th></tr></thead><tbody id="tb1"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 가로형 스텝 프로그레스 (Horizontal Stepper)</h3><span class="tip">아마존, 쿠팡 등 B2C/B2B 커머스에서 고객에게 주로 보여주는 직관적인 가로형 진행 단계 표시 바입니다.</span></div></div>
+    <div class="card" style="padding:40px;text-align:center">
+      <div style="font-size:24px;font-weight:700;margin-bottom:10px">주문번호: SO-AMZ-9912</div>
+      <div style="color:var(--text2);margin-bottom:40px">배송지: 서울특별시 강남구 테헤란로 123</div>
+      <div class="h-stepper">
+        <div class="h-step done"><div class="h-cir">✓</div><div style="font-size:12px;font-weight:700">결제완료</div><div class="tip">10/25</div></div>
+        <div class="h-step done"><div class="h-cir">✓</div><div style="font-size:12px;font-weight:700">상품준비중</div><div class="tip">10/26</div></div>
+        <div class="h-step active"><div class="h-cir">3</div><div style="font-size:12px;font-weight:700;color:var(--blue)">배송시작</div><div class="tip">10/27 (오늘)</div></div>
+        <div class="h-step"><div class="h-cir">4</div><div style="font-size:12px;color:var(--text3)">배송중</div></div>
+        <div class="h-step"><div class="h-cir">5</div><div style="font-size:12px;color:var(--text3)">배송완료</div></div>
+      </div>
+      <button class="btn btn-ghost" onclick="showToast('상세 배송조회 팝업 오픈')">상세 배송 이력 보기</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 추적 칸반 보드 (Order Kanban)</h3><span class="tip">영업/물류 담당자가 주문들이 어느 단계에 병목(Bottleneck)이 걸려있는지 열(Column) 단위로 파악합니다.</span></div></div>
+    <div class="kanban" id="kb-wrap">
+      <div class="k-col"><div style="font-weight:700">1. 주문접수 (New)</div><div id="k3_1"></div></div>
+      <div class="k-col"><div style="font-weight:700;color:var(--cyan)">2. 생산중 (WIP)</div><div id="k3_2"></div></div>
+      <div class="k-col"><div style="font-weight:700;color:var(--amber)">3. 포장/출하대기</div><div id="k3_3"></div></div>
+      <div class="k-col"><div style="font-weight:700;color:var(--blue)">4. 배송중 (In Transit)</div><div id="k3_4"></div></div>
+      <div class="k-col" style="border-color:var(--green-mid);background:var(--green-dim)"><div style="font-weight:700;color:var(--green)">5. 배송완료 (Delivered)</div><div id="k3_5"></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 분할 배송 추적 (Split Order Tracking)</h3><span class="tip">고객이 10,000개를 주문했는데 재고 문제로 3번에 나누어 배송할 때, 부모(Parent) 오더 아래 자식(Child) 배송건들을 묶어서 추적합니다.</span></div></div>
+    <div class="card" style="background:var(--blue-dim);border-color:var(--blue)"><div class="card-title" style="color:var(--blue)">부모 주문: SO-SPLIT-1000 (총 주문량: 10,000 EA)</div><div class="prog-bg"><div class="prog-bar" style="width:80%"></div></div><div class="tip">전체 배송 완료율: 80% (8,000 / 10,000)</div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>분할 배송 건 (Shipment)</th><th>포함된 수량</th><th>운송장 번호</th><th>진행 상태</th><th>도착 예정일</th></tr></thead><tbody id="tb4"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 생산 라우팅(공정) 세부 진척도 (Routing Progress)</h3><span class="tip">고객의 주문이 현재 공장 내의 어떤 설비, 어떤 공정(절단->용접->조립)을 타고 있는지 생산 현장 수준으로 깊게 들어갑니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title">주문번호: SO-MFG-001 (특수 밸브 500개)</div><div class="tbl-wrap" style="border:none;max-height:400px"><table class="tbl"><thead><tr><th>공정 순서 (Routing)</th><th>생산 수량 (WIP)</th><th>상태</th></tr></thead><tbody id="tb5"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column;justify-content:center;align-items:center">
+        <div style="font-size:60px;margin-bottom:20px;color:var(--cyan)">⚙️</div>
+        <div style="font-size:20px;font-weight:700">현재 [용접 공정] 진행중...</div>
+        <div class="tip" style="margin-top:10px;font-size:14px">설비: 자동 용접 로봇 3호기 | 작업자: 김용접</div>
+        <div class="prog-bg" style="width:80%;height:16px;margin-top:20px"><div class="prog-bar" style="width:40%;background:var(--cyan)"></div></div>
+        <div class="tip" style="margin-top:10px">공정 완료율: 40% (200 / 500)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 하위 자재(BOM) 입고 대기 추적 (Shortage Tracking)</h3><span class="tip">주문받은 완제품을 만들려면 부품이 필요한데, 그 부품들이 협력사로부터 언제 입고되는지(BOM Readiness)를 추적합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>조립용 하위 자재 (BOM)</th><th>소요량</th><th>현재고</th><th style="color:var(--amber)">부족분 발주상태 (PO)</th><th>자재 입고 예정일(ETA)</th><th>조립 가능여부</th></tr></thead><tbody id="tb6"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 3D 디지털 트윈 공장 뷰 (3D Factory Track)</h3><span class="tip">글자 표를 넘어, 내 주문이 현재 공장 도면의 어느 구역(조립반, 검사실, 포장반)에 머물고 있는지 3D 모델 위에 핀을 띄웁니다.</span></div></div>
+    <div class="map-canvas" style="display:flex;align-items:center;justify-content:center;perspective:1000px">
+      <div style="width:80%;height:80%;background:repeating-linear-gradient(45deg, var(--surface) 0, var(--surface) 20px, var(--surface2) 20px, var(--surface2) 40px);border:2px solid var(--cyan);transform:rotateX(60deg) rotateZ(-45deg);position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.5);border-radius:12px">
+        <div style="position:absolute;top:20%;left:20%;width:60px;height:60px;background:var(--blue);border-radius:8px;transform:translateZ(30px);box-shadow:10px 10px 20px rgba(0,0,0,0.5)"></div>
+        <div style="position:absolute;top:20%;left:20%;transform:translate(-30px, -60px) rotateZ(45deg) rotateX(-60deg);background:var(--cyan);color:#000;padding:4px 10px;border-radius:20px;font-weight:700;font-size:12px;box-shadow:0 5px 10px rgba(0,0,0,0.3)">📍 내 주문 (조립구역)</div>
+        <div style="position:absolute;top:60%;left:70%;width:80px;height:40px;background:var(--surface3);border-radius:4px;transform:translateZ(10px)"></div>
+        <div style="position:absolute;top:60%;left:70%;transform:translate(-10px, -40px) rotateZ(45deg) rotateX(-60deg);color:var(--text2);font-size:10px;font-weight:700">검사 구역 (Next)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 품질 검사(QA) 합불 상태 추적</h3><span class="tip">단순 생산 완료가 아니라, 까다로운 품질 검사(외관, 치수, 성능)를 통과했는지 깐깐하게 보여주는 품질 추적 뷰입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>주문 품목</th><th>생산 완료일</th><th>검사 항목 (IQC/OQC)</th><th>검사 결과 (합불)</th><th>품질 보증서 (COA)</th></tr></thead><tbody id="tb8"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 외주 가공(Subcontracting) 반출/반입 추적</h3><span class="tip">도금이나 열처리 등 사내 공정이 아닌 외부 협력사로 물건을 보냈다가 다시 받아오는(WIP) 흐름을 추적합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>외주 대상 품목</th><th>외주 가공업체</th><th>외주 반출일 (Out)</th><th>현재 상태</th><th>반입 예정일 (In)</th></tr></thead><tbody id="tb9"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ GPS 지도 기반 실시간 추적 (Live Map)</h3><span class="tip">배송 트럭의 현재 GPS 위치를 지도 위에 실시간 핀으로 찍어서 보여줍니다. 배달의민족/쿠팡이츠 스타일.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 2fr 1fr;height:500px">
+      <div class="map-canvas">
+        <div class="map-pin" style="top:40%;left:45%;font-size:40px">🚚</div><div class="map-lbl" style="top:40%;left:45%">트럭 현재 위치 (이동중)</div>
+        <div class="map-pin" style="top:70%;left:80%;font-size:30px">🏠</div><div class="map-lbl" style="top:70%;left:80%">도착지 (고객사)</div>
+        <svg width="100%" height="100%" style="position:absolute;top:0;left:0"><line x1="45%" y1="40%" x2="80%" y2="70%" stroke="var(--green)" stroke-width="4" stroke-dasharray="10,10" style="animation:dash 2s linear infinite"/></svg>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column">
+        <div class="card-title" style="color:var(--green)">배송 정보 (트럭 #1234)</div>
+        <div style="font-size:40px;font-weight:700;font-family:var(--mono);margin:20px 0;color:var(--text)">ETA: 14:30</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:20px">목적지까지 약 15km (25분 소요 예상)</div>
+        <div class="label">기사 연락처</div><div style="font-size:16px;font-weight:700">김배송 기사 (010-1234-5678)</div>
+        <button class="btn btn-green" style="margin-top:auto;padding:16px">기사에게 메시지 전송</button>
+      </div>
+    </div><style>@keyframes dash{to{stroke-dashoffset:-20}}</style>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 트럭 라우팅 다중 경유지 뷰 (Multi-stop Routing)</h3><span class="tip">트럭 한 대가 여러 고객사를 순서대로 들러서 물건을 내릴 때, 내 주문이 몇 번째 경유지인지 확인합니다.</span></div></div>
+    <div class="card" style="background:var(--surface2)">
+      <div class="card-title">배송 노선 (Route) : 서울 남부 코스</div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding-left:16px;border-left:2px solid var(--green);margin-top:20px" id="tb11"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 항공 / 해상 화물 수출입 추적 (Freight Tracking)</h3><span class="tip">수출입 건에 대해 항구(Port), 선박(Vessel), 세관(Customs) 통과 내역을 보여주는 무역 물류 특화 뷰입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>수출 B/L 번호</th><th>운송 수단 (선박/항공편)</th><th>출발항 (POL)</th><th>도착항 (POD)</th><th>현재 진행 상태 (Milestone)</th></tr></thead><tbody id="tb12"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 라스트마일 택배사 API 연동 (Courier Tracking)</h3><span class="tip">CJ대한통운, 우체국, FedEx 등 외부 택배사의 송장번호를 API로 긁어와서 우리 시스템 안에 통합해 보여줍니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="margin:0"><div class="card-title">운송장 번호 조회</div><div style="display:flex;gap:8px;margin-bottom:20px"><input type="text" class="inp" value="6398-1234-5678" style="font-family:var(--mono);font-weight:700"><button class="btn btn-green">API 조회 ↻</button></div><div class="label">택배사: CJ대한통운</div><div style="padding:20px;text-align:center;background:var(--surface3);border-radius:8px"><div style="font-size:50px">📦</div><div style="font-size:16px;font-weight:700;color:var(--green);margin-top:10px">배송 완료 (배송기사: 이택배)</div></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">택배사 API 상세 스캔 이력</div><div class="tbl-wrap" style="border:none;max-height:300px"><table class="tbl"><thead><tr><th>처리일시</th><th>처리점소</th><th>스캔상태</th></tr></thead><tbody id="tb13"></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 복수 배송지 일괄 추적 (Multi-drop Master)</h3><span class="tip">본사에서 1만 개를 주문하고 전국 50개 매장으로 나눠서 쏴달라고 했을 때, 50건의 배송 상태를 그리드 하나로 추적합니다.</span></div><button class="btn btn-green" onclick="showToast('미도착 3건 알람 발송 완료')">미도착 건 독촉 알림</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>원주문 (Master SO)</th><th>분할 배송지 (지점명)</th><th>할당 수량</th><th>배송 상태</th><th>도착확인 일시</th></tr></thead><tbody id="tb14"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 지연 (Delay) 경고 현황판 (Dashboard)</h3><span class="tip">정상 진행 중인 오더는 숨기고, 납기를 못 맞출 위기에 처한 시뻘건 오더들만 모아서 띄워 관리자를 압박하는 대시보드입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>지연 주문번호</th><th>고객사</th><th>약속된 납기일</th><th style="color:var(--red)">예상 지연일수 (Days)</th><th>지연 사유 (Bottleneck)</th><th>조치 액션</th></tr></thead><tbody id="tb15"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ 파손 / 반품 / 클레임 추적 (RMA Tracking)</h3><span class="tip">배송 중 물건이 부서져서 고객이 클레임을 걸었을 때, 반품 회수(Return)와 재발송(Replacement) 흐름을 역으로 추적합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>원 주문번호</th><th>클레임 접수일</th><th>사유 (사진첨부)</th><th>반품(RMA) 회수 상태</th><th>새제품 교환 발송 (상태)</th></tr></thead><tbody id="tb16"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 결품 (Shortage) 원인 심층 분석 트래커</h3><span class="tip">주문이 멈춰있을 때 "왜 안 가지?"를 클릭하면, "하위 부품 C가 결품인데, 그 부품을 공급하는 업체 트럭이 퍼졌음"까지 깊게 파고듭니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red);background:var(--red-dim)"><div class="card-title" style="color:var(--red)">🚨 배송 보류 (Hold) 오더</div><div style="font-size:18px;font-weight:700">SO-HOLD-999 (특수 로봇 조립)</div><div style="margin-top:10px">사유: 생산 라인 결품(Shortage)으로 인한 생산 중단</div></div>
+      <div class="card"><div class="card-title">Root Cause (근본 원인) 역추적</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-bottom:8px">1. 조립 공정 중단 (사유: 모터 컨트롤러 부품 없음)</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-bottom:8px;margin-left:20px">2. WMS 재고 조회 (사유: 컨트롤러 현재고 0개)</div>
+        <div style="padding:10px;border-left:2px solid var(--red);margin-left:40px;background:var(--surface3)">3. 구매 PO 추적: 공급사(성진전자) <b>납기 5일 지연 통보</b> 확인됨</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 납기 준수율 (OTD / SLA) 모니터링 미터기</h3><span class="tip">개별 추적을 넘어, 우리 회사가 이번 달 고객들과 약속한 납기일(SLA)을 얼마나 잘 지키고 있는지(On-Time Delivery) 통계로 보여줍니다.</span></div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">11월 납기 준수율 (OTD)</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--green);margin:20px 0">94.2 %</div><div class="tip">목표: 95.0% (미달)</div></div>
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">이번 달 총 배송건수</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--text);margin:20px 0">12,450</div></div>
+      <div class="card" style="text-align:center;border-color:var(--amber)"><div class="card-title" style="justify-content:center;color:var(--amber)">지연 발생 건수 (Late)</div><div style="font-family:var(--mono);font-size:50px;font-weight:700;color:var(--amber);margin:20px 0">722</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ 고객 알림(카톡/SMS/메일) 발송 이력 로그</h3><span class="tip">주문 상태가 바뀔 때마다 고객에게 날아간 알림톡, 이메일 메시지의 원문과 수신 확인 여부를 시스템 내부에서 추적합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>주문번호</th><th>알림 발송일시</th><th>채널 (매체)</th><th>메시지 내용 요약</th><th>수신/읽음 상태</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ B2B 고객용 포털 뷰 (Customer Portal)</h3><span class="tip">내부 관리자용이 아니라, 우리에게 물건을 산 기업 고객(예: 이마트 구매담당자)이 로그인해서 자기 주문을 확인하는 깔끔한 뷰입니다.</span></div></div>
+    <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="background:var(--rose);color:#fff;padding:20px;font-size:20px;font-weight:700;display:flex;justify-content:space-between"><span>Welcome, 이마트(본사) 님</span><span>My Order Dashboard</span></div>
+      <div style="padding:20px;background:var(--bg)">
+        <div class="grid3" style="margin-bottom:20px">
+          <div class="card" style="background:#fff;color:#000;margin:0"><div style="font-size:14px">생산/준비중</div><div style="font-size:30px;font-weight:700;color:var(--rose)">12 건</div></div>
+          <div class="card" style="background:#fff;color:#000;margin:0"><div style="font-size:14px">배송중</div><div style="font-size:30px;font-weight:700;color:var(--rose)">5 건</div></div>
+          <div class="card" style="background:#fff;color:#000;margin:0"><div style="font-size:14px">최근 배송완료</div><div style="font-size:30px;font-weight:700;color:var(--text3)">48 건</div></div>
+        </div>
+        <div class="tbl-wrap" style="background:#fff;color:#000;max-height:300px"><table class="tbl" style="color:#000"><thead><tr style="background:#f1f5f9"><th style="color:#000">PO Number (고객발주번호)</th><th style="color:#000">품목</th><th style="color:#000">배송 상태</th><th style="color:#000">예상 도착일</th></tr></thead><tbody id="tb20"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 모바일 전용 배송조회 앱 (Mobile Tracking)</h3><span class="tip">소비자가 스마트폰으로 배송조회 링크를 클릭했을 때 열리는 모바일 웹/앱 전용 UI 프레임입니다.</span></div></div>
+    <div class="mobile-frame">
+      <div style="padding:20px;background:var(--rose);color:#fff;text-align:center;font-weight:700;font-size:16px">배송 조회</div>
+      <div style="padding:20px">
+        <div style="font-size:18px;font-weight:700;margin-bottom:10px">오늘 오후 2~4시 도착 예정</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:20px">택배기사: 김스피드 (010-1111-2222)</div>
+        <div class="timeline">
+          <div class="tl-item done"><div class="tl-dot"></div><div style="font-weight:700">배송출발</div><div style="font-size:11px;color:var(--text2)">강남 서초대리점</div></div>
+          <div class="tl-item active"><div class="tl-dot"></div><div style="font-weight:700;color:var(--rose)">배송중</div><div style="font-size:11px;color:var(--text2)">고객님 동네 도착</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div style="color:var(--text3)">배송완료 예정</div></div>
+        </div>
+        <button class="btn btn-rose" style="width:100%;margin-top:30px;padding:14px">기사님께 메시지 남기기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ AI 챗봇 주문조회 (Chatbot Tracking)</h3><span class="tip">고객센터에 전화할 필요 없이, 채팅창에 "내 주문 언제 와?"라고 치면 챗봇이 DB를 뒤져서 대답해 줍니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto">
+      <div class="chat-wrap" style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        <div style="padding:16px;background:var(--rose);color:#fff;font-weight:700;text-align:center">AI 챗봇 상담원 🤖</div>
+        <div class="chat-body" id="chat-body" style="height:350px">
+          <div class="msg bot">안녕하세요! 주문번호나 연락처를 입력해 주시면 배송조회를 도와드립니다.</div>
+          <div class="msg user" style="background:var(--rose-dim);border-color:var(--rose);color:var(--rose)">SO-99124 언제 도착하나요?</div>
+          <div class="msg bot">조회 결과입니다.<br><br>📦 <b>SO-99124</b><br>현재 [대전 터미널]에서 간선 상차 중입니다. 내일(11/01) 오후 배송 완료 예정입니다.</div>
+        </div>
+        <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px"><input type="text" class="inp" placeholder="메시지 입력..."><button class="btn btn-rose" onclick="showToast('챗봇 메시지 전송 시뮬레이션')">전송</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ QR/바코드 스캔 다이렉트 조회 (QR Scan)</h3><span class="tip">물건이 담긴 박스 표면의 QR코드를 스마트폰 카메라로 찍으면, 로그인 없이 즉시 해당 제품의 제조/배송 이력을 보여줍니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;border:2px dashed var(--rose);cursor:pointer" onclick="showToast('QR 스캔 완료 -> 정보 로드')">
+        <div style="width:150px;height:150px;background:#fff;padding:10px;display:flex;align-items:center;justify-content:center"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10,10 h30 v30 h-30 z M60,10 h30 v30 h-30 z M10,60 h30 v30 h-30 z M20,20 h10 v10 h-10 z M70,20 h10 v10 h-10 z M20,70 h10 v10 h-10 z M50,50 h10 v10 h-10 z' fill='%23000'/></svg>" width="100%" height="100%" style="opacity:0.8"></div>
+        <div style="margin-top:20px;font-weight:700;color:var(--rose)">클릭하여 가상 QR 스캔</div>
+      </div>
+      <div class="card" style="background:var(--surface2)">
+        <div class="card-title">스캔된 제품 인증 이력</div>
+        <div style="font-family:var(--mono);font-size:18px;color:var(--rose);font-weight:700;margin-bottom:12px">ID: SN-2024-ABCDEF</div>
+        <div class="tip">제조일: 2024-10-20 (정품 확인됨)</div>
+        <div class="tip">출하일: 2024-10-25</div>
+        <div class="tip">보증기간: 2025-10-25 까지</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 배송 완료 증빙 (Proof of Delivery - POD)</h3><span class="tip">배송 완료 후 시스템에 증거 자료(고객 서명, 현관문 앞에 둔 사진)가 등록되어 클레임을 방어하는 추적 화면입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>주문번호</th><th>배송완료 일시</th><th>수령인</th><th>증빙 자료 (POD)</th></tr></thead><tbody id="tb24"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ AI 도착 예정일 예측 (AI ETA Prediction)</h3><span class="tip">단순 평균일 계산이 아니라, 과거 기상 데이터, 교통 체증, 파업 이력 등을 AI 모델이 학습하여 배송 완료일을 확률(%)로 예측합니다.</span></div><button class="btn btn-purple" onclick="showToast('AI 예측 모델 재학습 및 갱신 완료')">AI 예측치 갱신 ↻</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>주문번호</th><th>목적지</th><th style="color:var(--purple)">AI 예측 도착일 (ETA)</th><th>예측 신뢰도 (Confidence)</th><th>리스크 요소 (지연 확률)</th></tr></thead><tbody id="tb25"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 콜드체인 온도/상태 이력 추적 (Condition Log)</h3><span class="tip">백신이나 신선식품이 배송되는 동안 트럭 안의 온도가 떨어지진 않았는지, 충격을 받진 않았는지 위치와 함께 실시간 그래프로 그립니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 400px">
+      <div class="card" style="margin:0;display:flex;align-items:center;justify-content:center;background:var(--surface3);position:relative">
+        <span style="font-size:24px;color:var(--text3);position:absolute;top:10px;left:10px">실시간 온도 그래프 📈</span>
+        <svg width="80%" height="60%" viewBox="0 0 100 50"><polyline points="0,25 20,22 40,28 60,15 80,26 100,24" fill="none" stroke="var(--purple)" stroke-width="2"/><line x1="0" y1="10" x2="100" y2="10" stroke="var(--red)" stroke-dasharray="2,2"/><text x="80" y="8" fill="var(--red)" font-size="4">상한선 (8도)</text></svg>
+      </div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title">센서 실시간 데이터 (IoT)</div>
+        <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border)"><span>현재 온도</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green)">4.2 ℃</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border)"><span>습도</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--blue)">45 %</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px"><span>충격 감지(G)</span><span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">0.1 G (안전)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 블록체인 이력 무결성 추적 (Blockchain Provenance)</h3><span class="tip">명품, 제약, 항공부품 등 이력이 절대 조작되어서는 안 되는 물품에 대해, 생산부터 배송까지의 모든 기록을 해시(Hash)값으로 증명합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>이벤트 (Event)</th><th>기록 일시</th><th>등록 주체 (Node)</th><th style="color:var(--purple)">블록 해시 (TxHash)</th></tr></thead><tbody id="tb27"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 탄소 발자국 추적 뷰 (Carbon Footprint)</h3><span class="tip">ESG 경영 트렌드에 맞춰, 이 주문이 공장에서 고객에게 배송되기까지 발생시킨 CO2(이산화탄소) 배출량을 거리와 운송수단에 기반해 계산해 줍니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:50px;margin-bottom:20px">🌱</div>
+      <div style="font-size:18px;margin-bottom:10px">이 주문 배송으로 발생한 예상 탄소 배출량</div>
+      <div style="font-family:var(--mono);font-size:60px;font-weight:700;color:var(--green);margin-bottom:20px">12.4 kg CO₂e</div>
+      <div class="tip">운송 수단: 디젤 5톤 트럭 | 주행 거리: 145 km</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 출하 리드타임 분석 (Lead Time Analytics)</h3><span class="tip">단건 추적을 넘어, 수만 건의 오더 데이터를 분석해 "주문 접수부터 포장까지 며칠 걸렸는지" 병목 구간을 찾아내는 분석 차트입니다.</span></div></div>
+    <div class="card" style="padding:30px">
+      <div class="card-title">구간별 평균 리드타임 (전월 데이터 15,000건 기준)</div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">접수 ➔ 생산완료</span><div style="flex:1;height:30px;background:var(--blue);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:40%">2.4 일</div></div>
+      <div style="display:flex;align-items:center;margin-bottom:12px"><span style="width:120px">생산 ➔ 포장대기</span><div style="flex:1;height:30px;background:var(--red);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:60%">3.5 일 (병목!)</div></div>
+      <div style="display:flex;align-items:center"><span style="width:120px">포장 ➔ 배송완료</span><div style="flex:1;height:30px;background:var(--green);border-radius:4px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;width:20%">1.2 일</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p30">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉛ LED 제조 공정 분할/병합 토폴로지 (Genealogy Tracking)</h3>
+        <span class="tip">1개의 주문이 EPI ➔ FAB ➔ PKG ➔ MOD 공정을 거치며 분할되거나 병합되는 족보를 노드 구조로 한눈에 추적합니다.</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="inp" value="SO-LED-999" style="width:150px;font-family:var(--mono);font-weight:700">
+        <button class="btn btn-fuchsia" onclick="showToast('LED 공정 토폴로지 조회 완료')">조회</button>
+      </div>
+    </div>
+    <div class="topo-wrap" id="tb30">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 1: EPI</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-EPI-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">사파이어 기판 투입 및 EPI 성장</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: EPI 1라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">1,000 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분할 (Split)<div class="topo-line"></div>외주/사내 병행</div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 2: FAB</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A1</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Mesa Etching & Metal 증착</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: FAB 1라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A2</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Test</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: FAB 2라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node ext warn">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-FAB-088 (외주)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Probing</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 서울반도체</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-amber">진행중</span><span class="num">400 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">병합 (Merge)<div class="topo-line"></div>Batch 구성</div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 3: PKG</div>
+        <div class="topo-node ext">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PKG-BATCH</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Die Attach & Wire Bonding</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 한국패키징</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">1,000 Wafer 분량</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">진행<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 4: MOD</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-MOD-FINAL</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">LED 모듈 SMT 실장 및 검사</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 사내 MOD 조립동</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">100,000 EA</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p31">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉜ 마스터-디테일 토폴로지 (Topology & Material Link)</h3>
+        <span class="tip">상단의 뷰 전환(Toggle) 버튼으로 공정 전체 흐름을 '단순' 또는 '상세(분할/병합)'로 조망하고, 노드를 클릭하여 해당 공정의 투입 자재 현황(Detail)을 확인합니다.</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="toggle-group">
+          <button id="tgl-simple" class="toggle-btn" onclick="toggleTopo('simple')">단순 뷰</button>
+          <button id="tgl-detail" class="toggle-btn active" onclick="toggleTopo('detail')">상세 뷰</button>
+        </div>
+        <button class="btn btn-fuchsia" onclick="filterMat('ALL', null)">전체 공정 자재 보기</button>
+      </div>
+    </div>
+
+    <div class="topo-wrap" id="topo-simple" style="display:none; padding:20px; margin-bottom:16px;">
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('WO-EPI-001', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">EPI 공정 (Wafer)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 사내 오더 진행</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('ALL_FAB', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">FAB 공정 (Chip)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">3개 오더 (분할/외주 병합)</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('EXT-PKG-BATCH', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">PKG 공정 (Package)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 외주 오더 대기</div>
+        </div>
+      </div>
+      <div class="topo-arrow">➔<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div class="topo-node" onclick="filterMat('WO-MOD-FINAL', this)">
+          <div style="font-weight:700;font-size:14px;color:var(--text)">MOD 공정 (Module)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">1개 사내 완제품 대기</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="topo-wrap" id="topo-detail" style="padding:20px; margin-bottom:16px;">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 1: EPI</div>
+        <div class="topo-node" onclick="filterMat('WO-EPI-001', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-EPI-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">사파이어 기판 투입 및 EPI 성장</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">1,000 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분할 (Split)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 2: FAB</div>
+        <div class="topo-node" onclick="filterMat('WO-FAB-A1', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A1</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Mesa Etching & Metal 증착</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node" onclick="filterMat('WO-FAB-A2', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A2</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Test</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node ext warn" onclick="filterMat('EXT-FAB-088', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-FAB-088 (외주)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Probing</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-amber">진행중</span><span class="num">400 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">병합 (Merge)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 3: PKG</div>
+        <div class="topo-node ext" onclick="filterMat('EXT-PKG-BATCH', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PKG-BATCH</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Die Attach & Wire Bonding</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">1,000 Wafer 분량</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">진행<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 4: MOD</div>
+        <div class="topo-node" onclick="filterMat('WO-MOD-FINAL', this)">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-MOD-FINAL</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">LED 모듈 SMT 실장 및 검사</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">100,000 EA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin:0">
+      <div class="card-title" id="mat-title" style="color:var(--fuchsia);font-size:16px">전체 오더 소요 자재 현황</div>
+      <div class="tbl-wrap" style="max-height:400px">
+        <table class="tbl">
+          <thead><tr><th>대상 오더 (Node)</th><th>자재코드</th><th>자재명 (BOM)</th><th style="text-align:right">소요량</th><th style="text-align:right">현재고</th><th style="text-align:right">발주진행(PO)</th><th style="text-align:right">과부족 상태</th></tr></thead>
+          <tbody id="tb31"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// --- Navigation & Core Logic ---
+const tabNames = [
+  "단건 수직 타임라인","대량 그리드 엑셀형","가로형 진행 스텝","추적 칸반 보드","분할 배송 부모자식", // Grp 1 (Basic/Status)
+  "공정 라우팅 추적","하위 BOM 입고추적","3D 디지털트윈 뷰","품질(QA) 검사추적","외주가공(WIP) 추적", // Grp 2
+  "GPS 실시간 물류맵","다중 경유지 라우팅","항공/해상 수출입","택배사 API 운송장","다중 배송지 일괄추적", // Grp 3 (Logistics)
+  "지연(Delay) 경고판","파손/클레임 역추적","결품 원인 심층분석","납기 준수율(OTD)","알림톡 발송 로그", // Grp 4 (Exceptions)
+  "B2B 고객용 포털","모바일 배송조회 앱","AI 챗봇 배송조회","QR 바코드 직조회","배송완료 증빙(POD)", // Grp 5 (Customer)
+  "AI 도착예측(ETA)","온도 로거 콜드체인","블록체인 무결성","탄소발자국 배출량","구간 리드타임 분석", // Grp 6 (Analytics)
+  "LED 공정 토폴로지","토폴로지 자재연동" // Grp 7 (Topology) -> 31st, 32nd Tab
+];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.min(Math.floor(i / 5) + 1, 7); 
+    let cls = grp === 7 ? 't-7' : `t-${grp}`;
+    let btn = document.createElement('button');
+    btn.className = `tab-btn ${cls} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try {
+    genP0(); genP1(); genP3(); genP4();
+    genP5(); genP6(); genP8(); genP9();
+    genP11(); genP12(); genP14();
+    genP15(); genP16(); genP19();
+    genP20(); genP24();
+    genP25(); genP27();
+    initP31Data(); // Pattern 32 Data
+  } catch(e) { console.error(e); }
+});
+
+function genP0(){
+  let h=''; const stat=["주문접수","생산중","출하대기","배송중","완료"];
+  for(let i=1;i<=50;i++){
+    const s=stat[i%5]; const c=s==='배송중'?'var(--amber)':s==='완료'?'var(--green)':'var(--text2)';
+    h+=`<tr style="cursor:pointer" onclick="showToast('SO-24-${i} 상세 타임라인 로드됨')"><td style="font-family:var(--mono);color:var(--blue)">SO-24-${String(i).padStart(4,'0')}</td><td>고객사 ${i}</td><td>주문 품목 ${i}</td><td style="color:${c};font-weight:700">${s}</td></tr>`;
+  } $('tb0').innerHTML=h;
+}
+
+function genP1(){
+  let h=''; const c=["삼성전자","현대차","LG디스플레이","SK온","쿠팡","네이버"];
+  for(let i=1;i<=100;i++){
+    const pct=rInt(10,100); const s=pct===100?'배송완료':pct>70?'배송중':pct>30?'생산중':'주문접수';
+    const cl=pct===100?'var(--green)':pct>70?'var(--amber)':'var(--blue)';
+    h+=`<tr><td class="num">${i}</td><td style="font-family:var(--mono)">SO-M-${i}</td><td>${c[i%c.length]}</td><td>대량주문 품목 ${i}</td><td>2024-10-20</td><td><div class="prog-bg" style="width:100px"><div class="prog-bar" style="width:${pct}%;background:${cl}"></div></div></td><td style="color:${cl};font-weight:700">${s}</td><td class="num">11/${rInt(1,30)}</td></tr>`;
+  } $('tb1').innerHTML=h;
+}
+
+function genP3(){
+  for(let i=1;i<=15;i++){ $('k3_1').innerHTML+=`<div class="k-card">오더 A-${i}</div>`; }
+  for(let i=1;i<=8;i++){ $('k3_2').innerHTML+=`<div class="k-card">오더 B-${i}</div>`; }
+  for(let i=1;i<=5;i++){ $('k3_3').innerHTML+=`<div class="k-card">오더 C-${i}</div>`; }
+  for(let i=1;i<=3;i++){ $('k3_4').innerHTML+=`<div class="k-card">오더 D-${i}</div>`; }
+}
+
+function genP4(){
+  let h=''; for(let i=1;i<=5;i++){
+    const q=rInt(1000,3000); const pct=rInt(20,100);
+    h+=`<tr><td style="font-family:var(--mono);color:var(--blue)">SHIP-SPLIT-00${i}</td><td class="num">${q} EA</td><td style="font-family:var(--mono)">CJ-9876-${i}</td><td style="color:var(--amber);font-weight:700">배송중</td><td>11/0${i}</td></tr>`;
+  } $('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h=''; const r=["1. 자재절단","2. 프레스 가공","3. 용접 조립","4. 표면 도장","5. 조립/포장"];
+  for(let i=0;i<5;i++){
+    const stat=i<2?'완료':i===2?'진행중':'대기'; const c=i<2?'var(--green)':i===2?'var(--cyan)':'var(--text2)';
+    h+=`<tr><td>${r[i]}</td><td class="num">${i<2?'500 / 500':i===2?'200 / 500':'0 / 500'}</td><td style="color:${c};font-weight:700">${stat}</td></tr>`;
+  } $('tb5').innerHTML=h;
+}
+
+function genP6(){
+  let h=''; for(let i=1;i<=15;i++){
+    const r=rInt(100,500); const inv=rInt(0,400); const sh=r-inv;
+    h+=`<tr><td>하위 부품 SUB-${i}</td><td class="num">${r}</td><td class="num">${inv}</td><td style="color:var(--amber);font-weight:700">PO 발주됨 (${sh} 부족)</td><td>11/0${rInt(1,9)}</td><td><span class="badge badge-red">조립불가</span></td></tr>`;
+  } $('tb6').innerHTML=h;
+}
+
+function genP8(){
+  let h=''; for(let i=1;i<=20;i++){
+    const ok=i%5!==0;
+    h+=`<tr><td style="font-family:var(--mono)">SO-QA-${i}</td><td>10/25</td><td>외관 및 구동 테스트</td><td><span class="badge badge-${ok?'green':'red'}">${ok?'PASS':'FAIL'}</span></td><td><button class="btn btn-ghost btn-sm">PDF 다운로드</button></td></tr>`;
+  } $('tb8').innerHTML=h;
+}
+
+function genP9(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>외주 가공물 ${i}</td><td>협력사 ${i}</td><td>10/20</td><td style="color:var(--cyan);font-weight:700">가공 진행중</td><td>11/02</td></tr>`; } $('tb9').innerHTML=h;
+}
+
+function genP11(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px"><b>경유지 ${i}</b> (고객사 ${i} 물류센터)<br><span class="tip">도착 예정: 1${i}:00</span></div>`; } $('tb11').innerHTML=h;
+}
+
+function genP12(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono);color:var(--blue)">HBL-2410-00${i}</td><td>해운 (Maersk Line)</td><td>Busan (KR)</td><td>Los Angeles (US)</td><td style="color:var(--cyan);font-weight:700">해상 운송중 (Sailing)</td></tr>`; } $('tb12').innerHTML=h;
+}
+
+function genP14(){
+  let h=''; for(let i=1;i<=30;i++){
+    const ok=i%8!==0;
+    h+=`<tr><td style="font-family:var(--mono)">SO-MASTER-99</td><td>전국 지점 ${i}호</td><td class="num">200 EA</td><td><span class="badge badge-${ok?'green':'amber'}">${ok?'도착완료':'배송중'}</span></td><td>${ok?'10/27 14:00':'-'}</td></tr>`;
+  } $('tb14').innerHTML=h;
+}
+
+function genP15(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-DELAY-${i}</td><td>중요 고객사 ${i}</td><td>10/30</td><td class="num" style="color:var(--red);font-weight:700;font-size:16px">+${rInt(2,10)} 일 지연</td><td>생산설비 고장</td><td><button class="btn btn-red btn-sm" onclick="showToast('긴급 조치(항공특송 전환) 지시')">항공특송 전환 🚀</button></td></tr>`; } $('tb15').innerHTML=h;
+}
+
+function genP16(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-CLAIM-${i}</td><td>10/28</td><td>배송중 박스 파손</td><td style="color:var(--amber);font-weight:700">회수 트럭 배차됨</td><td><button class="btn btn-ghost btn-sm">대체품 발송 대기</button></td></tr>`; } $('tb16').innerHTML=h;
+}
+
+function genP19(){
+  let h=''; for(let i=1;i<=20;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-2410-${i}</td><td>10-27 15:00</td><td>카카오톡 (알림톡)</td><td>상품이 출발했습니다.</td><td style="color:var(--green);font-weight:700">읽음 (Read)</td></tr>`; } $('tb19').innerHTML=h;
+}
+
+function genP20(){
+  let h=''; for(let i=1;i<=15;i++){ h+=`<tr><td style="font-family:var(--mono);color:#3b82f6">PO-EMART-00${i}</td><td>PB상품 세트 ${i}</td><td><span style="background:#fef3c7;color:#d97706;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700">배송중</span></td><td>11/02</td></tr>`; } $('tb20').innerHTML=h;
+}
+
+function genP24(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td style="font-family:var(--mono)">SO-POD-${i}</td><td>10-28 14:00</td><td>김*점 (관리자)</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('서명 이미지 팝업')">서명 보기 📝</button></td></tr>`; } $('tb24').innerHTML=h;
+}
+
+function genP25(){
+  let h=''; for(let i=1;i<=20;i++){
+    const r=i%5===0;
+    h+=`<tr><td style="font-family:var(--mono)">SO-AI-${i}</td><td>미국 LA 물류센터</td><td style="color:var(--purple);font-weight:700;font-size:14px">11/${rInt(10,30)}</td><td class="num">${rInt(80,99)}%</td><td style="color:var(--${r?'red':'text2'})">${r?'항만 파업 위험 감지':'특이사항 없음'}</td></tr>`;
+  } $('tb25').innerHTML=h;
+}
+
+function genP27(){
+  let h=''; for(let i=1;i<=10;i++){ h+=`<tr><td>물류 노드 통과 #${i}</td><td>2024-10-2${i}</td><td>노드 ${i} (물류사)</td><td style="font-family:var(--mono);color:var(--purple);font-size:11px">0x${Math.random().toString(16).slice(2,10)}...${Math.random().toString(16).slice(2,6)}</td></tr>`; } $('tb27').innerHTML=h;
+}
+
+// --- Pattern 32 (Topology Material Link & Toggle) Logic ---
+const matData31 = [];
+function initP31Data() {
+  const orders = [
+    {id:'WO-EPI-001', name:'EPI 성장'},
+    {id:'WO-FAB-A1', name:'Mesa Etching'},
+    {id:'WO-FAB-A2', name:'Chip Test'},
+    {id:'EXT-FAB-088', name:'Chip Probing (외주)'},
+    {id:'EXT-PKG-BATCH', name:'Die Attach & Wire Bonding'},
+    {id:'WO-MOD-FINAL', name:'LED 모듈 SMT'}
+  ];
+  orders.forEach(o => {
+    // Generate 5-15 materials for each order node
+    const cnt = rInt(5, 15);
+    for(let i=1; i<=cnt; i++) {
+      const req = rInt(1000, 50000);
+      const inv = rInt(0, req + 10000);
+      const po = rInt(0, req - inv > 0 ? req - inv + 2000 : 0);
+      const short = req - inv - po;
+      matData31.push({ 
+        orderId: o.id, 
+        orderName: o.name, 
+        code: `MAT-${o.id.split('-')[1]}-${String(i).padStart(3,'0')}`, 
+        name: `${o.name} 소요자재 ${i}`, 
+        req, inv, po, short 
+      });
+    }
+  });
+  // Initial render for ALL
+  filterMat('ALL', null);
+}
+
+function toggleTopo(mode) {
+  if(mode === 'simple') {
+    $('topo-simple').style.display = 'flex';
+    $('topo-detail').style.display = 'none';
+    $('tgl-simple').classList.add('active');
+    $('tgl-detail').classList.remove('active');
+  } else {
+    $('topo-simple').style.display = 'none';
+    $('topo-detail').style.display = 'flex';
+    $('tgl-detail').classList.add('active');
+    $('tgl-simple').classList.remove('active');
+  }
+}
+
+function filterMat(orderId, el) {
+  // Update UI active state across both topo-wraps
+  document.querySelectorAll('#p31 .topo-node').forEach(n => {
+    n.classList.remove('active');
+    n.style.borderColor = 'var(--border)';
+  });
+  if(el) {
+    el.classList.add('active');
+    el.style.borderColor = 'var(--fuchsia)';
+  }
+
+  // Handle 'ALL_FAB' pseudo-id for simple view
+  let titleText = orderId;
+  if(orderId === 'ALL') titleText = '전체 공정';
+  if(orderId === 'ALL_FAB') titleText = 'FAB 전체 공정 (분할/병합 포함)';
+
+  // Update Title
+  $('mat-title').textContent = `[${titleText}] 소요 자재 현황`;
+
+  // Filter and Render Data
+  const filtered = matData31.filter(d => {
+    if(orderId === 'ALL') return true;
+    if(orderId === 'ALL_FAB') return d.orderId.includes('FAB');
+    return d.orderId === orderId;
+  });
+
+  let h = '';
+  filtered.forEach(d => {
+    const isShort = d.short > 0;
+    const c = isShort ? 'var(--red)' : 'var(--text)';
+    const cbg = isShort ? 'background:var(--red-dim)' : '';
+    const txt = isShort ? `-${d.short.toLocaleString()} (부족)` : '충분';
+    h += `<tr style="${cbg}">
+      <td><span class="badge badge-gray">${d.orderId}</span></td>
+      <td style="font-family:var(--mono);color:var(--fuchsia)">${d.code}</td>
+      <td style="font-weight:700">${d.name}</td>
+      <td class="num">${d.req.toLocaleString()}</td>
+      <td class="num" style="color:var(--cyan)">${d.inv.toLocaleString()}</td>
+      <td class="num" style="color:var(--amber)">${d.po.toLocaleString()}</td>
+      <td class="num" style="color:${c};font-weight:700">${txt}</td>
+    </tr>`;
+  });
+  $('tb31').innerHTML = h;
+  showToast(orderId === 'ALL' ? '전체 오더 자재를 불러왔습니다.' : `${titleText} 자재로 필터링 되었습니다.`);
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #22 */
+(function(){var I=22;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

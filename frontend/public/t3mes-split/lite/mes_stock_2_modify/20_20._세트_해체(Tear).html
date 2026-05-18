@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>20. 세트 해체(Tear)</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #20: 20. 세트 해체(Tear) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p19">
+  <div class="sec-hdr"><div><h3>⑳ Tear-down(세트 해체) 트랜잭션</h3><span class="tip">안 팔리는 세트 상품을 뜯어서 개별 단품 재고로 다시 되돌려 놓습니다. (조립의 역순)</span></div></div>
+  <div class="card" style="text-align:center;padding:30px">
+    <div style="font-size:16px;margin-bottom:12px">해체 대상: <b>PC 기본 부품 패키지</b> (<span style="color:var(--red)">-10 SET</span> 차감)</div>
+    <div class="transfer-arr" style="margin:20px 0">⬇️</div>
+    <div style="display:flex;justify-content:center;gap:12px">
+      <div class="item-chip">CPU <span style="color:var(--green)">+10 EA</span></div>
+      <div class="item-chip">RAM 16GB <span style="color:var(--green)">+20 EA</span></div>
+      <div class="item-chip">Mainboard <span style="color:var(--green)">+10 EA</span></div>
+    </div>
+    <button class="btn btn-orange" style="margin-top:30px">세트 해체(Unpack) 실행</button>
+  </div>
+</div>

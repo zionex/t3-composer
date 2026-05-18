@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>크로스도킹</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #13: 크로스도킹 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 크로스도킹 (Cross-docking) 입고 즉시 출하</h3><span class="tip">협력사 트럭이 물건을 내려놓자마자, 창고 선반에 적재하지(Putaway) 않고 바로 반대편 도크의 출하 트럭에 실어버리는 고속 물류 패턴입니다.</span></div></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;background:var(--indigo-dim);border-color:var(--indigo)">
+      <div style="text-align:center"><div>📥 입고 도크 (Inbound)</div><div style="font-family:var(--mono);font-weight:700;font-size:18px;color:var(--indigo);margin-top:10px">제조사 납품 트럭</div></div>
+      <div style="font-size:40px;color:var(--indigo)">➔ ⚡ ➔</div>
+      <div style="text-align:center"><div>📤 출하 도크 (Outbound)</div><div style="font-family:var(--mono);font-weight:700;font-size:18px;color:var(--amber);margin-top:10px">고객사 배송 트럭 대기중</div></div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고(크로스도킹) 대상 품목</th><th>수량</th><th>매핑된 출하 오더 (SO)</th><th>액션</th></tr></thead><tbody id="tb12"></tbody></table></div>
+  </div>

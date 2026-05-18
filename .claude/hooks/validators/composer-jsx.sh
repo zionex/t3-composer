@@ -114,6 +114,23 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
       warn "gridItems 에 'headerText' (또는 'header') 속성이 보이지 않습니다. 컬럼 헤더가 빈 값으로 렌더됩니다. 각 컬럼에 headerText 추가 권장. (rules/41 §4.3)"
     fi
 
+    # CG-WIDTH. (2026-05-18) gridItems 컬럼 너비 미지정/과소 — 헤더 명칭 잘림
+    # width 누락 컬럼은 BaseGrid 기본 100px 로 렌더 → 헤더 명칭 잘림. 헤더 글자수 대비
+    # 충분히 확보 필요 (코드/날짜 110+ · 명칭 140+ · 일시 170+ · 설명 220+ · width≈헤더글자수×16+48).
+    # dataType 개수 = 컬럼 수 (grid 전용 속성). width: <number> 개수와 비교.
+    if grep -qE "(const|let|var)\s+\w*[Gg]ridItems\s*=\s*\[" <<<"$CONTENT"; then
+      WCOL=$(grep -oE "[[:space:]{,]dataType:[[:space:]]*['\"]" <<<"$CONTENT" | wc -l || true)
+      WSET=$(grep -oE "[[:space:]{,]width:[[:space:]]*[0-9]" <<<"$CONTENT" | wc -l || true)
+      WNAR=$(grep -oE "[[:space:]{,]width:[[:space:]]*[0-9]{1,2}[[:space:],}]" <<<"$CONTENT" | wc -l || true)
+      WCOL=${WCOL:-0}; WSET=${WSET:-0}; WNAR=${WNAR:-0}
+      if [ "$WCOL" -gt 0 ] && [ "$WSET" -lt "$WCOL" ]; then
+        warn "gridItems 컬럼 ${WCOL}개 중 width 지정은 ${WSET}개뿐 — width 누락 컬럼은 BaseGrid 기본 100px 로 렌더되어 헤더 명칭이 잘립니다. 모든 컬럼에 width 명시 (코드/날짜 110+ · 명칭 140+ · 일시 170+ · 설명 220+). (rules/41a §4.3)"
+      fi
+      if [ "$WNAR" -gt 0 ]; then
+        warn "gridItems 에 width<100 인 컬럼 ${WNAR}개 — 헤더 명칭이 잘릴 위험. width ≈ 헤더글자수×16+48 이상 확보 권장 (한글 5자 헤더 → 128 이상). (rules/41a §4.3)"
+      fi
+    fi
+
     # CG-FAB5. <BaseGrid> 에 id 누락 — grid="..." prop 을 쓰는 다른 컴포넌트와 매칭 실패
     #   <BaseGrid items={...} /> 만 있고 id 가 없으면 GridAddRowButton/GridSaveButton 이 grid="..." 로 참조 불가
     if grep -qE "<BaseGrid\b[^>]*\bitems=" <<<"$CONTENT" \
@@ -442,6 +459,69 @@ MENU_CD 의 _V2 distinction 은 **메뉴 코드 한정** 이며 JSX URL · Contr
 발견 위치:
 $VSUFFIX_HITS" \
               "rules/41a-composer-jsx.md §4.5 · rules/99a-composer-anti-patterns.md CG-URL-VSFX"
+      fi
+    fi
+
+    # CG-SHIM. @wingui/common/imports 에서 단독 shim 미보유 심볼 import 감지 (warn)
+    #   ── 이 체크는 rules/50 §13.0 "Target 런타임 환경 패리티"의 표면 #1
+    #      (import 컴포넌트/훅) 패리티를 Write/Edit 시점에 강제하는 enforcer 다.
+    #   단독 t3-composer 환경에서 @wingui/common/imports 는 전부
+    #   frontend/src/shim/wingui/common/imports.js 로 resolve 된다.
+    #   shim(=Composer 측 표면)이 export 하지 않는 이름을 import 하면 undefined → 화면 실행
+    #   시 'Element type is invalid: ... got: undefined' 런타임 크래시.
+    #   → 해법은 개별 import 제거가 아니라 shim 표면을 Target(wingui) 표면의 superset 으로
+    #     확장하는 것 (패리티). shim 의 실제 export 를 동적으로 읽어 대조하므로 shim 갱신
+    #     시 자동 추종. (2026-05 VLayoutBox/HLayoutBox 누락 사고) shim 파일 못 찾으면 skip.
+    _VDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+    _SHIM="${_VDIR}/../../../frontend/src/shim/wingui/common/imports.js"
+    if [ -f "$_SHIM" ]; then
+      _SHIM_EXPORTS=$(grep -oE 'export[[:space:]]+(const|function)[[:space:]]+[A-Za-z0-9_]+' "$_SHIM" \
+                      | awk '{print $3}' | sort -u)
+      _FLAT=$(tr '\n' ' ' <<<"$CONTENT")
+      _IMP=$(grep -oE "import[[:space:]]*\{[^}]*\}[[:space:]]*from[[:space:]]*['\"]@wingui/common/imports['\"]" <<<"$_FLAT" | head -1)
+      if [ -n "$_IMP" ]; then
+        _NAMES=$(sed -E 's/.*\{([^}]*)\}.*/\1/' <<<"$_IMP" \
+                 | tr ',' '\n' \
+                 | sed -E 's/[[:space:]]+as[[:space:]]+[A-Za-z0-9_]+//; s/[[:space:]]//g' \
+                 | grep -E '^[A-Za-z]' || true)
+        _MISSING=""
+        while IFS= read -r _n; do
+          [ -z "$_n" ] && continue
+          grep -qxF "$_n" <<<"$_SHIM_EXPORTS" || _MISSING="${_MISSING} ${_n}"
+        done <<<"$_NAMES"
+        if [ -n "$_MISSING" ]; then
+          warn "@wingui/common/imports 에서 단독 shim 미보유 심볼 import:${_MISSING}
+단독 환경에서 이 이름들은 undefined 로 평가되어 [화면 실행] 시 'Element type is invalid: ... got: undefined' 크래시를 일으킵니다.
+이는 Target 환경 패리티 위반입니다 — shim 표면이 Target(wingui) 표면의 superset 이어야 합니다.
+조치 ① (권장) shim 에 export 추가 = 표면 패리티 확장 — frontend/src/shim/wingui/common/imports.js
+         (+ ComposerPromptBuilder 광고목록 동기 — rules/50 §13.1)
+조치 ② 산출물이 해당 import 를 쓰지 않도록 수정.
+근본 원칙: rules/50-composer-standalone-runtime.md §13.0 (Target 런타임 환경 패리티)"
+        fi
+      fi
+    fi
+
+    # CG-ARR. 리스트 state 배열 초기값 누락 감지 (warn)
+    #   const [x, setX] = useState() / useState(null) / useState(undefined) 인데
+    #   x 가 배열 메서드(.map/.find/.flatMap/...) 로 사용되면 API 빈/비배열 응답 시
+    #   'x.map is not a function' 런타임 크래시 → [화면 실행] 오류.
+    #   (2026-05 ForecastDashboard kpi.find 사고) rules/50 §13.4.
+    _LIST_BAD=$(grep -oE 'const[[:space:]]*\[[^]]*\][[:space:]]*=[[:space:]]*useState\([[:space:]]*(null|undefined)?[[:space:]]*\)' <<<"$CONTENT" || true)
+    if [ -n "$_LIST_BAD" ]; then
+      _ARR_HITS=""
+      while IFS= read -r _line; do
+        [ -z "$_line" ] && continue
+        _v=$(sed -E 's/.*\[[[:space:]]*([A-Za-z_][A-Za-z0-9_]*).*/\1/' <<<"$_line")
+        [ -z "$_v" ] && continue
+        if grep -qE "\b${_v}\.(map|find|flatMap|filter|forEach|reduce|some|every)\(" <<<"$CONTENT"; then
+          _ARR_HITS="${_ARR_HITS} ${_v}"
+        fi
+      done <<<"$_LIST_BAD"
+      if [ -n "$_ARR_HITS" ]; then
+        warn "리스트 state 초기값 누락 — useState() / useState(null) 인데 배열 메서드로 사용됨:${_ARR_HITS}
+API 가 빈/비배열 응답을 주면 '... is not a function' 런타임 크래시가 발생합니다.
+조치: useState([]) 초기값 + set 시 setX(Array.isArray(res.data) ? res.data : []) 가드.
+rules/50-composer-standalone-runtime.md §13.4"
       fi
     fi
     # ───────────────────────────────────────────────────────────────────

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>22. 부대비용 배분</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #22: 22. 부대비용 배분 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p21">
+  <div class="sec-hdr"><div><h3>㉒ 수입 부대비용(Landed Cost) 배분 조정</h3><span class="tip">해상 운임, 관세 등 통관에 발생한 총 비용을 입고된 여러 재고들의 원가에 n분의 1로 얹어 조정합니다.</span></div></div>
+  <div class="card" style="background:var(--surface2)"><b>배분할 총 발생 비용: ₩ 5,000,000</b> (관세+운임) / 배분 기준: <select class="inp" style="width:150px;display:inline-block"><option>중량(Weight) 기준</option><option>금액 기준</option></select><button class="btn btn-blue btn-sm" style="margin-left:8px">자동 계산</button></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>입고 품목</th><th class="num">수량</th><th class="num">기존 원가</th><th class="num" style="color:var(--orange)">배분된 부대비용(+)</th><th class="num" style="color:var(--green)">최종 재고단가</th></tr></thead><tbody id="tb21"></tbody></table></div>
+</div>

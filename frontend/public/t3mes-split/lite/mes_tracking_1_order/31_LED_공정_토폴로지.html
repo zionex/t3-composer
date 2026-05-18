@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>LED 공정 토폴로지</title>
+<!-- T3MES UI Pattern · mes_tracking_1_order · TabPage #31: LED 공정 토폴로지 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p30">
+    <div class="sec-hdr">
+      <div>
+        <h3>㉛ LED 제조 공정 분할/병합 토폴로지 (Genealogy Tracking)</h3>
+        <span class="tip">1개의 주문이 EPI ➔ FAB ➔ PKG ➔ MOD 공정을 거치며 분할되거나 병합되는 족보를 노드 구조로 한눈에 추적합니다.</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="inp" value="SO-LED-999" style="width:150px;font-family:var(--mono);font-weight:700">
+        <button class="btn btn-fuchsia" onclick="showToast('LED 공정 토폴로지 조회 완료')">조회</button>
+      </div>
+    </div>
+    <div class="topo-wrap" id="tb30">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 1: EPI</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-EPI-001</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">사파이어 기판 투입 및 EPI 성장</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: EPI 1라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">1,000 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">분할 (Split)<div class="topo-line"></div>외주/사내 병행</div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 2: FAB</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A1</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Mesa Etching & Metal 증착</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: FAB 1라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-FAB-A2</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Test</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: FAB 2라인</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-green">완료</span><span class="num">300 Wafer</span></div>
+        </div>
+        <div class="topo-node ext warn">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-FAB-088 (외주)</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Chip Isolation & Probing</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 서울반도체</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-amber">진행중</span><span class="num">400 Wafer</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">병합 (Merge)<div class="topo-line"></div>Batch 구성</div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 3: PKG</div>
+        <div class="topo-node ext">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EXT-PKG-BATCH</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">Die Attach & Wire Bonding</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 한국패키징</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">1,000 Wafer 분량</span></div>
+        </div>
+      </div>
+      <div class="topo-arrow">진행<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">공정 4: MOD</div>
+        <div class="topo-node">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">WO-MOD-FINAL</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">LED 모듈 SMT 실장 및 검사</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">위치: 사내 MOD 조립동</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge badge-gray">대기</span><span class="num">100,000 EA</span></div>
+        </div>
+      </div>
+    </div>
+  </div>

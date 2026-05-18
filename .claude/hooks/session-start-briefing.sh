@@ -70,7 +70,8 @@ cat <<EOF
   3. 화면 개발 → ContentInner + setViewInfo + gridItems(밖) + afterGridCreate
      · BaseGrid: items={...} / afterGridCreate={...} (❌ columns/afterCreate 아님)
      · grid.dataProvider.fillJsonData / getAllStateRows / getJsonRow
-     · callService('SP_ID', paramMap)  · showMessage(title, msg, cb?)
+     · 신규 화면 = zAxios REST + RestController + JdbcTemplate SP 호출 (callService 금지 — 2026-04-27 정책)
+     · showMessage('확인', msg, (ok)=>{...})  (★ 첫 인자는 제목 문자열)
   4. FilterBar(조회 조건) → .claude/schemas/filter-bar.schema.json 단일 권위 + DOMAIN_* 타입 필수 (.claude/rules/22-filter-bar.md)
   5. DB 변경 → upgrade/vX.Y.Z-YYYYMMDD/ 경유
   6. 의존성 추가 → 루트 pom.xml BOM 경유 (모듈에 version 직접 명시 금지)
@@ -92,13 +93,21 @@ cat <<EOF
      · DB TB_AD_MENU INSERT + TB_AD_PERMISSION_GROUP 형제 메뉴 복사
 
      · 백엔드 — SP_UI_*.sql + Entity + Service(JdbcTemplate SP 호출) + Controller (2026-04-27 정책 전환):
-       t3series-wingui/src/main/java/.../web/domain/<module>/<feature>/
+       [단독 환경] backend/src/main/java/com/zionex/t3composer/domain/<module>/<feature_dir>/
+       [wingui sync] t3series-wingui/src/main/java/.../web/domain/<module>/<feature_dir>/
          Entity(@Entity extends BaseEntity) + Service(@Service · JdbcTemplate 인젝션) + Controller(@RestController)
          Repository(JpaRepository) 는 선택 — JPA 단순 CRUD 가 필요한 경우만
-       Service: jdbcTemplate.query(\"EXEC SP_UI_<DOMAIN>_<NO>_Q1 ?, ?\", new BeanPropertyRowMapper<>(Entity.class), ...)
+       ★ Java 클래스명 = MENU_FILE_PATH 마지막 PascalCase segment 그대로 (축약 절대 금지 — rules/41b §5.6.0):
+         MENU_FILE_PATH '/util/UserInfoMgmt' → <Feature>='UserInfoMgmt', <feature_dir>='userinfomgmt'
+         파일: UserInfoMgmt.java · UserInfoMgmtController.java · UserInfoMgmtService.java · UserInfoMgmtRepository.java
+         ❌ 'UserInfo*.java' (축약) — Spring Bean 충돌 · wingui sync 시 덮어쓰기 (99a §L CG-L1)
+       Service: @Qualifier(\"targetJdbcTemplate\") private final JdbcTemplate jdbcTemplate;
+                jdbcTemplate.query(\"EXEC SP_UI_<DOMAIN>_<NO>_Q1 ?, ?\", new BeanPropertyRowMapper<>(Entity.class), ...)
        REST 엔드포인트: GET /<module>/<features> · POST / · POST /delete
        SP DDL: t3series-database/mssql/upgrade/vX.Y.Z-YYYYMMDD/procedures/SP_UI_<...>_Q1/S1/D1.sql (필수 · MSSQL 만)
      · 프런트 — zAxios REST: zAxios.get('<module>/<features>') · GridSaveButton url=\"...\" · onDelete 콜백
+       [단독 환경] frontend/src/view/<module>/<lowercase>/<PascalName>.jsx
+       [wingui sync] packages/wingui/src/view/<module>/<lowercase>/<PascalName>.jsx
 
      · ★ SP_UI_*.sql DDL 모든 신규 화면 필수 (CRUD 액션마다 1개) — 조회 SP 결정론적 ORDER BY 필수
      · ❌ 엔진 service XML (mp/dp/bf/fp server/config/*_service.xml) 신규 생성 금지 — wingui 단독 구동

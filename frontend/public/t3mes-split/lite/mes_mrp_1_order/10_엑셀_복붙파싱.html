@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>엑셀 복붙파싱</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #10: 엑셀 복붙파싱 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 엑셀 텍스트 파싱 발주 (Text Paste)</h3><span class="tip">현장이나 엔지니어가 카톡/메일로 보낸 구매 요청 텍스트를 복붙하면 AI가 표로 만들어 줍니다.</span></div><button class="btn btn-teal" onclick="doParse9()">파싱 실행 ↓</button></div>
+    <textarea class="inp" id="inp9" rows="8" style="font-family:var(--mono);margin-bottom:16px">품목코드	품목명 (스펙)	요청수량	요망일
+MT-001	스테핑 모터 NEMA17	150	2024-11-20
+CB-992	전원 케이블 5m	500	2024-11-25
+SC-110	M4 육각렌치 볼트	5000	2024-12-01
+BR-050	베어링 6204ZZ	200	2024-11-10</textarea>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th>수량</th><th>요망일</th></tr></thead><tbody id="tb9"><tr><td colspan="4" style="text-align:center;padding:30px">파싱 대기중...</td></tr></tbody></table></div>
+  </div>

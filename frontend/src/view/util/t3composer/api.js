@@ -81,7 +81,7 @@ export const updateSessionStatus = (sessionId, status) =>
 
 /**
  * 세션의 AI 엔진(modelName) 변경.
- * - 아티팩트 생성 후 추가 채팅, History 이어하기 등 모든 단계에서 사용 가능.
+ * - 산출물 생성 후 추가 채팅, History 이어하기 등 모든 단계에서 사용 가능.
  * - 다음 chat 호출부터 새 모델로 Claude API 가 호출된다.
  * - modelName 빈 값 → 서버에서 DEFAULT_MODEL (Sonnet 4.6) 로 리셋.
  */
@@ -110,7 +110,7 @@ export const sendChat = (sessionId, message, attachmentArtifactIds, attachments)
 
 // ---- Artifacts ----
 
-/** 세션 아티팩트 목록.
+/** 세션 산출물 목록.
  *  history=false (기본) — supersede 된 이전 버전(DISCARDED) 제외, 최신만
  *  history=true — 전체 이력 (DISCARDED 포함)
  */
@@ -120,7 +120,7 @@ export const listArtifacts = (sessionId, { history = false } = {}) =>
     composerReq()
   );
 
-/** Supersede 된 이전 버전(DISCARDED) 아티팩트 일괄 hard delete. → { deleted: N } */
+/** Supersede 된 이전 버전(DISCARDED) 산출물 일괄 hard delete. → { deleted: N } */
 export const cleanupSupersededArtifacts = (sessionId) =>
   zAxios.post(
     `composer/sessions/${sessionId}/artifacts/cleanup`,
@@ -139,6 +139,13 @@ export const collectSourceForLlm = (menuCd, targetCd) =>
     { menuCd, ...(targetCd ? { targetCd } : {}) },
     composerReq()
   );
+
+/**
+ * EXISTING_MODIFY — collectSourceForLlm 로 받은 소스 번들을 세션 아티팩트(DRAFT 원본)로 import.
+ * 사용자가 현재 기준의 모든 파일을 아티팩트 트리에서 보고 필요한 부분만 수정. → { imported: N }
+ */
+export const importSourceArtifacts = (sessionId, bundle) =>
+  zAxios.post(`composer/sessions/${sessionId}/import-source-artifacts`, bundle || {}, composerReq());
 
 /** Target System DB 연결 정보 저장 / 테스트 */
 export const updateTargetDbConnection = (targetCd, payload) =>
@@ -170,7 +177,7 @@ export const prefillFromSource = ({ sourceBundle, newMenuCd, newTitle, moduleCod
   );
 
 /**
- * 아티팩트 적용 직전 사전 검증 — 자주 발생하는 오류를 자동 보정.
+ * 산출물 적용 직전 사전 검증 — 자주 발생하는 오류를 자동 보정.
  * 응답: { success, totalFixCount, fileCount, files: [{ artifactType, filePath, fixes:[{rule,description}] }] }
  */
 export const preflightArtifacts = (sessionId) =>
@@ -195,7 +202,7 @@ export const prefillFromDesign = ({ parsedDesign, fileName, newMenuCd, newTitle,
 
 // ---- Menu Registration ----
 
-// sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 아티팩트 그대로 실행.
+// sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 산출물 그대로 실행.
 export const executeMenuSql = (sessionId, sqlOverride = null) =>
   zAxios.post(
     `composer/sessions/${sessionId}/execute-menu-sql`,
@@ -203,7 +210,7 @@ export const executeMenuSql = (sessionId, sqlOverride = null) =>
     composerReq()
   );
 
-// 아티팩트 자동 적용 — 파일 저장 / DDL 실행 / SP 실행
+// 산출물 자동 적용 — 파일 저장 / DDL 실행 / SP 실행
 // opts: { applyFiles, executeDdl, executeSp, overwrite }
 export const applyArtifacts = (sessionId, opts = {}) =>
   zAxios.post(
@@ -213,12 +220,16 @@ export const applyArtifacts = (sessionId, opts = {}) =>
   );
 
 // Phase 2a — Preview (docker 컨테이너 안에서 검증 — JSX/SQL/MENU)
-export const applyPreview = (sessionId) =>
-  zAxios.post(
-    `composer/sessions/${sessionId}/preview/apply`,
+// options.skipJava=true → Sample 모드: Java 산출물 적용·mvn compile·재기동 생략 (10~20초 backend down 회피).
+//                          frontend Sample shim 이 axios 응답 가로채므로 backend 미동작 OK.
+export const applyPreview = (sessionId, options = {}) => {
+  const qs = options.skipJava ? '?skipJava=true' : '';
+  return zAxios.post(
+    `composer/sessions/${sessionId}/preview/apply${qs}`,
     {},
-    composerReq({ timeout: 120000 })
+    composerReq({ timeout: options.skipJava ? 30000 : 120000 }),
   );
+};
 
 export const confirmPreview = (sessionId, opts = {}) =>
   zAxios.post(
@@ -277,6 +288,24 @@ export const lookupProcedures = (names, targetCd) =>
  */
 export const extractAndLookupProcedures = (text, targetCd) =>
   zAxios.post(`composer/schema/procedures/extract`, { text, targetCd }, composerReq());
+
+// ---- Data Source 별자리 맵 (전체 목록 + 도메인 그래프) ----
+// Target Operational DB(MSSQL) 의 INFORMATION_SCHEMA / sys.objects 조회.
+// 미연결 시 connected=false + 빈 배열.
+
+/** 전체 테이블/뷰 목록 — { targetCd, connected, tables: [{tableName,tableSchema,tableType,domain}] } */
+export const listSchemaTables = (targetCd) =>
+  zAxios.get('composer/schema/tables', composerReq({ params: targetCd ? { targetCd } : {} }));
+
+/** 전체 SP/Function 목록 — { targetCd, connected, procedures: [{procedureName,procedureSchema,objectType,domain}] } */
+export const listSchemaProcedures = (targetCd) =>
+  zAxios.get('composer/schema/procedures', composerReq({ params: targetCd ? { targetCd } : {} }));
+
+/** 한 도메인의 서브 그래프 — { domain, connected, nodes, edges, dependencyGraphAvailable, truncated } */
+export const getSchemaGraph = (targetCd, domain) =>
+  zAxios.get('composer/schema/graph', composerReq({
+    params: { ...(targetCd ? { targetCd } : {}), ...(domain ? { domain } : {}) },
+  }));
 
 // ---- Design Doc Excel ----
 

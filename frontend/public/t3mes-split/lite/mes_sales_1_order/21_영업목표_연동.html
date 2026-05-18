@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>영업목표 연동</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #21: 영업목표 연동 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+  <div class="sec-hdr"><div><h3>㉑ 영업 목표(Quota) 연동형 게이미피케이션</h3><span class="tip">수주 시 나의 목표 달성률 게이지가 오릅니다.</span></div></div>
+  <div class="card" style="text-align:center;padding:40px">
+    <div style="font-size:40px;font-weight:700;color:var(--orange);font-family:var(--mono)" id="q-pct">82.5%</div>
+    <div class="prog-bg" style="height:20px;margin:20px 0"><div class="prog-bar" id="q-bar" style="width:82.5%"></div></div>
+    <div style="display:flex;justify-content:center;gap:10px"><input type="number" class="inp" id="q-inp" value="150000000" style="width:200px;font-size:20px"><button class="btn btn-orange" onclick="doQuota()">수주 확정 (달성률 갱신)</button></div>
+  </div>
+</div>

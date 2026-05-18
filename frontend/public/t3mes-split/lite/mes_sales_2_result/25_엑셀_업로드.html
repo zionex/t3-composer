@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>엑셀 업로드</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #25: 엑셀 업로드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 대량 파일 업로드 출하 (Mass Upload)</h3><span class="tip">3PL 물류 대행업체에서 보내온 수만 건의 "오늘 택배 송장번호 및 출하결과" 엑셀을 시스템에 밀어넣습니다.</span></div></div>
+    <div style="border:2px dashed var(--fuchsia);padding:40px;text-align:center;background:var(--surface);cursor:pointer;border-radius:12px;margin-bottom:16px" onclick="doUpload24()"><div style="font-size:40px;margin-bottom:10px">📁</div><div style="font-size:16px;font-weight:700;color:var(--fuchsia)">클릭하여 3PL 배송결과 엑셀 업로드</div></div>
+    <div class="tbl-wrap" style="display:none" id="wrap24"><table class="tbl"><thead><tr><th>행</th><th>오더번호</th><th>송장번호</th><th>결과</th></tr></thead><tbody id="tb24"></tbody></table></div>
+  </div>

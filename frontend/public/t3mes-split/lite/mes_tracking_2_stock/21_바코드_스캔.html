@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>바코드 스캔</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #21: 바코드 스캔 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 바코드 / QR 스캔 재고 즉시 조회</h3><span class="tip">창고 작업자가 스마트폰 카메라나 PDA로 박스의 바코드를 찍으면 즉시 재고 상세 스펙이 로드되는 모바일 뷰입니다.</span></div></div>
+    <div style="width:360px;height:640px;border:12px solid #000;border-radius:30px;margin:0 auto;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.5)">
+      <div style="padding:20px;background:var(--rose);color:#fff;font-weight:700;text-align:center">📱 재고 조회 스캐너</div>
+      <div style="padding:20px;text-align:center">
+        <div style="height:120px;background:#000;border:2px dashed var(--rose);border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="$('m-scan-res').style.display='block';showToast('바코드 스캔 완료')"><span style="font-size:40px">📷 Scan</span></div>
+        <div id="m-scan-res" style="display:none;text-align:left;background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
+          <div style="font-family:var(--mono);color:var(--rose);font-weight:700;margin-bottom:8px">LOT-SCAN-9912</div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:8px">고성능 서보 모터</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>현재고:</span><span class="num" style="color:var(--green);font-weight:700">1,250 EA</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>위치:</span><span>Zone B - 05</span></div>
+          <div style="display:flex;justify-content:space-between"><span>상태:</span><span class="badge badge-green">정상(가용)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>

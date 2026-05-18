@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>바코드 출력</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #21: 바코드 출력 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 바코드 트래블러 (Traveler/Routing Sheet) 출력</h3><span class="tip">지시를 시스템에만 남기는 게 아니라, 현장 작업자가 제품 박스에 붙이고 다닐 바코드(QR) 포함 실물 종이 지시서를 미리보기/출력합니다.</span></div></div>
+    <div style="max-width:500px;margin:0 auto;background:#fff;color:#000;padding:30px;border-radius:4px;box-shadow:0 0 20px rgba(255,255,255,0.2)">
+      <div style="border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0">PRODUCTION TRAVELER</h2>
+        <div style="font-family:var(--mono);font-size:24px;letter-spacing:2px">||| | |||| ||</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px">
+        <tr><th style="border:1px solid #000;padding:5px;background:#eee">WO No.</th><td style="border:1px solid #000;padding:5px;font-weight:700">WO-PRINT-991</td><th style="border:1px solid #000;padding:5px;background:#eee">Date</th><td style="border:1px solid #000;padding:5px">2024-10-30</td></tr>
+        <tr><th style="border:1px solid #000;padding:5px;background:#eee">Item</th><td colspan="3" style="border:1px solid #000;padding:5px;font-weight:700">고정밀 센서 어셈블리 (1,000 EA)</td></tr>
+      </table>
+      <div style="font-size:11px;color:#666;text-align:center">--- 하단 라우팅 바코드 스캔 영역 ---</div>
+      <button style="display:block;width:100%;padding:10px;margin-top:20px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:700" onclick="showToast('프린터로 출력이 전송되었습니다.')">🖨️ PDF 라벨 프린터로 인쇄</button>
+    </div>
+  </div>

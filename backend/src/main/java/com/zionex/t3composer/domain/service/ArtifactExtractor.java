@@ -24,13 +24,24 @@ import com.zionex.t3composer.domain.entity.ComposerArtifact;
 @Component
 public class ArtifactExtractor {
 
-    // ===FILE: <path>===  와  ===FILE: <path>  (트레일링 === 없음) 두 형식 모두 인식.
-    // path 는 newline 이전까지 한 줄. 트레일링 === 가 있으면 그것까지 trim.
+    // ===FILE: <path>===  /  ===FILE: <path>  (트레일링 === 없음) 모두 인식.
+    //
+    // ── 인식 포맷 3종 (LLM 이 비결정적으로 사용 — 2026-05-16 사고: (C) 미인식으로 산출물 0개) ──
+    //   (A) ===FILE:<path>===     (B) ```                  (C) ```sql            ← 마커가 펜스 안쪽
+    //       ```lang                   ===FILE:<path>===        ===FILE:<path>===
+    //       content                   ```                      content
+    //       ```                       ```lang                  ```
+    //                                 content
+    //                                 ```
+    // 핵심: 마커 줄 다음에 오는 '펜스-열기 줄'(``` 또는 ```lang) 을 0~N 개 선택 소비한다.
+    //   (A)=1 개 · (B)=2 개(고립 ``` + ```lang) · (C)=0 개(마커가 이미 ```sql 펜스 안쪽).
+    //   content 는 그 다음부터 닫는 ``` 까지. — 이 0~N 매칭이 핵심 (이전엔 1 개 고정 → (C) 실패).
+    // language 는 캡처하지 않고 파일 확장자로 추론 (inferLanguageFromPath).
     private static final Pattern FILE_BLOCK = Pattern.compile(
-            "===\\s*FILE:\\s*([^\\n]+?)(?:\\s*===)?\\s*\\r?\\n"
-          + "```([a-zA-Z0-9+#_-]*)\\s*\\r?\\n"
+            "===\\s*FILE:\\s*([^\\n]+?)(?:\\s*===)?[ \\t]*\\r?\\n"
+          + "(?:```[a-zA-Z0-9+#_-]*[ \\t]*\\r?\\n)*"
           + "([\\s\\S]*?)"
-          + "```",
+          + "\\r?\\n?```",
             Pattern.MULTILINE);
 
     public List<ComposerArtifact> extract(String sessionId, String messageId, String userId, String assistantText) {
@@ -42,13 +53,10 @@ public class ArtifactExtractor {
         Matcher m = FILE_BLOCK.matcher(assistantText);
         while (m.find()) {
             String filePath = m.group(1).trim();
-            String language = m.group(2).trim();
-            String content  = m.group(3);
+            String content  = m.group(2);
 
             String fileName = extractFileName(filePath);
-            if (language == null || language.isBlank()) {
-                language = inferLanguageFromPath(filePath);
-            }
+            String language = inferLanguageFromPath(filePath);
             String artifactType = classifyArtifact(filePath, language);
 
             artifacts.add(ComposerArtifact.builder()

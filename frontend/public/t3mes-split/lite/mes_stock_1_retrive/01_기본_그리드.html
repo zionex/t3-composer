@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>기본 그리드</title>
+<!-- T3MES UI Pattern · mes_stock_1_retrive · TabPage #1: 기본 그리드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+  <div class="sec-hdr"><div><h3>① 마스터 그리드 뷰</h3><span class="tip">가장 기본적인 엑셀 형태의 재고 조회. 다양한 조건으로 필터링합니다.</span></div></div>
+  <div class="card"><div class="grid4"><div><input type="text" class="inp" placeholder="품목코드/명 검색"></div><div><select class="inp"><option>모든 창고</option><option>본사 물류센터</option></select></div><div><select class="inp"><option>카테고리 전체</option></select></div><div><button class="btn btn-blue" style="width:100%" onclick="genP0()">조회</button></div></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th>카테고리</th><th>창고</th><th class="num">현재고</th><th class="num">가용재고</th><th class="num">단가</th><th>상태</th></tr></thead><tbody id="tb0"></tbody></table></div>
+</div>

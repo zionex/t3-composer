@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>긴급 오더</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #10: 긴급 오더 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 긴급 지시 (Hot Order) 새치기 끼워넣기</h3><span class="tip">이미 꽉 찬 현장 스케줄 큐(Queue)에 빨간색의 초긴급 오더를 드래그하여 최우선 순위로 강제 삽입합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 대기중인 긴급 오더 (Hot)</div><div class="badge badge-red" style="padding:16px;font-size:14px;cursor:grab;width:100%;text-align:center" draggable="true" ondragstart="hotDrag(event)">[긴급] 삼성전자 클레임 대체품 500개</div></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">현장 CNC 1호기 대기열 (Queue)</div><div style="display:flex;flex-direction:column;gap:8px;padding-bottom:20px" id="hot-queue" ondragover="event.preventDefault()" ondrop="hotDrop(event)"><div style="padding:12px;background:var(--surface);border:1px solid var(--border)">1순위: 일반 작업 (2,000개)</div><div style="padding:12px;background:var(--surface);border:1px solid var(--border)">2순위: 일반 작업 (5,000개)</div></div></div>
+    </div>
+  </div>

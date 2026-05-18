@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>안전재고 경고</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #3: 안전재고 경고 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 안전재고 및 품절 경고 (Safety Stock Alert)</h3><span class="tip">현재고가 안전재고(Safety Stock) 밑으로 떨어진 위험 품목들만 시뻘겋게 필터링하여 보여줍니다.</span></div><button class="btn btn-blue" onclick="showToast('부족 품목 일괄 발주 기안 전송')">부족분 일괄 발주 생성</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th style="text-align:right">현재고</th><th style="text-align:right">안전재고 기준</th><th style="text-align:right;color:var(--rose)">부족 수량 (Shortage)</th><th>위험도 상태</th></tr></thead><tbody id="tb2"></tbody></table></div>
+  </div>

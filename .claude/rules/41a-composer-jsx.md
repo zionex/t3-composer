@@ -36,17 +36,19 @@ import {
 
 허용값: `'text'` · `'number'` · `'datetime'` · `'boolean'` · `'group'` (컬럼 그룹 헤더)
 
+> **컬럼 너비(`width`)** — 헤더 명칭이 잘리지 않도록 여유있게 확보한다. `width` 는 (헤더 명칭 폭)과 (셀 내용 폭) 중 넓은 쪽 이상으로 잡는다. 한글 헤더 기준 `width ≥ 헤더글자수 × 16 + 48` (예: 5자 헤더 → 128 이상). 역할별 권장 최소: 코드/번호/짧은날짜 **110** · 일반 명칭 **140** · 일시(`yyyy-MM-dd HH:mm:ss`) **170** · 설명/비고 **220+**. 헤더가 6자 이상이거나 단위·괄호를 포함하면 더 넓게. `width:50~90` 같은 과소 지정은 헤더가 잘려 금지. Hook (`composer-jsx.sh CG-WIDTH`) 가 width 미지정·과소(<100) 컬럼을 warn 한다. shim/wingui BaseGrid 는 컬럼별 `width` 를 그대로 존중하므로(`fitStyle:'none'` — `rules/50 §13.12`) 여기서 지정한 값이 곧 렌더 너비다.
+
 ```jsx
 let gridItems = [
-  { name: 'userId',     dataType: 'text',     headerText: '사용자 ID', width: 130, textAlignment: 'center', editable: true,
+  { name: 'userId',     dataType: 'text',     headerText: '사용자 ID', width: 140, textAlignment: 'center', editable: true,
     validRules: [{ criteria: 'required' }] },
-  { name: 'userNm',     dataType: 'text',     headerText: '사용자명',   width: 120, editable: true },
-  { name: 'userTp',     dataType: 'text',     headerText: '사용자유형', width: 110, textAlignment: 'center', editable: true,
+  { name: 'userNm',     dataType: 'text',     headerText: '사용자명',   width: 140, editable: true },
+  { name: 'userTp',     dataType: 'text',     headerText: '사용자유형', width: 130, textAlignment: 'center', editable: true,
     useDropdown: true, lookupDisplay: true, values: ['ADMIN','NORMAL','GUEST'], labels: ['ADMIN','NORMAL','GUEST'] },
-  { name: 'useYnBool',  dataType: 'boolean',  headerText: '사용여부',   width: 80,  textAlignment: 'center', editable: true },
-  { name: 'joinDt',     dataType: 'datetime', headerText: '입사일',     width: 110, textAlignment: 'center', editable: true,
+  { name: 'useYnBool',  dataType: 'boolean',  headerText: '사용여부',   width: 110, textAlignment: 'center', editable: true },
+  { name: 'joinDt',     dataType: 'datetime', headerText: '입사일',     width: 120, textAlignment: 'center', editable: true,
     displayType: 'date', datetimeFormat: 'yyyy-MM-dd', editor: { type: 'date', datetimeFormat: 'yyyy-MM-dd' } },
-  { name: 'createDttm', dataType: 'datetime', headerText: '등록일시',   width: 150, textAlignment: 'center', editable: false,
+  { name: 'createDttm', dataType: 'datetime', headerText: '등록일시',   width: 170, textAlignment: 'center', editable: false,
     datetimeFormat: 'yyyy-MM-dd HH:mm:ss' },
 ];
 

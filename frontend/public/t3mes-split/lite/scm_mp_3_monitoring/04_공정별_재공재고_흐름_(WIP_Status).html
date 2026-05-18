@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>공정별 재공/재고 흐름 (WIP Status)</title>
+<!-- T3MES UI Pattern · scm_mp_3_monitoring · TabPage #4: 공정별 재공/재고 흐름 (WIP Status) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p3">
+      <div class="sec-hdr"><div><h3>4. 공정별 재공/재고 흐름 (WIP Status)</h3><span class="tip">계획 진행에 따라 각 공정에 머물러 있는 재공품(WIP)을 추적합니다.</span></div></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">공정별 재공 누적 현황 (Funnel)</div><div id="p3-funnel" style="display:flex;flex-direction:column;gap:12px;margin-top:10px"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">상세 대기 내역 (Aging)</div><div class="tbl-wrap" style="border:none"><table class="tbl"><thead><tr><th>발주번호</th><th>현재 공정(위치)</th><th class="num">재공 수량</th><th class="num">체류 시간</th><th>상태</th></tr></thead><tbody id="tb3"></tbody></table></div></div>
+      </div>
+    </div>

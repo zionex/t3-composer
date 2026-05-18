@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM Master Data Management (16 Types - Ultimate Visual Version)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0d16;--surface:#111827;--surface2:#1a2035;--surface3:#212840;--surface4:#2a3352;
+  --border:#2d3a5c;--border2:#3d4e7a;
+  --text:#dde4f5;--text2:#8a97b8;--text3:#4a5578;
+  --green:#00d68f;--green-dim:#00d68f18;--green-mid:#00d68f44;
+  --red:#ff4d6d;--red-dim:#ff4d6d18;--red-mid:#ff4d6d44;
+  --amber:#ffb347;--amber-dim:#ffb34718;--amber-mid:#ffb34744;
+  --blue:#4d9fff;--blue-dim:#4d9fff18;--blue-mid:#4d9fff44;
+  --cyan:#00e5ff;--cyan-dim:#00e5ff18;--cyan-mid:#00e5ff44;
+  --purple:#9d72ff;--purple-dim:#9d72ff18;--purple-mid:#9d72ff44;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  --sans:'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;line-height:1.5;overflow-y:scroll;overflow-x:hidden}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border2) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:6px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.tab-btn{flex-shrink:0;padding:10px 14px;border:none;background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:1px 5px;border-radius:3px;font-weight:700}
+
+.t-b.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-b.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-g.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}.t-g.active .tab-num{color:var(--green);background:var(--green-dim)}
+.t-a.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-a.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-p.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-p.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-c.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-c.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+.t-r.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}.t-r.active .tab-num{color:var(--red);background:var(--red-dim)}
+
+/* Content */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:flex;flex-direction:column;gap:16px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;flex-direction:column}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:11px;color:var(--text3);display:block;margin-top:4px}
+
+/* Table */
+.tbl-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);flex:1;min-height:300px;max-height:650px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:10px 12px;text-align:left;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);transition:background 0.15s}
+.tbl tbody tr:hover td{background:var(--surface3)}
+.tbl td.num, .tbl th.num{text-align:right;font-family:var(--mono);font-size:12px}
+
+/* Selectable Rows (Master-Detail) */
+.sel-row{cursor:pointer}
+.sel-row.active td{background:var(--blue-dim);border-color:var(--blue-mid)}
+.sel-row:hover td{background:var(--surface4)}
+
+/* UI Elements */
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.b-blue{background:var(--blue-dim);color:var(--blue)}.b-green{background:var(--green-dim);color:var(--green)}.b-amber{background:var(--amber-dim);color:var(--amber)}.b-red{background:var(--red-dim);color:var(--red)}.b-cyan{background:var(--cyan-dim);color:var(--cyan)}.b-purple{background:var(--purple-dim);color:var(--purple)}.b-gray{background:var(--surface3);color:var(--text3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:1px solid;border-radius:var(--radius);font-size:12px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s}
+.btn-blue{background:var(--blue-dim);border-color:var(--blue-mid);color:var(--blue)}.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
+.btn-green{background:var(--green-dim);border-color:var(--green-mid);color:var(--green)}
+.btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-row{display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:8px;align-items:center}
+.label{font-size:11px;color:var(--text2);font-weight:700}
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);width:100%;outline:none;font-family:var(--sans);font-size:12px}
+.inp:focus{border-color:var(--blue)}
+
+.tree-indent{display:inline-block;width:20px;color:var(--border2);text-align:right;padding-right:4px}
+.thumb{width:32px;height:32px;background:var(--surface4);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border:1px solid var(--border)}
+
+/* ==== NEW: Routing Flow Visual CSS ==== */
+.rtg-flow-wrap { display:flex; gap:12px; overflow-x:auto; padding:16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:16px; align-items:center; scrollbar-width:thin; }
+.rtg-node { min-width:130px; padding:12px; background:var(--surface3); border:2px solid var(--blue-mid); border-radius:8px; text-align:center; flex-shrink:0; position:relative; box-shadow:0 4px 6px rgba(0,0,0,0.2); }
+.rtg-node .seq { font-size:10px; color:var(--blue); margin-bottom:6px; font-weight:700; font-family:var(--mono); background:var(--blue-dim); display:inline-block; padding:2px 6px; border-radius:4px; }
+.rtg-node .wc { font-family:var(--mono); font-weight:700; color:var(--text); font-size:13px; }
+.rtg-node .desc { font-size:11px; color:var(--text2); margin-top:6px; }
+.rtg-arrow { color:var(--text3); font-weight:700; font-size:20px; flex-shrink:0; }
+
+/* ==== NEW: BOM Visual Tree CSS ==== */
+.bom-ul { list-style:none; padding-left:24px; margin:0; border-left:1px dashed var(--border2); position:relative; }
+.bom-ul.root { padding-left:0; border-left:none; }
+.bom-li { padding:6px 0; position:relative; }
+.bom-li::before { content:''; position:absolute; left:-24px; top:18px; width:20px; border-top:1px dashed var(--border2); }
+.bom-li.root::before { display:none; }
+.bom-li:last-child { border-left:1px solid var(--surface); margin-left:-1px; } /* hide vertical line extension */
+.bom-box { display:inline-flex; align-items:center; gap:10px; padding:6px 12px; background:var(--surface3); border:1px solid var(--border); border-radius:6px; transition:border 0.2s; }
+.bom-box:hover { border-color:var(--cyan); }
+.bom-code { font-family:var(--mono); font-weight:700; color:var(--text); }
+.bom-qty { color:var(--cyan); font-weight:700; font-size:11px; font-family:var(--mono); background:var(--bg); padding:2px 8px; border-radius:12px; border:1px solid var(--cyan-mid); }
+
+/* Org Tree Specific */
+.org-tree{display:flex;flex-direction:column;gap:4px;padding:10px}
+.org-node{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);position:relative}
+.org-node:hover{border-color:var(--blue-mid);background:var(--surface3)}
+.org-line-v{position:absolute;left:-16px;top:-10px;width:2px;height:100%;background:var(--border2)}
+.org-line-h{position:absolute;left:-16px;top:50%;width:16px;height:2px;background:var(--border2)}
+.org-level-1{margin-left:24px}
+.org-level-2{margin-left:48px}
+.org-level-3{margin-left:72px}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--green);color:var(--green);padding:12px 22px;border-radius:var(--radius);font-size:13px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+<div class="app">
+  <div class="tab-nav" id="tab-nav"></div>
+  <div id="panels">
+
+    <div class="panel active" id="p0">
+      <div class="sec-hdr"><div><h3>1. 품목 마스터 (Item Master)</h3><span class="tip">전체 자재 및 제품 정보</span></div><div class="flex-gap"><button class="btn btn-blue" onclick="showToast('신규 품목 등록 창이 열립니다.')">신규 등록</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th><input type="checkbox"></th><th>이미지</th><th>품목코드</th><th>품목명</th><th>품목유형</th><th>단위</th><th class="num">표준단가</th><th class="num">리드타임</th><th>상태</th></tr></thead><tbody id="tb0"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p1">
+      <div class="sec-hdr"><div><h3>2. 품목 상세 속성 (Item Detail)</h3><span class="tip">좌측 리스트를 클릭하면 우측에 세부 제어 파라미터가 표시됩니다.</span></div></div>
+      <div class="grid2" style="grid-template-columns:320px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">품목 선택 (Master)</div><div class="tbl-wrap" style="border:none;max-height:500px"><table class="tbl"><tbody id="tb1-list"></tbody></table></div></div>
+        <div class="card" style="margin:0;padding:24px">
+          <div class="card-title" style="font-size:18px;color:var(--cyan);border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:20px" id="p1-title">품목을 선택하세요</div>
+          <div class="grid2" id="p1-form" style="opacity:0.3;pointer-events:none">
+            <div>
+              <div class="form-row"><div class="label">품목명 (Desc)</div><input class="inp" id="p1-desc" value=""></div>
+              <div class="form-row"><div class="label">규격 (Spec)</div><input class="inp" id="p1-spec" value=""></div>
+              <div class="form-row"><div class="label">조달유형</div><select class="inp" id="p1-type"><option>구매(Buy)</option><option>생산(Make)</option><option>외주(Sub)</option></select></div>
+              <div class="form-row"><div class="label">기본 단위 (UOM)</div><input class="inp" id="p1-uom" value=""></div>
+            </div>
+            <div>
+              <div class="form-row"><div class="label">안전재고 (SS)</div><input type="number" class="inp num" id="p1-ss" value=""></div>
+              <div class="form-row"><div class="label">최소발주량 (MOQ)</div><input type="number" class="inp num" id="p1-moq" value=""></div>
+              <div class="form-row"><div class="label">담당자 (PIC)</div><input class="inp" id="p1-pic" value=""></div>
+              <div class="form-row"><div class="label">사용 상태</div><select class="inp" id="p1-stat"><option>Active (사용중)</option><option>Obsolete (단종)</option></select></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;text-align:right"><button class="btn btn-blue" style="width:140px" onclick="showToast('품목 상세 정보가 저장되었습니다.')">수정 내용 저장</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="p2">
+      <div class="sec-hdr">
+        <div><h3>3. BOM 구조 현황 (BOM Explosion / Implosion)</h3><span class="tip">좌측은 수량 및 구조를 시각화한 트리, 우측은 세부 파라미터 테이블입니다.</span></div>
+        <div class="flex-gap">
+          <button class="btn btn-blue active" id="btn-bom-fwd" onclick="toggleBOM('fwd')">▼ 정전개 (Explosion)</button>
+          <button class="btn btn-ghost" id="btn-bom-bwd" onclick="toggleBOM('bwd')">▲ 역전개 (Implosion)</button>
+        </div>
+      </div>
+      <div class="grid2" style="grid-template-columns: 350px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">시각적 구조 (Visual Tree)</div><div style="background:var(--bg);padding:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:auto;max-height:550px" id="bom-visual-tree"></div></div>
+        <div class="card" style="margin:0"><div class="card-title">세부 속성 (Detail Table)</div><div class="tbl-wrap" style="border:none;max-height:550px"><table class="tbl"><thead id="th2"></thead><tbody id="tb2"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p3">
+      <div class="sec-hdr"><div><h3>4. 공용 부품 매트릭스 (Where-Used Matrix)</h3><span class="tip">부품별 완제품 사용처 집계 및 횡적 편집</span></div><button class="btn btn-amber" onclick="showToast('소요량 매트릭스 저장 완료')">일괄 저장</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead id="th3"></thead><tbody id="tb3"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p4">
+      <div class="sec-hdr"><div><h3>5. 표준 공정 정의 (Process Master)</h3><span class="tip">Work Center 및 표준 임율/경비율 관리</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공정분류</th><th>공정코드 (WC)</th><th>공정명</th><th>공정그룹</th><th class="num">표준가동비(Hr)</th><th class="num">표준임율(Hr)</th><th>필수 자격(Skill)</th><th>상태</th></tr></thead><tbody id="tb4"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p5">
+      <div class="sec-hdr"><div><h3>6. 생산 라우팅 (Routing Sequence)</h3><span class="tip">좌측에서 대상 품목을 선택하면 우측에 흐름도(Flow)와 상세 정보가 조회됩니다.</span></div></div>
+      <div class="grid2" style="grid-template-columns:300px 1fr">
+        <div class="card" style="margin:0"><div class="card-title">대상 품목 (Master)</div><div class="tbl-wrap" style="border:none"><table class="tbl"><tbody id="tb5-list"></tbody></table></div></div>
+        <div class="card" style="margin:0">
+          <div class="card-title flex-between"><span>라우팅 시퀀스 & 흐름도</span> <span class="badge b-cyan" id="p5-rtg-title">선택 대기</span></div>
+          <div class="rtg-flow-wrap" id="p5-rtg-flow">
+            <div style="padding:20px;text-align:center;color:var(--text3);width:100%">좌측에서 품목을 선택해주세요.</div>
+          </div>
+          <div class="tbl-wrap" style="border:none;min-height:200px"><table class="tbl"><thead><tr><th>Seq</th><th>공정코드</th><th>공정명</th><th>할당 설비그룹</th><th class="num">준비시간(Setup)</th><th class="num">가동시간(Run)</th></tr></thead><tbody id="tb5-rtg"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">좌측에서 품목을 선택해주세요.</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="p6">
+      <div class="sec-hdr"><div><h3>7. 라인/설비 구조 (Eqp Hierarchy)</h3><span class="tip">공장-라인-설비로 이어지는 자산 계층도</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>계층도 (Plant➔Line➔Eqp)</th><th>자산 ID</th><th>명칭</th><th>모델명</th><th>제조사</th><th>상태</th></tr></thead><tbody id="tb6"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p7">
+      <div class="sec-hdr"><div><h3>8. 설비 Capa 및 제원 (Capacity Master)</h3><span class="tip">설비별 생산 능력 한계 및 점검 주기 관리</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비코드</th><th>라인 소속</th><th>설비명</th><th class="num">일일 최대 Capa(H)</th><th class="num">UPH(시간당 생산량)</th><th class="num">기본 효율(%)</th><th>정기점검 주기</th></tr></thead><tbody id="tb7"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p8">
+      <div class="sec-hdr"><div><h3>9. 거점 및 창고 로케이션 (Site & Warehouse)</h3><span class="tip">물리적 보관 장소 및 하위 Bin 정의</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>거점/창고 코드</th><th>거점명</th><th>유형(Type)</th><th>위치(Address)</th><th class="num">가용면적(㎡)</th><th>상태</th></tr></thead><tbody id="tb8"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p9">
+      <div class="sec-hdr"><div><h3>10. 고객사 및 납기/SLA (Customer Master)</h3><span class="tip">매출처 및 고객 요구 리드타임(SLA) 기준</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>고객사코드</th><th>고객사명</th><th>우선 등급</th><th>국가</th><th class="num">표준 SLA 납기(일)</th><th>인코텀즈</th><th>상태</th></tr></thead><tbody id="tb9"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p10">
+      <div class="sec-hdr"><div><h3>11. 협력사 및 외주처 (Vendor Master)</h3><span class="tip">원부자재 공급 및 임가공 파트너 정보와 평가 등급</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>협력사코드</th><th>협력사명</th><th>거래 분류</th><th class="num">최근 품질점수</th><th class="num">최근 납기점수</th><th>주요 취급 품목</th><th>거래 상태</th></tr></thead><tbody id="tb10"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p11">
+      <div class="sec-hdr"><div><h3>12. 소싱 할당 비율 (Sourcing Quota)</h3><span class="tip">멀티 소싱 시 계획 엔진이 수량을 분배하는 기준 비율(%)</span></div><button class="btn btn-blue" onclick="showToast('비율 재분배 저장 완료')">비율 저장</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>대상 품목코드</th><th>자재명</th><th>1순위 공급사 (%)</th><th>2순위 공급사 (%)</th><th>3순위 공급사 (%)</th><th class="num">비율 합계</th></tr></thead><tbody id="tb11"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p12">
+      <div class="sec-hdr"><div><h3>13. 회사 조직도 (Organization Tree)</h3><span class="tip">회사, 본부, 실, 팀 단위의 SCM 관련 조직 계층 구조도입니다.</span></div><button class="btn btn-ghost" onclick="showToast('조직도 펼치기/접기')">전체 펼치기</button></div>
+      <div class="card" style="background:var(--surface);overflow-y:auto;max-height:600px;margin:0">
+        <div class="org-tree" id="org-tree"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p13">
+      <div class="sec-hdr"><div><h3>14. 작업자 숙련도 (Skill Matrix)</h3><span class="tip">작업자별 투입 가능한 공정과 등급(S, A, B, C)을 정의하여 인적 제약에 활용합니다.</span></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>사원번호</th><th>성명</th><th>소속 조직</th><th style="text-align:center">SMT 라인</th><th style="text-align:center">수삽 공정</th><th style="text-align:center">정밀 조립</th><th style="text-align:center">최종 검사</th><th style="text-align:center">특수 용접</th></tr></thead><tbody id="tb13"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="p14">
+      <div class="sec-hdr"><div><h3>15. 공장 캘린더 및 근무조 (Factory Calendar & Shift)</h3><span class="tip">교대조 패턴 및 지정된 휴일(비가동일) 설정</span></div></div>
+      <div class="grid2">
+        <div class="card" style="margin:0"><div class="card-title">교대조 패턴 (Shift Pattern)</div><div class="tbl-wrap" style="border:none;min-height:300px"><table class="tbl"><thead><tr><th>패턴 코드</th><th>명칭</th><th>시작 시간</th><th>종료 시간</th><th class="num">휴게시간</th></tr></thead><tbody id="tb14-s"></tbody></table></div></div>
+        <div class="card" style="margin:0"><div class="card-title">공장 휴일 설정 (Holidays)</div><div class="tbl-wrap" style="border:none;min-height:300px"><table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>적용 대상(Plant)</th><th>사유</th></tr></thead><tbody id="tb14-h"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p15">
+      <div class="sec-hdr"><div><h3>16. 마스터 데이터 정합성 검증 (MDM Audit)</h3><span class="tip">BOM 끊김, 라우팅 누락 등 스케줄링 에러를 유발하는 마스터 오류를 실시간 검출합니다.</span></div><button class="btn btn-red" onclick="showToast('재검증 수행 중...')">검증 재실행</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>데이터 도메인</th><th>심각도 (Severity)</th><th>오류 코드</th><th>대상 항목 (ID)</th><th>오류 상세 내역</th><th>수정/조치</th></tr></thead><tbody id="tb15"></tbody></table></div>
+    </div>
+
+  </div>
+</div>
+<div id="toast">알림 메시지</div>
+
+<script>
+// --- Core Utils ---
+const $ = id => document.getElementById(id);
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const rItem = arr => arr[rInt(0,arr.length-1)];
+const fmt = n => n.toLocaleString();
+function showToast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+const TABS = [
+  {n:'품목 마스터 조회', c:'t-b'}, {n:'품목 상세 폼', c:'t-b'}, {n:'BOM 전개/역전개', c:'t-b'}, {n:'공용 부품 매트릭스', c:'t-b'},
+  {n:'표준 공정 마스터', c:'t-g'}, {n:'라우팅 흐름도', c:'t-g'}, {n:'설비 계층 구조', c:'t-g'}, {n:'설비 제원/Capa', c:'t-g'},
+  {n:'창고/로케이션', c:'t-a'}, {n:'고객사 및 SLA', c:'t-a'}, {n:'협력사/외주처', c:'t-a'}, {n:'소싱 할당률', c:'t-a'},
+  {n:'회사 조직도(Tree)', c:'t-p'}, {n:'작업자 스킬 매트릭스', c:'t-p'}, {n:'공장 달력/근무조', c:'t-p'}, {n:'MDM 정합성 검증', c:'t-r'}
+];
+
+const ITEM_NAMES = ['고성능 메인보드 V1', 'OLED 디스플레이 27"', '마이크로 컨트롤러 M4', '하우징 알루미늄 프레임', '리튬 배터리 팩 5000mAh', '전원 모듈 800W', '정밀 센서 어셈블리', 'BLDC 모터 유닛', '10K Ohm 저항기 세트', '방열판(Heatsink) A형'];
+const PROCESS_NAMES = ['SMT (표면실장)', '회로 세척 및 건조', 'Wave Soldering (수삽)', '메인 어셈블리 (조립)', '기능 검사 (FCT)', '에이징 테스트 (Aging)', '최종 포장 (Packing)'];
+const VENDORS = ['(주)에이테크', '글로벌 파츠', '성일정밀', '비전전자', '대진화학', '서울반도체', '현대모비스'];
+const CUSTS = ['삼성전자', 'LG전자', '현대자동차', '테슬라(Tesla)', '애플(Apple)', '소니(Sony)'];
+const SITES = ['창원 제1플랜트', '창원 제2플랜트', '평택 SMT센터', '구미 통합물류', '베트남 하노이 조립공장'];
+
+// Data Stores for Master/Detail
+let itemDataStore = [];
+let routingDataStore = [];
+
+// --- Init & Event Listeners ---
+try {
+  document.addEventListener('DOMContentLoaded', () => {
+    const nav = $('tab-nav');
+    if(!nav) return;
+    TABS.forEach((t, i) => {
+      const btn = document.createElement('button');
+      btn.className = `tab-btn ${t.c} ${i===0?'active':''}`;
+      btn.innerHTML = `${t.n} <span class="tab-num">${i+1}</span>`;
+      btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+      };
+      nav.appendChild(btn);
+    });
+    genAllData();
+  });
+
+  // --- Generation Functions ---
+  function genAllData(){
+    // P0: Item Master
+    let h0 = '';
+    for(let i=1;i<=40;i++){
+      const type = rInt(1,10)>7?'반제품(HALB)':rInt(1,10)>4?'완제품(FERT)':'원자재(ROH)';
+      const tCls = type.includes('FERT')?'b-blue':type.includes('HALB')?'b-green':'b-gray';
+      const buy = type.includes('ROH')?'구매(Buy)':'생산(Make)';
+      const emoji = type.includes('FERT')?'💻':type.includes('HALB')?'⚙️':'🔩';
+      const id = `ITM-2026-${String(i).padStart(4,'0')}`;
+      const name = rItem(ITEM_NAMES) + (i%3===0?' (개선형)':'');
+      
+      // Store for Tab 1 Master/Detail
+      itemDataStore.push({ id, name, type, buy, uom:'EA', ss:rInt(1,50)*100, moq:rInt(5,20)*100, pic:rItem(['SCM팀 김철수','자재팀 이영희','생산팀 박민준']) });
+
+      h0 += `<tr><td><input type="checkbox"></td><td><div class="thumb">${emoji}</div></td><td style="font-family:var(--mono);color:var(--text);font-weight:700">${id}</td><td>${name}</td><td><span class="badge ${tCls}">${type}</span></td><td>EA</td><td class="num">₩ ${fmt(rInt(10,500)*1000)}</td><td class="num">${rInt(1,30)} 일</td><td>${buy}</td><td><span class="badge b-green">사용중</span></td></tr>`;
+    }
+    $('tb0').innerHTML = h0;
+
+    // P1: Item Detail (Master/Detail)
+    let h1 = '';
+    itemDataStore.forEach((item, idx) => {
+      h1 += `<tr class="sel-row" id="p1-row-${idx}" onclick="selectItemDetail(${idx})"><td><div style="font-family:var(--mono);font-weight:700;color:var(--cyan)">${item.id}</div><div style="font-size:10px;color:var(--text2);margin-top:2px">${item.name}</div></td></tr>`;
+    });
+    $('tb1-list').innerHTML = h1;
+    if(itemDataStore.length > 0) selectItemDetail(0);
+
+    // P2: BOM Explosion/Implosion Initial load
+    toggleBOM('fwd');
+
+    // P3: Matrix
+    let th3 = `<tr><th style="min-width:180px;position:sticky;left:0;z-index:15">공용 부품 (Sub-components)</th>`;
+    const parentItems = ['Galaxy S26', 'Galaxy S26+', 'Galaxy Ultra', 'Galaxy Fold 8'];
+    parentItems.forEach(p => th3 += `<th style="text-align:center">${p}</th>`);
+    $('th3').innerHTML = th3 + `<th class="num" style="position:sticky;right:0;z-index:15">총합</th></tr>`;
+    let h3 = '';
+    for(let i=1;i<=30;i++){
+      h3 += `<tr><td style="position:sticky;left:0;z-index:5;background:var(--surface2)"><div style="font-family:var(--mono);font-weight:700;color:var(--cyan)">COMP-IC-${String(i).padStart(3,'0')}</div><div style="font-size:10px;color:var(--text2)">공용 칩셋 / 센서 파트 ${i}</div></td>`;
+      let rowSum = 0;
+      parentItems.forEach(() => {
+        const v = Math.random()>0.4 ? rInt(1,8) : 0; rowSum+=v;
+        h3 += `<td style="text-align:center;background:${v>0?'var(--blue-dim)':''}"><input type="text" class="inp inp-sm" style="width:40px;text-align:center;background:transparent;border:none;color:${v>0?'var(--text)':'var(--text3)'};font-weight:${v>0?700:400}" value="${v>0?v:'-'}"></td>`;
+      });
+      h3 += `<td class="num" style="position:sticky;right:0;background:var(--surface2);font-weight:700">${rowSum>0?rowSum:'-'}</td></tr>`;
+    }
+    $('tb3').innerHTML = h3;
+
+    // P4: Process
+    let h4 = '';
+    for(let i=1;i<=25;i++){
+      const p = rItem(PROCESS_NAMES); const isBn = rInt(1,10)>8;
+      h4 += `<tr style="${isBn?'background:var(--red-dim)':''}"><td>${p.split(' ')[0]}류</td><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">WC-${String(i).padStart(3,'0')}</td><td style="font-weight:700">${p} 센터</td><td>${isBn?'병목 공정':'일반 공정'}</td><td class="num">₩ ${fmt(rInt(20,80)*1000)}</td><td class="num">₩ ${fmt(rInt(15,40)*1000)}</td><td>${isBn?'숙련공 S급 필요':'-'}</td><td><span class="badge b-green">Active</span></td></tr>`;
+    }
+    $('tb4').innerHTML = h4;
+
+    // P5: Routing (Master/Detail + Flow)
+    let h5 = '';
+    for(let i=1;i<=20;i++){
+      const rId = `RTG-SET-${String(i).padStart(3,'0')}`;
+      const rName = rItem(ITEM_NAMES);
+      const seqs = [];
+      const len = rInt(3,6); // 3 to 6 steps
+      let st = 10;
+      for(let j=0;j<len;j++){
+        seqs.push({ seq:st, code:`WC-${String(rInt(1,25)).padStart(3,'0')}`, name:rItem(PROCESS_NAMES), grp:`MCHN-GRP-${rInt(1,5)}`, setup:rInt(5,45), run:rInt(1,10) });
+        st += 10;
+      }
+      routingDataStore.push({ id:rId, name:rName, seqs });
+      h5 += `<tr class="sel-row" id="p5-row-${i-1}" onclick="selectRtgDetail(${i-1})"><td><div style="font-family:var(--mono);font-weight:700;color:var(--cyan)">${rId}</div><div style="font-size:10px;color:var(--text2);margin-top:2px">${rName}</div></td></tr>`;
+    }
+    $('tb5-list').innerHTML = h5;
+    if(routingDataStore.length > 0) selectRtgDetail(0);
+
+    // P6: Eqp Hierarchy
+    let h6 = '';
+    SITES.forEach((site, si) => {
+      h6 += `<tr><td><span class="badge b-blue">Site (거점)</span></td><td style="font-weight:700;font-family:var(--mono)">PLANT-${si+1}</td><td style="font-weight:700;color:var(--blue)">${site}</td><td>-</td><td>-</td><td><span class="badge b-green">운영중</span></td></tr>`;
+      for(let l=1;l<=2;l++){
+        h6 += `<tr><td><span class="tree-indent">└</span> <span class="badge b-green">Line (라인)</span></td><td style="font-family:var(--mono)">LN-${si+1}-0${l}</td><td style="font-weight:700">${site.split(' ')[0]} ${l}라인</td><td>-</td><td>-</td><td><span class="badge b-green">정상 가동</span></td></tr>`;
+        for(let e=1;e<=rInt(2,4);e++) {
+          const isErr = rInt(1,10)>8;
+          h6 += `<tr style="${isErr?'background:var(--amber-dim)':''}"><td><span class="tree-indent">&nbsp;&nbsp;└</span> <span class="badge b-gray">Eqp (설비)</span></td><td style="font-family:var(--mono);color:var(--text2)">EQP-${si+1}-${l}-0${e}</td><td style="color:var(--text2)">정밀 가공 로봇 ${e}호기</td><td>YASKAWA-RBT-X${e}</td><td>KE-Systems Corp.</td><td>${isErr?'<span class="badge b-amber">PM 점검중</span>':'<span class="badge b-gray">대기중</span>'}</td></tr>`;
+        }
+      }
+    });
+    $('tb6').innerHTML = h6;
+
+    // P7: Capa
+    let h7 = '';
+    for(let i=1;i<=30;i++){
+      const isBn = rInt(1,10)>8;
+      h7 += `<tr style="${isBn?'background:var(--red-dim)':''}">
+        <td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">MCHN-${String(i).padStart(3,'0')}</td>
+        <td>${rItem(SITES)} ${rInt(1,3)}라인</td>
+        <td style="font-weight:700">초정밀 절삭기 ${i}호</td>
+        <td class="num" style="color:${isBn?'var(--red)':'var(--text)'};font-weight:700">${rInt(16,24)} H</td>
+        <td class="num">${rInt(100,500)} EA</td>
+        <td class="num">${rInt(85,99)} %</td>
+        <td class="num" style="font-family:var(--mono);font-size:11px">2026-04-${String(rInt(10,30)).padStart(2,'0')}</td>
+      </tr>`;
+    }
+    $('tb7').innerHTML = h7;
+
+    // P8: Site/WH
+    let h8 = '';
+    SITES.forEach((site, i) => {
+      h8 += `<tr><td style="font-family:var(--mono);font-weight:700;color:var(--blue)">SITE-${String(i+1).padStart(3,'0')}</td><td style="font-weight:700">${site}</td><td><span class="badge b-blue">생산/물류 거점</span></td><td>${rItem(['경기도 평택시','경남 창원시','충남 아산시','베트남 하노이'])}</td><td class="num">${fmt(rInt(10,50)*1000)} ㎡</td><td><span class="badge b-green">Active</span></td></tr>`;
+      for(let w=1; w<=rInt(1,3); w++){
+        h8 += `<tr><td style="font-family:var(--mono);color:var(--text2);padding-left:24px">WH-${i+1}-${w}</td><td style="color:var(--text2)">└ 하위 보관 창고 (Bin) ${w}구역</td><td><span class="badge b-gray">창고(Warehouse)</span></td><td>해당 거점 내부</td><td class="num">${fmt(rInt(1,5)*1000)} ㎡</td><td><span class="badge b-green">Active</span></td></tr>`;
+      }
+    });
+    $('tb8').innerHTML = h8;
+
+    // P9: Customer
+    let h9 = '';
+    CUSTS.forEach((cust, i) => {
+      h9 += `<tr><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">CUST-${String(i+1).padStart(3,'0')}</td><td style="font-weight:700">${cust}</td><td><span class="badge b-red">VVIP (최우선)</span></td><td>대한민국 (KR)</td><td class="num" style="font-weight:700;color:var(--red)">14 일</td><td>FOB (본선인도조건)</td><td><span class="badge b-green">정상 거래</span></td></tr>`;
+    });
+    for(let i=1;i<=25;i++){
+      h9 += `<tr><td style="font-family:var(--mono)">CUST-EXT-${String(i).padStart(3,'0')}</td><td>해외 글로벌 파트너사 ${i}</td><td><span class="badge b-gray">B등급 (일반)</span></td><td>${rItem(['US (미국)','CN (중국)','EU (유럽)'])}</td><td class="num">30 일</td><td>CIF (운임보험료포함)</td><td><span class="badge b-green">정상 거래</span></td></tr>`;
+    }
+    $('tb9').innerHTML = h9;
+
+    // P10: Vendor
+    let h10 = '';
+    VENDORS.forEach((v, i) => {
+      h10 += `<tr><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">VEN-${String(i+1).padStart(3,'0')}</td><td style="font-weight:700">${v}</td><td><span class="badge b-blue">핵심 원자재 공급</span></td><td class="num" style="color:var(--green);font-weight:700">${rInt(90,100)} 점</td><td class="num" style="color:var(--green);font-weight:700">${rInt(90,100)} 점</td><td>PCB 보드, 센서류</td><td><span class="badge b-green">우수 협력사</span></td></tr>`;
+    });
+    for(let i=1;i<=25;i++){
+      const q = rInt(70,95); const d = rInt(60,95); const isWarn = q<80 || d<80;
+      h10 += `<tr style="${isWarn?'background:var(--red-dim)':''}"><td>VEN-SUB-${String(i).padStart(3,'0')}</td><td>일반 외주/임가공사 ${i}</td><td><span class="badge b-gray">외주 임가공</span></td><td class="num" style="color:${q<80?'var(--red)':'var(--text)'}">${q} 점</td><td class="num" style="color:${d<80?'var(--red)':'var(--text)'}">${d} 점</td><td>표면 도금, 단순 조립</td><td>${isWarn?'<span class="badge b-red">경고 (모니터링)</span>':'<span class="badge b-green">정상</span>'}</td></tr>`;
+    }
+    $('tb10').innerHTML = h10;
+
+    // P11: Sourcing Quota
+    let h11 = '';
+    for(let i=1;i<=30;i++){
+      const r1=rInt(40,60); const r2=rInt(20,40); const r3=100-r1-r2;
+      h11 += `<tr><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">MAT-SRC-${String(i).padStart(3,'0')}</td><td style="font-weight:700">${rItem(ITEM_NAMES)} 조달</td>
+      <td>(주)에이테크 <input type="number" class="inp inp-sm" value="${r1}" style="width:55px;font-weight:700;color:var(--cyan)"> %</td>
+      <td>성일정밀 <input type="number" class="inp inp-sm" value="${r2}" style="width:55px"> %</td>
+      <td>동화전자 <input type="number" class="inp inp-sm" value="${r3}" style="width:55px"> %</td>
+      <td class="num" style="font-weight:700;color:var(--green)">100 %</td></tr>`;
+    }
+    $('tb11').innerHTML = h11;
+
+    // P12: Org Tree
+    renderOrgTree();
+
+    // P13: Skill Matrix
+    let h13 = '';
+    const names = ['김철수','이영희','박민준','최수연','정우성','강하나','조민석','윤서진'];
+    for(let i=1;i<=40;i++) {
+      const lv = () => { const l=rItem(['S','A','B','C','-']); return `<span class="badge ${l==='S'?'b-purple':l==='A'?'b-blue':l==='B'?'b-green':l==='C'?'b-amber':'b-gray'}">${l}</span>` };
+      h13 += `<tr><td style="font-family:var(--mono)">EMP-26-${String(i).padStart(3,'0')}</td><td style="font-weight:700">${rItem(names)}</td><td>생산관리 본부 조립 ${i%5+1}팀</td><td style="text-align:center">${lv()}</td><td style="text-align:center">${lv()}</td><td style="text-align:center">${lv()}</td><td style="text-align:center">${lv()}</td><td style="text-align:center">${lv()}</td></tr>`;
+    }
+    $('tb13').innerHTML = h13;
+
+    // P14: Calendar/Shift
+    let h14s = `<tr><td style="font-family:var(--mono);font-weight:700">SFT-DAY-01</td><td style="font-weight:700;color:var(--blue)">주간 1조 (정상)</td><td class="num">08:00</td><td class="num">17:00</td><td class="num" style="color:var(--text3)">1시간 (중식)</td></tr>
+    <tr><td style="font-family:var(--mono);font-weight:700">SFT-NGT-02</td><td style="font-weight:700;color:var(--amber)">야간 2조 (정상)</td><td class="num">20:00</td><td class="num">05:00</td><td class="num" style="color:var(--text3)">1시간 (야식)</td></tr>
+    <tr><td style="font-family:var(--mono);font-weight:700">SFT-EXT-03</td><td style="font-weight:700;color:var(--red)">심야 3조 (잔업)</td><td class="num">05:00</td><td class="num">08:00</td><td class="num" style="color:var(--text3)">없음</td></tr>`;
+    $('tb14-s').innerHTML = h14s;
+    let h14h = '';
+    for(let i=1;i<=12;i++){
+      const isWknd = rInt(1,5)===1;
+      h14h += `<tr><td style="font-family:var(--mono);color:var(--text)">2026-05-${String(rInt(1,31)).padStart(2,'0')}</td><td><span class="badge ${isWknd?'b-gray':'b-red'}">${isWknd?'주말 휴일':'법정 공휴일'}</span></td><td>${isWknd?'전체 공장':'창원 제1플랜트'}</td><td style="color:var(--text2)">${isWknd?'정기 휴무 (스케줄 미반영)':'근로자의 날 / 공장 보수공사'}</td></tr>`;
+    }
+    $('tb14-h').innerHTML = h14h;
+
+    // P15: Audit
+    let h15 = '';
+    for(let i=1;i<=25;i++){
+      const isF = i%4===0; const lv = isF?'b-red':'b-amber';
+      const type = isF?rItem(['BOM 끊김(Orphan)','라우팅 누락']):rItem(['표준단가 0원','안전재고 미설정','단종 자재 사용']);
+      h15 += `<tr style="${isF?'background:var(--red-dim)':''}"><td><span style="font-weight:700">${isF?'BOM / Routing':'Item Master'}</span></td><td><span class="badge ${lv}">${isF?'Fatal (치명적)':'Warning (경고)'}</span></td><td style="font-family:var(--mono);color:var(--text3)">ERR-26-${String(i).padStart(3,'0')}</td><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">${isF?'ROOT-FERT-':'ROH-MAT-'}${rInt(100,999)}</td><td>${type}: 스케줄링 엔진 전개 시 오류를 유발할 수 있습니다.</td><td><button class="btn btn-ghost btn-sm" style="color:var(--cyan);border-color:var(--cyan)" onclick="showToast('해당 마스터 데이터 수정 화면으로 이동합니다.')">수정 링크 ➔</button></td></tr>`;
+    }
+    $('tb15').innerHTML = h15;
+  }
+
+  // --- Master/Detail Interactions ---
+  window.selectItemDetail = function(idx) {
+    document.querySelectorAll('#tb1-list .sel-row').forEach(r=>r.classList.remove('active'));
+    $(`p1-row-${idx}`).classList.add('active');
+    const data = itemDataStore[idx];
+    
+    $('p1-title').innerHTML = `${data.id} <span style="font-size:12px;color:var(--text2);margin-left:12px;font-weight:400">선택됨</span>`;
+    $('p1-form').style.opacity = '1';
+    $('p1-form').style.pointerEvents = 'auto';
+    
+    $('p1-desc').value = data.name;
+    $('p1-spec').value = `표준 규격 (Ver ${rInt(1,5)}.0)`;
+    $('p1-type').value = data.buy.includes('구매')?'구매(Buy)':'생산(Make)';
+    $('p1-uom').value = data.uom;
+    $('p1-ss').value = data.ss;
+    $('p1-moq').value = data.moq;
+    $('p1-pic').value = data.pic;
+    $('p1-stat').value = 'Active (사용중)';
+  };
+
+  window.selectRtgDetail = function(idx) {
+    document.querySelectorAll('#tb5-list .sel-row').forEach(r=>r.classList.remove('active'));
+    $(`p5-row-${idx}`).classList.add('active');
+    const data = routingDataStore[idx];
+    
+    $('p5-rtg-title').textContent = data.id;
+    
+    // 1. Flow Visual
+    let flowHtml = '';
+    data.seqs.forEach((s, index) => {
+       flowHtml += `<div class="rtg-node"><div class="seq">Seq ${s.seq}</div><div class="wc">${s.code}</div><div class="desc">${s.name}</div></div>`;
+       if (index < data.seqs.length - 1) flowHtml += `<div class="rtg-arrow">➔</div>`;
+    });
+    $('p5-rtg-flow').innerHTML = flowHtml;
+
+    // 2. Table Detail
+    let h = '';
+    data.seqs.forEach(s => {
+      h += `<tr><td class="num" style="font-weight:700">${s.seq}</td><td style="font-family:var(--mono);color:var(--cyan)">${s.code}</td><td style="font-weight:700">${s.name}</td><td style="font-family:var(--mono);color:var(--text2)">${s.grp}</td><td class="num"><input type="number" class="inp inp-sm num" value="${s.setup}" style="width:60px"> 분</td><td class="num"><input type="number" class="inp inp-sm num" value="${s.run}" style="width:60px"> 분/EA</td></tr>`;
+    });
+    $('tb5-rtg').innerHTML = h;
+  };
+
+  // --- BOM Forward/Backward ---
+  window.toggleBOM = function(type) {
+    $('btn-bom-fwd').classList.toggle('active', type==='fwd');
+    $('btn-bom-bwd').classList.toggle('active', type==='bwd');
+    
+    let th='', tb='', tree='';
+    if(type === 'fwd') {
+      // Table Header
+      th = `<tr><th>레벨(Lvl)</th><th>하위 자재코드 (Component)</th><th>자재명</th><th class="num">소요량(Qty)</th><th>단위</th><th>투입 공정</th><th>조달 유형</th></tr>`;
+      
+      // Tree + Table Loop
+      tree = `<ul class="bom-ul root"><li class="bom-li root"><div class="bom-box"><span class="badge b-blue">L0</span> <span class="bom-code">FERT-MB-2026</span> <span class="bom-qty">1.0 EA</span></div><ul class="bom-ul">`;
+      tb += `<tr><td><span class="badge b-blue">L0</span> (기준)</td><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">FERT-MB-2026</td><td style="font-weight:700">고성능 메인보드 V1</td><td class="num">1.0</td><td>EA</td><td>-</td><td>사내생산(Make)</td></tr>`;
+      
+      for(let i=1;i<=4;i++){
+        const subQty = rInt(1,4);
+        tree += `<li class="bom-li"><div class="bom-box"><span class="badge b-green">L1</span> <span class="bom-code">HALB-SUB-${i}</span> <span class="bom-qty">${subQty}.0 EA</span></div><ul class="bom-ul">`;
+        tb += `<tr><td><span class="tree-indent">└</span> <span class="badge b-green">L1</span></td><td style="font-family:var(--mono)">HALB-SUB-${i}</td><td style="font-weight:700">하위 어셈블리 파트 ${i}</td><td class="num">${subQty}.0</td><td>EA</td><td>SMT 라인</td><td>사내생산(Make)</td></tr>`;
+        
+        for(let j=1;j<=rInt(2,3);j++){
+          const matQty = rInt(5,20);
+          tree += `<li class="bom-li"><div class="bom-box"><span class="badge b-gray">L2</span> <span class="bom-code">ROH-MAT-${i}-${j}</span> <span class="bom-qty">${matQty}.0 EA</span></div></li>`;
+          tb += `<tr><td><span class="tree-indent">&nbsp;&nbsp;└</span> <span class="badge b-gray">L2</span></td><td style="font-family:var(--mono);color:var(--text2)">ROH-MAT-${i}-${j}</td><td style="color:var(--text2)">기초 부품/나사류 ${j}</td><td class="num">${matQty}.0</td><td>EA</td><td>조립 공정</td><td>외부구매(Buy)</td></tr>`;
+        }
+        tree += `</ul></li>`;
+      }
+      tree += `</ul></li></ul>`;
+    } else {
+      // Backward
+      th = `<tr><th>레벨(Lvl)</th><th>상위 완제품/반제품 코드 (Parent)</th><th>제품명</th><th class="num">역소요량(사용량)</th><th>단위</th><th>적용 시작일</th><th>상태</th></tr>`;
+      
+      tree = `<ul class="bom-ul root"><li class="bom-li root"><div class="bom-box" style="border-color:var(--red-mid)"><span class="badge b-red">Target</span> <span class="bom-code">ROH-MAT-COM-01</span> <span class="bom-qty">-</span></div><ul class="bom-ul">`;
+      tb += `<tr><td><span class="badge b-red">Target</span></td><td style="font-family:var(--mono);font-weight:700;color:var(--amber)">ROH-MAT-COM-01</td><td style="font-weight:700;color:var(--amber)">10K Ohm 저항기 세트 (공용)</td><td class="num">-</td><td>EA</td><td>-</td><td><span class="badge b-green">Active</span></td></tr>`;
+      
+      for(let i=1;i<=4;i++){
+        const subQty = rInt(2,10);
+        tree += `<li class="bom-li"><div class="bom-box"><span class="badge b-green">L-1</span> <span class="bom-code">HALB-BOARD-${i}</span> <span class="bom-qty">${subQty}.0 EA</span></div><ul class="bom-ul">`;
+        tb += `<tr><td><span class="tree-indent">↑</span> <span class="badge b-green">L-1</span> (Parent)</td><td style="font-family:var(--mono)">HALB-BOARD-${i}</td><td style="font-weight:700">보드 어셈블리 타입 ${i}</td><td class="num">${subQty}.0</td><td>EA</td><td style="font-family:var(--mono);font-size:10px;color:var(--text3)">2024-01-01</td><td>사용중</td></tr>`;
+        
+        for(let j=1;j<=rInt(1,2);j++){
+          const prodQty = rInt(1,2);
+          tree += `<li class="bom-li"><div class="bom-box"><span class="badge b-blue">L-2</span> <span class="bom-code">FERT-PROD-${i}${j}</span> <span class="bom-qty">${prodQty}.0 EA</span></div></li>`;
+          tb += `<tr><td><span class="tree-indent">&nbsp;&nbsp;↑</span> <span class="badge b-blue">L-2</span> (Top)</td><td style="font-family:var(--mono);color:var(--cyan)">FERT-PROD-${i}${j}</td><td style="color:var(--text)">${rItem(ITEM_NAMES)} 시리즈 ${j}</td><td class="num">${prodQty}.0</td><td>EA</td><td style="font-family:var(--mono);font-size:10px;color:var(--text3)">2024-06-01</td><td>양산중</td></tr>`;
+        }
+        tree += `</ul></li>`;
+      }
+      tree += `</ul></li></ul>`;
+    }
+    
+    $('th2').innerHTML = th;
+    $('tb2').innerHTML = tb;
+    $('bom-visual-tree').innerHTML = tree;
+    showToast(type==='fwd'?'BOM 정전개(Explosion) 뷰로 전환되었습니다.':'BOM 역전개(Implosion) 뷰로 전환되었습니다.');
+  };
+
+  // --- Org Tree (New Tab 13) ---
+  window.renderOrgTree = function() {
+    let h = `
+      <div class="org-node" style="border-color:var(--blue);background:var(--blue-dim)"><div style="font-size:24px">🏢</div><div><div style="font-weight:700;font-size:14px;color:var(--blue)">(주) 글로벌 SCM 테크</div><div style="font-size:11px;color:var(--text2)">CEO 직속 그룹</div></div></div>
+      
+      <div class="org-node org-level-1"><div class="org-line-v"></div><div class="org-line-h"></div><div style="font-size:20px">📦</div><div><div style="font-weight:700;color:var(--cyan)">SCM 본부</div><div style="font-size:10px;color:var(--text3)">본부장: 최동훈 상무</div></div></div>
+        <div class="org-node org-level-2"><div class="org-line-v"></div><div class="org-line-h"></div><div style="font-size:16px">📅</div><div><div style="font-weight:700">생산기획팀 (Planning)</div><div style="font-size:10px;color:var(--text3)">인원: 12명 | 팀장: 박민준</div></div></div>
+        <div class="org-node org-level-2"><div class="org-line-v"></div><div class="org-line-h"></div><div style="font-size:16px">🛒</div><div><div style="font-weight:700">구매/자재팀 (Procurement)</div><div style="font-size:10px;color:var(--text3)">인원: 18명 | 팀장: 최수연</div></div></div>
+        <div class="org-node org-level-2"><div class="org-line-v"></div><div class="org-line-h"></div><div style="font-size:16px">🚚</div><div><div style="font-weight:700">물류/출하팀 (Logistics)</div><div style="font-size:10px;color:var(--text3)">인원: 25명 | 팀장: 강하나</div></div></div>
+      
+      <div class="org-node org-level-1"><div class="org-line-v" style="bottom:50%;height:auto"></div><div class="org-line-h"></div><div style="font-size:20px">⚙️</div><div><div style="font-weight:700;color:var(--amber)">제조 본부 (Manufacturing)</div><div style="font-size:10px;color:var(--text3)">본부장: 이영수 전무</div></div></div>
+        <div class="org-node org-level-2"><div class="org-line-v"></div><div class="org-line-h"></div><div style="font-size:16px">🏭</div><div><div style="font-weight:700">창원 제1공장</div><div style="font-size:10px;color:var(--text3)">공장장: 김철수</div></div></div>
+          <div class="org-node org-level-3"><div class="org-line-v"></div><div class="org-line-h"></div><div><div style="font-weight:700;color:var(--text2)">SMT 생산 파트</div><div style="font-size:10px;color:var(--text3)">인원: 45명</div></div></div>
+          <div class="org-node org-level-3"><div class="org-line-v"></div><div class="org-line-h"></div><div><div style="font-weight:700;color:var(--text2)">조립/검사 파트</div><div style="font-size:10px;color:var(--text3)">인원: 80명</div></div></div>
+        
+        <div class="org-node org-level-2"><div class="org-line-v" style="bottom:50%;height:auto"></div><div class="org-line-h"></div><div style="font-size:16px">🏭</div><div><div style="font-weight:700">평택 제2공장</div><div style="font-size:10px;color:var(--text3)">공장장: 정우성</div></div></div>
+          <div class="org-node org-level-3"><div class="org-line-v" style="bottom:50%;height:auto"></div><div class="org-line-h"></div><div><div style="font-weight:700;color:var(--text2)">조립/검사 파트</div><div style="font-size:10px;color:var(--text3)">인원: 60명</div></div></div>
+    `;
+    $('org-tree').innerHTML = h;
+  };
+
+} catch(err) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = `<div style="background:#220000;color:#ffaaaa;padding:40px;font-family:monospace;font-size:14px;height:100vh;">
+      <h2 style="color:#ff4444;margin-bottom:20px;">JS Error Occurred</h2>
+      <pre style="background:#000;padding:20px;border-radius:8px;white-space:pre-wrap;">${err.stack}</pre></div>`;
+  });
+}
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #6 */
+(function(){var I=6;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

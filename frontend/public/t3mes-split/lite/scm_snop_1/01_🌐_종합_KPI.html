@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>🌐 종합 KPI</title>
+<!-- T3MES UI Pattern · scm_snop_1 · TabPage #1: 🌐 종합 KPI -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="grid-top">
+      <div class="kpi-card" style="border-top:4px solid var(--c-sal)">
+        <div class="card-title">월간 누적 매출 (Sales)</div>
+        <div class="val-l">₩ 12.5B</div>
+        <div><span class="trend t-up">▲ 5.2%</span> <span style="color:var(--text3);font-size:11px">vs 전월</span></div>
+      </div>
+      <div class="kpi-card" style="border-top:4px solid var(--c-pur)">
+        <div class="card-title">자재 결품률 (Shortage)</div>
+        <div class="val-l">1.2%</div>
+        <div><span class="trend t-up" style="background:rgba(16,185,129,0.1);color:var(--c-all)">▼ 0.8%p</span> <span style="color:var(--text3);font-size:11px">개선됨</span></div>
+      </div>
+      <div class="kpi-card" style="border-top:4px solid var(--c-prd)">
+        <div class="card-title">설비 종합 효율 (OEE)</div>
+        <div class="val-l">78.4%</div>
+        <div><span class="trend t-up">▲ 2.1%p</span> <span style="color:var(--text3);font-size:11px">vs 목표 75%</span></div>
+      </div>
+      <div class="kpi-card" style="border-top:4px solid var(--c-inv)">
+        <div class="card-title">재고 회전율 (Turnover)</div>
+        <div class="val-l">8.5 회</div>
+        <div><span class="trend t-dn">▼ 0.3 회</span> <span style="color:var(--text3);font-size:11px">체화재고 증가</span></div>
+      </div>
+      <div class="kpi-card" style="border-top:4px solid var(--c-qal)">
+        <div class="card-title">공정 불량률 (Defect)</div>
+        <div class="val-l">1,450 <span style="font-size:14px;color:var(--text2)">PPM</span></div>
+        <div><span class="trend t-dn">▲ 150 PPM</span> <span style="color:var(--text3);font-size:11px">조립라인 이슈</span></div>
+      </div>
+    </div>
+
+    <div class="grid-half">
+      <div class="kpi-card">
+        <div class="card-title">📉 6개월 전사 매출 및 영업이익 추이</div>
+        <div style="position:relative;height:250px;width:100%;margin-top:20px" id="svg-wrap-all-1"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="card-title">🎯 5대 핵심 지표 목표 달성률 (Radar View)</div>
+        <div style="display:flex;align-items:center;justify-content:space-around;height:250px;margin-top:20px">
+          <div style="width:100%;display:flex;flex-direction:column;gap:20px;padding:0 20px">
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>납기 준수율 (OTD)</span><span class="val-m c-sal" style="font-size:16px">96%</span></div><div class="pg-wrap"><div class="pg-bar bg-sal" style="width:96%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>생산 계획 달성률</span><span class="val-m c-prd" style="font-size:16px">92%</span></div><div class="pg-wrap"><div class="pg-bar bg-prd" style="width:92%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>초초수율 (FPY)</span><span class="val-m c-qal" style="font-size:16px">98.5%</span></div><div class="pg-wrap"><div class="pg-bar bg-qal" style="width:98.5%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>자재 적기 입고율</span><span class="val-m c-pur" style="font-size:16px">88%</span></div><div class="pg-wrap"><div class="pg-bar bg-pur" style="width:88%"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

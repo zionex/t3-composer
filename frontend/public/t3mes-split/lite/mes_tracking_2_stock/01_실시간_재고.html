@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>실시간 재고</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #1: 실시간 재고 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 실시간 재고 현황판 (Real-time Inventory)</h3><span class="tip">창고, 로케이션, 품목별 현재고(On-hand)와 가용재고(Available)를 실시간으로 조회합니다. (500건 자동생성)</span></div><button class="btn btn-blue" onclick="showToast('엑셀 다운로드 완료')">엑셀 다운로드</button></div>
+    <div class="grid4" style="margin-bottom:16px"><select class="inp"><option>전체 창고</option><option>원자재 창고 (W1)</option></select><select class="inp"><option>전체 품목군</option></select><input type="text" class="inp" placeholder="품목코드/명 검색"><button class="btn btn-blue">검색 ↻</button></div>
+    <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>No</th><th>창고 (WH)</th><th>로케이션 (Bin)</th><th>품목코드</th><th>품목명</th><th style="text-align:right">현재고 (On-Hand)</th><th style="text-align:right;color:var(--cyan)">가용재고 (Avail)</th><th style="text-align:right;color:var(--rose)">할당/보류 (Alloc/Hold)</th><th>단위</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>

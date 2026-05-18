@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>잠금/해제 보정</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #12: 잠금/해제 보정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p11">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑫ 잠금(Lock) / 해제 기반 선택적 보정</h3>
+      <span class="tip">확정된 행은 잠금(🔒), 해제(🔓)된 행만 시스템이 자동 재계산합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="lockAll11()">전체 잠금</button>
+      <button class="btn btn-ghost btn-sm" onclick="unlockAll11()">전체 해제</button>
+      <button class="btn btn-blue" onclick="showToast('재계산 완료')">🔄 해제 항목 재계산</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin:0">
+      <div class="card-title flex-between">발주 잠금 관리 <span class="badge b-gray" id="lock-stat">잠금 0 / 해제 0</span></div>
+      <div id="lock-list" style="max-height:480px;overflow-y:auto"></div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-title">재계산 결과</div>
+      <div class="tbl-wrap" style="max-height:480px">
+        <table class="tbl">
+          <thead><tr><th>발주번호</th><th class="num">기존</th><th class="num">재계산</th><th class="num">변화</th></tr></thead>
+          <tbody id="tb11"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

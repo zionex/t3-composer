@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>2. 일괄 실사입력</title>
+<!-- T3MES UI Pattern · mes_stock_2_modify · TabPage #2: 2. 일괄 실사입력 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+  <div class="sec-hdr"><div><h3>② 일괄 재고 실사 입력 (Batch Cycle Count)</h3><span class="tip">엑셀 스타일의 그리드에서 여러 품목의 실사 수량을 한 번에 입력하고 차이를 확인합니다.</span></div></div>
+  <div class="card"><div class="grid4"><div><select class="inp"><option>A구역 전체</option></select></div><div><input type="date" class="inp"></div><div></div><div style="text-align:right"><button class="btn btn-blue" onclick="genP1()">데이터 불러오기</button></div></div></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위치(Bin)</th><th>품목코드</th><th>품목명</th><th class="num">장부수량(A)</th><th class="num">실사입력(B)</th><th class="num">차이(B-A)</th><th>사유</th></tr></thead><tbody id="tb1"></tbody></table></div>
+  <div style="margin-top:16px;text-align:right"><button class="btn btn-green" onclick="showToast('일괄 조정 전표가 생성되었습니다.')">일괄 조정 확정</button></div>
+</div>

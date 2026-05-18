@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>계약 잔량차감</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #11: 계약 잔량차감 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 포괄계약 잔량 차감 발주 (Blanket Order Call-off)</h3><span class="tip">단가 인하를 위해 연간 10만 개를 계약해두고, 필요할 때마다 조금씩 Call-off(차감) 발주를 내어 게이지를 깎습니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>계약번호 / 품목</th><th>연간계약량</th><th>소진율 (게이지)</th><th>계약잔량</th><th>차감발주</th></tr></thead><tbody id="tb10"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--blue)">이번 달 납품 (Call-off) 확정</div><div style="font-size:14px;font-weight:700;margin-bottom:16px" id="bo-title">좌측에서 차감할 계약을 선택하세요</div><div class="label">차감 발주 수량 입력</div><input type="number" class="inp" value="5000" style="font-size:24px;font-weight:700;color:var(--blue);margin-bottom:20px;text-align:right"><button class="btn btn-blue" style="width:100%;padding:16px;font-size:16px" onclick="showToast('수량 차감 및 PO 발행이 완료되었습니다.')">잔량 차감 및 PO 발행</button></div>
+    </div>
+  </div>

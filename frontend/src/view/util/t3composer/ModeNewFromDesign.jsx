@@ -1633,7 +1633,7 @@ function StepConfirm({ file, parsed, title, setTitle, error, layoutSizes }) {
             🚀 예상 산출물
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748b' }}>
-            Claude 가 생성할 파일 · SQL · 아티팩트
+            Claude 가 생성할 파일 · SQL · 산출물
           </Typography>
         </Box>
 
@@ -1684,7 +1684,7 @@ function StepConfirm({ file, parsed, title, setTitle, error, layoutSizes }) {
                   다음 단계에서 일어날 일
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#047857' }}>
-                  세션이 생성되고 Composer Workspace 로 전환됩니다. Claude 가 설계서를 해석한 결과와 산출물 파일이 우측 아티팩트 패널에 순차적으로 표시됩니다.
+                  세션이 생성되고 Composer Workspace 로 전환됩니다. Claude 가 설계서를 해석한 결과와 산출물 파일이 우측 산출물 패널에 순차적으로 표시됩니다.
                 </Typography>
               </Box>
             </Stack>

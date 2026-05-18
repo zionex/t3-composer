@@ -6498,4 +6498,454 @@ Object.assign(RENDERERS, {
 
 });
 
+// ─────────────────────────────────────────────────────────────────────
+// Phase 4a/d 신규 mockup 의 미니 미리보기 (T3Mockup 갤러리에서 사용)
+// ─────────────────────────────────────────────────────────────────────
+Object.assign(RENDERERS, {
+  // ─── Phase 4a Dashboard 16개 ───
+  dash_executive: () => (
+    <CBWrap header={<CBHead title="① Executive 경영 대시보드" titleColor={DC.cyan} />}>
+      {CBRow(
+        <CBStat value="₩9,807M" label="월 매출" valueColor={DC.green} />,
+        <CBStat value="34.2%" label="GP" valueColor={DC.cyan} />,
+        <CBStat value="96.4%" label="OTD" valueColor={DC.green} />,
+        <CBStat value="11.3x" label="회전" valueColor={DC.amber} />,
+      )}
+      {CBRow(
+        <CBCard title="매출 — 목표 vs 실적" flex={2}>
+          <Box sx={{ height: 36, position: 'relative' }}>
+            <svg width="100%" height="36" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <polyline points="0,28 30,24 60,18 90,20 120,14 150,10 180,6 200,4" fill="none" stroke={DC.text3} strokeDasharray="3,2" strokeWidth="1" />
+              <polyline points="0,30 30,22 60,26 90,12 120,16 150,8 180,10 200,5" fill="none" stroke={DC.blue} strokeWidth="1.5" />
+            </svg>
+          </Box>
+        </CBCard>,
+        <CBCard title="제품군 GP%" flex={1}>
+          <CBProgressRow label="CAMERA" pct={41} color={DC.green} />
+          <CBProgressRow label="DISPLAY" pct={36} color={DC.cyan} />
+          <CBProgressRow label="LED" pct={32} color={DC.blue} />
+          <CBProgressRow label="BATTERY" pct={28} color={DC.amber} />
+        </CBCard>,
+      )}
+    </CBWrap>
+  ),
+
+  dash_overview: () => (
+    <CBWrap header={<CBHead title="② Overview 전사 개요" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0.3 }}>
+        {['RTF 96.4%', '재고 정확도', '결품 1.2%', 'DOH 28.4', '출하 12.5K', 'MAPE 8.7'].map((t, i) => (
+          <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4, border: `1px solid ${DC.border}`, fontSize: 6, color: DC.text }}>{t}</Box>
+        ))}
+      </Box>
+      <CBCard title="주간 트렌드" flex={2}>
+        <Box sx={{ height: 50 }}>
+          <svg width="100%" height="100%" viewBox="0 0 200 50" preserveAspectRatio="none">
+            <polyline points="0,40 25,35 50,30 75,22 100,20 125,16 150,14 175,12 200,8" fill="none" stroke={DC.cyan} strokeWidth="2" />
+            <polyline points="0,42 25,38 50,32 75,28 100,24 125,22 150,18 175,16 200,12" fill="none" stroke={DC.green} strokeWidth="1.5" />
+          </svg>
+        </Box>
+      </CBCard>
+    </CBWrap>
+  ),
+
+  dash_kpi_board: () => (
+    <CBWrap header={<CBHead title="③ KPI Board 통합 KPI" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0.3, flex: 1 }}>
+        {[
+          ['₩9.8B', 'Sales', DC.green],
+          ['34.2%', 'GP', DC.cyan],
+          ['96.4%', 'OTD', DC.green],
+          ['11.3x', '회전', DC.amber],
+          ['1.2%', '결품', DC.green],
+          ['8.7%', 'MAPE', DC.green],
+          ['14.2d', 'LT', DC.amber],
+          ['98.7%', '재고정확', DC.green],
+          ['4.8%', '변경율', DC.green],
+        ].map(([v, l, c], i) => (
+          <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4, border: `1px solid ${DC.border}` }}>
+            <Box sx={{ color: c, fontSize: 9, fontWeight: 700 }}>{v}</Box>
+            <Box sx={{ color: DC.text2, fontSize: 5 }}>{l}</Box>
+          </Box>
+        ))}
+      </Box>
+    </CBWrap>
+  ),
+
+  dash_supply_kpi: () => (
+    <CBWrap header={<CBHead title="④ Supply Plan KPI" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0.3, flex: 1 }}>
+        {[['92.4%', 'MP 비변경', DC.green], ['88.7%', 'MP-FP 일치', DC.amber], ['4.8%', 'PO 변경', DC.green],
+          ['96.2%', '계획 수행', DC.green], ['3', '부족 거점', DC.amber], ['14.2d', 'LT', DC.amber]].map(([v, l, c], i) => (
+          <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4, border: `1px solid ${DC.border}` }}>
+            <Box sx={{ color: c, fontSize: 9, fontWeight: 700 }}>{v}</Box>
+            <Box sx={{ color: DC.text2, fontSize: 5 }}>{l}</Box>
+            <Box sx={{ height: 2, mt: 0.2, bgcolor: DC.border, borderRadius: 0.2 }}>
+              <Box sx={{ width: '70%', height: '100%', bgcolor: c, borderRadius: 0.2 }} />
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </CBWrap>
+  ),
+
+  dash_ontime_sales: () => (
+    <CBWrap header={<CBHead title="⑤ On-Time Sales 정시 출하" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="96.4%" label="금주 OTD" valueColor={DC.green} />,
+             <CBStat value="95.8%" label="월 평균" valueColor={DC.green} />,
+             <CBStat value="100" label="지연" valueColor={DC.amber} />,
+             <CBStat value="자재" label="Top 사유" valueColor={DC.red} />)}
+      {CBRow(
+        <CBCard title="정시 출하율 추이" flex={2}>
+          <Box sx={{ height: 36 }}>
+            <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <line x1="0" y1="10" x2="200" y2="10" stroke={DC.text3} strokeDasharray="2,2" />
+              <polyline points="0,18 25,12 50,16 75,8 100,6 125,4 150,5 175,3 200,4" fill="none" stroke={DC.cyan} strokeWidth="2" />
+            </svg>
+          </Box>
+        </CBCard>,
+        <CBCard title="지연 사유" flex={1}>
+          <CBProgressRow label="자재" pct={38} color={DC.blue} />
+          <CBProgressRow label="생산" pct={24} color={DC.amber} />
+          <CBProgressRow label="운송" pct={18} color={DC.red} />
+        </CBCard>,
+      )}
+    </CBWrap>
+  ),
+
+  dash_sales_growth: () => (
+    <CBWrap header={<CBHead title="⑥ Sales Growth 매출 성장률" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="+11.7%" label="YoY" valueColor={DC.green} />,
+             <CBStat value="CAMERA" label="Top 성장" valueColor={DC.cyan} />,
+             <CBStat value="LED" label="Low 성장" valueColor={DC.amber} />,
+             <CBStat value="12,150" label="CY YTD" valueColor={DC.green} />)}
+      <CBCard title="월별 CY vs PY" flex={2}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 40, gap: 0.1 }}>
+          {[80,82,85,87,91,94,98,101,104,107,110,113].map((h, i) => (
+            <Box key={i} sx={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 0.1 }}>
+              <Box sx={{ flex: 1, height: `${h * 0.7}%`, bgcolor: DC.text3, borderRadius: 0.2 }} />
+              <Box sx={{ flex: 1, height: `${h * 0.95}%`, bgcolor: DC.blue, borderRadius: 0.2 }} />
+            </Box>
+          ))}
+        </Box>
+      </CBCard>
+    </CBWrap>
+  ),
+
+  dash_production_perf: () => (
+    <CBWrap header={<CBHead title="⑦ Production Perf 생산 실적" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.3, flex: 1 }}>
+        <CBCard title="일생산 실적">
+          <Box sx={{ height: 36 }}>
+            <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <polyline points="0,20 25,18 50,16 75,18 100,10 125,8 150,12 175,6 200,4" fill="none" stroke={DC.blue} strokeWidth="1.5" />
+            </svg>
+          </Box>
+        </CBCard>
+        <CBCard title="제품별 누적">
+          <CBProgressRow label="LED" pct={96} color={DC.green} />
+          <CBProgressRow label="Camera" pct={106} color={DC.cyan} />
+          <CBProgressRow label="Battery" pct={98} color={DC.amber} />
+        </CBCard>
+        <CBCard title="공장 재고">
+          <CBProgressRow label="KR-Suwon" pct={74} color={DC.green} />
+          <CBProgressRow label="VN-HCMC" pct={82} color={DC.amber} />
+          <CBProgressRow label="CN-Suzhou" pct={96} color={DC.red} />
+        </CBCard>
+        <CBCard title="재고 상태">
+          <Box sx={{ display: 'flex', gap: 0.3, fontSize: 5, color: DC.text2 }}>
+            <Box sx={{ flex: 0.76, height: 6, bgcolor: DC.green, borderRadius: 0.2 }} />
+            <Box sx={{ flex: 0.20, height: 6, bgcolor: DC.amber, borderRadius: 0.2 }} />
+            <Box sx={{ flex: 0.04, height: 6, bgcolor: DC.red, borderRadius: 0.2 }} />
+          </Box>
+          <Box sx={{ fontSize: 5, color: DC.text2, mt: 0.3 }}>안전↑ 142 · 경계 38 · 결품 7</Box>
+        </CBCard>
+      </Box>
+    </CBWrap>
+  ),
+
+  dash_simulation_kpi: () => (
+    <CBWrap header={<CBHead title="⑧ Simulation KPI 시뮬 결과" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="96.4%" label="충족율" valueColor={DC.green} />,
+             <CBStat value="94.7%" label="납기율" valueColor={DC.green} />,
+             <CBStat value="12.8d" label="LT" valueColor={DC.green} />,
+             <CBStat value="18.4d" label="리드" valueColor={DC.green} />)}
+      <CBTable cols={['Version', '설명', 'RTF', 'OTD']} colFlex={[2.2, 3, 1, 1]}
+        rows={[['SIM_A', 'Baseline', '92.5', '88.2'],
+               ['SIM_B', 'Capa+15%', '95.1', '92.4'],
+               ['SIM_D', 'Final (선택)', '96.4', '94.7']]}
+        rowBg={[DC.surface, DC.surface, '#10b98122']} />
+    </CBWrap>
+  ),
+
+  dash_inout_status: () => (
+    <CBWrap header={<CBHead title="⑨ In/Out Status 입출하" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="20.7K" label="입고" valueColor={DC.green} />,
+             <CBStat value="5.0K" label="출하" valueColor={DC.amber} />,
+             <CBStat value="4건" label="WIP" valueColor={DC.cyan} />,
+             <CBStat value="2건" label="지연" valueColor={DC.red} />)}
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.3, flex: 1 }}>
+        <CBCard title="입고 (Inbound)"><Box sx={{ fontSize: 5, color: DC.text2 }}>IT-A001 · IT-B001 · IT-C001 · IT-M001</Box></CBCard>
+        <CBCard title="출하 (Outbound)"><Box sx={{ fontSize: 5, color: DC.text2 }}>SO-0042 · 0043 · 0044 · 0045</Box></CBCard>
+        <CBCard title="WIP"><Box sx={{ fontSize: 5, color: DC.text2 }}>WO-7771 · 7772 · 7773 · 7774</Box></CBCard>
+        <CBCard title="출하 상태">
+          <CBProgressRow label="SHIPPED" pct={25} color={DC.green} />
+          <CBProgressRow label="PICKING" pct={50} color={DC.amber} />
+        </CBCard>
+      </Box>
+    </CBWrap>
+  ),
+
+  dash_plan_problem: () => (
+    <CBWrap header={<CBHead title="⑩ Plan Problem 문제 현황" titleColor={DC.red} />}>
+      {CBRow(<CBStat value="38" label="총 문제" valueColor={DC.amber} />,
+             <CBStat value="7" label="결품 위험" valueColor={DC.red} />,
+             <CBStat value="12" label="LT 초과" valueColor={DC.amber} />,
+             <CBStat value="3" label="용량 부족" valueColor={DC.red} />)}
+      <CBCard title="문제 유형">
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0.3 }}>
+          {[['지연', 12, DC.amber], ['부족', 7, DC.red], ['용량', 3, DC.red], ['기타', 16, DC.text3]].map(([l, n, c], i) => (
+            <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4 }}>
+              <Box sx={{ color: c, fontSize: 8, fontWeight: 700 }}>{n}</Box>
+              <Box sx={{ color: DC.text2, fontSize: 5 }}>{l}</Box>
+            </Box>
+          ))}
+        </Box>
+      </CBCard>
+      <CBTable cols={['ID', '심각도', '품목', '거점']} colFlex={[1.4, 1.2, 2.5, 1.5]}
+        rows={[['PRB-001', 'CRIT', 'IT-D002', 'KR-Suwon'],
+               ['PRB-002', 'HIGH', 'IT-B001', 'CN-Wuxi']]}
+        rowBg={['#ef444422', '#f59e0b22']} />
+    </CBWrap>
+  ),
+
+  dash_wip_eoh: () => (
+    <CBWrap header={<CBHead title="⑪ WIP / EOH 재공·재고" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="1,645" label="WIP" valueColor={DC.amber} />,
+             <CBStat value="11,280" label="EOH" valueColor={DC.red} />,
+             <CBStat value="2,820" label="투입" valueColor={DC.green} />,
+             <CBStat value="2,650" label="출고" valueColor={DC.cyan} />)}
+      <CBCard title="14일 추이">
+        <Box sx={{ height: 36 }}>
+          <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+            <polyline points="0,28 14,26 28,25 42,22 56,20 70,21 84,18 98,16 112,15 126,12 140,14 154,10 168,8 200,6" fill="none" stroke={DC.blue} strokeWidth="1.5" />
+            <polyline points="0,30 28,28 56,29 84,27 112,26 140,25 168,24 200,23" fill="none" stroke={DC.green} strokeWidth="1.5" />
+            <polyline points="0,12 28,14 56,16 84,18 112,20 140,22 168,24 200,26" fill="none" stroke={DC.text3} strokeDasharray="3,2" strokeWidth="1" />
+          </svg>
+        </Box>
+      </CBCard>
+    </CBWrap>
+  ),
+
+  // ─── Phase 4a Dashboard 요약 Board 5개 (9-widget tile grid) ───
+  dash_sales_board: () => boardPreview('⑫ Sales Board 판매 요약', 9, DC.blue),
+  dash_demand_board: () => boardPreview('⑬ Demand Board 수요 요약', 9, DC.cyan),
+  dash_supply_board: () => boardPreview('⑭ Supply Board 공급 요약', 6, DC.green),
+  dash_psi_board: () => boardPreview('⑮ PSI Board 생산·재고·판매', 6, DC.amber),
+  dash_inven_board: () => boardPreview('⑯ Inventory Board 재고 요약', 6, DC.purple),
+
+  // ─── Phase 4a ControlBoard 4개 ───
+  cb_bf_forecast: () => (
+    <CBWrap header={<CBHead title="① CB · BF 예측 엔진" titleColor={DC.purple} right={<CBBadge label="RUNNING" color={DC.blue} />} />}>
+      <CBStepper steps={['검증', '예측', '계획', '재고', '확정']} activeIdx={2} />
+      {CBRow(<CBStat value="8.7%" label="MAPE" valueColor={DC.green} />,
+             <CBStat value="−1.2%" label="Bias" valueColor={DC.green} />,
+             <CBStat value="92%" label="신뢰" valueColor={DC.cyan} />,
+             <CBStat value="187" label="SKU" valueColor={DC.text} />)}
+      {CBRow(
+        <CBCard title="라이브 로그">
+          <CBTerminal lines={['14:22 INFO  BF 엔진 시작', '14:23 INFO  검증 완료', '14:26 INFO  예측 완료']} activeLine={2} />
+        </CBCard>,
+        <CBCard title="결과">
+          <Box sx={{ fontSize: 5, color: DC.text2 }}>LED 60W · 80W · 100W · Camera · Battery</Box>
+        </CBCard>,
+      )}
+    </CBWrap>
+  ),
+
+  cb_insight_prediction: () => (
+    <CBWrap header={<CBHead title="② CB · Insight 예측 (Job 폴링)" titleColor={DC.purple} right={<CBBadge label="RUNNING" color={DC.blue} />} />}>
+      <CBCard title="Job INS-014">
+        <CBProgressRow label="Phase 1 — Graph" pct={100} color={DC.green} />
+        <CBProgressRow label="Phase 2 — Insight" pct={100} color={DC.green} />
+        <CBProgressRow label="Phase 3 — Predict" pct={68} color={DC.cyan} />
+      </CBCard>
+      <CBCard title="결과 Insight">
+        <Box sx={{ fontSize: 5, color: DC.text2 }}>IT-A001 LED 60W — 4월 수요 +18%</Box>
+        <Box sx={{ fontSize: 5, color: DC.text2 }}>IT-D002 Display 55" — 결품 위험</Box>
+        <Box sx={{ fontSize: 5, color: DC.text2 }}>AC-001 Samsung — 패턴 변경</Box>
+      </CBCard>
+    </CBWrap>
+  ),
+
+  cb_dp_demand: () => (
+    <CBWrap header={<CBHead title="③ CB · DP 수요계획" titleColor={DC.purple} right={<CBBadge label="WAITING" color={DC.amber} />} />}>
+      <CBStepper steps={['검증', '집계', '분배', '계획', '승인']} activeIdx={4} />
+      {CBRow(<CBStat value="152K" label="총 계획" valueColor={DC.green} />,
+             <CBStat value="96.4%" label="RTF" valueColor={DC.green} />,
+             <CBStat value="−0.8%" label="Bias" valueColor={DC.green} />,
+             <CBStat value="187" label="SKU" valueColor={DC.text} />)}
+      <CBTable cols={['품목', '계획', '전월', '변동']} colFlex={[2, 1, 1, 1]}
+        rows={[['LED 60W', '12,500', '11,800', '+5.9%'],
+               ['Camera', '5,600', '5,400', '+3.7%']]} />
+    </CBWrap>
+  ),
+
+  cb_bp_yearly: () => (
+    <CBWrap header={<CBHead title="④ CB · BP 년간계획" titleColor={DC.purple} right={<CBBadge label="CONFIRMED" color={DC.green} />} />}>
+      <CBStepper steps={['수요', 'AOP', '분할', '확정']} activeIdx={3} />
+      <CBCard title="제품군 12개월">
+        {['LED', 'CAMERA', 'BATTERY', 'DISPLAY'].map((g, i) => (
+          <Box key={g} sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mb: 0.2 }}>
+            <Box sx={{ width: 30, fontSize: 5, color: DC.text2 }}>{g}</Box>
+            <Box sx={{ flex: 1, display: 'flex', gap: 0.1 }}>
+              {Array.from({ length: 12 }).map((_, j) => (
+                <Box key={j} sx={{ flex: 1, height: 6 - i, bgcolor: [DC.blue, DC.green, DC.amber, DC.purple][i], opacity: 0.5 + j * 0.04, borderRadius: 0.2 }} />
+              ))}
+            </Box>
+          </Box>
+        ))}
+      </CBCard>
+    </CBWrap>
+  ),
+
+  // ─── Phase 4d 5개 ───
+  log_viewer: () => (
+    <CBWrap header={<CBHead title="① Log Viewer 로그/이력" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'flex', gap: 0.3 }}>
+        <CBInput value="레벨" flex={0.7} />
+        <CBInput value="2026-04-13 00:00" flex={1.4} />
+        <CBInput value="~ 23:59" flex={1} />
+        <CBInput value="검색" flex={1.2} />
+      </Box>
+      <CBTable cols={['시간', 'L', '대상', '메시지']} colFlex={[1.6, 0.6, 1.6, 3]} fontSize={4.5}
+        rows={[
+          ['17:42:18', 'INFO', 'DP_Engine', 'DP 엔진 실행 완료'],
+          ['17:38:02', 'WARN', 'PO-0045', '입고 지연 감지'],
+          ['16:58:21', 'ERR',  'BF_Engine', 'DB connection timeout'],
+          ['16:42:18', 'INFO', 'BF_Engine', 'BF 엔진 시작'],
+          ['15:48:32', 'INFO', 'TB_UT_USER', '사용자 정보 저장'],
+        ]}
+        rowBg={[DC.surface, '#f59e0b22', '#ef444422', DC.surface, DC.surface]} />
+    </CBWrap>
+  ),
+
+  sim_compare: () => (
+    <CBWrap header={<CBHead title="② Simulation Compare 시뮬 비교" titleColor={DC.cyan} />}>
+      <Box sx={{ display: 'flex', gap: 0.3, alignItems: 'center', fontSize: 6, color: DC.text2 }}>
+        <CBInput value="A: SIM_V20260410_A" flex={1} />
+        <Box sx={{ color: DC.cyan, fontWeight: 700 }}>vs</Box>
+        <CBInput value="B: SIM_V20260413_B" flex={1} />
+      </Box>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0.3 }}>
+        {['충족율', '납기율', '배송LT', 'LT'].map((l, i) => (
+          <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4 }}>
+            <Box sx={{ fontSize: 5, color: DC.text2 }}>{l}</Box>
+            <Box sx={{ height: 2, mt: 0.15, bgcolor: DC.text3, borderRadius: 0.2 }} />
+            <Box sx={{ height: 2, mt: 0.1, bgcolor: DC.blue, borderRadius: 0.2 }} />
+            <Box sx={{ fontSize: 5, color: DC.green, mt: 0.15 }}>+3.9pt</Box>
+          </Box>
+        ))}
+      </Box>
+      <CBTable cols={['Ver', '설명', 'RTF', 'OTD', 'LT']} colFlex={[1.2, 2.4, 0.7, 0.7, 0.7]}
+        rows={[['A', 'Baseline', '92.5', '88.2', '14.5'],
+               ['B', 'Capa+15%', '95.1', '92.4', '13.2'],
+               ['D', 'Final', '96.4', '94.7', '12.8']]}
+        rowBg={[DC.surface, DC.surface, '#10b98122']} />
+    </CBWrap>
+  ),
+
+  analysis_report: () => (
+    <CBWrap header={<CBHead title="③ Analysis Report 분석 리포트" titleColor={DC.cyan} />}>
+      {CBRow(<CBStat value="₩9.8B" label="매출" valueColor={DC.blue} />,
+             <CBStat value="96.4%" label="OTD" valueColor={DC.green} />,
+             <CBStat value="1.2%" label="결품" valueColor={DC.amber} />,
+             <CBStat value="34.2%" label="GP" valueColor={DC.purple} />)}
+      {CBRow(
+        <CBCard title="거점별 매출">
+          <CBProgressRow label="KR-Suwon" pct={84} color={DC.blue} />
+          <CBProgressRow label="CN-Suzhou" pct={65} color={DC.green} />
+          <CBProgressRow label="VN-HCMC" pct={49} color={DC.amber} />
+        </CBCard>,
+        <CBCard title="월별 추이" flex={2}>
+          <Box sx={{ height: 36 }}>
+            <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <polyline points="0,28 18,26 36,24 54,20 72,18 90,16 108,14 126,12 144,10 162,8 180,6 200,4" fill="none" stroke={DC.blue} strokeWidth="2" />
+            </svg>
+          </Box>
+        </CBCard>,
+      )}
+    </CBWrap>
+  ),
+
+  fp_simulation_edit: () => (
+    <CBWrap header={<CBHead title="④ FP Sim Edit 생산계획 보정" titleColor={DC.green} right={<CBBadge label="DRAFT" color={DC.amber} />} />}>
+      <CBCard title="라인별 일정 (드래그 보정)">
+        {['A1', 'A2', 'B1', 'C1'].map((line, i) => (
+          <Box key={line} sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mb: 0.15 }}>
+            <Box sx={{ width: 14, fontSize: 5, color: DC.text2, fontFamily: 'monospace' }}>{line}</Box>
+            <Box sx={{ flex: 1, position: 'relative', height: 6, bgcolor: DC.surface, borderRadius: 0.2 }}>
+              <Box sx={{ position: 'absolute', left: `${i * 8}%`, width: `${22 + i * 4}%`, top: 0, bottom: 0, bgcolor: [DC.blue, DC.green, DC.purple, DC.amber][i], borderRadius: 0.2 }} />
+              {i === 0 && <Box sx={{ position: 'absolute', left: '55%', width: '30%', top: 0, bottom: 0, bgcolor: DC.red, borderRadius: 0.2, opacity: 0.7 }} />}
+            </Box>
+          </Box>
+        ))}
+      </CBCard>
+      <CBTable cols={['WO', '품목', '시작', '종료', '상태']} colFlex={[1.6, 1.4, 0.8, 0.8, 1]}
+        rows={[['WO-7771', 'LED 60W', '4/14', '4/16', 'OK'],
+               ['WO-7773', 'LED 100W', '4/19', '4/21', 'CONF']]}
+        rowBg={[DC.surface, '#ef444422']} />
+    </CBWrap>
+  ),
+
+  dev_tool: () => (
+    <CBWrap header={<CBHead title="⑤ Developer Tool 시스템 도구" titleColor={DC.text2} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.3, flex: 1 }}>
+        <CBCard title="실행 옵션">
+          <CBInput value="dev (composer-db)" />
+          <Box sx={{ height: 2 }} />
+          <CBInput value="BASIC — 14 items" />
+          <Box sx={{ height: 2 }} />
+          <CBInput value="1000 rows" />
+          <Box sx={{ display: 'flex', gap: 0.3, mt: 0.3 }}>
+            <CBBtn label="실행" color={DC.blue} solid />
+            <CBBtn label="취소" color={DC.text3} />
+          </Box>
+        </CBCard>
+        <CBCard title="결과 로그">
+          <CBTerminal lines={[
+            '17:42:18 시작',
+            '14 rows TB_CM_ITEM',
+            '9 rows TB_CM_ACCT',
+            '8 rows TB_CM_LOCAT',
+            '✓ DONE 16.7s',
+          ]} activeLine={4} />
+        </CBCard>
+      </Box>
+    </CBWrap>
+  ),
+});
+
+// boardPreview — Phase 4a 의 5 Board (sales/demand/supply/psi/inven) 공통 stencil
+function boardPreview(title, count, accent) {
+  return (
+    <CBWrap header={<CBHead title={title} titleColor={accent} />}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0.3, flex: 1 }}>
+        {Array.from({ length: count }).map((_, i) => (
+          <Box key={i} sx={{ bgcolor: DC.surface, p: 0.3, borderRadius: 0.4, border: `1px solid ${DC.border}` }}>
+            <Box sx={{ color: accent, fontSize: 8, fontWeight: 700 }}>
+              {['9,807','+3.2%','96.4%','11.3x','7건','64K','78%','96.4%','38건'][i] || '—'}
+            </Box>
+            <Box sx={{ color: DC.text2, fontSize: 5 }}>위젯{i + 1}</Box>
+            <Box sx={{ height: 4, mt: 0.2 }}>
+              <svg width="100%" height="100%" viewBox="0 0 40 4" preserveAspectRatio="none">
+                <polyline points={`0,${3 - (i % 3)} 10,2 20,${3 - (i % 4)} 30,1 40,${i % 2}`} fill="none" stroke={accent} strokeWidth="0.5" opacity="0.8" />
+              </svg>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </CBWrap>
+  );
+}
+
 export default PatternPreview;

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>RFQ 견적비교</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #16: RFQ 견적비교 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 견적 요청 (RFQ) 및 단가 비교 (Bid Compare)</h3><span class="tip">고가 장비나 대량 신규 자재 구매 시, 3개 이상의 공급사에게 견적(RFQ)을 받아 나란히 놓고 최저가를 낙찰합니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:20px;background:var(--amber-dim);border-color:var(--amber);margin-bottom:20px"><div style="font-size:18px;font-weight:700;color:var(--amber)">입찰 품목: 산업용 로봇팔 6축 매니퓰레이터 (수량: 10대)</div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center"><div style="font-size:20px;font-weight:700;margin-bottom:10px">A 로보틱스</div><div style="font-family:var(--mono);font-size:24px;color:var(--text2)">₩ 15,000,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 45일</div><button class="btn btn-ghost" style="width:100%">낙찰 (Award)</button></div>
+      <div class="card" style="text-align:center;border-color:var(--amber);background:var(--surface3)"><div style="position:absolute;transform:translate(80px,-30px)"><span class="badge badge-amber">최저가</span></div><div style="font-size:20px;font-weight:700;color:var(--amber);margin-bottom:10px">B 메카트로닉스</div><div style="font-family:var(--mono);font-size:28px;color:var(--amber);font-weight:700">₩ 13,500,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 30일</div><button class="btn btn-amber" style="width:100%" onclick="showToast('B 메카트로닉스로 최종 낙찰 및 PO 생성')">낙찰 (Award) 확정</button></div>
+      <div class="card" style="text-align:center"><div style="font-size:20px;font-weight:700;margin-bottom:10px">C 테크 (해외)</div><div style="font-family:var(--mono);font-size:24px;color:var(--text2)">$ 11,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 90일 (해상)</div><button class="btn btn-ghost" style="width:100%">낙찰 (Award)</button></div>
+    </div>
+  </div>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>캘린더 납기보정</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #6: 캘린더 납기보정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p5">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑥ 캘린더 뷰 드래그 납기 보정</h3>
+      <span class="tip">월간 캘린더에서 발주 칩(chip)을 다른 날짜로 드래그하여 보정합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="renderCal()">◀ ▶ 월이동</button>
+      <button class="btn btn-green" onclick="showToast('납기 보정 저장 완료')">저장</button>
+    </div>
+  </div>
+  <div class="grid2" style="grid-template-columns:1fr 280px;gap:16px">
+    <div>
+      <div class="flex-between" style="margin-bottom:10px"><div style="font-weight:700;font-size:15px" id="cal-title">2026년 4월</div></div>
+      <div class="cal-grid" id="cal5">
+        <div class="cal-day-hdr">일</div><div class="cal-day-hdr">월</div><div class="cal-day-hdr">화</div><div class="cal-day-hdr">수</div><div class="cal-day-hdr">목</div><div class="cal-day-hdr">금</div><div class="cal-day-hdr">토</div>
+      </div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-title">이동 대기열</div>
+      <div id="drag-queue" style="max-height:500px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>

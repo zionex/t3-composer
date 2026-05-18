@@ -1,0 +1,4433 @@
+{
+  "mes_lot_manage_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "① 기본 LOT 생성",
+      "full": "t3mes-split/full/mes_lot_manage/01_①_기본_LOT_생성.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/01_①_기본_LOT_생성.html"
+    },
+    {
+      "index": 1,
+      "label": "② Wafer 투입(Start)",
+      "full": "t3mes-split/full/mes_lot_manage/02_②_Wafer_투입(Start).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/02_②_Wafer_투입(Start).html"
+    },
+    {
+      "index": 2,
+      "label": "③ 대량 LOT 생성",
+      "full": "t3mes-split/full/mes_lot_manage/03_③_대량_LOT_생성.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/03_③_대량_LOT_생성.html"
+    },
+    {
+      "index": 3,
+      "label": "④ 외주 LOT 수신",
+      "full": "t3mes-split/full/mes_lot_manage/04_④_외주_LOT_수신.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/04_④_외주_LOT_수신.html"
+    },
+    {
+      "index": 4,
+      "label": "⑤ R&D/Eng LOT",
+      "full": "t3mes-split/full/mes_lot_manage/05_⑤_R&DEng_LOT.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/05_⑤_R&DEng_LOT.html"
+    },
+    {
+      "index": 5,
+      "label": "⑥ Dummy/Monitor",
+      "full": "t3mes-split/full/mes_lot_manage/06_⑥_DummyMonitor.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/06_⑥_DummyMonitor.html"
+    },
+    {
+      "index": 6,
+      "label": "⑦ 재작업 파생 LOT",
+      "full": "t3mes-split/full/mes_lot_manage/07_⑦_재작업_파생_LOT.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/07_⑦_재작업_파생_LOT.html"
+    },
+    {
+      "index": 7,
+      "label": "⑧ 가상 LOT 생성",
+      "full": "t3mes-split/full/mes_lot_manage/08_⑧_가상_LOT_생성.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/08_⑧_가상_LOT_생성.html"
+    },
+    {
+      "index": 8,
+      "label": "⑨ 자동 스케줄 생성",
+      "full": "t3mes-split/full/mes_lot_manage/09_⑨_자동_스케줄_생성.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/09_⑨_자동_스케줄_생성.html"
+    },
+    {
+      "index": 9,
+      "label": "⑩ 라벨 인쇄/발행",
+      "full": "t3mes-split/full/mes_lot_manage/10_⑩_라벨_인쇄발행.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/10_⑩_라벨_인쇄발행.html"
+    },
+    {
+      "index": 10,
+      "label": "⑪ 정규 분할(Split)",
+      "full": "t3mes-split/full/mes_lot_manage/11_⑪_정규_분할(Split).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/11_⑪_정규_분할(Split).html"
+    },
+    {
+      "index": 11,
+      "label": "⑫ Wafer 단위 분할",
+      "full": "t3mes-split/full/mes_lot_manage/12_⑫_Wafer_단위_분할.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/12_⑫_Wafer_단위_분할.html"
+    },
+    {
+      "index": 12,
+      "label": "⑬ 정규 병합(Merge)",
+      "full": "t3mes-split/full/mes_lot_manage/13_⑬_정규_병합(Merge).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/13_⑬_정규_병합(Merge).html"
+    },
+    {
+      "index": 13,
+      "label": "⑭ FOUP/Carrier 변경",
+      "full": "t3mes-split/full/mes_lot_manage/14_⑭_FOUPCarrier_변경.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/14_⑭_FOUPCarrier_변경.html"
+    },
+    {
+      "index": 14,
+      "label": "⑮ 캐파기반 자동분할",
+      "full": "t3mes-split/full/mes_lot_manage/15_⑮_캐파기반_자동분할.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/15_⑮_캐파기반_자동분할.html"
+    },
+    {
+      "index": 15,
+      "label": "⑯ 불량 격리 분할",
+      "full": "t3mes-split/full/mes_lot_manage/16_⑯_불량_격리_분할.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/16_⑯_불량_격리_분할.html"
+    },
+    {
+      "index": 16,
+      "label": "⑰ 샘플링용 분할",
+      "full": "t3mes-split/full/mes_lot_manage/17_⑰_샘플링용_분할.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/17_⑰_샘플링용_분할.html"
+    },
+    {
+      "index": 17,
+      "label": "⑱ Carrier 병합",
+      "full": "t3mes-split/full/mes_lot_manage/18_⑱_Carrier_병합.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/18_⑱_Carrier_병합.html"
+    },
+    {
+      "index": 18,
+      "label": "⑲ 잔량(Scrap) 분할",
+      "full": "t3mes-split/full/mes_lot_manage/19_⑲_잔량(Scrap)_분할.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/19_⑲_잔량(Scrap)_분할.html"
+    },
+    {
+      "index": 19,
+      "label": "⑳ 분할/병합 이력조회",
+      "full": "t3mes-split/full/mes_lot_manage/20_⑳_분할병합_이력조회.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/20_⑳_분할병합_이력조회.html"
+    },
+    {
+      "index": 20,
+      "label": "㉑ Track-In (시작)",
+      "full": "t3mes-split/full/mes_lot_manage/21_㉑_Track-In_(시작).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/21_㉑_Track-In_(시작).html"
+    },
+    {
+      "index": 21,
+      "label": "㉒ Track-Out (종료)",
+      "full": "t3mes-split/full/mes_lot_manage/22_㉒_Track-Out_(종료).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/22_㉒_Track-Out_(종료).html"
+    },
+    {
+      "index": 22,
+      "label": "㉓ Batch Track-In",
+      "full": "t3mes-split/full/mes_lot_manage/23_㉓_Batch_Track-In.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/23_㉓_Batch_Track-In.html"
+    },
+    {
+      "index": 23,
+      "label": "㉔ 레시피 바인딩",
+      "full": "t3mes-split/full/mes_lot_manage/24_㉔_레시피_바인딩.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/24_㉔_레시피_바인딩.html"
+    },
+    {
+      "index": 24,
+      "label": "㉕ 소모품/지그 매핑",
+      "full": "t3mes-split/full/mes_lot_manage/25_㉕_소모품지그_매핑.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/25_㉕_소모품지그_매핑.html"
+    },
+    {
+      "index": 25,
+      "label": "㉖ 강제종료(Abort)",
+      "full": "t3mes-split/full/mes_lot_manage/26_㉖_강제종료(Abort).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/26_㉖_강제종료(Abort).html"
+    },
+    {
+      "index": 26,
+      "label": "㉗ 공정데이터(EDC)",
+      "full": "t3mes-split/full/mes_lot_manage/27_㉗_공정데이터(EDC).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/27_㉗_공정데이터(EDC).html"
+    },
+    {
+      "index": 27,
+      "label": "㉘ 설비연동 자동 Out",
+      "full": "t3mes-split/full/mes_lot_manage/28_㉘_설비연동_자동_Out.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/28_㉘_설비연동_자동_Out.html"
+    },
+    {
+      "index": 28,
+      "label": "㉙ 공정별 수율 입력",
+      "full": "t3mes-split/full/mes_lot_manage/29_㉙_공정별_수율_입력.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/29_㉙_공정별_수율_입력.html"
+    },
+    {
+      "index": 29,
+      "label": "㉚ 설비 파라미터 이력",
+      "full": "t3mes-split/full/mes_lot_manage/30_㉚_설비_파라미터_이력.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/30_㉚_설비_파라미터_이력.html"
+    },
+    {
+      "index": 30,
+      "label": "㉛ LOT 보류(Hold)",
+      "full": "t3mes-split/full/mes_lot_manage/31_㉛_LOT_보류(Hold).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/31_㉛_LOT_보류(Hold).html"
+    },
+    {
+      "index": 31,
+      "label": "㉜ Hold 해제(Release)",
+      "full": "t3mes-split/full/mes_lot_manage/32_㉜_Hold_해제(Release).html",
+      "lite": "t3mes-split/lite/mes_lot_manage/32_㉜_Hold_해제(Release).html"
+    },
+    {
+      "index": 32,
+      "label": "㉝ Wafer 부분 폐기",
+      "full": "t3mes-split/full/mes_lot_manage/33_㉝_Wafer_부분_폐기.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/33_㉝_Wafer_부분_폐기.html"
+    },
+    {
+      "index": 33,
+      "label": "㉞ LOT 전체 폐기",
+      "full": "t3mes-split/full/mes_lot_manage/34_㉞_LOT_전체_폐기.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/34_㉞_LOT_전체_폐기.html"
+    },
+    {
+      "index": 34,
+      "label": "㉟ 재작업 라우팅 지정",
+      "full": "t3mes-split/full/mes_lot_manage/35_㉟_재작업_라우팅_지정.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/35_㉟_재작업_라우팅_지정.html"
+    },
+    {
+      "index": 35,
+      "label": "㊱ SPC 연동 자동 Hold",
+      "full": "t3mes-split/full/mes_lot_manage/36_㊱_SPC_연동_자동_Hold.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/36_㊱_SPC_연동_자동_Hold.html"
+    },
+    {
+      "index": 36,
+      "label": "㊲ Wafer Defect Map",
+      "full": "t3mes-split/full/mes_lot_manage/37_㊲_Wafer_Defect_Map.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/37_㊲_Wafer_Defect_Map.html"
+    },
+    {
+      "index": 37,
+      "label": "㊳ QA 샘플링 검사",
+      "full": "t3mes-split/full/mes_lot_manage/38_㊳_QA_샘플링_검사.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/38_㊳_QA_샘플링_검사.html"
+    },
+    {
+      "index": 38,
+      "label": "㊴ 보류 사유 분석",
+      "full": "t3mes-split/full/mes_lot_manage/39_㊴_보류_사유_분석.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/39_㊴_보류_사유_분석.html"
+    },
+    {
+      "index": 39,
+      "label": "㊵ 클레임 역추적",
+      "full": "t3mes-split/full/mes_lot_manage/40_㊵_클레임_역추적.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/40_㊵_클레임_역추적.html"
+    },
+    {
+      "index": 40,
+      "label": "㊶ 실시간 WIP 대시보드",
+      "full": "t3mes-split/full/mes_lot_manage/41_㊶_실시간_WIP_대시보드.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/41_㊶_실시간_WIP_대시보드.html"
+    },
+    {
+      "index": 41,
+      "label": "㊷ 공정 Q-Time 모니터",
+      "full": "t3mes-split/full/mes_lot_manage/42_㊷_공정_Q-Time_모니터.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/42_㊷_공정_Q-Time_모니터.html"
+    },
+    {
+      "index": 42,
+      "label": "㊸ LOT TAT(소요) 분석",
+      "full": "t3mes-split/full/mes_lot_manage/43_㊸_LOT_TAT(소요)_분석.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/43_㊸_LOT_TAT(소요)_분석.html"
+    },
+    {
+      "index": 43,
+      "label": "㊹ 정체/지연 LOT 경고",
+      "full": "t3mes-split/full/mes_lot_manage/44_㊹_정체지연_LOT_경고.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/44_㊹_정체지연_LOT_경고.html"
+    },
+    {
+      "index": 44,
+      "label": "㊺ Hot/긴급 LOT 뷰",
+      "full": "t3mes-split/full/mes_lot_manage/45_㊺_Hot긴급_LOT_뷰.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/45_㊺_Hot긴급_LOT_뷰.html"
+    },
+    {
+      "index": 45,
+      "label": "㊻ 2D 설비별 위치맵",
+      "full": "t3mes-split/full/mes_lot_manage/46_㊻_2D_설비별_위치맵.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/46_㊻_2D_설비별_위치맵.html"
+    },
+    {
+      "index": 46,
+      "label": "㊼ 3D FOUP 적재 뷰어",
+      "full": "t3mes-split/full/mes_lot_manage/47_㊼_3D_FOUP_적재_뷰어.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/47_㊼_3D_FOUP_적재_뷰어.html"
+    },
+    {
+      "index": 47,
+      "label": "㊽ OHT 자동반송 추적",
+      "full": "t3mes-split/full/mes_lot_manage/48_㊽_OHT_자동반송_추적.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/48_㊽_OHT_자동반송_추적.html"
+    },
+    {
+      "index": 48,
+      "label": "㊾ 챗봇 LOT 위치조회",
+      "full": "t3mes-split/full/mes_lot_manage/49_㊾_챗봇_LOT_위치조회.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/49_㊾_챗봇_LOT_위치조회.html"
+    },
+    {
+      "index": 49,
+      "label": "㊿ 궁극의 Genealogy",
+      "full": "t3mes-split/full/mes_lot_manage/50_㊿_궁극의_Genealogy.html",
+      "lite": "t3mes-split/lite/mes_lot_manage/50_㊿_궁극의_Genealogy.html"
+    }
+  ],
+  "mes_master_1_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "품목 마스터 조회",
+      "full": "t3mes-split/full/mes_master_1/01_품목_마스터_조회.html",
+      "lite": "t3mes-split/lite/mes_master_1/01_품목_마스터_조회.html"
+    },
+    {
+      "index": 1,
+      "label": "품목 상세 폼",
+      "full": "t3mes-split/full/mes_master_1/02_품목_상세_폼.html",
+      "lite": "t3mes-split/lite/mes_master_1/02_품목_상세_폼.html"
+    },
+    {
+      "index": 2,
+      "label": "BOM 전개/역전개",
+      "full": "t3mes-split/full/mes_master_1/03_BOM_전개역전개.html",
+      "lite": "t3mes-split/lite/mes_master_1/03_BOM_전개역전개.html"
+    },
+    {
+      "index": 3,
+      "label": "공용 부품 매트릭스",
+      "full": "t3mes-split/full/mes_master_1/04_공용_부품_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_master_1/04_공용_부품_매트릭스.html"
+    },
+    {
+      "index": 4,
+      "label": "표준 공정 마스터",
+      "full": "t3mes-split/full/mes_master_1/05_표준_공정_마스터.html",
+      "lite": "t3mes-split/lite/mes_master_1/05_표준_공정_마스터.html"
+    },
+    {
+      "index": 5,
+      "label": "라우팅 흐름도",
+      "full": "t3mes-split/full/mes_master_1/06_라우팅_흐름도.html",
+      "lite": "t3mes-split/lite/mes_master_1/06_라우팅_흐름도.html"
+    },
+    {
+      "index": 6,
+      "label": "설비 계층 구조",
+      "full": "t3mes-split/full/mes_master_1/07_설비_계층_구조.html",
+      "lite": "t3mes-split/lite/mes_master_1/07_설비_계층_구조.html"
+    },
+    {
+      "index": 7,
+      "label": "설비 제원/Capa",
+      "full": "t3mes-split/full/mes_master_1/08_설비_제원Capa.html",
+      "lite": "t3mes-split/lite/mes_master_1/08_설비_제원Capa.html"
+    },
+    {
+      "index": 8,
+      "label": "창고/로케이션",
+      "full": "t3mes-split/full/mes_master_1/09_창고로케이션.html",
+      "lite": "t3mes-split/lite/mes_master_1/09_창고로케이션.html"
+    },
+    {
+      "index": 9,
+      "label": "고객사 및 SLA",
+      "full": "t3mes-split/full/mes_master_1/10_고객사_및_SLA.html",
+      "lite": "t3mes-split/lite/mes_master_1/10_고객사_및_SLA.html"
+    },
+    {
+      "index": 10,
+      "label": "협력사/외주처",
+      "full": "t3mes-split/full/mes_master_1/11_협력사외주처.html",
+      "lite": "t3mes-split/lite/mes_master_1/11_협력사외주처.html"
+    },
+    {
+      "index": 11,
+      "label": "소싱 할당률",
+      "full": "t3mes-split/full/mes_master_1/12_소싱_할당률.html",
+      "lite": "t3mes-split/lite/mes_master_1/12_소싱_할당률.html"
+    },
+    {
+      "index": 12,
+      "label": "회사 조직도(Tree)",
+      "full": "t3mes-split/full/mes_master_1/13_회사_조직도(Tree).html",
+      "lite": "t3mes-split/lite/mes_master_1/13_회사_조직도(Tree).html"
+    },
+    {
+      "index": 13,
+      "label": "작업자 스킬 매트릭스",
+      "full": "t3mes-split/full/mes_master_1/14_작업자_스킬_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_master_1/14_작업자_스킬_매트릭스.html"
+    },
+    {
+      "index": 14,
+      "label": "공장 달력/근무조",
+      "full": "t3mes-split/full/mes_master_1/15_공장_달력근무조.html",
+      "lite": "t3mes-split/lite/mes_master_1/15_공장_달력근무조.html"
+    },
+    {
+      "index": 15,
+      "label": "MDM 정합성 검증",
+      "full": "t3mes-split/full/mes_master_1/16_MDM_정합성_검증.html",
+      "lite": "t3mes-split/lite/mes_master_1/16_MDM_정합성_검증.html"
+    }
+  ],
+  "mes_mrp_1_order_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "그리드 일괄",
+      "full": "t3mes-split/full/mes_mrp_1_order/01_그리드_일괄.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/01_그리드_일괄.html"
+    },
+    {
+      "index": 1,
+      "label": "마스터디테일",
+      "full": "t3mes-split/full/mes_mrp_1_order/02_마스터디테일.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/02_마스터디테일.html"
+    },
+    {
+      "index": 2,
+      "label": "재고 매트릭스",
+      "full": "t3mes-split/full/mes_mrp_1_order/03_재고_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/03_재고_매트릭스.html"
+    },
+    {
+      "index": 3,
+      "label": "공급사 묶음",
+      "full": "t3mes-split/full/mes_mrp_1_order/04_공급사_묶음.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/04_공급사_묶음.html"
+    },
+    {
+      "index": 4,
+      "label": "쇼핑몰(Cart)",
+      "full": "t3mes-split/full/mes_mrp_1_order/05_쇼핑몰(Cart).html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/05_쇼핑몰(Cart).html"
+    },
+    {
+      "index": 5,
+      "label": "재고 차트뷰",
+      "full": "t3mes-split/full/mes_mrp_1_order/06_재고_차트뷰.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/06_재고_차트뷰.html"
+    },
+    {
+      "index": 6,
+      "label": "스마트 마법사",
+      "full": "t3mes-split/full/mes_mrp_1_order/07_스마트_마법사.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/07_스마트_마법사.html"
+    },
+    {
+      "index": 7,
+      "label": "PO 칸반보드",
+      "full": "t3mes-split/full/mes_mrp_1_order/08_PO_칸반보드.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/08_PO_칸반보드.html"
+    },
+    {
+      "index": 8,
+      "label": "과거이력 재발주",
+      "full": "t3mes-split/full/mes_mrp_1_order/09_과거이력_재발주.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/09_과거이력_재발주.html"
+    },
+    {
+      "index": 9,
+      "label": "엑셀 복붙파싱",
+      "full": "t3mes-split/full/mes_mrp_1_order/10_엑셀_복붙파싱.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/10_엑셀_복붙파싱.html"
+    },
+    {
+      "index": 10,
+      "label": "계약 잔량차감",
+      "full": "t3mes-split/full/mes_mrp_1_order/11_계약_잔량차감.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/11_계약_잔량차감.html"
+    },
+    {
+      "index": 11,
+      "label": "BOM 역전개",
+      "full": "t3mes-split/full/mes_mrp_1_order/12_BOM_역전개.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/12_BOM_역전개.html"
+    },
+    {
+      "index": 12,
+      "label": "결재 워크플로우",
+      "full": "t3mes-split/full/mes_mrp_1_order/13_결재_워크플로우.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/13_결재_워크플로우.html"
+    },
+    {
+      "index": 13,
+      "label": "외주가공 발주",
+      "full": "t3mes-split/full/mes_mrp_1_order/14_외주가공_발주.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/14_외주가공_발주.html"
+    },
+    {
+      "index": 14,
+      "label": "입고 달력뷰",
+      "full": "t3mes-split/full/mes_mrp_1_order/15_입고_달력뷰.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/15_입고_달력뷰.html"
+    },
+    {
+      "index": 15,
+      "label": "RFQ 견적비교",
+      "full": "t3mes-split/full/mes_mrp_1_order/16_RFQ_견적비교.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/16_RFQ_견적비교.html"
+    },
+    {
+      "index": 16,
+      "label": "VMI 모니터",
+      "full": "t3mes-split/full/mes_mrp_1_order/17_VMI_모니터.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/17_VMI_모니터.html"
+    },
+    {
+      "index": 17,
+      "label": "납기지연 시뮬",
+      "full": "t3mes-split/full/mes_mrp_1_order/18_납기지연_시뮬.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/18_납기지연_시뮬.html"
+    },
+    {
+      "index": 18,
+      "label": "공급사 평가할당",
+      "full": "t3mes-split/full/mes_mrp_1_order/19_공급사_평가할당.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/19_공급사_평가할당.html"
+    },
+    {
+      "index": 19,
+      "label": "직납(DropShip)",
+      "full": "t3mes-split/full/mes_mrp_1_order/20_직납(DropShip).html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/20_직납(DropShip).html"
+    },
+    {
+      "index": 20,
+      "label": "수입/통관 마법사",
+      "full": "t3mes-split/full/mes_mrp_1_order/21_수입통관_마법사.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/21_수입통관_마법사.html"
+    },
+    {
+      "index": 21,
+      "label": "프로젝트(WBS)",
+      "full": "t3mes-split/full/mes_mrp_1_order/22_프로젝트(WBS).html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/22_프로젝트(WBS).html"
+    },
+    {
+      "index": 22,
+      "label": "단종 대체품 AI",
+      "full": "t3mes-split/full/mes_mrp_1_order/23_단종_대체품_AI.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/23_단종_대체품_AI.html"
+    },
+    {
+      "index": 23,
+      "label": "단가 예측 차트",
+      "full": "t3mes-split/full/mes_mrp_1_order/24_단가_예측_차트.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/24_단가_예측_차트.html"
+    },
+    {
+      "index": 24,
+      "label": "위탁재고 정산",
+      "full": "t3mes-split/full/mes_mrp_1_order/25_위탁재고_정산.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/25_위탁재고_정산.html"
+    },
+    {
+      "index": 25,
+      "label": "Min-Max 자동보충",
+      "full": "t3mes-split/full/mes_mrp_1_order/26_Min-Max_자동보충.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/26_Min-Max_자동보충.html"
+    },
+    {
+      "index": 26,
+      "label": "악성재고 경고",
+      "full": "t3mes-split/full/mes_mrp_1_order/27_악성재고_경고.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/27_악성재고_경고.html"
+    },
+    {
+      "index": 27,
+      "label": "결품 안돈(Andon)",
+      "full": "t3mes-split/full/mes_mrp_1_order/28_결품_안돈(Andon).html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/28_결품_안돈(Andon).html"
+    },
+    {
+      "index": 28,
+      "label": "음성 인식 발주",
+      "full": "t3mes-split/full/mes_mrp_1_order/29_음성_인식_발주.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/29_음성_인식_발주.html"
+    },
+    {
+      "index": 29,
+      "label": "3D 창고 가용성",
+      "full": "t3mes-split/full/mes_mrp_1_order/30_3D_창고_가용성.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/30_3D_창고_가용성.html"
+    }
+  ],
+  "mes_mrp_2_result_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "단건 입고(PO)",
+      "full": "t3mes-split/full/mes_mrp_2_result/01_단건_입고(PO).html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/01_단건_입고(PO).html"
+    },
+    {
+      "index": 1,
+      "label": "그리드 엑셀형",
+      "full": "t3mes-split/full/mes_mrp_2_result/02_그리드_엑셀형.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/02_그리드_엑셀형.html"
+    },
+    {
+      "index": 2,
+      "label": "무발주/기타",
+      "full": "t3mes-split/full/mes_mrp_2_result/03_무발주기타.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/03_무발주기타.html"
+    },
+    {
+      "index": 3,
+      "label": "분할/백오더",
+      "full": "t3mes-split/full/mes_mrp_2_result/04_분할백오더.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/04_분할백오더.html"
+    },
+    {
+      "index": 4,
+      "label": "ASN 원클릭",
+      "full": "t3mes-split/full/mes_mrp_2_result/05_ASN_원클릭.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/05_ASN_원클릭.html"
+    },
+    {
+      "index": 5,
+      "label": "IQC 검사대기",
+      "full": "t3mes-split/full/mes_mrp_2_result/06_IQC_검사대기.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/06_IQC_검사대기.html"
+    },
+    {
+      "index": 6,
+      "label": "IQC 합불판정",
+      "full": "t3mes-split/full/mes_mrp_2_result/07_IQC_합불판정.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/07_IQC_합불판정.html"
+    },
+    {
+      "index": 7,
+      "label": "불량 반품(RTV)",
+      "full": "t3mes-split/full/mes_mrp_2_result/08_불량_반품(RTV).html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/08_불량_반품(RTV).html"
+    },
+    {
+      "index": 8,
+      "label": "AQL 샘플링",
+      "full": "t3mes-split/full/mes_mrp_2_result/09_AQL_샘플링.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/09_AQL_샘플링.html"
+    },
+    {
+      "index": 9,
+      "label": "사진첨부 입고",
+      "full": "t3mes-split/full/mes_mrp_2_result/10_사진첨부_입고.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/10_사진첨부_입고.html"
+    },
+    {
+      "index": 10,
+      "label": "로케이션 적치",
+      "full": "t3mes-split/full/mes_mrp_2_result/11_로케이션_적치.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/11_로케이션_적치.html"
+    },
+    {
+      "index": 11,
+      "label": "3D 창고적치",
+      "full": "t3mes-split/full/mes_mrp_2_result/12_3D_창고적치.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/12_3D_창고적치.html"
+    },
+    {
+      "index": 12,
+      "label": "크로스도킹",
+      "full": "t3mes-split/full/mes_mrp_2_result/13_크로스도킹.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/13_크로스도킹.html"
+    },
+    {
+      "index": 13,
+      "label": "VMI 재고입고",
+      "full": "t3mes-split/full/mes_mrp_2_result/14_VMI_재고입고.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/14_VMI_재고입고.html"
+    },
+    {
+      "index": 14,
+      "label": "외주반입(AP)",
+      "full": "t3mes-split/full/mes_mrp_2_result/15_외주반입(AP).html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/15_외주반입(AP).html"
+    },
+    {
+      "index": 15,
+      "label": "PDA 스캐너",
+      "full": "t3mes-split/full/mes_mrp_2_result/16_PDA_스캐너.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/16_PDA_스캐너.html"
+    },
+    {
+      "index": 16,
+      "label": "가상 바코드",
+      "full": "t3mes-split/full/mes_mrp_2_result/17_가상_바코드.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/17_가상_바코드.html"
+    },
+    {
+      "index": 17,
+      "label": "KLT/토트 스캔",
+      "full": "t3mes-split/full/mes_mrp_2_result/18_KLT토트_스캔.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/18_KLT토트_스캔.html"
+    },
+    {
+      "index": 18,
+      "label": "지게차 패드",
+      "full": "t3mes-split/full/mes_mrp_2_result/19_지게차_패드.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/19_지게차_패드.html"
+    },
+    {
+      "index": 19,
+      "label": "RFID 게이트",
+      "full": "t3mes-split/full/mes_mrp_2_result/20_RFID_게이트.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/20_RFID_게이트.html"
+    },
+    {
+      "index": 20,
+      "label": "엑셀 대량업로드",
+      "full": "t3mes-split/full/mes_mrp_2_result/21_엑셀_대량업로드.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/21_엑셀_대량업로드.html"
+    },
+    {
+      "index": 21,
+      "label": "텍스트 파싱",
+      "full": "t3mes-split/full/mes_mrp_2_result/22_텍스트_파싱.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/22_텍스트_파싱.html"
+    },
+    {
+      "index": 22,
+      "label": "ERP 재무연동",
+      "full": "t3mes-split/full/mes_mrp_2_result/23_ERP_재무연동.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/23_ERP_재무연동.html"
+    },
+    {
+      "index": 23,
+      "label": "입고 캘린더",
+      "full": "t3mes-split/full/mes_mrp_2_result/24_입고_캘린더.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/24_입고_캘린더.html"
+    },
+    {
+      "index": 24,
+      "label": "공급사 평가",
+      "full": "t3mes-split/full/mes_mrp_2_result/25_공급사_평가.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/25_공급사_평가.html"
+    },
+    {
+      "index": 25,
+      "label": "저울 중량입고",
+      "full": "t3mes-split/full/mes_mrp_2_result/26_저울_중량입고.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/26_저울_중량입고.html"
+    },
+    {
+      "index": 26,
+      "label": "비전 AI 검수",
+      "full": "t3mes-split/full/mes_mrp_2_result/27_비전_AI_검수.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/27_비전_AI_검수.html"
+    },
+    {
+      "index": 27,
+      "label": "음성인식(Voice)",
+      "full": "t3mes-split/full/mes_mrp_2_result/28_음성인식(Voice).html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/28_음성인식(Voice).html"
+    },
+    {
+      "index": 28,
+      "label": "챗봇 대화형",
+      "full": "t3mes-split/full/mes_mrp_2_result/29_챗봇_대화형.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/29_챗봇_대화형.html"
+    },
+    {
+      "index": 29,
+      "label": "결품 자동해제",
+      "full": "t3mes-split/full/mes_mrp_2_result/30_결품_자동해제.html",
+      "lite": "t3mes-split/lite/mes_mrp_2_result/30_결품_자동해제.html"
+    }
+  ],
+  "mes_mrp_3_monitoring_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "구매 총괄 대시보드",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/01_구매_총괄_대시보드.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/01_구매_총괄_대시보드.html"
+    },
+    {
+      "index": 1,
+      "label": "품목별 수급 현황",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/02_품목별_수급_현황.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/02_품목별_수급_현황.html"
+    },
+    {
+      "index": 2,
+      "label": "긴급 발주 모니터",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/03_긴급_발주_모니터.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/03_긴급_발주_모니터.html"
+    },
+    {
+      "index": 3,
+      "label": "구매 예산 집행률",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/04_구매_예산_집행률.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/04_구매_예산_집행률.html"
+    },
+    {
+      "index": 4,
+      "label": "공급망 지리적 분포",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/05_공급망_지리적_분포.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/05_공급망_지리적_분포.html"
+    },
+    {
+      "index": 5,
+      "label": "미승인 구매요청",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/06_미승인_구매요청.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/06_미승인_구매요청.html"
+    },
+    {
+      "index": 6,
+      "label": "소요량(MRP) 연계",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/07_소요량(MRP)_연계.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/07_소요량(MRP)_연계.html"
+    },
+    {
+      "index": 7,
+      "label": "대금 지급 스케줄",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/08_대금_지급_스케줄.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/08_대금_지급_스케줄.html"
+    },
+    {
+      "index": 8,
+      "label": "원자재 가격 동향",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/09_원자재_가격_동향.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/09_원자재_가격_동향.html"
+    },
+    {
+      "index": 9,
+      "label": "구매 리드타임 분석",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/10_구매_리드타임_분석.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/10_구매_리드타임_분석.html"
+    },
+    {
+      "index": 10,
+      "label": "협력사 성과(SRM)",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/11_협력사_성과(SRM).html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/11_협력사_성과(SRM).html"
+    },
+    {
+      "index": 11,
+      "label": "공급 위험(Risk)지도",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/12_공급_위험(Risk)지도.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/12_공급_위험(Risk)지도.html"
+    },
+    {
+      "index": 12,
+      "label": "핵심자재 단독소싱",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/13_핵심자재_단독소싱.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/13_핵심자재_단독소싱.html"
+    },
+    {
+      "index": 13,
+      "label": "협력사 품질 부적합",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/14_협력사_품질_부적합.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/14_협력사_품질_부적합.html"
+    },
+    {
+      "index": 14,
+      "label": "신규 업체 평가",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/15_신규_업체_평가.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/15_신규_업체_평가.html"
+    },
+    {
+      "index": 15,
+      "label": "계약 만료 임박",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/16_계약_만료_임박.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/16_계약_만료_임박.html"
+    },
+    {
+      "index": 16,
+      "label": "통관 진행 모니터",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/17_통관_진행_모니터.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/17_통관_진행_모니터.html"
+    },
+    {
+      "index": 17,
+      "label": "해상 운송 트래킹",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/18_해상_운송_트래킹.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/18_해상_운송_트래킹.html"
+    },
+    {
+      "index": 18,
+      "label": "항공 운송 지연",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/19_항공_운송_지연.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/19_항공_운송_지연.html"
+    },
+    {
+      "index": 19,
+      "label": "포워더별 퍼포먼스",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/20_포워더별_퍼포먼스.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/20_포워더별_퍼포먼스.html"
+    },
+    {
+      "index": 20,
+      "label": "금일 입고 예정",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/21_금일_입고_예정.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/21_금일_입고_예정.html"
+    },
+    {
+      "index": 21,
+      "label": "입고 대기열 실시간",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/22_입고_대기열_실시간.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/22_입고_대기열_실시간.html"
+    },
+    {
+      "index": 22,
+      "label": "수입검사(IQC) 현황",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/23_수입검사(IQC)_현황.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/23_수입검사(IQC)_현황.html"
+    },
+    {
+      "index": 23,
+      "label": "검사 불합격 격리",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/24_검사_불합격_격리.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/24_검사_불합격_격리.html"
+    },
+    {
+      "index": 24,
+      "label": "창고 빈(Bin) 적재률",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/25_창고_빈(Bin)_적재률.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/25_창고_빈(Bin)_적재률.html"
+    },
+    {
+      "index": 25,
+      "label": "미입고 잔량(Backlog)",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/26_미입고_잔량(Backlog).html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/26_미입고_잔량(Backlog).html"
+    },
+    {
+      "index": 26,
+      "label": "반품(RMA) 진행",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/27_반품(RMA)_진행.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/27_반품(RMA)_진행.html"
+    },
+    {
+      "index": 27,
+      "label": "샘플 검사 결과",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/28_샘플_검사_결과.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/28_샘플_검사_결과.html"
+    },
+    {
+      "index": 28,
+      "label": "입고 오류 로그",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/29_입고_오류_로그.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/29_입고_오류_로그.html"
+    },
+    {
+      "index": 29,
+      "label": "로우 데이터 실시간",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/30_로우_데이터_실시간.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/30_로우_데이터_실시간.html"
+    },
+    {
+      "index": 30,
+      "label": "PO 단가 변동 감지",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/31_PO_단가_변동_감지.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/31_PO_단가_변동_감지.html"
+    },
+    {
+      "index": 31,
+      "label": "LME 가격 연동",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/32_LME_가격_연동.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/32_LME_가격_연동.html"
+    },
+    {
+      "index": 32,
+      "label": "외자 구매 환율",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/33_외자_구매_환율.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/33_외자_구매_환율.html"
+    },
+    {
+      "index": 33,
+      "label": "TCO(총소유비용)",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/34_TCO(총소유비용).html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/34_TCO(총소유비용).html"
+    },
+    {
+      "index": 34,
+      "label": "할인/네고 실적",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/35_할인네고_실적.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/35_할인네고_실적.html"
+    },
+    {
+      "index": 35,
+      "label": "미지급금(AP) 현황",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/36_미지급금(AP)_현황.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/36_미지급금(AP)_현황.html"
+    },
+    {
+      "index": 36,
+      "label": "인보이스 대조 오류",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/37_인보이스_대조_오류.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/37_인보이스_대조_오류.html"
+    },
+    {
+      "index": 37,
+      "label": "선급금 지급 추적",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/38_선급금_지급_추적.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/38_선급금_지급_추적.html"
+    },
+    {
+      "index": 38,
+      "label": "운송비용 분석",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/39_운송비용_분석.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/39_운송비용_분석.html"
+    },
+    {
+      "index": 39,
+      "label": "금형/치공구 자산",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/40_금형치공구_자산.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/40_금형치공구_자산.html"
+    },
+    {
+      "index": 40,
+      "label": "결재 정체 모니터",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/41_결재_정체_모니터.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/41_결재_정체_모니터.html"
+    },
+    {
+      "index": 41,
+      "label": "전자계약 체결 현황",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/42_전자계약_체결_현황.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/42_전자계약_체결_현황.html"
+    },
+    {
+      "index": 42,
+      "label": "그린 구매(ESG)",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/43_그린_구매(ESG).html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/43_그린_구매(ESG).html"
+    },
+    {
+      "index": 43,
+      "label": "SOP 준수율 감지",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/44_SOP_준수율_감지.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/44_SOP_준수율_감지.html"
+    },
+    {
+      "index": 44,
+      "label": "사용자 활동 로그",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/45_사용자_활동_로그.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/45_사용자_활동_로그.html"
+    },
+    {
+      "index": 45,
+      "label": "마스터 데이터 오류",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/46_마스터_데이터_오류.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/46_마스터_데이터_오류.html"
+    },
+    {
+      "index": 46,
+      "label": "시스템 인터페이스",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/47_시스템_인터페이스.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/47_시스템_인터페이스.html"
+    },
+    {
+      "index": 47,
+      "label": "RPA 수행 현황",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/48_RPA_수행_현황.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/48_RPA_수행_현황.html"
+    },
+    {
+      "index": 48,
+      "label": "모바일 발주 승인",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/49_모바일_발주_승인.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/49_모바일_발주_승인.html"
+    },
+    {
+      "index": 49,
+      "label": "임원용 요약 보고",
+      "full": "t3mes-split/full/mes_mrp_3_monitoring/50_임원용_요약_보고.html",
+      "lite": "t3mes-split/lite/mes_mrp_3_monitoring/50_임원용_요약_보고.html"
+    }
+  ],
+  "mes_production_1_order_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "단건 지시",
+      "full": "t3mes-split/full/mes_production_1_order/01_단건_지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/01_단건_지시.html"
+    },
+    {
+      "index": 1,
+      "label": "엑셀 업로드",
+      "full": "t3mes-split/full/mes_production_1_order/02_엑셀_업로드.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/02_엑셀_업로드.html"
+    },
+    {
+      "index": 2,
+      "label": "SO 연동지시",
+      "full": "t3mes-split/full/mes_production_1_order/03_SO_연동지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/03_SO_연동지시.html"
+    },
+    {
+      "index": 3,
+      "label": "BOM 전개",
+      "full": "t3mes-split/full/mes_production_1_order/04_BOM_전개.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/04_BOM_전개.html"
+    },
+    {
+      "index": 4,
+      "label": "라우팅 지정",
+      "full": "t3mes-split/full/mes_production_1_order/05_라우팅_지정.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/05_라우팅_지정.html"
+    },
+    {
+      "index": 5,
+      "label": "간트 스케줄",
+      "full": "t3mes-split/full/mes_production_1_order/06_간트_스케줄.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/06_간트_스케줄.html"
+    },
+    {
+      "index": 6,
+      "label": "캘린더 드래그",
+      "full": "t3mes-split/full/mes_production_1_order/07_캘린더_드래그.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/07_캘린더_드래그.html"
+    },
+    {
+      "index": 7,
+      "label": "설비 매트릭스",
+      "full": "t3mes-split/full/mes_production_1_order/08_설비_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/08_설비_매트릭스.html"
+    },
+    {
+      "index": 8,
+      "label": "작업자 배분",
+      "full": "t3mes-split/full/mes_production_1_order/09_작업자_배분.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/09_작업자_배분.html"
+    },
+    {
+      "index": 9,
+      "label": "긴급 오더",
+      "full": "t3mes-split/full/mes_production_1_order/10_긴급_오더.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/10_긴급_오더.html"
+    },
+    {
+      "index": 10,
+      "label": "지시 분할",
+      "full": "t3mes-split/full/mes_production_1_order/11_지시_분할.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/11_지시_분할.html"
+    },
+    {
+      "index": 11,
+      "label": "지시 병합",
+      "full": "t3mes-split/full/mes_production_1_order/12_지시_병합.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/12_지시_병합.html"
+    },
+    {
+      "index": 12,
+      "label": "자재결품 체크",
+      "full": "t3mes-split/full/mes_production_1_order/13_자재결품_체크.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/13_자재결품_체크.html"
+    },
+    {
+      "index": 13,
+      "label": "대체자재 지정",
+      "full": "t3mes-split/full/mes_production_1_order/14_대체자재_지정.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/14_대체자재_지정.html"
+    },
+    {
+      "index": 14,
+      "label": "금형/지그 매핑",
+      "full": "t3mes-split/full/mes_production_1_order/15_금형지그_매핑.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/15_금형지그_매핑.html"
+    },
+    {
+      "index": 15,
+      "label": "레시피 다운로드",
+      "full": "t3mes-split/full/mes_production_1_order/16_레시피_다운로드.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/16_레시피_다운로드.html"
+    },
+    {
+      "index": 16,
+      "label": "도면/SOP 첨부",
+      "full": "t3mes-split/full/mes_production_1_order/17_도면SOP_첨부.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/17_도면SOP_첨부.html"
+    },
+    {
+      "index": 17,
+      "label": "외주 발주연동",
+      "full": "t3mes-split/full/mes_production_1_order/18_외주_발주연동.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/18_외주_발주연동.html"
+    },
+    {
+      "index": 18,
+      "label": "칸반 보충지시",
+      "full": "t3mes-split/full/mes_production_1_order/19_칸반_보충지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/19_칸반_보충지시.html"
+    },
+    {
+      "index": 19,
+      "label": "재작업 지시",
+      "full": "t3mes-split/full/mes_production_1_order/20_재작업_지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/20_재작업_지시.html"
+    },
+    {
+      "index": 20,
+      "label": "바코드 출력",
+      "full": "t3mes-split/full/mes_production_1_order/21_바코드_출력.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/21_바코드_출력.html"
+    },
+    {
+      "index": 21,
+      "label": "단계별 마법사",
+      "full": "t3mes-split/full/mes_production_1_order/22_단계별_마법사.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/22_단계별_마법사.html"
+    },
+    {
+      "index": 22,
+      "label": "AI 최적화",
+      "full": "t3mes-split/full/mes_production_1_order/23_AI_최적화.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/23_AI_최적화.html"
+    },
+    {
+      "index": 23,
+      "label": "모바일 승인",
+      "full": "t3mes-split/full/mes_production_1_order/24_모바일_승인.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/24_모바일_승인.html"
+    },
+    {
+      "index": 24,
+      "label": "3D 설비할당",
+      "full": "t3mes-split/full/mes_production_1_order/25_3D_설비할당.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/25_3D_설비할당.html"
+    },
+    {
+      "index": 25,
+      "label": "정기 반복지시",
+      "full": "t3mes-split/full/mes_production_1_order/26_정기_반복지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/26_정기_반복지시.html"
+    },
+    {
+      "index": 26,
+      "label": "스킬 검증",
+      "full": "t3mes-split/full/mes_production_1_order/27_스킬_검증.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/27_스킬_검증.html"
+    },
+    {
+      "index": 27,
+      "label": "PM일정 연동",
+      "full": "t3mes-split/full/mes_production_1_order/28_PM일정_연동.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/28_PM일정_연동.html"
+    },
+    {
+      "index": 28,
+      "label": "음성 AI지시",
+      "full": "t3mes-split/full/mes_production_1_order/29_음성_AI지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/29_음성_AI지시.html"
+    },
+    {
+      "index": 29,
+      "label": "포장/팔레트 지시",
+      "full": "t3mes-split/full/mes_production_1_order/30_포장팔레트_지시.html",
+      "lite": "t3mes-split/lite/mes_production_1_order/30_포장팔레트_지시.html"
+    }
+  ],
+  "mes_production_2_result_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "단건 기본",
+      "full": "t3mes-split/full/mes_production_2_result/01_단건_기본.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/01_단건_기본.html"
+    },
+    {
+      "index": 1,
+      "label": "터치패드",
+      "full": "t3mes-split/full/mes_production_2_result/02_터치패드.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/02_터치패드.html"
+    },
+    {
+      "index": 2,
+      "label": "그리드 엑셀형",
+      "full": "t3mes-split/full/mes_production_2_result/03_그리드_엑셀형.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/03_그리드_엑셀형.html"
+    },
+    {
+      "index": 3,
+      "label": "드래그 범위",
+      "full": "t3mes-split/full/mes_production_2_result/04_드래그_범위.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/04_드래그_범위.html"
+    },
+    {
+      "index": 4,
+      "label": "간트 바클릭",
+      "full": "t3mes-split/full/mes_production_2_result/05_간트_바클릭.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/05_간트_바클릭.html"
+    },
+    {
+      "index": 5,
+      "label": "칸반 보드",
+      "full": "t3mes-split/full/mes_production_2_result/06_칸반_보드.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/06_칸반_보드.html"
+    },
+    {
+      "index": 6,
+      "label": "바코드 스캔",
+      "full": "t3mes-split/full/mes_production_2_result/07_바코드_스캔.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/07_바코드_스캔.html"
+    },
+    {
+      "index": 7,
+      "label": "장바구니 묶음",
+      "full": "t3mes-split/full/mes_production_2_result/08_장바구니_묶음.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/08_장바구니_묶음.html"
+    },
+    {
+      "index": 8,
+      "label": "엑셀 파싱",
+      "full": "t3mes-split/full/mes_production_2_result/09_엑셀_파싱.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/09_엑셀_파싱.html"
+    },
+    {
+      "index": 9,
+      "label": "매트릭스",
+      "full": "t3mes-split/full/mes_production_2_result/10_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/10_매트릭스.html"
+    },
+    {
+      "index": 10,
+      "label": "공정 드래그",
+      "full": "t3mes-split/full/mes_production_2_result/11_공정_드래그.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/11_공정_드래그.html"
+    },
+    {
+      "index": 11,
+      "label": "가상 바코드",
+      "full": "t3mes-split/full/mes_production_2_result/12_가상_바코드.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/12_가상_바코드.html"
+    },
+    {
+      "index": 12,
+      "label": "2D 레이아웃",
+      "full": "t3mes-split/full/mes_production_2_result/13_2D_레이아웃.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/13_2D_레이아웃.html"
+    },
+    {
+      "index": 13,
+      "label": "스와이프",
+      "full": "t3mes-split/full/mes_production_2_result/14_스와이프.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/14_스와이프.html"
+    },
+    {
+      "index": 14,
+      "label": "자동 분배기",
+      "full": "t3mes-split/full/mes_production_2_result/15_자동_분배기.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/15_자동_분배기.html"
+    },
+    {
+      "index": 15,
+      "label": "다중 작업자",
+      "full": "t3mes-split/full/mes_production_2_result/16_다중_작업자.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/16_다중_작업자.html"
+    },
+    {
+      "index": 16,
+      "label": "PLC 연동",
+      "full": "t3mes-split/full/mes_production_2_result/17_PLC_연동.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/17_PLC_연동.html"
+    },
+    {
+      "index": 17,
+      "label": "대량 엑셀업로드",
+      "full": "t3mes-split/full/mes_production_2_result/18_대량_엑셀업로드.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/18_대량_엑셀업로드.html"
+    },
+    {
+      "index": 18,
+      "label": "SPC 직입력",
+      "full": "t3mes-split/full/mes_production_2_result/19_SPC_직입력.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/19_SPC_직입력.html"
+    },
+    {
+      "index": 19,
+      "label": "Lot 분할",
+      "full": "t3mes-split/full/mes_production_2_result/20_Lot_분할.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/20_Lot_분할.html"
+    },
+    {
+      "index": 20,
+      "label": "생체인증 마감",
+      "full": "t3mes-split/full/mes_production_2_result/21_생체인증_마감.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/21_생체인증_마감.html"
+    },
+    {
+      "index": 21,
+      "label": "재작업(Rework)",
+      "full": "t3mes-split/full/mes_production_2_result/22_재작업(Rework).html",
+      "lite": "t3mes-split/lite/mes_production_2_result/22_재작업(Rework).html"
+    },
+    {
+      "index": 22,
+      "label": "결품/안돈(Andon)",
+      "full": "t3mes-split/full/mes_production_2_result/23_결품안돈(Andon).html",
+      "lite": "t3mes-split/lite/mes_production_2_result/23_결품안돈(Andon).html"
+    },
+    {
+      "index": 23,
+      "label": "교대조 마감",
+      "full": "t3mes-split/full/mes_production_2_result/24_교대조_마감.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/24_교대조_마감.html"
+    },
+    {
+      "index": 24,
+      "label": "3D 디지털트윈",
+      "full": "t3mes-split/full/mes_production_2_result/25_3D_디지털트윈.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/25_3D_디지털트윈.html"
+    },
+    {
+      "index": 25,
+      "label": "파라미터 스냅샷",
+      "full": "t3mes-split/full/mes_production_2_result/26_파라미터_스냅샷.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/26_파라미터_스냅샷.html"
+    },
+    {
+      "index": 26,
+      "label": "비전 AI 연동",
+      "full": "t3mes-split/full/mes_production_2_result/27_비전_AI_연동.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/27_비전_AI_연동.html"
+    },
+    {
+      "index": 27,
+      "label": "백플러시 역전개",
+      "full": "t3mes-split/full/mes_production_2_result/28_백플러시_역전개.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/28_백플러시_역전개.html"
+    },
+    {
+      "index": 28,
+      "label": "다중설비 제어반",
+      "full": "t3mes-split/full/mes_production_2_result/29_다중설비_제어반.html",
+      "lite": "t3mes-split/lite/mes_production_2_result/29_다중설비_제어반.html"
+    },
+    {
+      "index": 29,
+      "label": "음성인식(Voice)",
+      "full": "t3mes-split/full/mes_production_2_result/30_음성인식(Voice).html",
+      "lite": "t3mes-split/lite/mes_production_2_result/30_음성인식(Voice).html"
+    }
+  ],
+  "mes_production_3_monitoring_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "설비종합효율 (OEE)",
+      "full": "t3mes-split/full/mes_production_3_monitoring/01_설비종합효율_(OEE).html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/01_설비종합효율_(OEE).html"
+    },
+    {
+      "index": 1,
+      "label": "2D 레이아웃",
+      "full": "t3mes-split/full/mes_production_3_monitoring/02_2D_레이아웃.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/02_2D_레이아웃.html"
+    },
+    {
+      "index": 2,
+      "label": "설비상태 타일",
+      "full": "t3mes-split/full/mes_production_3_monitoring/03_설비상태_타일.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/03_설비상태_타일.html"
+    },
+    {
+      "index": 3,
+      "label": "UPH 추이",
+      "full": "t3mes-split/full/mes_production_3_monitoring/04_UPH_추이.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/04_UPH_추이.html"
+    },
+    {
+      "index": 4,
+      "label": "WIP 바차트",
+      "full": "t3mes-split/full/mes_production_3_monitoring/05_WIP_바차트.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/05_WIP_바차트.html"
+    },
+    {
+      "index": 5,
+      "label": "안돈 알람현황",
+      "full": "t3mes-split/full/mes_production_3_monitoring/06_안돈_알람현황.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/06_안돈_알람현황.html"
+    },
+    {
+      "index": 6,
+      "label": "불량률 파이",
+      "full": "t3mes-split/full/mes_production_3_monitoring/07_불량률_파이.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/07_불량률_파이.html"
+    },
+    {
+      "index": 7,
+      "label": "생산진척률",
+      "full": "t3mes-split/full/mes_production_3_monitoring/08_생산진척률.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/08_생산진척률.html"
+    },
+    {
+      "index": 8,
+      "label": "SPC 실시간",
+      "full": "t3mes-split/full/mes_production_3_monitoring/09_SPC_실시간.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/09_SPC_실시간.html"
+    },
+    {
+      "index": 9,
+      "label": "파라미터 트렌드",
+      "full": "t3mes-split/full/mes_production_3_monitoring/10_파라미터_트렌드.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/10_파라미터_트렌드.html"
+    },
+    {
+      "index": 10,
+      "label": "리드타임 추적",
+      "full": "t3mes-split/full/mes_production_3_monitoring/11_리드타임_추적.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/11_리드타임_추적.html"
+    },
+    {
+      "index": 11,
+      "label": "작업자 투입",
+      "full": "t3mes-split/full/mes_production_3_monitoring/12_작업자_투입.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/12_작업자_투입.html"
+    },
+    {
+      "index": 12,
+      "label": "일일생산 요약",
+      "full": "t3mes-split/full/mes_production_3_monitoring/13_일일생산_요약.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/13_일일생산_요약.html"
+    },
+    {
+      "index": 13,
+      "label": "3D 트윈 뷰",
+      "full": "t3mes-split/full/mes_production_3_monitoring/14_3D_트윈_뷰.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/14_3D_트윈_뷰.html"
+    },
+    {
+      "index": 14,
+      "label": "알람 피드",
+      "full": "t3mes-split/full/mes_production_3_monitoring/15_알람_피드.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/15_알람_피드.html"
+    },
+    {
+      "index": 15,
+      "label": "에너지 모니터",
+      "full": "t3mes-split/full/mes_production_3_monitoring/16_에너지_모니터.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/16_에너지_모니터.html"
+    },
+    {
+      "index": 16,
+      "label": "결품 위험판",
+      "full": "t3mes-split/full/mes_production_3_monitoring/17_결품_위험판.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/17_결품_위험판.html"
+    },
+    {
+      "index": 17,
+      "label": "비전 AI 뷰",
+      "full": "t3mes-split/full/mes_production_3_monitoring/18_비전_AI_뷰.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/18_비전_AI_뷰.html"
+    },
+    {
+      "index": 18,
+      "label": "금형 수명",
+      "full": "t3mes-split/full/mes_production_3_monitoring/19_금형_수명.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/19_금형_수명.html"
+    },
+    {
+      "index": 19,
+      "label": "교대조 비교",
+      "full": "t3mes-split/full/mes_production_3_monitoring/20_교대조_비교.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/20_교대조_비교.html"
+    },
+    {
+      "index": 20,
+      "label": "Raw Data",
+      "full": "t3mes-split/full/mes_production_3_monitoring/21_Raw_Data.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/21_Raw_Data.html"
+    },
+    {
+      "index": 21,
+      "label": "병목 히트맵",
+      "full": "t3mes-split/full/mes_production_3_monitoring/22_병목_히트맵.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/22_병목_히트맵.html"
+    },
+    {
+      "index": 22,
+      "label": "PM 캘린더",
+      "full": "t3mes-split/full/mes_production_3_monitoring/23_PM_캘린더.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/23_PM_캘린더.html"
+    },
+    {
+      "index": 23,
+      "label": "현장 환경",
+      "full": "t3mes-split/full/mes_production_3_monitoring/24_현장_환경.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/24_현장_환경.html"
+    },
+    {
+      "index": 24,
+      "label": "물류 AGV",
+      "full": "t3mes-split/full/mes_production_3_monitoring/25_물류_AGV.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/25_물류_AGV.html"
+    },
+    {
+      "index": 25,
+      "label": "스캔 로그",
+      "full": "t3mes-split/full/mes_production_3_monitoring/26_스캔_로그.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/26_스캔_로그.html"
+    },
+    {
+      "index": 26,
+      "label": "다기능공 맵",
+      "full": "t3mes-split/full/mes_production_3_monitoring/27_다기능공_맵.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/27_다기능공_맵.html"
+    },
+    {
+      "index": 27,
+      "label": "택트타임",
+      "full": "t3mes-split/full/mes_production_3_monitoring/28_택트타임.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/28_택트타임.html"
+    },
+    {
+      "index": 28,
+      "label": "백플러시",
+      "full": "t3mes-split/full/mes_production_3_monitoring/29_백플러시.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/29_백플러시.html"
+    },
+    {
+      "index": 29,
+      "label": "재작업 루프",
+      "full": "t3mes-split/full/mes_production_3_monitoring/30_재작업_루프.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/30_재작업_루프.html"
+    },
+    {
+      "index": 30,
+      "label": "Scrap 추이",
+      "full": "t3mes-split/full/mes_production_3_monitoring/31_Scrap_추이.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/31_Scrap_추이.html"
+    },
+    {
+      "index": 31,
+      "label": "지연 오더",
+      "full": "t3mes-split/full/mes_production_3_monitoring/32_지연_오더.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/32_지연_오더.html"
+    },
+    {
+      "index": 32,
+      "label": "긴급 오더",
+      "full": "t3mes-split/full/mes_production_3_monitoring/33_긴급_오더.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/33_긴급_오더.html"
+    },
+    {
+      "index": 33,
+      "label": "피로도 관리",
+      "full": "t3mes-split/full/mes_production_3_monitoring/34_피로도_관리.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/34_피로도_관리.html"
+    },
+    {
+      "index": 34,
+      "label": "MTBF/MTTR",
+      "full": "t3mes-split/full/mes_production_3_monitoring/35_MTBFMTTR.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/35_MTBFMTTR.html"
+    },
+    {
+      "index": 35,
+      "label": "수율 폭포수",
+      "full": "t3mes-split/full/mes_production_3_monitoring/36_수율_폭포수.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/36_수율_폭포수.html"
+    },
+    {
+      "index": 36,
+      "label": "출하 대기",
+      "full": "t3mes-split/full/mes_production_3_monitoring/37_출하_대기.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/37_출하_대기.html"
+    },
+    {
+      "index": 37,
+      "label": "외주 진척도",
+      "full": "t3mes-split/full/mes_production_3_monitoring/38_외주_진척도.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/38_외주_진척도.html"
+    },
+    {
+      "index": 38,
+      "label": "파레토 차트",
+      "full": "t3mes-split/full/mes_production_3_monitoring/39_파레토_차트.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/39_파레토_차트.html"
+    },
+    {
+      "index": 39,
+      "label": "전력 원단위",
+      "full": "t3mes-split/full/mes_production_3_monitoring/40_전력_원단위.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/40_전력_원단위.html"
+    },
+    {
+      "index": 40,
+      "label": "불량유형",
+      "full": "t3mes-split/full/mes_production_3_monitoring/41_불량유형.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/41_불량유형.html"
+    },
+    {
+      "index": 41,
+      "label": "투입/산출",
+      "full": "t3mes-split/full/mes_production_3_monitoring/42_투입산출.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/42_투입산출.html"
+    },
+    {
+      "index": 42,
+      "label": "모바일 요약",
+      "full": "t3mes-split/full/mes_production_3_monitoring/43_모바일_요약.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/43_모바일_요약.html"
+    },
+    {
+      "index": 43,
+      "label": "안전 CCTV",
+      "full": "t3mes-split/full/mes_production_3_monitoring/44_안전_CCTV.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/44_안전_CCTV.html"
+    },
+    {
+      "index": 44,
+      "label": "Lot 추적",
+      "full": "t3mes-split/full/mes_production_3_monitoring/45_Lot_추적.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/45_Lot_추적.html"
+    },
+    {
+      "index": 45,
+      "label": "Kanban 현황",
+      "full": "t3mes-split/full/mes_production_3_monitoring/46_Kanban_현황.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/46_Kanban_현황.html"
+    },
+    {
+      "index": 46,
+      "label": "생산 원가",
+      "full": "t3mes-split/full/mes_production_3_monitoring/47_생산_원가.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/47_생산_원가.html"
+    },
+    {
+      "index": 47,
+      "label": "Multi-Site",
+      "full": "t3mes-split/full/mes_production_3_monitoring/48_Multi-Site.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/48_Multi-Site.html"
+    },
+    {
+      "index": 48,
+      "label": "회의용 뷰",
+      "full": "t3mes-split/full/mes_production_3_monitoring/49_회의용_뷰.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/49_회의용_뷰.html"
+    },
+    {
+      "index": 49,
+      "label": "위젯 보드",
+      "full": "t3mes-split/full/mes_production_3_monitoring/50_위젯_보드.html",
+      "lite": "t3mes-split/lite/mes_production_3_monitoring/50_위젯_보드.html"
+    }
+  ],
+  "mes_qc_1_operation_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "IQC 검사대기열",
+      "full": "t3mes-split/full/mes_qc_1_operation/01_IQC_검사대기열.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/01_IQC_검사대기열.html"
+    },
+    {
+      "index": 1,
+      "label": "AQL 샘플링수량",
+      "full": "t3mes-split/full/mes_qc_1_operation/02_AQL_샘플링수량.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/02_AQL_샘플링수량.html"
+    },
+    {
+      "index": 2,
+      "label": "IQC 합불판정",
+      "full": "t3mes-split/full/mes_qc_1_operation/03_IQC_합불판정.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/03_IQC_합불판정.html"
+    },
+    {
+      "index": 3,
+      "label": "성적서(COA) OCR",
+      "full": "t3mes-split/full/mes_qc_1_operation/04_성적서(COA)_OCR.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/04_성적서(COA)_OCR.html"
+    },
+    {
+      "index": 4,
+      "label": "협력사 품질평가",
+      "full": "t3mes-split/full/mes_qc_1_operation/05_협력사_품질평가.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/05_협력사_품질평가.html"
+    },
+    {
+      "index": 5,
+      "label": "초중종물 검사",
+      "full": "t3mes-split/full/mes_qc_1_operation/06_초중종물_검사.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/06_초중종물_검사.html"
+    },
+    {
+      "index": 6,
+      "label": "순회검사(모바일)",
+      "full": "t3mes-split/full/mes_qc_1_operation/07_순회검사(모바일).html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/07_순회검사(모바일).html"
+    },
+    {
+      "index": 7,
+      "label": "터치형 불량패드",
+      "full": "t3mes-split/full/mes_qc_1_operation/08_터치형_불량패드.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/08_터치형_불량패드.html"
+    },
+    {
+      "index": 8,
+      "label": "불량 매트릭스",
+      "full": "t3mes-split/full/mes_qc_1_operation/09_불량_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/09_불량_매트릭스.html"
+    },
+    {
+      "index": 9,
+      "label": "OQC 출하검사",
+      "full": "t3mes-split/full/mes_qc_1_operation/10_OQC_출하검사.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/10_OQC_출하검사.html"
+    },
+    {
+      "index": 10,
+      "label": "부적합(NCR) 보고",
+      "full": "t3mes-split/full/mes_qc_1_operation/11_부적합(NCR)_보고.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/11_부적합(NCR)_보고.html"
+    },
+    {
+      "index": 11,
+      "label": "MRB 결함심의",
+      "full": "t3mes-split/full/mes_qc_1_operation/12_MRB_결함심의.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/12_MRB_결함심의.html"
+    },
+    {
+      "index": 12,
+      "label": "재작업/폐기지시",
+      "full": "t3mes-split/full/mes_qc_1_operation/13_재작업폐기지시.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/13_재작업폐기지시.html"
+    },
+    {
+      "index": 13,
+      "label": "클레임(RMA)접수",
+      "full": "t3mes-split/full/mes_qc_1_operation/14_클레임(RMA)접수.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/14_클레임(RMA)접수.html"
+    },
+    {
+      "index": 14,
+      "label": "8D Report 폼",
+      "full": "t3mes-split/full/mes_qc_1_operation/15_8D_Report_폼.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/15_8D_Report_폼.html"
+    },
+    {
+      "index": 15,
+      "label": "X-R 관리도(SPC)",
+      "full": "t3mes-split/full/mes_qc_1_operation/16_X-R_관리도(SPC).html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/16_X-R_관리도(SPC).html"
+    },
+    {
+      "index": 16,
+      "label": "Cp/Cpk 공정능력",
+      "full": "t3mes-split/full/mes_qc_1_operation/17_CpCpk_공정능력.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/17_CpCpk_공정능력.html"
+    },
+    {
+      "index": 17,
+      "label": "불량 파레토차트",
+      "full": "t3mes-split/full/mes_qc_1_operation/18_불량_파레토차트.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/18_불량_파레토차트.html"
+    },
+    {
+      "index": 18,
+      "label": "품질비용(COQ)",
+      "full": "t3mes-split/full/mes_qc_1_operation/19_품질비용(COQ).html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/19_품질비용(COQ).html"
+    },
+    {
+      "index": 19,
+      "label": "검사원 R&R 평가",
+      "full": "t3mes-split/full/mes_qc_1_operation/20_검사원_R&R_평가.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/20_검사원_R&R_평가.html"
+    },
+    {
+      "index": 20,
+      "label": "블루투스 캘리퍼스",
+      "full": "t3mes-split/full/mes_qc_1_operation/21_블루투스_캘리퍼스.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/21_블루투스_캘리퍼스.html"
+    },
+    {
+      "index": 21,
+      "label": "Vision AI 검사",
+      "full": "t3mes-split/full/mes_qc_1_operation/22_Vision_AI_검사.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/22_Vision_AI_검사.html"
+    },
+    {
+      "index": 22,
+      "label": "3D 스캔 치수검사",
+      "full": "t3mes-split/full/mes_qc_1_operation/23_3D_스캔_치수검사.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/23_3D_스캔_치수검사.html"
+    },
+    {
+      "index": 23,
+      "label": "FDC 설비이상감지",
+      "full": "t3mes-split/full/mes_qc_1_operation/24_FDC_설비이상감지.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/24_FDC_설비이상감지.html"
+    },
+    {
+      "index": 24,
+      "label": "현장 불량사진(앱)",
+      "full": "t3mes-split/full/mes_qc_1_operation/25_현장_불량사진(앱).html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/25_현장_불량사진(앱).html"
+    },
+    {
+      "index": 25,
+      "label": "음성인식 불량등록",
+      "full": "t3mes-split/full/mes_qc_1_operation/26_음성인식_불량등록.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/26_음성인식_불량등록.html"
+    },
+    {
+      "index": 26,
+      "label": "스킬기반 검사제한",
+      "full": "t3mes-split/full/mes_qc_1_operation/27_스킬기반_검사제한.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/27_스킬기반_검사제한.html"
+    },
+    {
+      "index": 27,
+      "label": "계측기 교정연동",
+      "full": "t3mes-split/full/mes_qc_1_operation/28_계측기_교정연동.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/28_계측기_교정연동.html"
+    },
+    {
+      "index": 28,
+      "label": "블록체인 성적서",
+      "full": "t3mes-split/full/mes_qc_1_operation/29_블록체인_성적서.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/29_블록체인_성적서.html"
+    },
+    {
+      "index": 29,
+      "label": "불량원인 토폴로지",
+      "full": "t3mes-split/full/mes_qc_1_operation/30_불량원인_토폴로지.html",
+      "lite": "t3mes-split/lite/mes_qc_1_operation/30_불량원인_토폴로지.html"
+    }
+  ],
+  "mes_qc_2_operation_monitoring_patterns.html": [
+    {
+      "index": 0,
+      "label": "IQC 종합 수율",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/01_IQC_종합_수율.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/01_IQC_종합_수율.html"
+    },
+    {
+      "index": 1,
+      "label": "협력사 PPM 랭킹",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/02_협력사_PPM_랭킹.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/02_협력사_PPM_랭킹.html"
+    },
+    {
+      "index": 2,
+      "label": "IQC 대기열 Live",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/03_IQC_대기열_Live.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/03_IQC_대기열_Live.html"
+    },
+    {
+      "index": 3,
+      "label": "자재 불량률 추이",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/04_자재_불량률_추이.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/04_자재_불량률_추이.html"
+    },
+    {
+      "index": 4,
+      "label": "AQL 샘플링 모니터",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/05_AQL_샘플링_모니터.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/05_AQL_샘플링_모니터.html"
+    },
+    {
+      "index": 5,
+      "label": "IQC 리드타임",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/06_IQC_리드타임.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/06_IQC_리드타임.html"
+    },
+    {
+      "index": 6,
+      "label": "악성불량 파레토",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/07_악성불량_파레토.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/07_악성불량_파레토.html"
+    },
+    {
+      "index": 7,
+      "label": "원부자재 에이징",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/08_원부자재_에이징.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/08_원부자재_에이징.html"
+    },
+    {
+      "index": 8,
+      "label": "공정 Live 불량률",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/09_공정_Live_불량률.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/09_공정_Live_불량률.html"
+    },
+    {
+      "index": 9,
+      "label": "초중종물 검사현황",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/10_초중종물_검사현황.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/10_초중종물_검사현황.html"
+    },
+    {
+      "index": 10,
+      "label": "불량유형 분포",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/11_불량유형_분포.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/11_불량유형_분포.html"
+    },
+    {
+      "index": 11,
+      "label": "수율 폭포수",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/12_수율_폭포수.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/12_수율_폭포수.html"
+    },
+    {
+      "index": 12,
+      "label": "순회검사 피드",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/13_순회검사_피드.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/13_순회검사_피드.html"
+    },
+    {
+      "index": 13,
+      "label": "재작업 라우팅현황",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/14_재작업_라우팅현황.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/14_재작업_라우팅현황.html"
+    },
+    {
+      "index": 14,
+      "label": "설비별 품질맵",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/15_설비별_품질맵.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/15_설비별_품질맵.html"
+    },
+    {
+      "index": 15,
+      "label": "교대조 품질비교",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/16_교대조_품질비교.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/16_교대조_품질비교.html"
+    },
+    {
+      "index": 16,
+      "label": "OQC 합격률 실시간",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/17_OQC_합격률_실시간.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/17_OQC_합격률_실시간.html"
+    },
+    {
+      "index": 17,
+      "label": "RMA 클레임 라이브",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/18_RMA_클레임_라이브.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/18_RMA_클레임_라이브.html"
+    },
+    {
+      "index": 18,
+      "label": "8D Report 칸반",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/19_8D_Report_칸반.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/19_8D_Report_칸반.html"
+    },
+    {
+      "index": 19,
+      "label": "출하 Hold 모니터",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/20_출하_Hold_모니터.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/20_출하_Hold_모니터.html"
+    },
+    {
+      "index": 20,
+      "label": "고객 만족도 CQI",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/21_고객_만족도_CQI.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/21_고객_만족도_CQI.html"
+    },
+    {
+      "index": 21,
+      "label": "제품군별 반품률",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/22_제품군별_반품률.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/22_제품군별_반품률.html"
+    },
+    {
+      "index": 22,
+      "label": "검사원 퍼포먼스",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/23_검사원_퍼포먼스.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/23_검사원_퍼포먼스.html"
+    },
+    {
+      "index": 23,
+      "label": "X-bar R 관리도",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/24_X-bar_R_관리도.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/24_X-bar_R_관리도.html"
+    },
+    {
+      "index": 24,
+      "label": "Cp/Cpk 매트릭스",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/25_CpCpk_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/25_CpCpk_매트릭스.html"
+    },
+    {
+      "index": 25,
+      "label": "OOC 이상알람",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/26_OOC_이상알람.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/26_OOC_이상알람.html"
+    },
+    {
+      "index": 26,
+      "label": "치수 히스토그램",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/27_치수_히스토그램.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/27_치수_히스토그램.html"
+    },
+    {
+      "index": 27,
+      "label": "6-Sigma 트래커",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/28_6-Sigma_트래커.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/28_6-Sigma_트래커.html"
+    },
+    {
+      "index": 28,
+      "label": "게이지 R&R 상태",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/29_게이지_R&R_상태.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/29_게이지_R&R_상태.html"
+    },
+    {
+      "index": 29,
+      "label": "다변수 상관분석",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/30_다변수_상관분석.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/30_다변수_상관분석.html"
+    },
+    {
+      "index": 30,
+      "label": "표준편차 추이",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/31_표준편차_추이.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/31_표준편차_추이.html"
+    },
+    {
+      "index": 31,
+      "label": "Vision AI 실시간",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/32_Vision_AI_실시간.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/32_Vision_AI_실시간.html"
+    },
+    {
+      "index": 32,
+      "label": "BLE 캘리퍼스 피드",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/33_BLE_캘리퍼스_피드.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/33_BLE_캘리퍼스_피드.html"
+    },
+    {
+      "index": 33,
+      "label": "3D 편차 히트맵",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/34_3D_편차_히트맵.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/34_3D_편차_히트맵.html"
+    },
+    {
+      "index": 34,
+      "label": "AI 불량예측 알람",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/35_AI_불량예측_알람.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/35_AI_불량예측_알람.html"
+    },
+    {
+      "index": 35,
+      "label": "환경 vs 불량상관",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/36_환경_vs_불량상관.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/36_환경_vs_불량상관.html"
+    },
+    {
+      "index": 36,
+      "label": "FDC 이상징후 보드",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/37_FDC_이상징후_보드.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/37_FDC_이상징후_보드.html"
+    },
+    {
+      "index": 37,
+      "label": "불량 이미지 갤러리",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/38_불량_이미지_갤러리.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/38_불량_이미지_갤러리.html"
+    },
+    {
+      "index": 38,
+      "label": "AI 판독 신뢰도",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/39_AI_판독_신뢰도.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/39_AI_판독_신뢰도.html"
+    },
+    {
+      "index": 39,
+      "label": "실시간 품질비용(COQ)",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/40_실시간_품질비용(COQ).html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/40_실시간_품질비용(COQ).html"
+    },
+    {
+      "index": 40,
+      "label": "NCR 체류 현황",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/41_NCR_체류_현황.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/41_NCR_체류_현황.html"
+    },
+    {
+      "index": 41,
+      "label": "MRB 심의 자산",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/42_MRB_심의_자산.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/42_MRB_심의_자산.html"
+    },
+    {
+      "index": 42,
+      "label": "계측기 교정 캘린더",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/43_계측기_교정_캘린더.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/43_계측기_교정_캘린더.html"
+    },
+    {
+      "index": 43,
+      "label": "품질 오딧 현황",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/44_품질_오딧_현황.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/44_품질_오딧_현황.html"
+    },
+    {
+      "index": 44,
+      "label": "SOP 개정 라이브",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/45_SOP_개정_라이브.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/45_SOP_개정_라이브.html"
+    },
+    {
+      "index": 45,
+      "label": "불량 역추적 트리",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/46_불량_역추적_트리.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/46_불량_역추적_트리.html"
+    },
+    {
+      "index": 46,
+      "label": "블록체인 Hash 보드",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/47_블록체인_Hash_보드.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/47_블록체인_Hash_보드.html"
+    },
+    {
+      "index": 47,
+      "label": "스킬 매트릭스 감지",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/48_스킬_매트릭스_감지.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/48_스킬_매트릭스_감지.html"
+    },
+    {
+      "index": 48,
+      "label": "경영진 품질 요약",
+      "full": "t3mes-split/full/mes_qc_2_operation_monitoring/49_경영진_품질_요약.html",
+      "lite": "t3mes-split/lite/mes_qc_2_operation_monitoring/49_경영진_품질_요약.html"
+    }
+  ],
+  "mes_route_1_layout.html": [],
+  "mes_route_2_wip.html": [],
+  "mes_route_3_wip_3d.html": [],
+  "mes_route_4_wip_simulation.html": [],
+  "mes_route_5_wip_simulation_3d.html": [],
+  "mes_sales_1_order_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "헤더-디테일",
+      "full": "t3mes-split/full/mes_sales_1_order/01_헤더-디테일.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/01_헤더-디테일.html"
+    },
+    {
+      "index": 1,
+      "label": "엑셀 쾌속입력",
+      "full": "t3mes-split/full/mes_sales_1_order/02_엑셀_쾌속입력.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/02_엑셀_쾌속입력.html"
+    },
+    {
+      "index": 2,
+      "label": "B2B 장바구니",
+      "full": "t3mes-split/full/mes_sales_1_order/03_B2B_장바구니.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/03_B2B_장바구니.html"
+    },
+    {
+      "index": 3,
+      "label": "이메일 텍스트파싱",
+      "full": "t3mes-split/full/mes_sales_1_order/04_이메일_텍스트파싱.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/04_이메일_텍스트파싱.html"
+    },
+    {
+      "index": 4,
+      "label": "스케줄 매트릭스",
+      "full": "t3mes-split/full/mes_sales_1_order/05_스케줄_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/05_스케줄_매트릭스.html"
+    },
+    {
+      "index": 5,
+      "label": "정기 수주",
+      "full": "t3mes-split/full/mes_sales_1_order/06_정기_수주.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/06_정기_수주.html"
+    },
+    {
+      "index": 6,
+      "label": "CRM 칸반",
+      "full": "t3mes-split/full/mes_sales_1_order/07_CRM_칸반.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/07_CRM_칸반.html"
+    },
+    {
+      "index": 7,
+      "label": "모바일 AI챗봇",
+      "full": "t3mes-split/full/mes_sales_1_order/08_모바일_AI챗봇.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/08_모바일_AI챗봇.html"
+    },
+    {
+      "index": 8,
+      "label": "과거이력 재주문",
+      "full": "t3mes-split/full/mes_sales_1_order/09_과거이력_재주문.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/09_과거이력_재주문.html"
+    },
+    {
+      "index": 9,
+      "label": "지도기반 할당",
+      "full": "t3mes-split/full/mes_sales_1_order/10_지도기반_할당.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/10_지도기반_할당.html"
+    },
+    {
+      "index": 10,
+      "label": "CPQ 옵션단가",
+      "full": "t3mes-split/full/mes_sales_1_order/11_CPQ_옵션단가.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/11_CPQ_옵션단가.html"
+    },
+    {
+      "index": 11,
+      "label": "다중배송지 분할",
+      "full": "t3mes-split/full/mes_sales_1_order/12_다중배송지_분할.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/12_다중배송지_분할.html"
+    },
+    {
+      "index": 12,
+      "label": "캘린더 드래그",
+      "full": "t3mes-split/full/mes_sales_1_order/13_캘린더_드래그.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/13_캘린더_드래그.html"
+    },
+    {
+      "index": 13,
+      "label": "단계별 마법사",
+      "full": "t3mes-split/full/mes_sales_1_order/14_단계별_마법사.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/14_단계별_마법사.html"
+    },
+    {
+      "index": 14,
+      "label": "음성인식 수주",
+      "full": "t3mes-split/full/mes_sales_1_order/15_음성인식_수주.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/15_음성인식_수주.html"
+    },
+    {
+      "index": 15,
+      "label": "대량 엑셀업로드",
+      "full": "t3mes-split/full/mes_sales_1_order/16_대량_엑셀업로드.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/16_대량_엑셀업로드.html"
+    },
+    {
+      "index": 16,
+      "label": "POS 매장수주",
+      "full": "t3mes-split/full/mes_sales_1_order/17_POS_매장수주.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/17_POS_매장수주.html"
+    },
+    {
+      "index": 17,
+      "label": "포괄계약 잔량차감",
+      "full": "t3mes-split/full/mes_sales_1_order/18_포괄계약_잔량차감.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/18_포괄계약_잔량차감.html"
+    },
+    {
+      "index": 18,
+      "label": "SaaS 티어구독",
+      "full": "t3mes-split/full/mes_sales_1_order/19_SaaS_티어구독.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/19_SaaS_티어구독.html"
+    },
+    {
+      "index": 19,
+      "label": "BOM/키트 전개",
+      "full": "t3mes-split/full/mes_sales_1_order/20_BOM키트_전개.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/20_BOM키트_전개.html"
+    },
+    {
+      "index": 20,
+      "label": "영업목표 연동",
+      "full": "t3mes-split/full/mes_sales_1_order/21_영업목표_연동.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/21_영업목표_연동.html"
+    },
+    {
+      "index": 21,
+      "label": "할인결재 워크플로우",
+      "full": "t3mes-split/full/mes_sales_1_order/22_할인결재_워크플로우.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/22_할인결재_워크플로우.html"
+    },
+    {
+      "index": 22,
+      "label": "모바일 바코드",
+      "full": "t3mes-split/full/mes_sales_1_order/23_모바일_바코드.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/23_모바일_바코드.html"
+    },
+    {
+      "index": 23,
+      "label": "인라인 수식계산",
+      "full": "t3mes-split/full/mes_sales_1_order/24_인라인_수식계산.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/24_인라인_수식계산.html"
+    },
+    {
+      "index": 24,
+      "label": "AI 크로스셀",
+      "full": "t3mes-split/full/mes_sales_1_order/25_AI_크로스셀.html",
+      "lite": "t3mes-split/lite/mes_sales_1_order/25_AI_크로스셀.html"
+    }
+  ],
+  "mes_sales_2_result_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "단건 출하",
+      "full": "t3mes-split/full/mes_sales_2_result/01_단건_출하.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/01_단건_출하.html"
+    },
+    {
+      "index": 1,
+      "label": "그리드 일괄",
+      "full": "t3mes-split/full/mes_sales_2_result/02_그리드_일괄.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/02_그리드_일괄.html"
+    },
+    {
+      "index": 2,
+      "label": "분할/백오더",
+      "full": "t3mes-split/full/mes_sales_2_result/03_분할백오더.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/03_분할백오더.html"
+    },
+    {
+      "index": 3,
+      "label": "병합 출하",
+      "full": "t3mes-split/full/mes_sales_2_result/04_병합_출하.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/04_병합_출하.html"
+    },
+    {
+      "index": 4,
+      "label": "장바구니 픽업",
+      "full": "t3mes-split/full/mes_sales_2_result/05_장바구니_픽업.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/05_장바구니_픽업.html"
+    },
+    {
+      "index": 5,
+      "label": "피킹 리스트",
+      "full": "t3mes-split/full/mes_sales_2_result/06_피킹_리스트.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/06_피킹_리스트.html"
+    },
+    {
+      "index": 6,
+      "label": "포장 카톤화",
+      "full": "t3mes-split/full/mes_sales_2_result/07_포장_카톤화.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/07_포장_카톤화.html"
+    },
+    {
+      "index": 7,
+      "label": "3D 팔레트",
+      "full": "t3mes-split/full/mes_sales_2_result/08_3D_팔레트.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/08_3D_팔레트.html"
+    },
+    {
+      "index": 8,
+      "label": "스캔 상차검수",
+      "full": "t3mes-split/full/mes_sales_2_result/09_스캔_상차검수.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/09_스캔_상차검수.html"
+    },
+    {
+      "index": 9,
+      "label": "다중 피커분배",
+      "full": "t3mes-split/full/mes_sales_2_result/10_다중_피커분배.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/10_다중_피커분배.html"
+    },
+    {
+      "index": 10,
+      "label": "모바일 서명",
+      "full": "t3mes-split/full/mes_sales_2_result/11_모바일_서명.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/11_모바일_서명.html"
+    },
+    {
+      "index": 11,
+      "label": "모바일 피킹",
+      "full": "t3mes-split/full/mes_sales_2_result/12_모바일_피킹.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/12_모바일_피킹.html"
+    },
+    {
+      "index": 12,
+      "label": "FIFO 강제검증",
+      "full": "t3mes-split/full/mes_sales_2_result/13_FIFO_강제검증.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/13_FIFO_강제검증.html"
+    },
+    {
+      "index": 13,
+      "label": "온도 로거기록",
+      "full": "t3mes-split/full/mes_sales_2_result/14_온도_로거기록.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/14_온도_로거기록.html"
+    },
+    {
+      "index": 14,
+      "label": "스마트 체중계",
+      "full": "t3mes-split/full/mes_sales_2_result/15_스마트_체중계.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/15_스마트_체중계.html"
+    },
+    {
+      "index": 15,
+      "label": "차량 배차",
+      "full": "t3mes-split/full/mes_sales_2_result/16_차량_배차.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/16_차량_배차.html"
+    },
+    {
+      "index": 16,
+      "label": "출하 캘린더",
+      "full": "t3mes-split/full/mes_sales_2_result/17_출하_캘린더.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/17_출하_캘린더.html"
+    },
+    {
+      "index": 17,
+      "label": "택배 API 연동",
+      "full": "t3mes-split/full/mes_sales_2_result/18_택배_API_연동.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/18_택배_API_연동.html"
+    },
+    {
+      "index": 18,
+      "label": "출하 칸반",
+      "full": "t3mes-split/full/mes_sales_2_result/19_출하_칸반.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/19_출하_칸반.html"
+    },
+    {
+      "index": 19,
+      "label": "지도 라우팅",
+      "full": "t3mes-split/full/mes_sales_2_result/20_지도_라우팅.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/20_지도_라우팅.html"
+    },
+    {
+      "index": 20,
+      "label": "승인 결재",
+      "full": "t3mes-split/full/mes_sales_2_result/21_승인_결재.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/21_승인_결재.html"
+    },
+    {
+      "index": 21,
+      "label": "대체품 출하",
+      "full": "t3mes-split/full/mes_sales_2_result/22_대체품_출하.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/22_대체품_출하.html"
+    },
+    {
+      "index": 22,
+      "label": "맞교환(RMA)",
+      "full": "t3mes-split/full/mes_sales_2_result/23_맞교환(RMA).html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/23_맞교환(RMA).html"
+    },
+    {
+      "index": 23,
+      "label": "수출서류(CI)",
+      "full": "t3mes-split/full/mes_sales_2_result/24_수출서류(CI).html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/24_수출서류(CI).html"
+    },
+    {
+      "index": 24,
+      "label": "엑셀 업로드",
+      "full": "t3mes-split/full/mes_sales_2_result/25_엑셀_업로드.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/25_엑셀_업로드.html"
+    },
+    {
+      "index": 25,
+      "label": "크로스도킹",
+      "full": "t3mes-split/full/mes_sales_2_result/26_크로스도킹.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/26_크로스도킹.html"
+    },
+    {
+      "index": 26,
+      "label": "결품 안돈",
+      "full": "t3mes-split/full/mes_sales_2_result/27_결품_안돈.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/27_결품_안돈.html"
+    },
+    {
+      "index": 27,
+      "label": "비전 AI 상차",
+      "full": "t3mes-split/full/mes_sales_2_result/28_비전_AI_상차.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/28_비전_AI_상차.html"
+    },
+    {
+      "index": 28,
+      "label": "RFID 게이트",
+      "full": "t3mes-split/full/mes_sales_2_result/29_RFID_게이트.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/29_RFID_게이트.html"
+    },
+    {
+      "index": 29,
+      "label": "음성인식 출하",
+      "full": "t3mes-split/full/mes_sales_2_result/30_음성인식_출하.html",
+      "lite": "t3mes-split/lite/mes_sales_2_result/30_음성인식_출하.html"
+    }
+  ],
+  "mes_sales_3_monitoring_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "일일 수주 요약",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/01_일일_수주_요약.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/01_일일_수주_요약.html"
+    },
+    {
+      "index": 1,
+      "label": "시간대별 매출 추이",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/02_시간대별_매출_추이.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/02_시간대별_매출_추이.html"
+    },
+    {
+      "index": 2,
+      "label": "실시간 수주 피드",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/03_실시간_수주_피드.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/03_실시간_수주_피드.html"
+    },
+    {
+      "index": 3,
+      "label": "월간 매출 달성률",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/04_월간_매출_달성률.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/04_월간_매출_달성률.html"
+    },
+    {
+      "index": 4,
+      "label": "전일/전주 대비 비교",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/05_전일전주_대비_비교.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/05_전일전주_대비_비교.html"
+    },
+    {
+      "index": 5,
+      "label": "대형 프로젝트 트래커",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/06_대형_프로젝트_트래커.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/06_대형_프로젝트_트래커.html"
+    },
+    {
+      "index": 6,
+      "label": "B2B vs B2C 비중",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/07_B2B_vs_B2C_비중.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/07_B2B_vs_B2C_비중.html"
+    },
+    {
+      "index": 7,
+      "label": "이번 달 Top 10 수주",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/08_이번_달_Top_10_수주.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/08_이번_달_Top_10_수주.html"
+    },
+    {
+      "index": 8,
+      "label": "수주 취소/반품 알림",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/09_수주_취소반품_알림.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/09_수주_취소반품_알림.html"
+    },
+    {
+      "index": 9,
+      "label": "영업사원 수주 랭킹",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/10_영업사원_수주_랭킹.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/10_영업사원_수주_랭킹.html"
+    },
+    {
+      "index": 10,
+      "label": "CRM 파이프라인 퍼널",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/11_CRM_파이프라인_퍼널.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/11_CRM_파이프라인_퍼널.html"
+    },
+    {
+      "index": 11,
+      "label": "마감 임박 계약",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/12_마감_임박_계약.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/12_마감_임박_계약.html"
+    },
+    {
+      "index": 12,
+      "label": "견적 발송/회수율",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/13_견적_발송회수율.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/13_견적_발송회수율.html"
+    },
+    {
+      "index": 13,
+      "label": "리드(Lead) 전환율",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/14_리드(Lead)_전환율.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/14_리드(Lead)_전환율.html"
+    },
+    {
+      "index": 14,
+      "label": "영업 활동 라이브러리",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/15_영업_활동_라이브러리.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/15_영업_활동_라이브러리.html"
+    },
+    {
+      "index": 15,
+      "label": "장기 미결재 경고",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/16_장기_미결재_경고.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/16_장기_미결재_경고.html"
+    },
+    {
+      "index": 16,
+      "label": "고객사별 계약 잔액",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/17_고객사별_계약_잔액.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/17_고객사별_계약_잔액.html"
+    },
+    {
+      "index": 17,
+      "label": "포괄계약 소진율",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/18_포괄계약_소진율.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/18_포괄계약_소진율.html"
+    },
+    {
+      "index": 18,
+      "label": "핵심(VIP) 고객 활동",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/19_핵심(VIP)_고객_활동.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/19_핵심(VIP)_고객_활동.html"
+    },
+    {
+      "index": 19,
+      "label": "지역별 수주 히트맵",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/20_지역별_수주_히트맵.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/20_지역별_수주_히트맵.html"
+    },
+    {
+      "index": 20,
+      "label": "품목별 파레토 분석",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/21_품목별_파레토_분석.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/21_품목별_파레토_분석.html"
+    },
+    {
+      "index": 21,
+      "label": "신제품 수주 현황",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/22_신제품_수주_현황.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/22_신제품_수주_현황.html"
+    },
+    {
+      "index": 22,
+      "label": "베스트셀러 Top 5",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/23_베스트셀러_Top_5.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/23_베스트셀러_Top_5.html"
+    },
+    {
+      "index": 23,
+      "label": "판매 채널별 비중",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/24_판매_채널별_비중.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/24_판매_채널별_비중.html"
+    },
+    {
+      "index": 24,
+      "label": "수주연동 재고부족경보",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/25_수주연동_재고부족경보.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/25_수주연동_재고부족경보.html"
+    },
+    {
+      "index": 25,
+      "label": "옵션(CPQ) 채택률",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/26_옵션(CPQ)_채택률.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/26_옵션(CPQ)_채택률.html"
+    },
+    {
+      "index": 26,
+      "label": "크로스셀 타격률",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/27_크로스셀_타격률.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/27_크로스셀_타격률.html"
+    },
+    {
+      "index": 27,
+      "label": "단가 하락/할인 감지",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/28_단가_하락할인_감지.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/28_단가_하락할인_감지.html"
+    },
+    {
+      "index": 28,
+      "label": "제품군별 마진율 추정",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/29_제품군별_마진율_추정.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/29_제품군별_마진율_추정.html"
+    },
+    {
+      "index": 29,
+      "label": "SaaS/구독 MRR 모니터",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/30_SaaS구독_MRR_모니터.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/30_SaaS구독_MRR_모니터.html"
+    },
+    {
+      "index": 30,
+      "label": "수주 대비 출하 진척률",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/31_수주_대비_출하_진척률.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/31_수주_대비_출하_진척률.html"
+    },
+    {
+      "index": 31,
+      "label": "납기 지연(Backorder)경보",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/32_납기_지연(Backorder)경보.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/32_납기_지연(Backorder)경보.html"
+    },
+    {
+      "index": 32,
+      "label": "출하 대기 물동량",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/33_출하_대기_물동량.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/33_출하_대기_물동량.html"
+    },
+    {
+      "index": 33,
+      "label": "RMA 클레임 모니터",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/34_RMA_클레임_모니터.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/34_RMA_클레임_모니터.html"
+    },
+    {
+      "index": 34,
+      "label": "반품 사유 분석 파이",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/35_반품_사유_분석_파이.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/35_반품_사유_분석_파이.html"
+    },
+    {
+      "index": 35,
+      "label": "긴급 오더(Hot) 트래커",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/36_긴급_오더(Hot)_트래커.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/36_긴급_오더(Hot)_트래커.html"
+    },
+    {
+      "index": 36,
+      "label": "배송 완료(POD) 집계",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/37_배송_완료(POD)_집계.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/37_배송_완료(POD)_집계.html"
+    },
+    {
+      "index": 37,
+      "label": "예상 출하 캘린더 뷰",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/38_예상_출하_캘린더_뷰.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/38_예상_출하_캘린더_뷰.html"
+    },
+    {
+      "index": 38,
+      "label": "영업-생산 리드타임",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/39_영업-생산_리드타임.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/39_영업-생산_리드타임.html"
+    },
+    {
+      "index": 39,
+      "label": "악성 미수금/외상 경고",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/40_악성_미수금외상_경고.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/40_악성_미수금외상_경고.html"
+    },
+    {
+      "index": 40,
+      "label": "지점별 목표 달성률",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/41_지점별_목표_달성률.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/41_지점별_목표_달성률.html"
+    },
+    {
+      "index": 41,
+      "label": "AI 매출/수요 예측",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/42_AI_매출수요_예측.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/42_AI_매출수요_예측.html"
+    },
+    {
+      "index": 42,
+      "label": "이탈 예상 고객 리스트",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/43_이탈_예상_고객_리스트.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/43_이탈_예상_고객_리스트.html"
+    },
+    {
+      "index": 43,
+      "label": "수요 급증(Spike) 알람",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/44_수요_급증(Spike)_알람.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/44_수요_급증(Spike)_알람.html"
+    },
+    {
+      "index": 44,
+      "label": "영업본부 통합 상황판",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/45_영업본부_통합_상황판.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/45_영업본부_통합_상황판.html"
+    },
+    {
+      "index": 45,
+      "label": "환율/단가 변동 영향",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/46_환율단가_변동_영향.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/46_환율단가_변동_영향.html"
+    },
+    {
+      "index": 46,
+      "label": "시장 점유율 시뮬레이터",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/47_시장_점유율_시뮬레이터.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/47_시장_점유율_시뮬레이터.html"
+    },
+    {
+      "index": 47,
+      "label": "경쟁사 실지(Lost) 분석",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/48_경쟁사_실지(Lost)_분석.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/48_경쟁사_실지(Lost)_분석.html"
+    },
+    {
+      "index": 48,
+      "label": "인센티브 누적 라이브",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/49_인센티브_누적_라이브.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/49_인센티브_누적_라이브.html"
+    },
+    {
+      "index": 49,
+      "label": "글로벌 수주 전광판",
+      "full": "t3mes-split/full/mes_sales_3_monitoring/50_글로벌_수주_전광판.html",
+      "lite": "t3mes-split/lite/mes_sales_3_monitoring/50_글로벌_수주_전광판.html"
+    }
+  ],
+  "mes_stock_1_retrive_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "기본 그리드",
+      "full": "t3mes-split/full/mes_stock_1_retrive/01_기본_그리드.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/01_기본_그리드.html"
+    },
+    {
+      "index": 1,
+      "label": "이미지 갤러리",
+      "full": "t3mes-split/full/mes_stock_1_retrive/02_이미지_갤러리.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/02_이미지_갤러리.html"
+    },
+    {
+      "index": 2,
+      "label": "멀티 창고 매트릭스",
+      "full": "t3mes-split/full/mes_stock_1_retrive/03_멀티_창고_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/03_멀티_창고_매트릭스.html"
+    },
+    {
+      "index": 3,
+      "label": "BOM/트리 전개",
+      "full": "t3mes-split/full/mes_stock_1_retrive/04_BOM트리_전개.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/04_BOM트리_전개.html"
+    },
+    {
+      "index": 4,
+      "label": "다중 UOM 조회",
+      "full": "t3mes-split/full/mes_stock_1_retrive/05_다중_UOM_조회.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/05_다중_UOM_조회.html"
+    },
+    {
+      "index": 5,
+      "label": "수불부 (Cardex)",
+      "full": "t3mes-split/full/mes_stock_1_retrive/06_수불부_(Cardex).html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/06_수불부_(Cardex).html"
+    },
+    {
+      "index": 6,
+      "label": "안전재고(ROP) 경고",
+      "full": "t3mes-split/full/mes_stock_1_retrive/07_안전재고(ROP)_경고.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/07_안전재고(ROP)_경고.html"
+    },
+    {
+      "index": 7,
+      "label": "유통기한/로트 추적",
+      "full": "t3mes-split/full/mes_stock_1_retrive/08_유통기한로트_추적.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/08_유통기한로트_추적.html"
+    },
+    {
+      "index": 8,
+      "label": "시리얼 넘버 드릴다운",
+      "full": "t3mes-split/full/mes_stock_1_retrive/09_시리얼_넘버_드릴다운.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/09_시리얼_넘버_드릴다운.html"
+    },
+    {
+      "index": 9,
+      "label": "상태 칸반(Kanban)",
+      "full": "t3mes-split/full/mes_stock_1_retrive/10_상태_칸반(Kanban).html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/10_상태_칸반(Kanban).html"
+    },
+    {
+      "index": 10,
+      "label": "품질(QC) 보류 상태",
+      "full": "t3mes-split/full/mes_stock_1_retrive/11_품질(QC)_보류_상태.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/11_품질(QC)_보류_상태.html"
+    },
+    {
+      "index": 11,
+      "label": "장기 체화(Aging) 재고",
+      "full": "t3mes-split/full/mes_stock_1_retrive/12_장기_체화(Aging)_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/12_장기_체화(Aging)_재고.html"
+    },
+    {
+      "index": 12,
+      "label": "지도 기반 분포",
+      "full": "t3mes-split/full/mes_stock_1_retrive/13_지도_기반_분포.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/13_지도_기반_분포.html"
+    },
+    {
+      "index": 13,
+      "label": "3D 랙(Rack) 맵",
+      "full": "t3mes-split/full/mes_stock_1_retrive/14_3D_랙(Rack)_맵.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/14_3D_랙(Rack)_맵.html"
+    },
+    {
+      "index": 14,
+      "label": "빈(Bin) 적재율 히트맵",
+      "full": "t3mes-split/full/mes_stock_1_retrive/15_빈(Bin)_적재율_히트맵.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/15_빈(Bin)_적재율_히트맵.html"
+    },
+    {
+      "index": 15,
+      "label": "KPI 대시보드",
+      "full": "t3mes-split/full/mes_stock_1_retrive/16_KPI_대시보드.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/16_KPI_대시보드.html"
+    },
+    {
+      "index": 16,
+      "label": "시즌별 트렌드 히트맵",
+      "full": "t3mes-split/full/mes_stock_1_retrive/17_시즌별_트렌드_히트맵.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/17_시즌별_트렌드_히트맵.html"
+    },
+    {
+      "index": 17,
+      "label": "ATP 타임라인",
+      "full": "t3mes-split/full/mes_stock_1_retrive/18_ATP_타임라인.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/18_ATP_타임라인.html"
+    },
+    {
+      "index": 18,
+      "label": "ABC 등급 분류",
+      "full": "t3mes-split/full/mes_stock_1_retrive/19_ABC_등급_분류.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/19_ABC_등급_분류.html"
+    },
+    {
+      "index": 19,
+      "label": "크로스도킹 매핑",
+      "full": "t3mes-split/full/mes_stock_1_retrive/20_크로스도킹_매핑.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/20_크로스도킹_매핑.html"
+    },
+    {
+      "index": 20,
+      "label": "키트/조립 가능량",
+      "full": "t3mes-split/full/mes_stock_1_retrive/21_키트조립_가능량.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/21_키트조립_가능량.html"
+    },
+    {
+      "index": 21,
+      "label": "의류/옵션 매트릭스",
+      "full": "t3mes-split/full/mes_stock_1_retrive/22_의류옵션_매트릭스.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/22_의류옵션_매트릭스.html"
+    },
+    {
+      "index": 22,
+      "label": "실사(Cycle Count) 입력",
+      "full": "t3mes-split/full/mes_stock_1_retrive/23_실사(Cycle_Count)_입력.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/23_실사(Cycle_Count)_입력.html"
+    },
+    {
+      "index": 23,
+      "label": "공급사(Vendor) 포털",
+      "full": "t3mes-split/full/mes_stock_1_retrive/24_공급사(Vendor)_포털.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/24_공급사(Vendor)_포털.html"
+    },
+    {
+      "index": 24,
+      "label": "모바일 바코드 스캐너",
+      "full": "t3mes-split/full/mes_stock_1_retrive/25_모바일_바코드_스캐너.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/25_모바일_바코드_스캐너.html"
+    },
+    {
+      "index": 25,
+      "label": "AI 챗봇 질의",
+      "full": "t3mes-split/full/mes_stock_1_retrive/26_AI_챗봇_질의.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/26_AI_챗봇_질의.html"
+    },
+    {
+      "index": 26,
+      "label": "음성 검색 (Voice)",
+      "full": "t3mes-split/full/mes_stock_1_retrive/27_음성_검색_(Voice).html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/27_음성_검색_(Voice).html"
+    },
+    {
+      "index": 27,
+      "label": "스마트워치 퀵뷰",
+      "full": "t3mes-split/full/mes_stock_1_retrive/28_스마트워치_퀵뷰.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/28_스마트워치_퀵뷰.html"
+    },
+    {
+      "index": 28,
+      "label": "사용자정의 엑셀 추출",
+      "full": "t3mes-split/full/mes_stock_1_retrive/29_사용자정의_엑셀_추출.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/29_사용자정의_엑셀_추출.html"
+    },
+    {
+      "index": 29,
+      "label": "오프라인 캐시 모드",
+      "full": "t3mes-split/full/mes_stock_1_retrive/30_오프라인_캐시_모드.html",
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/30_오프라인_캐시_모드.html"
+    }
+  ],
+  "mes_stock_2_modify_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "1. 단건 수량조정",
+      "full": "t3mes-split/full/mes_stock_2_modify/01_1._단건_수량조정.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/01_1._단건_수량조정.html"
+    },
+    {
+      "index": 1,
+      "label": "2. 일괄 실사입력",
+      "full": "t3mes-split/full/mes_stock_2_modify/02_2._일괄_실사입력.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/02_2._일괄_실사입력.html"
+    },
+    {
+      "index": 2,
+      "label": "3. 블라인드 실사",
+      "full": "t3mes-split/full/mes_stock_2_modify/03_3._블라인드_실사.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/03_3._블라인드_실사.html"
+    },
+    {
+      "index": 3,
+      "label": "4. 사유코드 맵핑",
+      "full": "t3mes-split/full/mes_stock_2_modify/04_4._사유코드_맵핑.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/04_4._사유코드_맵핑.html"
+    },
+    {
+      "index": 4,
+      "label": "5. 파손/폐기 처리",
+      "full": "t3mes-split/full/mes_stock_2_modify/05_5._파손폐기_처리.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/05_5._파손폐기_처리.html"
+    },
+    {
+      "index": 5,
+      "label": "6. QC/보류 전환",
+      "full": "t3mes-split/full/mes_stock_2_modify/06_6._QC보류_전환.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/06_6._QC보류_전환.html"
+    },
+    {
+      "index": 6,
+      "label": "7. 창고 간 이동",
+      "full": "t3mes-split/full/mes_stock_2_modify/07_7._창고_간_이동.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/07_7._창고_간_이동.html"
+    },
+    {
+      "index": 7,
+      "label": "8. Bin to Bin 이동",
+      "full": "t3mes-split/full/mes_stock_2_modify/08_8._Bin_to_Bin_이동.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/08_8._Bin_to_Bin_이동.html"
+    },
+    {
+      "index": 8,
+      "label": "9. 단위(UOM) 변환",
+      "full": "t3mes-split/full/mes_stock_2_modify/09_9._단위(UOM)_변환.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/09_9._단위(UOM)_변환.html"
+    },
+    {
+      "index": 9,
+      "label": "10. 3D 랙 재배치",
+      "full": "t3mes-split/full/mes_stock_2_modify/10_10._3D_랙_재배치.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/10_10._3D_랙_재배치.html"
+    },
+    {
+      "index": 10,
+      "label": "11. 모바일 적치(Put)",
+      "full": "t3mes-split/full/mes_stock_2_modify/11_11._모바일_적치(Put).html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/11_11._모바일_적치(Put).html"
+    },
+    {
+      "index": 11,
+      "label": "12. 최적화 자동이동",
+      "full": "t3mes-split/full/mes_stock_2_modify/12_12._최적화_자동이동.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/12_12._최적화_자동이동.html"
+    },
+    {
+      "index": 12,
+      "label": "13. 로트(Lot) 분할",
+      "full": "t3mes-split/full/mes_stock_2_modify/13_13._로트(Lot)_분할.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/13_13._로트(Lot)_분할.html"
+    },
+    {
+      "index": 13,
+      "label": "14. 유통기한 수정",
+      "full": "t3mes-split/full/mes_stock_2_modify/14_14._유통기한_수정.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/14_14._유통기한_수정.html"
+    },
+    {
+      "index": 14,
+      "label": "15. 시리얼 교체",
+      "full": "t3mes-split/full/mes_stock_2_modify/15_15._시리얼_교체.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/15_15._시리얼_교체.html"
+    },
+    {
+      "index": 15,
+      "label": "16. 매트릭스 일괄조정",
+      "full": "t3mes-split/full/mes_stock_2_modify/16_16._매트릭스_일괄조정.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/16_16._매트릭스_일괄조정.html"
+    },
+    {
+      "index": 16,
+      "label": "17. 실중량(Weight) 보정",
+      "full": "t3mes-split/full/mes_stock_2_modify/17_17._실중량(Weight)_보정.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/17_17._실중량(Weight)_보정.html"
+    },
+    {
+      "index": 17,
+      "label": "18. 위탁재고 소진",
+      "full": "t3mes-split/full/mes_stock_2_modify/18_18._위탁재고_소진.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/18_18._위탁재고_소진.html"
+    },
+    {
+      "index": 18,
+      "label": "19. 세트 조립(Kitting)",
+      "full": "t3mes-split/full/mes_stock_2_modify/19_19._세트_조립(Kitting).html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/19_19._세트_조립(Kitting).html"
+    },
+    {
+      "index": 19,
+      "label": "20. 세트 해체(Tear)",
+      "full": "t3mes-split/full/mes_stock_2_modify/20_20._세트_해체(Tear).html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/20_20._세트_해체(Tear).html"
+    },
+    {
+      "index": 20,
+      "label": "21. 재고자산 재평가",
+      "full": "t3mes-split/full/mes_stock_2_modify/21_21._재고자산_재평가.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/21_21._재고자산_재평가.html"
+    },
+    {
+      "index": 21,
+      "label": "22. 부대비용 배분",
+      "full": "t3mes-split/full/mes_stock_2_modify/22_22._부대비용_배분.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/22_22._부대비용_배분.html"
+    },
+    {
+      "index": 22,
+      "label": "23. 관리자 승인 보드",
+      "full": "t3mes-split/full/mes_stock_2_modify/23_23._관리자_승인_보드.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/23_23._관리자_승인_보드.html"
+    },
+    {
+      "index": 23,
+      "label": "24. 조정 감사 로그",
+      "full": "t3mes-split/full/mes_stock_2_modify/24_24._조정_감사_로그.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/24_24._조정_감사_로그.html"
+    },
+    {
+      "index": 24,
+      "label": "25. 바코드 연속 차감",
+      "full": "t3mes-split/full/mes_stock_2_modify/25_25._바코드_연속_차감.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/25_25._바코드_연속_차감.html"
+    },
+    {
+      "index": 25,
+      "label": "26. 파손품 사진 AI",
+      "full": "t3mes-split/full/mes_stock_2_modify/26_26._파손품_사진_AI.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/26_26._파손품_사진_AI.html"
+    },
+    {
+      "index": 26,
+      "label": "27. 음성 재고 차감",
+      "full": "t3mes-split/full/mes_stock_2_modify/27_27._음성_재고_차감.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/27_27._음성_재고_차감.html"
+    },
+    {
+      "index": 27,
+      "label": "28. RFID 게이트 일괄",
+      "full": "t3mes-split/full/mes_stock_2_modify/28_28._RFID_게이트_일괄.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/28_28._RFID_게이트_일괄.html"
+    },
+    {
+      "index": 28,
+      "label": "29. 오프라인 충돌 해결",
+      "full": "t3mes-split/full/mes_stock_2_modify/29_29._오프라인_충돌_해결.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/29_29._오프라인_충돌_해결.html"
+    },
+    {
+      "index": 29,
+      "label": "30. 조정 임팩트 KPI",
+      "full": "t3mes-split/full/mes_stock_2_modify/30_30._조정_임팩트_KPI.html",
+      "lite": "t3mes-split/lite/mes_stock_2_modify/30_30._조정_임팩트_KPI.html"
+    }
+  ],
+  "mes_stock_3_monitoring_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "종합 재고 가치",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/01_종합_재고_가치.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/01_종합_재고_가치.html"
+    },
+    {
+      "index": 1,
+      "label": "창고 2D 레이아웃",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/02_창고_2D_레이아웃.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/02_창고_2D_레이아웃.html"
+    },
+    {
+      "index": 2,
+      "label": "실시간 AGV 관제",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/03_실시간_AGV_관제.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/03_실시간_AGV_관제.html"
+    },
+    {
+      "index": 3,
+      "label": "결품 위험 히트맵",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/04_결품_위험_히트맵.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/04_결품_위험_히트맵.html"
+    },
+    {
+      "index": 4,
+      "label": "장기 적치(Slow)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/05_장기_적치(Slow).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/05_장기_적치(Slow).html"
+    },
+    {
+      "index": 5,
+      "label": "유통기한 임박",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/06_유통기한_임박.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/06_유통기한_임박.html"
+    },
+    {
+      "index": 6,
+      "label": "적정온도 모니터",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/07_적정온도_모니터.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/07_적정온도_모니터.html"
+    },
+    {
+      "index": 7,
+      "label": "공정별 재공(WIP)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/08_공정별_재공(WIP).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/08_공정별_재공(WIP).html"
+    },
+    {
+      "index": 8,
+      "label": "출하 대기 완제품",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/09_출하_대기_완제품.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/09_출하_대기_완제품.html"
+    },
+    {
+      "index": 9,
+      "label": "예약 vs 가용 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/10_예약_vs_가용_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/10_예약_vs_가용_재고.html"
+    },
+    {
+      "index": 10,
+      "label": "ABC 등급 분포",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/11_ABC_등급_분포.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/11_ABC_등급_분포.html"
+    },
+    {
+      "index": 11,
+      "label": "안전재고 위반 현황",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/12_안전재고_위반_현황.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/12_안전재고_위반_현황.html"
+    },
+    {
+      "index": 12,
+      "label": "LOT 추적성 트리",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/13_LOT_추적성_트리.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/13_LOT_추적성_트리.html"
+    },
+    {
+      "index": 13,
+      "label": "입고 대기열 실시간",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/14_입고_대기열_실시간.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/14_입고_대기열_실시간.html"
+    },
+    {
+      "index": 14,
+      "label": "피킹 정확도",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/15_피킹_정확도.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/15_피킹_정확도.html"
+    },
+    {
+      "index": 15,
+      "label": "재고 조사(Counting)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/16_재고_조사(Counting).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/16_재고_조사(Counting).html"
+    },
+    {
+      "index": 16,
+      "label": "빈(Bin) 활용률",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/17_빈(Bin)_활용률.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/17_빈(Bin)_활용률.html"
+    },
+    {
+      "index": 17,
+      "label": "폐기(Scrap) 추이",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/18_폐기(Scrap)_추이.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/18_폐기(Scrap)_추이.html"
+    },
+    {
+      "index": 18,
+      "label": "백오더(결품) 상태",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/19_백오더(결품)_상태.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/19_백오더(결품)_상태.html"
+    },
+    {
+      "index": 19,
+      "label": "자재 리드타임",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/20_자재_리드타임.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/20_자재_리드타임.html"
+    },
+    {
+      "index": 20,
+      "label": "PLC Raw 데이터 피드",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/21_PLC_Raw_데이터_피드.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/21_PLC_Raw_데이터_피드.html"
+    },
+    {
+      "index": 21,
+      "label": "위험물 저장 맵",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/22_위험물_저장_맵.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/22_위험물_저장_맵.html"
+    },
+    {
+      "index": 22,
+      "label": "크로스도킹 현황",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/23_크로스도킹_현황.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/23_크로스도킹_현황.html"
+    },
+    {
+      "index": 23,
+      "label": "반품(RMA) 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/24_반품(RMA)_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/24_반품(RMA)_재고.html"
+    },
+    {
+      "index": 24,
+      "label": "재고 회전율",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/25_재고_회전율.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/25_재고_회전율.html"
+    },
+    {
+      "index": 25,
+      "label": "경제적 주문량(EOQ)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/26_경제적_주문량(EOQ).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/26_경제적_주문량(EOQ).html"
+    },
+    {
+      "index": 26,
+      "label": "수요예측 vs 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/27_수요예측_vs_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/27_수요예측_vs_재고.html"
+    },
+    {
+      "index": 27,
+      "label": "협력사 자재 배송",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/28_협력사_자재_배송.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/28_협력사_자재_배송.html"
+    },
+    {
+      "index": 28,
+      "label": "위탁 재고(Consignment)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/29_위탁_재고(Consignment).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/29_위탁_재고(Consignment).html"
+    },
+    {
+      "index": 29,
+      "label": "공구(Toolkit) 관리",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/30_공구(Toolkit)_관리.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/30_공구(Toolkit)_관리.html"
+    },
+    {
+      "index": 30,
+      "label": "자동창고(AS/RS) 상태",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/31_자동창고(ASRS)_상태.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/31_자동창고(ASRS)_상태.html"
+    },
+    {
+      "index": 31,
+      "label": "벌크(Bulk) 저장 레벨",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/32_벌크(Bulk)_저장_레벨.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/32_벌크(Bulk)_저장_레벨.html"
+    },
+    {
+      "index": 32,
+      "label": "고가 자재 트래커",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/33_고가_자재_트래커.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/33_고가_자재_트래커.html"
+    },
+    {
+      "index": 33,
+      "label": "WIP 에이징(Aging)",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/34_WIP_에이징(Aging).html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/34_WIP_에이징(Aging).html"
+    },
+    {
+      "index": 34,
+      "label": "고객별 전용 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/35_고객별_전용_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/35_고객별_전용_재고.html"
+    },
+    {
+      "index": 35,
+      "label": "출하 데크(Dock) 상태",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/36_출하_데크(Dock)_상태.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/36_출하_데크(Dock)_상태.html"
+    },
+    {
+      "index": 36,
+      "label": "피킹 빈 보충 알림",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/37_피킹_빈_보충_알림.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/37_피킹_빈_보충_알림.html"
+    },
+    {
+      "index": 37,
+      "label": "재고 오차/손실 보고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/38_재고_오차손실_보고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/38_재고_오차손실_보고.html"
+    },
+    {
+      "index": 38,
+      "label": "단가 변동 모니터",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/39_단가_변동_모니터.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/39_단가_변동_모니터.html"
+    },
+    {
+      "index": 39,
+      "label": "냉동창고 에너지",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/40_냉동창고_에너지.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/40_냉동창고_에너지.html"
+    },
+    {
+      "index": 40,
+      "label": "스캐너 스캔 로그",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/41_스캐너_스캔_로그.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/41_스캐너_스캔_로그.html"
+    },
+    {
+      "index": 41,
+      "label": "멀티 사이트 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/42_멀티_사이트_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/42_멀티_사이트_재고.html"
+    },
+    {
+      "index": 42,
+      "label": "피커(Picker) 생산성",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/43_피커(Picker)_생산성.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/43_피커(Picker)_생산성.html"
+    },
+    {
+      "index": 43,
+      "label": "사이클 카운팅 일정",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/44_사이클_카운팅_일정.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/44_사이클_카운팅_일정.html"
+    },
+    {
+      "index": 44,
+      "label": "FIFO 위반 알림",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/45_FIFO_위반_알림.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/45_FIFO_위반_알림.html"
+    },
+    {
+      "index": 45,
+      "label": "자재 이동 빈도",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/46_자재_이동_빈도.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/46_자재_이동_빈도.html"
+    },
+    {
+      "index": 46,
+      "label": "격리(Quarantine) 재고",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/47_격리(Quarantine)_재고.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/47_격리(Quarantine)_재고.html"
+    },
+    {
+      "index": 47,
+      "label": "파손/불량 자재",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/48_파손불량_자재.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/48_파손불량_자재.html"
+    },
+    {
+      "index": 48,
+      "label": "재고 데이터 품질",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/49_재고_데이터_품질.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/49_재고_데이터_품질.html"
+    },
+    {
+      "index": 49,
+      "label": "경영진 종합 요약",
+      "full": "t3mes-split/full/mes_stock_3_monitoring/50_경영진_종합_요약.html",
+      "lite": "t3mes-split/lite/mes_stock_3_monitoring/50_경영진_종합_요약.html"
+    }
+  ],
+  "mes_tracking_1_order_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "단건 수직 타임라인",
+      "full": "t3mes-split/full/mes_tracking_1_order/01_단건_수직_타임라인.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/01_단건_수직_타임라인.html"
+    },
+    {
+      "index": 1,
+      "label": "대량 그리드 엑셀형",
+      "full": "t3mes-split/full/mes_tracking_1_order/02_대량_그리드_엑셀형.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/02_대량_그리드_엑셀형.html"
+    },
+    {
+      "index": 2,
+      "label": "가로형 진행 스텝",
+      "full": "t3mes-split/full/mes_tracking_1_order/03_가로형_진행_스텝.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/03_가로형_진행_스텝.html"
+    },
+    {
+      "index": 3,
+      "label": "추적 칸반 보드",
+      "full": "t3mes-split/full/mes_tracking_1_order/04_추적_칸반_보드.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/04_추적_칸반_보드.html"
+    },
+    {
+      "index": 4,
+      "label": "분할 배송 부모자식",
+      "full": "t3mes-split/full/mes_tracking_1_order/05_분할_배송_부모자식.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/05_분할_배송_부모자식.html"
+    },
+    {
+      "index": 5,
+      "label": "공정 라우팅 추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/06_공정_라우팅_추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/06_공정_라우팅_추적.html"
+    },
+    {
+      "index": 6,
+      "label": "하위 BOM 입고추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/07_하위_BOM_입고추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/07_하위_BOM_입고추적.html"
+    },
+    {
+      "index": 7,
+      "label": "3D 디지털트윈 뷰",
+      "full": "t3mes-split/full/mes_tracking_1_order/08_3D_디지털트윈_뷰.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/08_3D_디지털트윈_뷰.html"
+    },
+    {
+      "index": 8,
+      "label": "품질(QA) 검사추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/09_품질(QA)_검사추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/09_품질(QA)_검사추적.html"
+    },
+    {
+      "index": 9,
+      "label": "외주가공(WIP) 추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/10_외주가공(WIP)_추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/10_외주가공(WIP)_추적.html"
+    },
+    {
+      "index": 10,
+      "label": "GPS 실시간 물류맵",
+      "full": "t3mes-split/full/mes_tracking_1_order/11_GPS_실시간_물류맵.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/11_GPS_실시간_물류맵.html"
+    },
+    {
+      "index": 11,
+      "label": "다중 경유지 라우팅",
+      "full": "t3mes-split/full/mes_tracking_1_order/12_다중_경유지_라우팅.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/12_다중_경유지_라우팅.html"
+    },
+    {
+      "index": 12,
+      "label": "항공/해상 수출입",
+      "full": "t3mes-split/full/mes_tracking_1_order/13_항공해상_수출입.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/13_항공해상_수출입.html"
+    },
+    {
+      "index": 13,
+      "label": "택배사 API 운송장",
+      "full": "t3mes-split/full/mes_tracking_1_order/14_택배사_API_운송장.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/14_택배사_API_운송장.html"
+    },
+    {
+      "index": 14,
+      "label": "다중 배송지 일괄추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/15_다중_배송지_일괄추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/15_다중_배송지_일괄추적.html"
+    },
+    {
+      "index": 15,
+      "label": "지연(Delay) 경고판",
+      "full": "t3mes-split/full/mes_tracking_1_order/16_지연(Delay)_경고판.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/16_지연(Delay)_경고판.html"
+    },
+    {
+      "index": 16,
+      "label": "파손/클레임 역추적",
+      "full": "t3mes-split/full/mes_tracking_1_order/17_파손클레임_역추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/17_파손클레임_역추적.html"
+    },
+    {
+      "index": 17,
+      "label": "결품 원인 심층분석",
+      "full": "t3mes-split/full/mes_tracking_1_order/18_결품_원인_심층분석.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/18_결품_원인_심층분석.html"
+    },
+    {
+      "index": 18,
+      "label": "납기 준수율(OTD)",
+      "full": "t3mes-split/full/mes_tracking_1_order/19_납기_준수율(OTD).html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/19_납기_준수율(OTD).html"
+    },
+    {
+      "index": 19,
+      "label": "알림톡 발송 로그",
+      "full": "t3mes-split/full/mes_tracking_1_order/20_알림톡_발송_로그.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/20_알림톡_발송_로그.html"
+    },
+    {
+      "index": 20,
+      "label": "B2B 고객용 포털",
+      "full": "t3mes-split/full/mes_tracking_1_order/21_B2B_고객용_포털.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/21_B2B_고객용_포털.html"
+    },
+    {
+      "index": 21,
+      "label": "모바일 배송조회 앱",
+      "full": "t3mes-split/full/mes_tracking_1_order/22_모바일_배송조회_앱.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/22_모바일_배송조회_앱.html"
+    },
+    {
+      "index": 22,
+      "label": "AI 챗봇 배송조회",
+      "full": "t3mes-split/full/mes_tracking_1_order/23_AI_챗봇_배송조회.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/23_AI_챗봇_배송조회.html"
+    },
+    {
+      "index": 23,
+      "label": "QR 바코드 직조회",
+      "full": "t3mes-split/full/mes_tracking_1_order/24_QR_바코드_직조회.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/24_QR_바코드_직조회.html"
+    },
+    {
+      "index": 24,
+      "label": "배송완료 증빙(POD)",
+      "full": "t3mes-split/full/mes_tracking_1_order/25_배송완료_증빙(POD).html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/25_배송완료_증빙(POD).html"
+    },
+    {
+      "index": 25,
+      "label": "AI 도착예측(ETA)",
+      "full": "t3mes-split/full/mes_tracking_1_order/26_AI_도착예측(ETA).html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/26_AI_도착예측(ETA).html"
+    },
+    {
+      "index": 26,
+      "label": "온도 로거 콜드체인",
+      "full": "t3mes-split/full/mes_tracking_1_order/27_온도_로거_콜드체인.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/27_온도_로거_콜드체인.html"
+    },
+    {
+      "index": 27,
+      "label": "블록체인 무결성",
+      "full": "t3mes-split/full/mes_tracking_1_order/28_블록체인_무결성.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/28_블록체인_무결성.html"
+    },
+    {
+      "index": 28,
+      "label": "탄소발자국 배출량",
+      "full": "t3mes-split/full/mes_tracking_1_order/29_탄소발자국_배출량.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/29_탄소발자국_배출량.html"
+    },
+    {
+      "index": 29,
+      "label": "구간 리드타임 분석",
+      "full": "t3mes-split/full/mes_tracking_1_order/30_구간_리드타임_분석.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/30_구간_리드타임_분석.html"
+    },
+    {
+      "index": 30,
+      "label": "LED 공정 토폴로지",
+      "full": "t3mes-split/full/mes_tracking_1_order/31_LED_공정_토폴로지.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/31_LED_공정_토폴로지.html"
+    },
+    {
+      "index": 31,
+      "label": "토폴로지 자재연동",
+      "full": "t3mes-split/full/mes_tracking_1_order/32_토폴로지_자재연동.html",
+      "lite": "t3mes-split/lite/mes_tracking_1_order/32_토폴로지_자재연동.html"
+    }
+  ],
+  "mes_tracking_2_stock_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "실시간 재고",
+      "full": "t3mes-split/full/mes_tracking_2_stock/01_실시간_재고.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/01_실시간_재고.html"
+    },
+    {
+      "index": 1,
+      "label": "수불부 이력",
+      "full": "t3mes-split/full/mes_tracking_2_stock/02_수불부_이력.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/02_수불부_이력.html"
+    },
+    {
+      "index": 2,
+      "label": "안전재고 경고",
+      "full": "t3mes-split/full/mes_tracking_2_stock/03_안전재고_경고.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/03_안전재고_경고.html"
+    },
+    {
+      "index": 3,
+      "label": "기간별 추이",
+      "full": "t3mes-split/full/mes_tracking_2_stock/04_기간별_추이.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/04_기간별_추이.html"
+    },
+    {
+      "index": 4,
+      "label": "다중 창고통합",
+      "full": "t3mes-split/full/mes_tracking_2_stock/05_다중_창고통합.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/05_다중_창고통합.html"
+    },
+    {
+      "index": 5,
+      "label": "정방향 추적(LOT)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/06_정방향_추적(LOT).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/06_정방향_추적(LOT).html"
+    },
+    {
+      "index": 6,
+      "label": "역방향 추적(LOT)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/07_역방향_추적(LOT).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/07_역방향_추적(LOT).html"
+    },
+    {
+      "index": 7,
+      "label": "S/N 생애주기",
+      "full": "t3mes-split/full/mes_tracking_2_stock/08_SN_생애주기.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/08_SN_생애주기.html"
+    },
+    {
+      "index": 8,
+      "label": "유통기한 만료",
+      "full": "t3mes-split/full/mes_tracking_2_stock/09_유통기한_만료.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/09_유통기한_만료.html"
+    },
+    {
+      "index": 9,
+      "label": "3D 위치조회",
+      "full": "t3mes-split/full/mes_tracking_2_stock/10_3D_위치조회.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/10_3D_위치조회.html"
+    },
+    {
+      "index": 10,
+      "label": "창고간 이동",
+      "full": "t3mes-split/full/mes_tracking_2_stock/11_창고간_이동.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/11_창고간_이동.html"
+    },
+    {
+      "index": 11,
+      "label": "Bin 간 이동",
+      "full": "t3mes-split/full/mes_tracking_2_stock/12_Bin_간_이동.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/12_Bin_간_이동.html"
+    },
+    {
+      "index": 12,
+      "label": "공중재고(WIP)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/13_공중재고(WIP).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/13_공중재고(WIP).html"
+    },
+    {
+      "index": 13,
+      "label": "재고 실사",
+      "full": "t3mes-split/full/mes_tracking_2_stock/14_재고_실사.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/14_재고_실사.html"
+    },
+    {
+      "index": 14,
+      "label": "실사 차이조정",
+      "full": "t3mes-split/full/mes_tracking_2_stock/15_실사_차이조정.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/15_실사_차이조정.html"
+    },
+    {
+      "index": 15,
+      "label": "품질 보류(Hold)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/16_품질_보류(Hold).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/16_품질_보류(Hold).html"
+    },
+    {
+      "index": 16,
+      "label": "폐기/불량 추적",
+      "full": "t3mes-split/full/mes_tracking_2_stock/17_폐기불량_추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/17_폐기불량_추적.html"
+    },
+    {
+      "index": 17,
+      "label": "재작업 재고",
+      "full": "t3mes-split/full/mes_tracking_2_stock/18_재작업_재고.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/18_재작업_재고.html"
+    },
+    {
+      "index": 18,
+      "label": "고객반품(RMA)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/19_고객반품(RMA).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/19_고객반품(RMA).html"
+    },
+    {
+      "index": 19,
+      "label": "공급사위탁(VMI)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/20_공급사위탁(VMI).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/20_공급사위탁(VMI).html"
+    },
+    {
+      "index": 20,
+      "label": "바코드 스캔",
+      "full": "t3mes-split/full/mes_tracking_2_stock/21_바코드_스캔.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/21_바코드_스캔.html"
+    },
+    {
+      "index": 21,
+      "label": "RFID 게이트",
+      "full": "t3mes-split/full/mes_tracking_2_stock/22_RFID_게이트.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/22_RFID_게이트.html"
+    },
+    {
+      "index": 22,
+      "label": "AI 최적화 권장",
+      "full": "t3mes-split/full/mes_tracking_2_stock/23_AI_최적화_권장.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/23_AI_최적화_권장.html"
+    },
+    {
+      "index": 23,
+      "label": "장기 체화재고",
+      "full": "t3mes-split/full/mes_tracking_2_stock/24_장기_체화재고.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/24_장기_체화재고.html"
+    },
+    {
+      "index": 24,
+      "label": "ABC 회전율분석",
+      "full": "t3mes-split/full/mes_tracking_2_stock/25_ABC_회전율분석.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/25_ABC_회전율분석.html"
+    },
+    {
+      "index": 25,
+      "label": "FIFO 위반추적",
+      "full": "t3mes-split/full/mes_tracking_2_stock/26_FIFO_위반추적.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/26_FIFO_위반추적.html"
+    },
+    {
+      "index": 26,
+      "label": "재고 평가액",
+      "full": "t3mes-split/full/mes_tracking_2_stock/27_재고_평가액.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/27_재고_평가액.html"
+    },
+    {
+      "index": 27,
+      "label": "블록체인 무결성",
+      "full": "t3mes-split/full/mes_tracking_2_stock/28_블록체인_무결성.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/28_블록체인_무결성.html"
+    },
+    {
+      "index": 28,
+      "label": "원인분석 토폴로지",
+      "full": "t3mes-split/full/mes_tracking_2_stock/29_원인분석_토폴로지.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/29_원인분석_토폴로지.html"
+    },
+    {
+      "index": 29,
+      "label": "모바일 챗봇",
+      "full": "t3mes-split/full/mes_tracking_2_stock/30_모바일_챗봇.html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/30_모바일_챗봇.html"
+    },
+    {
+      "index": 30,
+      "label": "재고 실명제(수주연동)",
+      "full": "t3mes-split/full/mes_tracking_2_stock/31_재고_실명제(수주연동).html",
+      "lite": "t3mes-split/lite/mes_tracking_2_stock/31_재고_실명제(수주연동).html"
+    }
+  ],
+  "scm_mp_1_controlboard_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "대시보드(Home)",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/01_대시보드(Home).html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/01_대시보드(Home).html"
+    },
+    {
+      "index": 1,
+      "label": "LED 공정 관제",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/02_LED_공정_관제.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/02_LED_공정_관제.html"
+    },
+    {
+      "index": 2,
+      "label": "병렬 시나리오",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/03_병렬_시나리오.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/03_병렬_시나리오.html"
+    },
+    {
+      "index": 3,
+      "label": "파라미터 튜닝",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/04_파라미터_튜닝.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/04_파라미터_튜닝.html"
+    },
+    {
+      "index": 4,
+      "label": "배치 스케줄",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/05_배치_스케줄.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/05_배치_스케줄.html"
+    },
+    {
+      "index": 5,
+      "label": "MDM 검증",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/06_MDM_검증.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/06_MDM_검증.html"
+    },
+    {
+      "index": 6,
+      "label": "실행 결재",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/07_실행_결재.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/07_실행_결재.html"
+    },
+    {
+      "index": 7,
+      "label": "노드 상태",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/08_노드_상태.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/08_노드_상태.html"
+    },
+    {
+      "index": 8,
+      "label": "진척도(Pipeline)",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/09_진척도(Pipeline).html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/09_진척도(Pipeline).html"
+    },
+    {
+      "index": 9,
+      "label": "실시간 로그",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/10_실시간_로그.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/10_실시간_로그.html"
+    },
+    {
+      "index": 10,
+      "label": "리소스 관제",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/11_리소스_관제.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/11_리소스_관제.html"
+    },
+    {
+      "index": 11,
+      "label": "I/O 현황",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/12_IO_현황.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/12_IO_현황.html"
+    },
+    {
+      "index": 12,
+      "label": "대기열(Queue)",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/13_대기열(Queue).html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/13_대기열(Queue).html"
+    },
+    {
+      "index": 13,
+      "label": "통합 오류 로그",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/14_통합_오류_로그.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/14_통합_오류_로그.html"
+    },
+    {
+      "index": 14,
+      "label": "알람 임계치",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/15_알람_임계치.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/15_알람_임계치.html"
+    },
+    {
+      "index": 15,
+      "label": "노드 원격복구",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/16_노드_원격복구.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/16_노드_원격복구.html"
+    },
+    {
+      "index": 16,
+      "label": "결측치 보정",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/17_결측치_보정.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/17_결측치_보정.html"
+    },
+    {
+      "index": 17,
+      "label": "오류 할당",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/18_오류_할당.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/18_오류_할당.html"
+    },
+    {
+      "index": 18,
+      "label": "장애 분석(RCA)",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/19_장애_분석(RCA).html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/19_장애_분석(RCA).html"
+    },
+    {
+      "index": 19,
+      "label": "수급 밸런스",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/20_수급_밸런스.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/20_수급_밸런스.html"
+    },
+    {
+      "index": 20,
+      "label": "KPI 변화비교",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/21_KPI_변화비교.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/21_KPI_변화비교.html"
+    },
+    {
+      "index": 21,
+      "label": "안전재고 경고",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/22_안전재고_경고.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/22_안전재고_경고.html"
+    },
+    {
+      "index": 22,
+      "label": "납기지연 오더",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/23_납기지연_오더.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/23_납기지연_오더.html"
+    },
+    {
+      "index": 23,
+      "label": "자원 병목구간",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/24_자원_병목구간.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/24_자원_병목구간.html"
+    },
+    {
+      "index": 24,
+      "label": "엔진버전 비교",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/25_엔진버전_비교.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/25_엔진버전_비교.html"
+    },
+    {
+      "index": 25,
+      "label": "ERP 확정/전송",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/26_ERP_확정전송.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/26_ERP_확정전송.html"
+    },
+    {
+      "index": 26,
+      "label": "수동 오버라이드",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/27_수동_오버라이드.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/27_수동_오버라이드.html"
+    },
+    {
+      "index": 27,
+      "label": "AI 챗봇 질의",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/28_AI_챗봇_질의.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/28_AI_챗봇_질의.html"
+    },
+    {
+      "index": 28,
+      "label": "물류망 Map",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/29_물류망_Map.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/29_물류망_Map.html"
+    },
+    {
+      "index": 29,
+      "label": "토폴로지 View",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/30_토폴로지_View.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/30_토폴로지_View.html"
+    },
+    {
+      "index": 30,
+      "label": "커스텀 위젯",
+      "full": "t3mes-split/full/scm_mp_1_controlboard/31_커스텀_위젯.html",
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/31_커스텀_위젯.html"
+    }
+  ],
+  "scm_mp_2_plan_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "Pivot Grid 직접보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/01_Pivot_Grid_직접보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/01_Pivot_Grid_직접보정.html"
+    },
+    {
+      "index": 1,
+      "label": "간트차트 드래그",
+      "full": "t3mes-split/full/scm_mp_2_plan/02_간트차트_드래그.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/02_간트차트_드래그.html"
+    },
+    {
+      "index": 2,
+      "label": "Excel 업로드 보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/03_Excel_업로드_보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/03_Excel_업로드_보정.html"
+    },
+    {
+      "index": 3,
+      "label": "Before/After 비교",
+      "full": "t3mes-split/full/scm_mp_2_plan/04_BeforeAfter_비교.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/04_BeforeAfter_비교.html"
+    },
+    {
+      "index": 4,
+      "label": "시나리오 비교",
+      "full": "t3mes-split/full/scm_mp_2_plan/05_시나리오_비교.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/05_시나리오_비교.html"
+    },
+    {
+      "index": 5,
+      "label": "캘린더 납기보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/06_캘린더_납기보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/06_캘린더_납기보정.html"
+    },
+    {
+      "index": 6,
+      "label": "제약조건 알림",
+      "full": "t3mes-split/full/scm_mp_2_plan/07_제약조건_알림.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/07_제약조건_알림.html"
+    },
+    {
+      "index": 7,
+      "label": "Capacity 슬라이더",
+      "full": "t3mes-split/full/scm_mp_2_plan/08_Capacity_슬라이더.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/08_Capacity_슬라이더.html"
+    },
+    {
+      "index": 8,
+      "label": "파급영향 분석",
+      "full": "t3mes-split/full/scm_mp_2_plan/09_파급영향_분석.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/09_파급영향_분석.html"
+    },
+    {
+      "index": 9,
+      "label": "% 비율 보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/10_비율_보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/10_비율_보정.html"
+    },
+    {
+      "index": 10,
+      "label": "복수발주 동시보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/11_복수발주_동시보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/11_복수발주_동시보정.html"
+    },
+    {
+      "index": 11,
+      "label": "잠금/해제 보정",
+      "full": "t3mes-split/full/scm_mp_2_plan/12_잠금해제_보정.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/12_잠금해제_보정.html"
+    },
+    {
+      "index": 12,
+      "label": "AI 추천 보정안",
+      "full": "t3mes-split/full/scm_mp_2_plan/13_AI_추천_보정안.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/13_AI_추천_보정안.html"
+    },
+    {
+      "index": 13,
+      "label": "이력 롤백",
+      "full": "t3mes-split/full/scm_mp_2_plan/14_이력_롤백.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/14_이력_롤백.html"
+    },
+    {
+      "index": 14,
+      "label": "KPI 대시보드",
+      "full": "t3mes-split/full/scm_mp_2_plan/15_KPI_대시보드.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/15_KPI_대시보드.html"
+    },
+    {
+      "index": 15,
+      "label": "우선순위 큐 랭킹",
+      "full": "t3mes-split/full/scm_mp_2_plan/16_우선순위_큐_랭킹.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/16_우선순위_큐_랭킹.html"
+    },
+    {
+      "index": 16,
+      "label": "대체 자재 스왑",
+      "full": "t3mes-split/full/scm_mp_2_plan/17_대체_자재_스왑.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/17_대체_자재_스왑.html"
+    },
+    {
+      "index": 17,
+      "label": "평준화(Heijunka)",
+      "full": "t3mes-split/full/scm_mp_2_plan/18_평준화(Heijunka).html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/18_평준화(Heijunka).html"
+    },
+    {
+      "index": 18,
+      "label": "셋업 최적화 배치",
+      "full": "t3mes-split/full/scm_mp_2_plan/19_셋업_최적화_배치.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/19_셋업_최적화_배치.html"
+    },
+    {
+      "index": 19,
+      "label": "거점간 물량 이관",
+      "full": "t3mes-split/full/scm_mp_2_plan/20_거점간_물량_이관.html",
+      "lite": "t3mes-split/lite/scm_mp_2_plan/20_거점간_물량_이관.html"
+    }
+  ],
+  "scm_mp_3_monitoring_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "통합 KPI 대시보드 (Overall Dashboard)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/01_통합_KPI_대시보드_(Overall_Dashboard).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/01_통합_KPI_대시보드_(Overall_Dashboard).html"
+    },
+    {
+      "index": 1,
+      "label": "일일 생산 지시 현황 (Daily Status)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/02_일일_생산_지시_현황_(Daily_Status).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/02_일일_생산_지시_현황_(Daily_Status).html"
+    },
+    {
+      "index": 2,
+      "label": "기간별 생산 계획 피벗 (Pivot Plan)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/03_기간별_생산_계획_피벗_(Pivot_Plan).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/03_기간별_생산_계획_피벗_(Pivot_Plan).html"
+    },
+    {
+      "index": 3,
+      "label": "공정별 재공/재고 흐름 (WIP Status)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/04_공정별_재공재고_흐름_(WIP_Status).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/04_공정별_재공재고_흐름_(WIP_Status).html"
+    },
+    {
+      "index": 4,
+      "label": "납기 지연 위험 경보 (Delay Risk)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/05_납기_지연_위험_경보_(Delay_Risk).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/05_납기_지연_위험_경보_(Delay_Risk).html"
+    },
+    {
+      "index": 5,
+      "label": "계획 미수립 오더 (Unplanned)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/06_계획_미수립_오더_(Unplanned).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/06_계획_미수립_오더_(Unplanned).html"
+    },
+    {
+      "index": 6,
+      "label": "자재 결품 예상 리스트 (Shortage)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/07_자재_결품_예상_리스트_(Shortage).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/07_자재_결품_예상_리스트_(Shortage).html"
+    },
+    {
+      "index": 7,
+      "label": "설비 과부하/병목 모니터링 (Bottleneck)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/08_설비_과부하병목_모니터링_(Bottleneck).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/08_설비_과부하병목_모니터링_(Bottleneck).html"
+    },
+    {
+      "index": 8,
+      "label": "계획 vs 실적 차이 분석 (Plan vs Actual)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/09_계획_vs_실적_차이_분석_(Plan_vs_Actual).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/09_계획_vs_실적_차이_분석_(Plan_vs_Actual).html"
+    },
+    {
+      "index": 9,
+      "label": "스케줄 준수율 트렌드 (Compliance Rate)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/10_스케줄_준수율_트렌드_(Compliance_Rate).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/10_스케줄_준수율_트렌드_(Compliance_Rate).html"
+    },
+    {
+      "index": 10,
+      "label": "라인별 가동률 현황 (Utilization)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/11_라인별_가동률_현황_(Utilization).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/11_라인별_가동률_현황_(Utilization).html"
+    },
+    {
+      "index": 11,
+      "label": "셋업/교체 시간 손실 (Setup Loss)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/12_셋업교체_시간_손실_(Setup_Loss).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/12_셋업교체_시간_손실_(Setup_Loss).html"
+    },
+    {
+      "index": 12,
+      "label": "발주번호(PO) 상세 추적 (Tracking)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/13_발주번호(PO)_상세_추적_(Tracking).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/13_발주번호(PO)_상세_추적_(Tracking).html"
+    },
+    {
+      "index": 13,
+      "label": "간트 차트 기반 진척률 (Gantt Progress)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/14_간트_차트_기반_진척률_(Gantt_Progress).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/14_간트_차트_기반_진척률_(Gantt_Progress).html"
+    },
+    {
+      "index": 14,
+      "label": "공용 부품 소요량 전개 (Part Explosion)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/15_공용_부품_소요량_전개_(Part_Explosion).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/15_공용_부품_소요량_전개_(Part_Explosion).html"
+    },
+    {
+      "index": 15,
+      "label": "고객사별 납기 달성률 (Cust. Delivery SLA)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/16_고객사별_납기_달성률_(Cust._Delivery_SLA).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/16_고객사별_납기_달성률_(Cust._Delivery_SLA).html"
+    },
+    {
+      "index": 16,
+      "label": "외주 가공 의뢰 현황 (Subcontracting)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/17_외주_가공_의뢰_현황_(Subcontracting).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/17_외주_가공_의뢰_현황_(Subcontracting).html"
+    },
+    {
+      "index": 17,
+      "label": "생산 비용/원가 예상 (Expected Cost)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/18_생산_비용원가_예상_(Expected_Cost).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/18_생산_비용원가_예상_(Expected_Cost).html"
+    },
+    {
+      "index": 18,
+      "label": "탄소 배출/에너지 사용 예상 (Energy/Carbon)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/19_탄소_배출에너지_사용_예상_(EnergyCarbon).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/19_탄소_배출에너지_사용_예상_(EnergyCarbon).html"
+    },
+    {
+      "index": 19,
+      "label": "작업자/인력 투입 계획 (Labor Input)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/20_작업자인력_투입_계획_(Labor_Input).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/20_작업자인력_투입_계획_(Labor_Input).html"
+    },
+    {
+      "index": 20,
+      "label": "AI 예측 vs 확정 계획 비교 (Forecast vs Plan)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/21_AI_예측_vs_확정_계획_비교_(Forecast_vs_Plan).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/21_AI_예측_vs_확정_계획_비교_(Forecast_vs_Plan).html"
+    },
+    {
+      "index": 21,
+      "label": "대체 라인 전환 이력 (Line Switching)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/22_대체_라인_전환_이력_(Line_Switching).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/22_대체_라인_전환_이력_(Line_Switching).html"
+    },
+    {
+      "index": 22,
+      "label": "품질/수율 연동 계획 영향 (Yield Impact)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/23_품질수율_연동_계획_영향_(Yield_Impact).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/23_품질수율_연동_계획_영향_(Yield_Impact).html"
+    },
+    {
+      "index": 23,
+      "label": "물류/출하 연동 스케줄 (Logistics Sync)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/24_물류출하_연동_스케줄_(Logistics_Sync).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/24_물류출하_연동_스케줄_(Logistics_Sync).html"
+    },
+    {
+      "index": 24,
+      "label": "긴급 오더 처리 현황 (Hot Orders)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/25_긴급_오더_처리_현황_(Hot_Orders).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/25_긴급_오더_처리_현황_(Hot_Orders).html"
+    },
+    {
+      "index": 25,
+      "label": "재작업(Rework) 오더 발생 현황",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/26_재작업(Rework)_오더_발생_현황.html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/26_재작업(Rework)_오더_발생_현황.html"
+    },
+    {
+      "index": 26,
+      "label": "안전재고(SS) 이탈 모니터링",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/27_안전재고(SS)_이탈_모니터링.html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/27_안전재고(SS)_이탈_모니터링.html"
+    },
+    {
+      "index": 27,
+      "label": "금형/치공구 스케줄 (Tooling Mgmt)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/28_금형치공구_스케줄_(Tooling_Mgmt).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/28_금형치공구_스케줄_(Tooling_Mgmt).html"
+    },
+    {
+      "index": 28,
+      "label": "계획 버전별 비교 조회 (Version Diff)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/29_계획_버전별_비교_조회_(Version_Diff).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/29_계획_버전별_비교_조회_(Version_Diff).html"
+    },
+    {
+      "index": 29,
+      "label": "경영진 요약 리포트 (Executive Summary)",
+      "full": "t3mes-split/full/scm_mp_3_monitoring/30_경영진_요약_리포트_(Executive_Summary).html",
+      "lite": "t3mes-split/lite/scm_mp_3_monitoring/30_경영진_요약_리포트_(Executive_Summary).html"
+    }
+  ],
+  "scm_snop_1_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "🌐 종합 KPI",
+      "full": "t3mes-split/full/scm_snop_1/01_🌐_종합_KPI.html",
+      "lite": "t3mes-split/lite/scm_snop_1/01_🌐_종합_KPI.html"
+    },
+    {
+      "index": 1,
+      "label": "💼 영업 관리",
+      "full": "t3mes-split/full/scm_snop_1/02_💼_영업_관리.html",
+      "lite": "t3mes-split/lite/scm_snop_1/02_💼_영업_관리.html"
+    },
+    {
+      "index": 2,
+      "label": "🛒 구매 관리",
+      "full": "t3mes-split/full/scm_snop_1/03_🛒_구매_관리.html",
+      "lite": "t3mes-split/lite/scm_snop_1/03_🛒_구매_관리.html"
+    },
+    {
+      "index": 3,
+      "label": "⚙️ 생산 관리",
+      "full": "t3mes-split/full/scm_snop_1/04_⚙️_생산_관리.html",
+      "lite": "t3mes-split/lite/scm_snop_1/04_⚙️_생산_관리.html"
+    },
+    {
+      "index": 4,
+      "label": "📦 재고 관리",
+      "full": "t3mes-split/full/scm_snop_1/05_📦_재고_관리.html",
+      "lite": "t3mes-split/lite/scm_snop_1/05_📦_재고_관리.html"
+    },
+    {
+      "index": 5,
+      "label": "🔬 품질 관리",
+      "full": "t3mes-split/full/scm_snop_1/06_🔬_품질_관리.html",
+      "lite": "t3mes-split/lite/scm_snop_1/06_🔬_품질_관리.html"
+    }
+  ],
+  "scm_snop_2_chart_patterns.html": [],
+  "scm_snop_3_kpi_patterns.html": []
+}

@@ -1,7 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
+import theme from './theme';
 
 // Set API base before any module reads it
 const apiBase = process.env.COMPOSER_API_BASE || '';
@@ -12,7 +15,10 @@ if (typeof window !== 'undefined') {
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
-    <BrowserRouter>
-        <App />
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </ThemeProvider>
 );

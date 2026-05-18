@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>터치형 불량패드</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #8: 터치형 불량패드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 터치형 간편 불량 등록 (Touch Defect Pad)</h3><span class="tip">현장 작업자가 제품을 조립하다가 불량을 발견하면 화면의 큰 아이콘을 꾹 눌러 직관적으로 불량을 카운트합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 2fr 1fr;height:500px">
+      <div class="card" style="margin:0"><div class="card-title">원터치 불량 유형 패드 (Defect Input)</div><div class="big-btn-grid" id="touch-pad">
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('스크래치')"><div style="font-size:30px">🔪</div><div>표면 스크래치</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('오염/이물')"><div style="font-size:30px">🦠</div><div>오염 / 이물</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('치수미달')"><div style="font-size:30px">📏</div><div>치수 미달</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('나사빠짐')"><div style="font-size:30px">🔩</div><div>나사 조립 누락</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('전원불량')"><div style="font-size:30px">🔌</div><div>전원 인가 불량</div></div>
+        <div class="big-btn big-btn-ng" onclick="doTouchDefect('파손')"><div style="font-size:30px">🔨</div><div>파손 / 깨짐</div></div>
+      </div></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--red)">누적 불량 리스트</div><div style="font-size:40px;font-family:var(--mono);font-weight:700;color:var(--red);text-align:right" id="def-tot">0 EA</div><div id="def-list" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div><button class="btn btn-red" style="width:100%;margin-top:auto" onclick="showToast('입력된 불량 내역이 실적에 반영되었습니다.')">불량 실적 반영</button></div>
+    </div>
+  </div>

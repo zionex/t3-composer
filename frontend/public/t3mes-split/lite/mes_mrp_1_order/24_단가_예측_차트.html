@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>단가 예측 차트</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #24: 단가 예측 차트 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ AI 원자재 단가 예측 (Price Prediction)</h3><span class="tip">구리, 알루미늄 등 시세 변동이 심한 원자재의 미래 가격을 AI가 꺾은선 차트로 예측하여 "지금 쌀 때 미리 사두세요"라고 알려줍니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px">
+      <div style="font-size:20px;font-weight:700;margin-bottom:20px">📈 구리(Copper) 원자재 LME 시세 AI 예측</div>
+      <div style="height:150px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);position:relative;margin-bottom:20px">
+        <svg width="100%" height="100%"><polyline points="0,100 100,120 200,80 300,90 400,40" fill="none" stroke="var(--fuchsia)" stroke-width="3"/><polyline points="400,40 500,20 600,10" fill="none" stroke="var(--red)" stroke-width="3" stroke-dasharray="5,5"/></svg>
+        <div style="position:absolute;top:10px;right:20px;color:var(--red);font-weight:700;font-size:12px">다음 달 15% 폭등 예상!</div>
+      </div>
+      <button class="btn btn-fuchsia" style="padding:16px 30px;font-size:16px" onclick="showToast('가상: 가격 오르기 전 3개월 치 선발주 확정')">오르기 전 3개월 치 선발주 (Hedging)</button>
+    </div>
+  </div>

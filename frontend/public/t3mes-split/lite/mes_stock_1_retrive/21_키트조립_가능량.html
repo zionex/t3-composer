@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>키트/조립 가능량</title>
+<!-- T3MES UI Pattern · mes_stock_1_retrive · TabPage #21: 키트/조립 가능량 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+  <div class="sec-hdr"><div><h3>㉑ Kitting (조립) 가능량 시뮬레이터</h3><span class="tip">현재 보유한 원자재 재고를 바탕으로 완성품 세트를 최대 몇 개 만들 수 있는지 계산합니다.</span></div></div>
+  <div class="grid2">
+    <div class="card"><div class="label">대상 세트 상품</div><select class="inp" style="margin-bottom:12px"><option>명절 프리미엄 한우 세트</option></select><div style="font-size:40px;color:var(--orange);font-weight:700;text-align:center" id="tb20_max">Max 42 세트</div><div style="text-align:center;margin-top:10px;color:var(--text2)">현재 원자재 기준 조립 가능 수량</div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>원부자재</th><th>소요량</th><th>현재고</th><th>병목(Bottleneck) 확인</th></tr></thead><tbody id="tb20"></tbody></table></div>
+  </div>
+</div>

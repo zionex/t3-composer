@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>B2B 장바구니</title>
+<!-- T3MES UI Pattern · mes_sales_1_order · TabPage #3: B2B 장바구니 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+  <div class="sec-hdr"><div><h3>③ B2B 카탈로그 / 장바구니 패턴</h3><span class="tip">가맹점주가 식자재를 쇼핑몰처럼 이미지를 보며 장바구니에 담습니다. (24개 상품 생성)</span></div></div>
+  <div class="grid2" style="grid-template-columns: 1fr 350px">
+    <div><div style="margin-bottom:16px"><select class="inp" style="width:250px"><option>가맹점: 스타벅스 강남점</option></select></div><div class="catalog-grid" id="tb2"></div></div>
+    <div class="card" style="margin:0;display:flex;flex-direction:column;height:650px"><div class="card-title">🛒 수주 장바구니</div><div id="cart-list" style="flex:1;overflow-y:auto;border-bottom:2px dashed var(--border);margin-bottom:16px"></div><div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:20px;font-weight:700"><span>총액</span><span id="cart-tot" style="color:var(--blue)">₩ 0</span></div><button class="btn btn-blue" style="padding:16px;font-size:16px" onclick="showToast('본사 ERP 전송 완료')">수주 확정 (ERP 전송)</button></div>
+  </div>
+</div>

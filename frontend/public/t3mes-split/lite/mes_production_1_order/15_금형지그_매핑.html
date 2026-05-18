@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>금형/지그 매핑</title>
+<!-- T3MES UI Pattern · mes_production_1_order · TabPage #15: 금형/지그 매핑 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 금형 및 지그 (Tooling) 매핑 지시</h3><span class="tip">프레스/사출 공정에서 단순히 설비만 지정하는 게 아니라, '어떤 금형(Mold)'을 장착해서 찍어내라고 도구까지 묶어 지시합니다.</span></div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center;border-color:var(--blue)"><div style="font-size:12px;color:var(--text2)">1. 대상 설비</div><div style="font-size:20px;font-weight:700;margin-top:10px">사출기 1호기</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text3)">➕</div>
+      <div class="card" style="text-align:center;border-color:var(--cyan)"><div style="font-size:12px;color:var(--text2)">2. 장착할 금형 선택</div><select class="inp" style="margin-top:10px;text-align:center;font-weight:700;color:var(--cyan)"><option>스마트폰 후면커버 금형 (MOLD-A01)</option><option>노트북 하판 금형 (MOLD-B02)</option></select></div>
+    </div>
+    <button class="btn btn-cyan" style="width:100%;padding:14px" onclick="showToast('사출기 1호기에 MOLD-A01 금형 세팅 지시가 하달되었습니다.')">설비 + 금형 결합 지시 하달</button>
+  </div>

@@ -141,15 +141,91 @@ import lombok.extern.slf4j.Slf4j;
 
 ## §5.6 패키지 구조 + 코드 템플릿
 
+### §5.6.0 ⛔ Java 클래스 네이밍 유니크 보장 (2026-05-15 강제 — 충돌 사고 후)
+
+> **충돌 사고 (2026-05)**: 신규 화면 연속 생성 시 LLM 이 클래스명을 **축약** (예: MENU_CD `UI_UT_USER_INFO_MGMT` 의 `UserInfoMgmt` 를 `UserInfo` 로 단축) → 다른 메뉴 (`UI_UT_USER_INFO_VIEW`, `UI_UT_USER_INFO_DETAIL` 등) 도 동일하게 `UserInfo*.java` 로 환각 → preview 단계는 `s<sid8>` package 격리로 1개씩은 동작하지만 다음 시나리오에서 **모두 깨짐**:
+> 1. **Spring Bean 이름 충돌** — preview/sA/User.java 와 preview/sB/User.java 가 동시에 classpath 에 있으면 둘 다 빈 `userController` 등록 시도 → `ConflictingBeanDefinitionException` → backend startup 실패. `ArtifactPreviewService` 가 다른 sid 폴더 강제 삭제로 우회 (line 92-110) 하지만 격리 비용 큼.
+> 2. **wingui sync 시 파일 덮어쓰기** — `sync-files-to-wingui.ps1` 가 같은 final path `web/domain/util/userinfo/User.java` 에 두 메뉴 산출물을 차례로 복사 → 두 번째가 첫 번째를 silent overwrite.
+> 3. **JSX/MENU 와 Java 불일치** — JSX 는 `UserInfoMgmt.jsx`, MENU_FILE_PATH 는 `/util/UserInfoMgmt` 그대로인데 Java 만 `UserInfo*.java` 로 축약 → URL/zAxios 동작은 우연히 되지만 코드 베이스 일관성 깨짐. 후속 유지보수자가 클래스 못 찾음.
+
+#### §5.6.0.1 클래스명 도출식 (한 가지 — 변형 절대 금지)
+
+```
+MENU_CD          = UI_<DOMAIN>_<NAME>          예: UI_UT_USER_INFO_MGMT
+MENU_FILE_PATH   = /<module>[/<category>]/<P>  예: /util/UserInfoMgmt
+                                                    ────────────
+                                                    └─ <P> = "PascalName" (PascalCase 그대로)
+
+★ Java <Feature> = <P>                         ← MENU_FILE_PATH 의 마지막 segment 통째로
+★ <feature_dir> = LOWER(<P>)                   ← 디렉토리는 lowercase concat (예: userinfomgmt)
+
+생성 파일 (정확히 4개 클래스 — 모두 <P> prefix):
+  <P>.java                                     예: UserInfoMgmt.java
+  <P>Controller.java                                UserInfoMgmtController.java
+  <P>Service.java                                   UserInfoMgmtService.java
+  <P>Repository.java (선택)                         UserInfoMgmtRepository.java (JPA 단순 CRUD 필요 시만)
+
+패키지 선언 (모두 동일):
+  package com.zionex.t3series.web.domain.<module>.<feature_dir>;
+                                                예: com.zionex.t3series.web.domain.util.userinfomgmt;
+```
+
+#### §5.6.0.2 ✅ 정답 / ❌ 환각 — 구체 예
+
+| MENU_CD | MENU_FILE_PATH | ✅ Java 클래스 (이대로) | ❌ 환각 예 |
+|---|---|---|---|
+| `UI_UT_USER_INFO_MGMT` | `/util/UserInfoMgmt` | `UserInfoMgmt.java` / `UserInfoMgmtController.java` / `UserInfoMgmtService.java` | `UserInfo.java` (축약) · `MgmtUserInfo.java` (어순 변경) · `UserInfoManagement.java` (단어 확장) |
+| `UI_UT_USER_INFO_VIEW` | `/util/UserInfoView` | `UserInfoView.java` / `UserInfoViewController.java` / `UserInfoViewService.java` | `UserInfo.java` (mgmt 와 충돌) · `UserInfoViewer.java` (단어 변형) |
+| `UI_UT_ISSUE_MGMT` | `/util/IssueMgmt` | `IssueMgmt.java` / `IssueMgmtController.java` | `Issue.java` (축약) · `IssueManagement.java` (확장) |
+| `UI_DP_MONTHLY_PLAN` | `/demandplan/entry/MonthlyPlan` | `MonthlyPlan.java` / `MonthlyPlanController.java` | `Monthly.java` · `DpMonthlyPlan.java` (모듈 prefix 추가) |
+| `UI_SYSTEM_USERS` | `/system/usermgmt/Users` | `Users.java` / `UsersController.java` | `User.java` (단수형) · `UsersAdmin.java` (의미 추가) |
+
+#### §5.6.0.3 절대 규칙 (출력 직전 자기 검증 필수)
+
+1. **`<Feature>` 는 MENU_FILE_PATH 마지막 segment 와 1:1 일치** — 글자수까지 동일. 축약/확장/어순변경/번역 금지.
+2. **`<feature_dir>` 는 `LOWER(<Feature>)` 와 1:1 일치** — 하이픈/언더스코어 삽입 금지 (`user-info-mgmt`, `user_info_mgmt` 모두 금지). 단일 lowercase 토큰.
+3. **모든 .java 파일명은 `<Feature>` prefix** — 예외 없음. `BaseEntity` 같은 공용 클래스를 산출물로 만들지 말 것.
+4. **`@Service("...")` / `@Controller("...")` 명시 빈 이름 금지** — Spring 의 기본 빈 이름 (클래스 첫 글자 lowercase) 사용. 명시하면 두 사람이 같은 이름 지정 시 충돌.
+5. **`@Table(name=...)` 의 테이블명은 별개 규칙** — `TB_<DOMAIN>_<NAME>` (rules/30) 따름. 클래스명과 무관.
+
+#### §5.6.0.4 LLM 출력 시 추론 절차 (반드시 이 순서)
+
+```
+1. MENU_FILE_PATH 의 마지막 '/' 이후 토큰 추출       → "UserInfoMgmt"
+2. 그대로 <Feature> 변수에 대입 (변형 금지)          → <Feature> = "UserInfoMgmt"
+3. LOWER(<Feature>) 로 <feature_dir> 도출            → <feature_dir> = "userinfomgmt"
+4. 4종 파일명 조립
+   - <Feature>.java                                   → "UserInfoMgmt.java"
+   - <Feature>Controller.java                         → "UserInfoMgmtController.java"
+   - <Feature>Service.java                            → "UserInfoMgmtService.java"
+   - <Feature>Repository.java (선택)                  → "UserInfoMgmtRepository.java"
+5. package 선언 = com.zionex.t3series.web.domain.<module>.<feature_dir>
+                                                      → "com.zionex.t3series.web.domain.util.userinfomgmt"
+6. 출력 직전 자가 점검:
+   - 파일 4개 basename 모두 <Feature> prefix?
+   - 모두 동일 <feature_dir>/?
+   - JSX 의 컴포넌트명 (export default <ComponentName>) 도 <Feature> 와 1:1 일치?
+```
+
+#### §5.6.0.5 Hook 자동 차단 (`validators/java-class-naming.sh`)
+
+다음 패턴 Write/Edit 즉시 block:
+- `.java` 파일 path = `<...>/<feature_dir>/<ClassName>.java` 일 때 `lowercase(stripSuffix(ClassName, [Controller|Service|Repository|Entity|Dto|Vo|Mapper]))` ≠ `<feature_dir>` → **block** (디렉토리 ↔ 클래스명 불일치 = 축약 발생)
+- 같은 staging output 안의 두 .java 파일이 동일 `<ClassName>` 인데 다른 `<feature_dir>` → **block** (재사용 의도면 공용 패키지로 이동)
+
+---
+
 ### §5.6.1 패키지 구조
 ```
-t3series-wingui/src/main/java/com/zionex/t3series/web/domain/<module>/<feature>/
+t3series-wingui/src/main/java/com/zionex/t3series/web/domain/<module>/<feature_dir>/
   <Feature>.java               @Entity(TB_<DOMAIN>_<NAME>) extends BaseEntity
   <Feature>Repository.java     extends JpaRepository<Feature, String>, JpaSpecificationExecutor<Feature>
   <Feature>Service.java        @Service @RequiredArgsConstructor — search / saveAll / deleteAll
   <Feature>Controller.java     @RestController — GET /<m>/<fs>, POST /<m>/<fs>, POST /<m>/<fs>/delete
 ```
 **참조 원본**: `web/domain/admin/user/UserController` (`/system/users`)
+
+> `<Feature>` 의 도출은 **§5.6.0** 참조. MENU_FILE_PATH 의 마지막 PascalCase segment 그대로. 축약·확장·어순변경 절대 금지.
 
 #### ⛔ utility 도메인 — `<module>` 토큰 강제 매핑 (2026-04-29 사고 후 강화)
 
@@ -287,6 +363,11 @@ public class FeatureService {
 
 ## §5.7 자기 검증 체크리스트 (Java 파일 출력 직전)
 
+- [ ] **`<Feature>` 가 MENU_FILE_PATH 마지막 segment 와 글자수까지 1:1 일치?** (§5.6.0 — 축약/확장/어순변경 금지)
+- [ ] **모든 .java 파일 basename 이 `<Feature>` prefix?** (예: `<Feature>.java`, `<Feature>Controller.java`, `<Feature>Service.java`, `<Feature>Repository.java`)
+- [ ] **package 경로의 마지막 segment `<feature_dir>` 가 `LOWER(<Feature>)` 와 1:1 일치?** (하이픈/언더스코어 금지)
+- [ ] **JSX 의 `export default <ComponentName>` 이 Java 의 `<Feature>` 와 동일?**
+- [ ] `@Service("xxx")` / `@Controller("xxx")` 처럼 빈 이름을 명시한 곳 없음? (기본 빈 이름 = 클래스 첫 글자 lowercase 자동 사용)
 - [ ] 모든 import 가 `jakarta.*` 또는 프로젝트 실존 패키지인가? (`javax.*` 완전 제거)
 - [ ] `BaseEntity` import 가 `com.zionex.t3series.web.util.audit.BaseEntity` 인가?
 - [ ] Service 에 `SpecificationBuilder` / `QueryDslBuilder` 등 **프로젝트에 존재하지 않는** 유틸 import 가 있지 않은가?

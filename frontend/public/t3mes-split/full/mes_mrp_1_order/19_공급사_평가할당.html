@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRP & PO UI (30 Types) - Massive Full Data Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* MRP/구매 도메인 테마: Purple, Teal, Amber 톤을 메인으로 사용 */
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252a3d;
+  --border:#2a3050;--border2:#3a4570;
+  --text:#e8ecf4;--text2:#a0aabf;--text3:#5a6480;
+  --green:#10b981;--green-dim:#10b98122;--green-mid:#10b98155;
+  --red:#ef4444;--red-dim:#ef444422;--red-mid:#ef444455;
+  --amber:#f59e0b;--amber-dim:#f59e0b22;
+  --blue:#3b82f6;--blue-dim:#3b82f622;
+  --purple:#8b5cf6;--purple-dim:#8b5cf622;
+  --teal:#14b8a6;--teal-dim:#14b8a622;
+  --rose:#f43f5e;--rose-dim:#f43f5e22;
+  --cyan:#06b6d4;--cyan-dim:#06b6d422;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;overflow-y:scroll}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Tab Nav (6 Groups x 5 Tabs = 30 Tabs) */
+.tab-nav{display:flex;gap:4px;padding:12px 16px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) var(--surface)}
+.tab-nav::-webkit-scrollbar{height:8px}
+.tab-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.tab-btn{flex-shrink:0;padding:10px 16px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab-btn:hover{background:var(--surface2);color:var(--text)}
+.tab-num{display:inline-block;background:var(--surface3);color:var(--text3);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;font-weight:700}
+
+/* Group Colors */
+.t-1.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}.t-1.active .tab-num{color:var(--purple);background:var(--purple-dim)}
+.t-2.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:700}.t-2.active .tab-num{color:var(--teal);background:var(--teal-dim)}
+.t-3.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}.t-3.active .tab-num{color:var(--blue);background:var(--blue-dim)}
+.t-4.active{color:var(--amber);border-bottom-color:var(--amber);font-weight:700}.t-4.active .tab-num{color:var(--amber);background:var(--amber-dim)}
+.t-5.active{color:var(--rose);border-bottom-color:var(--rose);font-weight:700}.t-5.active .tab-num{color:var(--rose);background:var(--rose-dim)}
+.t-6.active{color:var(--cyan);border-bottom-color:var(--cyan);font-weight:700}.t-6.active .tab-num{color:var(--cyan);background:var(--cyan-dim)}
+
+/* Panel & Card */
+.panel{display:none;padding:20px;background:var(--surface2);flex:1;animation:fadeIn .2s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h3{font-size:18px;font-weight:700;color:var(--text)}
+.tip{font-size:12px;color:var(--text3);display:block;margin-top:4px}
+
+/* Tables (Sticky Header) */
+.tbl-wrap{overflow-y:auto;max-height:550px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{position:sticky;top:0;z-index:10;padding:12px;text-align:left;font-size:12px;color:var(--text2);background:var(--surface3);border-bottom:2px solid var(--border);font-weight:700;box-shadow:0 1px 0 var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.tbl tr:hover td{background:var(--surface3)}
+.tbl td.num{text-align:right;font-family:var(--mono)}
+.tbl tr.child-row td{background:var(--surface2);color:var(--text2)}
+
+/* Forms & Inputs */
+.inp{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none}
+.inp:focus{border-color:var(--purple)}
+.inp-sm{padding:6px 8px;font-size:12px;font-family:var(--mono)}
+.label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid;border-radius:var(--radius);font-size:13px;font-family:var(--sans);font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+
+/* Button Colors */
+.btn-purple{background:var(--purple-dim);border-color:#8b5cf655;color:var(--purple)}
+.btn-teal{background:var(--teal-dim);border-color:#14b8a655;color:var(--teal)}
+.btn-blue{background:var(--blue-dim);border-color:#3b82f655;color:var(--blue)}
+.btn-amber{background:var(--amber-dim);border-color:#f59e0b55;color:var(--amber)}
+.btn-rose{background:var(--rose-dim);border-color:#f43f5e55;color:var(--rose)}
+.btn-cyan{background:var(--cyan-dim);border-color:#06b6d455;color:var(--cyan)}
+.btn-green{background:var(--green-dim);border-color:var(--green-mid);color:var(--green)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+
+/* Layouts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px}
+.k-col{width:320px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:600px;overflow-y:auto}
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:grab;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.cal-header{background:var(--surface3);text-align:center;padding:8px;font-size:12px;font-weight:700}
+.cal-day{background:var(--surface);min-height:100px;padding:6px;cursor:pointer}
+.cal-day:hover{background:var(--surface3)}
+
+/* Charts & Viz */
+.prog-bg{background:var(--surface3);height:8px;border-radius:4px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;background:var(--purple)}
+.chart-row{display:flex;align-items:center;margin-bottom:12px}
+.chart-lbl{width:150px;font-size:12px;color:var(--text2);text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.chart-bar-wrap{flex:1;height:24px;background:var(--surface3);border-radius:4px;display:flex;overflow:hidden;position:relative}
+.c-bar{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--purple);color:var(--purple);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+</style>
+<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+</head>
+<body>
+
+<div class="app">
+<div class="tab-nav" id="tab-nav"></div>
+
+<div id="panels">
+  <div class="panel active" id="p0">
+    <div class="sec-hdr"><div><h3>① 기본 그리드 일괄 발주 (MRP Grid)</h3><span class="tip">MRP 전개 결과 부족한 자재 목록을 엑셀처럼 띄워놓고, 확정 수량을 입력하여 일괄 발주합니다. (100건 생성)</span></div><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="showToast('엑셀 다운로드 완료')">엑셀 다운로드</button><button class="btn btn-purple" onclick="showToast('100건 일괄 발주 생성 완료')">선택 항목 일괄 발주생성</button></div></div>
+    <div class="tbl-wrap" style="max-height:650px"><table class="tbl"><thead><tr><th><input type="checkbox" checked disabled></th><th>품목코드</th><th>품목명 / 규격</th><th>소요예정일</th><th style="text-align:right">총 소요량</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--red)">부족수량</th><th style="text-align:right">MOQ</th><th style="text-align:right;color:var(--purple)">발주 확정수량</th><th>기본 공급사</th></tr></thead><tbody id="tb0"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 마스터-디테일 분석형 발주</h3><span class="tip">좌측에서 부족 자재를 선택하고, 우측에서 단가 이력과 리드타임을 신중하게 비교 분석 후 발주합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0;padding:0;display:flex;flex-direction:column;height:600px"><div style="padding:16px;background:var(--surface3);border-bottom:1px solid var(--border);font-weight:700">부족 자재 목록 (50건)</div><div style="overflow-y:auto;flex:1" id="tb1_list"></div></div>
+      <div class="card" style="margin:0"><div class="card-title" style="font-size:18px"><span id="dtl-title">MCU 32-bit (STM32)</span><span class="badge badge-red" id="dtl-short" style="font-size:14px">-3,800 EA 부족</span></div><div class="grid2" style="margin-top:20px"><div><div class="label" style="font-size:13px;margin-bottom:12px">공급사 및 단가 이력 비교</div><table class="tbl"><thead><tr><th>공급사</th><th>L/T(납기)</th><th>최근 단가</th><th>선택</th></tr></thead><tbody id="tb1_vnd"></tbody></table></div><div style="background:var(--surface2);padding:20px;border-radius:var(--radius);border:1px solid var(--border)"><div class="label" style="font-size:14px;color:var(--purple);margin-bottom:16px">신규 발주서(PO) 작성</div><div class="label">납기 요청일</div><input type="date" class="inp" value="2024-11-01" style="margin-bottom:12px"><div class="label">발주 수량 (입력)</div><input type="number" class="inp" value="4000" style="font-size:24px;font-weight:700;color:var(--purple);margin-bottom:20px"><button class="btn btn-purple" style="width:100%;padding:16px" onclick="showToast('해당 공급사로 발주서 전송 완료')">발주(PO) 확정 및 전송 ➔</button></div></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ 일자별 재고 매트릭스 (Time-phased Matrix)</h3><span class="tip">시간 흐름에 따른 재고의 소진과 부족 시점(-)을 스프레드시트처럼 횡단 분석합니다. (30품목 x 10일 생성)</span></div></div>
+    <div class="tbl-wrap" style="max-height:600px;overflow-x:auto"><table class="tbl"><thead id="th2"></thead><tbody id="tb2"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="sec-hdr"><div><h3>④ 공급사 묶음 발주 (Vendor-Centric Bundle)</h3><span class="tip">동일한 공급사(Vendor)에서 취급하는 부족 자재들을 카드 형태로 모아 한 장의 발주서(PO)로 묶어 발행합니다. (20개 공급사 생성)</span></div></div>
+    <div class="grid3" id="tb3" style="max-height:650px;overflow-y:auto;padding-right:10px"></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="sec-hdr"><div><h3>⑤ 장바구니형 쇼핑몰 발주 (Cart)</h3><span class="tip">소모품(MRO)이나 부자재를 사내 쇼핑몰처럼 카탈로그에서 보고 바구니에 담아 결재 기안을 올립니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--red)">부족수량</th><th>단가</th><th>액션</th></tr></thead><tbody id="tb4"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2);display:flex;flex-direction:column;height:550px"><div class="card-title">🛒 발주 장바구니</div><div id="cart4" style="flex:1;overflow-y:auto;border-bottom:1px solid var(--border);margin-bottom:16px"><div style="text-align:center;color:var(--text3);padding:100px 0">좌측에서 발주 품목을 담아주세요.</div></div><div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-bottom:16px"><span>총 예상액</span><span id="cart-tot4" style="color:var(--purple)">₩ 0</span></div><button class="btn btn-purple" style="padding:16px;font-size:14px" onclick="showToast('장바구니 묶음 결재 기안 상신 완료')">결재 기안 / 일괄 발주</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p5">
+    <div class="sec-hdr"><div><h3>⑥ 재고 vs 소요량 시각화 (Dashboard)</h3><span class="tip">현재고(파랑)와 소요량(빨강)의 Gap을 막대그래프로 직관적으로 확인하고 바를 클릭해 발주합니다.</span></div></div>
+    <div class="card" style="max-height:600px;overflow-y:auto">
+      <div style="display:flex;gap:16px;margin-bottom:20px;font-size:11px;color:var(--text2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--teal);border-radius:2px"></span> 현재고</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--red);border-radius:2px"></span> 부족분 (발주 필요)</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:var(--surface3);border-radius:2px"></span> 여유/안전재고</span></div>
+      <div id="tb5"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 스마트 발주 마법사 (Rule-based / AI)</h3><span class="tip">단순 부족수량에 최소발주량(MOQ), 포장배수(Multi), 안전재고율(Safety)을 자동 적용해 최적 발주량을 계산합니다.</span></div><button class="btn btn-teal" onclick="calcAutoPO()">마법사 실행 ➔ AI 최적량 계산</button></div>
+    <div style="display:flex;gap:16px;background:var(--surface);padding:16px;border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:16px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-moq"> MOQ (최소발주량) 적용</label><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-safe"> 안전재고 10% 추가 확보</label><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" checked id="r-multi"> 포장 배수(Multiple) 올림</label></div>
+    <div class="tbl-wrap" style="max-height:500px"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right;color:var(--red)">단순 부족수량</th><th style="text-align:right">정책 (MOQ/배수)</th><th style="text-align:right;color:var(--teal);font-size:13px">💡 AI 권장 발주량</th><th style="padding-left:20px">산출 근거 (Explain)</th></tr></thead><tbody id="tb6"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 발주 진행상태 칸반 (PO Kanban)</h3><span class="tip">부족 발생부터 기안, 발주 전송, 입고 대기까지의 흐름을 카드로 드래그하며 직관적으로 관리합니다.</span></div></div>
+    <div class="kanban">
+      <div class="k-col"><div style="font-weight:700;color:var(--red)">🚨 발주요망 (Shortage)</div><div id="k7_1"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--amber)">📝 기안/결재중 (Pending)</div><div id="k7_2"></div></div>
+      <div class="k-col" ondragover="event.preventDefault()" ondrop="kDrop(event, this)"><div style="font-weight:700;color:var(--teal)">✉️ PO 전송완료 (Sent)</div><div id="k7_3"></div></div>
+      <div class="k-col" style="border-color:var(--green-mid);background:var(--green-dim)" ondragover="event.preventDefault()" ondrop="kDropWon(event, this)"><div style="font-weight:700;color:var(--green)">🚚 입고 대기중 (In Transit)</div><div id="k7_4"><div style="color:var(--text3);text-align:center;padding:50px 0" id="k7-ph">여기로 카드를 드래그하세요.</div></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p8">
+    <div class="sec-hdr"><div><h3>⑨ 과거 이력 기반 재발주 (Re-order)</h3><span class="tip">B2B 특성상 "저번 달에 시킨 거 똑같이 주세요"를 원클릭으로 복제하여 수량만 수정합니다. (50건 이력)</span></div></div>
+    <div class="card" style="padding:0;overflow:hidden"><div style="padding:16px;background:var(--surface3);font-weight:700;border-bottom:1px solid var(--border)">최근 발주 완료 이력 리스트</div><div id="tb8" style="max-height:500px;overflow-y:auto"></div></div>
+  </div>
+
+  <div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 엑셀 텍스트 파싱 발주 (Text Paste)</h3><span class="tip">현장이나 엔지니어가 카톡/메일로 보낸 구매 요청 텍스트를 복붙하면 AI가 표로 만들어 줍니다.</span></div><button class="btn btn-teal" onclick="doParse9()">파싱 실행 ↓</button></div>
+    <textarea class="inp" id="inp9" rows="8" style="font-family:var(--mono);margin-bottom:16px">품목코드	품목명 (스펙)	요청수량	요망일
+MT-001	스테핑 모터 NEMA17	150	2024-11-20
+CB-992	전원 케이블 5m	500	2024-11-25
+SC-110	M4 육각렌치 볼트	5000	2024-12-01
+BR-050	베어링 6204ZZ	200	2024-11-10</textarea>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목코드</th><th>품목명</th><th>수량</th><th>요망일</th></tr></thead><tbody id="tb9"><tr><td colspan="4" style="text-align:center;padding:30px">파싱 대기중...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p10">
+    <div class="sec-hdr"><div><h3>⑪ 포괄계약 잔량 차감 발주 (Blanket Order Call-off)</h3><span class="tip">단가 인하를 위해 연간 10만 개를 계약해두고, 필요할 때마다 조금씩 Call-off(차감) 발주를 내어 게이지를 깎습니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="tbl-wrap" style="max-height:600px"><table class="tbl"><thead><tr><th>계약번호 / 품목</th><th>연간계약량</th><th>소진율 (게이지)</th><th>계약잔량</th><th>차감발주</th></tr></thead><tbody id="tb10"></tbody></table></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title" style="color:var(--blue)">이번 달 납품 (Call-off) 확정</div><div style="font-size:14px;font-weight:700;margin-bottom:16px" id="bo-title">좌측에서 차감할 계약을 선택하세요</div><div class="label">차감 발주 수량 입력</div><input type="number" class="inp" value="5000" style="font-size:24px;font-weight:700;color:var(--blue);margin-bottom:20px;text-align:right"><button class="btn btn-blue" style="width:100%;padding:16px;font-size:16px" onclick="showToast('수량 차감 및 PO 발행이 완료되었습니다.')">잔량 차감 및 PO 발행</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p11">
+    <div class="sec-hdr"><div><h3>⑫ 다단계 BOM 역전개 발주 (Multilevel Explosion)</h3><span class="tip">자동차/장비 등 복잡한 조립품의 상위 생산계획 수량을 입력하면 하위 수십 개 부품의 필요량이 트리로 전개되어 발주를 유도합니다.</span></div></div>
+    <div style="display:flex;gap:12px;margin-bottom:16px"><select class="inp" style="width:300px"><option>[ASSY-01] 스마트 팩토리 로봇 팔 세트</option></select><input type="number" class="inp" value="50" style="width:100px" placeholder="생산 목표"><button class="btn btn-ghost" onclick="doBom11()">하위 자재 역전개 (Explode) ↓</button></div>
+    <div class="tbl-wrap" style="max-height:500px"><table class="tbl"><thead><tr><th>BOM 레벨 / 자재코드</th><th>품목명</th><th>1대당 소요</th><th style="text-align:right">총 소요량</th><th style="text-align:right">현재고</th><th style="text-align:right;color:var(--amber)">발주필요량</th></tr></thead><tbody id="tb11"><tr><td colspan="6" style="text-align:center;padding:50px">전개 버튼을 누르세요.</td></tr></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ 발주 결재선 및 승인 워크플로우 (Approval)</h3><span class="tip">특정 금액(예: 1천만 원) 이상의 발주는 즉시 전송되지 않고 팀장/재무팀의 결재 타임라인을 통과해야 합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">고액 발주 품의 작성</div><div class="label">발주 품목</div><input type="text" class="inp" value="고가공 CNC 머신 스핀들 교체부품" disabled style="margin-bottom:12px"><div class="label">발주 총액</div><input type="text" class="inp num" value="₩ 45,000,000" disabled style="margin-bottom:12px;color:var(--rose);font-weight:700"><div class="label">기안 사유</div><textarea class="inp" rows="3" style="margin-bottom:16px">장비 고장으로 인한 긴급 수리용 부품 발주 (예산 한도 외)</textarea><button class="btn btn-rose" style="width:100%" onclick="doAppr12()">팀장/임원 결재 상신</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">기안 승인 진행 상태</div><div id="appr-tl" style="display:none;margin-top:20px;color:var(--amber);font-weight:700">임원 최종 결재 대기중... (승인 시 PO 자동전송)</div><div id="appr-ph" style="color:var(--text3);text-align:center;padding:50px 0">상신 버튼을 누르세요.</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p13">
+    <div class="sec-hdr"><div><h3>⑭ 외주 가공 발주 연동 (Subcontracting PO)</h3><span class="tip">생산 공정 중 일부(예: 도금, 열처리)를 협력사로 보낼 때, 작업지시(WO)와 외주 발주서(PO)를 동시에 엮어서 발행합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>사내 생산품 (WIP)</th><th>외주 가공 공정명</th><th>보낼 협력사 선택</th><th>외주 가공비(단가)</th><th>액션</th></tr></thead><tbody id="tb13"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 캘린더 기반 입고 예정일 (Arrival Calendar)</h3><span class="tip">달력을 보며 우리가 발주한 자재들이 며칠 날 창고에 도착하는지(ETA) 입고 스케줄을 한눈에 파악합니다.</span></div></div>
+    <div class="cal-grid" id="cal14"></div>
+  </div>
+
+  <div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 견적 요청 (RFQ) 및 단가 비교 (Bid Compare)</h3><span class="tip">고가 장비나 대량 신규 자재 구매 시, 3개 이상의 공급사에게 견적(RFQ)을 받아 나란히 놓고 최저가를 낙찰합니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:20px;background:var(--amber-dim);border-color:var(--amber);margin-bottom:20px"><div style="font-size:18px;font-weight:700;color:var(--amber)">입찰 품목: 산업용 로봇팔 6축 매니퓰레이터 (수량: 10대)</div></div>
+    <div class="grid3">
+      <div class="card" style="text-align:center"><div style="font-size:20px;font-weight:700;margin-bottom:10px">A 로보틱스</div><div style="font-family:var(--mono);font-size:24px;color:var(--text2)">₩ 15,000,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 45일</div><button class="btn btn-ghost" style="width:100%">낙찰 (Award)</button></div>
+      <div class="card" style="text-align:center;border-color:var(--amber);background:var(--surface3)"><div style="position:absolute;transform:translate(80px,-30px)"><span class="badge badge-amber">최저가</span></div><div style="font-size:20px;font-weight:700;color:var(--amber);margin-bottom:10px">B 메카트로닉스</div><div style="font-family:var(--mono);font-size:28px;color:var(--amber);font-weight:700">₩ 13,500,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 30일</div><button class="btn btn-amber" style="width:100%" onclick="showToast('B 메카트로닉스로 최종 낙찰 및 PO 생성')">낙찰 (Award) 확정</button></div>
+      <div class="card" style="text-align:center"><div style="font-size:20px;font-weight:700;margin-bottom:10px">C 테크 (해외)</div><div style="font-family:var(--mono);font-size:24px;color:var(--text2)">$ 11,000 /대</div><div class="tip" style="margin-bottom:20px">납기: 90일 (해상)</div><button class="btn btn-ghost" style="width:100%">낙찰 (Award)</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p16">
+    <div class="sec-hdr"><div><h3>⑰ VMI (Vendor Managed Inventory) 모니터</h3><span class="tip">우리 공장 내에 공급사(Vendor)가 직접 재고를 채워놓고 관리하는 VMI 창고의 소진 현황을 같이 보며 사용분만 정산 발주합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사</th><th>VMI 품목</th><th style="text-align:right">사내 VMI 창고 잔량</th><th style="text-align:right;color:var(--amber)">이달 당사 사용량</th><th>사용분 정산 발주</th></tr></thead><tbody id="tb16"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p17">
+    <div class="sec-hdr"><div><h3>⑱ 납기 지연(Delay) 생산 차질 시뮬레이터</h3><span class="tip">공급사가 "납기가 5일 지연된다"고 통보했을 때, 그 자재를 쓰는 우리의 생산 라인이 언제 멈추는지(Impact) 분석합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title" style="color:var(--rose)">지연 통보 자재 입력</div><select class="inp" style="margin-bottom:12px"><option>차량용 메인 하네스 (배선)</option></select><div class="label">지연 일수 (Delay Days)</div><input type="number" class="inp" value="5" style="font-size:24px;font-weight:700;color:var(--rose);margin-bottom:16px"><button class="btn btn-rose" style="width:100%" onclick="doSim17()">생산 차질 Impact 분석 ↓</button></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title">생산 스케줄 영향도 (Impact)</div><div id="sim-res17" style="margin-top:20px"><div style="text-align:center;color:var(--text3);padding:30px 0">분석 버튼을 누르세요.</div></div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p18">
+    <div class="sec-hdr"><div><h3>⑲ 공급사 평가(Rating) 기반 물량 할당</h3><span class="tip">품질, 납기 점수(별점)가 높은 우수 공급사에게 발주 물량을 70%, 서브 공급사에게 30% 비율로 자동 쪼개서 발주합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사명</th><th>종합 평가 등급</th><th>물량 할당 비율(%)</th><th style="text-align:right">이번 달 할당 수량</th></tr></thead><tbody id="tb18">
+      <tr><td>우수 부품(주)</td><td style="color:var(--amber);font-size:16px">★★★★★ (98점)</td><td><input type="number" class="inp inp-sm num" value="70" style="color:var(--amber);font-weight:700"> %</td><td class="num">7,000 EA</td></tr>
+      <tr><td>서브 테크</td><td style="color:var(--amber);font-size:16px">★★★☆☆ (75점)</td><td><input type="number" class="inp inp-sm num" value="30"> %</td><td class="num">3,000 EA</td></tr>
+      <tr><td>위험 메탈</td><td style="color:var(--amber);font-size:16px">★☆☆☆☆ (40점)</td><td><input type="number" class="inp inp-sm num" value="0"> %</td><td class="num">0 EA</td></tr>
+    </tbody></table></div><div style="text-align:right;margin-top:16px"><button class="btn btn-amber" onclick="showToast('비율에 맞춰 2곳에 발주서가 나뉘어 발급되었습니다.')">평가 비율대로 발주 쪼개기</button></div>
+  </div>
+
+  <div class="panel" id="p19">
+    <div class="sec-hdr"><div><h3>⑳ 직납 / 드롭쉬핑 (Drop-Ship) 연동 발주</h3><span class="tip">우리가 물건을 받지 않고, 공급사(제조사)가 우리의 최종 고객에게 직접 물건을 쏘도록 영업수주(SO)와 결합된 발주입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>영업수주 (최종 고객사)</th><th>품목명</th><th>발주넣을 공급사 (제조사)</th><th>배송 방식</th><th>액션</th></tr></thead><tbody id="tb19"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 해외 수입 / 통관 (Import/Customs) 마법사</h3><span class="tip">단순 수량이 아니라 인코텀즈(FOB, CIF), 신용장(L/C), 선적항, ETD/ETA 등 복잡한 무역 조건을 포함한 수입 발주서입니다.</span></div></div>
+    <div class="card">
+      <div class="grid4" style="margin-bottom:16px"><div><div class="label">Incoterms</div><select class="inp"><option>FOB (본선인도조건)</option><option>CIF</option></select></div><div><div class="label">결제 조건</div><select class="inp"><option>L/C (신용장) At sight</option><option>T/T 30 Days</option></select></div><div><div class="label">출발항 (Port of Loading)</div><input type="text" class="inp" value="Shanghai Port (CN)"></div><div><div class="label">도착항 (Port of Discharge)</div><input type="text" class="inp" value="Busan Port (KR)"></div></div>
+      <div class="grid2"><div><div class="label">예상 선적일 (ETD)</div><input type="date" class="inp" value="2024-11-20"></div><div><div class="label">예상 도착일 (ETA)</div><input type="date" class="inp" value="2024-11-25"></div></div>
+      <button class="btn btn-fuchsia" style="width:100%;margin-top:20px" onclick="showToast('해외 수입용 Commercial PO가 발행되었습니다.')">해외 수입 발주서 (PO) 확정 발행</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ 프로젝트 / WBS 연동 예산 발주</h3><span class="tip">공장 건설이나 대형 프로젝트 수행 시, 이 자재를 사면 어느 프로젝트(WBS)의 예산에서 돈이 까이는지 연결해서 발주합니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>발주 품목</th><th>총액 (₩)</th><th>귀속할 프로젝트 (WBS) 선택</th><th>예산 잔액 (클릭시 갱신)</th></tr></thead><tbody id="tb21"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p22">
+    <div class="sec-hdr"><div><h3>㉓ 단종(EOL) 부품 및 대체품 AI 제안</h3><span class="tip">발주하려는 부품이 단종(End of Life)되었을 때, 스펙 문서를 AI가 분석하여 가장 비슷한 호환 부품으로 교체 발주를 제안합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--red)"><div class="card-title" style="color:var(--red)">🚨 발주 불가: 단종(EOL) 부품</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;text-decoration:line-through;margin-bottom:8px">IC-OLD-990 (단종)</div><div class="tip">제조사(TI) 단종 공지: 2024-01-01 부</div></div>
+      <div class="card" style="border-color:var(--fuchsia);background:var(--surface2)"><div class="card-title" style="color:var(--fuchsia)">💡 AI 추천 대체 호환 부품</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--fuchsia);margin-bottom:8px">IC-NEW-100 (신형)</div><div class="tip">핀 호환성: 100% 매칭 | 단가: 동일</div><button class="btn btn-fuchsia" style="width:100%;margin-top:16px" onclick="showToast('신형 부품으로 BOM 변경 및 발주 완료')">대체 부품으로 교체 발주</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p23">
+    <div class="sec-hdr"><div><h3>㉔ AI 원자재 단가 예측 (Price Prediction)</h3><span class="tip">구리, 알루미늄 등 시세 변동이 심한 원자재의 미래 가격을 AI가 꺾은선 차트로 예측하여 "지금 쌀 때 미리 사두세요"라고 알려줍니다.</span></div></div>
+    <div class="card" style="text-align:center;padding:50px">
+      <div style="font-size:20px;font-weight:700;margin-bottom:20px">📈 구리(Copper) 원자재 LME 시세 AI 예측</div>
+      <div style="height:150px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);position:relative;margin-bottom:20px">
+        <svg width="100%" height="100%"><polyline points="0,100 100,120 200,80 300,90 400,40" fill="none" stroke="var(--fuchsia)" stroke-width="3"/><polyline points="400,40 500,20 600,10" fill="none" stroke="var(--red)" stroke-width="3" stroke-dasharray="5,5"/></svg>
+        <div style="position:absolute;top:10px;right:20px;color:var(--red);font-weight:700;font-size:12px">다음 달 15% 폭등 예상!</div>
+      </div>
+      <button class="btn btn-fuchsia" style="padding:16px 30px;font-size:16px" onclick="showToast('가상: 가격 오르기 전 3개월 치 선발주 확정')">오르기 전 3개월 치 선발주 (Hedging)</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 위탁 재고 (Consignment) 정산 발주</h3><span class="tip">우리 창고에 있지만 소유권은 공급사에게 있는 자재를, 우리가 '쓴 만큼만' 매월 말일에 돈을 지불(정산 발주)하는 방식입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>공급사 (소유권자)</th><th>당사 창고 내 잔량</th><th style="color:var(--fuchsia)">이번 달 사용량 (당사 소비)</th><th>결제액 (정산)</th><th>정산발주 (Pay)</th></tr></thead><tbody id="tb24"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ Min-Max 자동 보충 (Auto-Replenishment)</h3><span class="tip">저가 소모품(볼트, 장갑)은 일일이 고민하지 않고, 재고가 Min(하한)으로 떨어지면 Max(상한)까지 시스템이 알아서 기계적으로 발주를 냅니다.</span></div><button class="btn btn-cyan" onclick="showToast('안전재고 미달 품목 자동 발주 생성됨')">자동 발주 시스템 ON</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">Min (하한선)</th><th style="text-align:right">현재고</th><th style="text-align:right">Max (목표상한)</th><th style="text-align:right;color:var(--cyan)">자동발주량</th><th>트리거 상태</th></tr></thead><tbody id="tb25"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p26">
+    <div class="sec-hdr"><div><h3>㉗ 과잉/악성 재고 경고 (Over-stock Alert)</h3><span class="tip">발주를 내려는데, 시스템이 "이거 작년에 사둔 악성 재고가 다른 창고에 썩고 있어요! 새로 사지 말고 그거 쓰세요"라고 발주를 막습니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="label">발주 폼</div><input type="text" class="inp" value="O-Ring 고무 실링 (Type C)" disabled style="margin-bottom:12px"><div class="label">수량</div><input type="number" class="inp" value="5000" style="margin-bottom:16px"><button class="btn btn-cyan" style="width:100%" onclick="doOver26()">발주 요청</button></div>
+      <div class="card" style="border-color:var(--red);background:var(--red-dim)"><div class="card-title" style="color:var(--red)">🚨 발주 차단 (과잉 재고 경고)</div><div id="over-res26" style="margin-top:20px;font-size:14px;color:var(--text);font-weight:700;line-height:1.6">버튼을 누르세요.</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="p27">
+    <div class="sec-hdr"><div><h3>㉘ 결품 위험 안돈 (Shortage Andon Alert)</h3><span class="tip">내일 생산 라인이 멈출 위기(Line-stop)에 처한 극강의 결품 자재들만 시뻘겋게 띄워서 구매팀을 압박하는 현황판입니다.</span></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>🚨 라인 스톱 위험 품목</th><th style="text-align:right">현재고</th><th>생산 투입 예정일</th><th>긴급 독촉 (Expedite)</th></tr></thead><tbody id="tb27"></tbody></table></div>
+  </div>
+
+  <div class="panel" id="p28">
+    <div class="sec-hdr"><div><h3>㉙ 음성 인식 핸즈프리 발주 (Voice Order)</h3><span class="tip">창고를 돌아다니며 재고 조사 중인 담당자가 스마트폰에 대고 말하면, AI가 수량을 파싱해 발주 장바구니에 꽂아줍니다.</span></div></div>
+    <div style="text-align:center;padding:60px">
+      <div style="width:120px;height:120px;border-radius:50%;background:var(--surface3);border:2px solid var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:50px;cursor:pointer;margin-bottom:20px;box-shadow:0 0 30px var(--cyan-dim)" onclick="showToast('음성 인식 처리: 볼트 만 개, 장갑 백 개 발주 카트 담김')">🎤</div>
+      <div style="font-size:20px;color:var(--cyan);font-family:var(--mono);font-weight:700">"M10 볼트 만 개, 작업용 코팅장갑 백 개 구매 발주 올려줘"</div>
+    </div>
+  </div>
+
+  <div class="panel" id="p29">
+    <div class="sec-hdr"><div><h3>㉚ 3D 디지털 트윈 창고 가용성 뷰</h3><span class="tip">대량의 부피가 큰 자재를 발주하기 전, 우리 공장의 3D 모델링 창고를 띄워 물건을 적재할 빈 공간(빈 선반)이 있는지 확인합니다.</span></div></div>
+    <div class="grid2" style="height:450px">
+      <div style="background:#000;border-radius:12px;border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;width:80px;height:120px;background:var(--red-dim);border:2px solid var(--red);margin-right:10px;display:flex;align-items:center;justify-content:center"><div style="font-weight:700;color:var(--red);font-size:10px">Rack A<br>98% Full</div></div>
+        <div style="position:relative;z-index:2;width:80px;height:120px;background:var(--cyan-dim);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 15px var(--cyan)" onclick="showToast('가상 3D 공간: Rack B에 적재 공간 충분함 확인')"><div style="font-weight:700;color:var(--cyan);font-size:10px">Rack B<br>비어있음</div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column">
+        <div class="card-title">도착 예정 자재의 체적(CBM) 검증</div>
+        <div style="font-size:14px;margin-bottom:10px">발주할 품목의 부피: <b>45 CBM (대형)</b></div>
+        <div style="color:var(--cyan);font-weight:700;margin-bottom:20px">✓ 3D 트윈 시뮬레이션 결과, B구역 랙(Rack)에 적재 공간이 충분합니다.</div>
+        <button class="btn btn-cyan" style="padding:16px;font-size:16px;margin-top:auto" onclick="showToast('도착 예정 창고 구역이 지정되어 발주되었습니다.')">공간 확인됨 - 대량 발주 확정</button>
+      </div>
+    </div>
+  </div>
+
+</div> <div id="toast">메시지</div>
+
+<script>
+// --- Navigation & Core Logic ---
+const tabNames = [
+  "그리드 일괄","마스터디테일","재고 매트릭스","공급사 묶음","쇼핑몰(Cart)", // Grp 1 (Basic)
+  "재고 차트뷰","스마트 마법사","PO 칸반보드","과거이력 재발주","엑셀 복붙파싱", // Grp 2 (Analysis)
+  "계약 잔량차감","BOM 역전개","결재 워크플로우","외주가공 발주","입고 달력뷰", // Grp 3 (Contract)
+  "RFQ 견적비교","VMI 모니터","납기지연 시뮬","공급사 평가할당","직납(DropShip)", // Grp 4 (SCM)
+  "수입/통관 마법사","프로젝트(WBS)","단종 대체품 AI","단가 예측 차트","위탁재고 정산", // Grp 5 (Special)
+  "Min-Max 자동보충","악성재고 경고","결품 안돈(Andon)","음성 인식 발주","3D 창고 가용성" // Grp 6 (AI)
+];
+
+function initTabs() {
+  const nav = document.getElementById('tab-nav');
+  tabNames.forEach((n, i) => {
+    let grp = Math.floor(i / 5) + 1; // 1 to 6
+    let btn = document.createElement('button');
+    btn.className = `tab-btn t-${grp} ${i===0?'active':''}`;
+    btn.innerHTML = `${n} <span class="tab-num">${i+1}</span>`;
+    btn.onclick = () => switchTab(i, btn);
+    nav.appendChild(btn);
+  });
+}
+
+function switchTab(i, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[i].classList.add('active');
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx===i));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const $ = id => document.getElementById(id);
+
+// --- Massive Data Injectors ---
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+  try {
+    genP0(); genP1(); genP2(); genP3(); genP4();
+    genP5(); genP7(); genP8(); genP10(); genP12();
+    genP13(); genP14(); genP16(); genP18(); genP19();
+    genP20(); genP23(); genP24(); genP26();
+  } catch(e) { console.error(e); }
+});
+
+function toggleAll(cb, sel){ document.querySelectorAll(sel).forEach(c=>c.checked=cb.checked); }
+function createBulkPO(){ showToast('선택된 100건의 자재에 대해 일괄 발주서가 생성되었습니다.'); }
+
+function genP0(){
+  let h=''; const v=["글로벌반도체","성진전자","삼성전기","동국메탈","대한패키지","LG화학"];
+  for(let i=1;i<=100;i++){
+    const req=rInt(1000,50000); const inv=rInt(0, req-100); const sh=req-inv;
+    h+=`<tr><td><input type="checkbox" class="g-chk" checked></td><td style="font-family:var(--mono);color:var(--purple)">RM-${String(i).padStart(4,'0')}</td><td>원부자재 품목 ${i}</td><td>2024-11-${String(rInt(1,30)).padStart(2,'0')}</td><td class="num">${req.toLocaleString()}</td><td class="num">${inv.toLocaleString()}</td><td class="num" style="color:var(--red);font-weight:700">-${sh.toLocaleString()}</td><td class="num">${rInt(1,5)*1000}</td><td><input type="number" class="inp inp-sm num" value="${sh}" style="color:var(--purple);font-weight:700;width:90px"></td><td><select class="inp inp-sm"><option>${v[i%v.length]}</option></select></td><td class="num">₩ ${(sh*rInt(10,500)).toLocaleString()}</td></tr>`;
+  }
+  $('tb0').innerHTML=h;
+}
+
+function selectMaster(el, title, shortTxt){
+  document.querySelectorAll('.v-item').forEach(v=>{v.style.background='transparent';v.style.borderLeft='none';});
+  el.style.background='var(--teal-dim)'; el.style.borderLeft='3px solid var(--teal)';
+  $('dtl-title').textContent = title; $('dtl-short').textContent = shortTxt + ' 부족';
+  
+  // Randomize Vendor
+  $('tb1_vnd').innerHTML=`<tr><td>글로벌 협력사 A</td><td>${rInt(7,14)}일</td><td class="num">₩ ${rInt(2000,5000)}</td><td><input type="radio" name="vnd1" checked></td></tr><tr><td>로컬 협력사 B</td><td>${rInt(1,5)}일</td><td class="num">₩ ${rInt(3000,6000)}</td><td><input type="radio" name="vnd1"></td></tr>`;
+}
+function genP1(){
+  let h=''; for(let i=1;i<=50;i++){
+    const s = rInt(100,5000);
+    h+=`<div class="v-item" style="padding:12px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="selectMaster(this, '분석 대상 품목 ${i}', '-${s.toLocaleString()}')"><div><div style="font-family:var(--mono);color:var(--teal);font-size:11px">RM-DTL-${i}</div><div style="font-weight:700">분석 대상 품목 ${i}</div></div><div style="text-align:right"><div class="badge badge-red">-${s.toLocaleString()} 부족</div></div></div>`;
+  }
+  $('tb1_list').innerHTML=h;
+}
+
+function cellOrder(item, qty){ showToast(`[${item}] 부족분 ${qty}개 즉시 발주 팝업 오픈`); }
+function genP2(){
+  let h1='<tr><th style="min-width:180px">품목명</th><th style="text-align:right">현재고</th>';
+  for(let i=1;i<=10;i++) h1+=`<th style="text-align:center;color:var(--blue)">11/${String(i).padStart(2,'0')}</th>`;
+  $('th2').innerHTML=h1+'</tr>';
+  
+  let h2=''; for(let i=1;i<=30;i++){
+    let inv=rInt(5000,10000);
+    h2+=`<tr><td><b>매트릭스 자재 ${i}</b></td><td class="num">${inv.toLocaleString()}</td>`;
+    for(let d=1;d<=10;d++){
+      inv -= rInt(500,2000);
+      if(inv<0) h2+=`<td class="num" style="color:var(--red);font-weight:700;cursor:pointer;background:var(--red-dim)" onclick="cellOrder('자재${i}', ${Math.abs(inv)})">${inv.toLocaleString()} <br><button class="btn btn-sm btn-ghost" style="margin-top:4px;font-size:10px;padding:2px 6px">발주</button></td>`;
+      else h2+=`<td class="num">${inv.toLocaleString()}</td>`;
+    }
+    h2+='</tr>';
+  }
+  $('tb2').innerHTML=h2;
+}
+
+function genP3(){
+  let h=''; for(let i=1;i<=20;i++){
+    h+=`<div class="card" style="margin-bottom:0;transition:border .2s;cursor:pointer" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div class="card-title" style="color:var(--blue)">🏢 통합 협력사 ${i} <span class="badge badge-amber">${rInt(2,5)}건 부족</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border)"><span>자재 A</span><span class="num" style="color:var(--red)">-${rInt(100,900)} EA</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0"><span>자재 B</span><span class="num" style="color:var(--red)">-${rInt(100,900)} EA</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span class="tip">총 예상액: ₩${(rInt(100,999)*10000).toLocaleString()}</span><button class="btn btn-blue btn-sm" onclick="showToast('통합 발주서 전송 완료')">통합 발주 ➔</button></div>
+    </div>`;
+  }
+  $('tb3').innerHTML=h;
+}
+
+let cartItems4 = [];
+function addPoCart(item, qty, price, btn){
+  btn.disabled = true; btn.textContent = '담김 ✓';
+  cartItems4.push({item, qty, price}); renderCart4(); showToast(`${item} 장바구니에 담김`);
+}
+function renderCart4(){
+  const list = $('cart4'); $('cart-cnt4').textContent = cartItems4.length;
+  if(cartItems4.length===0){ list.innerHTML = `<div style="text-align:center;color:var(--text3);padding:100px 0">좌측에서 발주 품목을 담아주세요.</div>`; $('cart-tot4').textContent = '₩ 0'; return; }
+  let total = 0;
+  list.innerHTML = cartItems4.map((c, i) => {
+    total += c.qty * c.price;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px"><div><div style="font-weight:700">${c.item}</div><div style="font-size:11px;color:var(--text2)">수량: ${c.qty}</div></div><div style="display:flex;align-items:center;gap:12px"><span class="num" style="color:var(--amber)">₩ ${(c.qty*c.price).toLocaleString()}</span><button class="btn btn-ghost btn-sm" style="color:var(--red);border:none" onclick="cartItems4.splice(${i},1);renderCart4()">✕</button></div></div>`;
+  }).join('');
+  $('cart-tot4').textContent = '₩ ' + total.toLocaleString();
+}
+function genP4(){
+  let h=''; for(let i=1;i<=30;i++){
+    const p=rInt(1,50)*1000;
+    h+=`<tr><td>소모성 MRO 자재 ${i}</td><td class="num">${rInt(0,10)}</td><td class="num" style="color:var(--red)">-${rInt(10,200)}</td><td class="num">₩ ${p.toLocaleString()}</td><td><button class="btn btn-ghost btn-sm" onclick="addPoCart('MRO 자재 ${i}', 100, ${p}, this)">담기 +</button></td></tr>`;
+  }
+  $('tb4').innerHTML=h;
+}
+
+function genP5(){
+  let h=''; for(let i=1;i<=30;i++){
+    const inv=rInt(10,50); const req=rInt(60,90);
+    h+=`<div class="chart-row"><div class="chart-lbl">시각화 자재 ${i}</div><div class="chart-bar-wrap"><div class="c-bar" style="width:${inv}%;background:var(--teal)">재고 ${inv}k</div><div class="c-bar" style="width:${req-inv}%;background:var(--red);cursor:pointer" onclick="showToast('발주 팝업')">부족 ${req-inv}k (발주)</div></div></div>`;
+  }
+  $('tb5').innerHTML=h;
+}
+
+function calcAutoPO(){
+  const ds=$('r-safe').checked; const dm=$('r-multi').checked;
+  let h=''; for(let i=1;i<=20;i++){
+    const sh=rInt(100,5000); const m=500;
+    let rec = sh; if(ds) rec = Math.floor(rec*1.1); if(dm) rec = Math.ceil(rec/m)*m;
+    h+=`<tr><td>AI 권장 품목 ${i}</td><td class="num" style="color:var(--red)">${sh.toLocaleString()}</td><td class="num" style="color:var(--text2)">Box ${m}</td><td class="num" style="color:var(--teal);font-size:16px;font-weight:700">${rec.toLocaleString()}</td><td style="padding-left:20px;color:var(--text3);font-size:11px">${ds?'안전재고(10%) 적용. ':''}${dm?'Box 배수 올림 적용.':''}</td></tr>`;
+  }
+  $('tb6').innerHTML=h; showToast('AI 룰셋 기반 권장 발주량 20건 산출 완료');
+}
+
+let dK=null;
+function kDrag(e){ dK=e.target; dK.style.opacity='0.5'; }
+document.addEventListener('dragend', () => { if(dK) dK.style.opacity='1'; });
+function kDrop(e,c){ e.preventDefault(); if(dK){ c.appendChild(dK); const p=c.querySelector('.text3'); if(p)p.style.display='none'; showToast('상태 변경됨'); } }
+function kDropWon(e,c){ e.preventDefault(); if(dK){ c.appendChild(dK); $('k7-ph').style.display='none'; dK.style.border='2px solid var(--green)'; showToast('입고 대기 처리'); } }
+function genP7(){
+  for(let i=1;i<=15;i++) $('k7_1').innerHTML+=`<div class="k-card" draggable="true" ondragstart="kDrag(event)"><div style="font-family:var(--mono);color:var(--blue);font-size:11px">RM-K-${i}</div><div style="font-weight:700;margin:4px 0">칸반 발주 대상품 ${i}</div></div>`;
+}
+
+function genP8(){
+  let h=''; for(let i=1;i<=50;i++){
+    h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--border)"><div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">발주일: 2024-09-${String(rInt(1,30)).padStart(2,'0')} | PO-202409-${String(i).padStart(3,'0')}</div><div style="font-weight:700;font-size:14px">과거 거래 품목 외 ${rInt(1,5)}건</div><div style="font-family:var(--mono);color:var(--amber);margin-top:4px">총액: ₩ ${(rInt(100,500)*10000).toLocaleString()}</div></div><button class="btn btn-ghost" onclick="showToast('이 내역 그대로 수량 수정 팝업 오픈')">↻ 이 내역 그대로 복제하여 재발주</button></div>`;
+  }
+  $('tb8').innerHTML=h;
+}
+
+function doParse9(){
+  const v=$('inp9').value.split('\n'); let h='';
+  v.forEach(r=>{const c=r.split('\t'); if(c.length>=3&&!r.includes('품목코드')) h+=`<tr><td style="font-family:var(--mono);color:var(--teal)">${c[0]}</td><td>${c[1]}</td><td class="num">${c[2]}</td><td>${c[3]||''}</td></tr>`;});
+  $('tb9').innerHTML=h; showToast('메일 텍스트 파싱 완료');
+}
+
+function genP10(){
+  let h=''; for(let i=1;i<=15;i++){
+    const t=rInt(50,500)*1000; const r=rInt(5,t/1000)*1000; const pct=((t-r)/t)*100;
+    h+=`<tr><td><div style="color:var(--purple)">BO-${i}</div><b>장기계약 품목 ${i}</b></td><td class="num">${t.toLocaleString()}</td><td><div class="prog-bg"><div class="prog-bar" style="width:${pct}%"></div></div></td><td class="num" style="color:var(--purple);font-weight:700">${r.toLocaleString()}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('차감 준비')">차감</button></td></tr>`;
+  }
+  $('tb10').innerHTML=h;
+}
+
+function doBom11(){
+  $('tb11').innerHTML=`
+    <tr><td><b>[L0] ASSY-01</b></td><td>스마트 팩토리 로봇 팔 세트</td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">50</td><td class="num">0</td><td class="num" style="color:var(--amber);font-weight:700">50</td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] RM-01</td><td>서보 모터 400W</td><td class="num">6</td><td class="num" style="color:var(--cyan);font-weight:700">300</td><td class="num">50</td><td class="num" style="color:var(--amber);font-weight:700">250</td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] RM-02</td><td>정밀 감속기 하모닉</td><td class="num">6</td><td class="num" style="color:var(--cyan);font-weight:700">300</td><td class="num">0</td><td class="num" style="color:var(--amber);font-weight:700">300</td></tr>
+    <tr><td style="padding-left:40px">↳ [L2] SUB-01</td><td>알루미늄 주물 바디</td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">50</td><td class="num">100</td><td class="num" style="color:var(--green);font-weight:700">0 (재고충분)</td></tr>
+    <tr><td style="padding-left:20px">↳ [L1] RM-03</td><td>제어기 보드 어셈블리</td><td class="num">1</td><td class="num" style="color:var(--cyan);font-weight:700">50</td><td class="num">10</td><td class="num" style="color:var(--amber);font-weight:700">40</td></tr>
+  `;
+  showToast('조립품 50개 생산을 위한 하위 BOM 수십 개가 다단계로 역전개 되었습니다.');
+}
+
+function doAppr12(){ $('appr-tl').style.display='block'; $('appr-ph').style.display='none'; showToast('결재 상신 완료'); }
+
+function genP13(){
+  let h=''; for(let i=1;i<=20;i++) h+=`<tr><td>사내 반제품 ${i} (WIP)</td><td>도금 공정</td><td><select class="inp inp-sm"><option>외주업체 A</option><option>외주업체 B</option></select></td><td class="num">₩ ${rInt(1,10)*1000}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('외주 가공 PO 연동 발행됨')">외주 PO 동시발행</button></td></tr>`;
+  $('tb13').innerHTML=h;
+}
+
+function genP14(){
+  let h=''; const ds=['일','월','화','수','목','금','토']; ds.forEach(d=>h+=`<div class="cal-header">${d}</div>`);
+  for(let i=1;i<=35;i++){
+    h+=`<div class="cal-day" onclick="showToast('해당 일자 입고 대기 리스트 오픈')"><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${i>30?i-30:i}</div>`;
+    if(Math.random()>0.6) h+=`<div style="background:var(--purple-dim);color:var(--purple);font-size:10px;padding:2px;border-radius:3px">자재 ${rInt(1,5)}건 입고예정</div>`;
+    h+=`</div>`;
+  }
+  $('cal14').innerHTML=h;
+}
+
+function genP16(){
+  let h=''; for(let i=1;i<=15;i++){
+    const v = rInt(100,1000); const use = rInt(10,v);
+    h+=`<tr><td>VMI 협력사 ${i}</td><td>VMI 취급 자재 ${i}</td><td class="num">${v}</td><td class="num" style="color:var(--amber);font-weight:700">${use}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('사용분 정산 완료')">정산 (Pay)</button></td></tr>`;
+  }
+  $('tb16').innerHTML=h;
+}
+
+function doSim17(){
+  $('sim-res17').innerHTML=`
+    <div style="color:var(--rose);font-weight:700;font-size:16px;margin-bottom:10px">🚨 납기 5일 지연 시, 생산 스케줄 충돌 경고!</div>
+    <div style="padding:12px;background:var(--surface);border-left:3px solid var(--rose);margin-bottom:8px">연관 작업지시 <b>WO-991</b> (투싼 조립라인) - 11/03 부터 라인 스톱 예상</div>
+    <div style="padding:12px;background:var(--surface);border-left:3px solid var(--rose);margin-bottom:8px">연관 작업지시 <b>WO-995</b> (아반떼 조립라인) - 11/04 부터 라인 스톱 예상</div>
+    <div class="tip">권장 조치: 항공 특송으로 전환 요구 또는 대체 자재 긴급 수배 필요</div>
+  `;
+  showToast('시뮬레이션 분석 완료');
+}
+
+function genP18(){
+  // Done in HTML directly for demo
+}
+
+function genP19(){
+  let h=''; for(let i=1;i<=20;i++) h+=`<tr><td style="font-family:var(--mono);color:var(--purple)">SO-DROP-${i}</td><td>직납 전용 품목 ${i}</td><td><select class="inp inp-sm"><option>제조사 A</option></select></td><td><span class="badge badge-amber">공급사가 고객에게 직접배송</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Drop-ship PO 발행')">직납 발주 ➔</button></td></tr>`;
+  $('tb19').innerHTML=h;
+}
+
+function genP21(){
+  let h=''; for(let i=1;i<=15;i++) h+=`<tr><td>프로젝트성 고가 자재 ${i}</td><td class="num">₩ ${(rInt(10,100)*1000000).toLocaleString()}</td><td><select class="inp inp-sm"><option>제2공장 신축 (WBS-A1)</option><option>라인 증설 (WBS-B2)</option></select></td><td class="num" style="color:var(--cyan);font-weight:700;cursor:pointer" onclick="showToast('예산 잔액 확인됨')">₩ ${(rInt(500,1000)*1000000).toLocaleString()}</td></tr>`;
+  $('tb21').innerHTML=h;
+}
+
+function genP24(){
+  let h=''; for(let i=1;i<=15;i++){
+    const use = rInt(500,5000); const p = rInt(1,5)*1000;
+    h+=`<tr><td>위탁 소유주 ${i}</td><td class="num">${rInt(5000,10000)}</td><td class="num" style="color:var(--fuchsia);font-weight:700">${use}</td><td class="num">₩ ${(use*p).toLocaleString()}</td><td><button class="btn btn-ghost btn-sm" onclick="showToast('사용분 정산 완료')">정산 (Pay)</button></td></tr>`;
+  }
+  $('tb24').innerHTML=h;
+}
+
+function doOver26(){
+  $('over-res26').innerHTML=`
+    <div style="font-size:16px;margin-bottom:10px">현재 B동 창고에 <b>동일 품목 재고가 25,000개 (과잉상태)</b> 적재되어 있습니다! (마지막 출고: 1년 전)</div>
+    <div class="tip">신규 발주를 진행하시려면 공장장의 예외 승인이 필요합니다.</div>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="showToast('재고 실사/이동 지시 화면으로 넘어갑니다.')">발주 취소하고 B동 창고 재고 갖다쓰기 ➔</button>
+  `;
+  showToast('시스템이 악성 재고를 감지하고 발주를 차단했습니다.');
+}
+
+function genP26(){
+  // Handled by doOver26
+}
+
+function genP27(){
+  let h=''; for(let i=1;i<=20;i++){
+    const d=new Date(); d.setDate(d.getDate()+1);
+    h+=`<tr><td style="font-weight:700;color:var(--red)">🚨 [스톱위험] 핵심 모터 부품 ${i}</td><td class="num">0 EA</td><td style="font-family:var(--mono);color:var(--red)">${d.toISOString().split('T')[0]} (내일)</td><td><button class="btn btn-red btn-sm" onclick="showToast('공급사에 긴급 독촉(Expedite) 메일/문자 발송됨')">공급사 긴급 독촉 ⚡</button></td></tr>`;
+  }
+  $('tb27').innerHTML=h;
+}
+
+</script>
+
+<script>/* T3MES split — auto-activate TabPage #18 */
+(function(){var I=18;
+function activate(){
+  var btns=document.querySelectorAll(".tab-btn");
+  var btn=btns[I]||null;
+  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
+  var panels=document.querySelectorAll(".panel");
+  if(panels.length){
+    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
+    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  }
+}
+function go(){try{activate();}catch(e){}}
+if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+</script>
+</body>
+</html>

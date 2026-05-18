@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>엑셀 대량업로드</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #21: 엑셀 대량업로드 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p20">
+    <div class="sec-hdr"><div><h3>㉑ 엑셀 파일 대량 업로드 입고 (Mass Upload)</h3><span class="tip">수천 건의 입고 데이터를 엑셀로 드래그 앤 드롭하여 시스템에 밀어 넣고, 오류(존재하지 않는 PO 등)를 걸러냅니다.</span></div></div>
+    <div style="border:2px dashed var(--amber);padding:40px;text-align:center;background:var(--surface);cursor:pointer;border-radius:12px;margin-bottom:16px" onclick="doUpload20()"><div style="font-size:40px;margin-bottom:10px">📁</div><div style="font-size:16px;font-weight:700;color:var(--amber)">여기를 클릭하여 가상 엑셀 업로드</div></div>
+    <div class="tbl-wrap" style="display:none" id="wrap20"><table class="tbl"><thead><tr><th>행</th><th>PO 번호</th><th>품목코드</th><th>입고수량</th><th>오류 검증 결과</th></tr></thead><tbody id="tb20"></tbody></table></div>
+  </div>

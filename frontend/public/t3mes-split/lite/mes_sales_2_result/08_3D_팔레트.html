@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>3D 팔레트</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #8: 3D 팔레트 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p7">
+    <div class="sec-hdr"><div><h3>⑧ 3D 팔레트 적재 시뮬레이션 (Palletizing)</h3><span class="tip">수출 컨테이너나 팔레트에 박스가 어떻게 쌓이는지(테트리스) 시뮬레이션하고 출하 체적(CBM)을 계산합니다.</span></div></div>
+    <div class="grid2" style="height:500px">
+      <div style="background:#000;border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;width:150px;height:100px;background:var(--teal-dim);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 -10px 0 var(--amber), 10px 0 0 var(--rose);transform:translateY(20px)"><div style="font-weight:700;color:var(--teal)">Pallet #1 (3단 적재)</div></div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">적재 최적화 (CBM 계산)</div><div style="flex:1"><div style="font-size:14px;margin-bottom:10px">총 150 박스 ➔ 3 팔레트 필요</div><div class="prog-bg" style="height:16px"><div class="prog-bar" style="width:85%;background:var(--teal)"></div></div><div class="tip" style="margin-bottom:20px">컨테이너 적재율: 85%</div><div class="label">CBM (총 체적)</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal)">24.5 m³</div></div><button class="btn btn-teal" style="padding:16px" onclick="showToast('팔레타이징 데이터가 출하 문서에 연동되었습니다.')">적재 데이터 확정</button></div>
+    </div>
+  </div>

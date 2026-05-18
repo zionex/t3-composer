@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>IQC 합불판정</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #7: IQC 합불판정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p6">
+    <div class="sec-hdr"><div><h3>⑦ 수입검사(IQC) 합불 판정 및 재고 해제</h3><span class="tip">품질팀 직원이 검사 대기중인 물건을 샘플링하여 합격/불합격을 입력하고, 가용 재고로 넘길지 불량 창고로 넘길지 결정합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">검사 대기(Hold) 리스트</div><div class="tbl-wrap" style="border:none"><table class="tbl"><tbody id="tb6_1"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--cyan)">IQC 검사 판정 (Inspection Result)</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:16px">품목: 고강도 알루미늄 판넬 (1,000 EA)</div>
+        <div class="grid3" style="margin-bottom:20px"><div><div class="label" style="color:var(--green)">합격 (Pass) 수량</div><input type="number" class="inp" value="980" style="font-size:24px;font-weight:700;color:var(--green)"></div><div><div class="label" style="color:var(--red)">불합격 (Fail) 수량</div><input type="number" class="inp" value="20" style="font-size:24px;font-weight:700;color:var(--red)"></div><div><div class="label">불량 유형</div><select class="inp"><option>스크래치/외관</option><option>치수 불량</option></select></div></div>
+        <button class="btn btn-cyan" style="width:100%;padding:16px" onclick="showToast('980개 정상재고 이동, 20개 불량창고 격리 완료')">IQC 판정 완료 및 재고 상태 변경 (Un-hold)</button>
+      </div>
+    </div>
+  </div>

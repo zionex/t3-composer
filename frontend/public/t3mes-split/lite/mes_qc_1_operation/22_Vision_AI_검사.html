@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Vision AI 검사</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #22: Vision AI 검사 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p21">
+    <div class="sec-hdr"><div><h3>㉒ Vision AI 외관 불량 자동 판독 (Machine Vision)</h3><span class="tip">카메라가 찍은 PCB/제품 이미지에서 딥러닝 AI가 스크래치, 파손, 납땜 불량을 찾아내 빨간 박스(Bounding Box)를 쳐주는 뷰입니다.</span></div></div>
+    <div class="grid2">
+      <div style="height:400px;background:#000;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative"><span style="font-size:50px;opacity:0.3">📷 Image Capture</span><div style="position:absolute;top:20%;left:30%;width:50px;height:50px;border:2px solid var(--red);background:var(--red-dim)"></div><div style="position:absolute;top:60%;left:70%;width:30px;height:30px;border:2px solid var(--red);background:var(--red-dim)"></div><div style="position:absolute;top:10px;left:10px;background:var(--red);color:#fff;padding:4px 8px;border-radius:4px;font-weight:700;font-size:12px">AI Score: 98% NG</div></div>
+      <div class="card" style="margin:0"><div class="card-title">AI 판독 결과 상세</div><div style="padding:10px;border-left:3px solid var(--red);background:var(--surface3);margin-bottom:10px">1. 표면 스크래치 감지 (신뢰도 98%)</div><div style="padding:10px;border-left:3px solid var(--red);background:var(--surface3);margin-bottom:20px">2. 칩 마운트 이탈 감지 (신뢰도 95%)</div><button class="btn btn-red" style="width:100%;padding:16px;font-size:16px" onclick="showToast('AI 판정값으로 불량 실적이 확정되었습니다.')">AI 불량 판정 승인 (Reject)</button></div>
+    </div>
+  </div>

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>IQC 합불판정</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #3: IQC 합불판정 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p2">
+    <div class="sec-hdr"><div><h3>③ IQC 합불 판정 및 불량 등록 (Pass/Fail)</h3><span class="tip">측정된 샘플 데이터를 바탕으로 최종 양/불을 판정하고, 불량이 났다면 어떤 유형인지 Defect Code를 입력합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 350px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">검사 진행 정보</div><div class="label">대상 LOT</div><input type="text" class="inp" value="RAW-2410-991" disabled style="margin-bottom:12px"><div class="label">총 검사 수량</div><input type="text" class="inp num" value="800" disabled></div>
+      <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">검사 결과 입력</div><div class="grid2" style="margin-bottom:16px"><div><div class="label" style="color:var(--green)">양품 수량 (OK)</div><input type="number" class="inp" value="785" style="font-size:24px;font-weight:700;color:var(--green)"></div><div><div class="label" style="color:var(--red)">불량 수량 (NG)</div><input type="number" class="inp" value="15" style="font-size:24px;font-weight:700;color:var(--red)"></div></div><div class="label">주요 불량 유형 (Defect Code)</div><select class="inp" style="margin-bottom:16px"><option>D-01: 치수 불량 (Out of Spec)</option><option>D-02: 표면 스크래치</option></select><button class="btn btn-red" style="width:100%;padding:14px;font-size:14px" onclick="showToast('불량수량이 Re 기준(11개)을 초과하여 최종 불합격(FAIL) 및 보류(Hold) 처리되었습니다.')">최종 판정 등록 (FAIL)</button></div>
+    </div>
+  </div>

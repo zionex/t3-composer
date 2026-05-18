@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>현장 불량사진(앱)</title>
+<!-- T3MES UI Pattern · mes_qc_1_operation · TabPage #25: 현장 불량사진(앱) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p24">
+    <div class="sec-hdr"><div><h3>㉕ 모바일 불량 현장 사진 촬영 (Mobile Photo Report)</h3><span class="tip">검사원이 라인을 돌다가 불량을 발견하면, 바로 스마트폰을 꺼내 사진을 찍고 펜으로 동그라미를 쳐서 부적합 보고서를 올립니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border:2px dashed var(--cyan);text-align:center;padding:60px;cursor:pointer" onclick="showToast('카메라 앱 실행 -> 사진 첨부 됨')"><div style="font-size:50px">📸</div><div style="font-weight:700;color:var(--cyan);margin-top:10px">현장 사진 촬영 (클릭)</div></div>
+      <div class="card" style="margin:0"><div class="card-title">현장 불량 즉시 보고</div><div class="label">불량 발견 공정</div><input type="text" class="inp" value="프레스 2라인" disabled style="margin-bottom:12px"><div class="label">사진 코멘트</div><textarea class="inp" rows="4" style="margin-bottom:16px">금형 마모로 인한 끝부분 찍힘 불량 다수 발생함. 즉시 조치 요망.</textarea><button class="btn btn-red" style="width:100%" onclick="showToast('사진과 함께 긴급 NCR이 발행되었습니다.')">사진 첨부하여 긴급 NCR 발행</button></div>
+    </div>
+  </div>

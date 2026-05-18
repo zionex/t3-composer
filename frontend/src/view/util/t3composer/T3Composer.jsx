@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 
 import {
   Box,
@@ -23,7 +23,7 @@ import CheckCircleIcon       from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon      from '@mui/icons-material/WarningAmber';
 import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
-import HistoryIcon           from '@mui/icons-material/History';
+import PlaylistAddCheckIcon  from '@mui/icons-material/PlaylistAddCheck';
 
 import { useLocation, useHistory } from 'react-router-dom';
 
@@ -38,6 +38,7 @@ import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
 import { useTargetStore } from './targetStore';
+import { glassPanel } from '../../../theme';
 
 const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
@@ -52,383 +53,276 @@ const CATEGORY_NEW = {
   title: '신규 개발',
   subtitle: 'New Development',
   icon: AddCircleOutlineIcon,
-  gradient: 'linear-gradient(135deg, #1e3a8a 0%, #4338ca 50%, #7e22ce 100%)',
-  accent: '#4338ca',
+  accent: '#7CA7E0',
+  hint: '자연어 · 기존 화면 복사 · 설계서 기반으로 새 화면을 생성합니다',
 };
 const CATEGORY_MODIFY = {
-  key: MODE.EXISTING_MODIFY,
+  key: 'MODIFY',
   title: '기존 화면 수정',
   subtitle: 'Modify Existing',
   icon: BorderColorIcon,
-  gradient: 'linear-gradient(135deg, #9a3412 0%, #ea580c 50%, #f59e0b 100%)',
-  accent: '#ea580c',
+  accent: '#E6C079',
+  hint: '기존 화면의 소스를 불러와 자연어 또는 단계별로 수정합니다',
 };
 
-// ===== 신규 개발 하위 3종 =====
-// (단계별 생성은 설계서 기반·기존 화면 복사 안에서 자동 진행되므로 메뉴에서 제외)
-// 표시 순서: 자연어 생성(가장 자유로움) → 기존 화면 복사 → 설계서 기반
+// ===== 신규 개발 하위 3종 ===== (key = 진입 MODE)
 const NEW_MODE_OPTIONS = [
-  { key: MODE.NEW_NL,          step: 1, title: '자연어 생성',         sub: 'Natural Lang.', icon: ChatIcon,        color: '#0d9488' },
-  { key: MODE.NEW_FROM_COPY,   step: 2, title: '기존 화면 복사',     sub: 'Copy Existing', icon: ContentCopyIcon, color: '#059669' },
-  { key: MODE.NEW_FROM_DESIGN, step: 3, title: '설계서 기반',       sub: 'From Design',   icon: DescriptionIcon, color: '#2563eb' },
+  { key: MODE.NEW_NL,          step: 1, title: '자연어 생성',     sub: 'Natural Lang.', icon: ChatIcon,        color: '#8FC4D4', hint: '요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다' },
+  { key: MODE.NEW_FROM_COPY,   step: 2, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 9단계 마법사로 수정합니다' },
+  { key: MODE.NEW_FROM_DESIGN, step: 3, title: '설계서 기반',   sub: 'From Design',   icon: DescriptionIcon, color: '#7CA7E0', hint: '설계서(Excel)를 업로드해 화면을 생성합니다' },
+];
+
+// ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)
+const MODIFY_MODE_OPTIONS = [
+  { key: 'NL',   step: 1, title: '자연어 수정', sub: 'NL Modify',   icon: ChatIcon,             color: '#8FC4D4', hint: '현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청' },
+  { key: 'STEP', step: 2, title: '단계별 수정', sub: 'Step Modify', icon: PlaylistAddCheckIcon, color: '#86C7A8', hint: '기존 화면을 9단계 Spec 으로 분해해 수정할 부분만 변경' },
 ];
 
 /**
  * 입체 보더 스타일 (재사용).
- * 다층 box-shadow + inset 하이라이트로 embossed 효과.
+ * theme 의 glassPanel(파스텔 글래스모피즘) 재사용.
  */
 function embossedPaper(accent, hovered = false) {
-  return {
-    position: 'relative',
-    borderRadius: 3,
-    bgcolor: '#fff',
-    border: '1px solid rgba(15,23,42,0.08)',
-    boxShadow: hovered
-      ? [
-          `0 0 0 4px ${accent}18`,
-          `0 18px 48px -12px ${accent}55`,
-          `0 1px 0 rgba(255,255,255,0.9) inset`,
-          `0 -1px 0 rgba(15,23,42,0.06) inset`,
-        ].join(', ')
-      : [
-          `0 1px 0 rgba(255,255,255,0.9) inset`,
-          `0 -1px 0 rgba(15,23,42,0.04) inset`,
-          `0 6px 16px -6px rgba(15,23,42,0.12)`,
-          `0 14px 36px -16px rgba(15,23,42,0.18)`,
-        ].join(', '),
-    transition: 'all 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-  };
+  return { position: 'relative', ...glassPanel(accent, hovered) };
 }
 
 // =====================================================================
-// 대분류 선택 (1단계 Landing)
+// 모드 선택 — 통합 단일 화면
+//   상위 2 카테고리(신규 개발 / 기존 화면 수정) 를 클릭하면
+//   하위 모드 카드가 펼쳐지고, 하위 카드를 누르면 해당 모드로 진입.
 // =====================================================================
-function LandingSelector({ onPickNew, onPickModify, onOpenSettings, apiKeyRegistered }) {
+function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered }) {
   const [hovered, setHovered] = useState(null);
-  const history = useHistory();
 
   return (
     <Box sx={{
       flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-      bgcolor: '#f1f5f9',
-      backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(79,70,229,0.08), transparent 50%), radial-gradient(circle at 80% 100%, rgba(234,88,12,0.08), transparent 50%)',
+      bgcolor: 'transparent',
+      backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(124,167,224,0.14), transparent 55%), radial-gradient(circle at 80% 100%, rgba(230,192,121,0.12), transparent 55%)',
       p: 2, gap: 2, overflow: 'auto',
     }}>
-      {/* ===== Compact Hero ===== */}
+      {/* ===== Hero ===== */}
       <Paper
         elevation={0}
         sx={{
-          ...embossedPaper('#4338ca'),
+          ...embossedPaper('#7CA7E0'),
+          flexShrink: 0,
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #4338ca 100%)',
-          color: '#fff',
+          background: 'linear-gradient(135deg, rgba(169,199,238,0.55) 0%, rgba(157,180,212,0.50) 55%, rgba(183,174,221,0.50) 100%)',
+          color: '#3A4A63',
           px: 3, py: 2,
-          border: 'none',
         }}
       >
-        {/* Decoration */}
         <Box sx={{ position: 'absolute', top: -30, right: -10, width: 140, height: 140,
-                   borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)' }} />
+                   borderRadius: '50%', bgcolor: 'rgba(124,167,224,0.18)' }} />
         <Box sx={{ position: 'absolute', bottom: -40, left: 140, width: 120, height: 120,
-                   borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.05)' }} />
+                   borderRadius: '50%', bgcolor: 'rgba(124,167,224,0.12)' }} />
 
         <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'relative' }}>
           <Avatar sx={{
-            bgcolor: 'rgba(255,255,255,0.22)', color: '#fff',
-            width: 54, height: 54, border: '2px solid rgba(255,255,255,0.28)',
-            boxShadow: '0 0 20px rgba(255,255,255,0.15)',
+            bgcolor: 'rgba(255,255,255,0.60)', color: '#5683C0',
+            width: 50, height: 50, border: '2px solid rgba(255,255,255,0.75)',
+            boxShadow: '0 4px 14px -4px rgba(58,74,99,0.25)',
           }}>
-            <AutoAwesomeIcon sx={{ fontSize: 30 }} />
+            <AutoAwesomeIcon sx={{ fontSize: 26 }} />
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.1,
-                                              letterSpacing: -0.5,
-                                              textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
-                T3Composer
-              </Typography>
+              <Tooltip title="AI 화면 생성기 — 신규 개발 또는 기존 화면 수정을 선택하세요">
+                <Typography variant="h4" sx={{ lineHeight: 1.1, letterSpacing: -0.5, cursor: 'default' }}>
+                  Composer
+                </Typography>
+              </Tooltip>
               <Chip label="AI" size="small" sx={{
-                height: 20, fontSize: 11, fontWeight: 800,
-                bgcolor: 'rgba(255,255,255,0.22)', color: '#fff',
-                border: '1px solid rgba(255,255,255,0.3)',
+                height: 19, fontSize: 10, fontWeight: 800,
+                bgcolor: 'rgba(124,167,224,0.30)', color: '#5683C0',
+                border: '1px solid rgba(124,167,224,0.45)',
               }} />
             </Stack>
-            <Typography variant="body2" sx={{ opacity: 0.88, mt: 0.3 }}>
-              AI 화면 생성기 · 개발 방식을 선택하세요
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.2, display: 'block' }}>
+              AI 화면 생성기
             </Typography>
           </Box>
 
-          {/* Target System Selector — 다중 프로젝트 전환 */}
-          <TargetSystemSelector darkMode />
+          <TargetSystemSelector />
 
-          {/* API Key pill */}
           <Tooltip title={apiKeyRegistered ? 'API 키 등록됨 — 모든 모드 사용 가능' : 'API 키 미등록 — 클릭하여 등록'}>
             <Box
               onClick={onOpenSettings}
               sx={{
                 cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.6,
                 px: 1.5, py: 0.7, borderRadius: 5,
-                bgcolor: apiKeyRegistered ? 'rgba(16,185,129,0.22)' : 'rgba(245,158,11,0.28)',
-                border: `1px solid ${apiKeyRegistered ? 'rgba(16,185,129,0.5)' : 'rgba(245,158,11,0.6)'}`,
+                bgcolor: apiKeyRegistered ? 'rgba(134,199,168,0.30)' : 'rgba(230,192,121,0.32)',
+                border: `1px solid ${apiKeyRegistered ? 'rgba(134,199,168,0.6)' : 'rgba(230,192,121,0.65)'}`,
                 backdropFilter: 'blur(8px)',
                 transition: 'all 0.2s',
                 '&:hover': { transform: 'scale(1.03)' },
               }}
             >
               {apiKeyRegistered
-                ? <CheckCircleIcon sx={{ fontSize: 16, color: '#6ee7b7' }} />
-                : <WarningAmberIcon sx={{ fontSize: 16, color: '#fcd34d' }} />}
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#fff' }}>
+                ? <CheckCircleIcon sx={{ fontSize: 16, color: '#5E9E81' }} />
+                : <WarningAmberIcon sx={{ fontSize: 16, color: '#C49C53' }} />}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {apiKeyRegistered ? 'API Key 등록' : 'API Key 필요'}
               </Typography>
             </Box>
           </Tooltip>
-          <Tooltip title="작업 이력 — 진행중·완료·보관 세션 관리">
-            <IconButton size="small" onClick={() => history.push('/history')} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
-              <HistoryIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="설정">
-            <IconButton size="small" onClick={onOpenSettings} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+            <IconButton size="small" onClick={onOpenSettings}
+                        sx={{ color: 'primary.dark', bgcolor: 'rgba(124,167,224,0.16)',
+                              '&:hover': { bgcolor: 'rgba(124,167,224,0.30)' } }}>
               <SettingsIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Stack>
       </Paper>
 
-      {/* ===== 2 Big Category Cards ===== */}
-      <Box sx={{
-        flex: 1, display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-        gap: 3, alignItems: 'stretch',
-        minHeight: 360,
-      }}>
-        {[CATEGORY_NEW, CATEGORY_MODIFY].map((cat) => {
-          const Icon = cat.icon;
-          const isHover = hovered === cat.key;
+      {/* ===== 좌(신규 개발 6) : 우(기존 화면 수정 4) Layer Board — 화면을 가득 채움 ===== */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', gap: 2 }}>
+        {[
+          { cat: CATEGORY_NEW,    options: NEW_MODE_OPTIONS,    grow: 5 },
+          { cat: CATEGORY_MODIFY, options: MODIFY_MODE_OPTIONS, grow: 5 },
+        ].map(({ cat, options, grow }) => {
+          const CatIcon = cat.icon;
           return (
             <Paper
               key={cat.key}
               elevation={0}
-              onClick={() => cat.key === 'NEW' ? onPickNew() : onPickModify()}
-              onMouseEnter={() => setHovered(cat.key)}
-              onMouseLeave={() => setHovered(null)}
               sx={{
-                ...embossedPaper(cat.accent, isHover),
-                cursor: 'pointer', overflow: 'hidden',
-                transform: isHover ? 'translateY(-4px)' : 'translateY(0)',
+                ...embossedPaper(cat.accent),
+                flex: grow, minWidth: 0,
                 display: 'flex', flexDirection: 'column',
+                p: 1.6, gap: 1.2,
+                borderTop: `3px solid ${cat.accent}`,
               }}
             >
-              {/* Gradient header band */}
-              <Box sx={{
-                height: 130, background: cat.gradient,
-                position: 'relative', overflow: 'hidden',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderBottom: '1px solid rgba(0,0,0,0.08)',
-                boxShadow: 'inset 0 -8px 20px rgba(0,0,0,0.15)',
-              }}>
-                <Box sx={{ position: 'absolute', top: -40, right: -20, width: 200, height: 200,
-                           borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)' }} />
-                <Box sx={{ position: 'absolute', bottom: -50, left: -20, width: 150, height: 150,
-                           borderRadius: '50%', bgcolor: 'rgba(0,0,0,0.1)' }} />
+              {/* 보드 헤더 */}
+              <Stack direction="row" alignItems="center" spacing={1.2} sx={{ flexShrink: 0 }}>
                 <Avatar sx={{
-                  width: 80, height: 80,
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  border: '3px solid rgba(255,255,255,0.35)',
-                  color: '#fff', zIndex: 1,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.25), 0 0 0 8px rgba(255,255,255,0.08)',
+                  width: 38, height: 38,
+                  bgcolor: `${cat.accent}26`, color: cat.accent,
+                  border: `1px solid ${cat.accent}66`,
                 }}>
-                  <Icon sx={{ fontSize: 44 }} />
+                  <CatIcon sx={{ fontSize: 20 }} />
                 </Avatar>
-              </Box>
-
-              {/* Body */}
-              <Box sx={{
-                flex: 1, p: 3,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', textAlign: 'center',
-                gap: 0.4,
-              }}>
-                <Typography variant="caption" sx={{
-                  color: cat.accent, fontWeight: 800, letterSpacing: 2,
-                  textTransform: 'uppercase', fontSize: 11,
-                }}>
-                  {cat.subtitle}
-                </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: -0.3 }}>
-                  {cat.title}
-                </Typography>
-
-                <Box sx={{ flex: 1 }} />
-
-                <Button
-                  variant="contained"
-                  disableElevation
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    mt: 1.5, px: 4, py: 1.2,
-                    bgcolor: cat.accent,
-                    fontWeight: 700, fontSize: 14,
-                    borderRadius: 2,
-                    boxShadow: `0 4px 14px ${cat.accent}55, 0 1px 0 rgba(255,255,255,0.5) inset`,
-                    '&:hover': {
-                      bgcolor: cat.accent,
-                      filter: 'brightness(1.1)',
-                      boxShadow: `0 6px 20px ${cat.accent}88, 0 1px 0 rgba(255,255,255,0.5) inset`,
-                    },
-                  }}
-                >
-                  선택
-                </Button>
-              </Box>
-            </Paper>
-          );
-        })}
-      </Box>
-    </Box>
-  );
-}
-
-// =====================================================================
-// 신규 개발 — 4종 선택 (2단계)
-// =====================================================================
-function NewModeSelector({ onSelect, onBack }) {
-  const [hovered, setHovered] = useState(null);
-
-  return (
-    <Box sx={{
-      flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-      bgcolor: '#f1f5f9',
-      backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(79,70,229,0.08), transparent 50%)',
-      p: 2, gap: 2, overflow: 'auto',
-    }}>
-      {/* Sub header */}
-      <Paper elevation={0} sx={{
-        ...embossedPaper('#4338ca'),
-        px: 2.5, py: 1.5,
-      }}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <IconButton onClick={onBack} size="small"
-                      sx={{ bgcolor: '#f1f5f9', border: '1px solid #e2e8f0',
-                            boxShadow: '0 1px 2px rgba(15,23,42,0.08), 0 1px 0 rgba(255,255,255,0.8) inset' }}>
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
-          <Avatar sx={{
-            width: 38, height: 38,
-            bgcolor: '#4338ca22', color: '#4338ca',
-            border: '1px solid #4338ca55',
-            boxShadow: '0 1px 0 rgba(255,255,255,0.8) inset',
-          }}>
-            <AddCircleOutlineIcon />
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-              신규 개발
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b' }}>
-              3가지 방식 중 하나를 선택하세요
-            </Typography>
-          </Box>
-        </Stack>
-      </Paper>
-
-      {/* 3 cards */}
-      <Box sx={{
-        flex: 1, display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
-        gap: 2, alignItems: 'stretch',
-        minHeight: 280,
-      }}>
-        {NEW_MODE_OPTIONS.map((opt) => {
-          const Icon = opt.icon;
-          const isHover = hovered === opt.key;
-          return (
-            <Paper
-              key={opt.key}
-              elevation={0}
-              onClick={() => onSelect(opt.key)}
-              onMouseEnter={() => setHovered(opt.key)}
-              onMouseLeave={() => setHovered(null)}
-              sx={{
-                ...embossedPaper(opt.color, isHover),
-                cursor: 'pointer', overflow: 'hidden',
-                transform: isHover ? 'translateY(-6px)' : 'translateY(0)',
-                display: 'flex', flexDirection: 'column',
-              }}
-            >
-              {/* Top number band */}
-              <Box sx={{
-                height: 8,
-                background: `linear-gradient(90deg, ${opt.color} 0%, ${opt.color}aa 100%)`,
-                boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)',
-              }} />
-
-              <Box sx={{
-                flex: 1, p: 2.5,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', textAlign: 'center',
-                gap: 0.6,
-                position: 'relative',
-              }}>
-                {/* Step number watermark */}
-                <Box sx={{
-                  position: 'absolute', top: 4, right: 10,
-                  fontFamily: 'monospace', fontWeight: 900, fontSize: 52,
-                  color: `${opt.color}14`, lineHeight: 1,
-                  userSelect: 'none',
-                }}>
-                  {opt.step}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.15 }}>
+                    {cat.title}
+                  </Typography>
+                  <Typography variant="caption" sx={{
+                    color: cat.accent, fontWeight: 800, letterSpacing: 1.2,
+                    textTransform: 'uppercase', fontSize: 9.5,
+                  }}>
+                    {cat.subtitle}
+                  </Typography>
                 </Box>
+              </Stack>
 
-                {/* Icon circle */}
-                <Avatar sx={{
-                  width: 64, height: 64, mt: 1,
-                  bgcolor: `${opt.color}14`, color: opt.color,
-                  border: `2px solid ${opt.color}33`,
-                  boxShadow: `
-                    0 0 0 6px ${opt.color}08,
-                    0 6px 16px -4px ${opt.color}55,
-                    0 1px 0 rgba(255,255,255,0.9) inset
-                  `,
-                }}>
-                  <Icon sx={{ fontSize: 32 }} />
-                </Avatar>
-
-                <Typography variant="caption" sx={{
-                  color: opt.color, fontWeight: 800, letterSpacing: 1.5,
-                  textTransform: 'uppercase', fontSize: 10, mt: 1,
-                }}>
-                  {opt.sub}
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.25 }}>
-                  {opt.title}
-                </Typography>
-
-                <Box sx={{ flex: 1 }} />
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  endIcon={<ArrowForwardIcon fontSize="small" />}
-                  sx={{
-                    mt: 1, px: 2, py: 0.6,
-                    borderColor: `${opt.color}55`,
-                    color: opt.color,
-                    fontWeight: 700,
-                    borderRadius: 1.5,
-                    bgcolor: '#fff',
-                    boxShadow: `0 1px 2px rgba(15,23,42,0.08), 0 1px 0 rgba(255,255,255,0.8) inset`,
-                    '&:hover': {
-                      borderColor: opt.color,
-                      bgcolor: `${opt.color}08`,
-                      boxShadow: `0 2px 6px ${opt.color}44, 0 1px 0 rgba(255,255,255,0.8) inset`,
-                    },
-                  }}
-                >
-                  시작
-                </Button>
-              </Box>
+              {/* 하위 모드 카드 — 보드를 세로로 가득 채움 */}
+              <Stack spacing={1.2} sx={{ flex: 1, minHeight: 0 }}>
+                {options.map((opt) => {
+                  const Icon = opt.icon;
+                  const isHover = hovered === `${cat.key}-${opt.key}`;
+                  return (
+                    <Tooltip key={opt.key} title={opt.hint} placement="top">
+                      <Paper
+                        elevation={0}
+                        onClick={() => onPickMode(cat.key, opt.key)}
+                        onMouseEnter={() => setHovered(`${cat.key}-${opt.key}`)}
+                        onMouseLeave={() => setHovered(null)}
+                        sx={{
+                          ...embossedPaper(opt.color, isHover),
+                          cursor: 'pointer', overflow: 'hidden',
+                          flex: 1, minHeight: 92,
+                          display: 'flex', alignItems: 'stretch',
+                          transform: isHover ? 'translateX(3px)' : 'none',
+                        }}
+                      >
+                        {/* 좌측 컬러 바 */}
+                        <Box sx={{
+                          width: 7, flexShrink: 0,
+                          background: `linear-gradient(180deg, ${opt.color} 0%, ${opt.color}aa 100%)`,
+                        }} />
+                        {/* 카드 본문 — 가로 배치 */}
+                        <Box sx={{
+                          flex: 1, minWidth: 0,
+                          display: 'flex', alignItems: 'center', gap: 1.8,
+                          px: 2, py: 1.2,
+                        }}>
+                          <Avatar sx={{
+                            width: 48, height: 48, flexShrink: 0,
+                            bgcolor: `${opt.color}14`, color: opt.color,
+                            border: `2px solid ${opt.color}33`,
+                            boxShadow: `0 5px 14px -4px ${opt.color}55, 0 1px 0 rgba(255,255,255,0.9) inset`,
+                          }}>
+                            <Icon sx={{ fontSize: 26 }} />
+                          </Avatar>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="caption" sx={{
+                              color: opt.color, fontWeight: 800, letterSpacing: 1.2,
+                              textTransform: 'uppercase', fontSize: 9.5,
+                            }}>
+                              {opt.sub}
+                            </Typography>
+                            <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.2 }}>
+                              {opt.title}
+                            </Typography>
+                            <Typography variant="caption" sx={{
+                              color: 'text.secondary', mt: 0.2,
+                              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}>
+                              {opt.hint}
+                            </Typography>
+                          </Box>
+                          <Stack direction="row" alignItems="center" spacing={0.4} sx={{
+                            flexShrink: 0, color: opt.color, fontWeight: 700, fontSize: 13,
+                          }}>
+                            시작
+                            <ArrowForwardIcon fontSize="small" />
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Tooltip>
+                  );
+                })}
+                {/* 부족한 단 — 기존 화면 수정 보드 3단 빈 영역에 ScreenSpec 개념도 삽입 */}
+                {Array.from({ length: Math.max(0, 3 - options.length) }).map((_, i) => (
+                  <Box key={`spacer-${i}`} sx={{ flex: 1, minHeight: 92, display: 'flex' }}>
+                    {cat.key === CATEGORY_MODIFY.key && (
+                      <Box sx={{
+                        flex: 1, minWidth: 0, minHeight: 0,
+                        display: 'flex', flexDirection: 'column', gap: 0.6,
+                        p: 1.4, borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.6)',
+                        border: `1px solid ${cat.accent}3a`,
+                        boxShadow: '0 1px 0 rgba(255,255,255,0.85) inset, '
+                                 + '0 6px 16px -12px rgba(58,74,99,0.30)',
+                      }}>
+                        <Box sx={{
+                          flex: 1, minHeight: 0, width: '100%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <Box
+                            component="img"
+                            src="/t3composer-concept.png"
+                            alt="T3Composer — ScreenSpec 개념도"
+                            sx={{ maxWidth: '100%', maxHeight: '100%',
+                                  objectFit: 'contain', display: 'block',
+                                  opacity: 0.4 }}
+                          />
+                        </Box>
+                        <Typography variant="caption" sx={{
+                          flexShrink: 0, textAlign: 'center',
+                          color: 'text.secondary', fontSize: 9.5, letterSpacing: 0.2,
+                        }}>
+                          다양한 입력 → ScreenSpec → 화면 산출물
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Stack>
             </Paper>
           );
         })}
@@ -441,10 +335,34 @@ function NewModeSelector({ onSelect, onBack }) {
 // Main
 // =====================================================================
 function T3Composer() {
-  const [step, setStep] = useState('landing');             // 'landing' | 'new'
   const [mode, setMode] = useState(null);                   // 선택된 실행 모드
+  const [modifyStartWith, setModifyStartWith] = useState(null);  // 기존 화면 수정 서브모드 ('NL'|'STEP')
   const [apiKeyRegistered, setApiKeyReg]    = useState(null);
   const [apiKeyDialogOpen, setApiKeyDialog] = useState(false);
+
+  // ─────────────────────────────────────────
+  // Browser history ↔ 내부 mode 연동
+  //   forward (모드 진입) 시 history.pushState
+  //   브라우저 뒤로가기 또는 onBack 클릭 시 모드 선택 화면으로 rollback
+  // ─────────────────────────────────────────
+  const navigate = useCallback((updater) => {
+    window.history.pushState({ t3ComposerNav: Date.now() }, '', '');
+    updater();
+  }, []);
+
+  const goBackOneStep = useCallback(() => {
+    if (window.history.state && window.history.state.t3ComposerNav) {
+      window.history.back();
+    } else {
+      setMode(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onPop = () => setMode(null);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
   const location = useLocation();
@@ -506,24 +424,14 @@ function T3Composer() {
   const backFromResume = () => {
     setResumeSession(null);
     setResumeError(null);
-    // location.state 의 resumeSessionId 를 제거한 상태로 같은 경로 재방문
     if (history && location) {
       history.replace({ pathname: location.pathname, search: location.search, state: {} });
     }
   };
 
-  const requireKeyThen = (fn) => {
-    if (!apiKeyRegistered) { setApiKeyDialog(true); return; }
-    fn();
-  };
-
   // API 키 + 활성 Target 의 DB 연결 둘 다 확인 후 진행.
-  // - DB 연결 실패 / 확인 불가 / Target 미등록 시: "계속하시겠습니까?" confirm
-  //   (예 → 진행 · 아니오 → 취소).
-  // - 정상 연결 시: 즉시 fn 호출.
-  //
-  // 성능: pool 기반 ping endpoint 사용 (SELECT 1) + 60초 캐싱.
-  //   같은 Target 의 연속 클릭은 즉시 통과 (네트워크 호출 0).
+  // - DB 연결 실패 / 확인 불가 / Target 미등록 시: "계속하시겠습니까?" confirm.
+  // - 정상 연결 시: 즉시 fn 호출. (pool 기반 ping endpoint + 60초 캐싱)
   const DB_PING_CACHE_TTL_MS = 60_000;
   const dbPingCacheRef = useRef({ targetCd: null, ok: false, timestamp: 0 });
 
@@ -540,7 +448,6 @@ function T3Composer() {
     };
     if (!targetCd) { confirmContinue(); return; }
 
-    // 60초 안에 같은 Target 으로 성공한 적 있으면 즉시 통과
     const cached = dbPingCacheRef.current;
     if (cached.targetCd === targetCd && cached.ok &&
         Date.now() - cached.timestamp < DB_PING_CACHE_TTL_MS) {
@@ -565,16 +472,28 @@ function T3Composer() {
     await checkApiKey();
   };
 
+  // 하위 모드 카드 클릭 — 카테고리별로 진입 모드 결정
+  const onPickMode = (catKey, optKey) => {
+    requireKeyAndDbThen(() => navigate(() => {
+      if (catKey === 'NEW') {
+        setMode(optKey);                       // NEW_NL / NEW_FROM_COPY / NEW_FROM_DESIGN
+      } else {
+        setModifyStartWith(optKey);            // 'NL' | 'STEP'
+        setMode(MODE.EXISTING_MODIFY);
+      }
+    }));
+  };
+
   // 로딩
   if (apiKeyRegistered === null || resumeLoading) {
     return (
       <ContentInner>
         <WorkArea>
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                     flexDirection: 'column', gap: 1.5, bgcolor: '#f1f5f9' }}>
-            <CircularProgress sx={{ color: '#4338ca' }} />
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
-              {resumeLoading ? '이어하기 세션 로드 중...' : 'T3Composer 로딩 중...'}
+                     flexDirection: 'column', gap: 1.5, bgcolor: 'transparent' }}>
+            <CircularProgress sx={{ color: 'primary.main' }} />
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+              {resumeLoading ? '이어하기 세션 로드 중...' : 'Composer 로딩 중...'}
             </Typography>
           </Box>
         </WorkArea>
@@ -609,7 +528,7 @@ function T3Composer() {
       <ContentInner>
         <WorkArea>
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                     flexDirection: 'column', gap: 1.5, bgcolor: '#f1f5f9' }}>
+                     flexDirection: 'column', gap: 1.5, bgcolor: 'transparent' }}>
             <Typography variant="body2" color="error">이어하기 세션 로드 실패</Typography>
             <Typography variant="caption" color="text.secondary">{resumeError}</Typography>
             <Button size="small" onClick={backFromResume} startIcon={<ArrowBackIcon />}>
@@ -621,31 +540,26 @@ function T3Composer() {
     );
   }
 
-  const backToLanding = () => { setMode(null); setStep('landing'); };
+  // backToLanding = ModeXxx 의 "← 뒤로" — 모드 선택 화면으로 (history.back 발화)
+  const backToLanding = goBackOneStep;
 
   return (
     <ContentInner>
       <WorkArea>
-        {mode === null && step === 'landing' && (
-          <LandingSelector
-            onPickNew={() => requireKeyAndDbThen(() => setStep('new'))}
-            onPickModify={() => requireKeyAndDbThen(() => setMode(MODE.EXISTING_MODIFY))}
+        {mode === null && (
+          <ModeSelector
+            onPickMode={onPickMode}
             onOpenSettings={() => setApiKeyDialog(true)}
             apiKeyRegistered={apiKeyRegistered}
-          />
-        )}
-
-        {mode === null && step === 'new' && (
-          <NewModeSelector
-            onSelect={(m) => requireKeyThen(() => setMode(m))}
-            onBack={() => setStep('landing')}
           />
         )}
 
         {mode === MODE.NEW_FROM_DESIGN && <ModeNewFromDesign  onBack={backToLanding} />}
         {mode === MODE.NEW_FROM_COPY   && <ModeNewFromCopy    onBack={backToLanding} />}
         {mode === MODE.NEW_NL          && <ModeNewGeneral     onBack={backToLanding} startWith="NL" />}
-        {mode === MODE.EXISTING_MODIFY && <ModeExistingModify onBack={backToLanding} />}
+        {mode === MODE.EXISTING_MODIFY && (
+          <ModeExistingModify onBack={backToLanding} startWith={modifyStartWith} />
+        )}
       </WorkArea>
 
       <ApiKeyDialog

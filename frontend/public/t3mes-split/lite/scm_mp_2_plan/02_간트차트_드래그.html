@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>간트차트 드래그</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #2: 간트차트 드래그 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+  <div class="sec-hdr">
+    <div>
+      <h3>② 간트 차트 드래그 & 리사이즈 보정</h3>
+      <span class="tip">바(Bar)를 좌우로 드래그하여 일정 이동. 계획(파랑)·실적(초록)·보정안(주황) 표시.</span>
+    </div>
+    <div class="flex-gap">
+      <span class="badge b-blue">■ 계획</span>
+      <span class="badge b-green">■ 실적</span>
+      <span class="badge b-amber">■ 보정</span>
+      <button class="btn btn-ghost btn-sm" onclick="renderGantt()">⟳ 초기화</button>
+      <button class="btn btn-amber" onclick="showToast('간트 보정 확정')">📅 보정 확정</button>
+    </div>
+  </div>
+  <div class="gantt-wrap" id="gantt1"></div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">이동 이력 <span class="badge b-gray">최근 5건</span></div>
+    <div id="gantt-log" style="font-size:12px;color:var(--text2)"></div>
+  </div>
+</div>

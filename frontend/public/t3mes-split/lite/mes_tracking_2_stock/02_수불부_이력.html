@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>수불부 이력</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #2: 수불부 이력 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p1">
+    <div class="sec-hdr"><div><h3>② 재고 수불부 이력 (Inventory Transaction Ledger)</h3><span class="tip">특정 품목이 언제 입고(GR)되고 출고(GI)되었는지 기초/기말 재고와 함께 모든 트랜잭션을 추적합니다. (200건 생성)</span></div></div>
+    <div class="grid2" style="grid-template-columns: 1fr 350px">
+      <div class="card" style="margin:0"><div class="card-title">수불 트랜잭션 상세 내역</div><div class="tbl-wrap" style="max-height:550px"><table class="tbl"><thead><tr><th>일시</th><th>수불유형</th><th>품목명</th><th>문서/전표번호</th><th style="text-align:right">입고(IN)</th><th style="text-align:right">출고(OUT)</th><th style="text-align:right;color:var(--cyan)">잔고(BAL)</th></tr></thead><tbody id="tb1"></tbody></table></div></div>
+      <div class="card" style="margin:0;background:var(--surface2)">
+        <div class="card-title" style="color:var(--blue)">단일 품목 수불 요약</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:16px">특수 알루미늄 합금 10T</div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>기초 재고 (월초)</span><span class="num">1,500</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>총 입고량 (+)</span><span class="num" style="color:var(--green)">3,200</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border)"><span>총 출고량 (-)</span><span class="num" style="color:var(--rose)">4,100</span></div>
+        <div style="display:flex;justify-content:space-between;padding:12px;font-size:18px;font-weight:700;color:var(--cyan)"><span>기말 재고 (현재)</span><span class="num">600</span></div>
+      </div>
+    </div>
+  </div>

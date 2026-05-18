@@ -53,8 +53,14 @@ find t3series-database -name "<TABLE_NAME>.sql"
 - `TB_UT_USER_INFO` 참조 + 컬럼명 `PHONE` (실제는 USER_TEL) — block
 - `TB_AD_MENU` 참조 + 컬럼명 `MENU_NM` 또는 `PARENT_MENU_CD` — block
 - `TB_AD_LANG_PACK` 참조 + 컬럼명 `UPDATE_BY` 또는 `UPDATE_DTTM` (실제는 MODIFY_BY/MODIFY_DTTM) — block
+- `TB_AD_USER` 참조 + 컬럼명 `USER_ID`/`USER_NM`/`USER_NAME` (실제는 ID/USERNAME/DISPLAY_NAME) — block
+  (단, 같은 파일이 `TB_UT_USER_INFO` 도 참조하면 그쪽 정상 컬럼이라 제외)
 
 신규 재사용 테이블 발견 시 이 hook 의 화이트리스트에 추가하는 게 원칙.
+
+> **자연어 신규 화면 생성 시 (Composer NEW_NL/NEW_GENERAL)**: 기존 테이블을 쓰면 그 테이블에
+> 대한 `CREATE TABLE` 을 새로 만들지 말고, 실제 컬럼을 먼저 확인한 뒤 SP 를 순차 생성한다.
+> 상세는 `rules/50-composer-standalone-runtime.md §13.6`.
 
 ## 1. 검증 필수 상황
 
@@ -172,6 +178,7 @@ SP 호출 시:
 | Q4 | TB_AD_LANG_PACK UPDATE 에 `UPDATE_BY/UPDATE_DTTM` 사용 | `MODIFY_BY/MODIFY_DTTM` 사용 |
 | Q5 | UUID 외래키에 MENU_CD 값 직접 INSERT | `(SELECT ID FROM ...)` 서브쿼리 lookup |
 | Q6 | 프런트 파라미터명과 SP 파라미터명 비교 안 함 | camelCase 매칭 확인, 미스매치면 한 쪽 수정 |
+| Q7 | 사용자가 명시·선택한 테이블을 비슷한 다른 테이블로 대체 (`TB_AD_USER` 선택 → `TB_UT_USER_INFO` 생성) | `=== 데이터 소스 ===` / `=== 자동 테이블 존재 여부 확인 ===` 블록의 **그 테이블만** 사용 — 학습된 표준 예시로 표류 금지 (rules/50 §13.7) |
 
 ## 7. 위반 감지 (Hook 자동 차단)
 

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>차량 배차</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #16: 차량 배차 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ 차량/라우팅 배차 (Vehicle Load Planning)</h3><span class="tip">출하 대기중인 오더들을 각 트럭(1톤, 5톤)에 마우스로 드래그하여 적재량(CBM/Ton)이 넘지 않게 배차합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 300px 1fr">
+      <div class="card" style="margin:0"><div class="card-title">출하 대기 오더 (Drag)</div><div id="tb15" style="display:flex;flex-direction:column;gap:8px"></div></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="margin:0;border-color:var(--amber)" ondragover="event.preventDefault()" ondrop="dropTruck(event, 't1')"><div class="card-title" style="color:var(--amber)">🚛 트럭 A (5톤 탑차) - 서울 노선</div><div class="prog-bg"><div class="prog-bar" id="t1-bar" style="width:20%;background:var(--amber)"></div></div><div id="t1-list" style="margin-top:10px;min-height:50px"></div></div>
+        <div class="card" style="margin:0;border-color:var(--amber)" ondragover="event.preventDefault()" ondrop="dropTruck(event, 't2')"><div class="card-title" style="color:var(--amber)">🚚 트럭 B (1톤 냉동) - 경기 노선</div><div class="prog-bg"><div class="prog-bar" id="t2-bar" style="width:0%;background:var(--amber)"></div></div><div id="t2-list" style="margin-top:10px;min-height:50px"></div></div>
+      </div>
+    </div>
+  </div>

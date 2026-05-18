@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>FIFO 강제검증</title>
+<!-- T3MES UI Pattern · mes_sales_2_result · TabPage #13: FIFO 강제검증 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+    <div class="sec-hdr"><div><h3>⑬ FIFO 선입선출 강제 검증 스캔</h3><span class="tip">유통기한/제조일자가 빠른 구형 LOT부터 출하하도록 시스템이 강제하며, 새 LOT 스캔 시 붉은 경고를 냅니다.</span></div></div>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--rose)"><div class="card-title" style="color:var(--rose)">시스템 권장 피킹 순서 (오래된 순)</div><div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>LOT 번호</th><th>제조일자</th><th>지시</th></tr></thead><tbody id="tb12"></tbody></table></div></div>
+      <div class="card" style="background:var(--surface2);text-align:center"><div class="label">작업자 바코드 스캔 입력</div><input type="text" class="inp" id="fifo-inp" value="LOT-NEW-999" style="font-size:20px;text-align:center;color:var(--red);font-weight:700;margin-bottom:16px"><div style="color:var(--red);font-size:16px;font-weight:700;margin-bottom:20px">🚨 선입선출(FIFO) 위반! 더 오래된 재고(LOT-OLD-001)가 존재합니다.</div><button class="btn btn-rose" onclick="showToast('관리자 권한으로 선입선출 위반 예외 승인')">관리자 권한 무시하고 출하</button></div>
+    </div>
+  </div>

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>납기 지연 위험 경보 (Delay Risk)</title>
+<!-- T3MES UI Pattern · scm_mp_3_monitoring · TabPage #5: 납기 지연 위험 경보 (Delay Risk) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p4">
+      <div class="sec-hdr"><div><h3>5. 납기 지연 위험 경보 (Delay Risk)</h3><span class="tip">고객 요구일(CRD)을 맞추지 못할 것으로 예상되는 오더 목록과 페널티 리스크입니다.</span></div><button class="btn btn-ghost">지연 리포트 ⬇</button></div>
+      <div class="grid2" style="flex-shrink:0;gap:16px"><div class="card" style="margin:0;flex-direction:row;align-items:center;gap:20px"><div style="font-size:40px">🚨</div><div><div class="kpi-label">총 납기 지연 예상 금액 (Penalty Risk)</div><div class="kpi-num" style="color:var(--red);font-size:24px">₩ 145,200,000</div></div></div><div class="card" style="margin:0;justify-content:center"><div class="kpi-label">지연 사유별 비율</div><div style="display:flex;gap:4px;height:16px;margin:8px 0"><div style="flex:4;background:var(--red)" title="자재 결품"></div><div style="flex:3;background:var(--amber)" title="캐파 부족"></div><div style="flex:2;background:var(--blue)" title="품질 불량"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2)"><span>결품(40%)</span><span>캐파(30%)</span><span>품질(20%)</span></div></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>위험도</th><th>발주번호</th><th>고객사 / 품목명</th><th class="num">요구일(CRD)</th><th class="num">예상 완료일</th><th class="num">지연 일수</th><th>주요 사유</th><th>대응 조치 제안</th></tr></thead><tbody id="tb4"></tbody></table></div>
+    </div>

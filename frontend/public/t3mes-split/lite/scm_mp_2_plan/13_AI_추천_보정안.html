@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>AI 추천 보정안</title>
+<!-- T3MES UI Pattern · scm_mp_2_plan · TabPage #13: AI 추천 보정안 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p12">
+  <div class="sec-hdr">
+    <div>
+      <h3>⑬ AI 추천 보정안 (SCM Copilot)</h3>
+      <span class="tip">AI가 점수 기반 최적 보정안을 추천합니다.</span>
+    </div>
+    <div class="flex-gap">
+      <span class="badge b-purple">🤖 분석 완료</span>
+      <button class="btn btn-ghost btn-sm" onclick="genP12()">⟳ 재분석</button>
+      <button class="btn btn-purple" onclick="showToast('최적안 적용 완료')">적용</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div><div class="card-title">추천 보정안</div><div id="ai-suggests"></div></div>
+    <div class="card" style="margin:0" id="ai-detail"><div style="padding:40px;text-align:center;color:var(--text3)">카드를 클릭하세요.</div></div>
+  </div>
+</div>

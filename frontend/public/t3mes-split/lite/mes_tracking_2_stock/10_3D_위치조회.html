@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>3D 위치조회</title>
+<!-- T3MES UI Pattern · mes_tracking_2_stock · TabPage #10: 3D 위치조회 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p9">
+    <div class="sec-hdr"><div><h3>⑩ 3D 창고 로케이션 추적 (3D Bin Map)</h3><span class="tip">재고가 창고 도면상 어디에 박혀있는지 3D 랙(Rack) 뷰로 시각화하여 지게차 작업자가 물건을 빨리 찾게 해줍니다.</span></div></div>
+    <div class="grid2" style="height:450px">
+      <div class="rack-3d">
+        <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
+        <div style="position:relative;z-index:2;width:120px;height:180px;background:var(--cyan-dim);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 20px var(--cyan);cursor:pointer" onclick="showToast('해당 랙의 재고 상세 리스트 오픈')">
+          <div style="font-weight:700;color:var(--cyan);font-size:14px">Rack A-05</div><div style="font-size:11px;margin-top:10px">OLED 패널<br>5,000 EA 적재됨</div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">선택된 로케이션 재고 명세</div><div class="tbl-wrap" style="flex:1;border:none"><table class="tbl"><thead><tr><th>품목</th><th>LOT</th><th>수량</th></tr></thead><tbody id="tb9"></tbody></table></div><button class="btn btn-cyan" style="padding:16px;margin-top:16px" onclick="showToast('지게차 터미널로 위치 전송 완료')">이 위치로 지게차 작업 지시 ➔</button></div>
+    </div>
+  </div>

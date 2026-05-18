@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>PDA 스캐너</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #16: PDA 스캐너 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p15">
+    <div class="sec-hdr"><div><h3>⑯ PDA 바코드 스캐너 입고 (단건/연속)</h3><span class="tip">창고 작업자가 손에 들고 다니는 모바일 PDA 화면 시뮬레이션입니다. 박스 바코드를 띡 띡 찍어서 연속으로 입고 잡습니다.</span></div></div>
+    <div class="mobile-frame">
+      <div style="padding:20px;background:var(--blue);color:#fff;font-weight:700;text-align:center">📱 바코드 스캔 입고</div>
+      <div style="padding:20px;text-align:center">
+        <div style="height:120px;background:#000;border:2px dashed var(--blue);border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="scanP15()"><span style="font-size:40px">📷 스캔</span></div>
+        <div class="label" style="text-align:left">최근 스캔 이력</div>
+        <div id="m-scan-list" style="height:250px;overflow-y:auto;text-align:left;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface2)"></div>
+      </div>
+      <div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-blue" style="width:100%;padding:14px;font-size:16px" onclick="showToast('모바일 입고 전송 완료')">PDA 입고 전송 (Submit)</button></div>
+    </div>
+  </div>

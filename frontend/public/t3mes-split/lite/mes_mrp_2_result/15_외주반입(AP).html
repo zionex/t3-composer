@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>외주반입(AP)</title>
+<!-- T3MES UI Pattern · mes_mrp_2_result · TabPage #15: 외주반입(AP) -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p14">
+    <div class="sec-hdr"><div><h3>⑮ 외주 가공품 (Subcontracting) 반입</h3><span class="tip">외주 업체에 보냈던 원자재가 가공이 완료되어 '반제품' 형태로 다시 들어왔을 때, 입고를 잡음과 동시에 가공비(AP)를 정산합니다.</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">외주 가공 PO 정보</div><div class="label">가공업체</div><input type="text" class="inp" value="에이테크 도금(주)" disabled style="margin-bottom:12px"><div class="label">입고될 반제품</div><input type="text" class="inp" value="도금 완료된 샤프트 (Sub-assy)" disabled></div>
+      <div class="card" style="background:var(--surface2)"><div class="card-title" style="color:var(--indigo)">외주 반입 및 가공비 정산</div><div class="label">반입(입고) 수량</div><input type="number" class="inp" value="500" style="font-size:20px;font-weight:700;color:var(--indigo);margin-bottom:16px"><div class="label">가공비 정산액 (자동계산)</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;margin-bottom:20px">₩ 2,500,000</div><button class="btn btn-indigo" style="width:100%" onclick="showToast('반제품 입고 및 가공비 매입채권(AP) 생성 완료')">반입 확정 및 가공비 정산 (AP)</button></div>
+    </div>
+  </div>

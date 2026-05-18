@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Min-Max 자동보충</title>
+<!-- T3MES UI Pattern · mes_mrp_1_order · TabPage #26: Min-Max 자동보충 -->
+<!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
+<div class="panel" id="p25">
+    <div class="sec-hdr"><div><h3>㉖ Min-Max 자동 보충 (Auto-Replenishment)</h3><span class="tip">저가 소모품(볼트, 장갑)은 일일이 고민하지 않고, 재고가 Min(하한)으로 떨어지면 Max(상한)까지 시스템이 알아서 기계적으로 발주를 냅니다.</span></div><button class="btn btn-cyan" onclick="showToast('안전재고 미달 품목 자동 발주 생성됨')">자동 발주 시스템 ON</button></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>품목명</th><th style="text-align:right">Min (하한선)</th><th style="text-align:right">현재고</th><th style="text-align:right">Max (목표상한)</th><th style="text-align:right;color:var(--cyan)">자동발주량</th><th>트리거 상태</th></tr></thead><tbody id="tb25"></tbody></table></div>
+  </div>

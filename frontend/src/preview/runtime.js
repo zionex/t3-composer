@@ -1,7 +1,7 @@
 // =============================================================================
-// preview/runtime.js — _preview JSX 격리 로더
+// preview/runtime.js — _preview JSX 격리 로더 + Mock 데이터 환경
 // =============================================================================
-// 목적: 산출물 JSX 를 webpack dependency graph 와 완전 격리한 채 로드.
+// 목적: 산출물 JSX/JS 를 webpack dependency graph 와 완전 격리한 채 로드.
 //
 // 메커니즘:
 //   1. fetch('/composer/sessions/<sid>/preview/source-jsx?view=<viewSub>') 로 raw 텍스트.
@@ -12,6 +12,13 @@
 // 격리 효과: 산출물 JSX 가 syntax error / Module not found 라도 main bundle 컴파일에
 // 영향이 0 — webpack 이 _preview 폴더를 dependency graph 에 포함시키지 않기 때문 (PreviewEmbed
 // 에서 dynamic import 를 제거함). 에러는 이 모듈 안에서 catch 되어 호출자가 받음.
+//
+// 2026-05-18 — Mock 환경 추가:
+//   · axios / zAxios / callService 등 HTTP 호출 모듈을 mock 으로 교체
+//   · 산출물 코드는 1바이트도 변경되지 않음 (real axios 대신 mock 이 REGISTRY 에 등록될 뿐)
+//   · GET → makeSampleRows(8) 반환 → Grid/Chart 가 sample 데이터로 채워짐
+//   · POST/PUT/DELETE → { ok:true } ack 반환
+//   · @plannel/services/<name> → Proxy 로 모든 method 가 mock 응답
 // =============================================================================
 
 import * as Babel from '@babel/standalone';
@@ -51,10 +58,165 @@ import LlmMarkdown from '@wingui/view/common/LlmMarkdown';
 import PopDepartment from '@wingui/view/common/PopDepartment';
 import PopPosition from '@wingui/view/common/PopPosition';
 
-import axios from 'axios';
+// axios 는 mock 으로 교체 (아래 createMockAxios) — real axios 를 등록하지 않음.
 import * as Zustand from 'zustand';
 import * as Immer from 'immer';
 import * as DateFns from 'date-fns';
+
+// ============================================================================
+// Mock 환경 — 화면 실행 시 API 호출이 sample 데이터를 받도록
+// ============================================================================
+// 산출물 코드는 그대로 두고 (artifact 무변경) runtime 의 customRequire 가
+// 'axios', '@wingui/common/zAxios', '@plannel/services/*' 등을 mock 객체로
+// resolve 한다. Grid/Chart 가 빈 화면 대신 sample row 8개로 채워짐.
+
+function makeSampleRows(n) {
+    return Array.from({ length: n }, (_, i) => {
+        const idx = i + 1;
+        const ymd = '2026-05-' + String(10 + i).padStart(2, '0');
+        return {
+            // identifiers
+            id: idx, seq: idx, no: idx, rowKey: 'R-' + idx,
+            itemId: idx, itemCd: 'IT-' + String(idx).padStart(3, '0'),
+            itemNm: '샘플품목 ' + idx, itemName: '샘플품목 ' + idx, itemCode: 'IT-' + String(idx).padStart(3, '0'),
+            accountCd: 'AC-' + String(idx).padStart(3, '0'), accountNm: '샘플거래처 ' + idx,
+            locatCd: 'LC-' + String(idx).padStart(3, '0'), locatNm: '샘플거점 ' + idx,
+            userId: 'user' + String(idx).padStart(3, '0'), userNm: '사용자 ' + idx,
+            username: 'user' + String(idx).padStart(3, '0'),
+            displayName: '사용자 ' + idx,
+            deptCd: 'D' + String(idx).padStart(2, '0'), deptNm: '영업' + (idx % 4 + 1) + '팀',
+            positionCd: 'P' + String(idx).padStart(2, '0'), positionNm: ['사원','대리','과장','차장','부장'][idx % 5],
+            // generic
+            name: 'Sample ' + idx, title: '제목 ' + idx, code: 'C-' + idx,
+            description: '샘플 설명 ' + idx, remark: '비고 ' + idx,
+            // numbers
+            qty: 100 + idx * 20, amount: idx * 10000, price: idx * 1000,
+            value: idx * 50, sum: idx * 75, ratio: (idx * 7.5) % 100,
+            // status / boolean
+            useYn: idx % 2 === 0 ? 'N' : 'Y',
+            useYnBool: idx % 2 !== 0,
+            status: ['ACTIVE', 'PENDING', 'DONE', 'CANCELED'][idx % 4],
+            statusCd: ['A', 'P', 'D', 'C'][idx % 4],
+            type: 'TYPE_' + (idx % 3 + 1),
+            itemTypeCd: ['RAW', 'SUB', 'SEMI', 'FG'][idx % 4],
+            // dates
+            createDt: ymd, planDate: ymd, modifyDt: '2026-05-' + String(15 + i).padStart(2, '0'),
+            createDttm: ymd + ' 09:30:00', modifyDttm: ymd + ' 14:20:00',
+            joinDt: '2026-0' + (idx % 3 + 1) + '-15',
+            // audit
+            createBy: 'composer', modifyBy: 'composer',
+            // multi-tenant
+            tenantId: 'tenant_a',
+        };
+    });
+}
+
+function makeSampleChartData() {
+    return {
+        labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+        datasets: [
+            { label: '계획', data: [120, 150, 180, 200, 220, 250],
+              backgroundColor: 'rgba(59,130,246,0.4)', borderColor: '#3b82f6' },
+            { label: '실적', data: [100, 145, 175, 195, 210, 245],
+              backgroundColor: 'rgba(16,185,129,0.4)', borderColor: '#10b981' },
+        ],
+    };
+}
+
+function mockResponse(url, method) {
+    const m = String(method || 'get').toLowerCase();
+    const u = String(url || '');
+    // chart 데이터 형태 추론
+    if (/chart|graph|trend|series/i.test(u)) {
+        return Promise.resolve({ data: makeSampleChartData(), status: 200 });
+    }
+    // 저장/삭제 계열 — ack
+    if (m === 'post' || m === 'put' || m === 'delete' || m === 'patch'
+        || /save|create|insert|update|delete|remove/i.test(u)) {
+        if (m === 'get') return Promise.resolve({ data: makeSampleRows(8), status: 200 });
+        return Promise.resolve({ data: { ok: true, message: 'preview mock — ' + m + ' ' + u }, status: 200 });
+    }
+    // 단건 조회 패턴
+    if (/\/(get|detail|info|find)(\b|\/)/i.test(u)) {
+        return Promise.resolve({ data: makeSampleRows(1)[0], status: 200 });
+    }
+    // 옵션/콤보 — 짧은 리스트
+    if (/option|combo|dropdown|select|tree|code/i.test(u)) {
+        return Promise.resolve({ data: makeSampleRows(5).map(r => ({
+            value: r.code, label: r.name, code: r.code, name: r.name,
+        })), status: 200 });
+    }
+    // 기본 — list of 8 sample rows
+    return Promise.resolve({ data: makeSampleRows(8), status: 200 });
+}
+
+function createMockAxios() {
+    // axios 의 호출 형태: axios(config), axios.get(url, config), axios.post(url, data, config), ...
+    const fn = (cfg) => mockResponse(cfg && cfg.url, cfg && cfg.method);
+    fn.get    = (url) => mockResponse(url, 'get');
+    fn.post   = (url) => mockResponse(url, 'post');
+    fn.put    = (url) => mockResponse(url, 'put');
+    fn.delete = (url) => mockResponse(url, 'delete');
+    fn.patch  = (url) => mockResponse(url, 'patch');
+    fn.head   = (url) => mockResponse(url, 'head');
+    fn.options = (url) => mockResponse(url, 'options');
+    fn.request = (cfg) => mockResponse(cfg && cfg.url, cfg && cfg.method);
+    fn.create = () => fn;
+    fn.defaults = { headers: { common: {} } };
+    fn.interceptors = { request: { use: () => 0, eject: () => {} }, response: { use: () => 0, eject: () => {} } };
+    fn.isAxiosError = () => false;
+    fn.CancelToken = { source: () => ({ token: null, cancel: () => {} }) };
+    return fn;
+}
+
+const mockAxios = createMockAxios();
+const mockCallService = (serviceId, params) => mockResponse(serviceId, 'post');
+const mockShowMessage = (titleOrType, msg, cb) => {
+    // 두 가지 시그니처 호환:
+    //   showMessage(title, message, callback)
+    //   showMessage('confirm'/'error', message, callback)
+    if (typeof cb === 'function') cb(true);
+    console.log('[preview mock] showMessage:', titleOrType, msg);
+};
+
+// PlanNEL 의 @plannel/services/<name> 같은 service 객체 — 어떤 method 호출이든 mock 응답
+function makeMockService(serviceName) {
+    return new Proxy({ __serviceName: serviceName }, {
+        get(target, prop) {
+            if (typeof prop !== 'string') return target[prop];
+            if (prop === 'default' || prop === '__esModule') return target[prop];
+            // 모든 method 호출을 mock response 로
+            return (...args) => mockResponse(serviceName + '/' + prop, /save|create|update|delete|remove/i.test(prop) ? 'post' : 'get');
+        },
+    });
+}
+
+// AG-Grid (PlanNEL) 의 최소 stub — props 받아 간단한 HTML table 로 렌더
+function makeAgGridStub() {
+    const AgGridReact = (props) => {
+        const rowData = (props && props.rowData) || makeSampleRows(8);
+        const columnDefs = (props && props.columnDefs)
+            || (rowData[0] ? Object.keys(rowData[0]).slice(0, 7).map(k => ({ field: k, headerName: k })) : []);
+        const trStyle = { borderBottom: '1px solid #e5e7eb' };
+        const thStyle = { textAlign: 'left', padding: '6px 8px', background: '#f3f4f6',
+                          borderBottom: '2px solid #d1d5db', fontSize: 12, fontWeight: 600 };
+        const tdStyle = { padding: '6px 8px', fontSize: 12 };
+        return React.createElement('div', {
+            style: { border: '1px solid #d1d5db', borderRadius: 4, overflow: 'auto', maxHeight: 480 },
+        }, React.createElement('table', { style: { width: '100%', borderCollapse: 'collapse' } },
+            React.createElement('thead', null,
+                React.createElement('tr', null,
+                    columnDefs.map((c, i) => React.createElement('th', { key: i, style: thStyle },
+                        c.headerName || c.field)))),
+            React.createElement('tbody', null,
+                rowData.map((row, i) => React.createElement('tr', { key: i, style: trStyle },
+                    columnDefs.map((c, j) => React.createElement('td', { key: j, style: tdStyle },
+                        row && c.field ? String(row[c.field] ?? '') : '')))))
+        ));
+    };
+    AgGridReact.displayName = 'PreviewMockAgGrid';
+    return AgGridReact;
+}
 
 // ----- 모듈 registry -----
 // 키: import path. 값: 모듈 객체 (default + named exports).
@@ -154,8 +316,15 @@ const REGISTRY = {
     '@mui/icons-material/ChevronRight': defaultModule(ChevronRightIcon),
     '@mui/icons-material/MoreVert': defaultModule(MoreVertIcon),
 
-    // wingui shim
-    '@wingui/common/imports': esModule(WinguiImports),
+    // wingui shim — zAxios/callService/showMessage 는 mock 으로 override
+    // (mock 객체로 import 가 들어가야 화면이 API 호출 없이 sample 데이터 렌더)
+    '@wingui/common/imports': esModule({
+        ...WinguiImports,
+        zAxios: mockAxios,
+        callService: mockCallService,
+        showMessage: mockShowMessage,
+    }),
+    '@wingui/common/zAxios': defaultModule(mockAxios),
     // cascade — 산출물이 '@wingui/common/imports' 가 아닌 별도 경로로 import 하는 경우 대비.
     //   (useFieldCascade / applyGridCascade / buildPopupFilterProps 가 여기 모두 들어있음)
     '@wingui/common/fieldCascade': esModule(WinguiFieldCascade),
@@ -167,8 +336,10 @@ const REGISTRY = {
     '@wingui/view/common/PopDepartment': defaultModule(PopDepartment),
     '@wingui/view/common/PopPosition': defaultModule(PopPosition),
 
+    // HTTP — mock 으로 교체. API 호출 시 makeSampleRows(8) 가 응답.
+    'axios': defaultModule(mockAxios),
+
     // 기타
-    'axios': defaultModule(axios),
     'zustand': esModule(Zustand),
     'immer': esModule(Immer),
     'date-fns': esModule(DateFns),
@@ -177,6 +348,10 @@ const REGISTRY = {
     //   EXISTING_MODIFY 가 import 한 원본 화면이 라우터를 써도 미리보기가 렌더되도록.
     'react-router-dom': buildReactRouterShim(),
     'react-router': buildReactRouterShim(),
+
+    // PlanNEL (AG-Grid) — stub. 실제 AG-Grid 가 깔리지 않아도 sample 데이터 table 로 렌더.
+    '@ag-grid-community/react': esModule({ AgGridReact: makeAgGridStub() }),
+    '@ag-grid-community/core': esModule({}),
 };
 
 // ----- 만능 안전값 (SAFE_STUB) -----
@@ -284,16 +459,36 @@ function previewRequire(spec) {
         return stub;
     }
 
-    // @wingui/* · @zionex/* — 사전 fetch (preloadDependencies) 도 실패한 경우
-    //   Proxy 스텁으로 대체 → named/​default export 무엇을 꺼내도 크래시 없음.
-    if (spec.startsWith('@wingui/') || spec.startsWith('@zionex/')) {
+    // PlanNEL 의 @plannel/services/<name> — Proxy mock service
+    // 어떤 method 호출이든 makeSampleRows 응답 반환.
+    if (spec.startsWith('@plannel/services/')) {
+        const svc = makeMockService(spec);
+        const mod = { __esModule: true, default: svc, ...Object.fromEntries(
+            // namespace import 도 대응 — 흔히 쓰이는 method 이름들을 상위에도 노출
+            ['getList', 'getDetail', 'getOne', 'save', 'create', 'update', 'delete', 'remove', 'search']
+                .map(n => [n, svc[n]])
+        ) };
+        REGISTRY[spec] = mod;
+        return mod;
+    }
+
+    // PlanNEL utils — empty stub object (대부분 helper 함수 모음이라 호출시 noop OK)
+    if (spec.startsWith('@plannel/utils/')) {
+        const mod = esModule({ default: {} });
+        REGISTRY[spec] = mod;
+        return mod;
+    }
+
+    // @wingui/* · @zionex/* · @plannel/* — 사전 fetch (preloadDependencies) 도 실패한 경우
+    //   Proxy 스텁으로 대체 → named/default export 무엇을 꺼내도 크래시 없음.
+    if (spec.startsWith('@wingui/') || spec.startsWith('@zionex/') || spec.startsWith('@plannel/')) {
         const stub = makeFallbackModule(spec);
         REGISTRY[spec] = stub;
         console.warn('[preview] missing module — substituted proxy stub:', spec);
         return stub;
     }
 
-    // 그 외 미등록 npm 모듈 — 하드 에러(블로킹 모달) 대신 Proxy 스텁으로 대체.
+    // 그 외 미등록 npm 모듈 (react-i18next / redux / lodash / etc) — 하드 에러 대신 Proxy 스텁.
     //   EXISTING_MODIFY 가 import 한 원본 화면이 임의 npm 라이브러리를 써도 미리보기가
     //   "모듈 실행 실패" 로 멈추지 않고 best-effort 렌더되도록 (@wingui/* 와 동일 처리).
     const stub = makeFallbackModule(spec);
@@ -468,9 +663,10 @@ function executeModule(transformedCode) {
 export async function loadPreviewComponent({ sessionId, viewSub, targetCd }) {
     if (!sessionId || !viewSub) throw new Error('sessionId, viewSub 필수');
     // same-origin relative URL — webpack-dev-server proxy 가 backend 로 forward.
-    const cleaned = viewSub.replace(/\.jsx$/, '');
+    // 확장자 (.jsx/.js/.tsx) 를 떼고 bare name 전송 → backend 가 후보 순회로 매칭.
+    const cleaned = viewSub.replace(/\.(jsx|js|tsx)$/, '');
     const url = '/composer/sessions/' + encodeURIComponent(sessionId)
-              + '/preview/source-jsx?view=' + encodeURIComponent(cleaned + '.jsx');
+              + '/preview/source-jsx?view=' + encodeURIComponent(cleaned);
 
     const res = await fetch(url, { method: 'GET', cache: 'no-store' });
     if (!res.ok) {

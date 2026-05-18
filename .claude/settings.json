@@ -26,7 +26,13 @@
       "Bash(ls*)",
       "Bash(cat*)",
       "Bash(docker exec *)",
-      "Bash(curl -s 'http://localhost:8090/composer/preview/css')"
+      "Bash(curl -s 'http://localhost:8090/composer/preview/css')",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:brainstorming:*)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:writing-plans:*)",
+      "Skill(superpowers:executing-plans)",
+      "Skill(superpowers:executing-plans:*)"
     ],
     "deny": [
       "Bash(rm -rf*)",

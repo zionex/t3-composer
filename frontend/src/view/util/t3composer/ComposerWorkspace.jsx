@@ -246,9 +246,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         return;
       }
       setAutoFixActive(false);   // 산출물 적용 성공 — apply 오류 자동보완 중이었다면 해소
+      const skipped = r.skipped || 0;
       setSnackbar({ open: true, severity: 'success', title: '화면 실행 준비 완료',
-                    message: `JSX ${r.jsxOk} · DDL ${r.ddlOk} · SP ${r.spOk} · MENU ${r.menuOk} · Java ${r.javaOk || 0}`
-                             + (sampleMode ? ' (Sample 모드)' : '') });
+                    message: skipped > 0
+                      ? `JSX ${r.jsxOk}건 · 그 외 ${skipped}건 (Java/SQL/MENU) 화면 실행 대상 외`
+                      : `JSX ${r.jsxOk}건 적용` });
 
       // 첫 미리보기 링크 + 메타 (Tab embed 용) 저장
       const link = r.previewLinks?.[0];
@@ -262,55 +264,13 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         setPreviewStage(null);
         return;
       }
-      // Sample 모드 또는 Java 0건 — 재기동 없음. 즉시 ready 처리.
-      const hasJava = (r.javaOk || 0) > 0;
-      if (sampleMode || !hasJava) {
-        setPreviewStage({ phase: 'ready',
-          message: sampleMode ? 'Sample 모드 — 실행 준비 완료 (재기동 생략)' : '실행 준비 완료',
-          elapsedMs: 0, targetUrl });
-        // 'ready' 일 때만 자동 닫기 — 그 사이 자동보완(autofixing)/실패 단계로 바뀌었으면 유지.
-        setTimeout(() => {
-          setPreviewStage((s) =>
-            (!previewAbortRef.current && s && s.phase === 'ready') ? null : s);
-        }, 1500);
-        return;
-      }
-      // Java 있으면 health 폴링 → backend restart 감지 후 자동으로 ready
-      const start = Date.now();
-      let sawDown = false;
-      setPreviewStage({ phase: 'compiling', message: '백엔드 컴파일 진행 중...', elapsedMs: 0, targetUrl });
-      while (!previewAbortRef.current && (Date.now() - start) < 120000) {
-        await new Promise((res2) => setTimeout(res2, 2500));
-        if (previewAbortRef.current) return;
-        const elapsed = Date.now() - start;
-        try {
-          const ctrl = new AbortController();
-          const tmr = setTimeout(() => ctrl.abort(), 2000);
-          const h = await fetch('/actuator/health', { method: 'GET', signal: ctrl.signal });
-          clearTimeout(tmr);
-          if (h.ok && sawDown) {
-            // 회복 완료 — 자동으로 화면 노출 (우측 Tab 0 에 이미 embed 됨)
-            setPreviewStage({ phase: 'ready', message: '준비 완료 — 우측 [실행 화면] 탭에서 확인', elapsedMs: elapsed, targetUrl });
-            setTimeout(() => {
-              setPreviewStage((s) =>
-                (!previewAbortRef.current && s && s.phase === 'ready') ? null : s);
-            }, 2000);
-            return;
-          }
-          if (h.ok) {
-            setPreviewStage({ phase: 'compiling', message: '백엔드 컴파일 진행 중...', elapsedMs: elapsed, targetUrl });
-          } else {
-            sawDown = true;
-            setPreviewStage({ phase: 'restarting', message: '백엔드 재기동 중...', elapsedMs: elapsed, targetUrl });
-          }
-        } catch {
-          sawDown = true;
-          setPreviewStage({ phase: 'restarting', message: '백엔드 재기동 중...', elapsedMs: Date.now() - start, targetUrl });
-        }
-      }
-      if (!previewAbortRef.current) {
-        setPreviewStage({ phase: 'failed', message: '대기 시간 초과(120초)', elapsedMs: Date.now() - start, targetUrl });
-      }
+      // backend 컴파일 없음 (항상 sample 모드) → 즉시 화면 노출 (Tab 0 에 자동 embed)
+      setPreviewStage({ phase: 'ready', message: '실행 준비 완료', elapsedMs: 0, targetUrl });
+      // 'ready' 일 때만 자동 닫기 — 그 사이 자동보완(autofixing)/실패 단계로 바뀌었으면 유지.
+      setTimeout(() => {
+        setPreviewStage((s) =>
+          (!previewAbortRef.current && s && s.phase === 'ready') ? null : s);
+      }, 1500);
     } catch (e) {
       const data = e?.response?.data || {};
       setPreviewStage(null);

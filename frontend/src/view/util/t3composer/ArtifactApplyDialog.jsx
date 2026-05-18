@@ -139,15 +139,18 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
         });
         return;
       }
+      const skipped = r.skipped || 0;
       setSnackbar({
         open: true, severity: 'success',
-        title: '미리보기 적용 완료',
-        message: `✅ JSX ${r.jsxOk}건 / DDL ${r.ddlOk}건 / SP ${r.spOk}건 / MENU ${r.menuOk}건 / Java ${r.javaOk || 0}건. PV ${sid8}`,
+        title: '화면 실행 준비 완료',
+        message: skipped > 0
+          ? `✅ JSX ${r.jsxOk}건 적용 · 나머지 ${skipped}건 (Java/SQL/MENU 등) 은 [화면 실행] 대상 외. PV ${sid8}`
+          : `✅ JSX ${r.jsxOk}건 적용. PV ${sid8}`,
       });
-      // 자동 진입 — preview 첫 jsx 화면을 새 창으로
+      // 자동 진입 — preview 첫 jsx 화면을 새 창으로 (mvn compile 없음 → 즉시)
       const targetUrl = Array.isArray(r.previewLinks) && r.previewLinks.length > 0 ? r.previewLinks[0].url : null;
       if (targetUrl) {
-        await runAutoOpen(targetUrl, (r.javaOk || 0) > 0);
+        await runAutoOpen(targetUrl, false);
       }
     } catch (e) {
       const data = e?.response?.data || {};
@@ -397,8 +400,9 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
             )}
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.2 }}>
-            JSX / SQL DDL / SP / MENU 만 임시 위치에 적용해 메뉴트리에서 화면을 직접 띄워볼 수 있습니다.
-            (Java 는 Phase 2b 미구현 — 정식 적용 시점에 컴파일.) 검증 후 [정식 적용] 또는 [미리보기 취소].
+            산출물 frontend 파일을 _preview/ 폴더에 복사해 webpack-dev-server 가 곧바로 렌더합니다.
+            API 호출은 mock 응답으로 처리되어 Grid/Chart 가 sample 데이터로 표시됩니다.
+            Backend (Java/SQL/MENU) 는 [화면 실행] 시 반영되지 않으며 [정식 적용] 시점에만 처리됩니다.
           </Typography>
           {previewResult && (
             <Alert
@@ -407,10 +411,10 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
             >
               {previewResult.success ? (
                 <Typography variant="caption" component="div">
-                  ✓ JSX {previewResult.jsxOk} · DDL {previewResult.ddlOk} · SP {previewResult.spOk} · MENU {previewResult.menuOk} · Java {previewResult.javaOk || 0}
-                  {previewResult.javaFail > 0 && (
-                    <Box component="span" sx={{ ml: 1, color: 'error.main' }}>
-                      (Java {previewResult.javaFail}건 실패)
+                  ✓ frontend 파일 {previewResult.jsxOk}건 적용
+                  {previewResult.skipped > 0 && (
+                    <Box component="span" sx={{ ml: 1, color: 'text.secondary' }}>
+                      · 그 외 {previewResult.skipped}건 (Java/SQL/MENU) 은 화면 실행 대상 외
                     </Box>
                   )}
                   <Box component="span" sx={{ display: 'block', mt: 0.3 }}>
@@ -498,35 +502,8 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
                         ))}
                       </Stack>
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontSize: 10, color: 'text.secondary' }}>
-                        Java 산출물이 있으면 약 30~60초 후 backend 자동 재기동 완료된 다음 클릭하세요.
+                        Backend 컴파일 없이 즉시 진입 가능 — 클릭하면 새 탭에서 mock 데이터로 화면이 떠요.
                       </Typography>
-                    </Box>
-                  )}
-                  {previewResult.mvn && (
-                    <Box sx={{ mt: 0.6, pl: 1, borderLeft: '3px solid', borderColor: 'info.main', py: 0.3 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
-                        mvn compile (비동기) — pid {previewResult.mvn.pid || '-'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block' }}>
-                        {previewResult.mvn.note}
-                      </Typography>
-                      {previewResult.mvn.logFile && (
-                        <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 10.5, color: 'text.secondary' }}>
-                          log: {previewResult.mvn.logFile}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                  {Array.isArray(previewResult.unknownImports) && previewResult.unknownImports.length > 0 && (
-                    <Box sx={{ mt: 0.6, pl: 1, borderLeft: '3px solid', borderColor: 'warning.main', py: 0.3 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'warning.dark', display: 'block' }}>
-                        ⚠ 매핑 안 된 import {previewResult.unknownImports.length} 개 — 컴파일 실패 가능
-                      </Typography>
-                      {previewResult.unknownImports.slice(0, 5).map((imp, i) => (
-                        <Typography key={i} variant="caption" sx={{ display: 'block', fontFamily: 'monospace', fontSize: 10.5 }}>
-                          · {imp}
-                        </Typography>
-                      ))}
                     </Box>
                   )}
                 </Typography>

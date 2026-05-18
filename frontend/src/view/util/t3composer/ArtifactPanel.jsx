@@ -356,22 +356,24 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                 </Button>
               </Stack>
             </Stack>
-            <Box
-              component="pre"
-              sx={{
-                flex: 1,
-                overflow: 'auto',
-                m: 0,
-                p: 2,
-                fontSize: 12,
-                fontFamily: 'Consolas, Monaco, monospace',
-                bgcolor: '#1e1e1e',
-                color: '#d4d4d4',
-                whiteSpace: 'pre',
-                minHeight: 0,
-              }}
-            >
-              {selected.content}
+            {/* flex item 안의 <pre> 가 intrinsic content height 로 부풀어 overflow:auto 무력화되는
+                flexbox 함정. relative+absolute 로 부모 박스에 강제 fitting. */}
+            <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+              <Box
+                component="pre"
+                sx={{
+                  position: 'absolute', inset: 0,
+                  overflow: 'auto',
+                  m: 0, p: 2,
+                  fontSize: 12,
+                  fontFamily: 'Consolas, Monaco, monospace',
+                  bgcolor: '#1e1e1e',
+                  color: '#d4d4d4',
+                  whiteSpace: 'pre',
+                }}
+              >
+                {selected.content}
+              </Box>
             </Box>
           </>
         ) : (
@@ -674,13 +676,18 @@ export function ArtifactCodeView({ selectedId }) {
                   onClick={handleDownload} variant="outlined">다운로드</Button>
         </Stack>
       </Stack>
-      <Box component="pre" sx={{
-        flex: 1, overflow: 'auto', m: 0, p: 2,
-        fontSize: 12, fontFamily: 'Consolas, Monaco, monospace',
-        bgcolor: '#1e1e1e', color: '#d4d4d4',
-        whiteSpace: 'pre', minHeight: 0,
-      }}>
-        {selected.content}
+      {/* flex item 안의 <pre> 는 content 가 intrinsic height 를 키워 overflow:auto 가
+          작동 안 함. relative+absolute 로 부모 박스에 강제 fitting → 스크롤 정상화. */}
+      <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <Box component="pre" sx={{
+          position: 'absolute', inset: 0,
+          overflow: 'auto', m: 0, p: 2,
+          fontSize: 12, fontFamily: 'Consolas, Monaco, monospace',
+          bgcolor: '#1e1e1e', color: '#d4d4d4',
+          whiteSpace: 'pre',
+        }}>
+          {selected.content}
+        </Box>
       </Box>
     </Box>
   );

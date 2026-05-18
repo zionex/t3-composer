@@ -64,6 +64,16 @@ function buildFields(items) {
         }));
 }
 
+// 컬럼 헤더 텍스트 — 생성 산출물이 쓰는 3가지 형태를 모두 수용:
+//   headerText:'..'  ·  header:'..'(string)  ·  header:{text:'..'}(RealGrid 원형)
+//   셋 다 없으면 name 으로 폴백.
+function headerTextOf(c) {
+    if (c.headerText) return c.headerText;
+    if (typeof c.header === 'string') return c.header;
+    if (c.header && typeof c.header === 'object' && c.header.text) return c.header.text;
+    return c.name;
+}
+
 function buildColumns(items) {
     return items
         .filter((c) => !c.iteration)
@@ -73,7 +83,7 @@ function buildColumns(items) {
             const col = {
                 name: c.name,
                 fieldName: c.name,
-                header: { text: c.headerText || c.name, styleName: 'rg-header' },
+                header: { text: headerTextOf(c), styleName: 'rg-header' },
                 width: c.width || 100,
                 styleName: align,
                 editable: !!c.editable,
@@ -140,7 +150,11 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
         view.setFooters({ visible: false });
         view.setEditOptions({ insertable: true, appendable: true, deletable: true });
         view.setRowIndicator({ visible: false });
-        view.setDisplayOptions({ rowHeight: 26, fitStyle: 'evenFill' });
+        // fitStyle: 'none' — 각 컬럼의 width 를 그대로 존중 (총합이 뷰포트 초과 시 가로 스크롤).
+        //   ❌ 'evenFill' 은 컬럼별 width 를 무시하고 모든 컬럼을 동일 너비(뷰포트÷컬럼수)로
+        //      강제 → 컬럼이 많으면 헤더 명칭이 잘린다. wingui-core BaseGrid 도 fitStyle 을
+        //      지정하지 않아 RealGrid 기본값 'none' 으로 동작하므로 그에 맞춘다.
+        view.setDisplayOptions({ rowHeight: 26, fitStyle: 'none' });
         view.setHeader({ height: 30 });
 
         // 부모 wingui BaseGrid 와 호환되는 dataProvider 표면 — fillJsonData(sample 주입)·

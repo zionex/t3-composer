@@ -114,6 +114,23 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
       warn "gridItems 에 'headerText' (또는 'header') 속성이 보이지 않습니다. 컬럼 헤더가 빈 값으로 렌더됩니다. 각 컬럼에 headerText 추가 권장. (rules/41 §4.3)"
     fi
 
+    # CG-WIDTH. (2026-05-18) gridItems 컬럼 너비 미지정/과소 — 헤더 명칭 잘림
+    # width 누락 컬럼은 BaseGrid 기본 100px 로 렌더 → 헤더 명칭 잘림. 헤더 글자수 대비
+    # 충분히 확보 필요 (코드/날짜 110+ · 명칭 140+ · 일시 170+ · 설명 220+ · width≈헤더글자수×16+48).
+    # dataType 개수 = 컬럼 수 (grid 전용 속성). width: <number> 개수와 비교.
+    if grep -qE "(const|let|var)\s+\w*[Gg]ridItems\s*=\s*\[" <<<"$CONTENT"; then
+      WCOL=$(grep -oE "[[:space:]{,]dataType:[[:space:]]*['\"]" <<<"$CONTENT" | wc -l || true)
+      WSET=$(grep -oE "[[:space:]{,]width:[[:space:]]*[0-9]" <<<"$CONTENT" | wc -l || true)
+      WNAR=$(grep -oE "[[:space:]{,]width:[[:space:]]*[0-9]{1,2}[[:space:],}]" <<<"$CONTENT" | wc -l || true)
+      WCOL=${WCOL:-0}; WSET=${WSET:-0}; WNAR=${WNAR:-0}
+      if [ "$WCOL" -gt 0 ] && [ "$WSET" -lt "$WCOL" ]; then
+        warn "gridItems 컬럼 ${WCOL}개 중 width 지정은 ${WSET}개뿐 — width 누락 컬럼은 BaseGrid 기본 100px 로 렌더되어 헤더 명칭이 잘립니다. 모든 컬럼에 width 명시 (코드/날짜 110+ · 명칭 140+ · 일시 170+ · 설명 220+). (rules/41a §4.3)"
+      fi
+      if [ "$WNAR" -gt 0 ]; then
+        warn "gridItems 에 width<100 인 컬럼 ${WNAR}개 — 헤더 명칭이 잘릴 위험. width ≈ 헤더글자수×16+48 이상 확보 권장 (한글 5자 헤더 → 128 이상). (rules/41a §4.3)"
+      fi
+    fi
+
     # CG-FAB5. <BaseGrid> 에 id 누락 — grid="..." prop 을 쓰는 다른 컴포넌트와 매칭 실패
     #   <BaseGrid items={...} /> 만 있고 id 가 없으면 GridAddRowButton/GridSaveButton 이 grid="..." 로 참조 불가
     if grep -qE "<BaseGrid\b[^>]*\bitems=" <<<"$CONTENT" \

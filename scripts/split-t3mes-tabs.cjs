@@ -159,10 +159,16 @@ function stemOf(fileName) {
 }
 
 // 파일명에 못 쓰는 문자 제거 — 한글/원문자(①)는 유지
+//   ⚠️ %, # 은 URL 의 퍼센트 인코딩 이스케이프 / fragment 문자라
+//      파일명에 남으면 iframe src 로딩이 깨진다 (예: 10_%_비율_보정.html →
+//      브라우저가 "%_비" 를 잘못된 퍼센트 인코딩으로 해석 → 404).
+//      → 공백으로 치환 후 underscore 정리 (제거하면 인접 토큰이 붙어버림).
 function sanitizeLabel(label) {
   return label
     .replace(/[\/\\:*?"<>|]/g, '')   // OS 금지 문자
+    .replace(/[%#]/g, ' ')           // URL escape/fragment 문자 (%, #) → 공백
     .replace(/\s+/g, '_')
+    .replace(/^_+|_+$/g, '')         // 앞뒤 underscore 정리
     .trim()
     .slice(0, 40) || 'tab';
 }

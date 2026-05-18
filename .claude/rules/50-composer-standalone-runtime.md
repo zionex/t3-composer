@@ -459,6 +459,9 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 | flex column 자식이 스크롤돼야 하는데 조상 Box 에 `minHeight:0` 누락 → 스크롤 미발생·콘텐츠 잘림 | 스크롤 자식까지 이어지는 모든 flex 조상에 `minHeight:0` §14.5 |
 | 다크 그라데이션 헤더/히어로 (`#0f172a`·`linear-gradient(#1e3a8a…)`) | theme.js 파스텔 글래스 — 반투명 그라데이션 + backdrop-blur + 흰 반투명 보더 §14.6 |
 | 미리보기를 고정 scale 로 축소 → 패널보다 좁아 검은 여백 | ResizeObserver 로 패널 폭 측정 → 동적 배율 (`패널폭/원본폭`) §14.6 |
+| Target source/database 경로 해석이 디렉토리 존재만 검사 → 빈 `./empty` placeholder 슬롯을 채택 → 실제 소스로 fallback 실패 (EXISTING_MODIFY "JSX 파일을 부모 wingui 마운트에서 찾을 수 없음") | `TargetPathResolver` 가 구조 마커(`packages/wingui/src` · `mssql`)까지 확인해 빈 슬롯 배제 — `looksLikeSourceRoot`/`looksLikeDatabaseRoot` (2026-05-18) |
+| `docker/db/init-pg/08_composer_dictionary.sql` 에 KPI 일부 batch 만 포팅 → KPI 갤러리 56개만 노출 (정상 152개) | init-pg seed 는 S&OP 40 + SCM 기반 56 + SCM 확장 56 = 152 전체 포함. 기존 DB 볼륨은 §10 절차로 누락분 수동 적용 (2026-05-18) |
+| T3MES split 파일명에 URL 이스케이프 문자 `%`·`#` 잔존 → iframe src 로딩 깨짐 (`10_%_비율_보정.html` 의 `%_비` 오해석 → 404) | `split-t3mes-tabs.cjs` 의 `sanitizeLabel` 이 `%`·`#` 를 공백 치환 후 underscore 정리 (OS 금지문자 + URL 위험문자) (2026-05-18) |
 
 ## 12. T3MES UI Pattern 카탈로그 + 자연어 생성 참조 picker (2026-05-15)
 
@@ -586,6 +589,7 @@ shim 이 export 하지 않는 이름을 import 하면 그 심볼은 `undefined` 
 | RT7 | `화면 렌더 오류: Cannot read properties of undefined (reading 'type'/'palette'/...)` | 원본이 `import` 한 **실제 npm 서브모듈**(`@mui/material/styles` 등)이 미리보기 모듈 레지스트리에 미등록 → `useTheme()` 가 generic stub 의 no-op → `undefined` 반환 → 그 결과에 `.type` 접근 시 TypeError | §13.9 — REGISTRY 에 실모듈 등록 + `@mui/material/*` subpath 스마트 해석 + `SAFE_STUB`(undefined 대신 안전값) |
 | RT8 | `화면 렌더 오류: Cannot read properties of undefined (reading 'setCheckBar'/'getCheckedRows'/'showToast'/...)` | 산출물이 `afterGridCreate` 의 grid 객체에서 `grid.gridView.xxx()` 호출 — 그러나 shim `BaseGrid` 의 grid 객체가 `gridView` 표면을 미보유 (`_view` 만 노출) → `grid.gridView` 가 undefined | §13.10 — shim BaseGrid grid 객체에 `gridView`(RealGrid GridView wrapper) + 완전한 `dataProvider` 표면 노출, 미존재 메서드는 no-op |
 | RT9 | `화면 렌더 오류: getActiveViewId is not a function` (또는 `setViewInfo`/`getViewInfo` 등 store 멤버가 `is not a function`) | LLM 산출물이 store 멤버를 비표준으로 꺼냄 — 예: `const { setViewInfo, getActiveViewId } = useViewStore()` (no-selector destructure). `getActiveViewId` 는 `useViewStore` state 멤버가 아니어서 `undefined` → 호출 시 TypeError | §13.11 — `useViewStore`·`useContentStore` shim 이 **동일한 전체 멤버 union** 노출 (activeViewId·setViewInfo·getViewInfo·getActiveViewId 등) |
+| RT10 | 신규화면의 그리드 컬럼이 **전부 동일하게 작게** 렌더 (헤더 명칭 잘림) | shim `BaseGrid` 가 `fitStyle: 'evenFill'` 사용 → RealGrid2 가 컬럼별 `width` 를 무시하고 모든 컬럼을 동일 너비(뷰포트÷컬럼수)로 강제. (+ 산출물이 `header:{text}`/`header:'str'` 형태면 shim 이 `headerText` 만 읽어 헤더가 컬럼 ID 영문으로 폴백) | §13.12 — shim BaseGrid `fitStyle:'none'` (컬럼 width 존중) + `headerTextOf` (3가지 header 형태 수용) |
 
 ### 13.3 산출물 디자인 규약 — Target System 룩 정확 반영 (강제)
 
@@ -824,6 +828,38 @@ getRowCount` 를 자유롭게 호출한다.
 **원칙:** shim 이 노출하는 store/객체 표면은 **wingui 표면의 상위집합(superset)** 이어야 한다.
 일부만 지원하면 LLM 의 비결정적 산출 패턴 중 미지원분이 크래시한다. 새 store 멤버 패턴이
 관찰되면 `buildViewStoreState` 에 추가 (rules/50 §13.1 의 shim↔prompt 동기화 원칙과 동일 계열).
+
+### 13.12 ★ shim BaseGrid — 컬럼 렌더 표면 (fitStyle · header 형태) (RT10 차단, 2026-05-18)
+
+> **사고 (2026-05-18)**: 신규화면 생성 후 [화면 실행] 시 그리드 컬럼이 **전부 동일하게 작게**
+> 렌더되어 헤더 명칭이 잘림. 산출물 gridItems 에는 새 규칙대로 넉넉한 `width`(220·240·180…)가
+> 들어있었으나, shim `BaseGrid.jsx` 가 `view.setDisplayOptions({ fitStyle: 'evenFill' })` 로
+> 설정 → RealGrid2 의 `evenFill` 은 **컬럼별 `width` 를 완전히 무시**하고 모든 컬럼을 동일
+> 너비(뷰포트÷컬럼수)로 강제한다. 컬럼이 많으면 전부 ~70px → 헤더 잘림.
+
+**근본 원인 (RT8~RT9 와 동일 계열):** shim BaseGrid 가 산출물 컬럼 메타를 wingui 표면대로
+재현하지 못함. 두 지점:
+- **`displayOptions.fitStyle`** — 실제 wingui-core BaseGrid 는 `fitStyle` 을 지정하지 않아
+  RealGrid 기본값 `'none'`(설정 너비 그대로)으로 동작하고, fill 동작이 필요한 화면만 개별적으로
+  `evenFill`/`fill` 을 설정한다. shim 이 전 그리드에 `evenFill` 을 강제한 것이 wingui 와 어긋남.
+- **컬럼 `header` 표기** — 산출물 헤더는 `headerText:'..'` · `header:'..'`(string) ·
+  `header:{text:'..'}`(RealGrid 원형) 세 형태로 비결정적으로 나오는데, shim `buildColumns` 가
+  `headerText` 만 읽어 나머지 두 형태는 `name`(영문 필드명)으로 폴백됐다.
+
+**근본 수정 (적용 완료) — `frontend/src/shim/wingui/common/BaseGrid.jsx`:**
+- `setDisplayOptions` 의 `fitStyle: 'evenFill'` → **`'none'`** — 각 컬럼이 산출물 `width` 그대로
+  렌더 (총합이 뷰포트 초과 시 가로 스크롤). wingui-core BaseGrid 기본 동작과 일치.
+- `buildColumns` 헤더 텍스트 해석을 **`headerTextOf(c)`** 헬퍼로 — `headerText` ·
+  `header`(string) · `header.text`(object) 셋 다 수용, 없으면 `name` 폴백.
+
+**연계 — 산출물 생성 측 (width 값):** 위는 *렌더* 측 수정. *생성* 측은 `ComposerPromptBuilder`
+INVARIANTS ⑥ + `rules/41a §4.3` 의 컬럼 너비 규칙(`width ≈ 헤더글자수×16+48`, 역할별 최소 —
+코드/날짜 110+ · 명칭 140+ · 일시 170+ · 설명 220+)이 담당. Hook `composer-jsx.sh CG-WIDTH`
+가 width 미지정/과소(<100) 컬럼을 warn.
+
+**원칙:** shim BaseGrid 가 노출/소비하는 표면(grid 객체 §13.10 · store 멤버 §13.11 ·
+displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 한다. shim 만의 비표준
+값(`evenFill` 강제)이나 부분 지원(`headerText` 만)이면 산출물이 의도대로 렌더되지 않는다.
 
 ## 14. 화면 실행 AI 자동보완 + 산출물 UI 보강 (2026-05-16)
 

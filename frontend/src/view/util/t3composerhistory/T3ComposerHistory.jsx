@@ -58,6 +58,16 @@ const STATUS_CHIP = {
   ARCHIVED:  { label: '보관',   color: 'default' },
 };
 
+// Target System 별 색상 — 한눈에 어느 시스템 작업인지 구분
+const TARGET_CHIP_SX = {
+  T3SERIES:     { bgcolor: '#dbeafe', color: '#1e3a8a', borderColor: '#3b82f6' },
+  PLANNEL:      { bgcolor: '#dcfce7', color: '#14532d', borderColor: '#10b981' },
+  LGES_NEXTSCM: { bgcolor: '#fef3c7', color: '#78350f', borderColor: '#f59e0b' },
+};
+function targetChipSx(cd) {
+  return TARGET_CHIP_SX[cd] || { bgcolor: '#f1f5f9', color: '#475569', borderColor: '#94a3b8' };
+}
+
 function fmtDt(s) {
   if (!s) return '-';
   // SessionDto.createDttm 은 LocalDateTime → ISO 문자열
@@ -98,7 +108,7 @@ function T3ComposerHistory() {
     return sessions.filter((s) => {
       if (filter !== 'ALL' && (s.status || 'ACTIVE') !== filter) return false;
       if (k) {
-        const hay = [s.title, s.mode, s.targetMenuCd, s.modelName].filter(Boolean).join(' ').toLowerCase();
+        const hay = [s.title, s.mode, s.targetCd, s.targetMenuCd, s.modelName].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(k)) return false;
       }
       return true;
@@ -173,7 +183,7 @@ function T3ComposerHistory() {
               <Box sx={{ flex: 1 }} />
               <TextField
                 size="small"
-                placeholder="제목 / 메뉴코드 / 모드 검색"
+                placeholder="제목 / 메뉴코드 / 모드 / Target 검색"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 InputProps={{ startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} /> }}
@@ -213,6 +223,7 @@ function T3ComposerHistory() {
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
+                    <TableCell sx={{ fontWeight: 700, width: 110 }}>Target</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 90 }}>모드</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>제목</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 180 }}>메뉴코드</TableCell>
@@ -226,7 +237,7 @@ function T3ComposerHistory() {
                 <TableBody>
                   {filtered.length === 0 && !loading && (
                     <TableRow>
-                      <TableCell colSpan={8} align="center" sx={{ py: 6, color: 'text.secondary' }}>
+                      <TableCell colSpan={9} align="center" sx={{ py: 6, color: 'text.secondary' }}>
                         {sessions.length === 0 ? '이력 없음 — Composer 메인에서 세션을 시작하세요.' : '조건에 맞는 세션 없음'}
                       </TableCell>
                     </TableRow>
@@ -236,8 +247,22 @@ function T3ComposerHistory() {
                     const chip = STATUS_CHIP[status] || STATUS_CHIP.ACTIVE;
                     const isBusy = busyId === s.id;
                     const tokens = (s.totalInTokens || 0) + (s.totalOutTokens || 0);
+                    const tgtSx = targetChipSx(s.targetCd);
                     return (
                       <TableRow key={s.id} hover sx={{ '& td': { py: 0.7 } }}>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={s.targetCd || '—'}
+                            variant="outlined"
+                            sx={{
+                              height: 22, fontSize: 10.5, fontWeight: 700,
+                              bgcolor: tgtSx.bgcolor,
+                              color: tgtSx.color,
+                              borderColor: tgtSx.borderColor,
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>
                           <Chip size="small" label={s.mode || '-'} variant="outlined" sx={{ height: 20, fontSize: 10 }} />
                         </TableCell>

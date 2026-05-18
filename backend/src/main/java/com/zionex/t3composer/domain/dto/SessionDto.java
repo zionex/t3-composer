@@ -21,6 +21,7 @@ public class SessionDto {
     private String id;
     private String userId;
     private String mode;
+    private String targetCd;          // 대상 Target System 코드 (T3SERIES/PLANNEL/...)
     private String targetMenuCd;
     private String title;
     private String modelName;
@@ -36,6 +37,7 @@ public class SessionDto {
                 .id(s.getId())
                 .userId(s.getUserId())
                 .mode(s.getMode())
+                .targetCd(s.getTargetCd())
                 .targetMenuCd(s.getTargetMenuCd())
                 .title(s.getTitle())
                 .modelName(s.getModelName())

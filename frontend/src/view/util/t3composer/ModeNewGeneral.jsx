@@ -39,6 +39,7 @@ import HubIcon from '@mui/icons-material/Hub';
 
 import { createSession, extractAndLookupTables } from './api';
 import { getModule } from './constants';
+import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
@@ -48,7 +49,6 @@ import UiPatternPickerDialog from './UiPatternPickerDialog';
 import UiPattern3DGallery    from './UiPattern3DGallery';
 import KpiChartPickerDialog  from './KpiChartPickerDialog';
 import DataSourcePickerDialog from './DataSourcePickerDialog';
-import { useTargetStore } from './targetStore';
 
 /**
  * AI 엔진(모델) 선택지 — Anthropic Claude.
@@ -210,6 +210,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   // startWith === 'NL'   → 자연어 모드로 바로 진입 (서브모드 선택 스킵)
   // startWith === 'STEP' → 단계별 Wizard 로 바로 진입
   // startWith === null   → 서브모드 선택 화면 표시 (구 동작)
+  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
   const [subMode, setSubMode] = useState(startWith);
   const [moduleCode, setModuleCode] = useState(null);
   const [prompt, setPrompt] = useState('');
@@ -256,7 +257,6 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   // 선택사항 (4) — Data Source (DB Entity · Ontology · Query Inline) — Mockup/Pattern 과 독립·다중
   const [dataSources,    setDataSources]    = useState([]);  // [{ kind, key, label, meta }]
   const [dataSrcDlgOpen, setDataSrcDlgOpen] = useState(false);
-  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   // 하단 전용 D&D 영역 — 클릭 시 파일 탐색기, drop 시 첨부
   const fileInputRef = useRef(null);

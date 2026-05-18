@@ -228,6 +228,8 @@ services:
       # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
       # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.
       - ${COMPOSER_T3SERIES_CLAUDE_PATH:-./.claude}:/workspace/t3series-claude:ro
+      - ${COMPOSER_PLANNEL_CLAUDE_PATH:-./.claude-plannel}:/workspace/plannel-claude:ro
+
     networks:
       - composer-net
     healthcheck:

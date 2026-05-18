@@ -99,9 +99,12 @@ public class ArtifactExtractor {
         if (path == null) return ComposerArtifact.TYPE_OTHER;
         String lower = path.toLowerCase();
 
-        // LLM 환각 보정: 확장자를 underscore 로 쓰는 경우 (예: `_sql`, `_jsx`, `_java`) 도 동일 취급
+        // LLM 환각 보정: 확장자를 underscore 로 쓰는 경우 (예: `_sql`, `_jsx`, `_java`) 도 동일 취급.
+        // PlanNEL 호환: `.js` 인데 `/pages/` 경로 안에 있는 React 화면 컴포넌트도 JSX 로 분류.
+        //   (PlanNEL 의 saas-web 은 jsx 가 아닌 .js 확장자로 React 컴포넌트를 작성)
         boolean isJsx  = lower.endsWith(".jsx")  || lower.endsWith(".tsx")
-                      || lower.endsWith("_jsx")  || lower.endsWith("_tsx");
+                      || lower.endsWith("_jsx")  || lower.endsWith("_tsx")
+                      || (lower.endsWith(".js") && lower.contains("/pages/"));
         boolean isJava = lower.endsWith(".java") || lower.endsWith("_java");
         boolean isSql  = lower.endsWith(".sql")  || lower.endsWith("_sql");
 

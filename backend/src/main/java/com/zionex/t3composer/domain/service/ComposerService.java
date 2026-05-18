@@ -46,12 +46,13 @@ import reactor.core.publisher.Mono;
 public class ComposerService {
 
     /**
-     * 기본 모델 — 화면 생성 기본값은 Sonnet 4.6 (속도·비용·품질 균형).
-     * Opus 4.7 는 16K 출력 시 3~5분+ 소요되어 axios / WebClient 5분 타임아웃과
-     * 겹쳐 "세션 만료" 오인 및 artifact DRAFT 중단이 빈발 → Sonnet 으로 변경.
-     * 고난이도 건은 세션 생성 시점에 model 을 명시 override 할 것.
+     * 기본 모델 — Opus 4.7 (최신·고품질). 신규생성·화면수정 등 모든 모드 공통 기본값
+     * (2026-05-16 사용자 요청 — frontend ComposerWorkspace.DEFAULT_MODEL_ID 와 동일).
+     * Opus 4.7 는 16K 출력 시 3~5분+ 소요되나, 단독 환경은
+     *   spring.mvc.async.request-timeout=2700000(45분) + 세션 heartbeat 로 타임아웃 완화됨.
+     * 빠른 반복이 필요하면 헤더 모델 픽커 / 세션 생성 시 model 명시로 Sonnet 전환.
      */
-    public static final String DEFAULT_MODEL = "claude-sonnet-4-6";
+    public static final String DEFAULT_MODEL = "claude-opus-4-7";
 
     /**
      * 기본 max_tokens — 화면 + Java + SQL 번들 한 턴에 끝내기 위해 100K.
@@ -135,7 +136,7 @@ public class ComposerService {
     /**
      * 세션의 AI 엔진(모델) 변경.
      * 다음 chat 호출부터 새 modelName 으로 Claude API 가 호출된다.
-     * 빈 값 / null 이면 DEFAULT_MODEL (Sonnet 4.6) 으로 리셋.
+     * 빈 값 / null 이면 DEFAULT_MODEL (Opus 4.7) 으로 리셋.
      */
     @Transactional
     public ComposerSession updateModel(String sessionId, String modelName) {
@@ -163,10 +164,14 @@ public class ComposerService {
     public ComposerMessage appendUserMessage(String sessionId, String content) {
         int nextSeq = nextTurnSeq(sessionId);
         // 자동 테이블 존재 여부 분석 — 사용자가 prompt 에 TB_* 형식 테이블명을 언급하면
-        // INFORMATION_SCHEMA 를 조회해 [✓ 존재] / [✗ 미존재] 블록을 prompt 앞에 prepend.
-        // ComposerPromptBuilder 의 INVARIANTS 가 이 블록을 권위있는 결과로 해석하도록 명시.
-        // 정책: 존재하는 테이블은 새 DDL 생성 절대 금지, 미존재면 NEW_NL/NEW_GENERAL 모드만 DDL 허용.
-        String enriched = enrichUserContentWithTableLookup(content);
+        // 세션의 Target DB(targetCd) 의 INFORMATION_SCHEMA 를 조회해 [✓ 존재] / [✗ 미존재]
+        // 블록을 prompt 앞에 prepend. ComposerPromptBuilder 의 INVARIANTS 가 이 블록을
+        // 권위있는 결과로 해석. 정책: 존재 테이블은 새 DDL 금지, 미존재면 NEW_NL/NEW_GENERAL 만 DDL 허용.
+        // ★ targetCd 를 넘기지 않으면 composer-db(PG) 만 조회돼 운영 TB_* 가 모두 "미존재" 로 오판된다
+        //   — Composer 의 Target 지정을 그대로 따라 운영 DB(MSSQL) 에 질의해야 한다.
+        String targetCd = sessionRepo.findById(sessionId)
+                .map((s) -> s.getTargetCd()).orElse(null);
+        String enriched = enrichUserContentWithTableLookup(content, targetCd);
         ComposerMessage m = ComposerMessage.builder()
                 .sessionId(sessionId)
                 .turnSeq(nextSeq)
@@ -178,14 +183,17 @@ public class ComposerService {
     }
 
     /**
-     * 사용자 prompt 에서 TB_* 테이블명을 추출 → DB 존재여부 조회 → 결과 블록을 prompt 앞에 prepend.
-     * 추출되는 게 없으면 원본 그대로 반환 (불필요한 prompt 비용 방지).
+     * 사용자 prompt 에서 TB_* 테이블명을 추출 → 세션 Target DB 존재여부 조회 → 결과 블록을 prompt 앞에 prepend.
+     * 추출되는 게 없거나 targetCd 가 비어 있으면 원본 그대로 반환 (불필요한 prompt 비용 방지).
+     *
+     * @param targetCd 세션의 Target System 코드 — 운영 DB(MSSQL) 라우팅 키. null 이면 빈 결과.
      */
-    private String enrichUserContentWithTableLookup(String content) {
+    private String enrichUserContentWithTableLookup(String content, String targetCd) {
         if (content == null || content.isBlank()) return content;
         if (schemaInspectionService == null) return content;
         try {
-            java.util.Map<String, TableInfo> lookup = schemaInspectionService.lookupTablesInText(content);
+            java.util.Map<String, TableInfo> lookup =
+                    schemaInspectionService.lookupTablesInText(targetCd, content);
             if (lookup == null || lookup.isEmpty()) return content;
             String header = schemaInspectionService.formatLookupResultForPrompt(lookup);
             if (header == null || header.isBlank()) return content;
@@ -332,6 +340,110 @@ public class ComposerService {
     @Transactional(readOnly = true)
     public Optional<ComposerArtifact> getArtifact(String artifactId) {
         return artifactRepo.findById(artifactId);
+    }
+
+    /**
+     * 세션의 모든 assistant 메시지를 다시 파싱해 아티팩트를 재추출한다.
+     *
+     * ArtifactExtractor 의 추출 정규식이 개선된 후, 기존 세션에서 본문이 비거나 누락된
+     * 아티팩트를 원본 응답 텍스트로부터 복구하는 용도. (LLM 응답을 다시 호출하지 않음)
+     * 재추출된 아티팩트는 saveWithSupersede 가 (sessionId, type, filePath) 기준으로
+     * 기존 것을 STATUS_DISCARDED 처리하고 새 버전으로 저장.
+     *
+     * @return 재추출된 아티팩트 수
+     */
+    @Transactional
+    public int reExtractArtifacts(String sessionId, String userId) {
+        List<ComposerMessage> msgs = messageRepo.findBySessionIdOrderByTurnSeqAsc(sessionId);
+        int total = 0;
+        for (ComposerMessage msg : msgs) {
+            if (!ComposerMessage.ROLE_ASSISTANT.equals(msg.getRole())) continue;
+            List<ComposerArtifact> artifacts =
+                    artifactExtractor.extract(sessionId, msg.getId(), userId, msg.getContent());
+            if (!artifacts.isEmpty()) {
+                artifactPersistService.saveWithSupersede(artifacts);
+                total += artifacts.size();
+            }
+        }
+        log.info("Composer 아티팩트 재추출: session={} 재추출={}", sessionId, total);
+        return total;
+    }
+
+    /**
+     * EXISTING_MODIFY — 선택한 메뉴의 현재 소스(collectSourceForLlm 번들)를 세션 아티팩트로 import.
+     * 사용자가 "현재 기준" 의 모든 파일을 아티팩트 트리에서 보고, 필요한 파일만 수정하도록 한다.
+     *
+     * 각 파일은 DRAFT · messageId=null(=원본 baseline) 로 저장. 이후 Claude 가 같은 filePath 로
+     * 수정본을 출력하면 saveWithSupersede 가 (sessionId,type,filePath) 기준으로 baseline 을 갱신한다.
+     *
+     * @param bundle collectSourceForLlm 응답 — { screen, backend:{controllers,services,...} } 또는 flat
+     * @return import 된 아티팩트 수
+     */
+    @Transactional
+    public int importSourceArtifacts(String sessionId, String userId, Map<String, Object> bundle) {
+        if (bundle == null) return 0;
+        List<ComposerArtifact> arts = new ArrayList<>();
+
+        addBundleFile(arts, sessionId, userId, bundle.get("screen"), ComposerArtifact.TYPE_SCREEN_JSX);
+
+        Object backendObj = bundle.get("backend");
+        Map<String, Object> src = (backendObj instanceof Map) ? castMap(backendObj) : bundle;
+        addBundleList(arts, sessionId, userId, src.get("components"),   ComposerArtifact.TYPE_SCREEN_JSX);
+        addBundleList(arts, sessionId, userId, src.get("controllers"),  ComposerArtifact.TYPE_JAVA_CONTROLLER);
+        addBundleList(arts, sessionId, userId, src.get("services"),     ComposerArtifact.TYPE_JAVA_SERVICE);
+        addBundleList(arts, sessionId, userId, src.get("repositories"), ComposerArtifact.TYPE_JAVA_REPOSITORY);
+        addBundleList(arts, sessionId, userId, src.get("entities"),     ComposerArtifact.TYPE_JAVA_ENTITY);
+        addBundleList(arts, sessionId, userId, src.get("procedures"),   ComposerArtifact.TYPE_SQL_SP);
+
+        if (arts.isEmpty()) return 0;
+        artifactPersistService.saveWithSupersede(arts);
+        log.info("Composer 소스 아티팩트 import: session={} files={}", sessionId, arts.size());
+        return arts.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castMap(Object o) {
+        return (o instanceof Map) ? (Map<String, Object>) o : null;
+    }
+
+    private void addBundleList(List<ComposerArtifact> out, String sessionId, String userId,
+                               Object listObj, String type) {
+        if (!(listObj instanceof List)) return;
+        for (Object item : (List<?>) listObj) {
+            addBundleFile(out, sessionId, userId, item, type);
+        }
+    }
+
+    /** 번들의 파일 1개 — { path, source|content } — 를 아티팩트로 변환해 추가. */
+    private void addBundleFile(List<ComposerArtifact> out, String sessionId, String userId,
+                               Object fileObj, String type) {
+        Map<String, Object> f = castMap(fileObj);
+        if (f == null) return;
+        String path = f.get("path") == null ? null : String.valueOf(f.get("path"));
+        Object srcObj = f.get("source") != null ? f.get("source") : f.get("content");
+        String content = srcObj == null ? null : String.valueOf(srcObj);
+        if (path == null || path.isBlank() || content == null || content.isBlank()) return;
+
+        int idx = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        String fileName = idx >= 0 ? path.substring(idx + 1) : path;
+        String lower = fileName.toLowerCase();
+        String lang = lower.endsWith(".jsx") || lower.endsWith(".tsx") ? "jsx"
+                    : lower.endsWith(".java") ? "java"
+                    : lower.endsWith(".sql") ? "sql"
+                    : lower.endsWith(".js") ? "javascript" : "text";
+
+        out.add(ComposerArtifact.builder()
+                .sessionId(sessionId)
+                .artifactType(type)
+                .filePath(path)
+                .fileName(fileName)
+                .language(lang)
+                .content(content)
+                .versionNo(1)
+                .status(ComposerArtifact.STATUS_DRAFT)
+                .createBy(userId)
+                .createDttm(LocalDateTime.now())
+                .build());
     }
 
     /**
@@ -503,6 +615,11 @@ public class ComposerService {
                     .build());
         }
 
+        // 대화 prefix 캐싱 — 마지막 메시지에 cache_control breakpoint 부착.
+        //   system 블록만 캐시되던 것을 → system + 이전 메시지 전체로 확장.
+        //   후속 턴·auto-continuation 이 재전송하는 대화 prefix 를 90% 할인된 cache_read 로 받음.
+        applyMessageCacheBreakpoint(messages);
+
         return MessagesRequest.builder()
                 .model(session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL)
                 .max_tokens(DEFAULT_MAX_TOKENS)
@@ -540,6 +657,40 @@ public class ComposerService {
             blocks.add(block);
         }
         return blocks;
+    }
+
+    /**
+     * 마지막 메시지의 마지막 content block 에 cache_control(ephemeral) breakpoint 부착 →
+     * system + 이전 모든 메시지(첫 메시지의 systemContext 포함)가 캐시 prefix 가 된다.
+     * 다음 호출(후속 턴·auto-continuation)은 재전송되는 대화 전체를 cache_read(90% 할인)로 받음.
+     *
+     * Anthropic 은 cache breakpoint 4개까지 허용 — 현재 system 1개 + 메시지 1개 = 2개.
+     * 평문 String content 는 cache_control 부착 단일 text block 배열로 변환,
+     * 멀티모달 content(List) 는 마지막 block 에 cache_control 만 추가.
+     */
+    @SuppressWarnings("unchecked")
+    private void applyMessageCacheBreakpoint(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) return;
+        Message last = messages.get(messages.size() - 1);
+        Object content = last.getContent();
+        Map<String, Object> cacheControl = Map.of("type", "ephemeral");
+
+        if (content instanceof List) {
+            List<Object> blocks = (List<Object>) content;
+            if (blocks.isEmpty()) return;
+            Object lastBlock = blocks.get(blocks.size() - 1);
+            if (lastBlock instanceof Map) {
+                ((Map<String, Object>) lastBlock).put("cache_control", cacheControl);
+            }
+        } else {
+            Map<String, Object> block = new LinkedHashMap<>();
+            block.put("type", "text");
+            block.put("text", content == null ? "" : content.toString());
+            block.put("cache_control", cacheControl);
+            List<Object> blocks = new ArrayList<>();
+            blocks.add(block);
+            last.setContent(blocks);
+        }
     }
 
     private static String inferBlockType(String mediaType) {

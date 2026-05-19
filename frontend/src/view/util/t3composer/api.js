@@ -162,6 +162,48 @@ export const pingTargetDbConnection = (targetCd) =>
 export const updateTargetRefPaths = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
 
+// ---- Target 거버넌스 설정 스냅샷 / 복원 ----
+// 현재 디스크의 .claude/** · CLAUDE.md · README.md · TROUBLESHOOTING.md · .env · docs/**
+// + TB_CMP_TARGET_SYSTEM 행을 시점 스냅샷으로 DB 에 저장 / 디스크로 복원.
+
+const tgt = (cd) => `composer/targets/${encodeURIComponent(cd)}`;
+
+/** 현재 디스크를 새 스냅샷으로 저장. body: { label?, kind? } (kind='SEED' 면 최초) */
+export const captureTargetSnapshot = (targetCd, { label, kind } = {}) =>
+  zAxios.post(`${tgt(targetCd)}/snapshots`, { label, kind }, composerReq({ timeout: 120000 }));
+
+/** 스냅샷 목록 (헤더만) */
+export const listTargetSnapshots = (targetCd) =>
+  zAxios.get(`${tgt(targetCd)}/snapshots`, composerReq());
+
+/** 스냅샷 상세 (헤더 + 파일 메타) */
+export const getTargetSnapshot = (targetCd, snapshotId) =>
+  zAxios.get(`${tgt(targetCd)}/snapshots/${encodeURIComponent(snapshotId)}`, composerReq());
+
+/** 현재 디스크 vs is_current 스냅샷 diff — { hasSnapshot, inSync, missing, modified, extra, changeCount } */
+export const getTargetSnapshotStatus = (targetCd) =>
+  zAxios.get(`${tgt(targetCd)}/snapshot-status`, composerReq());
+
+/** 특정 스냅샷 복원. dryRun=true 면 변경 없이 created/overwritten/deleted 목록만. */
+export const restoreTargetSnapshot = (targetCd, snapshotId, { dryRun = false } = {}) =>
+  zAxios.post(
+    `${tgt(targetCd)}/snapshots/${encodeURIComponent(snapshotId)}/restore`,
+    { dryRun },
+    composerReq({ timeout: 120000 }),
+  );
+
+/** is_current 스냅샷 복원 — Target 전환 자동복원 단축 경로. */
+export const restoreCurrentTargetSnapshot = (targetCd, { dryRun = false } = {}) =>
+  zAxios.post(
+    `${tgt(targetCd)}/snapshots/restore-current`,
+    { dryRun },
+    composerReq({ timeout: 120000 }),
+  );
+
+/** 스냅샷 삭제 (is_current 는 거부됨) */
+export const deleteTargetSnapshot = (targetCd, snapshotId) =>
+  zAxios.delete(`${tgt(targetCd)}/snapshots/${encodeURIComponent(snapshotId)}`, composerReq());
+
 /**
  * NEW_FROM_COPY — sourceBundle 을 LLM 한 번 호출로 분석해 9단계 spec JSON 받기.
  * 응답: { spec: {...9단계 JSON...}, modelName: "..." }

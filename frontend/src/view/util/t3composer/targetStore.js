@@ -4,7 +4,7 @@
 //   · Phase 3 에서 chat / wizard 호출에 targetCd 가 함께 전달되도록 확장
 // =============================================================================
 import { create } from 'zustand';
-import { listTargets } from './api';
+import { listTargets, getTargetSnapshotStatus, restoreCurrentTargetSnapshot } from './api';
 
 const STORAGE_KEY = 't3composer.targetCd';
 
@@ -56,6 +56,53 @@ export const useTargetStore = create((set, get) => ({
   setCurrentTarget: (targetCd) => {
     writePersisted(targetCd);
     set({ currentTargetCd: targetCd });
+  },
+
+  // ── 거버넌스 스냅샷 복원 (Target 전환 시 자동 + 확인) ───────────────────────
+  // 다른 Target 으로 전환 시, 그 Target 의 스냅샷과 현재 디스크가 다르면
+  // pendingRestore 를 세팅 → UI 가 확인 다이얼로그를 띄움.
+  pendingRestore: null,   // { targetCd, status }
+  restoreBusy: false,
+
+  /** Target 선택 — 스냅샷 불일치 감지 시 복원 확인을 거친다. */
+  switchTarget: async (targetCd) => {
+    if (!targetCd || targetCd === get().currentTargetCd) return;
+    let status = null;
+    try {
+      const res = await getTargetSnapshotStatus(targetCd);
+      status = res?.data || null;
+    } catch { status = null; }
+    if (status && status.hasSnapshot && status.inSync === false) {
+      // 디스크가 이 Target 의 스냅샷과 다름 — 사용자 확인 후 복원
+      set({ pendingRestore: { targetCd, status } });
+    } else {
+      // 일치하거나 스냅샷 없음 — 즉시 전환
+      get().setCurrentTarget(targetCd);
+    }
+  },
+
+  /** 확인 다이얼로그에서 [복원] — is_current 스냅샷을 디스크로 복원 후 전환. */
+  confirmPendingRestore: async () => {
+    const pr = get().pendingRestore;
+    if (!pr) return { ok: false };
+    set({ restoreBusy: true });
+    try {
+      const res = await restoreCurrentTargetSnapshot(pr.targetCd);
+      const data = res?.data || {};
+      if (data.ok !== false) get().setCurrentTarget(pr.targetCd);
+      set({ pendingRestore: null, restoreBusy: false });
+      return data;
+    } catch (e) {
+      set({ restoreBusy: false });
+      return { ok: false, error: e?.response?.data?.error || e?.message || '복원 실패' };
+    }
+  },
+
+  /** 확인 다이얼로그 닫기. switchAnyway=true 면 복원 없이 전환만. */
+  dismissPendingRestore: ({ switchAnyway = false } = {}) => {
+    const pr = get().pendingRestore;
+    if (pr && switchAnyway) get().setCurrentTarget(pr.targetCd);
+    set({ pendingRestore: null });
   },
 }));
 

@@ -494,7 +494,9 @@ public class ArtifactApplyService {
         try {
             perStatementTx.executeWithoutResult(s -> {
                 for (ComposerArtifact a : artifacts) {
+                    // 메뉴등록 아티팩트(MENU_SQL · MENU_JS) 는 MenuRegistrationService 가 별도로 마킹.
                     if (ComposerArtifact.TYPE_MENU_SQL.equals(a.getArtifactType())) continue;
+                    if (ComposerArtifact.TYPE_MENU_JS.equals(a.getArtifactType())) continue;
                     if (!successIds.contains(a.getId())) continue;
                     if (!ComposerArtifact.STATUS_FINAL.equals(a.getStatus())) {
                         a.setStatus(ComposerArtifact.STATUS_FINAL);
@@ -508,15 +510,22 @@ public class ArtifactApplyService {
     }
 
     /**
-     * 메뉴등록(MENU_SQL STATUS_FINAL) + 아티팩트 적용(비 MENU_SQL STATUS_FINAL) 이
+     * 메뉴등록(MENU_SQL 또는 MENU_JS STATUS_FINAL) + 아티팩트 적용(비 메뉴 STATUS_FINAL) 이
      * 모두 1건 이상 존재하면 세션을 STATUS_COMPLETED 로 전이.
+     * (Target.menu_source 가 DB → MENU_SQL · JS_FILE → MENU_JS — 두 경로 모두 인정)
      */
     private void markSessionCompletedIfReady(String sessionId) {
         try {
-            boolean menuDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
+            boolean menuSqlDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
                     sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
-            boolean artifactsApplied = artifactRepo.existsBySessionIdAndArtifactTypeNotAndStatus(
-                    sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
+            boolean menuJsDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
+                    sessionId, ComposerArtifact.TYPE_MENU_JS, ComposerArtifact.STATUS_FINAL);
+            boolean menuDone = menuSqlDone || menuJsDone;
+            boolean artifactsApplied = artifactRepo.existsNonMenuArtifactFinal(
+                    sessionId,
+                    java.util.Arrays.asList(
+                            ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.TYPE_MENU_JS),
+                    ComposerArtifact.STATUS_FINAL);
             if (!menuDone || !artifactsApplied) return;
 
             perStatementTx.executeWithoutResult(s -> sessionRepo.findById(sessionId).ifPresent(session -> {

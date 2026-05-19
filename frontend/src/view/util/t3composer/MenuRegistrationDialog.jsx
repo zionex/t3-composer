@@ -24,8 +24,9 @@ import ErrorIcon from '@mui/icons-material/Error';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import GroupIcon from '@mui/icons-material/Group';
 
-import { listArtifacts, getArtifact, checkMenuExists, executeMenuSql, listAllGroups, listAllMenus } from './api';
+import { listArtifacts, getArtifact, checkMenuExists, executeMenuSql, listAllGroups, listAllMenus, getSession, loadTargetMenuTree } from './api';
 import MenuPickerDialog from './MenuPickerDialog';
+import PlanelGroupPicker from './PlanelGroupPicker';
 
 // 권한 종류 — TB_AD_PERMISSION_GROUP.PERMISSION_TP 에 들어갈 값
 const PERMISSION_TYPES = [
@@ -44,7 +45,9 @@ const PERMISSION_TYPES = [
  *   4. 성공 시 실행 결과(executed / skipped / errors) 표시
  */
 function MenuRegistrationDialog({ open, sessionId, onClose }) {
-  const [menuSql, setMenuSql]       = useState(null);  // 산출물
+  const [menuSql, setMenuSql]       = useState(null);  // 산출물 (MENU_SQL · MENU_JS 공용)
+  const [menuArtifactType, setMenuArtifactType] = useState(null); // 'MENU_SQL' | 'MENU_JS'
+  const [menuJsEntries, setMenuJsEntries] = useState([]);         // MENU_JS 인 경우 entries 배열
   const [summary, setSummary]       = useState(null);  // { parent, path, fileName, screenId }
   const [parentOk, setParentOk]     = useState(null);  // null | true | false
   const [loading, setLoading]       = useState(false);
@@ -54,6 +57,12 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
   // 트리 픽커로 변경된 SQL 원본 추적
   const [pickerOpen, setPickerOpen] = useState(false);
   const [originalSql, setOriginalSql] = useState(null);   // 처음 로드한 SQL (revert 용)
+  // PLANEL (MENU_JS) — 그룹 트리 picker
+  const [sessionTargetCd, setSessionTargetCd] = useState(null);
+  const [planelGroups, setPlanelGroups] = useState([]);   // PLANEL 트리의 group 목록 (groupKey 검증용)
+  const [planelPickerOpen, setPlanelPickerOpen] = useState(false);
+  const [planelPickerEntryIdx, setPlanelPickerEntryIdx] = useState(-1);   // 어느 entry 에 적용할지
+  const [originalMenuJsContent, setOriginalMenuJsContent] = useState(null);  // revert 용
   // 권한 동시 등록
   const [groups, setGroups] = useState([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState([]);
@@ -121,6 +130,8 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
 
   const reset = () => {
     setMenuSql(null);
+    setMenuArtifactType(null);
+    setMenuJsEntries([]);
     setSummary(null);
     setParentOk(null);
     setResult(null);
@@ -130,6 +141,11 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
     setSelectedGroupIds([]);
     setSelectedPermTypes(['READ']);
     setMenuTree([]);
+    setSessionTargetCd(null);
+    setPlanelGroups([]);
+    setPlanelPickerOpen(false);
+    setPlanelPickerEntryIdx(-1);
+    setOriginalMenuJsContent(null);
   };
   // handleApply 는 ArtifactApplyDialog 로 이전
 
@@ -148,16 +164,64 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
     try {
       const listRes = await listArtifacts(sessionId);
       const items = Array.isArray(listRes.data) ? listRes.data : [];
-      const menuItem = items.find((a) => a.artifactType === 'MENU_SQL');
+      // PLANEL 류 (Target.menu_source='JS_FILE') 는 MENU_JS, 그 외는 MENU_SQL.
+      // 한 세션에 둘 다 있는 경우는 정상적으로 발생하지 않지만 안전하게 MENU_JS 우선 시도.
+      const menuJsItem = items.find((a) => a.artifactType === 'MENU_JS');
+      const menuSqlItem = items.find((a) => a.artifactType === 'MENU_SQL');
+      const menuItem = menuJsItem || menuSqlItem;
       if (!menuItem) {
-        setError('MENU_SQL 산출물이 없습니다. Claude 응답에 메뉴 등록 SQL 이 포함되지 않았습니다.');
+        setError('MENU_SQL · MENU_JS 산출물이 모두 없습니다. Claude 응답에 메뉴 등록 산출물이 포함되지 않았습니다.');
         return;
       }
+      setMenuArtifactType(menuItem.artifactType);
 
-      // MENU_SQL + 전체 산출물을 함께 분석해 capability 감지
       const full = await getArtifact(menuItem.id);
       setMenuSql(full.data);
 
+      // MENU_JS — JSON 파싱 후 entries 추출, SQL 처리 일체 skip
+      if (menuItem.artifactType === 'MENU_JS') {
+        const content = full.data?.content || '';
+        try {
+          const json = JSON.parse(content);
+          const entries = Array.isArray(json.entries) ? json.entries
+                        : (json.reduxKey ? [json] : []);
+          // 원본 텍스트 포맷 차이로 [원래대로] 버튼이 noise 처럼 보이는 것 방지 —
+          // entries 로부터 재직렬화한 canonical 텍스트를 origin 기준으로 사용.
+          const canonical = JSON.stringify({ entries }, null, 2);
+          setMenuJsEntries(entries);
+          setOriginalMenuJsContent(canonical);
+          setMenuSql({ ...full.data, content: canonical });
+          if (entries.length === 0) {
+            setError('MENU_JS 산출물에 entries 가 없습니다. content 첫 줄: '
+                     + content.substring(0, 120));
+          }
+        } catch (e) {
+          setError('MENU_JS JSON 파싱 실패: ' + (e?.message || 'invalid JSON'));
+        }
+
+        // 세션의 targetCd 조회 → PLANEL 트리 로드 (groupKey 검증·picker 용)
+        try {
+          const sess = await getSession(sessionId);
+          const tCd = sess?.data?.targetCd || sess?.data?.target_cd || null;
+          setSessionTargetCd(tCd);
+          if (tCd) {
+            const lang = localStorage.getItem('languageCode')
+              || sessionStorage.getItem('languageCode')
+              || (navigator.language || 'ko').slice(0, 2);
+            const treeRes = await loadTargetMenuTree(lang, tCd);
+            const groups = Array.isArray(treeRes?.data?.items) ? treeRes.data.items
+                         : Array.isArray(treeRes?.data) ? treeRes.data
+                         : [];
+            setPlanelGroups(groups);
+          }
+        } catch (_e) {
+          // 트리 로드 실패해도 메뉴 등록 자체는 가능 — silent
+          setPlanelGroups([]);
+        }
+        return;
+      }
+
+      // 이하 기존 MENU_SQL 흐름
       const parsed = parseMenuSummary(full.data?.content || '');
       setOriginalSql(full.data?.content || '');
 
@@ -298,6 +362,50 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
     }
   };
 
+  // ── MENU_JS (PLANEL) — 그룹 picker / content 재조립 / revert ──
+
+  /** entries 배열 → MENU_JS content JSON (pretty 2-space). */
+  const buildMenuJsContent = (entries) => {
+    try {
+      return JSON.stringify({ entries }, null, 2);
+    } catch (_e) {
+      return originalMenuJsContent || '';
+    }
+  };
+
+  /** PLANEL 트리 picker 에서 그룹 선택 — 해당 entry 의 groupKey 갱신 + JSON content 재조립. */
+  const handlePickPlanelGroup = (picked) => {
+    if (!picked || planelPickerEntryIdx < 0) return;
+    setMenuJsEntries((prev) => {
+      const next = prev.slice();
+      if (planelPickerEntryIdx < next.length) {
+        next[planelPickerEntryIdx] = { ...next[planelPickerEntryIdx], groupKey: picked.groupKey };
+      }
+      return next;
+    });
+  };
+
+  /** entries 가 바뀌면 menuSql.content 도 동기화 — execute 시 override 로 전송 */
+  useEffect(() => {
+    if (menuArtifactType !== 'MENU_JS') return;
+    if (!menuJsEntries || menuJsEntries.length === 0) return;
+    const next = buildMenuJsContent(menuJsEntries);
+    setMenuSql((m) => (m && m.content !== next) ? { ...m, content: next } : m);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuJsEntries, menuArtifactType]);
+
+  /** MENU_JS content 를 원본으로 되돌림 */
+  const revertMenuJs = () => {
+    if (!originalMenuJsContent) return;
+    try {
+      const json = JSON.parse(originalMenuJsContent);
+      const entries = Array.isArray(json.entries) ? json.entries
+                    : (json.reduxKey ? [json] : []);
+      setMenuJsEntries(entries);
+      setMenuSql((m) => m ? { ...m, content: originalMenuJsContent } : m);
+    } catch (_e) { /* invalid original — silent */ }
+  };
+
   // 선택된 그룹 x 권한 조합으로 TB_AD_PERMISSION_GROUP INSERT 문 생성.
   // 새 메뉴의 ID 는 MENU_CD 기반 sub-query 로 lookup (방금 INSERT 한 메뉴의 ID 를 확보).
   const buildPermissionSql = () => {
@@ -339,13 +447,20 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
     setExecuting(true);
     setError(null);
     try {
-      // 기본 SQL (트리 픽커로 수정된 것이면 그 버전) + 권한 SQL
-      const baseSql = menuSql?.content || '';
-      const permSql = buildPermissionSql();
-      const combined = permSql ? baseSql + '\n' + permSql : baseSql;
-      const original = originalSql || '';
-      // combined 가 원본과 다르면 override 로 전송 (권한 SQL 포함 or 부모 변경 시)
-      const sendOverride = combined !== original ? combined : null;
+      let sendOverride = null;
+      if (menuArtifactType === 'MENU_JS') {
+        // PLANEL — content (JSON) 가 picker 등으로 변경됐으면 override 로 전송
+        const current = menuSql?.content || '';
+        const original = originalMenuJsContent || '';
+        sendOverride = (current && current !== original) ? current : null;
+      } else {
+        // MENU_SQL — 기존 흐름 (트리 픽커 SQL + 권한 SQL 합산)
+        const baseSql = menuSql?.content || '';
+        const permSql = buildPermissionSql();
+        const combined = permSql ? baseSql + '\n' + permSql : baseSql;
+        const original = originalSql || '';
+        sendOverride = combined !== original ? combined : null;
+      }
       const res = await executeMenuSql(sessionId, sendOverride);
       setResult(res.data);
     } catch (e) {
@@ -387,7 +502,136 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
           </Alert>
         )}
 
-        {!loading && summary && !result && (
+        {/* MENU_JS (PLANEL) — JSON entries 미리보기 패널 */}
+        {!loading && menuArtifactType === 'MENU_JS' && !result && (
+          <Stack spacing={2}>
+            <Alert severity="info" sx={{ '& .MuiAlert-message': { width: '100%' } }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                PLANEL 류 Target — TabMenuList.js 에 직접 메뉴 entry append
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                대상 파일: <code>&lt;PLANEL repo&gt;/src/pages/TabMenuList.js</code>
+                {' · '}동일 reduxKey 가 이미 있으면 자동 skip (멱등)
+              </Typography>
+            </Alert>
+
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+              <Stack direction="row" alignItems="center" sx={{ mb: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  추가될 메뉴 entry ({menuJsEntries.length} 건)
+                </Typography>
+                <Box sx={{ flex: 1 }} />
+                {originalMenuJsContent && originalMenuJsContent !== buildMenuJsContent(menuJsEntries) && (
+                  <Button size="small" variant="text" color="inherit" onClick={revertMenuJs}>
+                    원래대로
+                  </Button>
+                )}
+              </Stack>
+              <Stack spacing={1.5}>
+                {menuJsEntries.map((e, i) => {
+                  const groupKey = e.groupKey || '';
+                  const inTree = !!planelGroups.find((g) => g.id === groupKey);
+                  return (
+                    <Box key={`${e.reduxKey || 'entry'}_${i}`} sx={{
+                      p: 1.2,
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 1,
+                      bgcolor: '#f8fafc',
+                    }}>
+                      <Stack spacing={0.6}>
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                          <Typography variant="caption" color="text.secondary" sx={{ width: 70, flexShrink: 0 }}>
+                            부모 그룹
+                          </Typography>
+                          <Chip
+                            label={groupKey || '(미지정)'}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontFamily: 'monospace', fontWeight: 600 }}
+                          />
+                          {groupKey && inTree && (
+                            <Chip
+                              icon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
+                              label="트리에 존재"
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                            />
+                          )}
+                          {groupKey && !inTree && planelGroups.length > 0 && (
+                            <Chip
+                              icon={<ErrorIcon sx={{ fontSize: 14 }} />}
+                              label="신규 그룹 (생성됨)"
+                              size="small"
+                              color="warning"
+                              variant="outlined"
+                            />
+                          )}
+                          <Box sx={{ flex: 1 }} />
+                          <Tooltip title="PLANEL TabMenuList.js 의 그룹 키 트리에서 선택">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<AccountTreeIcon fontSize="small" />}
+                              onClick={() => {
+                                setPlanelPickerEntryIdx(i);
+                                setPlanelPickerOpen(true);
+                              }}
+                              disabled={!sessionTargetCd}
+                            >
+                              트리에서 선택
+                            </Button>
+                          </Tooltip>
+                        </Stack>
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                          <Typography variant="caption" color="text.secondary" sx={{ width: 70, flexShrink: 0 }}>
+                            reduxKey
+                          </Typography>
+                          <Chip
+                            label={e.reduxKey || '-'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontFamily: 'monospace' }}
+                          />
+                        </Stack>
+                        <Row label="title (i18n)" value={e.title} />
+                        <Row label="component" value={e.componentName} />
+                        {e.componentPath && (
+                          <Row label="import path" value={`./${e.componentPath}`} />
+                        )}
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Paper>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                실행될 JSON 미리보기
+              </Typography>
+              <Box
+                component="pre"
+                sx={{
+                  m: 0,
+                  p: 1.5,
+                  maxHeight: 280,
+                  overflow: 'auto',
+                  bgcolor: '#1e1e1e',
+                  color: '#d4d4d4',
+                  fontSize: 11,
+                  fontFamily: 'Consolas, monospace',
+                  borderRadius: 1,
+                }}
+              >
+                {menuSql?.content || ''}
+              </Box>
+            </Box>
+          </Stack>
+        )}
+
+        {!loading && menuArtifactType === 'MENU_SQL' && summary && !result && (
           <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
               아래 정보로 메뉴가 등록됩니다. 확인 후 실행하세요.
@@ -596,8 +840,16 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
             </Stack>
             <Stack spacing={0.5}>
               <Typography variant="body2">
-                실행된 statement: <b>{result.executed ?? 0}</b>개, 스킵: <b>{result.skipped ?? 0}</b>개
+                {menuArtifactType === 'MENU_JS'
+                  ? <>추가된 entry: <b>{result.executed ?? 0}</b>개, 이미 존재(skip): <b>{result.skipped ?? 0}</b>개</>
+                  : <>실행된 statement: <b>{result.executed ?? 0}</b>개, 스킵: <b>{result.skipped ?? 0}</b>개</>
+                }
               </Typography>
+              {menuArtifactType === 'MENU_JS' && result.file && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontFamily: 'monospace' }}>
+                  대상 파일: {result.file}
+                </Typography>
+              )}
               {!result.success && /존재하지 않는 컬럼명|열 이름.*유효하지|MENU_NM|PARENT_MENU_CD|SORT_ORDER|DEPTH/.test(
                     (result.errors || []).join(' ')) && (
                 <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
@@ -667,19 +919,38 @@ TB_AD_MENU 실제 컬럼만 사용:
           <Button
             variant="contained"
             onClick={execute}
-            disabled={loading || executing || !menuSql || parentOk === false}
+            disabled={
+              loading || executing || !menuSql
+              // MENU_SQL 모드만 parentOk 검사 — MENU_JS 는 부모 메뉴 개념이 없음
+              || (menuArtifactType === 'MENU_SQL' && parentOk === false)
+              // MENU_JS 모드에서 entries 가 비어있으면 실행 의미 없음
+              || (menuArtifactType === 'MENU_JS' && menuJsEntries.length === 0)
+            }
           >
             {executing ? '실행 중...' : '등록 실행'}
           </Button>
         )}
       </DialogActions>
 
-      {/* 부모 메뉴 트리 픽커 — 그룹 노드만 선택 가능 */}
+      {/* 부모 메뉴 트리 픽커 — 그룹 노드만 선택 가능 (MENU_SQL = T3SERIES 등) */}
       <MenuPickerDialog
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelect={handlePickParent}
         selectGroupOnly={true}
+      />
+
+      {/* PLANEL 그룹 트리 픽커 — MENU_JS 모드 entry 의 groupKey 변경 */}
+      <PlanelGroupPicker
+        open={planelPickerOpen}
+        onClose={() => setPlanelPickerOpen(false)}
+        onSelect={handlePickPlanelGroup}
+        targetCd={sessionTargetCd}
+        currentGroupKey={
+          planelPickerEntryIdx >= 0 && planelPickerEntryIdx < menuJsEntries.length
+            ? menuJsEntries[planelPickerEntryIdx]?.groupKey
+            : null
+        }
       />
     </Dialog>
   );

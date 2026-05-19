@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
+import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -258,5 +260,288 @@ public class JsMenuFileParser {
     private static String firstGroup(Pattern p, String s) {
         Matcher m = p.matcher(s);
         return m.find() ? m.group(1) : null;
+    }
+
+    // ==========================================================================
+    // Append-only writer — PLANEL TabMenuList.js 에 새 메뉴 entry 추가.
+    //
+    // ⚠️ 정규식 파서와 같은 보수적 텍스트 조작. 완전한 JS AST 재직렬화가 아니라
+    // 다음 두 가지만 수행:
+    //   (1) 상단 `import <Comp> from "./<path>";` 라인 추가 (이미 있으면 skip)
+    //   (2) lv3MenuList[<groupKey>] 배열의 마지막 `]` 직전에 entry 객체 삽입
+    //       그룹이 존재하지 않으면 lv3MenuList 의 마지막 `}` 직전에 새 group 삽입.
+    //
+    // 멱등: 동일 reduxKey 가 lv3MenuList 안 어디에든 이미 존재하면 INSERT 하지 않고
+    // 결과에 `skipped=true` 로 반환 — 중복 등록 안전.
+    // ==========================================================================
+
+    /** TabMenuList.js append 결과 — caller (MenuRegistrationService) 가 응답으로 노출. */
+    @Getter
+    @Builder
+    public static class AppendResult {
+        private final boolean added;             // false = 멱등 skip 또는 실패
+        private final boolean importAdded;       // import 라인 새로 추가됐는지
+        private final boolean groupCreated;      // 새 그룹 생성됐는지
+        private final String message;            // 사람이 읽는 결과 메시지
+        private final String resolvedGroupKey;   // 실제 사용된 group key (요청과 다를 수 있음)
+    }
+
+    /** 신규 메뉴 entry 스펙 — Composer 가 JSON 으로 직렬화해 보내는 데이터. */
+    @Getter
+    @Builder
+    public static class AppendSpec {
+        private final String reduxKey;       // 필수 — entry 식별자, 중복 검사 대상
+        private final String title;          // 필수 — i18n key (예: "menuMyScreen")
+        private final String componentName;  // 필수 — React 컴포넌트명 (PascalCase)
+        private final String componentPath;  // 선택 — "data-management/MyScreen" 같은 import path (".js" 없이)
+        private final String groupKey;       // 선택 — lv3MenuList 의 그룹 키 (예: "DATA_MGMT"). null 이면 "GENERATED" 그룹 생성
+        private final Integer key;           // 선택 — 숫자 키. null 이면 그룹 내 max+1 자동 할당
+        private final String iconName;       // 선택 — `<X />` 형태 아이콘. null 이면 "LeafIcon"
+    }
+
+    /**
+     * TabMenuList.js 에 신규 entry 를 append.
+     *
+     * 멱등: spec.reduxKey 가 이미 lv3MenuList 어디에든 존재하면 변경 없이 added=false 반환.
+     *
+     * @throws IOException 파일 IO 실패
+     * @throws IllegalStateException 파일 포맷이 예상과 달라 안전한 INSERT 위치를 찾지 못함
+     */
+    public AppendResult appendEntry(Path file, AppendSpec spec) throws IOException {
+        if (spec == null || spec.reduxKey == null || spec.reduxKey.isBlank()) {
+            throw new IllegalArgumentException("AppendSpec.reduxKey 가 비어 있습니다.");
+        }
+        if (spec.title == null || spec.title.isBlank()) {
+            throw new IllegalArgumentException("AppendSpec.title 가 비어 있습니다.");
+        }
+        if (spec.componentName == null || spec.componentName.isBlank()) {
+            throw new IllegalArgumentException("AppendSpec.componentName 이 비어 있습니다.");
+        }
+
+        String content = Files.readString(file, StandardCharsets.UTF_8);
+
+        // 1. 멱등성 — reduxKey 중복이면 즉시 반환
+        if (existsReduxKey(content, spec.reduxKey)) {
+            log.info("appendEntry: reduxKey={} 이미 존재 — skip ({})", spec.reduxKey, file);
+            return AppendResult.builder()
+                    .added(false)
+                    .message("이미 등록된 reduxKey 입니다: " + spec.reduxKey)
+                    .build();
+        }
+
+        // 2. import 라인 — componentPath 가 있고 미존재면 추가
+        Map<String, String> importMap = extractImports(content);
+        boolean importAdded = false;
+        if (spec.componentPath != null && !spec.componentPath.isBlank()
+                && !importMap.containsKey(spec.componentName)) {
+            content = insertImportLine(content, spec.componentName, spec.componentPath);
+            importAdded = true;
+        }
+
+        // 3. 그룹 결정 + entry 텍스트 조립 후 삽입
+        String resolvedGroupKey = (spec.groupKey != null && !spec.groupKey.isBlank())
+                ? spec.groupKey : "GENERATED";
+
+        InsertContext ctx = locateLv3Group(content, resolvedGroupKey);
+        if (ctx == null) {
+            throw new IllegalStateException(
+                    "TabMenuList.js 에서 `const lv3MenuList = { ... };` 블록을 찾지 못함");
+        }
+
+        int keyValue = (spec.key != null) ? spec.key
+                : nextKeyInGroup(content, ctx, resolvedGroupKey);
+        String iconName = (spec.iconName != null && !spec.iconName.isBlank())
+                ? spec.iconName : "LeafIcon";
+        String entryText = buildEntryText(spec, keyValue, iconName);
+
+        boolean groupCreated;
+        if (ctx.groupArrayOpenIdx >= 0) {
+            // 기존 그룹 배열에 추가 — 마지막 `]` 직전에 entry 삽입
+            int arrayCloseIdx = findMatchingBracket(content, ctx.groupArrayOpenIdx);
+            if (arrayCloseIdx < 0) {
+                throw new IllegalStateException(
+                        "lv3MenuList[" + resolvedGroupKey + "] 배열의 닫는 `]` 를 찾지 못함");
+            }
+            content = insertBeforeArrayClose(content, arrayCloseIdx, entryText);
+            groupCreated = false;
+        } else {
+            // 새 그룹 — lv3MenuList 의 닫는 `}` 직전에 `<KEY>: [ entry ],` 삽입
+            content = insertNewGroup(content, ctx.lv3BodyCloseIdx, resolvedGroupKey, entryText);
+            groupCreated = true;
+        }
+
+        Files.writeString(file, content, StandardCharsets.UTF_8);
+        log.info("appendEntry: reduxKey={} group={} importAdded={} groupCreated={} ({})",
+                spec.reduxKey, resolvedGroupKey, importAdded, groupCreated, file);
+
+        return AppendResult.builder()
+                .added(true)
+                .importAdded(importAdded)
+                .groupCreated(groupCreated)
+                .resolvedGroupKey(resolvedGroupKey)
+                .message("entry 추가 완료 (key=" + keyValue + ", group=" + resolvedGroupKey + ")")
+                .build();
+    }
+
+    // -------- helpers --------
+
+    /** reduxKey: "X" 또는 reduxKey:"X" 형태가 어디든 있으면 true. */
+    private boolean existsReduxKey(String content, String reduxKey) {
+        Pattern p = Pattern.compile(
+                "reduxKey\\s*:\\s*\"" + Pattern.quote(reduxKey) + "\"");
+        return p.matcher(content).find();
+    }
+
+    /**
+     * 마지막 `import ... from "./...";` 라인 다음에 새 import 라인을 삽입.
+     * 기존 import 가 0건이면 파일 맨 앞에 추가.
+     */
+    private String insertImportLine(String content, String componentName, String componentPath) {
+        // .js 확장자는 제거 (관례)
+        String path = componentPath.replaceAll("\\.jsx?$", "");
+        // leading "./" 정규화
+        if (!path.startsWith(".")) path = "./" + path;
+        String line = "import " + componentName + " from \"" + path + "\";\n";
+
+        Matcher m = IMPORT_PATTERN.matcher(content);
+        int lastImportEnd = -1;
+        while (m.find()) {
+            lastImportEnd = m.end();
+        }
+        if (lastImportEnd < 0) {
+            return line + content;
+        }
+        // 라인 끝 (개행 다음 위치) 까지 진행
+        int nl = content.indexOf('\n', lastImportEnd);
+        int insertAt = (nl < 0) ? content.length() : nl + 1;
+        return content.substring(0, insertAt) + line + content.substring(insertAt);
+    }
+
+    /** lv3MenuList 블록의 위치 정보. */
+    private static class InsertContext {
+        int lv3BodyCloseIdx;     // `lv3MenuList = { ... }` 의 닫는 `}` 위치
+        int groupArrayOpenIdx;   // 요청한 group key 의 `[` 위치, 없으면 -1
+    }
+
+    /**
+     * lv3MenuList 블록 위치 + 요청한 그룹 키의 array open `[` 위치 lookup.
+     * 그룹이 없으면 groupArrayOpenIdx = -1 (caller 가 새 그룹 생성).
+     */
+    private InsertContext locateLv3Group(String content, String groupKey) {
+        Matcher m = LV3_BLOCK_PATTERN.matcher(content);
+        if (!m.find()) return null;
+        int openIdx = m.end() - 1;
+        int closeIdx = findMatchingBracket(content, openIdx);
+        if (closeIdx < 0) return null;
+
+        InsertContext ctx = new InsertContext();
+        ctx.lv3BodyCloseIdx = closeIdx;
+        ctx.groupArrayOpenIdx = -1;
+
+        // lv3 body 안에서만 group key 검색 — 우연한 매칭(주석/문자열) 회피
+        String body = content.substring(openIdx + 1, closeIdx);
+        Pattern groupPattern = Pattern.compile(
+                "(?:^|\\n)\\s*" + Pattern.quote(groupKey) + "\\s*:\\s*\\[",
+                Pattern.MULTILINE);
+        Matcher gm = groupPattern.matcher(body);
+        if (gm.find()) {
+            // `[` 의 절대 위치 = openIdx+1 + gm.end()-1
+            ctx.groupArrayOpenIdx = openIdx + 1 + gm.end() - 1;
+        }
+        return ctx;
+    }
+
+    /** 그룹 배열 안에서 최대 `key: N` 값 + 1 반환. 없으면 9000 (예약 영역). */
+    private int nextKeyInGroup(String content, InsertContext ctx, String groupKey) {
+        if (ctx.groupArrayOpenIdx < 0) return 9000;
+        int arrayClose = findMatchingBracket(content, ctx.groupArrayOpenIdx);
+        if (arrayClose < 0) return 9000;
+        String body = content.substring(ctx.groupArrayOpenIdx + 1, arrayClose);
+        Pattern keyPattern = Pattern.compile("\\bkey\\s*:\\s*(\\d+)");
+        Matcher km = keyPattern.matcher(body);
+        int max = 0;
+        while (km.find()) {
+            try {
+                int v = Integer.parseInt(km.group(1));
+                if (v > max) max = v;
+            } catch (NumberFormatException ignore) { /* skip */ }
+        }
+        return (max == 0) ? 9000 : max + 1;
+    }
+
+    /** 신규 entry 객체 텍스트 — PLANEL 의 기존 entry 포맷 모사. */
+    private String buildEntryText(AppendSpec spec, int keyValue, String iconName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("    {\n");
+        sb.append("      key: ").append(keyValue).append(", reduxKey: \"").append(spec.reduxKey)
+          .append("\", title: \"").append(spec.title).append("\",\n");
+        sb.append("      icon: <").append(iconName).append(" />,\n");
+        sb.append("      component: <").append(spec.componentName)
+          .append(" viewName={\"").append(spec.reduxKey).append("\"} title=\"")
+          .append(spec.title).append("\" />\n");
+        sb.append("    },\n");
+        return sb.toString();
+    }
+
+    /**
+     * 기존 그룹 배열의 닫는 `]` 직전에 entry 를 삽입.
+     * 직전 entry 의 후행 `,` 가 누락된 경우 (배열이 비어있지 않은데 마지막 entry 가 `}` 로 끝남) 도 처리.
+     */
+    private String insertBeforeArrayClose(String content, int arrayCloseIdx, String entryText) {
+        // 닫는 `]` 직전을 뒤로 거슬러 보며 직전 비공백 문자가 `}` 면 후행 `,` 가 필요할 수 있음
+        int i = arrayCloseIdx - 1;
+        while (i >= 0 && Character.isWhitespace(content.charAt(i))) i--;
+        boolean prevIsCloseBrace = (i >= 0 && content.charAt(i) == '}');
+        boolean prevIsComma = (i >= 0 && content.charAt(i) == ',');
+        boolean prevIsOpenBracket = (i >= 0 && content.charAt(i) == '[');
+
+        StringBuilder prefix = new StringBuilder();
+        if (prevIsCloseBrace) {
+            // 직전 entry 가 `}` 로 끝나고 `,` 없음 → 콤마 보강
+            prefix.append(",\n");
+        } else if (prevIsComma || prevIsOpenBracket) {
+            prefix.append("\n");
+        } else {
+            prefix.append("\n");
+        }
+
+        return content.substring(0, arrayCloseIdx)
+                + prefix.toString()
+                + entryText
+                + "  "  // 닫는 ] 앞 들여쓰기
+                + content.substring(arrayCloseIdx);
+    }
+
+    /**
+     * 새 그룹을 lv3MenuList 의 닫는 `}` 직전에 삽입.
+     *   <GROUP_KEY>: [
+     *       <entry>
+     *   ],
+     */
+    private String insertNewGroup(String content, int lv3CloseIdx, String groupKey, String entryText) {
+        int i = lv3CloseIdx - 1;
+        while (i >= 0 && Character.isWhitespace(content.charAt(i))) i--;
+        boolean prevIsCloseBracket = (i >= 0 && content.charAt(i) == ']');
+        boolean prevIsComma = (i >= 0 && content.charAt(i) == ',');
+
+        StringBuilder prefix = new StringBuilder();
+        if (prevIsCloseBracket) {
+            prefix.append(",\n");
+        } else if (prevIsComma) {
+            prefix.append("\n");
+        } else {
+            // lv3MenuList 가 비어있을 가능성 — 첫 entry
+            prefix.append("\n");
+        }
+        prefix.append("  ").append(groupKey).append(": [\n");
+
+        StringBuilder suffix = new StringBuilder();
+        suffix.append("  ],\n");
+
+        return content.substring(0, lv3CloseIdx)
+                + prefix.toString()
+                + entryText
+                + suffix.toString()
+                + content.substring(lv3CloseIdx);
     }
 }

@@ -225,7 +225,10 @@ services:
       # 비어있으면 fallback 으로 /workspace/targets/<CD>/{wingui|database} 사용.
       - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
       - ${TARGET_T3SERIES_DATABASE_PATH:-./empty}:/workspace/targets/T3SERIES/database:ro
-      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
+      # PLANEL 의 wingui 마운트는 RW — 메뉴 등록 시 backend 가 src/pages/TabMenuList.js 를
+      # 직접 갱신해야 함 (PLANEL 의 메뉴 진실 소스가 JS 파일, menu_source='JS_FILE').
+      # T3SERIES 처럼 DB(TB_AD_MENU) 가 진실인 Target 은 ro 유지.
+      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:rw
       - ${TARGET_PLANNEL_DATABASE_PATH:-./empty}:/workspace/targets/PLANNEL/database:ro
       - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
       - ${TARGET_LGES_NEXTSCM_DATABASE_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/database:ro

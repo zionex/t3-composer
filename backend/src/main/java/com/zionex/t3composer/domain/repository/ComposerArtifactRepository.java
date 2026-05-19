@@ -25,6 +25,19 @@ public interface ComposerArtifactRepository extends JpaRepository<ComposerArtifa
     boolean existsBySessionIdAndArtifactTypeNotAndStatus(String sessionId, String artifactType, String status);
 
     /**
+     * 메뉴등록 아티팩트(MENU_SQL · MENU_JS) 를 제외한 STATUS_FINAL 아티팩트 존재 여부.
+     * 세션 COMPLETED 전이 조건의 "그 외 아티팩트 적용 완료" 판정에 사용 — Target.menu_source
+     * 가 DB/JS_FILE 어느 쪽이든 동일 로직으로 처리하기 위해 두 메뉴 타입 모두 IN 으로 제외.
+     */
+    @Query("SELECT (COUNT(a) > 0) FROM ComposerArtifact a" +
+           " WHERE a.sessionId = :sessionId" +
+           "   AND a.artifactType NOT IN :menuTypes" +
+           "   AND a.status = :status")
+    boolean existsNonMenuArtifactFinal(@Param("sessionId") String sessionId,
+                                       @Param("menuTypes") List<String> menuTypes,
+                                       @Param("status") String status);
+
+    /**
      * 같은 (session, artifactType, filePath) 의 기존 아티팩트 조회 — supersede 대상.
      * 새 아티팩트 저장 직전에 호출해 이 결과를 STATUS_DISCARDED 로 마킹한다.
      */

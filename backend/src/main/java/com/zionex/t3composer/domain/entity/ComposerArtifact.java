@@ -38,6 +38,8 @@ public class ComposerArtifact {
     public static final String TYPE_SQL_SP            = "SQL_SP";
     public static final String TYPE_MENU_SQL          = "MENU_SQL";
     public static final String TYPE_MENUS_JS_PATCH    = "MENUS_JS_PATCH";
+    /** PLANEL 류 (menu_source='JS_FILE') Target 의 메뉴 등록 — TabMenuList.js 에 직접 append 될 entry JSON. */
+    public static final String TYPE_MENU_JS           = "MENU_JS";
     public static final String TYPE_DESIGN_DOC_UPLOAD = "DESIGN_DOC_UPLOAD";
     public static final String TYPE_SOURCE_SNAPSHOT   = "SOURCE_SNAPSHOT";
     public static final String TYPE_OTHER             = "OTHER";

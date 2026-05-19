@@ -1,5 +1,9 @@
 package com.zionex.t3composer.domain.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,16 +16,21 @@ import java.util.regex.Pattern;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.domain.entity.ComposerArtifact;
 import com.zionex.t3composer.domain.entity.ComposerSession;
+import com.zionex.t3composer.domain.entity.TargetSystem;
 import com.zionex.t3composer.domain.repository.ComposerArtifactRepository;
 import com.zionex.t3composer.domain.repository.ComposerSessionRepository;
+import com.zionex.t3composer.domain.repository.TargetSystemRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,6 +108,12 @@ public class MenuRegistrationService {
     private final TransactionTemplate perStatementTx;
     private final TransactionTemplate defaultTx;
 
+    // PLANEL (menu_source='JS_FILE') 분기에 사용. setter injection — bean 없어도 기본 DB 경로 동작.
+    private TargetSystemRepository targetRepo;
+    private TargetPathResolver targetPathResolver;
+    private JsMenuFileParser jsMenuParser;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     public MenuRegistrationService(ComposerArtifactRepository artifactRepo,
                                    ComposerSessionRepository sessionRepo,
                                    PlatformTransactionManager txManager) {
@@ -107,6 +122,21 @@ public class MenuRegistrationService {
         this.perStatementTx = new TransactionTemplate(txManager);
         this.perStatementTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.defaultTx = new TransactionTemplate(txManager);
+    }
+
+    @Autowired(required = false)
+    public void setTargetRepository(TargetSystemRepository targetRepo) {
+        this.targetRepo = targetRepo;
+    }
+
+    @Autowired(required = false)
+    public void setTargetPathResolver(TargetPathResolver resolver) {
+        this.targetPathResolver = resolver;
+    }
+
+    @Autowired(required = false)
+    public void setJsMenuFileParser(JsMenuFileParser parser) {
+        this.jsMenuParser = parser;
     }
 
     /**
@@ -125,6 +155,13 @@ public class MenuRegistrationService {
      * 트랜잭션으로 격리 실행되어, 한 구문이 실패해도 전체 500 으로 터지지 않는다.
      */
     public Map<String, Object> executeSessionMenuSql(String sessionId, String sqlOverride) {
+        // PLANEL 류 (Target.menu_source='JS_FILE') 분기 — MENU_JS 아티팩트가 있으면 그쪽 처리.
+        // sqlOverride 파라미터는 MENU_SQL/MENU_JS 둘 다 의미상 "content override" — PLANEL 에선
+        // 트리 픽커로 groupKey 를 변경한 후의 갱신 JSON 이 들어온다.
+        if (isJsFileMenuSource(sessionId)) {
+            return executeSessionMenuJs(sessionId, sqlOverride);
+        }
+
         List<ComposerArtifact> artifacts = artifactRepo
                 .findBySessionIdAndArtifactTypeOrderByCreateDttmDesc(sessionId, ComposerArtifact.TYPE_MENU_SQL);
 
@@ -230,19 +267,208 @@ public class MenuRegistrationService {
     }
 
     /**
+     * PLANEL 류 Target (menu_source='JS_FILE') 의 메뉴 등록 — TabMenuList.js 에 entry append.
+     * MENU_JS 아티팩트의 content (JSON) 에서 entries 배열을 읽어 한 건씩
+     * {@link JsMenuFileParser#appendEntry} 호출 (멱등 — 동일 reduxKey 면 skip).
+     *
+     * @param contentOverride null 이 아니면 아티팩트 content 대신 그 JSON 을 사용
+     *                        (트리 픽커로 groupKey 를 변경한 뒤 실행하는 시나리오).
+     *                        성공 시 아티팩트 content 도 override 로 갱신.
+     */
+    public Map<String, Object> executeSessionMenuJs(String sessionId, String contentOverride) {
+        if (jsMenuParser == null || targetPathResolver == null) {
+            return resultOf(false, 0, 0, List.of(
+                    "PLANEL 메뉴 등록에 필요한 빈이 누락: jsMenuParser/targetPathResolver"));
+        }
+
+        List<ComposerArtifact> artifacts = artifactRepo
+                .findBySessionIdAndArtifactTypeOrderByCreateDttmDesc(
+                        sessionId, ComposerArtifact.TYPE_MENU_JS)
+                .stream()
+                .filter(a -> !ComposerArtifact.STATUS_DISCARDED.equals(a.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (artifacts.isEmpty()) {
+            return resultOf(false, 0, 0, List.of(
+                    "MENU_JS 타입 아티팩트가 없습니다. PLANEL Target 의 메뉴 등록은 "
+                  + "src/pages/TabMenuList.entries.json 형식의 산출물이 필요합니다."));
+        }
+
+        ComposerArtifact artifact = artifacts.get(0);
+        final boolean overrideProvided = contentOverride != null && !contentOverride.isBlank();
+        String content = overrideProvided ? contentOverride : artifact.getContent();
+        if (content == null || content.isBlank()) {
+            return resultOf(false, 0, 0, List.of("MENU_JS 아티팩트 내용이 비어 있습니다."));
+        }
+
+        // 세션의 targetCd 로 PLANEL 소스 루트 → TabMenuList.js 후보 lookup
+        String targetCd = sessionRepo.findById(sessionId)
+                .map(ComposerSession::getTargetCd).orElse(null);
+        Path tabMenuFile = locateTabMenuListJs(targetCd);
+        if (tabMenuFile == null) {
+            return resultOf(false, 0, 0, List.of(
+                    "TabMenuList.js 파일을 찾지 못함. Target=" + targetCd
+                  + " 의 source_ref_path / TARGET_<CD>_WINGUI_PATH (.env) 확인 필요."));
+        }
+
+        // content (JSON) 파싱 — `entries` 배열 또는 단일 entry 객체 모두 허용
+        List<JsonNode> entryNodes = new ArrayList<>();
+        try {
+            JsonNode root = objectMapper.readTree(content);
+            JsonNode entries = root.get("entries");
+            if (entries != null && entries.isArray()) {
+                entries.forEach(entryNodes::add);
+            } else if (root.has("reduxKey")) {
+                // 단일 entry 형태 — wrap
+                entryNodes.add(root);
+            } else {
+                return resultOf(false, 0, 0, List.of(
+                        "MENU_JS JSON 에 entries 배열이 없습니다. content 첫 줄: "
+                        + content.substring(0, Math.min(120, content.length()))));
+            }
+        } catch (Exception e) {
+            return resultOf(false, 0, 0, List.of(
+                    "MENU_JS JSON 파싱 실패: " + rootMessage(e)));
+        }
+
+        int executed = 0;
+        int skipped = 0;
+        List<String> errors = new ArrayList<>();
+        List<Map<String, Object>> details = new ArrayList<>();
+
+        for (int i = 0; i < entryNodes.size(); i++) {
+            JsonNode e = entryNodes.get(i);
+            JsMenuFileParser.AppendSpec spec;
+            try {
+                spec = buildAppendSpec(e);
+            } catch (Exception ex) {
+                errors.add("entry #" + (i + 1) + " spec 변환 실패: " + ex.getMessage());
+                return resultOf(false, executed, skipped, errors);
+            }
+
+            try {
+                JsMenuFileParser.AppendResult r = jsMenuParser.appendEntry(tabMenuFile, spec);
+                Map<String, Object> d = new HashMap<>();
+                d.put("reduxKey", spec.getReduxKey());
+                d.put("added", r.isAdded());
+                d.put("importAdded", r.isImportAdded());
+                d.put("groupCreated", r.isGroupCreated());
+                d.put("group", r.getResolvedGroupKey());
+                d.put("message", r.getMessage());
+                details.add(d);
+                if (r.isAdded()) executed++;
+                else skipped++;
+            } catch (IOException | RuntimeException ex) {
+                String msg = rootMessage(ex);
+                errors.add("entry #" + (i + 1) + " (reduxKey=" + spec.getReduxKey() + ") append 실패: " + msg);
+                log.error("TabMenuList.js append failed sessionId={} entry={}", sessionId, spec.getReduxKey(), ex);
+                return resultOf(false, executed, skipped, errors);
+            }
+        }
+
+        final String finalContent = content;
+        try {
+            defaultTx.executeWithoutResult(status -> {
+                artifact.setStatus(ComposerArtifact.STATUS_FINAL);
+                if (overrideProvided) {
+                    artifact.setContent(finalContent);
+                }
+                artifactRepo.save(artifact);
+            });
+        } catch (Exception e) {
+            log.warn("MENU_JS 아티팩트 FINAL 마킹 실패 (적용 자체는 성공): {}", rootMessage(e));
+        }
+
+        markSessionCompletedIfReady(sessionId);
+
+        Map<String, Object> result = resultOf(true, executed, skipped, errors);
+        result.put("details", details);
+        result.put("file", tabMenuFile.toString());
+        return result;
+    }
+
+    /** session.targetCd 의 menu_source 컬럼이 'JS_FILE' 인지 검사. */
+    private boolean isJsFileMenuSource(String sessionId) {
+        if (targetRepo == null) return false;
+        try {
+            String targetCd = sessionRepo.findById(sessionId)
+                    .map(ComposerSession::getTargetCd).orElse(null);
+            if (targetCd == null || targetCd.isBlank()) return false;
+            String menuSource = targetRepo.findById(targetCd)
+                    .map(TargetSystem::getMenuSource).orElse(null);
+            return "JS_FILE".equalsIgnoreCase(menuSource);
+        } catch (Exception e) {
+            log.warn("menu_source 조회 실패 sessionId={}: {}", sessionId, rootMessage(e));
+            return false;
+        }
+    }
+
+    /** Target source 루트에서 TabMenuList.js 후보 파일 lookup. 없으면 null. */
+    private Path locateTabMenuListJs(String targetCd) {
+        String sourceRoot = targetPathResolver.resolveSourcePath(targetCd);
+        if (sourceRoot == null || sourceRoot.isBlank()) return null;
+        // TargetMenuController.loadJsFileMenus 의 후보 순서와 동일
+        String[] candidates = {
+                "src/pages/TabMenuList.js",
+                "src/pages/TabMenuList.jsx",
+                "src/TabMenuList.js",
+        };
+        for (String rel : candidates) {
+            Path p = Paths.get(sourceRoot, rel);
+            if (Files.exists(p) && Files.isRegularFile(p)) return p;
+        }
+        log.warn("TabMenuList.js 후보 모두 미존재 sourceRoot={}", sourceRoot);
+        return null;
+    }
+
+    /** JsonNode → JsMenuFileParser.AppendSpec 변환. 필수 필드 누락 시 IllegalArgumentException. */
+    private JsMenuFileParser.AppendSpec buildAppendSpec(JsonNode e) {
+        String reduxKey = textOrNull(e, "reduxKey");
+        String title = textOrNull(e, "title");
+        String componentName = textOrNull(e, "componentName");
+        if (reduxKey == null || reduxKey.isBlank())
+            throw new IllegalArgumentException("reduxKey 필드가 비어 있습니다.");
+        if (title == null || title.isBlank())
+            throw new IllegalArgumentException("title 필드가 비어 있습니다.");
+        if (componentName == null || componentName.isBlank())
+            throw new IllegalArgumentException("componentName 필드가 비어 있습니다.");
+
+        return JsMenuFileParser.AppendSpec.builder()
+                .reduxKey(reduxKey)
+                .title(title)
+                .componentName(componentName)
+                .componentPath(textOrNull(e, "componentPath"))
+                .groupKey(textOrNull(e, "groupKey"))
+                .iconName(textOrNull(e, "iconName"))
+                .key(e.has("key") && e.get("key").isInt() ? e.get("key").asInt() : null)
+                .build();
+    }
+
+    private static String textOrNull(JsonNode n, String field) {
+        JsonNode v = n.get(field);
+        return (v != null && !v.isNull()) ? v.asText() : null;
+    }
+
+    /**
      * 세션의 메뉴등록과 아티팩트 적용이 모두 완료되었는지 확인하고, 완료 상태이면
      * 세션을 {@link ComposerSession#STATUS_COMPLETED} 로 전이한다.
      *
-     * 완료 조건: MENU_SQL 아티팩트 STATUS_FINAL + 그 외 타입 아티팩트 STATUS_FINAL 이
-     *          각각 1건 이상 존재.
+     * 완료 조건: 메뉴등록 아티팩트(MENU_SQL 또는 MENU_JS) STATUS_FINAL + 그 외 타입 아티팩트
+     *          STATUS_FINAL 이 각각 1건 이상 존재. (Target.menu_source 에 따라 MENU_SQL/MENU_JS)
      * 이미 COMPLETED 이거나 ARCHIVED 면 변경하지 않는다.
      */
     private void markSessionCompletedIfReady(String sessionId) {
         try {
-            boolean menuDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
+            boolean menuSqlDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
                     sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
-            boolean artifactsApplied = artifactRepo.existsBySessionIdAndArtifactTypeNotAndStatus(
-                    sessionId, ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.STATUS_FINAL);
+            boolean menuJsDone = artifactRepo.existsBySessionIdAndArtifactTypeAndStatus(
+                    sessionId, ComposerArtifact.TYPE_MENU_JS, ComposerArtifact.STATUS_FINAL);
+            boolean menuDone = menuSqlDone || menuJsDone;
+            // 그 외 아티팩트 = MENU_SQL 도 MENU_JS 도 아닌 것
+            boolean artifactsApplied = artifactRepo.existsNonMenuArtifactFinal(
+                    sessionId,
+                    Arrays.asList(ComposerArtifact.TYPE_MENU_SQL, ComposerArtifact.TYPE_MENU_JS),
+                    ComposerArtifact.STATUS_FINAL);
             if (!menuDone || !artifactsApplied) return;
 
             defaultTx.executeWithoutResult(s -> sessionRepo.findById(sessionId).ifPresent(session -> {

@@ -110,6 +110,10 @@ public class ArtifactExtractor {
         boolean isJava = lower.endsWith(".java") || lower.endsWith("_java");
         boolean isSql  = lower.endsWith(".sql")  || lower.endsWith("_sql");
 
+        // PLANEL 류 (menu_source='JS_FILE') 의 메뉴 등록 entry JSON.
+        //   `tabmenulist` 단어가 path 에 들어가면 MENU_JS — JSX 분류기보다 먼저 매치되어야 함
+        //   (PlanNEL 의 saas-web 은 .js 확장자라 `.js in /pages/` JSX 분류와 충돌 회피).
+        if (lower.contains("tabmenulist"))                             return ComposerArtifact.TYPE_MENU_JS;
         if (lower.endsWith("menus.js") || lower.contains("/menus.js")) return ComposerArtifact.TYPE_MENUS_JS_PATCH;
         if (isJsx)                                                     return ComposerArtifact.TYPE_SCREEN_JSX;
 

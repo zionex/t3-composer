@@ -411,16 +411,22 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             );
 
             cssCleanup = () => {
-                try {
-                    if (reactRootRef.current) {
-                        reactRootRef.current.unmount();
-                        reactRootRef.current = null;
-                    }
-                } catch (_) {}
+                // React 18 — useEffect cleanup 은 commit phase 에서 동기 실행되므로
+                // root.unmount() 를 직접 부르면 "synchronously unmount a root while
+                // React was already rendering" warning + race condition 위험.
+                // ref 는 즉시 비우고 unmount 만 microtask 로 deferred — 진행 중 render
+                // 가 commit 끝낸 뒤 다음 tick 에서 안전하게 unmount.
+                const oldRoot = reactRootRef.current;
+                reactRootRef.current = null;
                 try { win.removeEventListener('error', onWinError); } catch (_) {}
                 try { win.removeEventListener('unhandledrejection', onWinRejection); } catch (_) {}
                 // mock flag 복구 — Composer 자체 화면의 zAxios 호출에 영향 안 가도록.
                 try { window.__PREVIEW_MOCK__ = false; } catch (_) {}
+                if (oldRoot) {
+                    queueMicrotask(() => {
+                        try { oldRoot.unmount(); } catch (_) {}
+                    });
+                }
             };
         };
 

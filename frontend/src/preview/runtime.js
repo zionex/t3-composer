@@ -53,6 +53,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import * as WinguiImports from '@wingui/common/imports';
 import * as WinguiFieldCascade from '@wingui/common/fieldCascade';
 import * as ZionexWinguiCore from '@zionex/wingui-core';
+import { generateSampleRowsFromItems, isSampleModeEnabled } from '../shim/wingui/common/sampleData';
 import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
 import LlmMarkdown from '@wingui/view/common/LlmMarkdown';
 import PopDepartment from '@wingui/view/common/PopDepartment';
@@ -146,8 +147,12 @@ function mockResponse(url, method) {
             value: r.code, label: r.name, code: r.code, name: r.name,
         })), status: 200 });
     }
-    // 기본 — list of 8 sample rows
-    return Promise.resolve({ data: makeSampleRows(8), status: 200 });
+    // 기본 — 빈 배열. BaseGrid shim 이 gridItems 컬럼 메타를 보고
+    //   generateSampleRowsFromItems() 로 컬럼 일치 sample 을 채워준다 (sampleData.js).
+    //   여기서 하드코딩 makeSampleRows(8) 를 반환하면 산출물의 실제 컬럼명(itemTp/uomCd/
+    //   stdPrice/leadTime 등)과 매칭되지 않는 row 가 그리드에 들어가서 대부분 셀이 비게
+    //   된다 ("빈 mockup" 증상). 빈 배열을 반환해 BaseGrid 의 컬럼 기반 sample 경로로 위임.
+    return Promise.resolve({ data: [], status: 200 });
 }
 
 function createMockAxios() {
@@ -194,9 +199,33 @@ function makeMockService(serviceName) {
 // AG-Grid (PlanNEL) 의 최소 stub — props 받아 간단한 HTML table 로 렌더
 function makeAgGridStub() {
     const AgGridReact = (props) => {
-        const rowData = (props && props.rowData) || makeSampleRows(8);
-        const columnDefs = (props && props.columnDefs)
-            || (rowData[0] ? Object.keys(rowData[0]).slice(0, 7).map(k => ({ field: k, headerName: k })) : []);
+        const propsRowData    = props && Array.isArray(props.rowData)    ? props.rowData    : null;
+        const propsColumnDefs = props && Array.isArray(props.columnDefs) ? props.columnDefs : null;
+        const columnDefs = propsColumnDefs
+            || (propsRowData && propsRowData[0]
+                ? Object.keys(propsRowData[0]).slice(0, 7).map(k => ({ field: k, headerName: k }))
+                : []);
+        // [Sample 데이터] rowData 가 비어있거나 미전달 + sample 모드 ON + columnDefs 있음 →
+        //   columnDefs.field 를 BaseGrid items 형식으로 변환해 column-aware sample 생성.
+        //   `[] || x` 는 `[]` 가 truthy 라 fallback 발화 안 함 → 명시적 length 체크 필수.
+        let rowData;
+        if (propsRowData && propsRowData.length > 0) {
+            rowData = propsRowData;
+        } else if (isSampleModeEnabled() && columnDefs.length > 0) {
+            const items = columnDefs.map(c => ({
+                name: c.field,
+                dataType: c.cellDataType
+                    || (c.type === 'numericColumn' || c.valueFormatter ? 'number' : 'text'),
+                // useDropdown 메타가 있으면 그대로 전달 (sampleData.js valueGeneratorFor 가 활용)
+                useDropdown: !!(c.cellEditor === 'agSelectCellEditor' && c.cellEditorParams),
+                values: c.cellEditorParams && c.cellEditorParams.values,
+                labels: c.cellEditorParams && c.cellEditorParams.values,
+                lookupDisplay: true,
+            }));
+            rowData = generateSampleRowsFromItems(items, 10);
+        } else {
+            rowData = [];
+        }
         const trStyle = { borderBottom: '1px solid #e5e7eb' };
         const thStyle = { textAlign: 'left', padding: '6px 8px', background: '#f3f4f6',
                           borderBottom: '2px solid #d1d5db', fontSize: 12, fontWeight: 600 };
@@ -349,9 +378,131 @@ const REGISTRY = {
     'react-router-dom': buildReactRouterShim(),
     'react-router': buildReactRouterShim(),
 
+    // react-i18next — withTranslation HOC 가 t prop 을 inject 해야 함.
+    //   SAFE_STUB 의 identity-HOC 휴리스틱은 PascalCase 컴포넌트를 그대로 돌려주는데,
+    //   그러면 `t` prop 이 비어 산출물 컴포넌트의 `t("...")` 호출이 TypeError.
+    //   여기서는 key-passthrough 로 t 를 inject 하는 진짜 HOC 를 제공.
+    'react-i18next': esModule({
+        withTranslation: () => (Comp) => {
+            const Wrapped = (props) => React.createElement(Comp, {
+                ...(props || {}),
+                t: (k) => (k == null ? '' : String(k)),
+                i18n: { language: 'ko', changeLanguage: () => Promise.resolve() },
+                tReady: true,
+            });
+            Wrapped.displayName = 'PreviewI18nHOC(' + (Comp && (Comp.displayName || Comp.name) || 'Anonymous') + ')';
+            return Wrapped;
+        },
+        useTranslation: () => ({
+            t: (k) => (k == null ? '' : String(k)),
+            i18n: { language: 'ko', changeLanguage: () => Promise.resolve() },
+            ready: true,
+        }),
+        Trans: ({ i18nKey, children }) => React.createElement(React.Fragment, null, children || i18nKey || ''),
+        I18nextProvider: ({ children }) => React.createElement(React.Fragment, null, children),
+        Translation: ({ children }) => (typeof children === 'function' ? children((k) => k, { language: 'ko' }, true) : null),
+        initReactI18next: { type: '3rdParty', init: () => {} },
+    }),
+
+    // react-redux — useDispatch/useSelector/connect 가 SAFE_STUB 로 처리되면
+    //   selector 결과가 SAFE_STUB Proxy 라 `state.foo.length` 같은 access 는 안전하나
+    //   `{ foo, bar } = useSelector(...)` 구조분해 + 산출물 변수 = SAFE_STUB 의 동작이 일관되지 않음.
+    //   안전한 default 값을 명시 제공.
+    'react-redux': esModule({
+        useDispatch: () => (() => {}),
+        useSelector: () => undefined,
+        useStore: () => ({ getState: () => ({}), dispatch: () => {}, subscribe: () => (() => {}) }),
+        connect: () => (Comp) => Comp,
+        Provider: ({ children }) => React.createElement(React.Fragment, null, children),
+        shallowEqual: (a, b) => a === b,
+        batch: (fn) => { if (typeof fn === 'function') fn(); },
+    }),
+
     // PlanNEL (AG-Grid) — stub. 실제 AG-Grid 가 깔리지 않아도 sample 데이터 table 로 렌더.
     '@ag-grid-community/react': esModule({ AgGridReact: makeAgGridStub() }),
     '@ag-grid-community/core': esModule({}),
+
+    // ── PlanNEL components — 의미별 shim ──────────────────────────────────────
+    // 기본 fallback (makeFallbackComponent) 은 노란 점선 [stub] placeholder 라서
+    //   wrapper 컴포넌트가 stub 으로 뜨면 자식 (검색조건 필드들) 이 가려진다.
+    //   주요 wrapper 는 passthrough · 보이지 않아도 되는 것은 null · 입력은 실제 input 으로.
+    //   ─ PlanNEL 실제 컴포넌트가 환경에 깔리면 그쪽이 우선. 미설치 시 본 stub.
+    '@plannel/components/layout/FilterContainer': defaultModule((function () {
+        // 검색조건 박스 — wingui SearchArea 룩 (#f4f6f8 + border) + 자식 가로 배치.
+        const C = ({ children }) => React.createElement('div', {
+            style: {
+                display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8,
+                padding: '10px 12px', marginBottom: 8,
+                background: '#f4f6f8', border: '1px solid #E0E0E0', borderRadius: 4,
+            },
+        }, children);
+        C.displayName = 'PreviewPlannel(FilterContainer)';
+        return C;
+    })()),
+    '@plannel/components/PaginationContainer': defaultModule(() => null),
+    '@plannel/components/Dialog':              defaultModule(() => null),
+    '@plannel/components/Snackbar':            defaultModule(() => null),
+    '@plannel/components/filter/AdvancedFilter': defaultModule((function () {
+        // 검색조건 내부 그룹 — 자식 그대로 가로 배치.
+        const C = ({ children }) => React.createElement('span', {
+            style: { display: 'inline-flex', alignItems: 'center', gap: 6 },
+        }, children);
+        C.displayName = 'PreviewPlannel(AdvancedFilter)';
+        return C;
+    })()),
+    '@plannel/components/filter/ItemAutocomplete': defaultModule((function () {
+        const C = ({ value, onChange, placeholder, label }) => React.createElement('label', {
+            style: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#475569' },
+        }, label ? React.createElement('span', null, label) : null,
+           React.createElement('input', {
+               type: 'text', value: value || '',
+               placeholder: placeholder || '품목 선택',
+               onChange: (e) => onChange && onChange(e.target.value),
+               style: {
+                   padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: 4,
+                   fontSize: 12, width: 180, background: 'white',
+               },
+           }));
+        C.displayName = 'PreviewPlannel(ItemAutocomplete)';
+        return C;
+    })()),
+    '@plannel/components/ActionIconButton': esModule((function () {
+        const mkBtn = (label, color) => {
+            const Btn = ({ onClick, disabled, title }) => React.createElement('button', {
+                onClick: disabled ? undefined : onClick, disabled,
+                title: title || label,
+                style: {
+                    margin: '0 2px', padding: '4px 10px', fontSize: 12, fontWeight: 600,
+                    border: '1px solid ' + color, borderRadius: 4,
+                    background: 'white', color: color,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.5 : 1,
+                },
+            }, label);
+            Btn.displayName = 'PreviewPlannel(' + label + 'Button)';
+            return Btn;
+        };
+        return {
+            AddButton:    mkBtn('추가', '#3b82f6'),
+            RemoveButton: mkBtn('삭제', '#ef4444'),
+            SaveButton:   mkBtn('저장', '#10b981'),
+            FilterButton: mkBtn('검색', '#0ea5e9'),
+        };
+    })()),
+    '@plannel/components/ExcelExportButton': defaultModule((function () {
+        const Btn = ({ onClick, disabled }) => React.createElement('button', {
+            onClick: disabled ? undefined : onClick, disabled, title: 'Excel 다운로드',
+            style: {
+                margin: '0 2px', padding: '4px 10px', fontSize: 12, fontWeight: 600,
+                border: '1px solid #16a34a', borderRadius: 4,
+                background: 'white', color: '#16a34a',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                opacity: disabled ? 0.5 : 1,
+            },
+        }, 'Excel');
+        Btn.displayName = 'PreviewPlannel(ExcelExportButton)';
+        return Btn;
+    })()),
 };
 
 // ----- 만능 안전값 (SAFE_STUB) -----
@@ -372,9 +523,44 @@ const SAFE_STUB = (function buildSafeStub() {
             if (prop === '__esModule') return false;
             if (prop === 'length') return 0;
             if (typeof prop === 'symbol') return undefined;
+            // React 가 컴포넌트 정적 검증에 lookup 하는 필드는 undefined 로.
+            //   withTranslation()(C) 같은 HOC stub 결과가 SAFE_STUB 이 되어 컴포넌트로
+            //   쓰일 때, React 가 SAFE_STUB.propTypes / contextTypes 를 lookup → 그것도
+            //   SAFE_STUB(=함수)이라 PropTypes 가 "type checker 가 함수 반환" 으로 오해해
+            //   `__reactInternalMemoizedMergedChildContext`/`updater`/`_reactInternals`
+            //   등 instance internal 필드마다 warning 폭주. 정적 검증 우회로 차단.
+            if (prop === 'propTypes' || prop === 'contextTypes'
+                || prop === 'childContextTypes' || prop === 'defaultProps'
+                || prop === 'displayName' || prop === 'getDerivedStateFromProps'
+                || prop === 'getDerivedStateFromError'
+                // React.createElement validation 의 misspelling 체크 (`PropTypes` 대문자)
+                // + 옛 deprecated API (`getDefaultProps`) 도 truthy 면 warning 발사
+                || prop === 'PropTypes' || prop === 'getDefaultProps') return undefined;
+            // ★ React 클래스 컴포넌트 판별 우회 — Component.prototype.isReactComponent
+            //   으로 React 가 클래스/함수 컴포넌트를 구분. SAFE_STUB.prototype 이
+            //   SAFE_STUB (truthy) 이면 React 가 클래스로 오인해 instantiate 후 checkClassInstance
+            //   를 돌려 contextType / shouldComponentUpdate / componentDidUnmount(typo) /
+            //   componentDidReceiveProps(typo) / super(props) / getSnapshotBeforeUpdate static
+            //   등 10+개 sanity check warning 폭주. prototype 을 undefined 로 두면 React 의
+            //   class check 가 false → function component 경로로 진입해 checkClassInstance skip.
+            if (prop === 'prototype') return undefined;
             return SAFE_STUB;          // 깊은 체이닝 (a.b.c) 도 안전
         },
-        apply()     { return SAFE_STUB; },
+        apply(_t, _thisArg, args) {
+            // ★ HOC 패턴 — `withTranslation()(C)` · `withRouter(C)` · `connect(...)(C)` 등.
+            //   단일 function 인자 + 그 함수가 **PascalCase 이름** 일 때만 identity HOC 로
+            //   인식해 component 를 그대로 반환. → PreviewEmbed 가 실제 컴포넌트를 받아 렌더.
+            //   PascalCase 체크는 `connect(mapStateToProps)(Component)` 처럼 callback
+            //   (camelCase) 을 첫 인자로 받는 케이스에서 잘못 identity 처리되는 것 방지.
+            //   (이 휴리스틱이 없으면 SAFE_STUB 이 컴포넌트로 렌더되어 React 가 "Functions
+            //    are not valid as a React child" warning 발사 + 화면 안 뜸.)
+            if (args && args.length === 1 && typeof args[0] === 'function') {
+                const fn = args[0];
+                const name = fn.displayName || fn.name || '';
+                if (/^[A-Z]/.test(name)) return fn;
+            }
+            return SAFE_STUB;
+        },
         construct() { return SAFE_STUB; },
     });
 })();
@@ -421,16 +607,20 @@ function makeFallbackComponent(spec) {
 function makeFallbackModule(spec) {
     const lastSeg = String(spec).split('/').pop() || String(spec);
     const stubComp = makeFallbackComponent(spec).default;
-    const noop = () => SAFE_STUB;
-    // 경로 자체가 훅 (`.../useXxx`) 이면 default import 도 함수여야 함
-    const baseDefault = /^use[A-Z]/.test(lastSeg) ? noop : stubComp;
+    // default export 결정:
+    //   - PascalCase (Box, BaseGrid, MaterialMaster …) → stubComp (가시적 placeholder)
+    //   - lowercase/kebab (redux-util, material-service, useDispatch …) → SAFE_STUB
+    //     (Proxy 함수 — `util.method()` · `useXxx()` · `service.foo.bar()` 모두 안전)
+    //   이전엔 lowercase 도 stubComp 이 default 라 `reduxUtil.getViewState` 가
+    //   `stubComp.getViewState` (undefined) → TypeError. SAFE_STUB 으로 통일.
+    const baseDefault = /^[A-Z]/.test(lastSeg) ? stubComp : SAFE_STUB;
     const target = { __esModule: true, default: baseDefault };
     return new Proxy(target, {
         get(t, prop) {
             if (prop in t) return t[prop];
             if (typeof prop !== 'string') return undefined;
-            // 대문자 시작 → 컴포넌트 stub · 그 외 → no-op 함수 (훅/유틸 호출 안전)
-            const v = /^[A-Z]/.test(prop) ? stubComp : noop;
+            // 대문자 시작 → 컴포넌트 stub · 그 외 → SAFE_STUB (호출·체이닝·HOC 모두 호환)
+            const v = /^[A-Z]/.test(prop) ? stubComp : SAFE_STUB;
             t[prop] = v;   // 동일 export 가 매번 같은 참조이도록 캐시
             return v;
         },
@@ -472,11 +662,14 @@ function previewRequire(spec) {
         return mod;
     }
 
-    // PlanNEL utils — empty stub object (대부분 helper 함수 모음이라 호출시 noop OK)
+    // PlanNEL utils — `reduxUtil.getViewState()` 같은 method 호출 호환 위해 SAFE_STUB 사용.
+    //   이전엔 `default: {}` 빈 객체였는데 산출물이 `reduxUtil.getViewState(...)` 호출 시
+    //   `{}.getViewState` 가 undefined → TypeError. SAFE_STUB 은 어떤 prop 접근에도
+    //   호출 가능한 함수를 돌려주므로 method chaining 안전.
     if (spec.startsWith('@plannel/utils/')) {
-        const mod = esModule({ default: {} });
-        REGISTRY[spec] = mod;
-        return mod;
+        const stub = makeFallbackModule(spec);
+        REGISTRY[spec] = stub;
+        return stub;
     }
 
     // @wingui/* · @zionex/* · @plannel/* — 사전 fetch (preloadDependencies) 도 실패한 경우
@@ -624,6 +817,12 @@ function buildAmbientScope() {
     merge(REGISTRY['@wingui/common/imports']);
     merge(REGISTRY['@wingui/common/fieldCascade']);
     merge(REGISTRY['@zionex/wingui-core']);
+    // React 전역 — 산출물이 `import { useState } from "react"` 만 하고 default React 를
+    //   import 누락하면, babel `react` preset (classic JSX transform) 이 변환한
+    //   `React.createElement(...)` 가 free var `React` 를 찾지 못해 `ReferenceError: React
+    //   is not defined`. `new Function` factory 의 outer scope 는 global 이라 module-scope 의
+    //   React 가 보이지 않음. ambient 에 노출해 with-binding 으로 resolve.
+    if (scope.React === undefined) scope.React = React;
     // wingui 화면이 import 없이 참조하는 비-shim 전역 — wingui-core/component/grid/grid.js
     //   의 export(progressSpinner·exportGridtoExcel) · react-hook-form clearErrors ·
     //   jQuery($). wingui 본 환경은 번들/부트스트랩으로 제공, 미리보기는 안전 stub 으로 보강.

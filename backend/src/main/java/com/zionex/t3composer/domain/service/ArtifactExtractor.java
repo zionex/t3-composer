@@ -33,13 +33,15 @@ public class ArtifactExtractor {
     //       ```                       ```lang                  ```
     //                                 content
     //                                 ```
-    // 핵심: 마커 줄 다음에 오는 '펜스-열기 줄'(``` 또는 ```lang) 을 0~N 개 선택 소비한다.
+    // 핵심: 마커 줄 다음에 오는 '빈 줄' 또는 '펜스-열기 줄'(``` 또는 ```lang) 을 0~N 개 선택 소비한다.
     //   (A)=1 개 · (B)=2 개(고립 ``` + ```lang) · (C)=0 개(마커가 이미 ```sql 펜스 안쪽).
     //   content 는 그 다음부터 닫는 ``` 까지. — 이 0~N 매칭이 핵심 (이전엔 1 개 고정 → (C) 실패).
+    //   빈 줄 허용 (2026-05-18 사고): 마커와 펜스 사이에 빈 줄이 들어가면 lazy capture 가
+    //   펜스-열기의 ``` 와 매칭되어 content=""  로 캡처되던 문제 → 빈/공백-only 줄도 skip.
     // language 는 캡처하지 않고 파일 확장자로 추론 (inferLanguageFromPath).
     private static final Pattern FILE_BLOCK = Pattern.compile(
             "===\\s*FILE:\\s*([^\\n]+?)(?:\\s*===)?[ \\t]*\\r?\\n"
-          + "(?:```[a-zA-Z0-9+#_-]*[ \\t]*\\r?\\n)*"
+          + "(?:[ \\t]*\\r?\\n|```[a-zA-Z0-9+#_-]*[ \\t]*\\r?\\n)*"
           + "([\\s\\S]*?)"
           + "\\r?\\n?```",
             Pattern.MULTILINE);

@@ -88,6 +88,11 @@ app:
       - "**/mssql/upgrade/**"
       - "**/oracle/procedures/**"
       - "**/oracle/upgrade/**"
+  # Target 거버넌스 설정 스냅샷 — 시크릿 암호화 마스터키 + 스냅샷 대상 루트.
+  snapshot:
+    secret-key: ${COMPOSER_SNAPSHOT_SECRET_KEY:}
+  governance-snapshot:
+    repo-root: ${COMPOSER_REPO_ROOT:/workspace/repo}
 
 # Anthropic API key — 우선순위: 1) DB 의 TB_IS_EXTRNLAPIKEY  2) 이 환경변수
 anthropic:

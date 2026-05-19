@@ -203,6 +203,11 @@ services:
       COMPOSER_PREVIEW_FRONTEND_ROOT: /workspace/preview/frontend
       COMPOSER_PREVIEW_JAVA_ROOT: /app/src/main/java/com/zionex/t3composer/preview
       COMPOSER_PREVIEW_MVN_WORKDIR: /app
+      # 거버넌스 스냅샷/복원 — repo 루트 (아래 ./:/workspace/repo:rw 마운트와 매칭)
+      COMPOSER_REPO_ROOT: /workspace/repo
+      # 스냅샷 시크릿(.env 의 API키·비밀번호, db_password) 암호화 마스터키.
+      # 비어있으면 .env 캡처/복원 시 명확한 오류. 분실 시 기존 스냅샷 시크릿 복호화 불가 — 별도 백업 필수.
+      COMPOSER_SNAPSHOT_SECRET_KEY: ${COMPOSER_SNAPSHOT_SECRET_KEY:-}
     ports:
       - "${COMPOSER_BACKEND_PORT:-8090}:8090"
     volumes:
@@ -229,7 +234,10 @@ services:
       # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.
       - ${COMPOSER_T3SERIES_CLAUDE_PATH:-./.claude}:/workspace/t3series-claude:ro
       - ${COMPOSER_PLANNEL_CLAUDE_PATH:-./.claude-plannel}:/workspace/plannel-claude:ro
-
+      # 거버넌스 스냅샷/복원 (rw) — 백엔드가 repo 루트의 .claude/·.env·CLAUDE.md·docs/ 를
+      # 직접 read/write. repo 루트 통째 마운트 — .env 단일파일 마운트의 inode 끊김 회피.
+      # 노출만 될 뿐 backend/·frontend/·staging/·.git/ 등은 excludeGlobs 가 절대 touch 안 함.
+      - ./:/workspace/repo:rw
     networks:
       - composer-net
     healthcheck:

@@ -631,6 +631,22 @@ function makeFallbackModule(spec) {
 function previewRequire(spec) {
     if (REGISTRY[spec]) return REGISTRY[spec];
 
+    // CSS / SCSS / 이미지 — 빈 모듈. 미리보기는 시각 mockup 만 필요해 스타일 미적용 OK.
+    if (/\.(css|scss|sass|less|svg|png|jpe?g|gif|webp)$/i.test(spec)) {
+        const mod = esModule({ default: {} });
+        REGISTRY[spec] = mod;
+        return mod;
+    }
+
+    // 상대 import (`./PopX`, `../utils/foo`) — preview 가 산출물 한 파일만 받기 때문에
+    //   같은 디렉토리 형제 파일은 없음. 컴포넌트로 가정해 노란 [stub] 박스로 표시.
+    //   (PopupDialog 류는 trigger 전엔 invisible 이라 보통 visual mockup 에 영향 없음)
+    if (spec.startsWith('./') || spec.startsWith('../')) {
+        const stub = makeFallbackModule(spec);
+        REGISTRY[spec] = stub;
+        return stub;
+    }
+
     // @mui/material/<sub> — `styles` 는 REGISTRY 에 명시 등록. 그 외 컴포넌트 subpath
     //   (`@mui/material/Button` 등) 는 이미 로드된 @mui/material 네임스페이스에서 꺼낸다.
     if (spec.startsWith('@mui/material/')) {
@@ -640,6 +656,53 @@ function previewRequire(spec) {
             REGISTRY[spec] = mod;
             return mod;
         }
+    }
+
+    // ★ wingui-core / @wingui subpath 라우팅 — backend 에서 실모듈 fetch 안 함.
+    //   미리보기 정책: "시각 mockup 우선". wingui 본 환경은 webpack ProvidePlugin/번들
+    //   부트스트랩으로 module 간 free var 를 inject 하지만, 미리보기는 단독 module 로
+    //   execute 해 free var 사고 (useTabContainerStyles 등) 가 끝없이 발생. 그래서
+    //   wingui-core / @wingui 의 subpath import 는 **이미 메인 번들이 로드한 namespace
+    //   에서 동일 이름 export 를 꺼내 사용**한다 (shim 의 mockup 표면 활용).
+    //
+    // 예: `import { TabContainer } from '@zionex/wingui-core/component/TabContainer'`
+    //   → ZionexWinguiCore.TabContainer (shim 의 mockup 컴포넌트) 사용
+    //   → wingui-core 의 실제 TabContainer 가 호출하던 useTabContainerStyles 사고 사라짐
+    if (spec.startsWith('@zionex/wingui-core')) {
+        const lastSeg = spec.split('/').pop() || '';
+        // PascalCase subpath ("TabContainer", "SvgIcon" 등) — 동명 named export 우선
+        if (/^[A-Z]/.test(lastSeg) && ZionexWinguiCore[lastSeg]) {
+            const mod = esModule({ ...ZionexWinguiCore, default: ZionexWinguiCore[lastSeg] });
+            REGISTRY[spec] = mod;
+            return mod;
+        }
+        // 그 외 (utils/lang/store/component 통합) — 통째로 노출. 임의 named import
+        // (transLangKey · onErrorInput · themeStoreApi 등) 가 namespace 에 있으면 작동.
+        const mod = esModule({ ...ZionexWinguiCore });
+        REGISTRY[spec] = mod;
+        return mod;
+    }
+
+    if (spec.startsWith('@wingui/common/imports')) {
+        // 동일 — 통합 import 그대로
+        const mod = esModule({ ...WinguiImports });
+        REGISTRY[spec] = mod;
+        return mod;
+    }
+
+    if (spec.startsWith('@wingui/view/common/')) {
+        // CommonCodeSelect / PopDepartment / PopPosition / LlmMarkdown 등 — REGISTRY 사전 등록.
+        // 미등록 Pop* / SelectCommon 등은 fallback component 로 [stub] 박스.
+        const stub = makeFallbackModule(spec);
+        REGISTRY[spec] = stub;
+        return stub;
+    }
+
+    if (spec.startsWith('@wingui')) {
+        // 통합 imports.js 외의 wingui 경로 — fallback
+        const stub = makeFallbackModule(spec);
+        REGISTRY[spec] = stub;
+        return stub;
     }
 
     // @mui/icons-material/<Name> — 부재 시 placeholder
@@ -711,14 +774,12 @@ function extractSpecs(source) {
     return [...specs];
 }
 
-function isResolvable(spec) {
-    // backend resolver 가 처리 가능한 spec 만 fetch — npm 패키지 명 (react, @mui/...) 제외
-    if (!spec) return false;
-    if (REGISTRY[spec]) return false;                   // 이미 등록됨
-    if (spec.startsWith('@mui/icons-material/')) return false;   // generic stub 으로
-    // 원본 wingui src 에서 가져올 후보:
-    if (spec.startsWith('@wingui/')) return true;
-    if (spec.startsWith('@zionex/wingui-core')) return true;
+function isResolvable(_spec) {
+    // ★ 미리보기 정책 — "시각 mockup 우선": wingui-core / @wingui subpath 를 backend 에서
+    //   실모듈로 fetch 하면 그 안의 free var (useTabContainerStyles 등) 가 module scope 에
+    //   없어 ReferenceError 가 끊임없이 발생. 그래서 backend fetch 는 더 이상 시도하지 않고,
+    //   previewRequire 가 REGISTRY 의 shim namespace (WinguiImports/ZionexWinguiCore) 에서
+    //   matching export 를 꺼낸다. fetch 호출 0건 = 사고 클래스 전체 차단.
     return false;
 }
 
@@ -829,6 +890,14 @@ function buildAmbientScope() {
     if (scope.progressSpinner   === undefined) scope.progressSpinner   = '';
     if (scope.exportGridtoExcel === undefined) scope.exportGridtoExcel = () => {};
     if (scope.clearErrors       === undefined) scope.clearErrors       = () => {};
+    // wingui-core 내부 module 들이 styles hook 을 import 없이 free var 로 참조하는
+    // 패턴 — wingui 본 환경은 번들 부트스트랩으로 제공. 미리보기는 단독 fetched 모듈로
+    // 실행되어 ReferenceError. classes.x → SAFE_STUB (chaining 안전) 반환하는 함수 stub.
+    if (scope.useTabContainerStyles === undefined) scope.useTabContainerStyles = () => SAFE_STUB;
+    if (scope.useStyles             === undefined) scope.useStyles             = () => SAFE_STUB;
+    if (scope.useGridStyles         === undefined) scope.useGridStyles         = () => SAFE_STUB;
+    if (scope.useFormStyles         === undefined) scope.useFormStyles         = () => SAFE_STUB;
+    if (scope.useDialogStyles       === undefined) scope.useDialogStyles       = () => SAFE_STUB;
     if (scope.$ === undefined) {
         const jq = function () { return jq; };
         jq.each   = (obj, fn) => { if (obj) Object.keys(obj).forEach((k) => fn(k, obj[k])); return jq; };

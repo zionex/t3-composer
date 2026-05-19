@@ -41,7 +41,13 @@ public class TargetPathResolver {
 
     // 후보 디렉토리가 "실제 소스/DB 루트" 인지 가리는 하위 구조 마커.
     // 빈 './empty' placeholder 슬롯 (.gitkeep 만 보유) 은 이 마커가 없어 자동 탈락한다.
-    private static final String SOURCE_MARKER   = "packages/wingui/src";  // wingui 소스 루트
+    // Target 마다 소스 트리 형태가 달라 여러 마커를 OR 로 검사 — 하나라도 매칭되면 채택.
+    //   · T3SERIES (wingui 모노레포) — packages/wingui/src
+    //   · PlanNEL  (단일 React SPA) — src/pages (메뉴 정의 TabMenuList.js 위치)
+    private static final String[] SOURCE_MARKERS  = {
+        "packages/wingui/src",   // wingui 모노레포 구조
+        "src/pages",             // PlanNEL 류 React SPA 구조
+    };
     private static final String DATABASE_MARKER = "mssql";                // DB 스크립트 루트
 
     private final TargetSystemRepository targetRepo;
@@ -81,9 +87,15 @@ public class TargetPathResolver {
         return DEFAULT_DATABASE_PATH;
     }
 
-    /** wingui 소스 루트 여부 — 디렉토리 존재 + 'packages/wingui/src' 하위 구조 보유. */
+    /**
+     * 소스 루트 여부 — 디렉토리 존재 + SOURCE_MARKERS 중 하나 이상 하위 구조 보유.
+     * Target 종류별로 다른 트리 구조 (wingui 모노레포 / PlanNEL React SPA) 를 모두 인식.
+     */
     private static boolean looksLikeSourceRoot(String pathStr) {
-        return hasMarker(pathStr, SOURCE_MARKER);
+        for (String m : SOURCE_MARKERS) {
+            if (hasMarker(pathStr, m)) return true;
+        }
+        return false;
     }
 
     /** DB 스크립트 루트 여부 — 디렉토리 존재 + 'mssql' 하위 구조 보유. */

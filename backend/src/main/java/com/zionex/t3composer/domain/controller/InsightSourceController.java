@@ -25,7 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
+import com.zionex.t3composer.domain.entity.TargetSystem;
+import com.zionex.t3composer.domain.repository.TargetSystemRepository;
 import com.zionex.t3composer.domain.service.JpaMethodSqlMapper;
+import com.zionex.t3composer.domain.service.JsMenuFileParser;
 import com.zionex.t3composer.domain.service.TargetPathResolver;
 
 import lombok.RequiredArgsConstructor;
@@ -57,6 +60,8 @@ public class InsightSourceController {
     private final TargetDataSourceRegistry dsRegistry;
     private final JpaMethodSqlMapper       sqlMapper;
     private final TargetPathResolver       pathResolver;
+    private final TargetSystemRepository   targetRepo;
+    private final JsMenuFileParser         jsMenuFileParser;
 
     private JdbcTemplate pickJdbc(String targetCd) {
         if (targetCd != null && !targetCd.isBlank()) {
@@ -83,6 +88,19 @@ public class InsightSourceController {
                 .body(Map.of("success", false, "error", "menuCd is required"));
         }
         String targetCd = req == null ? null : stringOf(req.get("targetCd"));
+
+        // Target.menu_source == JS_FILE 이면 TB_AD_MENU 가 없으므로 별도 경로 (PLANNEL 등).
+        //   TabMenuList.js 파싱 결과에서 menuCd(=reduxKey) 로 entry 를 찾아 그 파일을 본다.
+        //   Java 백엔드는 없는 환경이므로 backend 섹션은 빈 배열로 반환.
+        if (targetCd != null && !targetCd.isBlank()) {
+            TargetSystem t = targetRepo.findById(targetCd).orElse(null);
+            String menuSource = (t != null && t.getMenuSource() != null && !t.getMenuSource().isBlank())
+                    ? t.getMenuSource() : "DB";
+            if ("JS_FILE".equalsIgnoreCase(menuSource)) {
+                return collectFromJsFileTarget(targetCd, menuCd);
+            }
+        }
+
         JdbcTemplate jdbc = pickJdbc(targetCd);
 
         // 1) MENU_FILE_PATH lookup (Target DB — live or fallback)
@@ -369,4 +387,129 @@ public class InsightSourceController {
         return (s != null && s.startsWith("/")) ? s.substring(1) : s;
     }
     private static String stringOf(Object v) { return v == null ? null : v.toString(); }
+
+    // ───────────────────────────── JS_FILE mode (PlanNEL 등) ───────────────
+    /**
+     * Target.menu_source = JS_FILE 일 때의 source 수집.
+     *   1) <sourceRoot>/src/pages/TabMenuList.js 파싱 → menuCd(=reduxKey/menuCd) 매칭 entry
+     *   2) entry.filePath (예: "/system/Authentication") → src/pages 아래에서 .js/.jsx 검색
+     *   3) 그 파일 본문을 screen.source 로. Java 백엔드 없으므로 backend.* 빈 배열.
+     */
+    private ResponseEntity<?> collectFromJsFileTarget(String targetCd, String menuCd) {
+        String sourceRoot = pathResolver.resolveSourcePath(targetCd);
+        Path[] menuFileCandidates = new Path[]{
+            Path.of(sourceRoot, "src", "pages", "TabMenuList.js"),
+            Path.of(sourceRoot, "src", "pages", "TabMenuList.jsx"),
+            Path.of(sourceRoot, "src", "TabMenuList.js"),
+        };
+        Path menuFile = null;
+        for (Path p : menuFileCandidates) {
+            if (Files.isRegularFile(p)) { menuFile = p; break; }
+        }
+        if (menuFile == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "success", false,
+                "error", "TabMenuList.js 파일을 찾지 못했습니다 (Target.sourceRefPath 확인). 후보: "
+                       + java.util.Arrays.toString(menuFileCandidates)));
+        }
+
+        Map<String, Object> tree;
+        try {
+            tree = jsMenuFileParser.parse(menuFile);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false, "error", "TabMenuList.js 파싱 실패: " + e.getMessage()));
+        }
+
+        Map<String, Object> entry = findMenuEntry(tree, menuCd);
+        if (entry == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "success", false,
+                "error", "메뉴를 TabMenuList.js 에서 찾을 수 없음 (menuCd=reduxKey 기준): " + menuCd));
+        }
+
+        String relFilePath = stringOf(entry.get("filePath"));
+        if (relFilePath == null || relFilePath.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "success", false,
+                "error", "menuCd 에 대한 컴포넌트 import 경로를 찾을 수 없음: " + menuCd));
+        }
+        String rel = stripLeadingSlash(relFilePath);   // "data-management/HrchyConfig"
+
+        Path pagesBase = Path.of(sourceRoot, "src", "pages");
+        Path[] sourceCandidates = new Path[]{
+            pagesBase.resolve(rel + ".js"),
+            pagesBase.resolve(rel + ".jsx"),
+            pagesBase.resolve(rel + "/index.js"),
+            pagesBase.resolve(rel + "/index.jsx"),
+        };
+        Path sourceFile = null;
+        for (Path p : sourceCandidates) {
+            if (Files.isRegularFile(p)) { sourceFile = p; break; }
+        }
+        if (sourceFile == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "success", false,
+                "error", "화면 소스 파일을 찾을 수 없음. 후보: " + java.util.Arrays.toString(sourceCandidates),
+                "menuFilePath", relFilePath));
+        }
+
+        String source;
+        try {
+            source = Files.readString(sourceFile);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false, "error", "소스 파일 읽기 실패: " + e.getMessage()));
+        }
+
+        Map<String, Object> screen = new LinkedHashMap<>();
+        screen.put("path",   sourceFile.toString());
+        screen.put("source", source);
+
+        Map<String, Object> backend = new LinkedHashMap<>();
+        backend.put("controllers",  Collections.emptyList());
+        backend.put("services",     Collections.emptyList());
+        backend.put("repositories", Collections.emptyList());
+        backend.put("entities",     Collections.emptyList());
+        backend.put("procedures",   Collections.emptyList());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success",          true);
+        result.put("menuCd",           menuCd);
+        result.put("menuFilePath",     relFilePath);
+        result.put("displayName",      entry.get("displayName"));
+        result.put("i18nKey",          entry.get("i18nKey"));
+        result.put("screen",           screen);
+        result.put("frontendSources",  Collections.emptyList());
+        result.put("frontendProcedures", Collections.emptyMap());
+        result.put("backend",          backend);
+        result.put("apiCalls",         Collections.emptyList());
+        result.put("apiCallCount",     0);
+        result.put("proceduresUsed",   Collections.emptyList());
+        result.put("menuSource",       "JS_FILE");
+
+        log.info("collect-source-for-llm (JS_FILE) — target={} menuCd={} sourceFile={}",
+                targetCd, menuCd, sourceFile);
+
+        return ResponseEntity.ok(result);
+    }
+
+    /** menuTree (items[].items[]...) 에서 id 또는 dbId 가 menuCd 와 일치하는 leaf 검색. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> findMenuEntry(Map<String, Object> tree, String menuCd) {
+        List<Map<String, Object>> roots = (List<Map<String, Object>>) tree.get("items");
+        if (roots == null) return null;
+        java.util.ArrayDeque<Map<String, Object>> stack = new java.util.ArrayDeque<>(roots);
+        while (!stack.isEmpty()) {
+            Map<String, Object> node = stack.poll();
+            if (menuCd.equals(node.get("id")) || menuCd.equals(node.get("dbId"))) return node;
+            Object children = node.get("items");
+            if (children instanceof List<?>) {
+                for (Object c : (List<?>) children) {
+                    if (c instanceof Map<?, ?>) stack.push((Map<String, Object>) c);
+                }
+            }
+        }
+        return null;
+    }
 }

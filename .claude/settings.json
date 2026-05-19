@@ -80,7 +80,9 @@
       "Skill(superpowers:writing-plans:*)",
       "Skill(superpowers:executing-plans)",
       "Skill(superpowers:executing-plans:*)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(cat /tmp/tab2.js)",
+      "Read(//private/tmp/**)"
     ],
     "deny": [
       "Bash(rm -rf*)",

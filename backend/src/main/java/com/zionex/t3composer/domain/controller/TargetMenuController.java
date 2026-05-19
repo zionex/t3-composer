@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.config.TargetDataSourceRegistry;
 import com.zionex.t3composer.domain.entity.TargetSystem;
@@ -101,7 +102,7 @@ public class TargetMenuController {
             }
 
             if ("JS_FILE".equalsIgnoreCase(menuSource)) {
-                return ResponseEntity.ok(loadJsFileMenus(target));
+                return ResponseEntity.ok(loadJsFileMenus(target, lang));
             }
 
             // 2) 기본 DB 경로
@@ -121,8 +122,10 @@ public class TargetMenuController {
     /**
      * Target.sourceRefPath 아래의 JS 파일에서 메뉴 트리 추출.
      * 기본 후보: src/pages/TabMenuList.js (PlanNEL 컨벤션)
+     * @param lang 사용자 언어 (ko/en/ja/zh/vi) — translation.<lang>-<region>.json 로 매핑되어
+     *             메뉴 i18n key 를 한국어 등 표시명으로 변환.
      */
-    private Map<String, Object> loadJsFileMenus(String targetCd) throws IOException {
+    private Map<String, Object> loadJsFileMenus(String targetCd, String lang) throws IOException {
         String root = pathResolver.resolveSourcePath(targetCd);
         Path[] candidates = new Path[]{
             Path.of(root, "src", "pages", "TabMenuList.js"),
@@ -143,11 +146,60 @@ public class TargetMenuController {
                     "검색한 경로: " + Arrays.toString(candidates));
             return empty;
         }
-        Map<String, Object> tree = jsMenuFileParser.parse(found);
+        // src/assets/data/l10n/translation.<lang>-<region>.json 의 "menu" 객체를 i18n map 으로.
+        Map<String, String> translations = loadMenuTranslations(root, lang);
+        Map<String, Object> tree = jsMenuFileParser.parse(found, translations);
         tree.put("source", "target:" + targetCd);
         tree.put("menuSource", "JS_FILE");
         tree.put("sourceFile", found.toString());
+        tree.put("i18nKeyCount", translations.size());
         return tree;
+    }
+
+    /**
+     * src/assets/data/l10n/translation.&lt;lang&gt;-&lt;region&gt;.json 의 최상위 "menu" 객체를
+     * Map&lt;i18nKey, 표시명&gt; 으로 평탄화. PlanNEL 컨벤션:
+     *   { "menu": { "menuDemandPlan": "수요 계획", "inventoryPlan": "재고 계획", ... } }
+     * 파일 미발견·파싱 실패 시 빈 Map 반환 (parser 는 i18n key 그대로 표시).
+     */
+    private Map<String, String> loadMenuTranslations(String sourceRoot, String lang) {
+        String region = regionForLang(lang);
+        if (region == null) return Map.of();
+        Path file = Path.of(sourceRoot, "src", "assets", "data", "l10n",
+                "translation." + region + ".json");
+        if (!Files.isRegularFile(file)) {
+            log.debug("translation 파일 없음: {}", file);
+            return Map.of();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+            JsonNode tree = mapper.readTree(file.toFile());
+            JsonNode menu = tree.get("menu");
+            if (menu == null || !menu.isObject()) return Map.of();
+            Map<String, String> out = new HashMap<>();
+            menu.fields().forEachRemaining(e -> {
+                JsonNode v = e.getValue();
+                if (v != null && v.isTextual()) out.put(e.getKey(), v.asText());
+            });
+            return out;
+        } catch (IOException e) {
+            log.warn("translation 파일 파싱 실패: {} — {}", file, e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /** ko → "ko-kr" 등 PlanNEL translation 파일 region 토큰 매핑. */
+    private String regionForLang(String lang) {
+        if (lang == null) return null;
+        switch (lang.toLowerCase()) {
+            case "ko": return "ko-kr";
+            case "en": return "en-us";
+            case "ja": return "ja-jp";
+            case "zh": return "zh-cn";
+            case "vi": return "vi-vn";
+            default:   return null;
+        }
     }
 
     @SuppressWarnings("unchecked")

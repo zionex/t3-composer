@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +64,27 @@ public class JsMenuFileParser {
 
     /** TabMenuList.js 등 JS 메뉴 파일을 읽어 통합 메뉴 트리 Map 반환. */
     public Map<String, Object> parse(Path file) throws IOException {
+        return parse(file, Collections.emptyMap());
+    }
+
+    /**
+     * i18n translation map 적용 버전 — title 이 i18n key (예: "menuDemandPlan") 이면
+     * translations.get(title) 으로 lookup 해 displayName 으로 노출.
+     * 매핑 없으면 i18n key 그대로 표시.
+     */
+    public Map<String, Object> parse(Path file, Map<String, String> translations) throws IOException {
         String content = Files.readString(file, StandardCharsets.UTF_8);
-        return parseContent(content);
+        return parseContent(content, translations);
     }
 
     public Map<String, Object> parseContent(String content) {
+        return parseContent(content, Collections.emptyMap());
+    }
+
+    public Map<String, Object> parseContent(String content, Map<String, String> translations) {
         Map<String, String> importMap = extractImports(content);
         String lv3Body = extractLv3Body(content);
+        Map<String, String> i18n = translations == null ? Collections.emptyMap() : translations;
 
         List<Map<String, Object>> roots = new ArrayList<>();
         if (lv3Body == null) {
@@ -84,7 +99,7 @@ public class JsMenuFileParser {
                 if (arrayEnd <= arrayStart) continue;
                 String arrayBody = lv3Body.substring(arrayStart, arrayEnd);
 
-                List<Map<String, Object>> leafs = extractLeafs(arrayBody, importMap);
+                List<Map<String, Object>> leafs = extractLeafs(arrayBody, importMap, i18n);
                 if (leafs.isEmpty()) continue;
 
                 Map<String, Object> rootNode = new LinkedHashMap<>();
@@ -177,7 +192,8 @@ public class JsMenuFileParser {
     }
 
     /** lv3 array body 안에서 leaf 엔트리들을 추출. */
-    private List<Map<String, Object>> extractLeafs(String arrayBody, Map<String, String> importMap) {
+    private List<Map<String, Object>> extractLeafs(String arrayBody, Map<String, String> importMap,
+                                                    Map<String, String> i18n) {
         List<Map<String, Object>> leafs = new ArrayList<>();
         // 객체 단위 슬라이스 — 깊이 추적으로 top-level `{...}` 만 잡음
         List<String> objects = sliceTopLevelObjects(arrayBody);
@@ -205,8 +221,16 @@ public class JsMenuFileParser {
             }
             node.put("filePath", filePath);
             node.put("seq", ++seq);
-            node.put("displayName", title != null ? title : menuId);
-            node.put("hasLangPack", false);
+            // i18n key (title) lookup — 매핑 없으면 key 그대로 표시.
+            //   translation.<lang>-<region>.json 의 "menu" 객체에서 받아온 map 사용.
+            String displayName = menuId;
+            if (title != null) {
+                String translated = i18n.get(title);
+                displayName = (translated != null && !translated.isBlank()) ? translated : title;
+            }
+            node.put("displayName", displayName);
+            node.put("i18nKey", title);
+            node.put("hasLangPack", title != null && i18n.containsKey(title));
             node.put("items", new ArrayList<>());
             leafs.add(node);
         }

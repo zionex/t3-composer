@@ -64,8 +64,8 @@ ls t3series-wingui/packages/wingui/src/view/common/Y.jsx
 | 이름·자유 텍스트 | `<InputField type="text">` | `dataType:'text'` (LEFT 기본) |
 | 코드형 식별자/전화번호 | `<InputField type="text">` | `dataType:'text'` + `textAlignment:'center'` |
 | 숫자 (수량·금액) | `<InputField type="number">` | `dataType:'number'` + `textAlignment:'far'` + `numberFormat` |
-| Y/N boolean | `<CommonCodeSelect groupCd="USE_YN">` (또는 `type="check"`) | `dataType:'boolean'` + `textAlignment:'center'` (자동 CheckBox) + `toBool/toYN` |
-| 코드 + 명 (소량 enum) | `<CommonCodeSelect groupCd="...">` | `useDropdown:true` + `lookupDisplay:true` + `values:[...]` + `labels:[...]` + `textAlignment:'center'` |
+| Y/N boolean | `<InputField type="select" options=[{value:'Y',label:'사용'},{value:'N',label:'미사용'}]>` 또는 `type="check"` | `dataType:'boolean'` + `textAlignment:'center'` (자동 CheckBox) + `toBool/toYN` |
+| 코드 + 명 (소량 enum) | `<InputField type="select" options=[...]>` — 옵션은 inline 정적 또는 화면 onMount 에 `zAxios.get('/system/common/codes',{params:{'group-cd':'XXX'}})` | `useDropdown:true` + `lookupDisplay:true` + `values:[...]` + `labels:[...]` + `textAlignment:'center'` |
 | 단일 일자 | `<InputField type="datetime" displayType="date" {...getDateInputProps()}>` | `dataType:'datetime'` + `displayType:'date'` + `datetimeFormat:'yyyy-MM-dd'` + `editor:{type:'date'}` + `textAlignment:'center'` |
 | 일시 (CREATE_DTTM 등) | (보통 검색 X) | `dataType:'datetime'` + `datetimeFormat:'yyyy-MM-dd HH:mm:ss'` + `textAlignment:'center'` |
 | 기간 FROM~TO | `<InputField type="dateRange" displayType="date">` | (그리드는 단일 일자 컬럼 2개) |
@@ -246,32 +246,45 @@ const handleConfirm = (selected) => {
 
 ---
 
-## §9. 공통코드 (CommonCodeSelect) Dropdown 정책
+## §9. 공통코드 Dropdown 정책 — `InputField type="select"` 사용
 
-`TB_AD_COMN_CODE` 기반 enum 성 코드 (USE_YN, USER_TP, STATUS_CD 등) 는 **항상 `CommonCodeSelect` Dropdown** 사용. 자유 text · hardcoded `options=[...]` 금지.
+> ⛔ **`CommonCodeSelect` 산출물 import 금지** — wingui 본 환경에는 존재하지 않는 컴포넌트이고
+> t3-composer 의 [화면 실행] preview shim (`shim/wingui/view/common/CommonCodeSelect.jsx`)
+> 에만 있는 도우미. 산출물에 import 하면 wingui sync 후 webpack `Module not found` 로 깨짐.
 
-### §9.1 정책
-- **기본**: Dropdown 전용 (UX 일관성)
-- **예외**: 50개 초과 대량 코드 (국가/통화 등) 는 `mode="popup"` 명시 시만 POPUP 전환
+`TB_AD_COMN_CODE` 기반 enum 코드 (USE_YN, USER_TP, STATUS_CD 등) 는 표준 `<InputField type="select">`
+사용. 옵션은 inline 정적 또는 화면 onMount 에서 직접 fetch.
 
-### §9.2 사용
+### §9.1 인라인 정적 옵션 (코드값이 고정·소량인 경우 권장)
 ```jsx
-import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
+const [useYnOptions] = useState([
+  { value: 'Y', label: '사용' },
+  { value: 'N', label: '미사용' },
+]);
 
-<CommonCodeSelect
-  groupCd="USE_YN" name="useYn" control={control}
-  label="사용여부" includeAll                  // '전체' 옵션 prepend
-/>
-
-// 대량 예외
-<CommonCodeSelect groupCd="COUNTRY_CD" name="countryCd" control={control}
-                  label="국가" mode="popup" />
+<InputField control={control} type="select" name="useYn" label="사용여부" options={useYnOptions} />
 ```
 
-### §9.3 내부
-- `GET /system/common/codes?group-cd=${groupCd}` 자동 로드
-- 모듈 스코프 Map 캐시 (groupCd 당 1회 호출)
-- `invalidateCommonCodeCache(groupCd?)` export — 코드 편집 후 호출
+### §9.2 공통코드 동적 fetch (그룹코드 변경에 즉시 반영하려는 경우)
+```jsx
+const [statusOptions, setStatusOptions] = useState([]);
+useEffect(() => {
+  zAxios.get('/system/common/codes', { params: { 'group-cd': 'STATUS_CD' } })
+    .then((res) => setStatusOptions(
+      res.data.map((c) => ({ value: c.comnCd, label: c.comnNmKo || c.comnNm }))
+    ));
+}, []);
+
+<InputField control={control} type="select" name="statusCd" label="상태" options={statusOptions} />
+```
+
+### §9.3 그리드 enum 컬럼은 별개 — `useDropdown + lookupDisplay + values + labels`
+그리드 셀 enum 편집은 `<CommonCodeSelect>` 와 무관. BaseGrid 컬럼 정의에서 직접:
+```js
+{ name: 'useYn', dataType: 'text', headerText: '사용', width: 80,
+  useDropdown: true, lookupDisplay: true,
+  values: ['Y', 'N'], labels: ['사용', '미사용'] }
+```
 
 ---
 

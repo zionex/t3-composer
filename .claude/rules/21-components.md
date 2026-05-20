@@ -46,6 +46,41 @@ alwaysApply: false
 
 `react-hook-form` 의 `control` prop 으로 연결. `useForm()` 에서 `control`, `getValues`, `setValue`, `watch`, `handleSubmit` 추출.
 
+#### 3.1.0 ⛔ `useForm({ defaultValues })` — 타입별 초기값 (필수)
+
+`react-hook-form` 의 `defaultValues` 객체에서 **각 필드 type 에 맞는 초기값** 을 줘야 함.
+모든 필드를 `''` (빈 문자열) 로 두면 `datetime` / `dateRange` / `number` / `check` / `multiSelect`
+입력에서 validator/coerce 가 깨져 콘솔 에러나 화면 깨짐 발생 (특히 datetime).
+
+| InputField type | ✅ 올바른 초기값 | ❌ 금지 |
+|---|---|---|
+| `text` · `textarea` · `action` · `popover` | `''` | — |
+| `select` · `radio` (단일) | `''` 또는 첫 옵션 value | — |
+| `multiSelect` · `autocomplete`(multi) | `[]` | `''` (배열 메서드 호출 시 crash) |
+| `number` | `null` 또는 숫자 | `''` (NaN 발생) |
+| `check` (단일 boolean) | `false` | `''` · `'N'` (boolean 강제 안 됨) |
+| **`datetime`** (단일 일자/일시) | **`null`** 또는 `new Date()` 또는 `''` 미사용 | **`''` 금지** — datetime picker 가 invalid Date 로 해석 |
+| **`dateRange`** | **`[null, null]`** 또는 `{from:null, to:null}` (컴포넌트 spec) | `''` · `[]` |
+| `time` | `null` 또는 `'HH:mm'` 문자열 | `''` |
+
+```jsx
+const { control, getValues, handleSubmit } = useForm({
+  defaultValues: {
+    userId: '', userNm: '',                  // text — '' OK
+    useYn: '',                                // select — '' (전체)
+    joinDt: null,                             // ★ datetime — null (또는 new Date())
+    periodRange: [null, null],                // ★ dateRange — [null, null]
+    minAmount: null,                          // number
+    includeRetired: false,                    // check
+    statusList: [],                           // multiSelect
+  },
+});
+```
+
+⛔ **자주 발생하는 사고**: `defaultValues: { regDt: '' }` → datetime InputField 가 `''` 을
+`new Date('')` 로 변환 시도 → `Invalid Date` → 콘솔 RangeError + RHF validator 가 매 keystroke
+마다 throw. 항상 `null` 로 시작하고 사용자가 입력 시 setValue 로 Date 객체 주입.
+
 #### 3.1.1 검색조건 팝업 트리거 (`type="action"`) — children 필수
 ```jsx
 import SearchIcon from '@mui/icons-material/Search';
@@ -73,22 +108,31 @@ import SearchIcon from '@mui/icons-material/Search';
 | `ResourceMultiSearchBox` | 리소스 복수 선택 | MP/FP |
 | `UserInputField` | 사용자 선택 | 공통 |
 
-### 3.3 공통코드 Dropdown — `CommonCodeSelect` (필수 사용)
+### 3.3 공통코드 Dropdown — 표준 `InputField type="select"` 사용
 
-`TB_AD_COMN_CODE` 기반 enum 코드 (`USE_YN`, `USER_TP`, `STATUS_CD` 등) 는 **항상 `CommonCodeSelect` Dropdown** 사용.
+> ⛔ **`CommonCodeSelect` 컴포넌트 산출물 사용 금지** — wingui 본 환경에는 존재하지 않는
+> 컴포넌트이고 t3-composer 의 [화면 실행] preview shim 에만 있는 도우미이다. 산출물 코드에
+> import 하면 wingui sync 후 컴파일 깨짐.
+
+`TB_AD_COMN_CODE` 기반 enum 코드 (`USE_YN`, `USER_TP`, `STATUS_CD` 등) 는 표준
+`<InputField type="select" options={[...]}>` 또는 호출자가 직접 fetch 한 옵션으로 처리:
 
 ```jsx
-import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
+const [useYnOptions, setUseYnOptions] = useState([
+  { value: 'Y', label: '사용' },
+  { value: 'N', label: '미사용' },
+]);
 
-<CommonCodeSelect
-  control={control} groupCd="USE_YN" name="useYn" label="사용여부" includeAll
-/>
-
-// 50개 초과 대량 코드 (국가/통화 등) 만 popup 모드
-<CommonCodeSelect control={control} groupCd="COUNTRY_CD" name="countryCd" label="국가" mode="popup" />
+<InputField control={control} type="select" name="useYn" label="사용여부" options={useYnOptions} />
 ```
-- ❌ hardcoded `options=[{value, label}, ...]` 금지 (Hook warn)
-- 기본 GET URL: `/system/common/codes?group-cd=${groupCd}` (자동, 모듈 캐시)
+
+옵션을 공통코드에서 동적으로 받으려면 화면 onMount 에 zAxios 로 조회:
+```jsx
+useEffect(() => {
+  zAxios.get('/system/common/codes', { params: { 'group-cd': 'USE_YN' } })
+    .then((res) => setUseYnOptions(res.data));
+}, []);
+```
 
 ## 4. 그리드 (RealGrid2)
 
@@ -253,8 +297,11 @@ PopLocatMst · PopLocatTp · PopLocatTpMulti
 PopResourceMulti · PopRouteMulti
 PopPersonalize · PopPersonalizeDp · PopKpiWeightConfig
 LogPopup · LlmMarkdown · IconPicker · PopLogout · PopSimulationVersion
-SimulationAiPanel · CommonCodeSelect
+SimulationAiPanel
 ```
+
+> ⚠️ **`CommonCodeSelect` 는 산출물에서 사용 금지** — preview shim 에만 있고 wingui 본 환경엔
+> 없는 컴포넌트. §3.3 참조 (`InputField type="select"` + 옵션 fetch 패턴 사용).
 
 ### 8.2 ❌ 미실재 (rule 표·인벤토리에 적혀 있어도) — 사용 시 같이 생성하거나 일반 input 으로 대체
 ```
@@ -383,7 +430,7 @@ showMessage('알림', msg, { onOk, onCancel });
 - ❌ `<GridCnt grid="...">` 만 (`format` 누락) — `format={"{0} " + transLangKey("CASES") + ...}` (Hook block)
 - ❌ `useFieldCascade` 가 다루는 컬럼 (itemCd/accountCd/simulVerCd 등) 사용하면서 `useFieldCascade`/`applyGridCascade` 미호출 — Hook warn
 - ❌ Master 필드 (품목/거래처/거점/부서/직위) 자유 text 입력 — Pop\* 사용
-- ❌ 공통코드 hardcoded `options` — `<CommonCodeSelect groupCd="...">` 사용
+- ❌ 산출물에 `import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect'` — wingui 본 환경에 없는 컴포넌트 (preview shim 전용). `InputField type="select"` + 직접 옵션 fetch 사용 (§3.3)
 - ❌ `use_yn`/status 무시하고 온톨로지 사용 — `.claude/rules/10-ontology-first.md`
 - ❌ CRUD 가 아닌 분석 화면에 `GridAddRowButton` 노출 — UX 혼란
 - ❌ `sample` 폴더 코드 그대로 프로덕션 복사 — `setViewInfo`, AI 프로바이더 누락됨

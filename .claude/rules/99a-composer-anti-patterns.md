@@ -46,6 +46,7 @@
 | CG-C10 | 그리드 컬럼에 `button:'action'` / `buttonVisibility:'always'` 수동 지정 | `applyGridCascade` 가 자동 주입 | hook warn |
 | CG-C11 | BaseGrid 컬럼에 `dataType` 누락 — `BaseGrid.jsx:1016` 의 `item.dataType.toLowerCase()` 호출에서 TypeError, 화면 진입 즉시 크래시 | 모든 컬럼에 `dataType: 'text'\|'number'\|'datetime'\|'boolean'\|'group'` 명시 | hook H (CG-FAB3-DT) |
 | CG-C12 | Zustand store 매핑 swap — `useViewStore` 에서 `activeViewId` / `useContentStore` 에서 `setViewInfo` 추출 → selector 가 undefined 반환 → `setViewInfo is not a function` TypeError | `activeViewId` ← `useContentStore` · `setViewInfo` ← `useViewStore` (각각 정확한 store 사용) | hook H (CG-STORE) |
+| CG-C13 | `useForm({ defaultValues: { regDt: '' } })` — datetime · dateRange · number · check · multiSelect 필드를 빈 문자열로 초기화. datetime 의 경우 `new Date('')` → `Invalid Date` → 매 keystroke 마다 RHF validator throw + 콘솔 RangeError. 화면 진입 즉시 깨짐 | type 별 적정 초기값: `datetime` → **`null`** 또는 `new Date()` · `dateRange` → `[null, null]` · `number` → `null` · `check` → `false` · `multiSelect`/`autocomplete(multi)` → `[]` · text 만 `''`. 상세는 `21-components.md §3.1.0` 표 | LLM/L |
 
 ## D. 서버 통신
 | # | ❌ | ✅ | 검증 |
@@ -60,7 +61,7 @@
 | # | ❌ | ✅ | 검증 |
 |---|---|---|---|
 | CG-E1 | Master 필드 (품목/거래처/거점/부서/직위) 자유 text 입력 | 기본 POPUP (Pop\* 컴포넌트 재사용) | hook warn |
-| CG-E2 | hardcoded `options=[{value:'Y',label:'Y'},...]` (공통코드) | `<CommonCodeSelect groupCd="...">` | hook warn |
+| CG-E2 | 산출물에 `import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect'` — wingui 본 환경에 없는 컴포넌트 (t3-composer preview shim 전용 도우미). sync 후 webpack `Module not found` 빌드 깨짐 | `<InputField type="select" options={...}>` — 정적이면 inline, 동적이면 화면 onMount 에 `zAxios.get('/system/common/codes',{params:{'group-cd':'XXX'}})` 로 옵션 fetch | LLM/L |
 | CG-E3 | Cascade parent 잘못 모델링 (예: `deptCd → positionCd`) | 독립 마스터는 popup-only 등록 | L |
 | CG-E4 | `useFieldCascade` / `applyGridCascade` 누락 (cascade 컬럼 사용 시) | form 에 useFieldCascade · 그리드 afterGridCreate 에 applyGridCascade | hook warn |
 | CG-E5 | POPUP `confirm` 콜백을 단건 객체 가정 | 항상 배열 · `firstOf(sel)=Array.isArray(s)?s[0]:s` 추출 | L |

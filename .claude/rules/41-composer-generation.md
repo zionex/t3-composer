@@ -18,7 +18,7 @@
 | **`41-composer-generation.md`** (이 문서) | §0 참조 원본 · §1 런타임 · §2 MENU_CD · §3 PARENT_MENU_CD · §10 MENU_SQL · §11 그리드 정렬/포맷 · §12 체크리스트 · §13 엔진 경유 예외 · §14 Anti-patterns |
 | **`41a-composer-jsx.md`** | §4 JSX 표준 (Imports / BaseGrid / 그리드 컬럼 / 버튼 / zAxios / showMessage) + §0.6 레이아웃 변경 prop 명세 |
 | **`41b-composer-java.md`** | §5 Java 백엔드 (정책 차단 / DDL·SP 정책 / import 화이트리스트 / 4종 세트 코드 템플릿 / 자기 검증) |
-| **`41c-composer-widgets.md`** | §6 위젯 카탈로그 · §7 필드 주종관계 Cascade · §8 표준 POPUP 양식 · §9 CommonCodeSelect Dropdown |
+| **`41c-composer-widgets.md`** | §6 위젯 카탈로그 · §7 필드 주종관계 Cascade · §8 표준 POPUP 양식 · §9 공통코드 Dropdown 정책 |
 | **`41d-composer-wizard.md`** | §15 세션 상태 전이 (COMPLETED 자동) · §16 통합 9-Step Wizard (NEW_STEP / NEW_FROM_COPY / NEW_FROM_DESIGN) |
 
 ---
@@ -99,7 +99,7 @@ public class FeatureService {
 
 - 유사 원본을 읽지 않고 바로 작성 (자유 창작)
 - 원본과 다른 파일 구조·import·네이밍
-- 기존 공용 컴포넌트 (Pop\* / CommonCodeSelect / useFieldCascade) 재사용 안 하고 중복 구현
+- 기존 공용 컴포넌트 (Pop\* / useFieldCascade) 재사용 안 하고 중복 구현
 - 원본에 있는 요소를 '간소화' 라며 누락
 - **원본에 없는 wrapper 추가** (`SplitPanel` / `GroupBox` / `FormArea` / `FormRow` / `FormItem` / `HLayoutBox` / `VLayoutBox` 임의 도입)
 - **허구 prop 이름** (`initialSizes` · `minSizes` · `textAlign` 등 — 실제 API 가 아닌 이름 추측)
@@ -114,7 +114,7 @@ public class FeatureService {
 1. 원본에 없는 `SplitPanel` + `initialSizes`/`minSizes` (허구 prop) 도입 → React DOM warning
 2. BaseGrid 컬럼에 `fieldName` 누락 · `textAlign`(오탈) 사용 → `toUpperCase() of undefined` 500
 3. Entity 에 테이블에 없는 `EMP_NO` 컬럼 추가 · 실존 컬럼 `USER_EMAIL/USER_TEL/USER_TP/JOIN_DT` 누락 → "Invalid column name" 500
-4. `CommonCodeSelect`/`PopDepartment`/`PopPosition` 미사용 (자유 text) · `useFieldCascade`/`applyGridCascade` 누락
+4. Master 필드 (`PopDepartment`/`PopPosition` 등) 미사용 (자유 text) · `useFieldCascade`/`applyGridCascade` 누락
 5. Service 에 실존하지 않는 `SpecificationBuilder`/`StringUtils.hasText` 사용 → 컴파일·런타임 오류
 
 **근본 원인**: LLM 이 "참조 원본: UserInfoMgmt.jsx" 헤더만 적고 실제로는 원본을 복사하지 않음. "재구성" 을 시도.
@@ -223,7 +223,7 @@ MENU_PATH = LOWER(MENU_FILE_PATH)
 |---|---|
 | §4 JSX 표준 (wingui 네이티브) · §0.6 레이아웃 변경 prop 명세 | **`41a-composer-jsx.md`** |
 | §5 Java 백엔드 표준 · DDL/SP 정책 · import 화이트리스트 | **`41b-composer-java.md`** |
-| §6 위젯 카탈로그 · §7 Cascade · §8 POPUP 양식 · §9 CommonCodeSelect | **`41c-composer-widgets.md`** |
+| §6 위젯 카탈로그 · §7 Cascade · §8 POPUP 양식 · §9 공통코드 Dropdown 정책 | **`41c-composer-widgets.md`** |
 
 ---
 
@@ -339,10 +339,11 @@ SELECT REPLACE(NEWID(),'-',''), p.GRP_ID, @NEW, p.PERMISSION_TP, p.USABILITY, 'c
 - [ ] Java 4종 세트 모두 포함 (NEW_NL 모드만 — `41b §5.4`)
 - [ ] 검색 조건 모든 필드에 의미별 위젯 적용 (자유 text 남발 X) (`41c §6.1`)
 - [ ] **그리드 모든 editable:true 컬럼에 의미별 editor 명시** (가장 빈번한 누락) (§11.2)
+- [ ] **`useForm({ defaultValues })` 의 datetime 필드는 `null`** (`''` 금지 — Invalid Date 발생). number→null·check→false·multiSelect/autocomplete-multi→[]·dateRange→[null,null] (`21-components.md §3.1.0`)
 - [ ] 정렬: LEFT/CENTER/far 명시 (§11.1)
 - [ ] 날짜: `datetimeFormat:'yyyy-MM-dd'` 또는 `'yyyy-MM-dd HH:mm:ss'` (§11.3)
 - [ ] Master 필드는 Pop\* 연결 (자유 text 금지) (`41c §6.1`)
-- [ ] 공통코드는 `CommonCodeSelect` (hardcoded options X) (`41c §9`)
+- [ ] 공통코드는 `<InputField type="select" options=[...]>` (산출물에 `CommonCodeSelect` import 금지 — preview shim 전용, `41c §9`)
 - [ ] useForm 있으면 `useFieldCascade` · 그리드면 `applyGridCascade` 호출 (`41c §7.2`)
 
 ---
@@ -377,6 +378,7 @@ SELECT REPLACE(NEWID(),'-',''), p.GRP_ID, @NEW, p.PERMISSION_TP, p.USABILITY, 'c
 | **BaseGrid** | `columns={...} afterCreate={...}` | `items={...} afterGridCreate={...}` | `41a §4.2` |
 | **컬럼 key** | `field:` · `type:'combo', items:[]` | `name:` · `useDropdown:true + lookupDisplay + values + labels` | `41a §4.3` |
 | **컬럼 dataType 누락** | `{ name:'X', headerText:'..' }` (dataType 없음) → BaseGrid.jsx:1016 `toLowerCase()` TypeError 즉시 크래시 | 모든 컬럼에 `dataType: 'text'\|'number'\|'datetime'\|'boolean'\|'group'` | `41a §4.3` |
+| **defaultValues datetime ''** | `useForm({ defaultValues: { regDt: '' } })` → datetime picker 가 `new Date('')` → Invalid Date → 매 keystroke RHF validator throw + RangeError | `datetime → null` · `dateRange → [null,null]` · `number → null` · `check → false` · `multiSelect → []` · text 만 `''` | `21-components §3.1.0` · `99a CG-C13` |
 | **그리드 enum 편집** | `lookupDisplay:true` 만 (useDropdown 누락) | 4개 모두 | §11.2 |
 | **Store swap** | `activeViewId` ← `useViewStore` / `setViewInfo` ← `useContentStore` (selector undefined → `setViewInfo is not a function`) | `activeViewId` ← `useContentStore` · `setViewInfo` ← `useViewStore` | `41a §4.6` |
 | **callService** | `callService({url,params})` · target='common' · `'SP_UI_*'` 첫인자 | `callService(serviceId, paramMap, target)` (BF/DP/MP/FP 계산 화면 전용) | §13 |
@@ -391,7 +393,7 @@ SELECT REPLACE(NEWID(),'-',''), p.GRP_ID, @NEW, p.PERMISSION_TP, p.USABILITY, 'c
 | **import 경로** | `@wingui/common/store/*` · `@zionex/wingui-core/*` 직접 | `@wingui/common/imports` 단일 | `41a §4.1` |
 | **Master 필드** | 자유 text 입력 | Pop* (PopSelectItem/PopDepartment 등) | `41c §6.1` |
 | **부재 Pop\* import** | `import PopDepartment from '@wingui/view/common/PopDepartment'` 처럼 실재 파일 검증 없이 import → webpack "Module not found" 빌드 깨짐 (2026-04-29 사고) | JSX 출력 직전 모든 `view/common/X` import 의 파일 존재 확인. 부재 시 ① 일반 InputField 대체 ② Pop\* 파일도 산출물에 함께 포함 | `41c §6.0` |
-| **공통코드** | hardcoded `options=[{value:'Y',label:'Y'}, ...]` | `<CommonCodeSelect groupCd="...">` | `41c §9` |
+| **공통코드** | 산출물에 `import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect'` (preview shim 전용, wingui 본 환경에 없음) | `<InputField type="select" options=[{value,label},...]>` — 동적이면 onMount 에 `zAxios.get('/system/common/codes',{params:{'group-cd':...}})` | `41c §9` |
 | **type="action"** | `<InputField type="action" .../>` (자기닫힘 = 빈 버튼) · `InputProps.endAdornment` | `<InputField type="action" readonly={true} ...><SearchIcon/></InputField>` | `41c §6.2` |
 | **그리드 button 수동** | 컬럼에 `button:'action', buttonVisibility:'always'` 직접 | `applyGridCascade` 가 자동 주입 | `41c §6.3` |
 | **Cascade** | parent 잘못 모델링 (예: `deptCd → positionCd`) | 독립 마스터는 popup-only | `41c §7.5` |

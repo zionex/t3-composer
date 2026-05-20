@@ -147,7 +147,7 @@ exec "$@"
 | `imports.js` SearchArea | wingui-core/layout/SearchArea.jsx | border #E0E0E0 + bg #f4f6f8 + 우측 끝에 [🔍 조회] 버튼 자동 노출 (globalButtons.search action 또는 onSearch prop lookup) |
 | `imports.js` SearchRow | wingui-core/layout/SearchRow.jsx | flex row + gap 6px |
 | `imports.js` InputField | wingui-core/component/input/InputField.jsx | wrapBox (좌측 라벨 78px + 우측 입력 200px, height 32px, border-radius 4px, label fontWeight 600) |
-| `view/common/CommonCodeSelect.jsx` | wingui PopCommonCode | wrapBox + Select |
+| `view/common/CommonCodeSelect.jsx` | wingui PopCommonCode | wrapBox + Select. ⚠️ **shim 전용 — 산출물 코드에 import 금지** (wingui 본 환경에 없음). 산출물은 `<InputField type="select" options=[...]>` 사용 — rules/21 §3.3 / rules/99a CG-E2 |
 | `view/common/PopDepartment.jsx` · `PopPosition.jsx` | (부재 — rules/41c §6.0.3) | stub Dialog (빈 결과 반환) |
 
 ### useViewStore.activeViewId (산출물 호환)

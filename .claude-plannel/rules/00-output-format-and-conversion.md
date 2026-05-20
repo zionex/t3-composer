@@ -72,7 +72,7 @@
 
 ## 3. 산출물 최소 세트 (마스터 CRUD 화면 한 건)
 
-신규 마스터 CRUD 화면 한 건 = **반드시 다음 7개 파일** 모두 `===FILE:` 헤더로:
+신규 마스터 CRUD 화면 한 건 = **반드시 다음 8개 파일** 모두 `===FILE:` 헤더로:
 
 1. `saas-application/src/main/java/t3series/saas/model/<Name>.java` — Entity (`@Entity @Table(name="z_<name>") extends BaseEntity`)
 2. `saas-application/src/main/java/t3series/saas/dto/<Name>Dto.java` — DTO (`toEntity()` 메서드 포함)
@@ -81,9 +81,23 @@
 5. `saas-application/src/main/java/t3series/saas/controller/<Name>Controller.java` — `@RestController @RequestMapping("/api") @PreAuthorize`
 6. `saas-web/src/services/data/<kebab-name>-service.js` — `restApi.post("/api/<plural>", params)`
 7. `saas-web/src/pages/<area>/<Name>Master.js` — `<AgGridReact>` + `<FilterContainer>` + `<AddButton>/<RemoveButton>/<SaveButton>`
+8. `saas-web/src/pages/TabMenuList.entries.json` — **MENU_JS 산출물 (`===FILE:` 헤더 필수, text 안내 금지)**:
+   ```json
+   {
+     "entries": [
+       {
+         "groupKey": "<lv3MenuList 그룹키 — 예: DATA_MGMT · DASHBOARD · DP · IP · RP · MP — 또는 적절한 신규 키>",
+         "reduxKey": "<UPPER_SNAKE 식별자 — 예: INPUT_MATERIAL_MASTER>",
+         "title": "<i18n key — 예: menuMaterialMaster>",
+         "componentName": "<PascalCase React 컴포넌트명 — 예: MaterialMaster>",
+         "componentPath": "<src/pages/ 하위 상대경로 (확장자 없이) — 예: data-management/MaterialMaster>"
+       }
+     ]
+   }
+   ```
+   Composer 의 [메뉴 등록] 이 이 JSON 을 받아 PLANEL repo 의 `src/pages/TabMenuList.js` 에 entry 를 직접 append 합니다 (멱등 — `reduxKey` 중복 시 자동 skip). **이전처럼 text 안내로 적지 말고 반드시 `===FILE:` 헤더 산출물로 출력하세요.** 헤더가 없으면 ArtifactExtractor 가 MENU_JS 로 인식하지 못해 메뉴 등록이 동작하지 않습니다.
 
 + `saas-application/src/main/resources/db/changelog/<date>-<name>.yaml` — Liquibase changeset
-+ TabMenuList.js 의 lv3MenuList 에 추가할 entry (text 안내)
 + i18n key 6언어 (`ko-KR`/`en-US`/`ja-JP`/`zh-TW`/`zh-CN`/`vi-VN`) 추가 안내
 
 ## 4. 응답 구조

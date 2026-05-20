@@ -10,14 +10,14 @@ alwaysApply: false
 # 20. 화면 개발 규칙 (New Screen Development)
 
 > **이 문서는 "화면 골격(레이아웃·파일배치·메뉴등록)" 만 다룬다.**
-> JSX/Java 산출물의 모든 코드 표면 — BaseGrid prop·그리드 API·zAxios·showMessage·globalButtons·CommonCodeSelect·Pop\*·useFieldCascade —
+> JSX/Java 산출물의 모든 코드 표면 — BaseGrid prop·그리드 API·zAxios·showMessage·globalButtons·Pop\*·useFieldCascade —
 > 의 단일 진실 저장소는 다음 4개 파일이며 본 문서의 예시는 그것을 따른다.
 >
 > | 주제 | 정답지 |
 > |---|---|
 > | JSX 표준 (BaseGrid · grid id · zAxios · store 매핑) | **`.claude/rules/41a-composer-jsx.md`** |
 > | Java 백엔드 (jakarta.* · BaseEntity · JdbcTemplate SP 호출) | **`.claude/rules/41b-composer-java.md`** |
-> | 위젯 매트릭스 / Cascade / POPUP / CommonCodeSelect | **`.claude/rules/41c-composer-widgets.md`** |
+> | 위젯 매트릭스 / Cascade / POPUP / 공통코드 Dropdown 정책 | **`.claude/rules/41c-composer-widgets.md`** |
 > | 9-Step Wizard (Composer 신규 화면 3종) | **`.claude/rules/41d-composer-wizard.md`** |
 
 ---
@@ -118,14 +118,17 @@ import { transLangKey } from '@zionex/wingui-core';
 // (선택) 분할/탭 등 레이아웃이 필요한 경우만
 import { SplitPanel, TabContainer } from '@zionex/wingui-core';
 
-// (선택) 공통코드 / 마스터 팝업 — 실제 파일이 view/common/ 에 존재하는 것만 import
-import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
+// (선택) Master 팝업 — 실제 파일이 view/common/ 에 존재하는 것만 import
 // import PopSelectItem from '@wingui/view/common/PopSelectItem';
 ```
 
 > ❌ **금지**: `import { useViewStore } from '@wingui/common/store/viewStore'` 같은 개별 경로
 > 이유: shim 으로 동작은 하지만 단일 경로 `@wingui/common/imports` 가 표준. Hook (`composer-patterns.sh §6.2.1`) warn.
-> 단, `CommonCodeSelect` / `Pop*` 등 view/common 산하 컴포넌트는 `@wingui/view/common/<X>` 직접 import.
+> 단, `Pop*` 등 view/common 산하 컴포넌트는 `@wingui/view/common/<X>` 직접 import.
+>
+> ⛔ **`CommonCodeSelect` 산출물 import 금지** — wingui 본 환경에 없는 컴포넌트 (t3-composer
+> preview shim 전용). 공통코드 dropdown 은 `<InputField type="select" options={[...]}>` 사용.
+> 동적 옵션이 필요하면 화면 onMount 에서 `zAxios.get('/system/common/codes',{params:{'group-cd':'XXX'}})`.
 
 ### 3.2 그리드 컬럼 정의 — 반드시 컴포넌트 밖 (R3 강제)
 
@@ -497,7 +500,6 @@ import {
   useViewStore, useContentStore,
 } from '@wingui/common/imports';
 import { transLangKey } from '@zionex/wingui-core';
-import CommonCodeSelect from '@wingui/view/common/CommonCodeSelect';
 
 const toBool = (v) => v === true || v === 'Y' || v === 'y' || v === 1 || v === '1';
 const toYN   = (v) => (toBool(v) ? 'Y' : 'N');
@@ -519,6 +521,10 @@ function UserInfoMgmt() {
   const [setViewInfo]  = useViewStore((s) => [s.setViewInfo]);
 
   const { control, getValues, handleSubmit } = useForm({
+    // type 별 적정 초기값 — 21-components.md §3.1.0 참조
+    //   text/select: '' / number: null / check: false / multiSelect: []
+    //   datetime: null  (★ '' 금지 — Invalid Date)
+    //   dateRange: [null, null]
     defaultValues: { userId: '', userNm: '', useYn: '' },
   });
   const [grid, setGrid] = useState(null);
@@ -590,7 +596,12 @@ function UserInfoMgmt() {
         <SearchRow>
           <InputField control={control} type="text" name="userId" label="사용자 ID" />
           <InputField control={control} type="text" name="userNm" label="사용자명" />
-          <CommonCodeSelect control={control} groupCd="USE_YN" name="useYn" label="사용여부" includeAll />
+          <InputField control={control} type="select" name="useYn" label="사용여부"
+            options={[
+              { value: '',  label: '전체' },
+              { value: 'Y', label: '사용' },
+              { value: 'N', label: '미사용' },
+            ]} />
         </SearchRow>
       </SearchArea>
 
@@ -769,7 +780,7 @@ function MyDashboard() {
 - [ ] `showMessage('제목', '메시지', (ok) => { ... })` 콜백 시그니처
 - [ ] zAxios.get/post — `util/`/`<module>/` URL (★ `ut/` 금지)
 - [ ] Master 필드는 Pop\* (자유 text 금지) — `view/common/` 에 실제 존재하는 Pop\* 만 import
-- [ ] 공통코드는 `<CommonCodeSelect groupCd="...">` (hardcoded options 금지)
+- [ ] 공통코드는 `<InputField type="select" options=[...]>` (산출물 코드에 `CommonCodeSelect` import 금지 — preview shim 전용)
 - [ ] 다국어: `transLangKey('...')` / `t('...')` 사용 (한글 하드코딩 시 warn)
 
 ### 구현 — 백엔드

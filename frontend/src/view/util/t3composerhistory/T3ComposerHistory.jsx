@@ -223,15 +223,15 @@ function T3ComposerHistory() {
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 700, width: 110 }}>Target</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }}>모드</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>제목</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 180 }}>메뉴코드</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 130 }}>모델</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }}>상태</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 100, textAlign: 'right' }}>토큰</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 160 }}>생성일시</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 280, textAlign: 'center' }}>작업</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 110, whiteSpace: 'nowrap' }}>Target</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90,  whiteSpace: 'nowrap' }}>모드</TableCell>
+                    <TableCell sx={{ fontWeight: 700, minWidth: 240 }}>제목</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 180, whiteSpace: 'nowrap' }}>메뉴코드</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 130, whiteSpace: 'nowrap' }}>모델</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90,  whiteSpace: 'nowrap' }}>상태</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 100, whiteSpace: 'nowrap', textAlign: 'right' }}>토큰</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 160, whiteSpace: 'nowrap' }}>생성일시</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 280, whiteSpace: 'nowrap', textAlign: 'center' }}>작업</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -266,7 +266,17 @@ function T3ComposerHistory() {
                         <TableCell>
                           <Chip size="small" label={s.mode || '-'} variant="outlined" sx={{ height: 20, fontSize: 10 }} />
                         </TableCell>
-                        <TableCell sx={{ wordBreak: 'break-word' }}>
+                        <TableCell
+                          title={s.title || ''}
+                          sx={{
+                            // table-layout 안에서 다른 명시-폭 컬럼이 우선 잡힌 뒤 남은 폭을 사용.
+                            // maxWidth:0 + nowrap + ellipsis 가 MUI Table 표준 truncate 패턴.
+                            maxWidth: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {s.title || <Box component="span" sx={{ color: 'text.secondary' }}>(제목 없음)</Box>}
                         </TableCell>
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>

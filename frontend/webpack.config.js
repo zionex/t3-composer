@@ -53,6 +53,9 @@ module.exports = (env, argv) => {
         },
         { test: /\.css$/i, use: ['style-loader', 'css-loader'] },
         { test: /\.(png|jpg|jpeg|gif|svg)$/i, type: 'asset/resource' },
+        // `?raw` query 가 붙은 import 는 파일 텍스트 그대로 반환.
+        // t3mockup 의 *.jsx 소스를 LLM prompt 에 inline 첨부할 때 사용.
+        { resourceQuery: /raw/, type: 'asset/source' },
       ],
     },
     plugins: [

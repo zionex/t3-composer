@@ -44,6 +44,7 @@ import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import StepByStepWizard from './StepByStepWizard';
 import MockupPickerDialog    from './MockupPickerDialog';
+import { getMockupSource }   from '../t3mockup/_data/mockup-sources';
 import Mockup3DGallery       from './Mockup3DGallery';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import UiPattern3DGallery    from './UiPattern3DGallery';
@@ -476,7 +477,23 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       systemContext += `- 레이아웃 카테고리: ${selectedMockup.layoutCategory}\n`;
       if (selectedMockup.category)    systemContext += `- 분류: ${selectedMockup.category}\n`;
       if (selectedMockup.description) systemContext += `- 설명: ${selectedMockup.description}\n`;
-      systemContext += '⚠ 이 Mockup 의 레이아웃 골격(분할 구조·영역 구성)을 화면 기본 틀로 사용하세요.\n';
+
+      // jsx 소스 첨부 — 메타만으로는 LLM 이 시각 디자인을 정확히 따라하지 못함.
+      // UI Pattern 의 lite HTML 첨부와 동일한 패턴 (8KB 상한, 토큰 절감).
+      const mockupSrc = getMockupSource(selectedMockup.patternCode);
+      if (mockupSrc) {
+        const MOCKUP_SRC_CAP = 8000;
+        const src = mockupSrc.length > MOCKUP_SRC_CAP
+          ? mockupSrc.slice(0, MOCKUP_SRC_CAP) + '\n// (이하 생략 — 위 구조만으로 충분)'
+          : mockupSrc;
+        systemContext += '\n아래는 이 Mockup 의 실제 jsx 소스입니다 (레이아웃·위젯 배치·KPI 카드 구성 그대로 따라하세요):\n';
+        systemContext += '```jsx\n' + src + '\n```\n';
+        systemContext += '⚠ 위 jsx 의 **레이아웃 분할·영역 배치·위젯 종류·카드 구성·차트 위치**를 그대로 따라하세요.\n';
+        systemContext += '⚠ mockup 안의 mock 데이터(`MOCK_KPIS`/`SAMPLE_ROWS` 등 상수)는 **실제 zAxios/SP 호출로 대체**하세요. 데이터 바인딩은 사용자 선택한 Data Source 또는 자동 추론에 따름.\n';
+        systemContext += '⚠ mockup 의 `MockShell`·`BoardWidgetTile`·`CbStepper` 같은 t3mockup 전용 래퍼는 산출물 코드에 import 하지 말고, wingui 표준 컴포넌트(`ContentInner`·`WorkArea`·`BaseGrid`·`SplitPanel` 등)로 동등한 구조를 재구성하세요.\n';
+      } else {
+        systemContext += '⚠ 이 Mockup 의 레이아웃 골격(분할 구조·영역 구성)을 화면 기본 틀로 사용하세요.\n';
+      }
     }
 
     // 사용자가 선택한 UI Pattern — T3MES 카탈로그의 경량 HTML 마크업을 레이아웃 참조로 첨부

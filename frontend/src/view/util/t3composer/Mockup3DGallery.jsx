@@ -91,17 +91,36 @@ function Mockup3DGallery({ open, onClose, currentValue, onConfirm }) {
   );
   const PreviewComp = selectedEntry?.component || null;
 
-  // 우측 미리보기 — 패널 실제 폭 측정 → mockup(1400px) 을 폭에 맞춰 scale
+  // 우측 미리보기 — 패널 실제 폭 측정 → mockup(1400px) 을 폭에 맞춰 scale.
+  //
+  // ResizeObserver loop 차단:
+  //  1) Math.round 로 sub-pixel 변동 (scrollbar 등장/소실로 인한 17px 진동) 제거
+  //  2) requestAnimationFrame 으로 한 frame 에 한 번만 처리
+  //  3) 함수형 setState 로 같은 값이면 skip
+  // 이 셋을 같이 해야 떨림이 완전히 멈춤 — 하나라도 빠지면 scale → paint → scrollbar 변동
+  // → ResizeObserver → scale 의 무한 루프가 다시 발생.
   const previewPaneRef = useRef(null);
   const [previewW, setPreviewW] = useState(0);
   useEffect(() => {
     const el = previewPaneRef.current;
     if (!open || !el) return undefined;
-    const upd = () => setPreviewW(el.clientWidth);
-    upd();
-    const ro = new ResizeObserver(upd);
+    let rafId = null;
+    const upd = () => {
+      const w = Math.round(el.clientWidth);
+      setPreviewW((prev) => (prev === w ? prev : w));
+      rafId = null;
+    };
+    const onResize = () => {
+      if (rafId != null) return; // 이미 다음 frame 에 예약됨
+      rafId = requestAnimationFrame(upd);
+    };
+    upd(); // 첫 측정은 즉시
+    const ro = new ResizeObserver(onResize);
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      if (rafId != null) cancelAnimationFrame(rafId);
+    };
   }, [open, selectedEntry]);
   const pvScale = previewW > 0 ? previewW / PV_W : 0.4;
 
@@ -393,9 +412,15 @@ function Mockup3DGallery({ open, onClose, currentValue, onConfirm }) {
           </Box>
 
           {/* 미리보기 본문 — mockup 을 폭에 맞춰 scale */}
+          {/*
+            scrollbarGutter:'stable' — vertical scrollbar 가 등장/소실해도 clientWidth 가
+            바뀌지 않도록 scrollbar 영역을 항상 예약. 이게 빠지면 scale → preview 크기 변경
+            → scrollbar 등장/소실 → clientWidth 변동 → scale 의 무한 loop (떨림).
+          */}
           <Box ref={previewPaneRef} sx={{
             flex: 1, minHeight: 0, position: 'relative',
             overflowX: 'hidden', overflowY: 'auto', bgcolor: '#0b0f18',
+            scrollbarGutter: 'stable',
           }}>
             {!selectedEntry && (
               <Box sx={{

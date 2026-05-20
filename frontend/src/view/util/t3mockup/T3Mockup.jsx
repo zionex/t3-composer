@@ -1,6 +1,6 @@
 import React, { Suspense, useState, useMemo, useEffect, useCallback } from 'react';
 import {
-  Box, Card, CardActionArea, CardContent, Typography, Chip, Stack, TextField, MenuItem,
+  Box, Card, CardContent, Typography, Chip, Stack, TextField, MenuItem,
   ToggleButton, ToggleButtonGroup, Grid, CircularProgress, Button, Tooltip,
   Collapse, IconButton, Table, TableHead, TableBody, TableRow, TableCell,
   InputAdornment,
@@ -15,6 +15,7 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import { ContentInner } from '@wingui/common/imports';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
+import MockupPressPreview from './MockupPressPreview';
 
 // 카테고리 → hover 색상 (border 강조용)
 function catColor(cat) {
@@ -211,7 +212,11 @@ export default function T3Mockup() {
                       transform: 'translateY(-2px)',
                     },
                   }}>
-                    <CardActionArea onClick={() => openMockup(e.patternCode)} sx={{ flex: 1 }}>
+                    <MockupPressPreview
+                      entry={e}
+                      onClick={() => openMockup(e.patternCode)}
+                      sx={{ flex: 1, cursor: 'pointer', userSelect: 'none' }}
+                    >
                       <CardContent sx={{ '&:last-child': { pb: 1.5 } }}>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
                           <Chip size="small" label={e.patternCode} sx={{ fontFamily: 'monospace', maxWidth: '60%', fontSize: 11 }} />
@@ -234,7 +239,7 @@ export default function T3Mockup() {
                           {e.description}
                         </Typography>
                       </CardContent>
-                    </CardActionArea>
+                    </MockupPressPreview>
                   </Card>
                 </Grid>
               );
@@ -255,7 +260,11 @@ export default function T3Mockup() {
                   borderLeft: `4px solid ${accent}`,
                   '&:hover': { borderColor: accent, boxShadow: `0 2px 8px ${accent}22` },
                 }}>
-                  <CardActionArea onClick={() => openMockup(e.patternCode)}>
+                  <MockupPressPreview
+                    entry={e}
+                    onClick={() => openMockup(e.patternCode)}
+                    sx={{ cursor: 'pointer', userSelect: 'none' }}
+                  >
                     <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Chip size="small" label={e.patternCode} sx={{ fontFamily: 'monospace', minWidth: 220, justifyContent: 'flex-start' }} />
                       <Typography sx={{ flex: 1, fontWeight: 600 }}>{e.patternLabel}</Typography>
@@ -269,7 +278,7 @@ export default function T3Mockup() {
                       )}
                       <Typography sx={{ width: 300, fontSize: 12, color: 'text.secondary' }} noWrap>{e.description}</Typography>
                     </Box>
-                  </CardActionArea>
+                  </MockupPressPreview>
                 </Card>
               );
             })}

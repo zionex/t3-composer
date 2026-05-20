@@ -74,16 +74,30 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
 
   // 우측 미리보기 — 패널 실제 폭을 측정해 mockup(1400px)을 꽉 차게 scale.
   //   고정 배율(0.62)이면 패널보다 좁아 우측에 검은 여백이 생김 → 동적 배율로 제거.
+  // ResizeObserver loop 차단 (Mockup3DGallery 와 동일 패턴):
+  //   Math.round + requestAnimationFrame + 같은 값 skip
   const previewPaneRef = useRef(null);
   const [paneW, setPaneW] = useState(0);
   useEffect(() => {
     const el = previewPaneRef.current;
     if (!open || !el) return undefined;
-    const update = () => setPaneW(el.clientWidth);
-    update();
-    const ro = new ResizeObserver(update);
+    let rafId = null;
+    const upd = () => {
+      const w = Math.round(el.clientWidth);
+      setPaneW((prev) => (prev === w ? prev : w));
+      rafId = null;
+    };
+    const onResize = () => {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(upd);
+    };
+    upd();
+    const ro = new ResizeObserver(onResize);
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      if (rafId != null) cancelAnimationFrame(rafId);
+    };
   }, [open]);
   const previewScale = paneW > 0 ? paneW / PREVIEW_W : PREVIEW_SCALE;
 
@@ -191,11 +205,13 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
           </Box>
 
           {/* ── 우측 — 실제 mockup 미리보기 (패널 폭에 맞춰 꽉 차게 · 흰색 배경) ── */}
+          {/* scrollbarGutter:'stable' — scrollbar 등장/소실로 인한 clientWidth 진동 차단 */}
           <Box
             ref={previewPaneRef}
             sx={{
               flex: 1, minWidth: 0, position: 'relative',
               overflowX: 'hidden', overflowY: 'auto',
+              scrollbarGutter: 'stable',
               bgcolor: '#fff',
             }}
           >

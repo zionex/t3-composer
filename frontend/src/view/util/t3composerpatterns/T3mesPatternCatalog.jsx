@@ -37,6 +37,7 @@ import DashboardIcon  from '@mui/icons-material/Dashboard';
 import { ContentInner, WorkArea } from '@wingui/common/imports';
 
 import tabsByFile from './_data/t3mes-tabs.json';
+import PressPreview from './PressPreview';
 
 // ─────────────────────────────────────────
 // Section/Group/File 메타 (T3MES index.html 구조)
@@ -327,15 +328,25 @@ function T3mesPatternCatalog() {
               </Tooltip>
             </Stack>
           </Box>
-          <Box sx={{ flex: 1, minHeight: 0 }}>
+          <Box sx={{ flex: 1, minHeight: 0, position: 'relative', bgcolor: '#1e293b' }}>
+            {/*
+              분리본 부트스트랩 setTimeout(go, 120ms) 직후 fade-in — 30ms 여유.
+              그 사이엔 어두운 placeholder 만 보이고 default(0번) 탭은 안 비침.
+            */}
             <iframe
               key={active.srcUrl}
               title={active.tabLabel || active.fileLabel}
               src={active.srcUrl}
+              onLoad={(e) => {
+                const el = e.currentTarget;
+                setTimeout(() => { el.style.opacity = '1'; }, 150);
+              }}
               style={{
                 width: '100%', height: '100%',
                 border: 'none', display: 'block',
                 backgroundColor: '#fff',
+                opacity: 0,
+                transition: 'opacity 50ms ease',
               }}
             />
           </Box>
@@ -550,8 +561,9 @@ function T3mesPatternCatalog() {
                             if (isSinglePage) {
                               const entry = f.entries[0];
                               return (
-                                <Box
+                                <PressPreview
                                   key={f.file}
+                                  srcUrl={entry.srcUrl}
                                   onClick={() => openEntry(entry)}
                                   sx={{
                                     display: 'flex', alignItems: 'center', gap: 1,
@@ -560,6 +572,7 @@ function T3mesPatternCatalog() {
                                     pl: 1.2, pr: 1, py: 0.8, cursor: 'pointer',
                                     border: '1px solid transparent',
                                     transition: 'all 0.12s ease',
+                                    userSelect: 'none',
                                     '&:hover': {
                                       bgcolor: `${g.groupColor}11`,
                                       borderColor: g.groupColor,
@@ -587,7 +600,7 @@ function T3mesPatternCatalog() {
                                       <OpenInNewIcon fontSize="small" />
                                     </IconButton>
                                   </Tooltip>
-                                </Box>
+                                </PressPreview>
                               );
                             }
 
@@ -633,8 +646,9 @@ function T3mesPatternCatalog() {
                                   gap: 0.6,
                                 }}>
                                   {f.entries.map((entry) => (
-                                    <Box
+                                    <PressPreview
                                       key={`${entry.file}#${entry.tabIndex ?? '-'}`}
+                                      srcUrl={entry.srcUrl}
                                       onClick={() => openEntry(entry)}
                                       sx={{
                                         display: 'flex', alignItems: 'center', gap: 0.6,
@@ -642,6 +656,7 @@ function T3mesPatternCatalog() {
                                         px: 1, py: 0.6, cursor: 'pointer',
                                         border: '1px solid transparent',
                                         transition: 'all 0.12s ease',
+                                        userSelect: 'none',
                                         '&:hover': {
                                           bgcolor: `${g.groupColor}11`,
                                           borderColor: g.groupColor,
@@ -667,7 +682,7 @@ function T3mesPatternCatalog() {
                                       >
                                         {entry.tabLabel}
                                       </Typography>
-                                    </Box>
+                                    </PressPreview>
                                   ))}
                                 </Box>
                               </Box>

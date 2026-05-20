@@ -4,11 +4,19 @@
 set -e
 
 WINGUI_REF="/workspace/wingui"
+REALGRID_SRC="${WINGUI_REF}/packages/node_modules/realgrid"
+REALGRID_DST="/app/node_modules/realgrid"
 
-if [ -d "${WINGUI_REF}/packages/node_modules/realgrid" ] \
-   && [ ! -d "/app/node_modules/realgrid" ]; then
-  echo "[entrypoint] realgrid 복사: ${WINGUI_REF}/packages/node_modules/realgrid → /app/node_modules/realgrid"
-  cp -r "${WINGUI_REF}/packages/node_modules/realgrid" "/app/node_modules/realgrid"
+# realgrid 는 익명 volume (/app/node_modules) 안에서 종종 사라진다 — npm install 등으로
+# node_modules 가 재구성되면 익명 layer 가 우선해 부모 사본만 빠지는 사고.
+# `! -d target` 한 번만 가드하지 않고 핵심 파일 누락 시 매 startup 재복사 (idempotent).
+if [ -d "${REALGRID_SRC}" ]; then
+  if [ ! -f "${REALGRID_DST}/dist/main.esm.js" ] \
+     || [ ! -f "${REALGRID_DST}/dist/realgrid-sky-blue.css" ]; then
+    echo "[entrypoint] realgrid 복원: ${REALGRID_SRC} → ${REALGRID_DST}"
+    rm -rf "${REALGRID_DST}"
+    cp -r "${REALGRID_SRC}" "${REALGRID_DST}"
+  fi
 fi
 
 exec "$@"

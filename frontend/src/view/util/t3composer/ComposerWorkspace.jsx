@@ -300,39 +300,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   };
 
   // ───────────────────────────────────────────────────────────────────
-  // 산출물 화면 자동 실행 — 세션에 JSX 산출물이 있으면 [화면 실행]을 자동 수행하고
-  //   우측 [실행 화면 LIVE] 탭을 노출한다. 신규개발·기존화면수정 공통 적용:
-  //     · mount 시       — 이어하기 / 기존화면수정(원본 소스 import 직후) 등 이미 산출물이
-  //                        있는 세션으로 이동하면 즉시 실행 화면을 보여줌
-  //     · 생성·수정 완료 후 — onNewAssistantMsg → triggerRefresh → refreshKey 증가
-  //   JSX 산출물 id 시그니처가 바뀔 때만 1회 실행 (동일 산출물 반복 실행 방지).
-  //   컴포넌트 재mount(다른 산출물 화면으로 이동) 시 ref 가 초기화되어 다시 실행됨.
+  // 산출물 화면 자동 실행은 **하지 않는다** (2026-05-21).
+  //   AI mockup 변환이 화면당 5~10초 (캐시 miss 시) 걸리므로, 자연어 수정·이어하기
+  //   시점마다 자동 발화하면 토큰·시간 낭비 + 사용자가 의도하지 않은 변환 트리거.
+  //   사용자는 헤더의 [화면 실행] 버튼을 명시적으로 눌러야 발화한다.
   // ───────────────────────────────────────────────────────────────────
-  const autoPreviewSigRef = React.useRef('');
-  useEffect(() => {
-    if (!session?.id) return undefined;
-    let cancelled = false;
-    // 생성 직후 서버의 아티팩트 추출·저장이 끝나도록 잠깐 대기 후 조회
-    const timer = setTimeout(async () => {
-      try {
-        const res = await listArtifacts(session.id);
-        const list = Array.isArray(res?.data) ? res.data : [];
-        const jsxIds = list
-          .filter((a) => a && a.artifactType === 'SCREEN_JSX' && a.status !== 'DISCARDED')
-          .map((a) => a.id)
-          .filter(Boolean)
-          .sort();
-        if (cancelled || jsxIds.length === 0) return;
-        const sig = jsxIds.join('|');
-        if (sig !== autoPreviewSigRef.current) {
-          autoPreviewSigRef.current = sig;
-          handlePreview();   // previewBusy 가드 내장 — 중복 호출 안전
-        }
-      } catch (_e) { /* 자동 실행 — 조용히 무시 */ }
-    }, 700);
-    return () => { cancelled = true; clearTimeout(timer); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.id, refreshKey]);
 
   // ───────────────────────────────────────────────────────────────────
   // 화면 실행 오류 → AI 자동보완 (autoFixOnError ON 시) — apply 오류 + 런타임 오류 공통
@@ -564,8 +536,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Button>
             </span>
           </Tooltip>
-          {/* [화면 실행] — 산출물을 docker 안에 적용해 우측 Tab 에서 실제 운영 화면처럼 노출 */}
-          <Tooltip title="산출물을 적용해 우측 [실행 화면] 탭에서 실제 운영 형태로 띄우기. JSX/SQL/Java 모두 실제 동작 (CRUD round-trip).">
+          {/* [화면 실행] — 산출물 JSX 를 AI 가 시각 mockup 으로 변환해 우측 Tab 에 렌더 (frontend only, 데이터는 sample) */}
+          <Tooltip title="JSX 산출물을 AI mockup 으로 변환해 우측 [실행 화면] 탭에 렌더. 데이터는 sample, SQL/Java apply 는 skip (시각 확인 용). 첫 실행 5~10초, 이후 캐시.">
             <span>
               <Button
                 size="small"

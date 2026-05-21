@@ -52,7 +52,10 @@ import lombok.extern.slf4j.Slf4j;
 public class MockupTransformService {
 
     private static final String MODEL_NAME = "claude-sonnet-4-5";
-    private static final int    MAX_TOKENS = 16000;
+    // mockup jsx 는 핵심 시각 요소만 — 보통 80~200 줄 (2~4K 토큰).
+    // 4K 로 박아두면 모델이 짧게 끊는 압력을 받아 응답 시간 단축. 너무 길어 잘리면
+    // sandbox 가 syntax 오류로 fallback 발화 (안전망 — caller 가 raw jsx 사용).
+    private static final int    MAX_TOKENS = 4096;
     // 원본 jsx 가 너무 크면 Anthropic input 토큰 폭증. 일반 화면은 30~80KB. 100KB 캡.
     private static final int    INPUT_HARD_CAP_CHARS = 100_000;
 
@@ -212,6 +215,15 @@ public class MockupTransformService {
             "ambient 글로벌·복잡한 npm 패키지는 사용할 수 없습니다. **시각적 구조만 동일하게**",
             "단순화된 React 컴포넌트를 출력하세요.",
             "",
+            "## 길이 — 최대 220줄 · 최소 표현",
+            "",
+            "**목표는 \"화면 골격 시각 확인\" 이지 \"완성도 높은 UI\" 가 아닙니다.** 다음 원칙을 따릅니다:",
+            "- 동일한 패턴(예: KPI 카드 5개, 컬럼 8개)은 **반복 작성하지 말고 inline 배열 + map** 으로",
+            "- 주석/빈 줄 최소화 (sandbox 가 파싱만 하면 됨)",
+            "- 같은 스타일 객체는 변수로 추출",
+            "- styled-components/긴 sx — 핵심 시각만 (배경/padding/radius/border 정도)",
+            "- 헬퍼 함수 분리 금지 — 인라인 처리",
+            "",
             "## 출력 규칙 — 엄격히 준수",
             "",
             "1. **출력은 jsx 코드 하나뿐.** 설명/주석/마크다운/코드 펜스 모두 금지.",
@@ -230,7 +242,7 @@ public class MockupTransformService {
             "",
             "3. **AG-Grid · RealGrid · BaseGrid 등 모든 grid** → MUI `<Table>` 로 변환.",
             "   원본의 컬럼 정의에서 헤더명·정렬을 추출해 `<TableHead>` 작성. mock 데이터는 inline",
-            "   `const SAMPLE_ROWS = [{...}, ...]` 형태로 5건 (현실적 값 — 코드/명칭/숫자/날짜).",
+            "   `const SAMPLE_ROWS = [{...}, ...]` 형태로 **3건** (현실적 값 — 코드/명칭/숫자/날짜).",
             "   <TableContainer component={Paper}> 로 감싸서 그리드 느낌 유지.",
             "",
             "4. **차트** (Chart.js · Recharts · ApexCharts 등) → MUI Box placeholder.",
@@ -246,7 +258,19 @@ public class MockupTransformService {
             "   → 모두 제거하고 mock data 사용. useEffect 에서 fetch 패턴은 빈 useEffect 또는 삭제.",
             "",
             "6. **레이아웃 보존 — 가장 중요**",
-            "   · 검색 영역 (SearchArea / FilterContainer 등) → MUI Box + TextField/Select 들로 재구성",
+            "   · 검색 영역 (SearchArea / FilterContainer 등) → **반드시 wrap 되는 grid layout**:",
+            "     ```jsx",
+            "     <Box sx={{ display:'grid',",
+            "                gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',",
+            "                gap: 2, alignItems:'center', mb: 2 }}>",
+            "       {/* 각 TextField/Select 는 width 지정 없이 그냥 size='small' 만 */}",
+            "     </Box>",
+            "     ```",
+            "     ❌ `<Stack direction='row' spacing={2}>` 으로 5개 이상 input 한 줄 배치 금지 —",
+            "     iframe 미리보기 폭이 좁으면 wrap 안 되고 각 input 이 30~40px 로 collapse 됨.",
+            "     ❌ TextField 에 고정 `width: 120` / `width: 150` 부여 금지 — grid cell 이 알아서 fit.",
+            "     · 조회/Refresh/Config 등 버튼은 검색 grid 와 **별도 Stack** 으로 분리",
+            "       (`<Stack direction='row' spacing={1} sx={{ mb: 1 }}>` ...buttons).",
             "   · 분할 (SplitPanel 등) → flexbox Box",
             "   · 탭 (TabContainer / Tabs) → MUI Tabs/Tab",
             "   · 카드/패널 (Paper / GroupBox) → MUI Paper",

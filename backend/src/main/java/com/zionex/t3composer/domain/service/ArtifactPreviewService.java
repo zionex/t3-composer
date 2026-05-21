@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
@@ -113,22 +116,55 @@ public class ArtifactPreviewService {
         List<Map<String, Object>> applied = new ArrayList<>();
         int jsxOk = 0, jsxFail = 0, skipped = 0;
 
+        // [화면 실행] = frontend-only — backend(Java/SQL/MENU) 는 일절 실행하지 않는다.
+        // skipJava 파라미터는 backward-compat 위해 시그니처에 남아있으나, 사용자 정책 (2026-05-18)
+        // "둘 다 화면 실행에서는 backend 구현 불필요" 에 따라 무시. SQL/MENU/Java 산출물 검증은
+        // [정식 아티팩트 적용] 단계에서만 수행.
+        //
+        // JSX 만 골라 **병렬 변환** (Anthropic 호출이 화면당 5~10초 — 순차 처리하면 N개에서
+        // N×시간 누적. 동시 호출로 전체 시간을 가장 긴 1건으로 수렴).
+        List<ComposerArtifact> jsxArts = new ArrayList<>();
         for (ComposerArtifact a : artifacts) {
-            String type = a.getArtifactType();
             String content = a.getContent();
             if (content == null || content.isBlank()) continue;
-
-            // [화면 실행] = frontend-only — backend(Java/SQL/MENU/Java) 는 일절 실행하지 않는다.
-            // skipJava 파라미터는 backward-compat 위해 시그니처에 남아있으나, 사용자 정책 (2026-05-18)
-            // "둘 다 화면 실행에서는 backend 구현 불필요" 에 따라 무시. SQL/MENU/Java 산출물 검증은
-            // [정식 아티팩트 적용] 단계에서만 수행.
-            if (ComposerArtifact.TYPE_SCREEN_JSX.equals(type)) {
-                Map<String, Object> rec = writeJsxToPreview(a, sessionPreview, sid8, sessionId);
-                applied.add(rec);
-                if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
+            if (ComposerArtifact.TYPE_SCREEN_JSX.equals(a.getArtifactType())) {
+                jsxArts.add(a);
             } else {
-                applied.add(skippedRec(a, type));
+                applied.add(skippedRec(a, a.getArtifactType()));
                 skipped++;
+            }
+        }
+
+        if (jsxArts.size() == 1) {
+            // 단일 JSX — 병렬 풀 만들 가치 없음. 그대로 호출.
+            Map<String, Object> rec = writeJsxToPreview(jsxArts.get(0), sessionPreview, sid8, sessionId);
+            applied.add(rec);
+            if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
+        } else if (jsxArts.size() >= 2) {
+            // 다중 JSX — 병렬 변환. 상한 8 (Anthropic rate-limit / 메모리 보호).
+            int parallelism = Math.min(8, jsxArts.size());
+            ExecutorService pool = Executors.newFixedThreadPool(parallelism);
+            try {
+                List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
+                for (ComposerArtifact a : jsxArts) {
+                    futures.add(CompletableFuture.supplyAsync(
+                            () -> writeJsxToPreview(a, sessionPreview, sid8, sessionId), pool));
+                }
+                for (CompletableFuture<Map<String, Object>> f : futures) {
+                    Map<String, Object> rec;
+                    try {
+                        rec = f.join();
+                    } catch (Exception e) {
+                        rec = new LinkedHashMap<>();
+                        rec.put("ok", false);
+                        rec.put("err", "병렬 변환 실패: " + e.getMessage());
+                        rec.put("type", ComposerArtifact.TYPE_SCREEN_JSX);
+                    }
+                    applied.add(rec);
+                    if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
+                }
+            } finally {
+                pool.shutdown();
             }
         }
 
@@ -312,11 +348,17 @@ public class ArtifactPreviewService {
         // 캐시 hit 시 즉시. miss/실패/키없음 시 raw 원본 fallback (안전).
         String content = a.getContent();
         boolean mockupApplied = false;
-        if (mockupTransformService != null) {
+        // ── AI mockup 변환은 EXISTING_MODIFY 만 적용 ──
+        // 신규 생성 (NEW_*) 은 Composer rules 따라 작성된 단순 산출물이라 shim 표면으로 잘 동작.
+        // EXISTING_MODIFY 만 원본 wingui 의 복잡한 의존성 (AG-Grid·@plannel/services·ZDate 등)
+        // 때문에 mockup 변환 필요. 토큰·시간 낭비 회피.
+        boolean needsMockup = mockupTransformService != null && isExistingModify(sessionId);
+        if (needsMockup) {
             String targetCd = lookupTargetCd(sessionId);
+            String sessionUserId = lookupUserId(sessionId);
             try {
                 String mockup = mockupTransformService.transformOrCached(
-                        content, targetCd, fp, "composer-dev", false);
+                        content, targetCd, fp, sessionUserId, false);
                 if (mockup != null && !mockup.isBlank()) {
                     content = mockup;
                     mockupApplied = true;
@@ -355,6 +397,32 @@ public class ArtifactPreviewService {
                     .orElse("UNKNOWN");
         } catch (Exception e) {
             return "UNKNOWN";
+        }
+    }
+
+    /** sessionId → session.userId. API key lookup 의 기준. 못 찾으면 "composer-dev" (fallback). */
+    private String lookupUserId(String sessionId) {
+        if (sessionId == null || sessionRepo == null) return "composer-dev";
+        try {
+            return sessionRepo.findById(sessionId)
+                    .map(com.zionex.t3composer.domain.entity.ComposerSession::getUserId)
+                    .filter(s -> s != null && !s.isBlank())
+                    .orElse("composer-dev");
+        } catch (Exception e) {
+            return "composer-dev";
+        }
+    }
+
+    /** session.mode 가 EXISTING_MODIFY 면 true. mockup transform 분기 조건. */
+    private boolean isExistingModify(String sessionId) {
+        if (sessionId == null || sessionRepo == null) return false;
+        try {
+            return sessionRepo.findById(sessionId)
+                    .map(com.zionex.t3composer.domain.entity.ComposerSession::getMode)
+                    .filter(com.zionex.t3composer.domain.entity.ComposerSession.MODE_EXISTING_MODIFY::equals)
+                    .isPresent();
+        } catch (Exception e) {
+            return false;
         }
     }
 

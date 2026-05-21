@@ -3,8 +3,10 @@ package com.zionex.t3composer.domain.controller;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -182,12 +184,16 @@ public class InsightSourceController {
             repo.put("queryMethods", queryMethods);
         }
 
+        // MyBatis Mapper XML — PLANNEL Mapper interface 가 repositories 에 있으면 대응 XML 동봉
+        List<Map<String, Object>> procedures = new ArrayList<>();
+        addMyBatisXmls(repositories, procedures, visitedFiles);
+
         Map<String, Object> backend = new LinkedHashMap<>();
         backend.put("controllers",  controllers);
         backend.put("services",     services);
         backend.put("repositories", repositories);
         backend.put("entities",     entities);
-        backend.put("procedures",   Collections.emptyList());   // SP DDL 경로 미마운트 — 미지원
+        backend.put("procedures",   procedures);   // PLANNEL: MyBatis xml · T3SERIES: 비어있음
 
         List<Map<String, Object>> apiCalls = new ArrayList<>();
         for (String u : urls) apiCalls.add(Map.of("url", u, "type", "zAxios"));
@@ -372,7 +378,8 @@ public class InsightSourceController {
             String fileName  = file.getFileName().toString();
             // className = User.java → User. wizardState 의 extractEntityClassNamesFromBundle 가
             // className 우선, name 폴백으로 읽으므로 둘 다 채워 호환성 확보.
-            String className = fileName.endsWith(".java") ? fileName.substring(0, fileName.length() - 5) : fileName;
+            int dot = fileName.lastIndexOf('.');
+            String className = dot > 0 ? fileName.substring(0, dot) : fileName;
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("path",      file.toString());
             entry.put("name",      fileName);
@@ -380,7 +387,53 @@ public class InsightSourceController {
             entry.put("source",    Files.readString(file));
             bucket.add(entry);
         } catch (IOException e) {
-            log.warn("Java 파일 read 실패 {} — {}", file, e.getMessage());
+            log.warn("파일 read 실패 {} — {}", file, e.getMessage());
+        }
+    }
+
+    /**
+     * MyBatis Mapper interface (PLANNEL) 의 대응 XML 을 procedures 에 동봉.
+     *
+     * 매핑 규칙 (PLANNEL 컨벤션):
+     *   - Java: `<root>/src/main/java/.../mapper/<category>/<Name>Mapper.java`
+     *   - XML : `<root>/src/main/resources/mapper/<category>/<Name>Mapper.xml`
+     *
+     * 두 가지 시도:
+     *   1) 같은 path 의 `/src/main/java/` → `/src/main/resources/` swap (일반 패턴)
+     *   2) `/src/main/java/<pkg>/mapper/<rest>.java` → `/src/main/resources/mapper/<rest>.xml`
+     *      (PLANNEL 처럼 java 쪽엔 패키지(`t3series/saas/`)가 끼는데 resources 쪽은 mapper 부터 시작)
+     */
+    private void addMyBatisXmls(List<Map<String, Object>> mapperInterfaces,
+                                List<Map<String, Object>> procedures,
+                                Set<String> visitedFiles) {
+        if (mapperInterfaces == null || mapperInterfaces.isEmpty()) return;
+        for (Map<String, Object> m : mapperInterfaces) {
+            String name = stringOf(m.get("name"));
+            String path = stringOf(m.get("path"));
+            if (name == null || !name.endsWith("Mapper.java")) continue;
+            if (path == null || !path.contains("/src/main/java/")) continue;
+
+            // 시도 1: java → resources, .java → .xml
+            Path attempt1 = Paths.get(path
+                    .replace("/src/main/java/", "/src/main/resources/")
+                    .replaceFirst("\\.java$", ".xml"));
+            if (Files.isRegularFile(attempt1)) {
+                addJavaFile(procedures, attempt1, visitedFiles);
+                continue;
+            }
+
+            // 시도 2: /src/main/java/<pkg>/mapper/<rest>.java → /src/main/resources/mapper/<rest>.xml
+            int jbase = path.indexOf("/src/main/java/");
+            int mpkg  = path.indexOf("/mapper/", jbase);
+            if (jbase >= 0 && mpkg >= 0) {
+                String rest = path.substring(mpkg + "/mapper/".length())
+                                   .replaceFirst("\\.java$", ".xml");
+                Path attempt2 = Paths.get(path.substring(0, jbase)
+                        + "/src/main/resources/mapper/" + rest);
+                if (Files.isRegularFile(attempt2)) {
+                    addJavaFile(procedures, attempt2, visitedFiles);
+                }
+            }
         }
     }
 
@@ -421,6 +474,14 @@ public class InsightSourceController {
                         scanPeerDir(sib, prefix, services, repositories, entities, visitedFiles);
                     }
                 }
+                // MyBatis mapper — PLANNEL 의 경우 `mapper/<도메인>/<X>Mapper.java` 처럼 1단계 subfolder 가 있다.
+                // 단일 directory list 로는 못 잡으니 recursive walk.
+                for (String mapperSibling : new String[]{"mapper", "mappers"}) {
+                    Path sib = parent.resolve(mapperSibling);
+                    if (Files.isDirectory(sib) && !sib.equals(dir)) {
+                        scanMapperRecursive(sib, prefix, repositories, visitedFiles);
+                    }
+                }
             }
         }
     }
@@ -457,11 +518,29 @@ public class InsightSourceController {
                     if (name.endsWith("Controller.java")) return;       // Controller 는 이미 추가됨
                     if (name.endsWith("Service.java"))         addJavaFile(services,     p, visitedFiles);
                     else if (name.endsWith("Repository.java")) addJavaFile(repositories, p, visitedFiles);
+                    else if (name.endsWith("Mapper.java"))     addJavaFile(repositories, p, visitedFiles);  // MyBatis interface
                     // Entity bucket: Deserializer/Serializer/Util/Helper/Config/Constants/Builder 류는 제외
                     else if (!looksLikeNonEntity(name))         addJavaFile(entities,    p, visitedFiles);
                 });
         } catch (IOException e) {
             log.warn("디렉토리 list 실패 {} — {}", dir, e.getMessage());
+        }
+    }
+
+    /**
+     * MyBatis mapper 폴더 recursive walk. PLANNEL: `mapper/master/`, `mapper/rp/` 등 subfolder 에 분산.
+     * prefix 매칭으로 좁힘 — Controller 의 className prefix (예: "RpComp") 로 시작하는 *Mapper.java 만.
+     */
+    private void scanMapperRecursive(Path mapperRoot, String prefixFilter,
+                                      List<Map<String, Object>> repositories,
+                                      Set<String> visitedFiles) {
+        try (Stream<Path> walk = Files.walk(mapperRoot, 3)) {
+            walk.filter(p -> p.getFileName().toString().endsWith("Mapper.java"))
+                .filter(p -> prefixFilter == null
+                          || p.getFileName().toString().startsWith(prefixFilter))
+                .forEach(p -> addJavaFile(repositories, p, visitedFiles));
+        } catch (IOException e) {
+            log.warn("mapper 폴더 walk 실패 {} — {}", mapperRoot, e.getMessage());
         }
     }
 
@@ -570,24 +649,16 @@ public class InsightSourceController {
         screen.put("path",   sourceFile.toString());
         screen.put("source", source);
 
-        // PLANNEL 의 2단계 indirection — JSX 자체엔 URL 이 없고 service 모듈에 있다.
-        //   1) JSX → `import xService from "@plannel/services/<rel>"`
-        //   2) service 모듈 → `restApi.{get,post,...}('/api/...')` ← URL 이 여기 있음
-        // 따라서 JSX 가 import 한 `@plannel/services/...` 모듈도 함께 읽어 URL 추출.
+        // PLANNEL 의 2단계 indirection — JSX 에 URL 이 없고 `@plannel/services/*` 모듈에 있다.
+        //   1) JSX → `import xService from "@plannel/services/<rel>"` + `xService.method()` 호출
+        //   2) service 모듈 → `const method = (p) => restApi.get('/api/...', p)`
+        //
+        // ★ 2026-05-21 정책 — service 의 *모든* URL 을 끌어오지 않고 **JSX 가 실제 호출한 method 의
+        //   URL 만** 추출. 한 service 가 다른 도메인 API 도 노출할 때 무관 URL 이 섞이는 사고 차단.
+        //   service 본문은 frontendSources 에 첨부하지 않음 — backend Controller 가 동일 정보 보유.
         List<Map<String, Object>> frontendSources = new ArrayList<>();
         Set<String> urls = new LinkedHashSet<>(extractZAxiosUrls(source));
-        for (Path svcFile : resolvePlannelServiceImports(source, sourceRoot)) {
-            try {
-                String svcSrc = Files.readString(svcFile);
-                Map<String, Object> svcInfo = new LinkedHashMap<>();
-                svcInfo.put("path", svcFile.toString());
-                svcInfo.put("source", svcSrc);
-                frontendSources.add(svcInfo);
-                urls.addAll(extractZAxiosUrls(svcSrc));   // service 안의 /api/... URL 추출
-            } catch (IOException e) {
-                log.warn("PLANNEL service 파일 읽기 실패 {}: {}", svcFile, e.getMessage());
-            }
-        }
+        urls.addAll(extractPlannelServiceUrls(source, sourceRoot));
 
         // PLANNEL backend 분리 구조 지원 — saas-application 의 Controller/Service/Repository/Entity 를
         // JSX 의 API URL 매칭으로 찾는다. Target.backendRefPath 가 설정되어 있어야 동작
@@ -617,12 +688,16 @@ public class InsightSourceController {
             repo.put("queryMethods", queryMethods);
         }
 
+        // MyBatis Mapper XML — PLANNEL Mapper interface 가 repositories 에 있으면 대응 XML 동봉
+        List<Map<String, Object>> procedures = new ArrayList<>();
+        addMyBatisXmls(repositories, procedures, visitedFiles);
+
         Map<String, Object> backend = new LinkedHashMap<>();
         backend.put("controllers",  controllers);
         backend.put("services",     services);
         backend.put("repositories", repositories);
         backend.put("entities",     entities);
-        backend.put("procedures",   Collections.emptyList());
+        backend.put("procedures",   procedures);   // PLANNEL: MyBatis xml
 
         List<Map<String, Object>> apiCalls = new ArrayList<>();
         for (String u : urls) apiCalls.add(Map.of("url", u, "type", "rest"));
@@ -652,32 +727,70 @@ public class InsightSourceController {
     }
 
     /**
-     * PLANNEL JSX 의 `import xService from "@plannel/services/<rel>"` 구문을 모두 추출해
-     * 실제 파일 경로로 resolve. `@plannel/` alias 는 `<sourceRoot>/src/` 로 매핑.
-     * 후보 확장자 .js · .jsx 둘 다 시도 (실존하는 첫 파일만 반환).
+     * PLANNEL JSX 가 import 한 `@plannel/services/<rel>` 모듈 중, **JSX 본문에서 실제 호출한
+     * method 의 URL 만** 추출. service 본문 전체의 URL 을 다 끌어오지 않음 (무관 도메인 차단).
      *
-     * 예: `import dashboardService from "@plannel/services/dashboard/dashboard-service"`
-     *   → `<sourceRoot>/src/services/dashboard/dashboard-service.js`
+     * 매칭 흐름:
+     *   1) JSX 에서 `import <var> from "@plannel/services/<rel>"` → var → service path
+     *   2) JSX 본문에서 `<var>.<method>(` 호출 grep → 각 var 의 사용 method set
+     *   3) service 본문 line-by-line 으로 `const <name> = ...` 정의를 추적, 같은/직후 라인의
+     *      `restApi.{get,post,...}('/api/...')` URL 을 그 name 의 URL 로 기록
+     *   4) used method 집합과 매칭되는 URL 만 반환
      */
     private static final Pattern PLANNEL_SERVICE_IMPORT_RE = Pattern.compile(
-        "import\\s+\\w+\\s+from\\s+[\"']@plannel/(services/[^\"']+)[\"']");
+        "import\\s+(\\w+)\\s+from\\s+[\"']@plannel/(services/[^\"']+)[\"']");
+    private static final Pattern METHOD_CALL_RE = Pattern.compile("\\b(\\w+)\\.(\\w+)\\s*\\(");
+    private static final Pattern METHOD_DEF_LINE_RE = Pattern.compile(
+        "^\\s*(?:const|let|var|function|async\\s+function)\\s+(\\w+)\\s*[=(]");
+    private static final Pattern URL_LINE_RE = Pattern.compile(
+        "restApi\\w*\\.\\w+\\(\\s*[\"']([^\"']+)[\"']");
 
-    private List<Path> resolvePlannelServiceImports(String jsxSource, String sourceRoot) {
-        if (jsxSource == null || sourceRoot == null) return Collections.emptyList();
-        List<Path> out = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
-        Matcher m = PLANNEL_SERVICE_IMPORT_RE.matcher(jsxSource);
-        while (m.find()) {
-            String rel = m.group(1);              // "services/dashboard/dashboard-service"
-            if (!seen.add(rel)) continue;
-            Path[] candidates = new Path[]{
-                Path.of(sourceRoot, "src", rel + ".js"),
-                Path.of(sourceRoot, "src", rel + ".jsx"),
-                Path.of(sourceRoot, "src", rel, "index.js"),
-                Path.of(sourceRoot, "src", rel, "index.jsx"),
-            };
-            for (Path p : candidates) {
-                if (Files.isRegularFile(p)) { out.add(p); break; }
+    private Set<String> extractPlannelServiceUrls(String jsxSource, String sourceRoot) {
+        Set<String> out = new LinkedHashSet<>();
+        if (jsxSource == null || sourceRoot == null) return out;
+
+        // 1) JSX 의 service import: var name → service path
+        Map<String, Path> importedServices = new LinkedHashMap<>();
+        Matcher im = PLANNEL_SERVICE_IMPORT_RE.matcher(jsxSource);
+        while (im.find()) {
+            String varName = im.group(1);
+            String rel = im.group(2);
+            for (String ext : new String[]{".js", ".jsx"}) {
+                Path p = Path.of(sourceRoot, "src", rel + ext);
+                if (Files.isRegularFile(p)) { importedServices.put(varName, p); break; }
+            }
+        }
+        if (importedServices.isEmpty()) return out;
+
+        // 2) JSX 본문에서 각 service var 가 호출한 method 집합 추출
+        Map<String, Set<String>> usedMethods = new HashMap<>();
+        Matcher mc = METHOD_CALL_RE.matcher(jsxSource);
+        while (mc.find()) {
+            String varName = mc.group(1);
+            String methodName = mc.group(2);
+            if (importedServices.containsKey(varName)) {
+                usedMethods.computeIfAbsent(varName, k -> new HashSet<>()).add(methodName);
+            }
+        }
+        if (usedMethods.isEmpty()) return out;
+
+        // 3+4) 각 service 본문에서 method → URL 매핑 후 used method 의 URL 만 채택
+        for (Map.Entry<String, Path> e : importedServices.entrySet()) {
+            Set<String> used = usedMethods.get(e.getKey());
+            if (used == null || used.isEmpty()) continue;
+            try {
+                String svcSrc = Files.readString(e.getValue());
+                String currentMethod = null;
+                for (String line : svcSrc.split("\n")) {
+                    Matcher md = METHOD_DEF_LINE_RE.matcher(line);
+                    if (md.find()) currentMethod = md.group(1);
+                    if (currentMethod != null && used.contains(currentMethod)) {
+                        Matcher ul = URL_LINE_RE.matcher(line);
+                        while (ul.find()) out.add(ul.group(1));
+                    }
+                }
+            } catch (IOException ioe) {
+                log.warn("PLANNEL service URL filter 실패 {}: {}", e.getValue(), ioe.getMessage());
             }
         }
         return out;

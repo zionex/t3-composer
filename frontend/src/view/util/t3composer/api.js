@@ -264,12 +264,14 @@ export const applyArtifacts = (sessionId, opts = {}) =>
 // Phase 2a — Preview (docker 컨테이너 안에서 검증 — JSX/SQL/MENU)
 // options.skipJava=true → Sample 모드: Java 산출물 적용·mvn compile·재기동 생략 (10~20초 backend down 회피).
 //                          frontend Sample shim 이 axios 응답 가로채므로 backend 미동작 OK.
+// timeout: AI mockup transform (JSX 1개당 5~10초, 캐시 miss 시) 을 충분히 커버.
+//          캐시 hit 후엔 즉시 끝나므로 상한만 넉넉히. backend async timeout(45분) 보다는 짧게.
 export const applyPreview = (sessionId, options = {}) => {
   const qs = options.skipJava ? '?skipJava=true' : '';
   return zAxios.post(
     `composer/sessions/${sessionId}/preview/apply${qs}`,
     {},
-    composerReq({ timeout: options.skipJava ? 30000 : 120000 }),
+    composerReq({ timeout: 600000 }),
   );
 };
 

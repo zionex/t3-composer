@@ -344,6 +344,34 @@ const REGISTRY = {
     '@mui/icons-material/ExpandMore': defaultModule(ExpandMoreIcon),
     '@mui/icons-material/ChevronRight': defaultModule(ChevronRightIcon),
     '@mui/icons-material/MoreVert': defaultModule(MoreVertIcon),
+    // 루트 import — `import { Search as SearchIcon, Settings as SettingsIcon, ... } from '@mui/icons-material'`
+    // 패턴(LLM 이 자주 사용)을 지원. 명시 등록된 19종은 그대로 노출하고, 미등록 named
+    // export 는 Proxy 로 가로채 invisible 16x16 span 컴포넌트 반환 — 화면이 깨지지 않음.
+    '@mui/icons-material': (() => {
+        const known = {
+            Search: SearchIcon, Add: AddIcon, Delete: DeleteIcon, Save: SaveIcon,
+            FileDownload: FileDownloadIcon, FileUpload: FileUploadIcon, Edit: EditIcon,
+            Refresh: RefreshIcon, Close: CloseIcon, Check: CheckIcon, Warning: WarningIcon,
+            Info: InfoIcon, Launch: LaunchIcon, ArrowDropDown: ArrowDropDownIcon,
+            ArrowDropUp: ArrowDropUpIcon, ExpandMore: ExpandMoreIcon,
+            ChevronRight: ChevronRightIcon, MoreVert: MoreVertIcon,
+        };
+        const InvisibleIcon = (props) => React.createElement('span', {
+            ...props,
+            style: { display: 'inline-block', width: 16, height: 16, ...(props && props.style) },
+        });
+        InvisibleIcon.displayName = 'PreviewStubIcon';
+        const proxied = new Proxy(known, {
+            get(t, prop) {
+                if (prop in t) return t[prop];
+                if (prop === '__esModule') return true;
+                if (typeof prop !== 'string') return undefined;
+                // 알 수 없는 named export — invisible icon 반환 (호출 시 빈 span)
+                return InvisibleIcon;
+            },
+        });
+        return esModule(proxied);
+    })(),
 
     // wingui shim — zAxios/callService/showMessage 는 mock 으로 override
     // (mock 객체로 import 가 들어가야 화면이 API 호출 없이 sample 데이터 렌더)
@@ -668,6 +696,15 @@ function previewRequire(spec) {
             REGISTRY[spec] = mod;
             return mod;
         }
+    }
+
+    // @mui/icons-material/<Unknown> — REGISTRY 에 명시 등록된 19종 외 미등록 아이콘.
+    // generic makeFallbackComponent 의 노란 점선 박스가 화면에 거슬리게 노출되므로
+    // 작은 invisible icon stub (16×16 span) 으로 graceful degradation.
+    if (spec.startsWith('@mui/icons-material/')) {
+        const stub = makeFallbackIcon(spec);
+        REGISTRY[spec] = stub;
+        return stub;
     }
 
     // ★ wingui-core / @wingui subpath 라우팅 — backend 에서 실모듈 fetch 안 함.

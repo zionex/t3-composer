@@ -154,12 +154,30 @@ export function SourceBundlePreview({ bundle }) {
             </Stack>
             {Array.isArray(data) ? (
               <Stack spacing={0.4}>
-                {data.slice(0, 8).map((item, i) => (
+                {data.slice(0, 8).map((item, i) => {
+                  const raw = item.path || item.name || item.fileName || '';
+                  const { targetCd, rel } = parseContainerPath(raw);
+                  return (
                   <Box key={i}>
-                    <Typography variant="caption"
-                                sx={{ fontFamily: 'monospace', fontSize: 10, color: '#475569' }}>
-                      {item.path || item.name || item.fileName || JSON.stringify(item).slice(0, 90)}
-                    </Typography>
+                    <Stack direction="row" spacing={0.6} alignItems="center" useFlexGap flexWrap="wrap">
+                      {targetCd && (
+                        <Chip
+                          label={targetCd}
+                          size="small"
+                          sx={{
+                            height: 16, fontSize: 9.5, fontFamily: 'monospace', fontWeight: 700,
+                            bgcolor: targetChipBg(targetCd), color: targetChipFg(targetCd),
+                            border: `1px solid ${targetChipFg(targetCd)}55`,
+                            '& .MuiChip-label': { px: 0.6 },
+                          }}
+                        />
+                      )}
+                      <Typography variant="caption"
+                                  sx={{ fontFamily: 'monospace', fontSize: 10, color: '#475569',
+                                        wordBreak: 'break-all' }}>
+                        {rel || raw || JSON.stringify(item).slice(0, 90)}
+                      </Typography>
+                    </Stack>
                     {key === 'repositories' && Array.isArray(item.queryMethods) && item.queryMethods.length > 0 && (
                       <InferredSqlPanel
                         queryMethods={item.queryMethods}
@@ -168,7 +186,8 @@ export function SourceBundlePreview({ bundle }) {
                       />
                     )}
                   </Box>
-                ))}
+                  );
+                })}
                 {data.length > 8 && (
                   <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                     ... 외 {data.length - 8}건
@@ -186,6 +205,27 @@ export function SourceBundlePreview({ bundle }) {
     </Stack>
   );
 }
+
+// ── path → Target chip + relative path 분리 ───────────────────────────
+// path 예: `/workspace/targets/PLANNEL/backend/src/main/java/t3series/saas/controller/X.java`
+//   → { targetCd: 'PLANNEL', rel: 'backend/src/main/java/t3series/saas/controller/X.java' }
+// path 가 `/workspace/wingui/...` (글로벌 fallback) 면 targetCd 없이 그대로.
+const TARGET_PATH_RE = /^\/workspace\/targets\/([A-Z][A-Z0-9_]*)\/(.*)$/;
+function parseContainerPath(raw) {
+  if (!raw || typeof raw !== 'string') return { targetCd: null, rel: raw || '' };
+  const m = raw.match(TARGET_PATH_RE);
+  if (!m) return { targetCd: null, rel: raw };
+  return { targetCd: m[1], rel: m[2] };
+}
+
+// Target chip 색 (다른 Target 도 한 눈에 구분)
+const TARGET_CHIP_COLORS = {
+  T3SERIES:     { bg: '#dbeafe', fg: '#1d4ed8' },   // blue
+  PLANNEL:      { bg: '#dcfce7', fg: '#15803d' },   // green
+  LGES_NEXTSCM: { bg: '#fef3c7', fg: '#a16207' },   // amber
+};
+function targetChipBg(cd) { return (TARGET_CHIP_COLORS[cd] || {}).bg || '#f1f5f9'; }
+function targetChipFg(cd) { return (TARGET_CHIP_COLORS[cd] || {}).fg || '#475569'; }
 
 /** 두 패널을 묶어 한 번에 사용 — divider 포함 */
 export function SourceBundleSection({ bundle }) {

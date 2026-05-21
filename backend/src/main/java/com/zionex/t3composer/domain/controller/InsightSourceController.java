@@ -162,7 +162,7 @@ public class InsightSourceController {
                 addJavaFile(controllers, ctrl, visitedFiles);
                 Path dir = ctrl.getParent();
                 if (dir != null && visitedDirs.add(dir.toString())) {
-                    addPeerJavaFiles(dir, services, repositories, entities, visitedFiles);
+                    addPeerJavaFiles(ctrl, dir, services, repositories, entities, visitedFiles);
                 }
             }
         }
@@ -284,16 +284,21 @@ public class InsightSourceController {
      *   2) Class-level @RequestMapping("/util") + method-level @GetMapping("/user-infos") 분할 케이스도 고려:
      *      → 첫 segment 까지로 grep 매칭 (false positive 위험은 있으나 same dir peer 가 정답 가능성↑)
      */
+    /** class-level `@RequestMapping("/X")` 의 X 추출 — 없으면 빈 문자열. */
+    private static final Pattern CLASS_REQUEST_MAPPING_RE = Pattern.compile(
+        "@RequestMapping\\s*\\(\\s*(?:value\\s*=\\s*)?[\"']([^\"']*)[\"']");
+    /** method-level 매핑 — @GetMapping/@PostMapping/.../@RequestMapping(value=...) 모두 잡음. */
+    private static final Pattern METHOD_MAPPING_RE = Pattern.compile(
+        "@(?:Get|Post|Put|Delete|Patch|Request)Mapping\\s*\\(\\s*(?:value\\s*=\\s*)?[\"']([^\"']*)[\"']");
+
     List<Path> findControllersByUrl(String url, String targetCd) {
         if (url == null || url.isBlank()) return Collections.emptyList();
-        String clean = stripLeadingSlash(url);
-        String[] needles = {
-            "\"/" + clean + "\"",
-            "\"" + clean + "\"",
-        };
+        String clean = stripLeadingSlash(url);                // "api/dashboard-kpi"
         Path javaRoot = javaBase(targetCd);
         if (!Files.isDirectory(javaRoot)) return Collections.emptyList();
 
+        // 1차 — class prefix + method mapping 합성으로 정확 매칭. T3SERIES (단일 needle) 와
+        // PLANNEL (`@RequestMapping("/api")` + `@GetMapping("/dashboard-kpi")`) 모두 처리.
         List<Path> matches = new ArrayList<>();
         try (Stream<Path> walk = Files.walk(javaRoot)) {
             walk.filter(p -> p.toString().endsWith("Controller.java"))
@@ -301,37 +306,63 @@ public class InsightSourceController {
                     try {
                         String content = Files.readString(p);
                         if (!content.contains("@RestController") && !content.contains("@Controller")) return;
-                        for (String needle : needles) {
-                            if (content.contains(needle)) {
-                                matches.add(p);
-                                return;
-                            }
-                        }
+                        if (controllerHandlesUrl(content, clean)) matches.add(p);
                     } catch (IOException ignored) {}
                 });
         } catch (IOException e) {
             log.warn("Java 디렉토리 탐색 실패: {}", e.getMessage());
         }
-
-        // 정확한 grep 실패 시 — 첫 segment 만 prefix 매칭 (best-effort)
-        if (matches.isEmpty()) {
-            int slash = clean.indexOf('/');
-            String prefix = slash > 0 ? clean.substring(0, slash) : clean;
-            if (!prefix.isBlank()) {
-                String prefixNeedle = "\"/" + prefix + "/";
-                try (Stream<Path> walk = Files.walk(javaRoot)) {
-                    walk.filter(p -> p.toString().endsWith("Controller.java"))
-                        .forEach(p -> {
-                            try {
-                                String content = Files.readString(p);
-                                if (!content.contains("@RestController") && !content.contains("@Controller")) return;
-                                if (content.contains(prefixNeedle)) matches.add(p);
-                            } catch (IOException ignored) {}
-                        });
-                } catch (IOException ignored) {}
-            }
-        }
         return matches;
+    }
+
+    /**
+     * Controller 파일이 `clean` URL 을 처리하는지 검사.
+     * class-level `@RequestMapping("/X")` 의 X (있으면) + method-level `@<Verb>Mapping("/Y")` 의 Y
+     * 를 합성한 full URL 이 `clean` 과 일치하면 매칭.
+     *
+     * 매칭 모드: 정확 일치 또는 path variable 패턴 (`/{id}`) 까지 1단계 wildcard 허용.
+     */
+    private static boolean controllerHandlesUrl(String content, String clean) {
+        // class-level prefix 추출 (없으면 "")
+        Matcher cm = CLASS_REQUEST_MAPPING_RE.matcher(content);
+        String classPrefix = "";
+        if (cm.find()) classPrefix = stripBothSlash(cm.group(1));
+
+        // method-level 매핑 전부 순회
+        Matcher mm = METHOD_MAPPING_RE.matcher(content);
+        while (mm.find()) {
+            // 같은 위치의 class-level 매핑은 건너뛰기 — class-level 의 @RequestMapping 이 다시 매치되므로
+            String raw = mm.group(0);
+            if (raw.startsWith("@RequestMapping") && mm.start() == cm.start()) continue;
+
+            String methodPath = stripBothSlash(mm.group(1));
+            String full = classPrefix.isEmpty() ? methodPath
+                        : methodPath.isEmpty()    ? classPrefix
+                        : classPrefix + "/" + methodPath;
+            if (urlMatches(full, clean)) return true;
+        }
+        // 메서드가 없는데 class-level URL 자체가 endpoint 인 케이스
+        if (!classPrefix.isEmpty() && urlMatches(classPrefix, clean)) return true;
+        return false;
+    }
+
+    /** path variable `{id}` 같은 segment 는 임의 segment 와 매칭 — 정확 일치 외에 1단계 wildcard. */
+    private static boolean urlMatches(String controllerPath, String clean) {
+        if (controllerPath.equalsIgnoreCase(clean)) return true;
+        String[] a = controllerPath.split("/");
+        String[] b = clean.split("/");
+        if (a.length != b.length) return false;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i].startsWith("{") && a[i].endsWith("}")) continue;   // path variable
+            if (!a[i].equalsIgnoreCase(b[i])) return false;
+        }
+        return true;
+    }
+
+    private static String stripBothSlash(String s) {
+        if (s == null) return "";
+        String r = s.startsWith("/") ? s.substring(1) : s;
+        return r.endsWith("/") ? r.substring(0, r.length() - 1) : r;
     }
 
     private void addJavaFile(List<Map<String, Object>> bucket, Path file, Set<String> visitedFiles) {
@@ -355,15 +386,70 @@ public class InsightSourceController {
 
     /**
      * Controller 가 속한 디렉토리의 동료 java 파일을 suffix 로 분류해 동봉.
+     *
+     * 두 가지 패키지 패턴 자동 인식:
+     *  (A) T3SERIES 모노레포 — feature 별 폴더에 모든 클래스 동거
+     *      `web/domain/user/{User.java, UserController.java, UserService.java, UserRepository.java}`
+     *      → 단일 디렉토리 검색 (filter 없이).
+     *  (B) PLANNEL 분리형 — 역할별 sibling 폴더 + 평면 구조
+     *      `t3series/saas/{controller, service, repository, model, dto}/...`
+     *      → Controller 의 부모(`<root>/saas/`) 아래 sibling 폴더 검색. 단 폴더가 평면이라
+     *      sibling 전체를 긁으면 무의미 → **Controller className prefix 매칭** 으로 좁힘.
+     *      예: `DashboardController.java` → `Dashboard*Service.java`/`Dashboard*Repository.java` 만.
+     *
+     * @param ctrlFile  매칭된 Controller .java 파일 — className prefix 추출에 사용
      */
-    private void addPeerJavaFiles(Path dir,
+    private void addPeerJavaFiles(Path ctrlFile,
+                                  Path dir,
                                   List<Map<String, Object>> services,
                                   List<Map<String, Object>> repositories,
                                   List<Map<String, Object>> entities,
                                   Set<String> visitedFiles) {
+        // (A) 같은 디렉토리 — T3SERIES 류, 전체 스캔
+        scanPeerDir(dir, null, services, repositories, entities, visitedFiles);
+
+        // (B) PLANNEL 패턴 — 부모가 'controller' 폴더면 sibling 도 검색 + prefix 매칭 필수
+        String dirName = dir.getFileName() == null ? "" : dir.getFileName().toString();
+        if ("controller".equalsIgnoreCase(dirName) || "controllers".equalsIgnoreCase(dirName)) {
+            String prefix = extractClassPrefix(ctrlFile);   // e.g. "Dashboard"
+            Path parent = dir.getParent();
+            if (parent != null && prefix != null && !prefix.isBlank()) {
+                for (String sibling : new String[]{"service", "services", "repository", "repositories",
+                                                    "model", "models", "entity", "entities", "dto", "domain"}) {
+                    Path sib = parent.resolve(sibling);
+                    if (Files.isDirectory(sib) && !sib.equals(dir)) {
+                        scanPeerDir(sib, prefix, services, repositories, entities, visitedFiles);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Controller 파일 이름에서 prefix 추출 — `DashboardController.java` → `Dashboard`. */
+    private static String extractClassPrefix(Path ctrlFile) {
+        if (ctrlFile == null) return null;
+        String fn = ctrlFile.getFileName() == null ? "" : ctrlFile.getFileName().toString();
+        if (fn.endsWith("Controller.java")) return fn.substring(0, fn.length() - "Controller.java".length());
+        if (fn.endsWith(".java"))           return fn.substring(0, fn.length() - 5);
+        return null;
+    }
+
+    /**
+     * 단일 디렉토리 안의 java 파일들을 suffix 로 분류해 동봉.
+     *
+     * @param prefixFilter null 이면 모든 .java 파일 (T3SERIES 류 동일 폴더 스캔).
+     *                     비어있지 않으면 그 prefix 로 시작하는 파일만 (PLANNEL 류 sibling 스캔).
+     */
+    private void scanPeerDir(Path dir,
+                             String prefixFilter,
+                             List<Map<String, Object>> services,
+                             List<Map<String, Object>> repositories,
+                             List<Map<String, Object>> entities,
+                             Set<String> visitedFiles) {
         try (Stream<Path> list = Files.list(dir)) {
             list.filter(p -> p.toString().endsWith(".java"))
-                // 같은 디렉토리에서 dir 이름과 동일한 className (= 정식 Entity) 가 먼저 오도록 정렬
+                .filter(p -> prefixFilter == null
+                          || p.getFileName().toString().startsWith(prefixFilter))
                 .sorted((a, b) -> javaSortKey(a, dir.getFileName().toString())
                                   - javaSortKey(b, dir.getFileName().toString()))
                 .forEach(p -> {
@@ -484,10 +570,28 @@ public class InsightSourceController {
         screen.put("path",   sourceFile.toString());
         screen.put("source", source);
 
+        // PLANNEL 의 2단계 indirection — JSX 자체엔 URL 이 없고 service 모듈에 있다.
+        //   1) JSX → `import xService from "@plannel/services/<rel>"`
+        //   2) service 모듈 → `restApi.{get,post,...}('/api/...')` ← URL 이 여기 있음
+        // 따라서 JSX 가 import 한 `@plannel/services/...` 모듈도 함께 읽어 URL 추출.
+        List<Map<String, Object>> frontendSources = new ArrayList<>();
+        Set<String> urls = new LinkedHashSet<>(extractZAxiosUrls(source));
+        for (Path svcFile : resolvePlannelServiceImports(source, sourceRoot)) {
+            try {
+                String svcSrc = Files.readString(svcFile);
+                Map<String, Object> svcInfo = new LinkedHashMap<>();
+                svcInfo.put("path", svcFile.toString());
+                svcInfo.put("source", svcSrc);
+                frontendSources.add(svcInfo);
+                urls.addAll(extractZAxiosUrls(svcSrc));   // service 안의 /api/... URL 추출
+            } catch (IOException e) {
+                log.warn("PLANNEL service 파일 읽기 실패 {}: {}", svcFile, e.getMessage());
+            }
+        }
+
         // PLANNEL backend 분리 구조 지원 — saas-application 의 Controller/Service/Repository/Entity 를
         // JSX 의 API URL 매칭으로 찾는다. Target.backendRefPath 가 설정되어 있어야 동작
         // (없으면 javaBase 가 빈 위치라 검색 결과 0건).
-        Set<String> urls = extractZAxiosUrls(source);
         List<Map<String, Object>> controllers   = new ArrayList<>();
         List<Map<String, Object>> services      = new ArrayList<>();
         List<Map<String, Object>> repositories  = new ArrayList<>();
@@ -500,7 +604,7 @@ public class InsightSourceController {
                 addJavaFile(controllers, ctrl, visitedFiles);
                 Path dir = ctrl.getParent();
                 if (dir != null && visitedDirs.add(dir.toString())) {
-                    addPeerJavaFiles(dir, services, repositories, entities, visitedFiles);
+                    addPeerJavaFiles(ctrl, dir, services, repositories, entities, visitedFiles);
                 }
             }
         }
@@ -530,7 +634,7 @@ public class InsightSourceController {
         result.put("displayName",      entry.get("displayName"));
         result.put("i18nKey",          entry.get("i18nKey"));
         result.put("screen",           screen);
-        result.put("frontendSources",  Collections.emptyList());
+        result.put("frontendSources",  frontendSources);   // PLANNEL service 모듈들 (URL 출처)
         result.put("frontendProcedures", Collections.emptyMap());
         result.put("backend",          backend);
         result.put("apiCalls",         apiCalls);
@@ -538,12 +642,45 @@ public class InsightSourceController {
         result.put("proceduresUsed",   Collections.emptyList());
         result.put("menuSource",       "JS_FILE");
 
-        log.info("collect-source-for-llm (JS_FILE) — target={} menuCd={} sourceFile={} backend(c{} s{} r{} e{}) apiCalls={}",
+        log.info("collect-source-for-llm (JS_FILE) — target={} menuCd={} sourceFile={} frontendSources={} backend(c{} s{} r{} e{}) apiCalls={}",
                 targetCd, menuCd, sourceFile,
+                frontendSources.size(),
                 controllers.size(), services.size(), repositories.size(), entities.size(),
                 apiCalls.size());
 
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * PLANNEL JSX 의 `import xService from "@plannel/services/<rel>"` 구문을 모두 추출해
+     * 실제 파일 경로로 resolve. `@plannel/` alias 는 `<sourceRoot>/src/` 로 매핑.
+     * 후보 확장자 .js · .jsx 둘 다 시도 (실존하는 첫 파일만 반환).
+     *
+     * 예: `import dashboardService from "@plannel/services/dashboard/dashboard-service"`
+     *   → `<sourceRoot>/src/services/dashboard/dashboard-service.js`
+     */
+    private static final Pattern PLANNEL_SERVICE_IMPORT_RE = Pattern.compile(
+        "import\\s+\\w+\\s+from\\s+[\"']@plannel/(services/[^\"']+)[\"']");
+
+    private List<Path> resolvePlannelServiceImports(String jsxSource, String sourceRoot) {
+        if (jsxSource == null || sourceRoot == null) return Collections.emptyList();
+        List<Path> out = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        Matcher m = PLANNEL_SERVICE_IMPORT_RE.matcher(jsxSource);
+        while (m.find()) {
+            String rel = m.group(1);              // "services/dashboard/dashboard-service"
+            if (!seen.add(rel)) continue;
+            Path[] candidates = new Path[]{
+                Path.of(sourceRoot, "src", rel + ".js"),
+                Path.of(sourceRoot, "src", rel + ".jsx"),
+                Path.of(sourceRoot, "src", rel, "index.js"),
+                Path.of(sourceRoot, "src", rel, "index.jsx"),
+            };
+            for (Path p : candidates) {
+                if (Files.isRegularFile(p)) { out.add(p); break; }
+            }
+        }
+        return out;
     }
 
     /** menuTree (items[].items[]...) 에서 id 또는 dbId 가 menuCd 와 일치하는 leaf 검색. */

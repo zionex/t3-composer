@@ -609,11 +609,23 @@ function makeFallbackModule(spec) {
     const stubComp = makeFallbackComponent(spec).default;
     // default export 결정:
     //   - PascalCase (Box, BaseGrid, MaterialMaster …) → stubComp (가시적 placeholder)
+    //     단, PascalCase 모듈이 React 컴포넌트가 아니라 utility 객체일 수도 있다
+    //     (예: PLANNEL `GridUtils.getColumnDefs(...)` — 컴포넌트가 아닌 정적 메서드 묶음).
+    //     이 경우 산출물이 `GridUtils.x(...)` 호출 시 함수가 아닌 undefined 가 되어 크래시.
+    //     해결: stubComp 함수에 Proxy 를 씌워 React 가 호출하면 placeholder element 반환 +
+    //     속성 접근 (`.getColumnDefs` 등) 은 SAFE_STUB 반환 (호출·체이닝 안전).
     //   - lowercase/kebab (redux-util, material-service, useDispatch …) → SAFE_STUB
     //     (Proxy 함수 — `util.method()` · `useXxx()` · `service.foo.bar()` 모두 안전)
-    //   이전엔 lowercase 도 stubComp 이 default 라 `reduxUtil.getViewState` 가
-    //   `stubComp.getViewState` (undefined) → TypeError. SAFE_STUB 으로 통일.
-    const baseDefault = /^[A-Z]/.test(lastSeg) ? stubComp : SAFE_STUB;
+    const stubCompWithMethods = /^[A-Z]/.test(lastSeg)
+        ? new Proxy(stubComp, {
+            get(t, prop) {
+                if (prop in t) return t[prop];                 // React internals (displayName 등)
+                if (typeof prop !== 'string') return undefined;
+                return SAFE_STUB;                              // 컴포넌트 static 메서드/속성
+            },
+        })
+        : null;
+    const baseDefault = /^[A-Z]/.test(lastSeg) ? stubCompWithMethods : SAFE_STUB;
     const target = { __esModule: true, default: baseDefault };
     return new Proxy(target, {
         get(t, prop) {

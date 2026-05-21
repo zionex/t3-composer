@@ -110,6 +110,14 @@ public class TargetSystem {
     @Column(name = "database_ref_path", length = 500)
     private String databaseRefPath;
 
+    /**
+     * backend 소스 루트 (monorepo 가 아닌 Target 용 — frontend 와 backend 가 별도 디렉토리).
+     * 비어있으면 source_ref_path 기준 monorepo 가정 (`<source>/src/main/java`) 으로 fallback.
+     * 예: PLANNEL = `/workspace/targets/PLANNEL/backend` (host 의 saas-application).
+     */
+    @Column(name = "backend_ref_path", length = 500)
+    private String backendRefPath;
+
     /** 메뉴 트리 소스: DB (TB_AD_MENU 조회) | JS_FILE (TabMenuList.js 파싱) — 기본 DB */
     @Column(name = "menu_source", length = 20)
     private String menuSource;

@@ -75,8 +75,16 @@ public class InsightSourceController {
         return Path.of(pathResolver.resolveWinguiPath(targetCd),
                 "packages", "wingui", "src", "view");
     }
+    /**
+     * backend (Java) 소스 루트의 `src/main/java`.
+     *
+     *  - T3SERIES (monorepo): backendRefPath 비어있음 → resolveSourcePath 가 monorepo 루트 반환
+     *    → 그 아래 `src/main/java` 가 Java 소스.
+     *  - PLANNEL (분리형): backendRefPath = `/workspace/targets/PLANNEL/backend`
+     *    (= host 의 `saas-application/`) → 그 아래 `src/main/java` 가 Java 소스.
+     */
     private Path javaBase(String targetCd) {
-        return Path.of(pathResolver.resolveWinguiPath(targetCd),
+        return Path.of(pathResolver.resolveBackendPath(targetCd),
                 "src", "main", "java");
     }
 
@@ -231,6 +239,13 @@ public class InsightSourceController {
         Pattern.compile("zAxios\\.(?:get|post|put|delete|patch)\\s*\\(\\s*[\\'\"`]([^\\'\"`]+)[\\'\"`]");
     private static final Pattern URL_OBJECT_RE =
         Pattern.compile("url\\s*:\\s*[\\'\"`]([^\\'\"`]+)[\\'\"`]");
+    /**
+     * PLANNEL 류 — `<service>.{get,post,put,delete,patch}('/api/...')` 호출 매칭.
+     * 첫 인자가 `/api/` 로 시작해야 — false positive (array.get(idx) 등) 차단.
+     * `restApi.post('/api/users')` 와 `dashboardService.get('/api/dashboard-kpi')` 모두 매치.
+     */
+    private static final Pattern REST_API_CALL_RE =
+        Pattern.compile("[A-Za-z_][\\w$]*\\.(?:get|post|put|delete|patch)\\s*\\(\\s*[\\'\"`](/api/[^\\'\"`]+)[\\'\"`]");
     private static final Pattern CALL_SERVICE_RE =
         Pattern.compile("callService\\s*\\(\\s*[\\'\"`]([A-Z][A-Z0-9_]+)[\\'\"`]");
     private static final Pattern SP_UI_RE =
@@ -242,6 +257,9 @@ public class InsightSourceController {
         while (m1.find()) out.add(stripLeadingSlash(m1.group(1)));
         Matcher m2 = URL_OBJECT_RE.matcher(source);
         while (m2.find()) out.add(stripLeadingSlash(m2.group(1)));
+        // PLANNEL 류 — restApi.{get,post,...}('/api/...') · dashboardService.get('/api/...')
+        Matcher m3 = REST_API_CALL_RE.matcher(source);
+        while (m3.find()) out.add(stripLeadingSlash(m3.group(1)));
         return out;
     }
 
@@ -466,12 +484,44 @@ public class InsightSourceController {
         screen.put("path",   sourceFile.toString());
         screen.put("source", source);
 
+        // PLANNEL backend 분리 구조 지원 — saas-application 의 Controller/Service/Repository/Entity 를
+        // JSX 의 API URL 매칭으로 찾는다. Target.backendRefPath 가 설정되어 있어야 동작
+        // (없으면 javaBase 가 빈 위치라 검색 결과 0건).
+        Set<String> urls = extractZAxiosUrls(source);
+        List<Map<String, Object>> controllers   = new ArrayList<>();
+        List<Map<String, Object>> services      = new ArrayList<>();
+        List<Map<String, Object>> repositories  = new ArrayList<>();
+        List<Map<String, Object>> entities      = new ArrayList<>();
+        Set<String> visitedDirs   = new HashSet<>();
+        Set<String> visitedFiles  = new HashSet<>();
+        for (String url : urls) {
+            List<Path> matches = findControllersByUrl(url, targetCd);
+            for (Path ctrl : matches) {
+                addJavaFile(controllers, ctrl, visitedFiles);
+                Path dir = ctrl.getParent();
+                if (dir != null && visitedDirs.add(dir.toString())) {
+                    addPeerJavaFiles(dir, services, repositories, entities, visitedFiles);
+                }
+            }
+        }
+        // Repository .java 에 method-name → SQL 매핑 보강 (DB 모드와 동일)
+        String entitySource = entities.isEmpty() ? null
+            : stringOf(entities.get(0).get("source"));
+        for (Map<String, Object> repo : repositories) {
+            String repoSrc = stringOf(repo.get("source"));
+            List<Map<String, Object>> queryMethods = sqlMapper.inferAll(repoSrc, entitySource);
+            repo.put("queryMethods", queryMethods);
+        }
+
         Map<String, Object> backend = new LinkedHashMap<>();
-        backend.put("controllers",  Collections.emptyList());
-        backend.put("services",     Collections.emptyList());
-        backend.put("repositories", Collections.emptyList());
-        backend.put("entities",     Collections.emptyList());
+        backend.put("controllers",  controllers);
+        backend.put("services",     services);
+        backend.put("repositories", repositories);
+        backend.put("entities",     entities);
         backend.put("procedures",   Collections.emptyList());
+
+        List<Map<String, Object>> apiCalls = new ArrayList<>();
+        for (String u : urls) apiCalls.add(Map.of("url", u, "type", "rest"));
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("success",          true);
@@ -483,13 +533,15 @@ public class InsightSourceController {
         result.put("frontendSources",  Collections.emptyList());
         result.put("frontendProcedures", Collections.emptyMap());
         result.put("backend",          backend);
-        result.put("apiCalls",         Collections.emptyList());
-        result.put("apiCallCount",     0);
+        result.put("apiCalls",         apiCalls);
+        result.put("apiCallCount",     apiCalls.size());
         result.put("proceduresUsed",   Collections.emptyList());
         result.put("menuSource",       "JS_FILE");
 
-        log.info("collect-source-for-llm (JS_FILE) — target={} menuCd={} sourceFile={}",
-                targetCd, menuCd, sourceFile);
+        log.info("collect-source-for-llm (JS_FILE) — target={} menuCd={} sourceFile={} backend(c{} s{} r{} e{}) apiCalls={}",
+                targetCd, menuCd, sourceFile,
+                controllers.size(), services.size(), repositories.size(), entities.size(),
+                apiCalls.size());
 
         return ResponseEntity.ok(result);
     }

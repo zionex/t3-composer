@@ -230,6 +230,11 @@ services:
       # T3SERIES 처럼 DB(TB_AD_MENU) 가 진실인 Target 은 ro 유지.
       - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:rw
       - ${TARGET_PLANNEL_DATABASE_PATH:-./empty}:/workspace/targets/PLANNEL/database:ro
+      # PLANEL 은 frontend(saas-web) 와 backend(saas-application) 가 별도 디렉토리.
+      # EXISTING_MODIFY 모드의 InsightSourceController 가 Controller/Service/Repository .java 를
+      # 찾으려면 backend root 가 별도 마운트로 컨테이너에 보여야 함.
+      # tb_cmp_target_system.backend_ref_path = '/workspace/targets/PLANNEL/backend' 매칭.
+      - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:ro
       - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
       - ${TARGET_LGES_NEXTSCM_DATABASE_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/database:ro
       # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.

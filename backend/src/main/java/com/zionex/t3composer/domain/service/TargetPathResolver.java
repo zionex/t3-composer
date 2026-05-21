@@ -50,6 +50,12 @@ public class TargetPathResolver {
     };
     private static final String DATABASE_MARKER = "mssql";                // DB 스크립트 루트
 
+    /**
+     * backend 소스 루트 마커 — `src/main/java` 가 있어야 Spring Boot Java 소스.
+     * monorepo (T3SERIES) 와 분리형 (PLANNEL saas-application) 둘 다 같은 구조.
+     */
+    private static final String BACKEND_MARKER = "src/main/java";
+
     private final TargetSystemRepository targetRepo;
     private final ApplicationProperties  props;
 
@@ -85,6 +91,35 @@ public class TargetPathResolver {
         String global = props.getComposer().getDatabaseRefPath();
         if (looksLikeDatabaseRoot(global)) return global;
         return DEFAULT_DATABASE_PATH;
+    }
+
+    /**
+     * backend (Java) 소스 루트 해석.
+     *
+     * 우선순위:
+     *  1. Target.backendRefPath (PLANNEL 처럼 backend 가 frontend 와 별도 디렉토리일 때 명시)
+     *  2. Per-Target 마운트 convention — /workspace/targets/&lt;CD&gt;/backend
+     *  3. monorepo fallback — resolveSourcePath(targetCd) (T3SERIES 처럼 같은 트리 안에
+     *     src/main/java 가 있는 경우)
+     *
+     * 각 단계의 채택 기준은 `src/main/java` 마커 보유 여부. 빈 placeholder 슬롯 통과 방지.
+     */
+    public String resolveBackendPath(String targetCd) {
+        String byTarget = targetCd == null ? null
+                : targetRepo.findById(targetCd).map(TargetSystem::getBackendRefPath).orElse(null);
+        if (looksLikeBackendRoot(byTarget)) return byTarget;
+        if (targetCd != null && !targetCd.isBlank()) {
+            String convention = TARGETS_BASE + "/" + targetCd + "/backend";
+            if (looksLikeBackendRoot(convention)) return convention;
+        }
+        // monorepo fallback — frontend 와 backend 가 같은 루트 (T3SERIES wingui 트리).
+        String mono = resolveSourcePath(targetCd);
+        if (looksLikeBackendRoot(mono)) return mono;
+        return mono; // backend 마커 못 찾아도 일단 source root 반환 (호출자가 추가 처리)
+    }
+
+    private static boolean looksLikeBackendRoot(String pathStr) {
+        return hasMarker(pathStr, BACKEND_MARKER);
     }
 
     /**

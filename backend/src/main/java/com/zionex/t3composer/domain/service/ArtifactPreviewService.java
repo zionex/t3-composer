@@ -46,6 +46,20 @@ public class ArtifactPreviewService {
     private final ApplicationProperties props;
     private final ComposerArtifactRepository artifactRepo;
     private final ArtifactApplyService applyService;
+    // [화면 실행 LIVE] 시 SCREEN_JSX 를 AI mockup 으로 변환 (캐시 hit 이면 즉시).
+    // 실패 시 raw jsx fallback 으로 안전. setter injection — bean 미존재 환경에서도 동작.
+    private com.zionex.t3composer.domain.repository.ComposerSessionRepository sessionRepo;
+    private MockupTransformService mockupTransformService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setSessionRepository(com.zionex.t3composer.domain.repository.ComposerSessionRepository sessionRepo) {
+        this.sessionRepo = sessionRepo;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMockupTransformService(MockupTransformService svc) {
+        this.mockupTransformService = svc;
+    }
 
     // -----------------------------------------------------------------
     // applyPreview — frontend 파일만 쓰고 그 외 모두 skip
@@ -109,7 +123,7 @@ public class ArtifactPreviewService {
             // "둘 다 화면 실행에서는 backend 구현 불필요" 에 따라 무시. SQL/MENU/Java 산출물 검증은
             // [정식 아티팩트 적용] 단계에서만 수행.
             if (ComposerArtifact.TYPE_SCREEN_JSX.equals(type)) {
-                Map<String, Object> rec = writeJsxToPreview(a, sessionPreview, sid8);
+                Map<String, Object> rec = writeJsxToPreview(a, sessionPreview, sid8, sessionId);
                 applied.add(rec);
                 if (Boolean.TRUE.equals(rec.get("ok"))) jsxOk++; else jsxFail++;
             } else {
@@ -271,7 +285,8 @@ public class ArtifactPreviewService {
         return rec;
     }
 
-    private Map<String, Object> writeJsxToPreview(ComposerArtifact a, Path sessionPreview, String sid8) {
+    private Map<String, Object> writeJsxToPreview(ComposerArtifact a, Path sessionPreview, String sid8,
+                                                   String sessionId) {
         Map<String, Object> rec = new LinkedHashMap<>();
         rec.put("id", a.getId());
         rec.put("type", a.getArtifactType());
@@ -290,21 +305,57 @@ public class ArtifactPreviewService {
             rec.put("err", "preview 경로 탈출 시도: " + viewSub);
             return rec;
         }
+
+        // ── AI mockup 변환 (모든 Target) ──
+        // SCREEN_JSX 원본을 그대로 sandbox 에서 실행하면 ambient/외부 의존성 사고가 끝없이 발생.
+        // Anthropic 호출로 시각 mockup (의존성 minimal) 으로 변환 후 그것을 쓴다.
+        // 캐시 hit 시 즉시. miss/실패/키없음 시 raw 원본 fallback (안전).
+        String content = a.getContent();
+        boolean mockupApplied = false;
+        if (mockupTransformService != null) {
+            String targetCd = lookupTargetCd(sessionId);
+            try {
+                String mockup = mockupTransformService.transformOrCached(
+                        content, targetCd, fp, "composer-dev", false);
+                if (mockup != null && !mockup.isBlank()) {
+                    content = mockup;
+                    mockupApplied = true;
+                }
+            } catch (Exception e) {
+                log.warn("mockup transform 실패 — raw jsx fallback sid={} fp={} err={}",
+                        sid8, fp, e.getMessage());
+            }
+        }
+
         try {
             Files.createDirectories(target.getParent());
-            Files.writeString(target, a.getContent(), StandardCharsets.UTF_8,
+            Files.writeString(target, content, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.WRITE);
             rec.put("ok", true);
             rec.put("path", target.toString());
             rec.put("viewSub", viewSub);
+            rec.put("mockupApplied", mockupApplied);
         } catch (Exception e) {
             rec.put("ok", false);
             rec.put("err", e.getMessage());
             log.warn("preview frontend 쓰기 실패 sid={} fp={} err={}", sid8, fp, e.getMessage());
         }
         return rec;
+    }
+
+    /** sessionId → session.targetCd. 못 찾으면 "UNKNOWN" 으로 prompt 분기에 영향 X. */
+    private String lookupTargetCd(String sessionId) {
+        if (sessionId == null || sessionRepo == null) return "UNKNOWN";
+        try {
+            return sessionRepo.findById(sessionId)
+                    .map(com.zionex.t3composer.domain.entity.ComposerSession::getTargetCd)
+                    .filter(s -> s != null && !s.isBlank())
+                    .orElse("UNKNOWN");
+        } catch (Exception e) {
+            return "UNKNOWN";
+        }
     }
 
     private String extractViewSubpath(String filePath, String fileName) {

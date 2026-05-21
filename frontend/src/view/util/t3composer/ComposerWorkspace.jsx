@@ -227,7 +227,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     // axios 요청은 frontend shim 의 sample interceptor 가 합성 응답으로 가로챔.
     const sampleMode = useSampleData;
     setPreviewStage({ phase: 'applying',
-      message: sampleMode ? '산출물 적용 중 (Sample 모드 — 재기동 생략)...' : '산출물 적용 중...',
+      // backend 가 SCREEN_JSX 산출물을 AI mockup 으로 변환 후 _preview 폴더에 작성.
+      // 캐시 hit (같은 원본 두 번째) 은 즉시, miss (첫 실행) 는 5~10초 소요.
+      message: sampleMode
+        ? '산출물 적용 중 — AI mockup 변환 (첫 실행 5~10초 · 이후 캐시)...'
+        : '산출물 적용 중 (재기동 포함)...',
       elapsedMs: 0 });
     try {
       const res = await applyPreview(session.id, { skipJava: sampleMode });

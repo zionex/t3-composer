@@ -907,6 +907,15 @@ function buildAmbientScope() {
         scope.$ = jq;
         scope.jQuery = jq;
     }
+
+    // PLANNEL ambient globals — PLANEL 의 `src/index.js` 가 `import './utils/zdate'` 로
+    // 부트스트랩하면서 `globalThis.ZDate = ZDate` 를 등록. 미리보기 sandbox 는 화면 jsx
+    // 만 격리 실행해 부트스트랩이 안 도니까 ZDate 가 미등록 → ReferenceError.
+    // §13.0 패리티 원칙 — PLANEL globals 표면 전체를 ambient 로 노출.
+    //   ZDate 는 Date 를 확장한 클래스인데 preview 에선 native Date alias 로 충분 (대부분
+    //   사용처가 `new ZDate()` · `new ZDate(value)` — Date 와 호환).
+    if (scope.ZDate === undefined) scope.ZDate = Date;
+
     _ambientScope = scope;
     return scope;
 }

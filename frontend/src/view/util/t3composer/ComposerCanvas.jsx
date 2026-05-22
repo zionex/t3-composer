@@ -27,6 +27,15 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
 
+/** Layer type 별 accent 색 — 좌측 4px stripe + 호버 효과. 파스텔 톤. */
+const LAYER_TYPE_ACCENT = {
+  GRID:      '#7CA7E0',  // 파랑
+  CHART:     '#E6C079',  // 호박
+  CONTAINER: '#9D8FD4',  // 보라
+  DOCUMENT:  '#8FC4D4',  // 청록
+  AI:        '#C99FD4',  // 마젠타
+};
+
 function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -97,44 +106,66 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
       </Box>
 
       {/* ───── Body Layers ─────
-          Phase 1 은 RGL 미사용 (미세조정 OFF). 단순 flex column 으로 layer 들을 row 배치.
-          Phase 3 에서 LayoutDesigner 의 RGL 흡수. */}
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto',
-                 display: 'flex', flexDirection: 'column', gap: 1, p: 0.5 }}>
+          Phase 2B-1 polish: CSS Grid 12-col × 12-row 로 position 활용 (정적 배치).
+          drag/resize 는 Phase 1.5 의 RGL 통합에서. */}
+      <Box sx={{
+        flex: 1, minHeight: 0, overflow: 'auto', p: 0.5,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(12, 1fr)',
+        gridAutoRows: 'minmax(28px, auto)',
+        gap: 1,
+      }}>
         {layers.length === 0 && (
-          <Box sx={{ p: 4, textAlign: 'center', color: '#94a3b8' }}>
+          <Box sx={{ gridColumn: '1 / -1', p: 4, textAlign: 'center', color: '#94a3b8' }}>
             Layer 가 없습니다. ComposerSpec.layers 가 비어있는지 확인하세요.
           </Box>
         )}
         {layers.map(l => {
           const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
+          const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
+          // position { x, y, w, h } → CSS grid 좌표 (1-base, 끝은 +1)
+          const x = l.position?.x ?? 0;
+          const y = l.position?.y ?? 0;
+          const w = l.position?.w ?? 12;
+          const h = l.position?.h ?? 4;
           return (
             <Box
               key={l.key}
               onClick={readOnly ? undefined : () => setEditingLayerKey(l.key)}
               sx={{
+                gridColumn: `${x + 1} / ${x + w + 1}`,
+                gridRow:    `${y + 1} / ${y + h + 1}`,
                 cursor: readOnly ? 'default' : 'pointer',
-                border: '2px solid #2563eb',
+                bgcolor: '#fff',
+                border: '1px solid #e2e8f0',
+                borderLeft: `4px solid ${accent}`,
                 borderRadius: 1.5,
-                bgcolor: '#3b82f6',
-                color: '#fff',
-                minHeight: 80,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexDirection: 'column', gap: 0.5,
-                p: 2,
-                transition: 'box-shadow 0.15s ease, transform 0.15s ease',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: 0.5, p: 1.5,
+                color: '#1e293b',
+                transition: 'box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease',
+                boxShadow: '0 1px 2px rgba(15,23,42,0.04)',
                 '&:hover': readOnly ? {} : {
-                  boxShadow: '0 0 0 3px rgba(59,130,246,0.35)', transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px rgba(15,23,42,0.08), 0 0 0 1px ${accent}55`,
+                  borderColor: `${accent}88`,
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
-              <Typography sx={{ fontSize: 14, fontWeight: 700,
-                                textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1e293b',
+                                textAlign: 'center', lineHeight: 1.2 }}>
                 {l.title || l.key}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#dbeafe' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', textAlign: 'center',
+                                                    fontSize: 10, lineHeight: 1.3 }}>
                 {l.type}{l.subtype ? ` · ${l.subtype}` : ''}
-                {hasData ? ' · ✓ 데이터 설정됨' : ' · 클릭하여 데이터 입력'}
+              </Typography>
+              <Typography variant="caption" sx={{
+                color: hasData ? accent : '#94a3b8',
+                fontSize: 10, fontWeight: hasData ? 700 : 500, lineHeight: 1.3,
+              }}>
+                {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
               </Typography>
             </Box>
           );

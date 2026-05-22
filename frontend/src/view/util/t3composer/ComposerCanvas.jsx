@@ -479,7 +479,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                       flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
                       gap: 1, p: 1.5, color: '#1e293b',
                     }}>
-                      {/* 작은 헤더 — 가로 */}
+                      {/* 작은 헤더 — 가로 (아이콘 + 타이틀 + 우측 끝 [+ 자식 추가]) */}
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box sx={{
                           flexShrink: 0, width: 36, height: 36, borderRadius: '50%',
@@ -506,6 +506,25 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                             </Typography>
                           </Box>
                         </Box>
+                        {!readOnly && (
+                          <Button
+                            size="small"
+                            startIcon={<AddIcon fontSize="small" />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChildAnchor({ el: e.currentTarget, parentKey: l.key });
+                            }}
+                            sx={{
+                              flexShrink: 0,
+                              fontSize: 11, py: 0.3,
+                              color: accent, borderColor: `${accent}88`,
+                              '&:hover': { bgcolor: `${accent}10`, borderColor: accent },
+                            }}
+                            variant="outlined"
+                          >
+                            자식 추가
+                          </Button>
+                        )}
                       </Box>
 
                       {/* 자식 영역 — 자식 카드 stacked + [+ 자식] 버튼 */}
@@ -521,7 +540,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                         {children.length === 0 && (
                           <Typography sx={{ fontSize: 11, color: accent, fontStyle: 'italic',
                                               textAlign: 'center', py: 1.5 }}>
-                            ↓ 아래 [+ 자식 추가] 로 이 wrapper 안에 들어갈 layer 를 추가
+                            ↑ 우상단 [+ 자식 추가] 로 이 wrapper 안에 들어갈 layer 를 추가
                           </Typography>
                         )}
                         {children.map((c) => {
@@ -580,25 +599,6 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                           );
                         })}
 
-                        {/* [+ 자식 추가] 버튼 */}
-                        {!readOnly && (
-                          <Button
-                            size="small"
-                            startIcon={<AddIcon fontSize="small" />}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setChildAnchor({ el: e.currentTarget, parentKey: l.key });
-                            }}
-                            sx={{
-                              alignSelf: 'flex-start', fontSize: 11, py: 0.3,
-                              color: accent, borderColor: `${accent}88`,
-                              '&:hover': { bgcolor: `${accent}10`, borderColor: accent },
-                            }}
-                            variant="outlined"
-                          >
-                            자식 추가
-                          </Button>
-                        )}
                       </Box>
                     </Box>
                   ) : (

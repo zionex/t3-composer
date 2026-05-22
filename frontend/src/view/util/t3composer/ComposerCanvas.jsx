@@ -25,6 +25,7 @@ import { Box, Typography, Button, Chip, Menu, MenuItem, IconButton, Tooltip } fr
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import ReactGridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -374,7 +375,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             isDraggable={!readOnly}
             isResizable={!readOnly}
             draggableHandle=".cnv-layer-drag-handle"
-            compactType={null}
+            compactType="vertical"
             preventCollision={false}
             resizeHandles={['se']}
           >
@@ -406,13 +407,23 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                   '&:hover .cnv-layer-remove': { opacity: 1 },
                   display: 'flex',
                 }}>
-                  {/* 좌측 drag handle stripe (5px) */}
+                  {/* 좌측 drag handle stripe — 폭 14px + drag 아이콘 */}
                   <Box className="cnv-layer-drag-handle" sx={{
-                    width: 5, flexShrink: 0,
+                    width: 14, flexShrink: 0,
                     bgcolor: accent,
                     cursor: readOnly ? 'default' : 'grab',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     '&:active': { cursor: 'grabbing' },
-                  }} />
+                    '&:hover': { bgcolor: readOnly ? accent : `${accent}` },
+                  }}>
+                    {!readOnly && (
+                      <DragIndicatorIcon sx={{
+                        fontSize: 14,
+                        color: 'rgba(255,255,255,0.85)',
+                        pointerEvents: 'none',
+                      }} />
+                    )}
+                  </Box>
 
                   {/* 본문 — click → mini dialog */}
                   <Box

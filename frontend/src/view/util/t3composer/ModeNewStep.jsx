@@ -1,15 +1,16 @@
 /**
  * ModeNewStep — NEW_STEP 모드 진입 화면. 패턴 picker 3 옵션.
- *   ① SCM Mockup (54개) — Phase 2 에서 MockupPickerDialog 통합
- *   ② UI Pattern (730개) — Phase 2 에서 UiPatternPickerDialog 통합
+ *   ① SCM Mockup (54개) — MockupPickerDialog
+ *   ② UI Pattern (730개) — UiPatternPickerDialog
  *   ③ 빈 캔버스 (P02 / BLANK)
  *
- *   선택 후 ComposerSpec 을 specFromPattern() 으로 만들어 ComposerCanvas 진입.
+ *   선택 후 ComposerSpec 을 specFromPattern/Mockup/UiPattern() 으로 만들어
+ *   ComposerWizard (Phase 2E-1) 진입 — 4단계 Wizard 가 Canvas/Data/Meta/Generate 분기 책임.
  *
- *   Phase 1: 메뉴 등록 / 화면 실행 / 산출물 생성 흐름은 없음 (Canvas 편집만 검증).
- *   Phase 2 에서 ComposerWorkspace 통합.
+ *   Phase 2E-1: stage 단순화 — 'PICK' / 'WIZARD' 만.
+ *   WORKSPACE 분기는 GenerateStep 으로 이전됐으므로 여기서는 제거.
  *
- *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 6)
+ *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 7)
  */
 import React, { useState } from 'react';
 import { Box, Typography, Button, Stack, Paper } from '@mui/material';
@@ -18,174 +19,32 @@ import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 
-import ComposerCanvas from './ComposerCanvas';
-import ComposerWorkspace from './ComposerWorkspace';
+import ComposerWizard from './ComposerWizard';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
-import DataSourcePickerDialog from './DataSourcePickerDialog';
-import { specFromPattern, specFromMockup, specFromUiPattern, specToInitialPrompt } from './wizardState';
+import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
 import { useTargetStore } from './targetStore';
-import { createSession } from './api';
 
 function ModeNewStep({ onBack }) {
-  // 단계: 'PICK' (패턴 선택) | 'CANVAS' (편집)
+  // 단계: 'PICK' (패턴 선택) | 'WIZARD' (4단계 Wizard)
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
   const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
   const [uiPatternPickerOpen, setUiPatternPickerOpen] = useState(false);
-  const [dsPickerOpen, setDsPickerOpen] = useState(false);
-  const [dsPickerLayerKey, setDsPickerLayerKey] = useState(null);  // 어느 layer 가 picker 를 열었는지
-  // WORKSPACE 단계 — Claude 호출 + 산출물 + 미리보기 (Phase 2C)
-  const [session, setSession] = useState(null);
-  const [initialPrompt, setInitialPrompt] = useState('');
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(null);
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
     setSpec(specFromPattern(patternCode, { title: '새 화면', menuCd: '', pattern: patternCode }));
-    setStage('CANVAS');
+    setStage('WIZARD');
   };
 
-  // ComposerCanvas 의 [화면 생성] 버튼 콜백 — spec → createSession → ComposerWorkspace 진입.
-  const handleCreate = async (currentSpec) => {
-    if (!currentSpec) return;
-    setCreating(true);
-    setCreateError(null);
-    try {
-      const promptText = specToInitialPrompt(currentSpec);
-      const title = (currentSpec.meta?.title || '새 화면').slice(0, 80);
-      const res = await createSession({
-        mode: 'NEW_STEP',
-        title,
-        modelName: 'claude-sonnet-4-5',
-        targetCd: currentTargetCd,
-      });
-      setSession(res.data);
-      setInitialPrompt(promptText);
-      setStage('WORKSPACE');
-    } catch (e) {
-      setCreateError(e?.response?.data?.message
-                  || e?.response?.data?.error
-                  || e?.message
-                  || '세션 생성 실패');
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  // WORKSPACE 단계 — Claude 호출 + 산출물 생성 + 화면 실행. 기존 ComposerWorkspace 재활용.
-  if (stage === 'WORKSPACE' && session) {
+  if (stage === 'WIZARD' && spec) {
     return (
-      <ComposerWorkspace
-        session={session}
-        initialPrompt={initialPrompt}
-        extraHeader={
-          <Button
-            size="small"
-            startIcon={<ArrowBackIcon fontSize="small" />}
-            onClick={() => {
-              setSession(null);
-              setInitialPrompt('');
-              setStage('CANVAS');
-            }}
-            sx={{ mr: 1 }}
-          >
-            캔버스로
-          </Button>
-        }
-      />
-    );
-  }
-
-  if (stage === 'CANVAS' && spec) {
-    return (
-      <>
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderBottom: '1px solid #e2e8f0' }}>
-          <Button size="small" startIcon={<ArrowBackIcon />}
-                  onClick={() => setStage('PICK')}>패턴 다시 선택</Button>
-          <Typography variant="caption" sx={{ color: '#64748b', ml: 1 }}>
-            pattern: <b>{spec.meta.pattern}</b> · 시각 편집 모드
-            {creating ? ' · 세션 생성 중...' : ''}
-          </Typography>
-        </Stack>
-        {createError && (
-          <Box sx={{
-            bgcolor: '#fee2e2', color: '#991b1b', borderBottom: '1px solid #fecaca',
-            px: 1.5, py: 0.7, fontSize: 12, fontWeight: 600,
-          }}>
-            ⚠ {createError}
-          </Box>
-        )}
-        <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>
-          <ComposerCanvas
-            spec={spec}
-            onChange={setSpec}
-            targetCd={currentTargetCd}
-            onOpenDataSourcePicker={(editingLayer) => {
-              setDsPickerLayerKey(editingLayer?.key || null);
-              setDsPickerOpen(true);
-            }}
-            onCreate={creating ? undefined : handleCreate}
-          />
-        </Box>
-        {/* Phase 1 검증용 — 현재 spec JSON 미리보기 */}
-        <Box sx={{ flexShrink: 0, maxHeight: 180, overflow: 'auto', borderTop: '1px solid #e2e8f0',
-                   bgcolor: '#0f172a', color: '#e2e8f0', p: 1, fontSize: 11,
-                   fontFamily: 'monospace' }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 0.5 }}>
-            ▶ 현재 ComposerSpec (디버그용 — Phase 2 에서 제거 예정)
-          </Typography>
-          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-            {JSON.stringify(spec, null, 2)}
-          </pre>
-        </Box>
-      </Box>
-
-      {/* CANVAS 단계에서만 활성 — basket → layer.dataSource.references / sqlBlocks */}
-      <DataSourcePickerDialog
-        open={dsPickerOpen}
+      <ComposerWizard
+        initialSpec={spec}
         targetCd={currentTargetCd}
-        currentValue={null}
-        onClose={() => setDsPickerOpen(false)}
-        onConfirm={(basket) => {
-          setDsPickerOpen(false);
-          if (!basket || basket.length === 0 || !dsPickerLayerKey) return;
-          setSpec((prev) => {
-            const nextLayers = prev.layers.map((l) => {
-              if (l.key !== dsPickerLayerKey) return l;
-              const existing = l.dataSource?.references || [];
-              const newRefs = basket
-                .filter((b) => b.kind === 'TABLE' || b.kind === 'SP')
-                .map((b) => ({ kind: b.kind, name: b.label || b.key }));
-              // 중복 제거 — 같은 kind + name 한 번만
-              const merged = [...existing];
-              for (const r of newRefs) {
-                if (!merged.find((m) => m.kind === r.kind && m.name === r.name)) {
-                  merged.push(r);
-                }
-              }
-              // INLINE_QUERY → sqlBlocks 누적
-              const newSql = basket
-                .filter((b) => b.kind === 'INLINE_QUERY')
-                .map((b) => b.meta?.sql || b.label || '')
-                .filter(Boolean);
-              const mergedSql = [...(l.dataSource?.sqlBlocks || []), ...newSql];
-              return {
-                ...l,
-                dataSource: {
-                  ...(l.dataSource || {}),
-                  references: merged,
-                  sqlBlocks: mergedSql,
-                },
-              };
-            });
-            return { ...prev, layers: nextLayers };
-          });
-        }}
+        onBack={() => { setSpec(null); setStage('PICK'); }}
       />
-      </>
     );
   }
 
@@ -201,7 +60,7 @@ function ModeNewStep({ onBack }) {
       </Stack>
 
       <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-        화면의 시작 골격을 선택하세요. 선택 후 시각 편집기에서 각 영역을 클릭해 데이터를 채웁니다.
+        화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.
       </Typography>
 
       <Stack spacing={2}>
@@ -248,7 +107,7 @@ function ModeNewStep({ onBack }) {
                 빈 캔버스 (P02 — 검색 + 단일 그리드)
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                가장 일반적인 마스터 CRUD 패턴으로 시작 (Phase 1 에서 동작 검증용)
+                가장 일반적인 마스터 CRUD 패턴으로 시작
               </Typography>
             </Box>
           </Stack>
@@ -265,7 +124,7 @@ function ModeNewStep({ onBack }) {
         setMockupPickerOpen(false);
         if (!entry) return;  // 사용자가 '해제' 한 경우
         setSpec(specFromMockup(entry, { title: '새 화면', menuCd: '' }));
-        setStage('CANVAS');
+        setStage('WIZARD');
       }}
     />
     <UiPatternPickerDialog
@@ -276,7 +135,7 @@ function ModeNewStep({ onBack }) {
         setUiPatternPickerOpen(false);
         if (!entry) return;
         setSpec(specFromUiPattern(entry, { title: '새 화면', menuCd: '' }));
-        setStage('CANVAS');
+        setStage('WIZARD');
       }}
     />
     </>

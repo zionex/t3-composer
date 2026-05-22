@@ -427,6 +427,14 @@ export const SP_STRATEGY = {
 
 export const COMPONENT_CATALOG = {
   version: '1.0',
+  // 5그룹 41개 — Phase 1 정리.
+  //   본문 layer 자격 있는 그룹만 유지: CONTAINER(3) · DATA_DISPLAY(12) · CHART(17) · DOCUMENT(5) · AI(4)
+  //   제거: INPUT(14) / INPUT_DOMAIN(7) — FilterBar 필드 타입으로 이주
+  //   제거: ACTION(5) — Grid 자동 / setViewInfo / framework
+  //   제거: FEEDBACK(6) — framework 자동 (showMessage 등)
+  //   제거: NAVIGATION(5) — 화면 골격 / framework
+  //   제거: CONTAINER_DRAWER · CONTAINER_MODAL — 별도 화면 / 팝업이라 layer 아님
+  //   spec: docs/superpowers/specs/2026-05-22-pattern-driven-composer-redesign-design.md
   groups: [
     {
       code: 'CONTAINER',
@@ -437,8 +445,6 @@ export const COMPONENT_CATALOG = {
         { code: 'CONTAINER_TAB',             label: '탭 컨테이너',      level: 'L1' },
         { code: 'CONTAINER_CARD',            label: '카드',             level: 'L1' },
         { code: 'CONTAINER_DASHBOARD_PANEL', label: '대시보드 패널',    level: 'L1' },
-        { code: 'CONTAINER_DRAWER',          label: '서랍 패널',        level: 'L1' },
-        { code: 'CONTAINER_MODAL',           label: '모달',             level: 'L1' },
       ],
     },
     {
@@ -487,78 +493,6 @@ export const COMPONENT_CATALOG = {
       ],
     },
     {
-      code: 'INPUT',
-      label: '입력 필드',
-      color: '#10b981',
-      items: [
-        { code: 'INPUT_TEXT',         label: '텍스트' },
-        { code: 'INPUT_NUMBER',       label: '숫자' },
-        { code: 'INPUT_TEXTAREA',     label: '여러 줄 텍스트' },
-        { code: 'INPUT_SELECT',       label: '단일 선택' },
-        { code: 'INPUT_MULTISELECT',  label: '복수 선택' },
-        { code: 'INPUT_AUTOCOMPLETE', label: '자동완성' },
-        { code: 'INPUT_DATE',         label: '날짜' },
-        { code: 'INPUT_DATE_RANGE',   label: '날짜 범위' },
-        { code: 'INPUT_TIME',         label: '시간' },
-        { code: 'INPUT_CHECK',        label: '체크박스' },
-        { code: 'INPUT_RADIO',        label: '라디오' },
-        { code: 'INPUT_FILE',         label: '파일 업로드' },
-        { code: 'INPUT_RICH_EDITOR',  label: '위지윅 에디터' },
-        { code: 'INPUT_CODE_EDITOR',  label: '코드 에디터' },
-      ],
-    },
-    {
-      code: 'INPUT_DOMAIN',
-      label: '도메인 특화 입력',
-      color: '#059669',
-      items: [
-        { code: 'INPUT_PLAN_SCOPE',      label: '플랜 스코프' },
-        { code: 'INPUT_ITEM_SEARCH',     label: '품목 검색' },
-        { code: 'INPUT_ACCOUNT_SEARCH',  label: '거래처 검색' },
-        { code: 'INPUT_LOCATION_SEARCH', label: '거점 검색' },
-        { code: 'INPUT_RESOURCE_SEARCH', label: '자원 검색' },
-        { code: 'INPUT_USER_SEARCH',     label: '사용자 검색' },
-        { code: 'INPUT_VERSION',         label: '버전 선택' },
-      ],
-    },
-    {
-      code: 'NAVIGATION',
-      label: '네비게이션',
-      color: '#06b6d4',
-      items: [
-        { code: 'NAV_SIDEBAR',    label: '사이드바' },
-        { code: 'NAV_BREADCRUMB', label: '브레드크럼' },
-        { code: 'NAV_STEPPER',    label: '단계 표시기' },
-        { code: 'NAV_WIZARD',     label: '마법사' },
-        { code: 'NAV_DRILLDOWN',  label: '드릴다운' },
-      ],
-    },
-    {
-      code: 'FEEDBACK',
-      label: '피드백·알림',
-      color: '#ef4444',
-      items: [
-        { code: 'FEEDBACK_ALERT',    label: '알림 배너' },
-        { code: 'FEEDBACK_SNACKBAR', label: '스낵바' },
-        { code: 'FEEDBACK_MESSAGE',  label: '확인 다이얼로그' },
-        { code: 'FEEDBACK_PROGRESS', label: '진행 표시' },
-        { code: 'FEEDBACK_BADGE',    label: '뱃지' },
-        { code: 'FEEDBACK_TOOLTIP',  label: '툴팁' },
-      ],
-    },
-    {
-      code: 'ACTION',
-      label: '버튼·액션',
-      color: '#ec4899',
-      items: [
-        { code: 'BTN_SINGLE',    label: '단일 버튼' },
-        { code: 'BTN_GROUP',     label: '버튼 그룹' },
-        { code: 'BTN_AREA',      label: '버튼 영역' },
-        { code: 'BTN_GRID_CRUD', label: '그리드 CRUD 버튼' },
-        { code: 'BTN_GLOBAL',    label: '글로벌 액션 버튼' },
-      ],
-    },
-    {
       code: 'DOCUMENT',
       label: '문서·미디어',
       color: '#6366f1',
@@ -600,10 +534,12 @@ export const COMPONENT_INDEX = (() => {
   return map;
 })();
 
-// Legacy 값 마이그레이션 — 삭제·통합된 code 를 신규 code 로 매핑
+// Legacy 값 마이그레이션 — 삭제·통합된 code 를 신규 code 로 매핑.
+//   2026-05-22: INPUT/ACTION/FEEDBACK/NAVIGATION 그룹 제거 (Phase 1).
+//   FORM (옛 입력 폼) 은 layer 자격이 없어졌으므로 가까운 layer 인 GRID_BASE 로 폴백.
 export const LEGACY_COMPONENT_MAP = {
   GRID: 'GRID_BASE',
-  FORM: 'INPUT_TEXT',
+  FORM: 'GRID_BASE',
   CONTAINER_SPLIT_H:   'CONTAINER_CARD',
   CONTAINER_SPLIT_V:   'CONTAINER_CARD',
   CONTAINER_TABPAGE:   'CONTAINER_TAB',

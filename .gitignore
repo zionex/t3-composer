@@ -75,3 +75,6 @@ coverage/
 *.tmp
 *.bak
 *.swp
+
+# Superpowers brainstorming sessions (runtime mockups, not source)
+.superpowers/

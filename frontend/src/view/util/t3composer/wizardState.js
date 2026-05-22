@@ -2504,11 +2504,25 @@ export function addLayer(spec, layerInit = {}) {
     pos = { x: 0, y: maxBottom, w: 12, h: 4 };
   }
 
+  // type 별 default title — subtype 은 강제하지 않음 (Claude 가 자연어 보고 결정)
+  const TYPE_DEFAULT_TITLE = {
+    GRID:      '그리드',
+    CHART:     '차트',
+    CONTAINER: '컨테이너',
+    DOCUMENT:  '문서',
+    AI:        'AI 패널',
+  };
+  const resolvedType = layerInit.type || LAYER_TYPES.GRID;
+  const baseTitle = layerInit.title
+                 || TYPE_DEFAULT_TITLE[resolvedType]
+                 || `위젯 ${existing.length + 1}`;
+
   const newLayer = createComposerLayer({
     key,
-    title: layerInit.title || `위젯 ${existing.length + 1}`,
-    type: layerInit.type || LAYER_TYPES.GRID,
-    subtype: layerInit.subtype || 'GRID_BASE',
+    title: baseTitle,
+    type: resolvedType,
+    // subtype 빈 string 허용 (generic) — 사용자가 mini dialog 자연어로 의도 표현
+    subtype: layerInit.subtype !== undefined ? layerInit.subtype : '',
     position: pos,
   });
 

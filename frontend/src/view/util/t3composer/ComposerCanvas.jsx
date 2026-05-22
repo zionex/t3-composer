@@ -162,9 +162,11 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
     });
   };
 
-  const handleAddLayer = (type, subtype) => {
+  const handleAddLayer = (type) => {
     setAddAnchor(null);
-    onChange(addLayer(spec, { type, subtype }));
+    // subtype 강제하지 않음 — 사용자가 mini dialog 자연어로 의도 표현,
+    // Claude 가 그 자연어를 보고 적절한 component subtype 결정.
+    onChange(addLayer(spec, { type }));
   };
 
   const handleRemoveLayer = (key) => {
@@ -272,20 +274,20 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             onClose={() => setAddAnchor(null)}
             slotProps={{ paper: { sx: { minWidth: 200 } } }}
           >
-            <MenuItem onClick={() => handleAddLayer('GRID',      'GRID_BASE')}>
-              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid (그리드)
+            <MenuItem onClick={() => handleAddLayer('GRID')}>
+              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid · 표 형태 데이터
             </MenuItem>
-            <MenuItem onClick={() => handleAddLayer('CHART',     'CHART_BAR')}>
-              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart (차트)
+            <MenuItem onClick={() => handleAddLayer('CHART')}>
+              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart · 차트/KPI/지도
             </MenuItem>
-            <MenuItem onClick={() => handleAddLayer('CONTAINER', 'CONTAINER_CARD')}>
-              <ViewQuiltIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CONTAINER }} /> Container (컨테이너)
+            <MenuItem onClick={() => handleAddLayer('CONTAINER')}>
+              <ViewQuiltIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CONTAINER }} /> Container · 탭/카드 wrapper
             </MenuItem>
-            <MenuItem onClick={() => handleAddLayer('DOCUMENT',  'DOC_MARKDOWN_VIEWER')}>
-              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document (문서)
+            <MenuItem onClick={() => handleAddLayer('DOCUMENT')}>
+              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document · PDF/이미지/마크다운
             </MenuItem>
-            <MenuItem onClick={() => handleAddLayer('AI',        'AI_INSIGHT_CARD')}>
-              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI (AI 패널)
+            <MenuItem onClick={() => handleAddLayer('AI')}>
+              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI · 채팅/인사이트 패널
             </MenuItem>
           </Menu>
 
@@ -388,14 +390,17 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                 ? l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '').replace(/_/g, ' ')
                 : '';
               const canDelete = layers.length > 1;
+              const isContainer = l.type === 'CONTAINER';
               return (
                 <Box key={l.key} sx={{
                   position: 'relative',
-                  background: `
-                    radial-gradient(circle at 90% 70%, ${accent}2e 0%, transparent 55%),
-                    linear-gradient(135deg, ${accent}33 0%, ${accent}12 30%, #ffffff 70%)
-                  `,
-                  border: `1px solid ${accent}55`,
+                  background: isContainer
+                    ? `repeating-linear-gradient(45deg, ${accent}10, ${accent}10 8px, ${accent}1c 8px, ${accent}1c 16px)`
+                    : `
+                      radial-gradient(circle at 90% 70%, ${accent}2e 0%, transparent 55%),
+                      linear-gradient(135deg, ${accent}33 0%, ${accent}12 30%, #ffffff 70%)
+                    `,
+                  border: isContainer ? `2px dashed ${accent}99` : `1px solid ${accent}55`,
                   borderRadius: 2.5,
                   boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)',
                   overflow: 'hidden',
@@ -475,7 +480,11 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                       <Typography sx={{ fontSize: 11, fontWeight: hasData ? 700 : 500,
                                          color: hasData ? '#16a34a' : '#94a3b8',
                                          lineHeight: 1.3, mt: 0.3 }}>
-                        {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
+                        {hasData
+                          ? '✓ 데이터 설정됨'
+                          : isContainer
+                            ? '클릭 → 자연어로 "탭/카드/대시보드 wrapper" 의도 작성. Claude 가 적절한 컴포넌트(<TabContainer> 등) 생성.'
+                            : '클릭하여 데이터 입력'}
                       </Typography>
                     </Box>
 

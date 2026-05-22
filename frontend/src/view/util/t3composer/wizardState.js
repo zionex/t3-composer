@@ -2675,6 +2675,24 @@ export function layersForLayoutCategory(layoutCategory) {
  * MockupPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
  *   entry: MOCKUP_ENTRIES 항목 (patternCode, patternLabel, layoutCategory, category, description, ...)
  */
+/**
+ * Mockup entry 의 메타를 layer.dataSource.naturalText 로 변환.
+ *   Claude 가 화면 의도를 파악할 단서로 활용.
+ *   각 layer 마다 동일한 컨텍스트 + layer 별 [역할] 한 줄 차이.
+ *   사용자가 DataMiniDialog 에서 자유 수정 가능.
+ */
+function mockupContextText(entry, layerTitle) {
+  const lines = [
+    `[참조 패턴] ${entry.patternLabel || entry.patternCode}`,
+  ];
+  if (entry.description) lines.push(`[설명] ${entry.description}`);
+  if (entry.category)    lines.push(`[카테고리] ${entry.category}`);
+  if (layerTitle)        lines.push(`[이 영역의 역할] ${layerTitle}`);
+  lines.push('');
+  lines.push('이 영역에서 보여줄 데이터를 자유롭게 보완하세요 — 또는 Data Source 탐색에서 Table/SP 를 직접 참조 추가.');
+  return lines.join('\n');
+}
+
 export function specFromMockup(entry, baseMeta = {}) {
   if (!entry) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
   const layersDef = layersForLayoutCategory(entry.layoutCategory);
@@ -2685,7 +2703,12 @@ export function specFromMockup(entry, baseMeta = {}) {
   });
   base.layers = layersDef.map((d) => ({
     ...d,
-    dataSource: { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] },
+    dataSource: {
+      mode: 'NL',
+      naturalText: mockupContextText(entry, d.title),
+      references: [],
+      sqlBlocks: [],
+    },
     columns: [],
     cascade: {},
   }));

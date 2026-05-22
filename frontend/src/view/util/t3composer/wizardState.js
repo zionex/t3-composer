@@ -2403,3 +2403,90 @@ export function defaultAreasForPattern(patternCode) {
       ];
   }
 }
+
+// ============================================================================
+// ComposerSpec — Phase 1 새 모델 (9-Step 의 대체).
+//   spec: docs/superpowers/specs/2026-05-22-pattern-driven-composer-redesign-design.md
+//   plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 2)
+// ============================================================================
+
+export const LAYER_TYPES = Object.freeze({
+  GRID:      'GRID',       // DATA_DISPLAY 그룹의 layer (BaseGrid/TreeGrid/Pivot 등)
+  CHART:     'CHART',      // CHART 그룹
+  CONTAINER: 'CONTAINER',  // 탭/카드/대시보드 패널
+  DOCUMENT:  'DOCUMENT',   // PDF/Markdown/이미지
+  AI:        'AI',         // AI 채팅/인사이트
+});
+
+/**
+ * 새 모델의 spec 객체를 빈 골격으로 생성.
+ *   { menuCd, title, parentMenuCd, menuFilePath, pattern } 중 일부만 채워도 됨.
+ * pattern: 'BLANK' | 'P02' | 'MOCKUP_<code>' | 'UIPATTERN_<id>' ...
+ */
+export function createComposerSpec({
+  menuCd       = '',
+  title        = '',
+  parentMenuCd = '',
+  menuFilePath = '',
+  pattern      = 'BLANK',
+} = {}) {
+  return {
+    meta: { menuCd, title, parentMenuCd, menuFilePath, pattern },
+    filterBar: {
+      items: [],   // [{ key, label, type, cascade? }]
+      affects: {}, // layerKey -> [filterBar item keys]
+    },
+    layers: [
+      // Phase 1 의 빈 스펙은 mainGrid 단일 layer 로 시작 (BLANK 패턴 기본)
+      {
+        key: 'mainGrid',
+        title: '메인 그리드',
+        type: LAYER_TYPES.GRID,
+        subtype: 'GRID_BASE',
+        position: { x: 0, y: 0, w: 12, h: 8 },  // RGL 12-col grid
+        dataSource: {
+          mode: 'NL',            // 'NL' | 'TABLE' | 'SP' | 'ENTITY' | 'MIXED'
+          naturalText: '',
+          references: [],        // [{ kind: 'TABLE'|'SP'|'ENTITY', name }]
+        },
+        columns: [],
+        cascade: {},
+      },
+    ],
+  };
+}
+
+/**
+ * 새 layer 1건의 기본 골격 — ComposerCanvas 에서 layer 추가 시 사용.
+ */
+export function createComposerLayer({
+  key,
+  title = '',
+  type = LAYER_TYPES.GRID,
+  subtype = 'GRID_BASE',
+  position = { x: 0, y: 0, w: 6, h: 6 },
+} = {}) {
+  if (!key) throw new Error('createComposerLayer: key required');
+  return {
+    key, title, type, subtype, position,
+    dataSource: { mode: 'NL', naturalText: '', references: [] },
+    columns: [],
+    cascade: {},
+  };
+}
+
+/**
+ * Pattern 코드 → 초기 ComposerSpec 매핑. Phase 1 은 'BLANK' / 'P02' 둘만 지원.
+ * 나머지 (MOCKUP_*, UIPATTERN_*) 는 Phase 2 에서 패턴 카탈로그 메타에서 가져옴.
+ */
+export function specFromPattern(patternCode, baseMeta = {}) {
+  const base = createComposerSpec({ ...baseMeta, pattern: patternCode });
+  if (patternCode === 'P02') {
+    // 검색 + 단일 그리드 — FilterBar 자리 + 메인 그리드 1개
+    base.filterBar.items = [];  // 사용자가 FilterBarMiniDialog 로 채움
+    base.filterBar.affects = { mainGrid: [] };
+    // layers 는 createComposerSpec 의 mainGrid 그대로
+  }
+  // 'BLANK' = createComposerSpec 의 기본 단일 layer 그대로
+  return base;
+}

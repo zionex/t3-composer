@@ -2954,6 +2954,40 @@ export function specToInitialPrompt(spec) {
   lines.push('- `.claude/rules/41-composer-generation.md` 및 sub rules 의 규약 준수.');
   lines.push('- 위 layer 의 "데이터 의도" 와 "참조 데이터 객체" / "Inline SQL" 를 우선 활용.');
   lines.push('- FilterBar 필드는 화면 전체 검색조건 (SearchArea) 로 구현.');
+  lines.push('');
+
+  // ── 5) ★ 산출물 출력 포맷 (강제) ──
+  // ArtifactExtractor 는 정확히 다음 패턴만 인식:
+  //   ===FILE: <path>===
+  //   ```<lang>
+  //   <본문>
+  //   ```
+  // <write_file> · <code_block> 등 XML/agent-framework 포맷은 추출되지 않아 산출물 0건.
+  lines.push('[★ 산출물 출력 포맷 (반드시 준수)]');
+  lines.push('각 파일은 정확히 다음 4줄 패턴으로 출력하세요. <write_file> XML · markdown 헤딩 · 코드펜스 단독 사용 모두 금지:');
+  lines.push('');
+  lines.push('===FILE: <전체경로/파일명.확장자>===');
+  lines.push('```<jsx|java|sql|json>');
+  lines.push('<파일 본문>');
+  lines.push('```');
+  lines.push('');
+  lines.push('예시:');
+  lines.push('');
+  lines.push('===FILE: packages/wingui/src/view/util/userinfomgmt/UserInfoMgmt.jsx===');
+  lines.push('```jsx');
+  lines.push('import React from \'react\';');
+  lines.push('// ...');
+  lines.push('export default UserInfoMgmt;');
+  lines.push('```');
+  lines.push('');
+  lines.push('===FILE: t3series-database/mssql/upgrade/v26.0.0-YYYYMMDD/procedures/SP_UI_UT_99_Q1.sql===');
+  lines.push('```sql');
+  lines.push('CREATE PROCEDURE [dbo].[SP_UI_UT_99_Q1] AS BEGIN ... END');
+  lines.push('```');
+  lines.push('');
+  lines.push('- 확장자는 dot (`.sql`/`.jsx`/`.java`) — underscore (`_sql`) 금지.');
+  lines.push('- MENU_SQL 파일은 path 에 `/menus/` 디렉토리 또는 파일명에 `menu` 단어를 포함 (분류 보강).');
+  lines.push('- 설명·요약 텍스트는 ===FILE: 블록 사이에 자유롭게 작성 가능.');
 
   return lines.join('\n');
 }

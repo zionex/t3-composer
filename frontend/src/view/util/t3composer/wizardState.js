@@ -2991,3 +2991,173 @@ export function specToInitialPrompt(spec) {
 
   return lines.join('\n');
 }
+
+// ============================================================================
+// Phase 3a — 9-step Wizard spec → 4-step ComposerWizard spec converter
+//   Phase 3b~3e 의 4개 모드 마이그레이션 시 prefill 데이터를 새 wizard 에 주입할 때 사용.
+//   Spec: docs/superpowers/specs/2026-05-22-composer-canvas-phase3a-spec-converter-design.md
+// ============================================================================
+
+/**
+ * step4_dataBinding 의 source 토큰을 4-step dataSource 객체로 변환.
+ *
+ * @param {object} db4  step4_dataBinding[areaId] entry — 없으면 빈 NL.
+ * @returns {object}    { mode, naturalText, references, sqlBlocks }
+ */
+function mapStep4ToDataSource(db4) {
+  if (!db4 || typeof db4 !== 'object') {
+    return { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] };
+  }
+  const src = String(db4.source || '').toUpperCase();
+  if (src === 'SP') {
+    return {
+      mode: 'SP',
+      naturalText: '',
+      references: db4.spName ? [{ kind: 'SP', name: db4.spName }] : [],
+      sqlBlocks: [],
+    };
+  }
+  if (src === 'JPA_ENTITY') {
+    return {
+      mode: 'ENTITY',
+      naturalText: db4.baseUrl || '',
+      references: db4.entity ? [{ kind: 'ENTITY', name: db4.entity }] : [],
+      sqlBlocks: [],
+    };
+  }
+  if (src === 'ONTOLOGY') {
+    return {
+      mode: 'TABLE',
+      naturalText: '',
+      references: db4.ontologyRef ? [{ kind: 'TABLE', name: db4.ontologyRef }] : [],
+      sqlBlocks: [],
+    };
+  }
+  if (src === 'DIRECT') {
+    return {
+      mode: 'NL',
+      naturalText: db4.directUrl || '',
+      references: [],
+      sqlBlocks: [],
+    };
+  }
+  if (src === 'ENGINE') {
+    return {
+      mode: 'SP',
+      naturalText: '',
+      references: db4.spName ? [{ kind: 'SP', name: db4.spName }] : [],
+      sqlBlocks: [],
+    };
+  }
+  return { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] };
+}
+
+/**
+ * 9-step layoutConfig.layers[].componentType → 4-step LAYER_TYPES.
+ *
+ * @param {string} componentType
+ * @returns {object} { type, subtype }
+ */
+function mapComponentTypeToLayerType(componentType) {
+  const ct = String(componentType || '').toUpperCase();
+  if (ct.includes('CONTAINER') || ct.includes('TAB')) {
+    return { type: LAYER_TYPES.CONTAINER, subtype: ct || 'CONTAINER_TAB' };
+  }
+  if (ct.includes('DASHBOARD') || ct.includes('WIDGET')) {
+    return { type: LAYER_TYPES.CHART, subtype: 'CHART_DASHBOARD' };
+  }
+  if (ct.includes('CHART')) {
+    return { type: LAYER_TYPES.CHART, subtype: ct };
+  }
+  if (ct.includes('DOCUMENT') || ct.includes('PDF') || ct.includes('IMAGE')) {
+    return { type: LAYER_TYPES.DOCUMENT, subtype: ct };
+  }
+  if (ct.includes('AI') || ct.includes('INSIGHT')) {
+    return { type: LAYER_TYPES.AI, subtype: ct };
+  }
+  return { type: LAYER_TYPES.GRID, subtype: ct || 'GRID_BASE' };
+}
+
+/**
+ * 9-step Wizard spec → 4-step ComposerWizard spec 변환.
+ *
+ * Phase 3a 의 핵심 — 4개 모드 (NEW_FROM_COPY/EXISTING_MODIFY/NEW_FROM_DESIGN/NEW_GENERAL)
+ * 마이그레이션 시 prefill 데이터를 새 ComposerWizard 에 주입할 때 사용.
+ *
+ * @param {object} spec9   9-step Wizard spec (createInitialSpec/FromSource/FromDesign 출력)
+ * @returns {object}       4-step ComposerWizard spec (createComposerSpec 호환)
+ */
+export function convertStep9SpecToWizardSpec(spec9) {
+  if (!spec9 || typeof spec9 !== 'object') {
+    return createComposerSpec();
+  }
+
+  const step2 = spec9.step2_overview || {};
+  const step1 = spec9.step1_layout   || {};
+  const meta = {
+    menuCd:       step2.menuCd       || '',
+    title:        step2.screenName   || '',
+    parentMenuCd: step2.parentMenuCd || '',
+    menuFilePath: step2.menuFilePath || '',
+    pattern:      step1.patternCode  || 'BLANK',
+  };
+
+  const lc = step1.layoutConfig || {};
+  const lcLayers = Array.isArray(lc.layers) ? lc.layers : [];
+  const step4 = spec9.step4_dataBinding || {};
+  const step5 = spec9.step5_columns     || {};
+  const step6 = spec9.step6_cascade     || {};
+
+  const layers = lcLayers.map((l, idx) => {
+    const key = l.key || `layer${idx + 1}`;
+    const { type, subtype } = mapComponentTypeToLayerType(l.componentType);
+    const layer = {
+      key,
+      title: l.title || key,
+      type,
+      subtype,
+      position: {
+        x: typeof l.x === 'number' ? l.x : 0,
+        y: typeof l.y === 'number' ? l.y : 0,
+        w: typeof l.w === 'number' ? l.w : 12,
+        h: typeof l.h === 'number' ? l.h : 6,
+      },
+      dataSource: mapStep4ToDataSource(step4[key]),
+      columns: (step5[key] && Array.isArray(step5[key].columns)) ? step5[key].columns : [],
+      cascade: (step6[key] && Array.isArray(step6[key].rules))
+        ? { rules: step6[key].rules }
+        : {},
+    };
+    if (l.parentKey) layer.parentKey = l.parentKey;
+    return layer;
+  });
+
+  // filterBar: step7_filter.fields 우선 (label/type 메타 풍부),
+  //            없으면 step1.layoutConfig.filterBar.items 폴백.
+  const step7 = spec9.step7_filter || {};
+  const fbStep1 = lc.filterBar || {};
+  let items = [];
+  if (Array.isArray(step7.fields) && step7.fields.length > 0) {
+    items = step7.fields.map((f) => ({
+      key:   f.fieldId || f.varName || `field_${Math.random().toString(36).slice(2, 8)}`,
+      label: f.label || '',
+      type:  f.type  || 'TEXT',
+    }));
+  } else if (Array.isArray(fbStep1.items) && fbStep1.items.length > 0) {
+    items = fbStep1.items.map((it) => ({
+      key:   it.key,
+      label: it.label || '',
+      type:  it.type  || 'TEXT',
+    }));
+  }
+  const affects = (fbStep1.affects && typeof fbStep1.affects === 'object')
+    ? fbStep1.affects
+    : {};
+
+  return {
+    meta,
+    filterBar: { items, affects },
+    layers,
+    _originStep9: spec9,
+  };
+}

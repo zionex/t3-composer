@@ -91,8 +91,15 @@ function ComposerWizard({ initialSpec, targetCd, onBack }) {
         })}
       </Box>
 
-      {/* ── Step 본문 ── */}
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1.5 }}>
+      {/* ── Step 본문 ──
+           GENERATE 단계는 ComposerWorkspace 가 자체 split-pane/chat/preview 를 height:100% 로
+           채우므로 padding/overflow 없이 그대로 mount (overflow:auto 가 있으면 내부 flex 가 깨짐). */}
+      <Box sx={{
+        flex: 1, minHeight: 0,
+        ...(step === 'GENERATE'
+          ? { display: 'flex', flexDirection: 'column' }
+          : { overflow: 'auto', p: 1.5 }),
+      }}>
         {step === 'LAYOUT'   && <LayoutStep        spec={spec} onChange={setSpec} targetCd={targetCd} />}
         {step === 'DATA'     && <DataAndFilterStep spec={spec} onChange={setSpec} targetCd={targetCd} />}
         {step === 'META'     && <MetaStep          spec={spec} onChange={setSpec} targetCd={targetCd} />}

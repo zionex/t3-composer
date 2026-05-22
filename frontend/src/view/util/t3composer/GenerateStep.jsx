@@ -87,8 +87,10 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
 
   if (!session) return null;
 
+  // 부모 (ComposerWizard) 가 GENERATE 단계에서는 padding/overflow 없이 flex column 으로 mount.
+  // ComposerWorkspace 가 self-contained 로 height:100% 채움.
   return (
-    <Box sx={{ height: '100%', mt: -1.5, mx: -1.5, mb: -1.5 }}>
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <ComposerWorkspace
         session={session}
         initialPrompt={initialPrompt}

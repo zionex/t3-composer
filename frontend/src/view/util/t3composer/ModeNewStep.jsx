@@ -19,11 +19,13 @@ import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 
 import ComposerCanvas from './ComposerCanvas';
+import ComposerWorkspace from './ComposerWorkspace';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import DataSourcePickerDialog from './DataSourcePickerDialog';
-import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
+import { specFromPattern, specFromMockup, specFromUiPattern, specToInitialPrompt } from './wizardState';
 import { useTargetStore } from './targetStore';
+import { createSession } from './api';
 
 function ModeNewStep({ onBack }) {
   // 단계: 'PICK' (패턴 선택) | 'CANVAS' (편집)
@@ -33,12 +35,68 @@ function ModeNewStep({ onBack }) {
   const [uiPatternPickerOpen, setUiPatternPickerOpen] = useState(false);
   const [dsPickerOpen, setDsPickerOpen] = useState(false);
   const [dsPickerLayerKey, setDsPickerLayerKey] = useState(null);  // 어느 layer 가 picker 를 열었는지
+  // WORKSPACE 단계 — Claude 호출 + 산출물 + 미리보기 (Phase 2C)
+  const [session, setSession] = useState(null);
+  const [initialPrompt, setInitialPrompt] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
     setSpec(specFromPattern(patternCode, { title: '새 화면', menuCd: '', pattern: patternCode }));
     setStage('CANVAS');
   };
+
+  // ComposerCanvas 의 [화면 생성] 버튼 콜백 — spec → createSession → ComposerWorkspace 진입.
+  const handleCreate = async (currentSpec) => {
+    if (!currentSpec) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const promptText = specToInitialPrompt(currentSpec);
+      const title = (currentSpec.meta?.title || '새 화면').slice(0, 80);
+      const res = await createSession({
+        mode: 'NEW_STEP',
+        title,
+        modelName: 'claude-sonnet-4-5',
+        targetCd: currentTargetCd,
+      });
+      setSession(res.data);
+      setInitialPrompt(promptText);
+      setStage('WORKSPACE');
+    } catch (e) {
+      setCreateError(e?.response?.data?.message
+                  || e?.response?.data?.error
+                  || e?.message
+                  || '세션 생성 실패');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // WORKSPACE 단계 — Claude 호출 + 산출물 생성 + 화면 실행. 기존 ComposerWorkspace 재활용.
+  if (stage === 'WORKSPACE' && session) {
+    return (
+      <ComposerWorkspace
+        session={session}
+        initialPrompt={initialPrompt}
+        extraHeader={
+          <Button
+            size="small"
+            startIcon={<ArrowBackIcon fontSize="small" />}
+            onClick={() => {
+              setSession(null);
+              setInitialPrompt('');
+              setStage('CANVAS');
+            }}
+            sx={{ mr: 1 }}
+          >
+            캔버스로
+          </Button>
+        }
+      />
+    );
+  }
 
   if (stage === 'CANVAS' && spec) {
     return (
@@ -48,9 +106,18 @@ function ModeNewStep({ onBack }) {
           <Button size="small" startIcon={<ArrowBackIcon />}
                   onClick={() => setStage('PICK')}>패턴 다시 선택</Button>
           <Typography variant="caption" sx={{ color: '#64748b', ml: 1 }}>
-            pattern: <b>{spec.meta.pattern}</b> · 시각 편집 모드 (Phase 1 — 산출물 생성은 Phase 2)
+            pattern: <b>{spec.meta.pattern}</b> · 시각 편집 모드
+            {creating ? ' · 세션 생성 중...' : ''}
           </Typography>
         </Stack>
+        {createError && (
+          <Box sx={{
+            bgcolor: '#fee2e2', color: '#991b1b', borderBottom: '1px solid #fecaca',
+            px: 1.5, py: 0.7, fontSize: 12, fontWeight: 600,
+          }}>
+            ⚠ {createError}
+          </Box>
+        )}
         <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>
           <ComposerCanvas
             spec={spec}
@@ -60,6 +127,7 @@ function ModeNewStep({ onBack }) {
               setDsPickerLayerKey(editingLayer?.key || null);
               setDsPickerOpen(true);
             }}
+            onCreate={creating ? undefined : handleCreate}
           />
         </Box>
         {/* Phase 1 검증용 — 현재 spec JSON 미리보기 */}

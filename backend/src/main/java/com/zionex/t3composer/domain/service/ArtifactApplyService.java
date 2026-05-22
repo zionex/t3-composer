@@ -810,6 +810,10 @@ public class ArtifactApplyService {
                 }
                 errors.add("#" + (i + 1) + " 실행 실패: " + msg);
                 errors.add("SQL: " + shortSql(stmt));
+                // ★ "Invalid column name" 환각 차단 — 운영 DB 실제 컬럼 조회 후 hint 첨부.
+                //   사용자가 ChatPanel 에 그대로 붙여 Claude 재생성 요청 가능.
+                String hint = buildInvalidColumnHint(a, msg, stmt);
+                if (hint != null) errors.add(hint);
                 rec.put("execOk", false);
                 rec.put("executed", executed);
                 rec.put("errors", errors);
@@ -981,6 +985,58 @@ public class ArtifactApplyService {
 
     private String shortSql(String s) {
         return s.length() > 400 ? s.substring(0, 400) + " ..." : s;
+    }
+
+    // SQL 실행 오류가 'Invalid column name' 류 환각이면 운영 DB 실제 컬럼을 조회해 hint 메시지로 가공.
+    //   사용자가 ChatPanel 에 그대로 붙여 Claude 재생성 prompt 로 사용 가능.
+    //   - INVALID_COLUMN_PATTERN: MSSQL 'Invalid column name 'X'.' / Postgres 'column "x" does not exist' 양쪽 처리
+    //   - SQL_TABLE_PATTERN: SQL 본문에서 TB_* 참조 추출 (FROM/INTO/UPDATE/JOIN 어디든)
+    //   - 각 테이블에 대해 SchemaInspectionService.getTableInfo 로 실제 컬럼 fetch.
+    //   - 환각 컬럼명 + 실제 컬럼명 리스트를 한 줄짜리 한국어 안내로 반환.
+    //   - 미매치/조회 실패 등은 null (호출자가 무시).
+    private static final java.util.regex.Pattern INVALID_COLUMN_PATTERN = java.util.regex.Pattern.compile(
+            "(?i)(?:invalid column name\\s+['\"]([^'\"]+)['\"]|column\\s+\"([^\"]+)\"\\s+does not exist)");
+    private static final java.util.regex.Pattern SQL_TABLE_PATTERN = java.util.regex.Pattern.compile(
+            "\\bTB_[A-Z][A-Z0-9_]*\\b");
+
+    private String buildInvalidColumnHint(ComposerArtifact a, String errMsg, String stmt) {
+        if (errMsg == null || stmt == null) return null;
+        java.util.regex.Matcher em = INVALID_COLUMN_PATTERN.matcher(errMsg);
+        if (!em.find()) return null;
+        String badCol = em.group(1) != null ? em.group(1) : em.group(2);
+        if (badCol == null) return null;
+
+        // SQL 본문에서 참조된 TB_* 테이블 추출 (중복 제거)
+        java.util.Set<String> tables = new java.util.LinkedHashSet<>();
+        java.util.regex.Matcher tm = SQL_TABLE_PATTERN.matcher(stmt);
+        while (tm.find()) tables.add(tm.group());
+        if (tables.isEmpty()) return null;
+
+        // 세션의 targetCd 해석
+        String targetCd;
+        try {
+            targetCd = sessionRepo.findById(a.getSessionId())
+                    .map(s -> s.getTargetCd()).orElse(null);
+        } catch (Exception ignore) { targetCd = null; }
+        if (targetCd == null || targetCd.isBlank()) return null;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("💡 환각 컬럼 '").append(badCol).append("' — 운영 DB 실제 컬럼:");
+        for (String t : tables) {
+            try {
+                com.zionex.t3composer.domain.schema.TableInfo info =
+                        schemaInspectionService.getTableInfo(targetCd, t);
+                if (info == null || info.getColumns() == null || info.getColumns().isEmpty()) continue;
+                String cols = info.getColumns().stream()
+                        .map(c -> c.getName() + (c.isPrimaryKey() ? "(PK)" : ""))
+                        .collect(java.util.stream.Collectors.joining(", "));
+                sb.append("\n  • ").append(t).append(": ").append(cols);
+            } catch (Exception e) {
+                log.debug("schema lookup 실패 table={}: {}", t, e.getMessage());
+            }
+        }
+        if (sb.length() < 20) return null;  // 조회 모두 실패
+        return sb.toString();
     }
 
     private String rootMessage(Throwable t) {

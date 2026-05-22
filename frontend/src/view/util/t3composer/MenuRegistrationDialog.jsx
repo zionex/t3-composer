@@ -178,6 +178,19 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       const full = await getArtifact(menuItem.id);
       setMenuSql(full.data);
 
+      // 세션의 targetCd 확보 — MENU_SQL · MENU_JS 두 분기 모두 필요.
+      //   MENU_SQL 분기에서 부모 메뉴 picker (<MenuPickerDialog targetCd={sessionTargetCd}>) 가
+      //   T3SERIES 등 활성 Target 의 운영 메뉴 트리를 보여주기 위함.
+      //   이전엔 MENU_JS 분기 안에만 setSessionTargetCd 가 있어 MENU_SQL 세션에서는
+      //   null 유지 → composer-db 의 listAllMenus fallback 으로 표시 (운영 트리와 불일치).
+      try {
+        const sess = await getSession(sessionId);
+        const tCd = sess?.data?.targetCd || sess?.data?.target_cd || null;
+        setSessionTargetCd(tCd);
+      } catch (_e) {
+        // silent — picker 는 fallback 동작 가능
+      }
+
       // MENU_JS — JSON 파싱 후 entries 추출, SQL 처리 일체 skip
       if (menuItem.artifactType === 'MENU_JS') {
         const content = full.data?.content || '';
@@ -199,11 +212,10 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
           setError('MENU_JS JSON 파싱 실패: ' + (e?.message || 'invalid JSON'));
         }
 
-        // 세션의 targetCd 조회 → PLANEL 트리 로드 (groupKey 검증·picker 용)
+        // PLANEL 트리 로드 (groupKey 검증·picker 용) — sessionTargetCd 는 위에서 이미 set.
         try {
           const sess = await getSession(sessionId);
           const tCd = sess?.data?.targetCd || sess?.data?.target_cd || null;
-          setSessionTargetCd(tCd);
           if (tCd) {
             const lang = localStorage.getItem('languageCode')
               || sessionStorage.getItem('languageCode')

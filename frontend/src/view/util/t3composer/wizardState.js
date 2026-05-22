@@ -2554,12 +2554,121 @@ export const LAYOUT_CATEGORY_TO_LAYERS = {
     { key: 'detailRow', title: '상세 그리드', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
   ],
+
+  // ─── Phase 2B-1 신규: 실제 사용 카테고리 5종 ───
+
+  /** DASHBOARD (16건, 최다) — KPI 카드 행 + 다중 위젯 격자 (2x2 widget grid) */
+  LAYOUT_DASHBOARD: () => [
+    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+      subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
+    { key: 'widgetTL',  title: '위젯 좌상', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_BAR', position: { x: 0, y: 3, w: 6,  h: 4 } },
+    { key: 'widgetTR',  title: '위젯 우상', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_LINE',position: { x: 6, y: 3, w: 6,  h: 4 } },
+    { key: 'widgetBL',  title: '위젯 좌하', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 7, w: 6,  h: 5 } },
+    { key: 'widgetBR',  title: '위젯 우하', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_DONUT', position: { x: 6, y: 7, w: 6, h: 5 } },
+  ],
+
+  /** WIDGET (5건) — 다른 화면에 임베드되는 단일 위젯 */
+  WIDGET: () => [
+    { key: 'mainWidget', title: '메인 위젯', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_BAR', position: { x: 0, y: 0, w: 12, h: 12 } },
+  ],
+
+  /** PLANEDIT (4건) — 크로스탭 피벗 그리드 (계획 보정) */
+  LAYOUT_PLANEDIT: () => [
+    { key: 'pivotGrid', title: '피벗 그리드', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_CROSSTAB', position: { x: 0, y: 0, w: 12, h: 12 } },
+  ],
+
+  /** MONITORING (3건) — KPI 행 + 실시간 차트 + 알람 그리드 + 이벤트 로그 */
+  LAYOUT_MONITORING: () => [
+    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+      subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
+    { key: 'liveChart', title: '실시간 차트', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_LINE', position: { x: 0, y: 3, w: 8, h: 6 } },
+    { key: 'alertList', title: '알람',       type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 8, y: 3, w: 4, h: 6 } },
+    { key: 'eventLog',  title: '이벤트 로그', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 9, w: 12, h: 3 } },
+  ],
+
+  /** ROUTELAYOUT (1건) — 공정 라우트 다이어그램 단일 */
+  LAYOUT_ROUTELAYOUT: () => [
+    { key: 'routeDiagram', title: '공정 라우트', type: LAYER_TYPES.CHART,
+      subtype: 'DIAGRAM_FLO', position: { x: 0, y: 0, w: 12, h: 12 } },
+  ],
+
+  // ─── Phase 2B-1 신규: 다른 Target (PlaNEL/LGES_NEXTSCM) mockup 추가 대비 ───
+
+  /** V4 — 수직 4분할 */
+  LAYOUT_V4: () => [
+    { key: 'panel1', title: '1단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 3 } },
+    { key: 'panel2', title: '2단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 3, w: 12, h: 3 } },
+    { key: 'panel3', title: '3단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 3 } },
+    { key: 'panel4', title: '4단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 9, w: 12, h: 3 } },
+  ],
+
+  /** V5 — 수직 5단 (단당 더 얇음) */
+  LAYOUT_V5: () => [
+    { key: 'panel1', title: '1단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0,  w: 12, h: 3 } },
+    { key: 'panel2', title: '2단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 3,  w: 12, h: 2 } },
+    { key: 'panel3', title: '3단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 5,  w: 12, h: 2 } },
+    { key: 'panel4', title: '4단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 7,  w: 12, h: 2 } },
+    { key: 'panel5', title: '5단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 9,  w: 12, h: 3 } },
+  ],
+
+  /** H4 — 수평 4분할 */
+  LAYOUT_H4: () => [
+    { key: 'panel1', title: '1열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 3, h: 12 } },
+    { key: 'panel2', title: '2열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 3, y: 0, w: 3, h: 12 } },
+    { key: 'panel3', title: '3열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 3, h: 12 } },
+    { key: 'panel4', title: '4열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 9, y: 0, w: 3, h: 12 } },
+  ],
+
+  /** H5 — 수평 5열 (열당 더 좁음) */
+  LAYOUT_H5: () => [
+    { key: 'panel1', title: '1열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0,  y: 0, w: 2, h: 12 } },
+    { key: 'panel2', title: '2열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 2,  y: 0, w: 2, h: 12 } },
+    { key: 'panel3', title: '3열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 4,  y: 0, w: 2, h: 12 } },
+    { key: 'panel4', title: '4열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 6,  y: 0, w: 3, h: 12 } },
+    { key: 'panel5', title: '5열', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 9,  y: 0, w: 3, h: 12 } },
+  ],
 };
 
-/** layoutCategory 미매칭 시 폴백 — 단일 그리드 */
+/** layoutCategory 미매칭 시 SINGLE 폴백. 추상 카테고리(SUBCOMPONENT/POPUP/BASE) 도 SINGLE.
+ *  미정의 카테고리는 console.warn 으로 알림 (신규 mockup 추가 시 매핑 보강 시그널). */
+const ABSTRACT_CATEGORIES = new Set(['SUBCOMPONENT', 'POPUP', 'BASE']);
+
 export function layersForLayoutCategory(layoutCategory) {
   const builder = LAYOUT_CATEGORY_TO_LAYERS[layoutCategory];
-  return builder ? builder() : LAYOUT_CATEGORY_TO_LAYERS.LAYOUT_SINGLE();
+  if (builder) return builder();
+  if (!ABSTRACT_CATEGORIES.has(layoutCategory)) {
+    // 추상이 아닌데 매핑 없음 → 매핑 보강 신호
+    // eslint-disable-next-line no-console
+    console.warn(`[ComposerSpec] LAYOUT_CATEGORY_TO_LAYERS 에 '${layoutCategory}' 매핑 없음 → SINGLE 폴백. LAYOUT_CATEGORY_TO_LAYERS 에 추가 권장.`);
+  }
+  return LAYOUT_CATEGORY_TO_LAYERS.LAYOUT_SINGLE();
 }
 
 /**

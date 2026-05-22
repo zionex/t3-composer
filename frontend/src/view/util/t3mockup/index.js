@@ -15,6 +15,8 @@ import { lazy } from 'react';
 
 // T3SmartSCM 운영 메뉴 ↔ mockup 매핑 (scripts/mockup-menu-mapping.cjs 생성)
 import menuMappingJson from './_data/t3smartscm-menu-mapping.json';
+// KTNG 운영 메뉴 ↔ mockup 매핑 (수동 작성, .claude-project/_data/ktng-menu-source-raw.txt 기반)
+import ktngMenuMappingJson from './_data/ktng-menu-mapping.json';
 
 // ─────────────────────────────────────────
 // T3SmartSCM — Phase 1~4a 산출물 (54개 mockup)
@@ -204,9 +206,114 @@ const PLANEL_ENTRIES = [
 ];
 
 // ─────────────────────────────────────────
+// KTNG — c:/vs_project/KTNG 의 KTNG 명시 화면 (bfktng/cmktng/dpktng/mpktng/rptktng) 68개를
+// 27개 mockup 패턴으로 그룹화. 표준 화면 (master/controlboard/entry/report 등) 은
+// 기존 t3series 표준 화면을 그대로 사용하므로 mockup 대상 외.
+//
+// 현재 라운드: 6개 component 연결 (BF 2 + CM 3 + DP psi 1)
+// 다음 라운드: DP 9개 (upload/price_exchange/production_alloc/plc_lifecycle/org_mapping/
+//                       demand_validation/domestic_entry/stuffing_report/approval)
+// 그 다음:    MP 6개 (master_data/supply_summary/routing/rtf_adjustment/load_capacity/compare_check)
+// 그 다음:    RPT 6개 (accuracy/execution/inventory_days/psi_working/forecast_daily/personalization)
+// ─────────────────────────────────────────
+const KTNG_ENTRIES = [
+  // ── BF (3개 화면 → 2 mockups) ────────────────────────────────────────
+  { patternCode: 'ktng_bf_promotion',       patternLabel: 'KTNG — BF 프로모션 계획 (BfKtng01/02)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: '한국/해외 프로모션 계획 — 거래처-품목 LV3 단위 기간·할인율·프로모션 유형',
+    component: lazy(() => import('./_ktng/bf_promotion/BfPromotionMockup')) },
+  { patternCode: 'ktng_bf_accuracy_trend',  patternLabel: 'KTNG — BF 수요예측 정확도 추이 (BfKtng03)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'M-1/M-2/M-3 예측 정확도 시계열 라인 차트 + 비교 그리드 + 목표선',
+    component: lazy(() => import('./_ktng/bf_accuracy_trend/BfAccuracyTrendMockup')) },
+
+  // ── CM (11개 화면 → 3 mockups) ──────────────────────────────────────
+  { patternCode: 'ktng_cm_summary',         patternLabel: 'KTNG — 공헌이익 Summary (CmKtng01)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'KPI + 비용 항목 breakdown + 생산지별 Lvl 4 그리드',
+    component: lazy(() => import('./_ktng/cm_summary/CmSummaryMockup')) },
+  { patternCode: 'ktng_cm_cost_breakdown',  patternLabel: 'KTNG — 비용 항목 분석 (CmKtng02~08)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 7, description: '재료비/마킹비/물류비/관세/정상자재/원화가/하이퍼인플레이션 — 단일 비용 항목 상세 분석',
+    component: lazy(() => import('./_ktng/cm_cost_breakdown/CmCostBreakdownMockup')) },
+  { patternCode: 'ktng_cm_lvl4',            patternLabel: 'KTNG — Lvl 4 코드/공헌이익/Unmapping (CmKtng09/10/11)', layoutCategory: 'LAYOUT_H2', category: 'domain',
+    usage: 3, description: '좌측 Lvl4 생산지 트리 + 우측 탭(속성/공헌이익/미매핑) 통합',
+    component: lazy(() => import('./_ktng/cm_lvl4/CmLvl4Mockup')) },
+
+  // ── DP (18개 화면 → 10 mockups) ─────────────────────────────────────
+  { patternCode: 'ktng_dp_upload',          patternLabel: 'KTNG — 판매실적/재고 Upload (DpKtng01)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'Excel/CSV 일괄 업로드 + 진행률 + 이력 로그',
+    component: lazy(() => import('./_ktng/dp_upload/DpUploadMockup')) },
+  { patternCode: 'ktng_dp_price_exchange',  patternLabel: 'KTNG — 판가/환율 관리 (DpKtng02/19)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: '판가 마스터 + 환율 마스터 (탭 전환)',
+    component: lazy(() => import('./_ktng/dp_price_exchange/DpPriceExchangeMockup')) },
+  { patternCode: 'ktng_dp_production_alloc',patternLabel: 'KTNG — 생산계획 할당 Rule (DpKtng03)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '품목-생산지 우선순위 + 비율 매핑 (합계 100% 검증)',
+    component: lazy(() => import('./_ktng/dp_production_alloc/DpProductionAllocMockup')) },
+  { patternCode: 'ktng_dp_plc_lifecycle',   patternLabel: 'KTNG — PLC / EOP / 생명주기 (DpKtng04/14/16)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 3, description: '제품 생명주기 단계별 stepper + 신/구품 매핑 + EOP 수량',
+    component: lazy(() => import('./_ktng/dp_plc_lifecycle/DpPlcLifecycleMockup')) },
+  { patternCode: 'ktng_dp_psi_crosstab',    patternLabel: 'KTNG — 판매계획 PSI 크로스탭 (DpKtng05/06/07/09)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 4, description: '판매계획 PSI 4종 — 좌측 고정 + 시간 버킷 피벗',
+    component: lazy(() => import('./_ktng/dp_psi_crosstab/DpPsiCrosstabMockup')) },
+  { patternCode: 'ktng_dp_org_mapping',     patternLabel: 'KTNG — 영업조직 매핑 (DpKtng11/12)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 2, description: '영업조직-제품레벨 + 영업조직-담당자 매핑 (상하 2분할)',
+    component: lazy(() => import('./_ktng/dp_org_mapping/DpOrgMappingMockup')) },
+  { patternCode: 'ktng_dp_demand_validation', patternLabel: 'KTNG — 수요 적정성 점검 (DpKtng15/17)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: '수출/내수 수요 적정성 룰별 통과/실패 + 위반 상세',
+    component: lazy(() => import('./_ktng/dp_demand_validation/DpDemandValidationMockup')) },
+  { patternCode: 'ktng_dp_domestic_entry',  patternLabel: 'KTNG — 내수 수요 입력 (DpKtng18)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '거래처-품목 × 월별 셀 직접 입력 (편집 가능)',
+    component: lazy(() => import('./_ktng/dp_domestic_entry/DpDomesticEntryMockup')) },
+  { patternCode: 'ktng_dp_stuffing_report', patternLabel: 'KTNG — Stuffing 리포트 (DpKtng20)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '수출 컨테이너 적재 계획 — 거점·도착지·주차별 CNTR/CTN/CBM/Fill Rate',
+    component: lazy(() => import('./_ktng/dp_stuffing_report/DpStuffingReportMockup')) },
+  { patternCode: 'ktng_dp_approval',        patternLabel: 'KTNG — 결재 요청 현황 (DpKtngApv)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '수요계획 결재 워크플로 — 단계별 진행 상태',
+    component: lazy(() => import('./_ktng/dp_approval/DpApprovalMockup')) },
+
+  // ── MP (9개 화면 → 6 mockups) ───────────────────────────────────────
+  { patternCode: 'ktng_mp_master_data',     patternLabel: 'KTNG — MP 기준정보 / 자재 마스터 (MpKtng01/09)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: 'MP 기준정보 + 자재 마스터 (탭 전환)',
+    component: lazy(() => import('./_ktng/mp_master_data/MpMasterDataMockup')) },
+  { patternCode: 'ktng_mp_supply_summary',  patternLabel: 'KTNG — 공급계획 결과 요약 (MpKtng02)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '제품 형태별 PSI 집계 + 주차별 트렌드',
+    component: lazy(() => import('./_ktng/mp_supply_summary/MpSupplySummaryMockup')) },
+  { patternCode: 'ktng_mp_routing',         patternLabel: 'KTNG — 공급망 라우팅 (MpKtng03)', layoutCategory: 'LAYOUT_ROUTELAYOUT', category: 'domain',
+    usage: 1, description: '공장→DC→항구→해외 거점 운송 경로 다이어그램 + 경로별 L/T/비용',
+    component: lazy(() => import('./_ktng/mp_routing/MpRoutingMockup')) },
+  { patternCode: 'ktng_mp_rtf_adjustment',  patternLabel: 'KTNG — RTF 조정 (MpKtng04)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'RTF 부족 시 거래처 우선순위 기반 할당량 수동 조정',
+    component: lazy(() => import('./_ktng/mp_rtf_adjustment/MpRtfAdjustmentMockup')) },
+  { patternCode: 'ktng_mp_load_capacity',   patternLabel: 'KTNG — 공장/설비 부하·가동조건 (MpKtng05/07)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: '공장 / 설비 단위 부하율 + 교대·가동시간 가동조건',
+    component: lazy(() => import('./_ktng/mp_load_capacity/MpLoadCapacityMockup')) },
+  { patternCode: 'ktng_mp_compare_check',   patternLabel: 'KTNG — 예측 비교 / 정수 점검 (MpKtng06/08)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 2, description: 'BF vs 회귀 예측 정확도 비교 + 설비별 정수/부정수 점검',
+    component: lazy(() => import('./_ktng/mp_compare_check/MpCompareCheckMockup')) },
+
+  // ── RPT (27개 화면 → 6 mockups) ─────────────────────────────────────
+  { patternCode: 'ktng_rpt_accuracy',       patternLabel: 'KTNG — 예측 정확도 리포트 (RptKtng01~06)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 6, description: 'Sell Out / 유통재고 / 수요예측 / 수요입력 정확도 6개 통합',
+    component: lazy(() => import('./_ktng/rpt_accuracy/RptAccuracyMockup')) },
+  { patternCode: 'ktng_rpt_execution',      patternLabel: 'KTNG — 실행율 / 진척율 (RptKtng07~11)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 5, description: 'MP 실행율 / RTF 실행율 / 연간계획 진척율 5개 통합',
+    component: lazy(() => import('./_ktng/rpt_execution/RptExecutionMockup')) },
+  { patternCode: 'ktng_rpt_inventory_days', patternLabel: 'KTNG — 재고일수 / 장기재고 (RptKtng12~15, 26)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 5, description: '완제품 재고일수 + 장기재고 + WMS — 거점·품목군 × 30/60/90/180일 Aging',
+    component: lazy(() => import('./_ktng/rpt_inventory_days/RptInventoryDaysMockup')) },
+  { patternCode: 'ktng_rpt_psi_working',    patternLabel: 'KTNG — Working Report PSI (RptKtng16~22)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 7, description: '7개 채널 PSI / 계획 vs 실적 — 거점 × 품목군 × 주차별 PLAN/ACTUAL/INV',
+    component: lazy(() => import('./_ktng/rpt_psi_working/RptPsiWorkingMockup')) },
+  { patternCode: 'ktng_rpt_forecast_daily', patternLabel: 'KTNG — 연간 전망 / Daily 실적 (RptKtng23~25)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 3, description: '연간 생산/판매 전망 (월별) + Daily 실적 (일별) — 상하 2분할',
+    component: lazy(() => import('./_ktng/rpt_forecast_daily/RptForecastDailyMockup')) },
+  { patternCode: 'ktng_rpt_personalization', patternLabel: 'KTNG — 개인화 버전 관리 (RptKtng00)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '리포트별 저장된 개인화 버전 (필터·파라미터) 관리 + 공유/즐겨찾기/복제',
+    component: lazy(() => import('./_ktng/rpt_personalization/RptPersonalizationMockup')) },
+];
+
+// ─────────────────────────────────────────
 // 최종 export — 각 entry 에 productLine + menus (운영 매핑) 자동 부여
 // ─────────────────────────────────────────
 const T3SMART_SCM_MOCKUP_TO_MENUS = menuMappingJson?.mockupToMenus || {};
+const KTNG_MOCKUP_TO_MENUS        = ktngMenuMappingJson?.mockupToMenus || {};
 export const MOCKUP_ENTRIES = [
   ...T3SMART_SCM_ENTRIES.map((e) => ({
     productLine: 'T3SmartSCM',
@@ -214,6 +321,11 @@ export const MOCKUP_ENTRIES = [
     ...e,
   })),
   ...PLANEL_ENTRIES.map((e) => ({ productLine: 'PlaNEL', menus: [], ...e })),
+  ...KTNG_ENTRIES.map((e) => ({
+    productLine: 'KTNG',
+    menus: KTNG_MOCKUP_TO_MENUS[e.patternCode] || [],
+    ...e,
+  })),
 ];
 
 // 운영 메뉴ID → mockup patternCode 역방향 lookup
@@ -222,6 +334,7 @@ export const MENU_TO_MOCKUP = menuMappingJson?.menuToMockup || {};
 export const PRODUCT_LINE_LABEL = {
   T3SmartSCM: 'T3SmartSCM',
   PlaNEL:     'PlaNEL',
+  KTNG:       'KTNG',
 };
 
 export const CATEGORY_LABEL = {

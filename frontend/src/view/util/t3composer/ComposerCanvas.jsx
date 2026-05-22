@@ -21,7 +21,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
 import React, { useState, useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 // ── Layer 아이콘 ──
@@ -128,7 +128,7 @@ function subtypeHintFor(layer) {
   return SUBTYPE_HINT_ICON[layer?.subtype] || null;
 }
 
-function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker }) {
+function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker, onCreate }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
@@ -150,6 +150,32 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%', minHeight: 0 }}>
+
+      {/* ───── 액션 헤더 — [✨ 화면 생성] 버튼 ───── */}
+      {!readOnly && onCreate && (
+        <Box sx={{
+          flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1,
+          pb: 0.5,
+        }}>
+          <Typography variant="caption" sx={{ color: '#64748b', mr: 'auto' }}>
+            각 영역에 데이터를 채운 뒤 우측 [화면 생성] 버튼을 누르면 Claude 가 산출물을 만들고 미리보기까지 진행합니다.
+          </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AutoAwesomeIcon fontSize="small" />}
+            onClick={() => onCreate(spec)}
+            sx={{
+              bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700, letterSpacing: '0.02em',
+              '&:hover': { bgcolor: '#8b7dca' },
+              boxShadow: '0 2px 8px rgba(157,143,212,0.35)',
+            }}
+          >
+            화면 생성
+          </Button>
+        </Box>
+      )}
 
       {/* ───── FilterBar 노란 띠 ───── */}
       <Box

@@ -636,6 +636,25 @@ public class ComposerService {
         applyMessageCacheBreakpoint(messages);
 
         String effectiveModel = session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL;
+
+        // 진단 — system / messages 크기 로그 (Anthropic 200K context window 초과 추적)
+        int staticChars  = staticPart != null ? staticPart.length() : 0;
+        int sessionChars = sessionPart != null ? sessionPart.length() : 0;
+        int messagesChars = messages.stream()
+                .mapToInt(mm -> {
+                    Object c = mm.getContent();
+                    return c instanceof String ? ((String) c).length() : 0;
+                })
+                .sum();
+        int totalChars = staticChars + sessionChars + messagesChars;
+        // 토큰 추정: 한국어/영어 혼합 시 1 token ≈ 3 chars 보수적 추정.
+        int estTokens = totalChars / 3;
+        log.info("Composer buildRequest session={} model={} staticChars={} sessionChars={} "
+                + "messagesChars={} totalChars={} estTokens≈{} max_tokens={}",
+                session.getId(), effectiveModel,
+                staticChars, sessionChars, messagesChars, totalChars, estTokens,
+                resolveMaxTokens(effectiveModel));
+
         return MessagesRequest.builder()
                 .model(effectiveModel)
                 .max_tokens(resolveMaxTokens(effectiveModel))

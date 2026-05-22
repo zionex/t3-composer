@@ -68,7 +68,11 @@ import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
+import ScreenMetaDialog from './ScreenMetaDialog';
 import { addLayer, removeLayer, getTopLevelLayers, getChildLayers } from './wizardState';
+
+// EditNoteOutlined 가 MUI 5.11 에 없을 수 있어 MenuBookOutlined 로 fallback
+import EditNoteOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 
 /** Layer type 별 accent 색 — 좌측 4px stripe + 호버 효과. 파스텔 톤. */
 const LAYER_TYPE_ACCENT = {
@@ -145,6 +149,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [addAnchor, setAddAnchor] = useState(null);
+  const [metaDialogOpen, setMetaDialogOpen] = useState(false);
 
   const filterItems = spec?.filterBar?.items || [];
   const layers      = spec?.layers || [];
@@ -272,6 +277,38 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             각 영역에 데이터를 채운 뒤 [화면 생성] 클릭 → Claude 가 산출물 + 미리보기 진행.
             Layer 는 드래그/리사이즈/추가/삭제 가능.
           </Typography>
+
+          {/* ── 메타 chip + [메뉴/메타] 버튼 ── */}
+          {spec?.meta && (
+            <Chip
+              label={
+                spec.meta.menuCd
+                  ? `${spec.meta.menuCd}${spec.meta.parentMenuCd ? ` · ⊂ ${spec.meta.parentMenuCd}` : ''}`
+                  : '메뉴 미설정'
+              }
+              size="small"
+              onClick={() => setMetaDialogOpen(true)}
+              sx={{
+                cursor: 'pointer',
+                bgcolor: spec.meta.menuCd ? '#dbeafe' : '#fef3c7',
+                color:   spec.meta.menuCd ? '#1e40af' : '#92400e',
+                fontWeight: 700, fontFamily: 'monospace',
+                '&:hover': { bgcolor: spec.meta.menuCd ? '#bfdbfe' : '#fde68a' },
+              }}
+            />
+          )}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<EditNoteOutlinedIcon fontSize="small" />}
+            onClick={() => setMetaDialogOpen(true)}
+            sx={{
+              color: '#475569', borderColor: '#cbd5e1', fontWeight: 600,
+              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+            }}
+          >
+            메뉴/메타
+          </Button>
 
           <Button
             variant="outlined"
@@ -712,6 +749,15 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
         spec={spec}
         onClose={() => setFilterDialogOpen(false)}
         onApply={(nextSpec) => onChange(nextSpec)}
+      />
+      <ScreenMetaDialog
+        open={metaDialogOpen}
+        onClose={() => setMetaDialogOpen(false)}
+        meta={spec?.meta}
+        targetCd={targetCd}
+        onApply={(nextMeta) => {
+          onChange({ ...spec, meta: nextMeta });
+        }}
       />
     </Box>
   );

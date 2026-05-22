@@ -16,7 +16,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 2)
  */
 import React, { useState } from 'react';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography, Snackbar, Alert } from '@mui/material';
 import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
@@ -35,13 +35,31 @@ const STEPS = [
 function ComposerWizard({ initialSpec, targetCd, onBack }) {
   const [spec, setSpec] = useState(initialSpec);
   const [step, setStep] = useState('LAYOUT');
+  const [validationError, setValidationError] = useState(null);
 
   const curIdx = STEPS.findIndex((s) => s.id === step);
   const isFirst = curIdx === 0;
   const isLast  = curIdx === STEPS.length - 1;
 
+  // 단계 진행 전 검증 — null 반환 시 통과, 문자열 반환 시 차단 + 토스트.
+  const validateStep = (stepId) => {
+    if (stepId === 'DATA') {
+      const items = spec?.filterBar?.items || [];
+      const blanks = items.filter((it) => !(it.label || '').trim());
+      if (blanks.length > 0) {
+        return `FilterBar 필드 ${blanks.length}개에 라벨이 비어있습니다. 입력 후 다음으로 진행하세요.`;
+      }
+    }
+    return null;
+  };
+
   const goPrev = () => { if (!isFirst) setStep(STEPS[curIdx - 1].id); };
-  const goNext = () => { if (!isLast)  setStep(STEPS[curIdx + 1].id); };
+  const goNext = () => {
+    if (isLast) return;
+    const err = validateStep(step);
+    if (err) { setValidationError(err); return; }
+    setStep(STEPS[curIdx + 1].id);
+  };
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -105,6 +123,22 @@ function ComposerWizard({ initialSpec, targetCd, onBack }) {
         {step === 'META'     && <MetaStep          spec={spec} onChange={setSpec} targetCd={targetCd} />}
         {step === 'GENERATE' && <GenerateStep      spec={spec}                     targetCd={targetCd} onBackToWizard={() => setStep('META')} />}
       </Box>
+
+      {/* ── 단계 검증 토스트 (FilterBar 라벨 미입력 등) ── */}
+      <Snackbar
+        open={!!validationError}
+        autoHideDuration={5000}
+        onClose={() => setValidationError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity="warning"
+          onClose={() => setValidationError(null)}
+          sx={{ fontWeight: 600 }}
+        >
+          {validationError}
+        </Alert>
+      </Snackbar>
 
       {/* ── Footer (← 이전 / 다음 →) — GENERATE 단계에서는 숨김 ── */}
       {step !== 'GENERATE' && (

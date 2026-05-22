@@ -30,7 +30,9 @@ function FilterBarInlinePanel({ spec, onChange }) {
 
   const handleAddField = () => {
     const newKey = `field_${Date.now().toString(36)}`;
-    const nextItems = [...items, { key: newKey, label: '새 필드', type: 'TEXT' }];
+    // label 은 빈 문자열 — 카드의 TextField placeholder('라벨') 가 가이드.
+    // ② → ③ 진행 시 ComposerWizard 가 빈 라벨 검증 후 차단.
+    const nextItems = [...items, { key: newKey, label: '', type: 'TEXT' }];
     // default 로 모든 layer 영향 매핑 체크 (f8d675f 정책 유지)
     const nextAffects = { ...affects };
     layers.forEach((l) => {

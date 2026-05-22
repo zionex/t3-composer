@@ -62,6 +62,21 @@ public class ComposerService {
     public static final int DEFAULT_MAX_TOKENS = 100_000;
 
     /**
+     * 모델별 출력 토큰 한도 — Anthropic API 가 모델별로 max_tokens 상한을 강제한다.
+     * Opus 계열은 100K+ 허용, Sonnet 계열은 64K, Haiku 는 더 작음.
+     * DEFAULT_MAX_TOKENS 가 모델 한도보다 크면 400 invalid_request_error 발생 →
+     * resolveMaxTokens(modelName) 으로 cap.
+     */
+    private static int resolveMaxTokens(String modelName) {
+        if (modelName == null) return DEFAULT_MAX_TOKENS;
+        String m = modelName.toLowerCase();
+        if (m.contains("opus"))    return Math.min(DEFAULT_MAX_TOKENS, 100_000);
+        if (m.contains("sonnet"))  return Math.min(DEFAULT_MAX_TOKENS, 64_000);
+        if (m.contains("haiku"))   return Math.min(DEFAULT_MAX_TOKENS, 16_000);
+        return Math.min(DEFAULT_MAX_TOKENS, 64_000);  // 알 수 없는 모델은 보수적
+    }
+
+    /**
      * max_tokens 도달(잘림) 시 서버가 자동으로 "계속" 프롬프트를 이어 붙여 재호출할
      * 최대 횟수. 한 요청 내에서 최대 (1 + MAX_AUTO_CONTINUATIONS) 회까지 Claude 호출.
      * 무한루프 방지 + 과금 폭주 예방.
@@ -620,9 +635,10 @@ public class ComposerService {
         //   후속 턴·auto-continuation 이 재전송하는 대화 prefix 를 90% 할인된 cache_read 로 받음.
         applyMessageCacheBreakpoint(messages);
 
+        String effectiveModel = session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL;
         return MessagesRequest.builder()
-                .model(session.getModelName() != null ? session.getModelName() : DEFAULT_MODEL)
-                .max_tokens(DEFAULT_MAX_TOKENS)
+                .model(effectiveModel)
+                .max_tokens(resolveMaxTokens(effectiveModel))
                 .system(systemBlocks)
                 .messages(messages)
                 .build();

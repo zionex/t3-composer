@@ -21,8 +21,43 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
 import React, { useState, useMemo } from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
+
+// ── Layer 아이콘 ──
+import TableViewIcon        from '@mui/icons-material/TableView';
+import AccountTreeIcon      from '@mui/icons-material/AccountTree';
+import PivotTableChartIcon  from '@mui/icons-material/PivotTableChart';
+import ViewListIcon         from '@mui/icons-material/ViewList';
+import CalendarMonthIcon    from '@mui/icons-material/CalendarMonth';
+import ScheduleIcon         from '@mui/icons-material/Schedule';
+import ViewKanbanIcon       from '@mui/icons-material/ViewKanban';
+import BarChartIcon         from '@mui/icons-material/BarChart';
+import StackedBarChartIcon  from '@mui/icons-material/StackedBarChart';
+import ShowChartIcon        from '@mui/icons-material/ShowChart';
+import AreaChartIcon        from '@mui/icons-material/AreaChart';
+import PieChartIcon         from '@mui/icons-material/PieChart';
+import DonutLargeIcon       from '@mui/icons-material/DonutLarge';
+import ScatterPlotIcon      from '@mui/icons-material/ScatterPlot';
+import SpeedIcon            from '@mui/icons-material/Speed';
+import TimelineIcon         from '@mui/icons-material/Timeline';
+import SchemaIcon           from '@mui/icons-material/Schema';
+import MapIcon              from '@mui/icons-material/Map';
+import TabIcon              from '@mui/icons-material/Tab';
+import CreditCardIcon       from '@mui/icons-material/CreditCard';
+import DashboardIcon        from '@mui/icons-material/Dashboard';
+import ViewQuiltIcon        from '@mui/icons-material/ViewQuilt';
+import PictureAsPdfIcon     from '@mui/icons-material/PictureAsPdf';
+import ArticleIcon          from '@mui/icons-material/Article';
+import ImageIcon            from '@mui/icons-material/Image';
+import CompareIcon          from '@mui/icons-material/Compare';
+import CloudUploadIcon      from '@mui/icons-material/CloudUpload';
+import DescriptionIcon      from '@mui/icons-material/Description';
+import SmartToyIcon         from '@mui/icons-material/SmartToy';
+import InsightsIcon         from '@mui/icons-material/Insights';
+import PsychologyIcon       from '@mui/icons-material/Psychology';
+import AutoAwesomeIcon      from '@mui/icons-material/AutoAwesome';
+import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
@@ -35,6 +70,71 @@ const LAYER_TYPE_ACCENT = {
   DOCUMENT:  '#8FC4D4',  // 청록
   AI:        '#C99FD4',  // 마젠타
 };
+
+/** Subtype → MUI Icon 매핑. 자주 쓰이는 subtype 만 specific, 나머지는 type default. */
+const SUBTYPE_ICON = {
+  // GRID
+  GRID_BASE:      TableViewIcon,
+  GRID_TREE:      AccountTreeIcon,
+  GRID_CROSSTAB:  PivotTableChartIcon,
+  GRID_PIVOT:     PivotTableChartIcon,
+  TREE_VIEW:      AccountTreeIcon,
+  FILE_TREE:      AccountTreeIcon,
+  CARD_LIST:      ViewListIcon,
+  TIMELINE:       TimelineIcon,
+  CALENDAR_MONTH: CalendarMonthIcon,
+  CALENDAR_WEEK:  CalendarMonthIcon,
+  SCHEDULER:      ScheduleIcon,
+  KANBAN_BOARD:   ViewKanbanIcon,
+  // CHART
+  CHART_BAR:         BarChartIcon,
+  CHART_STACKED_BAR: StackedBarChartIcon,
+  CHART_LINE:        ShowChartIcon,
+  CHART_AREA:        AreaChartIcon,
+  CHART_PIE:         PieChartIcon,
+  CHART_DONUT:       DonutLargeIcon,
+  CHART_SCATTER:     ScatterPlotIcon,
+  CHART_BOXPLOT:     ScatterPlotIcon,
+  CHART_HEATMAP:     GridOnIcon,
+  CHART_GAUGE:       SpeedIcon,
+  CHART_COMBO:       BarChartIcon,
+  CHART_GANTT:       TimelineIcon,
+  KPI_CARD:          SpeedIcon,
+  DIAGRAM_FLO:       SchemaIcon,
+  DIAGRAM_NETWORK:   SchemaIcon,
+  MAP_GOOGLE:        MapIcon,
+  MAP_VECTOR:        MapIcon,
+  // CONTAINER
+  CONTAINER_TAB:             TabIcon,
+  CONTAINER_CARD:            CreditCardIcon,
+  CONTAINER_DASHBOARD_PANEL: DashboardIcon,
+  // DOCUMENT
+  DOC_PDF_VIEWER:      PictureAsPdfIcon,
+  DOC_MARKDOWN_VIEWER: ArticleIcon,
+  DOC_IMAGE_VIEWER:    ImageIcon,
+  DOC_DIFF_VIEWER:     CompareIcon,
+  DOC_FILE_DROPZONE:   CloudUploadIcon,
+  // AI
+  AI_CHAT_PANEL:       SmartToyIcon,
+  AI_INSIGHT_CARD:     InsightsIcon,
+  AI_SIMULATION_PANEL: AutoAwesomeIcon,
+  AI_ONTOLOGY_EDITOR:  PsychologyIcon,
+};
+
+/** type 만 알 때의 default icon. */
+const TYPE_DEFAULT_ICON = {
+  GRID:      TableViewIcon,
+  CHART:     BarChartIcon,
+  CONTAINER: ViewQuiltIcon,
+  DOCUMENT:  DescriptionIcon,
+  AI:        AutoAwesomeIcon,
+};
+
+function iconForLayer(layer) {
+  return SUBTYPE_ICON[layer?.subtype]
+      || TYPE_DEFAULT_ICON[layer?.type]
+      || ViewQuiltIcon;
+}
 
 function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
@@ -123,11 +223,15 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
         {layers.map(l => {
           const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
           const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
+          const Icon = iconForLayer(l);
           // position { x, y, w, h } → CSS grid 좌표 (1-base, 끝은 +1)
           const x = l.position?.x ?? 0;
           const y = l.position?.y ?? 0;
           const w = l.position?.w ?? 12;
           const h = l.position?.h ?? 4;
+          // 카드가 좁으면 (w≤3) 아이콘 작게, 짧으면 (h≤2) icon 옆 가로 레이아웃
+          const isShort = h <= 2;
+          const iconSize = isShort ? 24 : (w <= 4 ? 32 : 44);
           return (
             <Box
               key={l.key}
@@ -136,37 +240,79 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                 gridColumn: `${x + 1} / ${x + w + 1}`,
                 gridRow:    `${y + 1} / ${y + h + 1}`,
                 cursor: readOnly ? 'default' : 'pointer',
-                bgcolor: '#fff',
-                border: '1px solid #e2e8f0',
+                position: 'relative',
+                overflow: 'hidden',
+                background: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 35%, #ffffff 75%)`,
+                border: `1px solid ${accent}40`,
                 borderLeft: `4px solid ${accent}`,
-                borderRadius: 1.5,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                gap: 0.5, p: 1.5,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: isShort ? 'row' : 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: isShort ? 1.5 : 0.7,
+                p: isShort ? 1.5 : 2,
                 color: '#1e293b',
-                transition: 'box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease',
-                boxShadow: '0 1px 2px rgba(15,23,42,0.04)',
+                transition: 'box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease',
+                boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)',
                 '&:hover': readOnly ? {} : {
-                  boxShadow: `0 4px 12px rgba(15,23,42,0.08), 0 0 0 1px ${accent}55`,
-                  borderColor: `${accent}88`,
-                  transform: 'translateY(-1px)',
+                  boxShadow: `0 8px 20px rgba(15,23,42,0.10), 0 0 0 1px ${accent}80, inset 0 1px 0 rgba(255,255,255,0.6)`,
+                  borderColor: `${accent}cc`,
+                  transform: 'translateY(-2px)',
                 },
               }}
             >
-              <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#1e293b',
-                                textAlign: 'center', lineHeight: 1.2 }}>
-                {l.title || l.key}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', textAlign: 'center',
-                                                    fontSize: 10, lineHeight: 1.3 }}>
-                {l.type}{l.subtype ? ` · ${l.subtype}` : ''}
-              </Typography>
-              <Typography variant="caption" sx={{
-                color: hasData ? accent : '#94a3b8',
-                fontSize: 10, fontWeight: hasData ? 700 : 500, lineHeight: 1.3,
+              {/* 아이콘 박스 — 둥근 흰 원 + accent 색 아이콘 */}
+              <Box sx={{
+                flexShrink: 0,
+                width: iconSize + 16, height: iconSize + 16,
+                borderRadius: '50%',
+                bgcolor: '#ffffff',
+                border: `1.5px solid ${accent}55`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 2px 8px ${accent}33`,
               }}>
-                {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
-              </Typography>
+                <Icon sx={{ fontSize: iconSize, color: accent }} />
+              </Box>
+
+              {/* 텍스트 영역 */}
+              <Box sx={{
+                display: 'flex', flexDirection: 'column',
+                alignItems: isShort ? 'flex-start' : 'center',
+                gap: 0.3, minWidth: 0,
+              }}>
+                <Typography sx={{
+                  fontSize: isShort ? 14 : 14,
+                  fontWeight: 800,
+                  color: '#1e293b',
+                  textAlign: isShort ? 'left' : 'center',
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.01em',
+                }}>
+                  {l.title || l.key}
+                </Typography>
+                <Typography sx={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: accent,
+                  textAlign: isShort ? 'left' : 'center',
+                  lineHeight: 1.3,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                }}>
+                  {l.type}{l.subtype ? ` · ${l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '')}` : ''}
+                </Typography>
+                <Typography sx={{
+                  fontSize: 10,
+                  fontWeight: hasData ? 700 : 500,
+                  color: hasData ? '#16a34a' : '#94a3b8',
+                  textAlign: isShort ? 'left' : 'center',
+                  lineHeight: 1.3,
+                  mt: 0.2,
+                }}>
+                  {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
+                </Typography>
+              </Box>
             </Box>
           );
         })}

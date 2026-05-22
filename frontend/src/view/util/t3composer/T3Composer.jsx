@@ -24,6 +24,7 @@ import WarningAmberIcon      from '@mui/icons-material/WarningAmber';
 import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
 import PlaylistAddCheckIcon  from '@mui/icons-material/PlaylistAddCheck';
+import ViewQuiltIcon         from '@mui/icons-material/ViewQuilt';
 
 import { useLocation, useHistory } from 'react-router-dom';
 
@@ -34,6 +35,7 @@ import ApiKeyDialog from './ApiKeyDialog';
 import ModeNewGeneral    from './ModeNewGeneral';
 import ModeNewFromDesign from './ModeNewFromDesign';
 import ModeNewFromCopy   from './ModeNewFromCopy';
+import ModeNewStep       from './ModeNewStep';
 import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
@@ -44,6 +46,7 @@ const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
   NEW_FROM_COPY:   'NEW_FROM_COPY',
   NEW_NL:          'NEW_NL',
+  NEW_STEP:        'NEW_STEP',  // 2026-05-22: 단계별 생성 (Beta) — 패턴 picker → ComposerCanvas
   EXISTING_MODIFY: 'EXISTING_MODIFY',
 };
 
@@ -68,8 +71,9 @@ const CATEGORY_MODIFY = {
 // ===== 신규 개발 하위 3종 ===== (key = 진입 MODE)
 const NEW_MODE_OPTIONS = [
   { key: MODE.NEW_NL,          step: 1, title: '자연어 생성',     sub: 'Natural Lang.', icon: ChatIcon,        color: '#8FC4D4', hint: '요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다' },
-  { key: MODE.NEW_FROM_COPY,   step: 2, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 9단계 마법사로 수정합니다' },
-  { key: MODE.NEW_FROM_DESIGN, step: 3, title: '설계서 기반',   sub: 'From Design',   icon: DescriptionIcon, color: '#7CA7E0', hint: '설계서(Excel)를 업로드해 화면을 생성합니다' },
+  { key: MODE.NEW_STEP,        step: 2, title: '단계별 생성 (Beta)', sub: 'Pattern + Visual', icon: ViewQuiltIcon, color: '#9D8FD4', hint: '패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다 (Phase 1)' },
+  { key: MODE.NEW_FROM_COPY,   step: 3, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 9단계 마법사로 수정합니다' },
+  { key: MODE.NEW_FROM_DESIGN, step: 4, title: '설계서 기반',   sub: 'From Design',   icon: DescriptionIcon, color: '#7CA7E0', hint: '설계서(Excel)를 업로드해 화면을 생성합니다' },
 ];
 
 // ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)
@@ -557,6 +561,7 @@ function T3Composer() {
         {mode === MODE.NEW_FROM_DESIGN && <ModeNewFromDesign  onBack={backToLanding} />}
         {mode === MODE.NEW_FROM_COPY   && <ModeNewFromCopy    onBack={backToLanding} />}
         {mode === MODE.NEW_NL          && <ModeNewGeneral     onBack={backToLanding} startWith="NL" />}
+        {mode === MODE.NEW_STEP        && <ModeNewStep        onBack={backToLanding} />}
         {mode === MODE.EXISTING_MODIFY && (
           <ModeExistingModify onBack={backToLanding} startWith={modifyStartWith} />
         )}

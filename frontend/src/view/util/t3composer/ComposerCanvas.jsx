@@ -71,69 +71,61 @@ const LAYER_TYPE_ACCENT = {
   AI:        '#C99FD4',  // 마젠타
 };
 
-/** Subtype → MUI Icon 매핑. 자주 쓰이는 subtype 만 specific, 나머지는 type default. */
-const SUBTYPE_ICON = {
-  // GRID
-  GRID_BASE:      TableViewIcon,
-  GRID_TREE:      AccountTreeIcon,
-  GRID_CROSSTAB:  PivotTableChartIcon,
-  GRID_PIVOT:     PivotTableChartIcon,
-  TREE_VIEW:      AccountTreeIcon,
-  FILE_TREE:      AccountTreeIcon,
-  CARD_LIST:      ViewListIcon,
-  TIMELINE:       TimelineIcon,
-  CALENDAR_MONTH: CalendarMonthIcon,
-  CALENDAR_WEEK:  CalendarMonthIcon,
-  SCHEDULER:      ScheduleIcon,
-  KANBAN_BOARD:   ViewKanbanIcon,
-  // CHART
-  CHART_BAR:         BarChartIcon,
-  CHART_STACKED_BAR: StackedBarChartIcon,
+/** type 별 대표 아이콘 — 같은 type 카드들의 그룹 정체성 강조용 (큰 아이콘 + watermark 공통). */
+const TYPE_ICON = {
+  GRID:      TableViewIcon,
+  CHART:     InsightsIcon,
+  CONTAINER: ViewQuiltIcon,
+  DOCUMENT:  DescriptionIcon,
+  AI:        AutoAwesomeIcon,
+};
+
+/** subtype → 작은 보조 아이콘 (선택적 표시용). 자주 쓰는 것만. type 단위 인상 보존하면서 미세 식별. */
+const SUBTYPE_HINT_ICON = {
+  GRID_TREE:         AccountTreeIcon,
+  GRID_CROSSTAB:     PivotTableChartIcon,
+  GRID_PIVOT:        PivotTableChartIcon,
+  TREE_VIEW:         AccountTreeIcon,
+  FILE_TREE:         AccountTreeIcon,
+  CARD_LIST:         ViewListIcon,
+  TIMELINE:          TimelineIcon,
+  CALENDAR_MONTH:    CalendarMonthIcon,
+  CALENDAR_WEEK:     CalendarMonthIcon,
+  SCHEDULER:         ScheduleIcon,
+  KANBAN_BOARD:      ViewKanbanIcon,
   CHART_LINE:        ShowChartIcon,
-  CHART_AREA:        ShowChartIcon,
   CHART_PIE:         PieChartIcon,
   CHART_DONUT:       DonutLargeIcon,
   CHART_SCATTER:     ScatterPlotIcon,
   CHART_BOXPLOT:     ScatterPlotIcon,
   CHART_HEATMAP:     GridOnIcon,
   CHART_GAUGE:       SpeedIcon,
-  CHART_COMBO:       BarChartIcon,
+  CHART_STACKED_BAR: StackedBarChartIcon,
   CHART_GANTT:       TimelineIcon,
   KPI_CARD:          SpeedIcon,
   DIAGRAM_FLO:       SchemaIcon,
   DIAGRAM_NETWORK:   SchemaIcon,
   MAP_GOOGLE:        MapIcon,
   MAP_VECTOR:        MapIcon,
-  // CONTAINER
   CONTAINER_TAB:             TabIcon,
   CONTAINER_CARD:            CreditCardIcon,
   CONTAINER_DASHBOARD_PANEL: DashboardIcon,
-  // DOCUMENT
   DOC_PDF_VIEWER:      PictureAsPdfIcon,
   DOC_MARKDOWN_VIEWER: ArticleIcon,
   DOC_IMAGE_VIEWER:    ImageIcon,
   DOC_DIFF_VIEWER:     CompareIcon,
   DOC_FILE_DROPZONE:   CloudUploadIcon,
-  // AI
   AI_CHAT_PANEL:       SmartToyIcon,
   AI_INSIGHT_CARD:     InsightsIcon,
   AI_SIMULATION_PANEL: AutoAwesomeIcon,
   AI_ONTOLOGY_EDITOR:  PsychologyIcon,
 };
 
-/** type 만 알 때의 default icon. */
-const TYPE_DEFAULT_ICON = {
-  GRID:      TableViewIcon,
-  CHART:     BarChartIcon,
-  CONTAINER: ViewQuiltIcon,
-  DOCUMENT:  DescriptionIcon,
-  AI:        AutoAwesomeIcon,
-};
-
-function iconForLayer(layer) {
-  return SUBTYPE_ICON[layer?.subtype]
-      || TYPE_DEFAULT_ICON[layer?.type]
-      || ViewQuiltIcon;
+function typeIconFor(layer) {
+  return TYPE_ICON[layer?.type] || ViewQuiltIcon;
+}
+function subtypeHintFor(layer) {
+  return SUBTYPE_HINT_ICON[layer?.subtype] || null;
 }
 
 function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker }) {
@@ -223,15 +215,16 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
         {layers.map(l => {
           const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
           const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
-          const Icon = iconForLayer(l);
+          const TypeIcon = typeIconFor(l);
+          const SubHintIcon = subtypeHintFor(l);
           // position { x, y, w, h } → CSS grid 좌표 (1-base, 끝은 +1)
           const x = l.position?.x ?? 0;
           const y = l.position?.y ?? 0;
           const w = l.position?.w ?? 12;
           const h = l.position?.h ?? 4;
-          // 카드가 좁으면 (w≤3) 아이콘 작게, 짧으면 (h≤2) icon 옆 가로 레이아웃
-          const isShort = h <= 2;
-          const iconSize = isShort ? 24 : (w <= 4 ? 32 : 44);
+          const subLabel = l.subtype
+            ? l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '').replace(/_/g, ' ')
+            : '';
           return (
             <Box
               key={l.key}
@@ -242,76 +235,103 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                 cursor: readOnly ? 'default' : 'pointer',
                 position: 'relative',
                 overflow: 'hidden',
-                background: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 35%, #ffffff 75%)`,
-                border: `1px solid ${accent}40`,
-                borderLeft: `4px solid ${accent}`,
-                borderRadius: 2,
+                /* 1) 진한 좌상 → 흰 우하 gradient (type 색 강조) +
+                   2) 우측 큰 radial blob (일러스트 느낌) */
+                background: `
+                  radial-gradient(circle at 90% 70%, ${accent}2e 0%, transparent 55%),
+                  linear-gradient(135deg, ${accent}33 0%, ${accent}12 30%, #ffffff 70%)
+                `,
+                border: `1px solid ${accent}55`,
+                borderLeft: `5px solid ${accent}`,
+                borderRadius: 2.5,
                 display: 'flex',
-                flexDirection: isShort ? 'row' : 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: isShort ? 1.5 : 0.7,
-                p: isShort ? 1.5 : 2,
+                justifyContent: 'flex-start',
+                gap: 2,
+                p: 2.5,
                 color: '#1e293b',
                 transition: 'box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease',
-                boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6)',
+                boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)',
                 '&:hover': readOnly ? {} : {
-                  boxShadow: `0 8px 20px rgba(15,23,42,0.10), 0 0 0 1px ${accent}80, inset 0 1px 0 rgba(255,255,255,0.6)`,
+                  boxShadow: `0 10px 24px rgba(15,23,42,0.12), 0 0 0 1.5px ${accent}aa, inset 0 1px 0 rgba(255,255,255,0.7)`,
                   borderColor: `${accent}cc`,
                   transform: 'translateY(-2px)',
                 },
               }}
             >
-              {/* 아이콘 박스 — 둥근 흰 원 + accent 색 아이콘 */}
+              {/* 큰 type 아이콘 — 둥근 흰 원 안 (왼쪽) */}
               <Box sx={{
                 flexShrink: 0,
-                width: iconSize + 16, height: iconSize + 16,
+                width: 56, height: 56,
                 borderRadius: '50%',
                 bgcolor: '#ffffff',
-                border: `1.5px solid ${accent}55`,
+                border: `2px solid ${accent}55`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: `0 2px 8px ${accent}33`,
+                boxShadow: `0 4px 12px ${accent}3a`,
               }}>
-                <Icon sx={{ fontSize: iconSize, color: accent }} />
+                <TypeIcon sx={{ fontSize: 32, color: accent }} />
               </Box>
 
               {/* 텍스트 영역 */}
               <Box sx={{
                 display: 'flex', flexDirection: 'column',
-                alignItems: isShort ? 'flex-start' : 'center',
-                gap: 0.3, minWidth: 0,
+                alignItems: 'flex-start',
+                gap: 0.4, minWidth: 0, zIndex: 1,
               }}>
                 <Typography sx={{
-                  fontSize: isShort ? 14 : 14,
+                  fontSize: 16,
                   fontWeight: 800,
                   color: '#1e293b',
-                  textAlign: isShort ? 'left' : 'center',
                   lineHeight: 1.2,
                   letterSpacing: '-0.01em',
                 }}>
                   {l.title || l.key}
                 </Typography>
+
+                {/* type 칩 + subtype 칩 (작은 라벨) */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
+                  <Box sx={{
+                    px: 0.9, py: 0.15, borderRadius: 0.8,
+                    bgcolor: `${accent}26`, color: accent,
+                    fontSize: 10, fontWeight: 800, letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                  }}>
+                    {l.type}
+                  </Box>
+                  {subLabel && (
+                    <Box sx={{
+                      display: 'flex', alignItems: 'center', gap: 0.3,
+                      px: 0.7, py: 0.15, borderRadius: 0.8,
+                      bgcolor: '#f1f5f9', color: '#475569',
+                      fontSize: 10, fontWeight: 600, letterSpacing: '0.04em',
+                    }}>
+                      {SubHintIcon && <SubHintIcon sx={{ fontSize: 11 }} />}
+                      {subLabel}
+                    </Box>
+                  )}
+                </Box>
+
                 <Typography sx={{
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  color: accent,
-                  textAlign: isShort ? 'left' : 'center',
-                  lineHeight: 1.3,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                }}>
-                  {l.type}{l.subtype ? ` · ${l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '')}` : ''}
-                </Typography>
-                <Typography sx={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: hasData ? 700 : 500,
                   color: hasData ? '#16a34a' : '#94a3b8',
-                  textAlign: isShort ? 'left' : 'center',
                   lineHeight: 1.3,
-                  mt: 0.2,
+                  mt: 0.3,
                 }}>
                   {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
                 </Typography>
+              </Box>
+
+              {/* 우측 큰 watermark 아이콘 — 일러스트 느낌 (반투명, 배경에 떠 있음) */}
+              <Box sx={{
+                position: 'absolute',
+                right: -8,
+                bottom: -16,
+                opacity: 0.12,
+                pointerEvents: 'none',
+                color: accent,
+              }}>
+                <TypeIcon sx={{ fontSize: 140 }} />
               </Box>
             </Box>
           );

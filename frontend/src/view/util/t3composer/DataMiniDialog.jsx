@@ -170,7 +170,6 @@ function DataMiniDialog({ open, onClose, layer, onApply, targetCd, onOpenDataSou
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748b' }}>
             type: {layer.type} {layer.subtype ? `· ${layer.subtype}` : ''}
-            {targetCd ? ` · Target: ${targetCd}` : ' · ⚠ Target 미선택'}
           </Typography>
         </Box>
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
@@ -254,14 +253,14 @@ function DataMiniDialog({ open, onClose, layer, onApply, targetCd, onOpenDataSou
                 <TextField {...params} size="small" autoFocus
                   placeholder={addKind === 'TABLE' ? 'TB_AD_USER' : 'SP_UI_AD_01_Q1'}
                   helperText={
-                    !targetCd ? '⚠ Target 미선택 — 자유 텍스트 입력만 가능' :
                     isFetchingForAdd ? '목록 조회 중...' :
-                    (addKind === 'TABLE' ? (tablesConnected
-                      ? `${tableOptionStrings.length}개 Table 조회됨`
-                      : '⚠ DB 미연결 — 자유 텍스트만 가능')
-                     : (spsConnected
-                      ? `${spOptionStrings.length}개 SP/Function 조회됨`
-                      : '⚠ DB 미연결 — 자유 텍스트만 가능'))
+                    (addKind === 'TABLE'
+                      ? (tablesConnected
+                          ? `${tableOptionStrings.length}개 Table 조회됨`
+                          : 'DB 미연결 — 자유 텍스트로 입력 가능')
+                      : (spsConnected
+                          ? `${spOptionStrings.length}개 SP/Function 조회됨`
+                          : 'DB 미연결 — 자유 텍스트로 입력 가능'))
                   }
                   InputProps={{
                     ...params.InputProps,

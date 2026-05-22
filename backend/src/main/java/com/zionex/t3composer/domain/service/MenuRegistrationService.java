@@ -259,22 +259,32 @@ public class MenuRegistrationService {
                     return resultOf(false, 0, 0, errors);
                 }
             }
-            // 2단계: 전체 SQL 을 단일 batch 로 실행
-            try {
-                targetJdbc.execute(sql);
-                // batch 실행은 statement 수 추적 불가 — split 결과로 표시
-                int approxExecuted = 0;
-                for (String s : statements) {
-                    String t = s.trim();
-                    if (!t.isEmpty() && !t.startsWith("--")) approxExecuted++;
+            // 2단계: 'GO' batch terminator 로 분리해 각 batch 를 독립 실행.
+            //   - 'GO' 는 SSMS/sqlcmd 의 batch terminator 이지 T-SQL keyword 가 아님 → JDBC 실패.
+            //   - 각 batch 안에서는 DECLARE @VAR 가 유효 (변수 scope = batch 단위).
+            String[] batches = splitTsqlBatches(sql);
+            int approxExecuted = 0;
+            for (int bi = 0; bi < batches.length; bi++) {
+                String batch = batches[bi].trim();
+                if (batch.isEmpty()) continue;
+                try {
+                    targetJdbc.execute(batch);
+                    // batch 안에 들어있는 non-empty statement 수만큼 누적
+                    for (String s : splitSqlStatements(batch)) {
+                        String t = s.trim();
+                        if (!t.isEmpty() && !t.startsWith("--")) approxExecuted++;
+                    }
+                } catch (Exception e) {
+                    String causeMsg = rootMessage(e);
+                    String snippet = batch.length() > 400 ? batch.substring(0, 400) + " ..." : batch;
+                    errors.add("실행 실패 (T-SQL batch #" + (bi + 1) + "): " + causeMsg);
+                    errors.add("SQL: " + snippet);
+                    log.error("Menu SQL batch execute failed sessionId={} batch={} error={}",
+                            sessionId, bi + 1, causeMsg, e);
+                    return resultOf(false, approxExecuted, skipped, errors);
                 }
-                executed = approxExecuted;
-            } catch (Exception e) {
-                String causeMsg = rootMessage(e);
-                errors.add("실행 실패 (T-SQL batch): " + causeMsg);
-                log.error("Menu SQL batch execute failed sessionId={} error={}", sessionId, causeMsg, e);
-                return resultOf(false, 0, skipped, errors);
             }
+            executed = approxExecuted;
             // 아티팩트 FINAL 마킹은 아래 공통 로직으로 분기
             return finalizeAndReturn(artifact, finalOverride, overrideProvided, executed, skipped, errors, sessionId);
         }
@@ -341,9 +351,21 @@ public class MenuRegistrationService {
     private static final Pattern TSQL_DECLARE_VAR_PATTERN = Pattern.compile(
             "(?i)\\bDECLARE\\s+@[A-Za-z_][A-Za-z0-9_]*\\b");
 
+    // 'GO' batch terminator — 줄 전체가 'GO' (양쪽 공백 허용, 대소문자 무관) 인 줄.
+    // SSMS/sqlcmd 가 batch 종료로 해석. JDBC 는 인식 못함 → split 해서 각 batch 독립 실행.
+    private static final Pattern TSQL_GO_BATCH_SEPARATOR = Pattern.compile(
+            "(?im)^[ \\t]*GO[ \\t]*$");
+
     private boolean containsTsqlDeclareVar(String sql) {
         if (sql == null || sql.isEmpty()) return false;
         return TSQL_DECLARE_VAR_PATTERN.matcher(sql).find();
+    }
+
+    private String[] splitTsqlBatches(String sql) {
+        if (sql == null || sql.isEmpty()) return new String[0];
+        // 'GO' 가 없으면 전체를 단일 batch 로 반환.
+        if (!TSQL_GO_BATCH_SEPARATOR.matcher(sql).find()) return new String[] { sql };
+        return TSQL_GO_BATCH_SEPARATOR.split(sql);
     }
 
     // 아티팩트 FINAL 마킹 + COMPLETED 전이 — per-statement / batch 분기 공용 헬퍼.

@@ -50,6 +50,15 @@ function FilterBarMiniDialog({ open, onClose, spec, onApply }) {
   const handleAddItem = () => {
     const newKey = `field_${Date.now().toString(36)}`;
     setItems([...items, { key: newKey, label: '새 필드', type: 'TEXT' }]);
+    // default 로 모든 layer 에 영향 매핑 체크 — 사용자가 명시적으로 해제하지 않는 한 적용
+    const nextAffects = { ...affects };
+    layers.forEach((l) => {
+      const cur = nextAffects[l.key] || [];
+      if (!cur.includes(newKey)) {
+        nextAffects[l.key] = [...cur, newKey];
+      }
+    });
+    setAffects(nextAffects);
   };
   const handleRemoveItem = (idx) => {
     const removedKey = items[idx]?.key;
@@ -95,7 +104,6 @@ function FilterBarMiniDialog({ open, onClose, spec, onApply }) {
         <Table size="small" sx={{ mt: 1, mb: 2 }}>
           <TableHead>
             <TableRow sx={{ bgcolor: '#fef3c7' }}>
-              <TableCell sx={{ fontWeight: 700, width: 180 }}>Key</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Label</TableCell>
               <TableCell sx={{ fontWeight: 700, width: 200 }}>Type</TableCell>
               <TableCell sx={{ width: 40 }} />
@@ -103,13 +111,12 @@ function FilterBarMiniDialog({ open, onClose, spec, onApply }) {
           </TableHead>
           <TableBody>
             {items.length === 0 && (
-              <TableRow><TableCell colSpan={4} sx={{ color: '#94a3b8', textAlign: 'center' }}>
+              <TableRow><TableCell colSpan={3} sx={{ color: '#94a3b8', textAlign: 'center' }}>
                 필드가 없습니다. 아래 [+ 필드 추가] 로 생성하세요.
               </TableCell></TableRow>
             )}
             {items.map((it, idx) => (
               <TableRow key={it.key}>
-                <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{it.key}</TableCell>
                 <TableCell>
                   <TextField value={it.label} onChange={(e) => updateItem(idx, { label: e.target.value })}
                              size="small" fullWidth variant="standard" />

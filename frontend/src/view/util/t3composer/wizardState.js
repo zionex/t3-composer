@@ -2477,6 +2477,74 @@ export function createComposerLayer({
 }
 
 /**
+ * spec 의 layers 끝에 새 layer 1개 추가 (immutable).
+ *   - key 가 비어 있으면 'layerN' 자동 부여 (기존 key 와 충돌 회피)
+ *   - position 이 비어 있으면 빈 슬롯 자동 (Y = 기존 layers 최하단, X=0, w=12, h=4)
+ *   - filterBar.affects 에 새 layer key 의 빈 배열 entry 추가
+ *   plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1_5.md (Task 1)
+ */
+export function addLayer(spec, layerInit = {}) {
+  if (!spec) throw new Error('addLayer: spec required');
+  const existing = Array.isArray(spec.layers) ? spec.layers : [];
+  const keys = new Set(existing.map((l) => l.key));
+
+  let key = layerInit.key;
+  if (!key || keys.has(key)) {
+    let i = existing.length + 1;
+    while (keys.has(`layer${i}`)) i += 1;
+    key = `layer${i}`;
+  }
+
+  let pos = layerInit.position;
+  if (!pos) {
+    const maxBottom = existing.reduce((acc, l) => {
+      const p = l.position || {};
+      return Math.max(acc, (p.y || 0) + (p.h || 0));
+    }, 0);
+    pos = { x: 0, y: maxBottom, w: 12, h: 4 };
+  }
+
+  const newLayer = createComposerLayer({
+    key,
+    title: layerInit.title || `위젯 ${existing.length + 1}`,
+    type: layerInit.type || LAYER_TYPES.GRID,
+    subtype: layerInit.subtype || 'GRID_BASE',
+    position: pos,
+  });
+
+  const nextFilterBar = {
+    ...(spec.filterBar || { items: [], affects: {} }),
+    affects: { ...(spec.filterBar?.affects || {}), [key]: [] },
+  };
+
+  return {
+    ...spec,
+    layers: [...existing, newLayer],
+    filterBar: nextFilterBar,
+  };
+}
+
+/**
+ * spec 에서 key 에 해당하는 layer 1건 제거 (immutable).
+ *   - filterBar.affects 에서 해당 key entry 도 제거
+ *   - 마지막 layer 1개일 때는 제거하지 않고 그대로 반환 (UX 안전망: 빈 캔버스 방지)
+ */
+export function removeLayer(spec, key) {
+  if (!spec || !key) return spec;
+  const existing = Array.isArray(spec.layers) ? spec.layers : [];
+  if (existing.length <= 1) return spec;
+  const nextLayers = existing.filter((l) => l.key !== key);
+  if (nextLayers.length === existing.length) return spec;
+
+  const { [key]: _removed, ...restAffects } = spec.filterBar?.affects || {};
+  return {
+    ...spec,
+    layers: nextLayers,
+    filterBar: { ...(spec.filterBar || { items: [] }), affects: restAffects },
+  };
+}
+
+/**
  * Pattern 코드 → 초기 ComposerSpec 매핑. Phase 1 은 'BLANK' / 'P02' 둘만 지원.
  * 나머지 (MOCKUP_*, UIPATTERN_*) 는 Phase 2 에서 패턴 카탈로그 메타에서 가져옴.
  */

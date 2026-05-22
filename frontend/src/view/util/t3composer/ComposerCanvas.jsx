@@ -145,7 +145,10 @@ const COLS = 12;
 const RGL_MARGIN = [8, 8];
 const RGL_PADDING = [4, 4];
 
-function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker, onCreate }) {
+function ComposerCanvas({
+  spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker, onCreate,
+  mode = 'all',  // 'all' (기존) | 'layout' (LayoutStep 전용 — FilterBar/메타/생성 숨김)
+}) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [addAnchor, setAddAnchor] = useState(null);
@@ -278,8 +281,8 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             Layer 는 드래그/리사이즈/추가/삭제 가능.
           </Typography>
 
-          {/* ── 메타 chip + [메뉴/메타] 버튼 ── */}
-          {spec?.meta && (
+          {/* ── 메타 chip + [메뉴/메타] 버튼 — mode='all' 에서만 (LayoutStep 은 MetaStep 별도) ── */}
+          {mode === 'all' && spec?.meta && (
             <Chip
               label={
                 spec.meta.menuCd
@@ -297,18 +300,20 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
               }}
             />
           )}
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<EditNoteOutlinedIcon fontSize="small" />}
-            onClick={() => setMetaDialogOpen(true)}
-            sx={{
-              color: '#475569', borderColor: '#cbd5e1', fontWeight: 600,
-              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
-            }}
-          >
-            메뉴/메타
-          </Button>
+          {mode === 'all' && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<EditNoteOutlinedIcon fontSize="small" />}
+              onClick={() => setMetaDialogOpen(true)}
+              sx={{
+                color: '#475569', borderColor: '#cbd5e1', fontWeight: 600,
+                '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+              }}
+            >
+              메뉴/메타
+            </Button>
+          )}
 
           <Button
             variant="outlined"
@@ -369,7 +374,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             </MenuItem>
           </Menu>
 
-          {onCreate && (
+          {mode === 'all' && onCreate && (
             <Button
               variant="contained"
               size="small"
@@ -387,7 +392,8 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
         </Box>
       )}
 
-      {/* ───── FilterBar 노란 띠 ───── */}
+      {/* ───── FilterBar 노란 띠 — mode='all' 에서만 (LayoutStep 은 DataAndFilterStep 으로 분리) ───── */}
+      {mode === 'all' && (
       <Box
         onClick={readOnly ? undefined : () => setFilterDialogOpen(true)}
         sx={{
@@ -422,6 +428,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
           ))}
         </Box>
       </Box>
+      )}
 
       {/* ───── Body Layers 라벨 ───── */}
       <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.7 }}>

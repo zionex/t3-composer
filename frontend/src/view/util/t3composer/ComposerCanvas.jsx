@@ -67,7 +67,6 @@ import AutoAwesomeIcon      from '@mui/icons-material/AutoAwesome';
 import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
-import FilterBarMiniDialog from './FilterBarMiniDialog';
 import ScreenMetaDialog from './ScreenMetaDialog';
 import { addLayer, removeLayer, getTopLevelLayers, getChildLayers } from './wizardState';
 
@@ -150,7 +149,6 @@ function ComposerCanvas({
   mode = 'all',  // 'all' (기존) | 'layout' (LayoutStep 전용 — FilterBar/메타/생성 숨김)
 }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
-  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [addAnchor, setAddAnchor] = useState(null);
   const [metaDialogOpen, setMetaDialogOpen] = useState(false);
 
@@ -392,19 +390,16 @@ function ComposerCanvas({
         </Box>
       )}
 
-      {/* ───── FilterBar 노란 띠 — mode='all' 에서만 (LayoutStep 은 DataAndFilterStep 으로 분리) ───── */}
+      {/* ───── FilterBar 노란 띠 — mode='all' 에서만 (LayoutStep 은 DataAndFilterStep 으로 분리)
+            Phase 2E-2: popup 폐기 — 띠는 표시만 유지 (편집은 DataAndFilterStep 의 우측 inline panel) ───── */}
       {mode === 'all' && (
       <Box
-        onClick={readOnly ? undefined : () => setFilterDialogOpen(true)}
         sx={{
           flexShrink: 0,
           border: '2px solid #f59e0b',
           borderRadius: 1.5,
           background: 'linear-gradient(180deg, #fef3c7 0%, #fde68a 100%)',
           p: 1.2,
-          cursor: readOnly ? 'default' : 'pointer',
-          transition: 'box-shadow 0.15s ease',
-          '&:hover': readOnly ? {} : { boxShadow: '0 0 0 3px rgba(245, 158, 11, 0.25)' },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
@@ -750,12 +745,6 @@ function ComposerCanvas({
             ? () => onOpenDataSourcePicker(editingLayer)
             : null
         }
-      />
-      <FilterBarMiniDialog
-        open={filterDialogOpen}
-        spec={spec}
-        onClose={() => setFilterDialogOpen(false)}
-        onApply={(nextSpec) => onChange(nextSpec)}
       />
       <ScreenMetaDialog
         open={metaDialogOpen}

@@ -2587,7 +2587,7 @@ export function specFromPattern(patternCode, baseMeta = {}) {
   const base = createComposerSpec({ ...baseMeta, pattern: patternCode });
   if (patternCode === 'P02') {
     // 검색 + 단일 그리드 — FilterBar 자리 + 메인 그리드 1개
-    base.filterBar.items = [];  // 사용자가 FilterBarMiniDialog 로 채움
+    base.filterBar.items = [];  // 사용자가 FilterBarInlinePanel (DataAndFilterStep 우측) 에서 채움
     base.filterBar.affects = { mainGrid: [] };
     // layers 는 createComposerSpec 의 mainGrid 그대로
   }

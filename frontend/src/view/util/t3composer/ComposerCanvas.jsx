@@ -27,7 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
 
-function ComposerCanvas({ spec, onChange, readOnly = false, targetCd }) {
+function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
@@ -148,8 +148,12 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd }) {
         targetCd={targetCd}
         onClose={() => setEditingLayerKey(null)}
         onApply={handleApplyLayer}
-        /* Phase 1 에서는 DataSourcePicker 풀스크린 진입 미연결 — Phase 2 에서 추가 */
-        onOpenDataSourcePicker={null}
+        /* Phase 2A: 외부에서 받은 콜백 그대로 전달. editingLayer 정보 함께. */
+        onOpenDataSourcePicker={
+          onOpenDataSourcePicker
+            ? () => onOpenDataSourcePicker(editingLayer)
+            : null
+        }
       />
       <FilterBarMiniDialog
         open={filterDialogOpen}

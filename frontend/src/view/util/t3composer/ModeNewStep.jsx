@@ -21,6 +21,7 @@ import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 import ComposerCanvas from './ComposerCanvas';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
+import DataSourcePickerDialog from './DataSourcePickerDialog';
 import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
 import { useTargetStore } from './targetStore';
 
@@ -30,6 +31,8 @@ function ModeNewStep({ onBack }) {
   const [spec, setSpec]   = useState(null);
   const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
   const [uiPatternPickerOpen, setUiPatternPickerOpen] = useState(false);
+  const [dsPickerOpen, setDsPickerOpen] = useState(false);
+  const [dsPickerLayerKey, setDsPickerLayerKey] = useState(null);  // 어느 layer 가 picker 를 열었는지
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
@@ -39,6 +42,7 @@ function ModeNewStep({ onBack }) {
 
   if (stage === 'CANVAS' && spec) {
     return (
+      <>
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderBottom: '1px solid #e2e8f0' }}>
           <Button size="small" startIcon={<ArrowBackIcon />}
@@ -48,7 +52,15 @@ function ModeNewStep({ onBack }) {
           </Typography>
         </Stack>
         <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>
-          <ComposerCanvas spec={spec} onChange={setSpec} targetCd={currentTargetCd} />
+          <ComposerCanvas
+            spec={spec}
+            onChange={setSpec}
+            targetCd={currentTargetCd}
+            onOpenDataSourcePicker={(editingLayer) => {
+              setDsPickerLayerKey(editingLayer?.key || null);
+              setDsPickerOpen(true);
+            }}
+          />
         </Box>
         {/* Phase 1 검증용 — 현재 spec JSON 미리보기 */}
         <Box sx={{ flexShrink: 0, maxHeight: 180, overflow: 'auto', borderTop: '1px solid #e2e8f0',
@@ -62,6 +74,50 @@ function ModeNewStep({ onBack }) {
           </pre>
         </Box>
       </Box>
+
+      {/* CANVAS 단계에서만 활성 — basket → layer.dataSource.references / sqlBlocks */}
+      <DataSourcePickerDialog
+        open={dsPickerOpen}
+        targetCd={currentTargetCd}
+        currentValue={null}
+        onClose={() => setDsPickerOpen(false)}
+        onConfirm={(basket) => {
+          setDsPickerOpen(false);
+          if (!basket || basket.length === 0 || !dsPickerLayerKey) return;
+          setSpec((prev) => {
+            const nextLayers = prev.layers.map((l) => {
+              if (l.key !== dsPickerLayerKey) return l;
+              const existing = l.dataSource?.references || [];
+              const newRefs = basket
+                .filter((b) => b.kind === 'TABLE' || b.kind === 'SP')
+                .map((b) => ({ kind: b.kind, name: b.label || b.key }));
+              // 중복 제거 — 같은 kind + name 한 번만
+              const merged = [...existing];
+              for (const r of newRefs) {
+                if (!merged.find((m) => m.kind === r.kind && m.name === r.name)) {
+                  merged.push(r);
+                }
+              }
+              // INLINE_QUERY → sqlBlocks 누적
+              const newSql = basket
+                .filter((b) => b.kind === 'INLINE_QUERY')
+                .map((b) => b.meta?.sql || b.label || '')
+                .filter(Boolean);
+              const mergedSql = [...(l.dataSource?.sqlBlocks || []), ...newSql];
+              return {
+                ...l,
+                dataSource: {
+                  ...(l.dataSource || {}),
+                  references: merged,
+                  sqlBlocks: mergedSql,
+                },
+              };
+            });
+            return { ...prev, layers: nextLayers };
+          });
+        }}
+      />
+      </>
     );
   }
 

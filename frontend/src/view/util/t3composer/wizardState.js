@@ -2735,3 +2735,107 @@ export function specFromUiPattern(entry, baseMeta = {}) {
     title: baseMeta.title || entry.label || '새 화면',
   });
 }
+
+// ============================================================================
+// Phase 2C — ComposerSpec → ChatPanel initialPrompt 자연어 직렬화
+//   spec: docs/superpowers/specs/2026-05-22-pattern-driven-composer-redesign-design.md
+//   plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2c.md (Task 1)
+// ============================================================================
+
+/**
+ * ComposerSpec 을 ChatPanel 의 initialPrompt 로 쓸 수 있는 자연어 문자열로 직렬화.
+ *   ComposerWorkspace 가 이 문자열을 ChatPanel 첫 메시지로 Claude 에 전달 →
+ *   .claude/rules/* + ComposerPromptBuilder 의 system prompt 와 합쳐져
+ *   화면 생성 (JSX/Java/SP/MENU_SQL) 산출.
+ *
+ *   ⚠️ Backend ComposerPromptBuilder 의 NEW_STEP 가이드는 Phase 2B-3 에서 갱신 예정.
+ *      현재는 NEW_NL 의 system prompt 가 적용되지만, 이 자연어 내용 자체가 충분히
+ *      구조화되어 있어 Claude 가 화면 의도 파악 가능.
+ */
+export function specToInitialPrompt(spec) {
+  if (!spec) return '';
+  const lines = [];
+  const meta = spec.meta || {};
+
+  lines.push('[Composer 신규 화면 생성 — 패턴 기반 시각 편집 모델 (NEW_STEP)]');
+  lines.push('');
+
+  // ── 1) 패턴 + 메타 ──
+  if (meta.pattern)       lines.push(`[참조 패턴] ${meta.pattern}`);
+  if (meta.title)         lines.push(`[화면 제목] ${meta.title}`);
+  if (meta.menuCd)        lines.push(`[메뉴 코드] ${meta.menuCd}`);
+  if (meta.parentMenuCd)  lines.push(`[부모 메뉴] ${meta.parentMenuCd}`);
+  if (meta.menuFilePath)  lines.push(`[메뉴 경로] ${meta.menuFilePath}`);
+  lines.push('');
+
+  // ── 2) Body Layers ──
+  const layers = Array.isArray(spec.layers) ? spec.layers : [];
+  lines.push(`[Body Layers (${layers.length})]`);
+  layers.forEach((l, idx) => {
+    lines.push('');
+    lines.push(`${idx + 1}. layer '${l.key}' — title:"${l.title || ''}"`);
+    lines.push(`   type: ${l.type}${l.subtype ? ` · subtype: ${l.subtype}` : ''}`);
+    if (l.position) {
+      const { x, y, w, h } = l.position;
+      lines.push(`   position: x=${x} y=${y} w=${w} h=${h}  (RGL 12-col grid)`);
+    }
+    const ds = l.dataSource || {};
+    const nl = (ds.naturalText || '').trim();
+    if (nl) {
+      lines.push('   데이터 의도:');
+      nl.split(/\r?\n/).forEach((row) => lines.push(`     ${row}`));
+    }
+    const refs = ds.references || [];
+    if (refs.length > 0) {
+      lines.push('   참조 데이터 객체:');
+      refs.forEach((r) => lines.push(`     - ${r.kind}: ${r.name}`));
+    }
+    const sqls = ds.sqlBlocks || [];
+    if (sqls.length > 0) {
+      lines.push('   Inline SQL:');
+      sqls.forEach((sql, i) => {
+        lines.push(`     [SQL ${i + 1}]`);
+        sql.split(/\r?\n/).forEach((row) => lines.push(`     ${row}`));
+      });
+    }
+    if (Array.isArray(l.columns) && l.columns.length > 0) {
+      lines.push(`   컬럼: ${l.columns.map((c) => c.name || c.field || JSON.stringify(c)).join(', ')}`);
+    }
+  });
+  lines.push('');
+
+  // ── 3) FilterBar ──
+  const fb = spec.filterBar || {};
+  const items = Array.isArray(fb.items) ? fb.items : [];
+  const affects = fb.affects || {};
+  lines.push(`[FilterBar 필드 (${items.length})]`);
+  if (items.length === 0) {
+    lines.push('  (필드 없음 — FilterBar 미사용)');
+  } else {
+    items.forEach((it, idx) => {
+      lines.push(`${idx + 1}. ${it.key} (${it.type})${it.label ? ` — label: "${it.label}"` : ''}`);
+    });
+  }
+  if (Object.keys(affects).length > 0) {
+    lines.push('');
+    lines.push('[FilterBar 영향 매핑]');
+    Object.entries(affects).forEach(([layerKey, fieldKeys]) => {
+      if (!Array.isArray(fieldKeys) || fieldKeys.length === 0) return;
+      lines.push(`  - ${layerKey} ← ${fieldKeys.join(', ')}`);
+    });
+  }
+  lines.push('');
+
+  // ── 4) 지시사항 ──
+  lines.push('[지시사항]');
+  lines.push('위 spec 을 바탕으로 화면을 생성하세요.');
+  lines.push('- JSX 화면 컴포넌트 (각 layer 의 type/subtype 에 맞는 wingui 컴포넌트)');
+  lines.push('- 필요 시 Java Entity / Service / RestController');
+  lines.push('- SP_UI_*.sql (CRUD 액션마다 1개 · MSSQL 방언)');
+  lines.push('- MENU_SQL (TB_AD_MENU + TB_AD_LANG_PACK 4언어 + TB_AD_PERMISSION_GROUP)');
+  lines.push('- `.claude/rules/41-composer-generation.md` 및 sub rules 의 규약 준수.');
+  lines.push('- 위 layer 의 "데이터 의도" 와 "참조 데이터 객체" / "Inline SQL" 를 우선 활용.');
+  lines.push('- FilterBar 필드는 화면 전체 검색조건 (SearchArea) 로 구현.');
+
+  return lines.join('\n');
+}

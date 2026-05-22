@@ -2506,98 +2506,101 @@ export function specFromPattern(patternCode, baseMeta = {}) {
  *   상세: .claude/rules/40-composer-patterns.md §2.1
  */
 export const LAYOUT_CATEGORY_TO_LAYERS = {
+  // ─── 정형 패턴 ───
+  // key 는 코드 식별자 (역할 hint 포함 가능). title 은 사용자 표시용 — 위치 단어 금지
+  // (드래그로 이동 가능해질 때 의미 잃음). 역할 기반(KPI/차트/그리드) 또는 generic 번호("패널 N").
   LAYOUT_SINGLE: () => [
-    { key: 'mainGrid', title: '메인', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '메인', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
   ],
   LAYOUT_V2: () => [
-    { key: 'topPanel',    title: '상단', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 6 } },
-    { key: 'bottomPanel', title: '하단', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
   ],
   LAYOUT_V3: () => [
-    { key: 'topPanel',    title: '상단', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 4 } },
-    { key: 'midPanel',    title: '중단', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 4, w: 12, h: 4 } },
-    { key: 'bottomPanel', title: '하단', type: LAYER_TYPES.GRID,
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
   ],
   LAYOUT_H2: () => [
-    { key: 'leftPanel',  title: '좌측', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 6,  h: 12 } },
-    { key: 'rightPanel', title: '우측', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 6,  h: 12 } },
   ],
   LAYOUT_H3: () => [
-    { key: 'leftPanel',  title: '좌',   type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 4,  h: 12 } },
-    { key: 'midPanel',   title: '중',   type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 4, y: 0, w: 4,  h: 12 } },
-    { key: 'rightPanel', title: '우',   type: LAYER_TYPES.GRID,
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 8, y: 0, w: 4,  h: 12 } },
   ],
   LAYOUT_MIXED: () => [
-    { key: 'leftTop',     title: '좌상', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 6,  h: 6 } },
-    { key: 'rightTop',    title: '우상', type: LAYER_TYPES.CHART,
-      subtype: 'CHART_BAR',  position: { x: 6, y: 0, w: 6,  h: 6 } },
-    { key: 'bottomFull',  title: '하단', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_BAR', position: { x: 6, y: 0, w: 6,  h: 6 } },
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
   ],
   LAYOUT_CONTROLBOARD: () => [
-    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+    { key: 'kpi',    title: 'KPI',         type: LAYER_TYPES.CHART,
       subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
-    { key: 'chartRow',  title: '차트',       type: LAYER_TYPES.CHART,
+    { key: 'chart',  title: '차트',        type: LAYER_TYPES.CHART,
       subtype: 'CHART_BAR', position: { x: 0, y: 3, w: 12, h: 5 } },
-    { key: 'detailRow', title: '상세 그리드', type: LAYER_TYPES.GRID,
+    { key: 'detail', title: '상세 그리드', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
   ],
 
   // ─── Phase 2B-1 신규: 실제 사용 카테고리 5종 ───
 
-  /** DASHBOARD (16건, 최다) — KPI 카드 행 + 다중 위젯 격자 (2x2 widget grid) */
+  /** DASHBOARD (16건, 최다) — KPI + 다중 위젯 격자 */
   LAYOUT_DASHBOARD: () => [
-    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+    { key: 'kpi',     title: 'KPI',     type: LAYER_TYPES.CHART,
       subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
-    { key: 'widgetTL',  title: '위젯 좌상', type: LAYER_TYPES.CHART,
+    { key: 'widget1', title: '위젯 1', type: LAYER_TYPES.CHART,
       subtype: 'CHART_BAR', position: { x: 0, y: 3, w: 6,  h: 4 } },
-    { key: 'widgetTR',  title: '위젯 우상', type: LAYER_TYPES.CHART,
+    { key: 'widget2', title: '위젯 2', type: LAYER_TYPES.CHART,
       subtype: 'CHART_LINE',position: { x: 6, y: 3, w: 6,  h: 4 } },
-    { key: 'widgetBL',  title: '위젯 좌하', type: LAYER_TYPES.GRID,
+    { key: 'widget3', title: '위젯 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 7, w: 6,  h: 5 } },
-    { key: 'widgetBR',  title: '위젯 우하', type: LAYER_TYPES.CHART,
+    { key: 'widget4', title: '위젯 4', type: LAYER_TYPES.CHART,
       subtype: 'CHART_DONUT', position: { x: 6, y: 7, w: 6, h: 5 } },
   ],
 
   /** WIDGET (5건) — 다른 화면에 임베드되는 단일 위젯 */
   WIDGET: () => [
-    { key: 'mainWidget', title: '메인 위젯', type: LAYER_TYPES.CHART,
+    { key: 'widget1', title: '위젯', type: LAYER_TYPES.CHART,
       subtype: 'CHART_BAR', position: { x: 0, y: 0, w: 12, h: 12 } },
   ],
 
   /** PLANEDIT (4건) — 크로스탭 피벗 그리드 (계획 보정) */
   LAYOUT_PLANEDIT: () => [
-    { key: 'pivotGrid', title: '피벗 그리드', type: LAYER_TYPES.GRID,
+    { key: 'pivot', title: '피벗 그리드', type: LAYER_TYPES.GRID,
       subtype: 'GRID_CROSSTAB', position: { x: 0, y: 0, w: 12, h: 12 } },
   ],
 
-  /** MONITORING (3건) — KPI 행 + 실시간 차트 + 알람 그리드 + 이벤트 로그 */
+  /** MONITORING (3건) — KPI + 실시간 차트 + 알람 + 이벤트 로그 */
   LAYOUT_MONITORING: () => [
-    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+    { key: 'kpi',      title: 'KPI',        type: LAYER_TYPES.CHART,
       subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
-    { key: 'liveChart', title: '실시간 차트', type: LAYER_TYPES.CHART,
+    { key: 'liveChart',title: '실시간 차트',type: LAYER_TYPES.CHART,
       subtype: 'CHART_LINE', position: { x: 0, y: 3, w: 8, h: 6 } },
-    { key: 'alertList', title: '알람',       type: LAYER_TYPES.GRID,
+    { key: 'alerts',   title: '알람',       type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 8, y: 3, w: 4, h: 6 } },
-    { key: 'eventLog',  title: '이벤트 로그', type: LAYER_TYPES.GRID,
+    { key: 'eventLog', title: '이벤트 로그',type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 9, w: 12, h: 3 } },
   ],
 
   /** ROUTELAYOUT (1건) — 공정 라우트 다이어그램 단일 */
   LAYOUT_ROUTELAYOUT: () => [
-    { key: 'routeDiagram', title: '공정 라우트', type: LAYER_TYPES.CHART,
+    { key: 'route', title: '공정 라우트', type: LAYER_TYPES.CHART,
       subtype: 'DIAGRAM_FLO', position: { x: 0, y: 0, w: 12, h: 12 } },
   ],
 
@@ -2605,54 +2608,54 @@ export const LAYOUT_CATEGORY_TO_LAYERS = {
 
   /** V4 — 수직 4분할 */
   LAYOUT_V4: () => [
-    { key: 'panel1', title: '1단', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 3 } },
-    { key: 'panel2', title: '2단', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 3, w: 12, h: 3 } },
-    { key: 'panel3', title: '3단', type: LAYER_TYPES.GRID,
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 3 } },
-    { key: 'panel4', title: '4단', type: LAYER_TYPES.GRID,
+    { key: 'panel4', title: '패널 4', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 9, w: 12, h: 3 } },
   ],
 
-  /** V5 — 수직 5단 (단당 더 얇음) */
+  /** V5 — 수직 5분할 */
   LAYOUT_V5: () => [
-    { key: 'panel1', title: '1단', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0,  w: 12, h: 3 } },
-    { key: 'panel2', title: '2단', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 3,  w: 12, h: 2 } },
-    { key: 'panel3', title: '3단', type: LAYER_TYPES.GRID,
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 5,  w: 12, h: 2 } },
-    { key: 'panel4', title: '4단', type: LAYER_TYPES.GRID,
+    { key: 'panel4', title: '패널 4', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 7,  w: 12, h: 2 } },
-    { key: 'panel5', title: '5단', type: LAYER_TYPES.GRID,
+    { key: 'panel5', title: '패널 5', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 9,  w: 12, h: 3 } },
   ],
 
   /** H4 — 수평 4분할 */
   LAYOUT_H4: () => [
-    { key: 'panel1', title: '1열', type: LAYER_TYPES.GRID,
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 3, h: 12 } },
-    { key: 'panel2', title: '2열', type: LAYER_TYPES.GRID,
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 3, y: 0, w: 3, h: 12 } },
-    { key: 'panel3', title: '3열', type: LAYER_TYPES.GRID,
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 3, h: 12 } },
-    { key: 'panel4', title: '4열', type: LAYER_TYPES.GRID,
+    { key: 'panel4', title: '패널 4', type: LAYER_TYPES.GRID,
       subtype: 'GRID_BASE', position: { x: 9, y: 0, w: 3, h: 12 } },
   ],
 
-  /** H5 — 수평 5열 (열당 더 좁음) */
+  /** H5 — 수평 5분할 */
   LAYOUT_H5: () => [
-    { key: 'panel1', title: '1열', type: LAYER_TYPES.GRID,
-      subtype: 'GRID_BASE', position: { x: 0,  y: 0, w: 2, h: 12 } },
-    { key: 'panel2', title: '2열', type: LAYER_TYPES.GRID,
-      subtype: 'GRID_BASE', position: { x: 2,  y: 0, w: 2, h: 12 } },
-    { key: 'panel3', title: '3열', type: LAYER_TYPES.GRID,
-      subtype: 'GRID_BASE', position: { x: 4,  y: 0, w: 2, h: 12 } },
-    { key: 'panel4', title: '4열', type: LAYER_TYPES.GRID,
-      subtype: 'GRID_BASE', position: { x: 6,  y: 0, w: 3, h: 12 } },
-    { key: 'panel5', title: '5열', type: LAYER_TYPES.GRID,
-      subtype: 'GRID_BASE', position: { x: 9,  y: 0, w: 3, h: 12 } },
+    { key: 'panel1', title: '패널 1', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 2, h: 12 } },
+    { key: 'panel2', title: '패널 2', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 2, y: 0, w: 2, h: 12 } },
+    { key: 'panel3', title: '패널 3', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 4, y: 0, w: 2, h: 12 } },
+    { key: 'panel4', title: '패널 4', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 3, h: 12 } },
+    { key: 'panel5', title: '패널 5', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 9, y: 0, w: 3, h: 12 } },
   ],
 };
 

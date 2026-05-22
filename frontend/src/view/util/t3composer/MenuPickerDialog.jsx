@@ -26,7 +26,33 @@ import ArticleIcon from '@mui/icons-material/Article';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-import { listAllMenus } from './api';
+import { listAllMenus, loadTargetMenuTree } from './api';
+
+/**
+ * loadTargetMenuTree 의 nested 응답 → flat menus 배열 변환.
+ *   nested 노드: { id, filePath, path, displayName, items: [...] }
+ *   flat 노드:   { id, menuCd, menuNm, menuPath, menuFilePath, parentId, isGroup, seq }
+ */
+function flattenTargetMenuTree(nodes, parentId = null, seqRef = { v: 0 }) {
+  const result = [];
+  for (const n of (nodes || [])) {
+    const children = Array.isArray(n.items) ? n.items : [];
+    result.push({
+      id: n.id,
+      menuCd: n.id,
+      menuNm: n.displayName || n.id,
+      menuPath: n.path || '',
+      menuFilePath: n.filePath || '',
+      parentId,
+      isGroup: children.length > 0,
+      seq: seqRef.v += 1,
+    });
+    if (children.length > 0) {
+      result.push(...flattenTargetMenuTree(children, n.id, seqRef));
+    }
+  }
+  return result;
+}
 
 /**
  * 메뉴 선택 팝업 — 부모 메뉴 선택용 (그룹 노드 우선).
@@ -36,8 +62,9 @@ import { listAllMenus } from './api';
  *   onClose
  *   onSelect(menu)  — 선택된 메뉴 객체 전달 { menuCd, menuPath, menuFilePath, isGroup, parentId }
  *   selectGroupOnly — true 면 그룹(리프 아님) 만 선택 가능
+ *   targetCd        — optional, 활성 Target 의 메뉴 트리 (loadTargetMenuTree). 없으면 listAllMenus.
  */
-function MenuPickerDialog({ open, onClose, onSelect, selectGroupOnly = true }) {
+function MenuPickerDialog({ open, onClose, onSelect, selectGroupOnly = true, targetCd }) {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -51,13 +78,22 @@ function MenuPickerDialog({ open, onClose, onSelect, selectGroupOnly = true }) {
     setSelected(null);
     setError(null);
     load();
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, targetCd]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await listAllMenus();
-      setMenus(Array.isArray(res.data) ? res.data : []);
+      if (targetCd) {
+        // Target DB 의 nested 메뉴 트리 → flat 변환
+        const res = await loadTargetMenuTree('ko', targetCd);
+        const items = res.data?.items || [];
+        setMenus(flattenTargetMenuTree(items));
+      } else {
+        // composer-db 의 전체 메뉴 (기존 동작)
+        const res = await listAllMenus();
+        setMenus(Array.isArray(res.data) ? res.data : []);
+      }
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || '메뉴 조회 실패');
     } finally {

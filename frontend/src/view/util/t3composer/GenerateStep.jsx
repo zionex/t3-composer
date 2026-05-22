@@ -30,11 +30,15 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
       try {
         const promptText = specToInitialPrompt(spec);
         const title = (spec?.meta?.title || '새 화면').slice(0, 80);
+        // 사용자가 MetaStep 에서 명시 입력한 menuCd 가 있으면 세션 row 에 즉시 기록.
+        // 빈 경우는 Claude 가 MENU_SQL 산출 후 backend 가 추출해 채움.
+        const explicitMenuCd = (spec?.meta?.menuCd || '').trim() || null;
         const res = await createSession({
           mode: 'NEW_STEP',
           title,
           modelName: 'claude-sonnet-4-5',
           targetCd,
+          targetMenuCd: explicitMenuCd,
         });
         if (!alive) return;
         setSession(res.data);

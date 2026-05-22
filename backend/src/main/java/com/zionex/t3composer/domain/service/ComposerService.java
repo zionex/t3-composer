@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -320,6 +322,19 @@ public class ComposerService {
             int totalSuperseded = artifactPersistService.saveWithSupersede(artifacts);
             log.info("Composer artifacts: session={} new={} superseded={} (이전 버전 → DISCARDED)",
                     session.getId(), artifacts.size(), totalSuperseded);
+
+            // 세션의 targetMenuCd 가 비어있으면 MENU_SQL 산출물에서 자동 추출.
+            //   NEW_STEP 등 신규 모드에서 사용자가 메뉴 코드를 명시 안 한 케이스 — Claude 가
+            //   화면 의도에서 추론한 'UI_<DOMAIN>_<NAME>' 를 INSERT INTO TB_AD_MENU SQL 에
+            //   적어두므로 정규식으로 추출 가능. History/메뉴등록 UI 에 즉시 노출.
+            if (session.getTargetMenuCd() == null || session.getTargetMenuCd().isBlank()) {
+                String extracted = extractMenuCdFromArtifacts(artifacts);
+                if (extracted != null) {
+                    session.setTargetMenuCd(extracted);
+                    log.info("Composer session targetMenuCd auto-derived from MENU_SQL: session={} menuCd={}",
+                            session.getId(), extracted);
+                }
+            }
         }
 
         // 세션 토큰 누적
@@ -794,5 +809,22 @@ public class ComposerService {
         } catch (JsonProcessingException e) {
             return null;
         }
+    }
+
+    // MENU_SQL 산출물 본문에서 첫 'UI_<DOMAIN>_<NAME>' 코드를 찾아 반환. 없으면 null.
+    // 'UI_(AD|BF|CM|COMM|DP|DPD|FO|FP|IM|MP|RP|SA|SALES|SO|UT)_<NAME>' 규약 (rules/41 §2.1).
+    private static final Pattern MENU_CD_PATTERN = Pattern.compile(
+            "\\b(UI_(?:AD|BF|CM|COMM|DP|DPD|FO|FP|IM|MP|RP|SA|SALES|SO|UT)_[A-Z][A-Z0-9_]*)\\b");
+
+    private String extractMenuCdFromArtifacts(List<ComposerArtifact> artifacts) {
+        if (artifacts == null) return null;
+        for (ComposerArtifact a : artifacts) {
+            if (!ComposerArtifact.TYPE_MENU_SQL.equals(a.getArtifactType())) continue;
+            String body = a.getContent();
+            if (body == null || body.isBlank()) continue;
+            Matcher m = MENU_CD_PATTERN.matcher(body);
+            if (m.find()) return m.group(1);
+        }
+        return null;
     }
 }

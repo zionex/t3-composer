@@ -2445,9 +2445,10 @@ export function createComposerSpec({
         subtype: 'GRID_BASE',
         position: { x: 0, y: 0, w: 12, h: 8 },  // RGL 12-col grid
         dataSource: {
-          mode: 'NL',            // 'NL' | 'TABLE' | 'SP' | 'ENTITY' | 'MIXED'
+          mode: 'NL',            // 'NL' | 'TABLE' | 'SP' | 'ENTITY' | 'SQL' | 'MIXED'
           naturalText: '',
           references: [],        // [{ kind: 'TABLE'|'SP'|'ENTITY', name }]
+          sqlBlocks: [],         // [string]  — raw SQL 직접 입력
         },
         columns: [],
         cascade: {},
@@ -2469,7 +2470,7 @@ export function createComposerLayer({
   if (!key) throw new Error('createComposerLayer: key required');
   return {
     key, title, type, subtype, position,
-    dataSource: { mode: 'NL', naturalText: '', references: [] },
+    dataSource: { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] },
     columns: [],
     cascade: {},
   };

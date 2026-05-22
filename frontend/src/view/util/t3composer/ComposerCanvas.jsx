@@ -27,7 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
 
-function ComposerCanvas({ spec, onChange, readOnly = false }) {
+function ComposerCanvas({ spec, onChange, readOnly = false, targetCd }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
@@ -145,9 +145,10 @@ function ComposerCanvas({ spec, onChange, readOnly = false }) {
       <DataMiniDialog
         open={!!editingLayer}
         layer={editingLayer}
+        targetCd={targetCd}
         onClose={() => setEditingLayerKey(null)}
         onApply={handleApplyLayer}
-        /* Phase 1 에서는 DataSourcePicker 진입 미연결 — Phase 2 에서 추가 */
+        /* Phase 1 에서는 DataSourcePicker 풀스크린 진입 미연결 — Phase 2 에서 추가 */
         onOpenDataSourcePicker={null}
       />
       <FilterBarMiniDialog

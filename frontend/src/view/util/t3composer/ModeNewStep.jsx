@@ -20,11 +20,13 @@ import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 
 import ComposerCanvas from './ComposerCanvas';
 import { specFromPattern } from './wizardState';
+import { useTargetStore } from './targetStore';
 
 function ModeNewStep({ onBack }) {
   // 단계: 'PICK' (패턴 선택) | 'CANVAS' (편집)
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
+  const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
     setSpec(specFromPattern(patternCode, { title: '새 화면', menuCd: '', pattern: patternCode }));
@@ -42,7 +44,7 @@ function ModeNewStep({ onBack }) {
           </Typography>
         </Stack>
         <Box sx={{ flex: 1, minHeight: 0, p: 1.5 }}>
-          <ComposerCanvas spec={spec} onChange={setSpec} />
+          <ComposerCanvas spec={spec} onChange={setSpec} targetCd={currentTargetCd} />
         </Box>
         {/* Phase 1 검증용 — 현재 spec JSON 미리보기 */}
         <Box sx={{ flexShrink: 0, maxHeight: 180, overflow: 'auto', borderTop: '1px solid #e2e8f0',

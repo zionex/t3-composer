@@ -13,10 +13,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.sql.DataSource;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -112,6 +115,8 @@ public class MenuRegistrationService {
     private TargetSystemRepository targetRepo;
     private TargetPathResolver targetPathResolver;
     private JsMenuFileParser jsMenuParser;
+    // 세션의 Target 운영 DB (MSSQL) 로 라우팅 — composer-db (PG) 가 아닌 실제 화면이 등록될 DB.
+    private com.zionex.t3composer.config.TargetDataSourceRegistry dsRegistry;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public MenuRegistrationService(ComposerArtifactRepository artifactRepo,
@@ -137,6 +142,29 @@ public class MenuRegistrationService {
     @Autowired(required = false)
     public void setJsMenuFileParser(JsMenuFileParser parser) {
         this.jsMenuParser = parser;
+    }
+
+    @Autowired(required = false)
+    public void setTargetDataSourceRegistry(com.zionex.t3composer.config.TargetDataSourceRegistry registry) {
+        this.dsRegistry = registry;
+    }
+
+    /**
+     * 세션의 Target DB DataSource — MENU_SQL 은 화면이 등록될 운영 DB (MSSQL T3SERIES 등) 에서
+     * 실행해야 NEWID()/GETDATE()/N'...' MSSQL 방언이 정상 동작.
+     * Target 미설정·연결 불가 시 null 반환 → caller 가 명확한 에러로 처리 (PG 폴백 시 syntax 오류 발생).
+     */
+    private DataSource resolveTargetDataSource(String sessionId) {
+        if (dsRegistry == null) return null;
+        try {
+            String targetCd = sessionRepo.findById(sessionId)
+                    .map(ComposerSession::getTargetCd).orElse(null);
+            if (targetCd == null || targetCd.isBlank()) return null;
+            return dsRegistry.getDataSource(targetCd);
+        } catch (Exception e) {
+            log.warn("Target DataSource 해석 실패 session={} err={}", sessionId, rootMessage(e));
+            return null;
+        }
     }
 
     /**
@@ -193,6 +221,16 @@ public class MenuRegistrationService {
         String[] statements = splitSqlStatements(sql);
         log.info("Executing {} menu SQL statements for session {}", statements.length, sessionId);
 
+        // MSSQL 방언(NEWID()/GETDATE()/N'...') 산출물을 PG (composer-db) 에 실행하면 syntax 오류.
+        // 세션 Target DB (실제 화면이 등록될 운영 DB) 의 JdbcTemplate 로 라우팅.
+        DataSource targetDs = resolveTargetDataSource(sessionId);
+        if (targetDs == null) {
+            errors.add("세션의 Target DB 가 설정되지 않았거나 연결 불가합니다. "
+                    + "TargetSystemSelector → [💾 Storage] 에서 운영 DB 연결을 확인하세요.");
+            return resultOf(false, 0, 0, errors);
+        }
+        JdbcTemplate targetJdbc = new JdbcTemplate(targetDs);
+
         for (int i = 0; i < statements.length; i++) {
             String stmt = statements[i].trim();
             if (stmt.isEmpty() || stmt.startsWith("--")) {
@@ -231,9 +269,10 @@ public class MenuRegistrationService {
 
             final String stmtFinal = stmt;
             try {
-                perStatementTx.executeWithoutResult(status -> {
-                    em.createNativeQuery(stmtFinal).executeUpdate();
-                });
+                // Target DB (MSSQL) 의 JdbcTemplate 이 NEWID()/GETDATE()/N'...' 네이티브 처리.
+                // 각 statement 가 자체 connection 으로 auto-commit — 개별 statement 실패에도
+                // 이전 성공분은 보존 (composer-db PG 의 perStatementTx 와 동일 의도).
+                targetJdbc.execute(stmtFinal);
                 executed++;
             } catch (Exception e) {
                 String causeMsg = rootMessage(e);

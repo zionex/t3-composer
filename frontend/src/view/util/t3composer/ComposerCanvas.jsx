@@ -21,7 +21,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
 import React, { useState, useMemo } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, Chip } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 // ── Layer 아이콘 ──

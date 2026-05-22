@@ -19,13 +19,15 @@ import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 
 import ComposerCanvas from './ComposerCanvas';
-import { specFromPattern } from './wizardState';
+import MockupPickerDialog from './MockupPickerDialog';
+import { specFromPattern, specFromMockup } from './wizardState';
 import { useTargetStore } from './targetStore';
 
 function ModeNewStep({ onBack }) {
   // 단계: 'PICK' (패턴 선택) | 'CANVAS' (편집)
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
+  const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
@@ -63,6 +65,7 @@ function ModeNewStep({ onBack }) {
 
   // stage === 'PICK'
   return (
+    <>
     <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
         <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>뒤로</Button>
@@ -79,10 +82,7 @@ function ModeNewStep({ onBack }) {
 
         <Paper variant="outlined"
                sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#3b82f6', bgcolor: '#f8fafc' } }}
-               onClick={() => {
-                 alert('SCM Mockup picker 통합은 Phase 2 — 지금은 BLANK 로 진입합니다.');
-                 startWithPattern('BLANK');
-               }}>
+               onClick={() => setMockupPickerOpen(true)}>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <DashboardCustomizeIcon sx={{ fontSize: 32, color: '#3b82f6' }} />
             <Box>
@@ -90,7 +90,7 @@ function ModeNewStep({ onBack }) {
                 SCM UI Mockup (54개)
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                T3SmartSCM 도메인 패턴 54개에서 선택 — Phase 2 에서 picker 통합
+                T3SmartSCM 도메인 패턴 54개에서 선택 — layoutCategory 별 layer 자동 prefill
               </Typography>
             </Box>
           </Stack>
@@ -133,6 +133,19 @@ function ModeNewStep({ onBack }) {
 
       </Stack>
     </Box>
+
+    <MockupPickerDialog
+      open={mockupPickerOpen}
+      onClose={() => setMockupPickerOpen(false)}
+      currentValue={null}
+      onConfirm={(entry) => {
+        setMockupPickerOpen(false);
+        if (!entry) return;  // 사용자가 '해제' 한 경우
+        setSpec(specFromMockup(entry, { title: '새 화면', menuCd: '' }));
+        setStage('CANVAS');
+      }}
+    />
+    </>
   );
 }
 

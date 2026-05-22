@@ -1,6 +1,7 @@
 /**
  * MetaStep — ③ 메타·메뉴 단계.
- *   ScreenMetaDialog 의 본문을 inline form 으로 추출. spec.meta 직접 갱신.
+ *   spec.meta 직접 갱신 (Phase 2E-1 에서 ScreenMetaDialog popup 의 본문을 inline form 으로 추출,
+ *   Phase 2E-3 에서 ScreenMetaDialog 파일 자체 삭제).
  *
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 5)
  */

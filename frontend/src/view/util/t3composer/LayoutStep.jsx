@@ -1,13 +1,13 @@
 /**
- * LayoutStep — ① Layout 단계. ComposerCanvas mode='layout' 단순 wrap.
- *   FilterBar 노란 띠 / [메뉴/메타] 버튼 / [화면 생성] 버튼은 ComposerCanvas 가 mode 분기로 숨김.
+ * LayoutStep — ① Layout 단계. ComposerCanvas 단순 wrap.
+ *   Phase 2E-3 이후 ComposerCanvas 는 layout 편집 전용 — FilterBar/메타/생성 분기 제거됨.
  *
  *   props:
  *     spec       ComposerSpec
  *     onChange(nextSpec)
  *     targetCd
  *
- *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 3)
+ *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e3.md (Task 2)
  */
 import React from 'react';
 import ComposerCanvas from './ComposerCanvas';
@@ -15,7 +15,6 @@ import ComposerCanvas from './ComposerCanvas';
 function LayoutStep({ spec, onChange, targetCd }) {
   return (
     <ComposerCanvas
-      mode="layout"
       spec={spec}
       onChange={onChange}
       targetCd={targetCd}

@@ -21,8 +21,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Box, Typography, Button, Chip, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import { Box, Typography, Button, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -67,11 +66,9 @@ import AutoAwesomeIcon      from '@mui/icons-material/AutoAwesome';
 import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
-import ScreenMetaDialog from './ScreenMetaDialog';
 import { addLayer, removeLayer, getTopLevelLayers, getChildLayers } from './wizardState';
 
 // EditNoteOutlined 가 MUI 5.11 에 없을 수 있어 MenuBookOutlined 로 fallback
-import EditNoteOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 
 /** Layer type 별 accent 색 — 좌측 4px stripe + 호버 효과. 파스텔 톤. */
 const LAYER_TYPE_ACCENT = {
@@ -145,14 +142,11 @@ const RGL_MARGIN = [8, 8];
 const RGL_PADDING = [4, 4];
 
 function ComposerCanvas({
-  spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker, onCreate,
-  mode = 'all',  // 'all' (기존) | 'layout' (LayoutStep 전용 — FilterBar/메타/생성 숨김)
+  spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker,
 }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [addAnchor, setAddAnchor] = useState(null);
-  const [metaDialogOpen, setMetaDialogOpen] = useState(false);
 
-  const filterItems = spec?.filterBar?.items || [];
   const layers      = spec?.layers || [];
 
   const editingLayer = useMemo(
@@ -279,40 +273,6 @@ function ComposerCanvas({
             Layer 는 드래그/리사이즈/추가/삭제 가능.
           </Typography>
 
-          {/* ── 메타 chip + [메뉴/메타] 버튼 — mode='all' 에서만 (LayoutStep 은 MetaStep 별도) ── */}
-          {mode === 'all' && spec?.meta && (
-            <Chip
-              label={
-                spec.meta.menuCd
-                  ? `${spec.meta.menuCd}${spec.meta.parentMenuCd ? ` · ⊂ ${spec.meta.parentMenuCd}` : ''}`
-                  : '메뉴 미설정'
-              }
-              size="small"
-              onClick={() => setMetaDialogOpen(true)}
-              sx={{
-                cursor: 'pointer',
-                bgcolor: spec.meta.menuCd ? '#dbeafe' : '#fef3c7',
-                color:   spec.meta.menuCd ? '#1e40af' : '#92400e',
-                fontWeight: 700, fontFamily: 'monospace',
-                '&:hover': { bgcolor: spec.meta.menuCd ? '#bfdbfe' : '#fde68a' },
-              }}
-            />
-          )}
-          {mode === 'all' && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<EditNoteOutlinedIcon fontSize="small" />}
-              onClick={() => setMetaDialogOpen(true)}
-              sx={{
-                color: '#475569', borderColor: '#cbd5e1', fontWeight: 600,
-                '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
-              }}
-            >
-              메뉴/메타
-            </Button>
-          )}
-
           <Button
             variant="outlined"
             size="small"
@@ -372,58 +332,9 @@ function ComposerCanvas({
             </MenuItem>
           </Menu>
 
-          {mode === 'all' && onCreate && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AutoAwesomeIcon fontSize="small" />}
-              onClick={() => onCreate(spec)}
-              sx={{
-                bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700, letterSpacing: '0.02em',
-                '&:hover': { bgcolor: '#8b7dca' },
-                boxShadow: '0 2px 8px rgba(157,143,212,0.35)',
-              }}
-            >
-              화면 생성
-            </Button>
-          )}
         </Box>
       )}
 
-      {/* ───── FilterBar 노란 띠 — mode='all' 에서만 (LayoutStep 은 DataAndFilterStep 으로 분리)
-            Phase 2E-2: popup 폐기 — 띠는 표시만 유지 (편집은 DataAndFilterStep 의 우측 inline panel) ───── */}
-      {mode === 'all' && (
-      <Box
-        sx={{
-          flexShrink: 0,
-          border: '2px solid #f59e0b',
-          borderRadius: 1.5,
-          background: 'linear-gradient(180deg, #fef3c7 0%, #fde68a 100%)',
-          p: 1.2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-          <FilterListIcon sx={{ fontSize: 16, color: '#92400e' }} />
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400e' }}>
-            🔍 검색조건 (FilterBar) · 화면 전체 공용 · 클릭하여 편집
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.7 }}>
-          {filterItems.length === 0 && (
-            <Typography variant="caption" sx={{ color: '#92400e', fontStyle: 'italic' }}>
-              필드 없음 — 클릭하여 검색조건을 추가하세요
-            </Typography>
-          )}
-          {filterItems.map(it => (
-            <Chip key={it.key}
-                  label={it.label || it.key}
-                  size="small"
-                  sx={{ bgcolor: '#fff', border: '1px solid #fbbf24',
-                        color: '#92400e', fontWeight: 700, fontSize: 11 }} />
-          ))}
-        </Box>
-      </Box>
-      )}
 
       {/* ───── Body Layers 라벨 ───── */}
       <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.7 }}>
@@ -745,15 +656,6 @@ function ComposerCanvas({
             ? () => onOpenDataSourcePicker(editingLayer)
             : null
         }
-      />
-      <ScreenMetaDialog
-        open={metaDialogOpen}
-        onClose={() => setMetaDialogOpen(false)}
-        meta={spec?.meta}
-        targetCd={targetCd}
-        onApply={(nextMeta) => {
-          onChange({ ...spec, meta: nextMeta });
-        }}
       />
     </Box>
   );

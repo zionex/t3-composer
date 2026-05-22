@@ -2491,3 +2491,112 @@ export function specFromPattern(patternCode, baseMeta = {}) {
   // 'BLANK' = createComposerSpec 의 기본 단일 layer 그대로
   return base;
 }
+
+// ============================================================================
+// Phase 2A — Mockup / UI Pattern picker entry → ComposerSpec 변환
+//   spec: docs/superpowers/specs/2026-05-22-pattern-driven-composer-redesign-design.md
+//   plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2a.md (Task 1)
+// ============================================================================
+
+/**
+ * layoutCategory 코드 → layer 골격 정의.
+ *   각 항목: [{ key, title, type, subtype, position:{x,y,w,h} }, ...]
+ *   RGL 12-column grid 기준. Phase 1 ComposerCanvas 는 RGL 미사용이지만
+ *   position 은 미리 RGL 호환 형식으로 저장 (Phase 1.5/3 에서 그대로 사용).
+ *   상세: .claude/rules/40-composer-patterns.md §2.1
+ */
+export const LAYOUT_CATEGORY_TO_LAYERS = {
+  LAYOUT_SINGLE: () => [
+    { key: 'mainGrid', title: '메인', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+  ],
+  LAYOUT_V2: () => [
+    { key: 'topPanel',    title: '상단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 6 } },
+    { key: 'bottomPanel', title: '하단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
+  ],
+  LAYOUT_V3: () => [
+    { key: 'topPanel',    title: '상단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 4 } },
+    { key: 'midPanel',    title: '중단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 4, w: 12, h: 4 } },
+    { key: 'bottomPanel', title: '하단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
+  ],
+  LAYOUT_H2: () => [
+    { key: 'leftPanel',  title: '좌측', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 6,  h: 12 } },
+    { key: 'rightPanel', title: '우측', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 6,  h: 12 } },
+  ],
+  LAYOUT_H3: () => [
+    { key: 'leftPanel',  title: '좌',   type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 4,  h: 12 } },
+    { key: 'midPanel',   title: '중',   type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 4, y: 0, w: 4,  h: 12 } },
+    { key: 'rightPanel', title: '우',   type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 8, y: 0, w: 4,  h: 12 } },
+  ],
+  LAYOUT_MIXED: () => [
+    { key: 'leftTop',     title: '좌상', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 6,  h: 6 } },
+    { key: 'rightTop',    title: '우상', type: LAYER_TYPES.CHART,
+      subtype: 'CHART_BAR',  position: { x: 6, y: 0, w: 6,  h: 6 } },
+    { key: 'bottomFull',  title: '하단', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
+  ],
+  LAYOUT_CONTROLBOARD: () => [
+    { key: 'kpiRow',    title: 'KPI 행',     type: LAYER_TYPES.CHART,
+      subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 12, h: 3 } },
+    { key: 'chartRow',  title: '차트',       type: LAYER_TYPES.CHART,
+      subtype: 'CHART_BAR', position: { x: 0, y: 3, w: 12, h: 5 } },
+    { key: 'detailRow', title: '상세 그리드', type: LAYER_TYPES.GRID,
+      subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
+  ],
+};
+
+/** layoutCategory 미매칭 시 폴백 — 단일 그리드 */
+export function layersForLayoutCategory(layoutCategory) {
+  const builder = LAYOUT_CATEGORY_TO_LAYERS[layoutCategory];
+  return builder ? builder() : LAYOUT_CATEGORY_TO_LAYERS.LAYOUT_SINGLE();
+}
+
+/**
+ * MockupPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
+ *   entry: MOCKUP_ENTRIES 항목 (patternCode, patternLabel, layoutCategory, category, description, ...)
+ */
+export function specFromMockup(entry, baseMeta = {}) {
+  if (!entry) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
+  const layersDef = layersForLayoutCategory(entry.layoutCategory);
+  const base = createComposerSpec({
+    ...baseMeta,
+    pattern: `MOCKUP_${entry.patternCode}`,
+    title: baseMeta.title || entry.patternLabel || '새 화면',
+  });
+  base.layers = layersDef.map((d) => ({
+    ...d,
+    dataSource: { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] },
+    columns: [],
+    cascade: {},
+  }));
+  base.filterBar.affects = Object.fromEntries(base.layers.map((l) => [l.key, []]));
+  return base;
+}
+
+/**
+ * UiPatternPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
+ *   entry: ALL_ENTRIES 항목 (file, tabIndex, label, sectionCode, ...)
+ *
+ *   UI Pattern 은 layer 구조 메타가 없으므로 단일 mainGrid + 패턴 식별자만 보존.
+ *   실제 mockup 의 HTML 콘텐츠를 자연어 컨텍스트로 변환하는 작업은 Phase 2B.
+ */
+export function specFromUiPattern(entry, baseMeta = {}) {
+  if (!entry) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
+  const patternId = `${entry.file || ''}#${entry.tabIndex ?? 0}`;
+  return createComposerSpec({
+    ...baseMeta,
+    pattern: `UIPATTERN_${patternId}`,
+    title: baseMeta.title || entry.label || '새 화면',
+  });
+}

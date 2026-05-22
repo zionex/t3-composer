@@ -68,7 +68,7 @@ import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
-import { addLayer, removeLayer } from './wizardState';
+import { addLayer, removeLayer, getTopLevelLayers, getChildLayers } from './wizardState';
 
 /** Layer type 별 accent 색 — 좌측 4px stripe + 호버 효과. 파스텔 톤. */
 const LAYER_TYPE_ACCENT = {
@@ -162,6 +162,9 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
     });
   };
 
+  // Container 자식 추가용 — 어느 Container 에 추가할지 anchor 별로 기억
+  const [childAnchor, setChildAnchor] = useState(null);  // { el, parentKey }
+
   const handleAddLayer = (type) => {
     setAddAnchor(null);
     // subtype 강제하지 않음 — 사용자가 mini dialog 자연어로 의도 표현,
@@ -169,25 +172,35 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
     onChange(addLayer(spec, { type }));
   };
 
+  const handleAddChildLayer = (type) => {
+    if (!childAnchor) return;
+    const parentKey = childAnchor.parentKey;
+    setChildAnchor(null);
+    onChange(addLayer(spec, { type, parentKey }));
+  };
+
   const handleRemoveLayer = (key) => {
     if (layers.length <= 1) return;  // 마지막 layer 보호
     onChange(removeLayer(spec, key));
   };
 
-  // RGL onLayoutChange — 새 position 으로 spec.layers 갱신
+  // RGL onLayoutChange — 새 position 으로 top-level layer position 갱신
+  // (Container 자식은 RGL 대상 외 — position 무관)
   const handleLayoutChange = (layout) => {
     if (!layout || layout.length === 0) return;
     const byKey = new Map(layout.map((it) => [it.i, it]));
     const changed = layers.some((l) => {
+      if (l.parentKey) return false;  // 자식 layer 는 RGL 무관
       const it = byKey.get(l.key);
       if (!it) return false;
       const p = l.position || {};
       return it.x !== p.x || it.y !== p.y || it.w !== p.w || it.h !== p.h;
     });
-    if (!changed) return;  // 무한 루프 방지 (RGL 이 마운트 시 한 번 호출)
+    if (!changed) return;
     onChange({
       ...spec,
       layers: layers.map((l) => {
+        if (l.parentKey) return l;  // 자식 유지
         const it = byKey.get(l.key);
         if (!it) return l;
         return { ...l, position: { x: it.x, y: it.y, w: it.w, h: it.h } };
@@ -195,9 +208,12 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
     });
   };
 
-  // RGL layout 배열 (spec.layers 에서 derive)
+  // top-level layer 만 RGL 에 렌더 (Container 의 자식은 Container 카드 내부에 표시)
+  const topLevelLayers = useMemo(() => getTopLevelLayers(spec), [spec]);
+
+  // RGL layout 배열 (top-level 만)
   const rglLayout = useMemo(
-    () => layers.map((l) => ({
+    () => topLevelLayers.map((l) => ({
       i: l.key,
       x: l.position?.x ?? 0,
       y: l.position?.y ?? 0,
@@ -205,7 +221,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
       h: l.position?.h ?? 4,
       minW: 2, minH: 2,
     })),
-    [layers]
+    [topLevelLayers]
   );
 
   // canvas 본문 컨테이너 크기 측정 — RGL width / rowHeight 동적 계산용
@@ -228,13 +244,14 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
   }, []);
 
   // RGL 의 rowHeight = (가용높이 - padding*2 - margin*(rows-1)) / 총rows.
+  // top-level layer 의 max(y+h) 기준 (자식은 RGL 무관).
   const totalRows = useMemo(() => {
-    const maxBottom = layers.reduce((acc, l) => {
+    const maxBottom = topLevelLayers.reduce((acc, l) => {
       const p = l.position || {};
       return Math.max(acc, (p.y || 0) + (p.h || 0));
     }, 0);
     return Math.max(12, maxBottom);
-  }, [layers]);
+  }, [topLevelLayers]);
 
   const rowHeight = useMemo(() => {
     const usable = containerH - RGL_PADDING[1] * 2 - RGL_MARGIN[1] * Math.max(0, totalRows - 1);
@@ -287,6 +304,30 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
               <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document · PDF/이미지/마크다운
             </MenuItem>
             <MenuItem onClick={() => handleAddLayer('AI')}>
+              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI · 채팅/인사이트 패널
+            </MenuItem>
+          </Menu>
+
+          {/* Container 자식 추가 picker — Container 카드 안 [+ 자식 추가] 버튼이 띄움 */}
+          <Menu
+            anchorEl={childAnchor?.el || null}
+            open={!!childAnchor}
+            onClose={() => setChildAnchor(null)}
+            slotProps={{ paper: { sx: { minWidth: 220 } } }}
+          >
+            <Box sx={{ px: 1.5, py: 0.5, fontSize: 11, color: '#64748b', fontWeight: 700 }}>
+              Container 자식 추가
+            </Box>
+            <MenuItem onClick={() => handleAddChildLayer('GRID')}>
+              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid · 표 형태 데이터
+            </MenuItem>
+            <MenuItem onClick={() => handleAddChildLayer('CHART')}>
+              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart · 차트/KPI/지도
+            </MenuItem>
+            <MenuItem onClick={() => handleAddChildLayer('DOCUMENT')}>
+              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document · PDF/이미지/마크다운
+            </MenuItem>
+            <MenuItem onClick={() => handleAddChildLayer('AI')}>
               <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI · 채팅/인사이트 패널
             </MenuItem>
           </Menu>
@@ -381,7 +422,7 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
             preventCollision={false}
             resizeHandles={['se']}
           >
-            {layers.map((l) => {
+            {topLevelLayers.map((l) => {
               const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
               const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
               const TypeIcon = typeIconFor(l);
@@ -389,8 +430,9 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
               const subLabel = l.subtype
                 ? l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '').replace(/_/g, ' ')
                 : '';
-              const canDelete = layers.length > 1;
+              const canDelete = topLevelLayers.length > 1;
               const isContainer = l.type === 'CONTAINER';
+              const children = isContainer ? getChildLayers(spec, l.key) : [];
               return (
                 <Box key={l.key} sx={{
                   position: 'relative',
@@ -430,72 +472,199 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
                     )}
                   </Box>
 
-                  {/* 본문 — click → mini dialog */}
-                  <Box
-                    onClick={readOnly ? undefined : () => setEditingLayerKey(l.key)}
-                    sx={{
-                      flex: 1, minWidth: 0,
-                      cursor: readOnly ? 'default' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-                      gap: 2, p: 2,
-                      color: '#1e293b',
-                    }}
-                  >
-                    {/* type 아이콘 (좌측 원형) */}
+                  {/* 본문 — Container 와 일반 layer 가 다르게 렌더 */}
+                  {isContainer ? (
+                    /* Container: 헤더 (아이콘 + 타이틀) + 자식 영역 + [+ 자식] 버튼 */
                     <Box sx={{
-                      flexShrink: 0,
-                      width: 56, height: 56,
-                      borderRadius: '50%',
-                      bgcolor: '#ffffff',
-                      border: `2px solid ${accent}55`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: `0 4px 12px ${accent}3a`,
+                      flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
+                      gap: 1, p: 1.5, color: '#1e293b',
                     }}>
-                      <TypeIcon sx={{ fontSize: 32, color: accent }} />
-                    </Box>
-
-                    {/* 텍스트 */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, minWidth: 0, zIndex: 1 }}>
-                      <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#1e293b',
-                                         lineHeight: 1.2, letterSpacing: '-0.01em' }}>
-                        {l.title || l.key}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
-                        <Box sx={{ px: 0.9, py: 0.15, borderRadius: 0.8,
-                                    bgcolor: `${accent}26`, color: accent,
-                                    fontSize: 10, fontWeight: 800, letterSpacing: '0.05em',
-                                    textTransform: 'uppercase' }}>
-                          {l.type}
+                      {/* 작은 헤더 — 가로 */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                          flexShrink: 0, width: 36, height: 36, borderRadius: '50%',
+                          bgcolor: '#ffffff', border: `2px solid ${accent}55`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: `0 2px 6px ${accent}3a`,
+                        }}>
+                          <TypeIcon sx={{ fontSize: 22, color: accent }} />
                         </Box>
-                        {subLabel && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3,
-                                      px: 0.7, py: 0.15, borderRadius: 0.8,
-                                      bgcolor: '#f1f5f9', color: '#475569',
-                                      fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' }}>
-                            {SubHintIcon && <SubHintIcon sx={{ fontSize: 11 }} />}
-                            {subLabel}
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2, flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#1e293b',
+                                             lineHeight: 1.2 }}>
+                            {l.title || l.key}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Box sx={{ px: 0.7, py: 0.1, borderRadius: 0.7,
+                                        bgcolor: `${accent}26`, color: accent,
+                                        fontSize: 9, fontWeight: 800, letterSpacing: '0.05em',
+                                        textTransform: 'uppercase' }}>
+                              CONTAINER
+                            </Box>
+                            <Typography sx={{ fontSize: 10, color: '#64748b' }}>
+                              · 자식 {children.length}개
+                            </Typography>
                           </Box>
+                        </Box>
+                      </Box>
+
+                      {/* 자식 영역 — 자식 카드 stacked + [+ 자식] 버튼 */}
+                      <Box sx={{
+                        flex: 1, minHeight: 60,
+                        bgcolor: 'rgba(255,255,255,0.55)',
+                        border: `1px dashed ${accent}66`,
+                        borderRadius: 1.5,
+                        p: 1,
+                        display: 'flex', flexDirection: 'column', gap: 0.7,
+                        overflow: 'auto',
+                      }}>
+                        {children.length === 0 && (
+                          <Typography sx={{ fontSize: 11, color: accent, fontStyle: 'italic',
+                                              textAlign: 'center', py: 1.5 }}>
+                            ↓ 아래 [+ 자식 추가] 로 이 wrapper 안에 들어갈 layer 를 추가
+                          </Typography>
+                        )}
+                        {children.map((c) => {
+                          const cAccent = LAYER_TYPE_ACCENT[c.type] || '#94a3b8';
+                          const CTypeIcon = typeIconFor(c);
+                          const cHasData = !!(c.dataSource?.naturalText)
+                                        || (c.dataSource?.references || []).length > 0;
+                          return (
+                            <Box key={c.key} sx={{
+                              display: 'flex', alignItems: 'center', gap: 1,
+                              bgcolor: '#fff',
+                              border: `1px solid ${cAccent}55`,
+                              borderLeft: `4px solid ${cAccent}`,
+                              borderRadius: 1, p: 0.7, pl: 1,
+                              position: 'relative',
+                              cursor: 'pointer',
+                              transition: 'box-shadow 0.15s ease',
+                              '&:hover': {
+                                boxShadow: `0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px ${cAccent}88`,
+                              },
+                              '&:hover .cnv-child-remove': { opacity: 1 },
+                            }}
+                            onClick={(e) => { e.stopPropagation(); setEditingLayerKey(c.key); }}>
+                              <Box sx={{ width: 24, height: 24, borderRadius: '50%',
+                                          bgcolor: `${cAccent}1a`, display: 'flex',
+                                          alignItems: 'center', justifyContent: 'center',
+                                          flexShrink: 0 }}>
+                                <CTypeIcon sx={{ fontSize: 14, color: cAccent }} />
+                              </Box>
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#1e293b',
+                                                   lineHeight: 1.2 }}>
+                                  {c.title || c.key}
+                                </Typography>
+                                <Typography sx={{ fontSize: 9.5, color: cHasData ? '#16a34a' : '#94a3b8',
+                                                   fontWeight: cHasData ? 700 : 500 }}>
+                                  {c.type}{c.subtype ? ` · ${c.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '')}` : ''}
+                                  {cHasData ? ' · ✓' : ''}
+                                </Typography>
+                              </Box>
+                              {!readOnly && (
+                                <IconButton
+                                  className="cnv-child-remove"
+                                  size="small"
+                                  onClick={(e) => { e.stopPropagation(); handleRemoveLayer(c.key); }}
+                                  sx={{
+                                    opacity: 0, transition: 'opacity 0.15s ease',
+                                    color: '#ef4444', width: 20, height: 20,
+                                    '&:hover': { bgcolor: '#fee2e2' },
+                                  }}
+                                >
+                                  <CloseIcon sx={{ fontSize: 12 }} />
+                                </IconButton>
+                              )}
+                            </Box>
+                          );
+                        })}
+
+                        {/* [+ 자식 추가] 버튼 */}
+                        {!readOnly && (
+                          <Button
+                            size="small"
+                            startIcon={<AddIcon fontSize="small" />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChildAnchor({ el: e.currentTarget, parentKey: l.key });
+                            }}
+                            sx={{
+                              alignSelf: 'flex-start', fontSize: 11, py: 0.3,
+                              color: accent, borderColor: `${accent}88`,
+                              '&:hover': { bgcolor: `${accent}10`, borderColor: accent },
+                            }}
+                            variant="outlined"
+                          >
+                            자식 추가
+                          </Button>
                         )}
                       </Box>
-                      <Typography sx={{ fontSize: 11, fontWeight: hasData ? 700 : 500,
-                                         color: hasData ? '#16a34a' : '#94a3b8',
-                                         lineHeight: 1.3, mt: 0.3 }}>
-                        {hasData
-                          ? '✓ 데이터 설정됨'
-                          : isContainer
-                            ? '클릭 → 자연어로 "탭/카드/대시보드 wrapper" 의도 작성. Claude 가 적절한 컴포넌트(<TabContainer> 등) 생성.'
-                            : '클릭하여 데이터 입력'}
-                      </Typography>
                     </Box>
+                  ) : (
+                    /* 일반 layer: 가로 flex (아이콘 + 텍스트) — 그대로 */
+                    <Box
+                      onClick={readOnly ? undefined : () => setEditingLayerKey(l.key)}
+                      sx={{
+                        flex: 1, minWidth: 0,
+                        cursor: readOnly ? 'default' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                        gap: 2, p: 2,
+                        color: '#1e293b',
+                      }}
+                    >
+                      {/* type 아이콘 (좌측 원형) */}
+                      <Box sx={{
+                        flexShrink: 0,
+                        width: 56, height: 56,
+                        borderRadius: '50%',
+                        bgcolor: '#ffffff',
+                        border: `2px solid ${accent}55`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: `0 4px 12px ${accent}3a`,
+                      }}>
+                        <TypeIcon sx={{ fontSize: 32, color: accent }} />
+                      </Box>
 
-                    {/* 우측 watermark */}
-                    <Box sx={{
-                      position: 'absolute', right: -8, bottom: -16,
-                      opacity: 0.12, pointerEvents: 'none', color: accent,
-                    }}>
-                      <TypeIcon sx={{ fontSize: 140 }} />
+                      {/* 텍스트 */}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, minWidth: 0, zIndex: 1 }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#1e293b',
+                                           lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                          {l.title || l.key}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
+                          <Box sx={{ px: 0.9, py: 0.15, borderRadius: 0.8,
+                                      bgcolor: `${accent}26`, color: accent,
+                                      fontSize: 10, fontWeight: 800, letterSpacing: '0.05em',
+                                      textTransform: 'uppercase' }}>
+                            {l.type}
+                          </Box>
+                          {subLabel && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3,
+                                        px: 0.7, py: 0.15, borderRadius: 0.8,
+                                        bgcolor: '#f1f5f9', color: '#475569',
+                                        fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' }}>
+                              {SubHintIcon && <SubHintIcon sx={{ fontSize: 11 }} />}
+                              {subLabel}
+                            </Box>
+                          )}
+                        </Box>
+                        <Typography sx={{ fontSize: 11, fontWeight: hasData ? 700 : 500,
+                                           color: hasData ? '#16a34a' : '#94a3b8',
+                                           lineHeight: 1.3, mt: 0.3 }}>
+                          {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
+                        </Typography>
+                      </Box>
+
+                      {/* 우측 watermark */}
+                      <Box sx={{
+                        position: 'absolute', right: -8, bottom: -16,
+                        opacity: 0.12, pointerEvents: 'none', color: accent,
+                      }}>
+                        <TypeIcon sx={{ fontSize: 140 }} />
+                      </Box>
                     </Box>
-                  </Box>
+                  )}
 
                   {/* 호버 시 우상단 X 삭제 버튼 */}
                   {!readOnly && canDelete && (

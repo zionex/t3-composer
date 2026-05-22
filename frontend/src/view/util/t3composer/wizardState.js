@@ -2466,14 +2466,28 @@ export function createComposerLayer({
   type = LAYER_TYPES.GRID,
   subtype = 'GRID_BASE',
   position = { x: 0, y: 0, w: 6, h: 6 },
+  parentKey = null,   // Container 의 자식 layer 식별용 (top-level = null)
 } = {}) {
   if (!key) throw new Error('createComposerLayer: key required');
-  return {
+  const layer = {
     key, title, type, subtype, position,
     dataSource: { mode: 'NL', naturalText: '', references: [], sqlBlocks: [] },
     columns: [],
     cascade: {},
   };
+  if (parentKey) layer.parentKey = parentKey;
+  return layer;
+}
+
+/** spec 의 top-level layer 들 (parentKey 없음) — RGL 렌더 대상. */
+export function getTopLevelLayers(spec) {
+  return (spec?.layers || []).filter((l) => !l.parentKey);
+}
+
+/** spec 에서 특정 Container 의 자식 layer 들. */
+export function getChildLayers(spec, parentKey) {
+  if (!parentKey) return [];
+  return (spec?.layers || []).filter((l) => l.parentKey === parentKey);
 }
 
 /**
@@ -2524,6 +2538,7 @@ export function addLayer(spec, layerInit = {}) {
     // subtype 빈 string 허용 (generic) — 사용자가 mini dialog 자연어로 의도 표현
     subtype: layerInit.subtype !== undefined ? layerInit.subtype : '',
     position: pos,
+    parentKey: layerInit.parentKey || null,
   });
 
   const nextFilterBar = {
@@ -2547,14 +2562,20 @@ export function removeLayer(spec, key) {
   if (!spec || !key) return spec;
   const existing = Array.isArray(spec.layers) ? spec.layers : [];
   if (existing.length <= 1) return spec;
-  const nextLayers = existing.filter((l) => l.key !== key);
+  // Container 삭제 시 그 자식들도 함께 제거
+  const removeKeys = new Set([key]);
+  existing.forEach((l) => { if (l.parentKey === key) removeKeys.add(l.key); });
+  const nextLayers = existing.filter((l) => !removeKeys.has(l.key));
   if (nextLayers.length === existing.length) return spec;
+  // 마지막 top-level layer 보호 (자식만 남으면 안 됨)
+  if (nextLayers.filter((l) => !l.parentKey).length === 0) return spec;
 
-  const { [key]: _removed, ...restAffects } = spec.filterBar?.affects || {};
+  const nextAffects = { ...(spec.filterBar?.affects || {}) };
+  removeKeys.forEach((k) => { delete nextAffects[k]; });
   return {
     ...spec,
     layers: nextLayers,
-    filterBar: { ...(spec.filterBar || { items: [] }), affects: restAffects },
+    filterBar: { ...(spec.filterBar || { items: [] }), affects: nextAffects },
   };
 }
 
@@ -2850,40 +2871,55 @@ export function specToInitialPrompt(spec) {
   if (meta.menuFilePath)  lines.push(`[메뉴 경로] ${meta.menuFilePath}`);
   lines.push('');
 
-  // ── 2) Body Layers ──
-  const layers = Array.isArray(spec.layers) ? spec.layers : [];
-  lines.push(`[Body Layers (${layers.length})]`);
-  layers.forEach((l, idx) => {
+  // ── 2) Body Layers (top-level + children nested) ──
+  const allLayers = Array.isArray(spec.layers) ? spec.layers : [];
+  const tops = allLayers.filter((l) => !l.parentKey);
+  lines.push(`[Body Layers (top-level ${tops.length} · 전체 ${allLayers.length})]`);
+
+  const renderLayer = (l, idx, indent = 0) => {
+    const pad = '  '.repeat(indent);
     lines.push('');
-    lines.push(`${idx + 1}. layer '${l.key}' — title:"${l.title || ''}"`);
-    lines.push(`   type: ${l.type}${l.subtype ? ` · subtype: ${l.subtype}` : ''}`);
-    if (l.position) {
+    lines.push(`${pad}${indent === 0 ? `${idx + 1}.` : '- 자식:'} layer '${l.key}' — title:"${l.title || ''}"`);
+    lines.push(`${pad}   type: ${l.type}${l.subtype ? ` · subtype: ${l.subtype}` : ''}`);
+    if (l.position && indent === 0) {
       const { x, y, w, h } = l.position;
-      lines.push(`   position: x=${x} y=${y} w=${w} h=${h}  (RGL 12-col grid)`);
+      lines.push(`${pad}   position: x=${x} y=${y} w=${w} h=${h}  (RGL 12-col grid)`);
     }
     const ds = l.dataSource || {};
     const nl = (ds.naturalText || '').trim();
     if (nl) {
-      lines.push('   데이터 의도:');
-      nl.split(/\r?\n/).forEach((row) => lines.push(`     ${row}`));
+      lines.push(`${pad}   데이터 의도:`);
+      nl.split(/\r?\n/).forEach((row) => lines.push(`${pad}     ${row}`));
     }
     const refs = ds.references || [];
     if (refs.length > 0) {
-      lines.push('   참조 데이터 객체:');
-      refs.forEach((r) => lines.push(`     - ${r.kind}: ${r.name}`));
+      lines.push(`${pad}   참조 데이터 객체:`);
+      refs.forEach((r) => lines.push(`${pad}     - ${r.kind}: ${r.name}`));
     }
     const sqls = ds.sqlBlocks || [];
     if (sqls.length > 0) {
-      lines.push('   Inline SQL:');
+      lines.push(`${pad}   Inline SQL:`);
       sqls.forEach((sql, i) => {
-        lines.push(`     [SQL ${i + 1}]`);
-        sql.split(/\r?\n/).forEach((row) => lines.push(`     ${row}`));
+        lines.push(`${pad}     [SQL ${i + 1}]`);
+        sql.split(/\r?\n/).forEach((row) => lines.push(`${pad}     ${row}`));
       });
     }
     if (Array.isArray(l.columns) && l.columns.length > 0) {
-      lines.push(`   컬럼: ${l.columns.map((c) => c.name || c.field || JSON.stringify(c)).join(', ')}`);
+      lines.push(`${pad}   컬럼: ${l.columns.map((c) => c.name || c.field || JSON.stringify(c)).join(', ')}`);
     }
-  });
+
+    // Container 의 자식들도 nested 출력
+    if (l.type === 'CONTAINER') {
+      const children = allLayers.filter((c) => c.parentKey === l.key);
+      if (children.length > 0) {
+        lines.push(`${pad}   ★ 이 Container 안에 ${children.length}개 자식 layer 포함 — wrapper(예: <TabContainer>) 안에 자식들을 모두 배치:`);
+        children.forEach((c, ci) => renderLayer(c, ci, indent + 1));
+      } else {
+        lines.push(`${pad}   (자식 layer 없음 — 사용자가 wrapper 자체만 의도)`);
+      }
+    }
+  };
+  tops.forEach((l, idx) => renderLayer(l, idx, 0));
   lines.push('');
 
   // ── 3) FilterBar ──

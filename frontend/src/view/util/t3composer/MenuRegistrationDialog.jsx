@@ -932,12 +932,16 @@ TB_AD_MENU 실제 컬럼만 사용:
         )}
       </DialogActions>
 
-      {/* 부모 메뉴 트리 픽커 — 그룹 노드만 선택 가능 (MENU_SQL = T3SERIES 등) */}
+      {/* 부모 메뉴 트리 픽커 — 그룹 노드만 선택 가능 (MENU_SQL = T3SERIES 등).
+          targetCd 미전달 시 composer-db 기본 트리(local) 로 fallback → 실제 운영 메뉴와
+          이질적인 하드코딩처럼 보임. 세션의 targetCd 를 넘겨 MetaStep 과 동일한
+          운영 메뉴 트리를 사용. */}
       <MenuPickerDialog
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelect={handlePickParent}
         selectGroupOnly={true}
+        targetCd={sessionTargetCd}
       />
 
       {/* PLANEL 그룹 트리 픽커 — MENU_JS 모드 entry 의 groupKey 변경 */}

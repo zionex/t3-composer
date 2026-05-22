@@ -231,6 +231,54 @@ public class MenuRegistrationService {
         }
         JdbcTemplate targetJdbc = new JdbcTemplate(targetDs);
 
+        // ★ T-SQL 변수 (DECLARE @VAR ... · 후속 statement 가 @VAR 참조) 가 포함되면
+        //   variable scope 는 batch 단위라 ';' 로 split 시 분실.
+        //   해당 SQL 은 전체를 단일 batch 로 실행 — per-statement 검증/granular 트랜잭션 포기 대신 변수 보존.
+        //   화이트리스트 검증은 split 결과로 유지 (모든 statement 가 통과해야 batch 실행).
+        boolean usesTsqlVars = containsTsqlDeclareVar(sql);
+        if (usesTsqlVars) {
+            // 1단계: 화이트리스트·금지키워드·컬럼 검증 (per-statement)
+            for (int i = 0; i < statements.length; i++) {
+                String stmt = statements[i].trim();
+                if (stmt.isEmpty() || stmt.startsWith("--")) continue;
+                String upper = stmt.toUpperCase();
+                for (String bannedKw : BANNED_KEYWORDS) {
+                    if (upper.contains(bannedKw)) {
+                        errors.add("차단된 구문: " + bannedKw.trim() + " (statement #" + (i + 1) + ")");
+                        return resultOf(false, 0, 0, errors);
+                    }
+                }
+                if (!onlyAllowedTables(upper)) {
+                    errors.add("허용되지 않은 테이블 참조 (statement #" + (i + 1) + "): "
+                            + stmt.substring(0, Math.min(120, stmt.length())));
+                    return resultOf(false, 0, 0, errors);
+                }
+                String colViolation = validateInsertColumns(stmt);
+                if (colViolation != null) {
+                    errors.add("존재하지 않는 컬럼명 사용 (statement #" + (i + 1) + "): " + colViolation);
+                    return resultOf(false, 0, 0, errors);
+                }
+            }
+            // 2단계: 전체 SQL 을 단일 batch 로 실행
+            try {
+                targetJdbc.execute(sql);
+                // batch 실행은 statement 수 추적 불가 — split 결과로 표시
+                int approxExecuted = 0;
+                for (String s : statements) {
+                    String t = s.trim();
+                    if (!t.isEmpty() && !t.startsWith("--")) approxExecuted++;
+                }
+                executed = approxExecuted;
+            } catch (Exception e) {
+                String causeMsg = rootMessage(e);
+                errors.add("실행 실패 (T-SQL batch): " + causeMsg);
+                log.error("Menu SQL batch execute failed sessionId={} error={}", sessionId, causeMsg, e);
+                return resultOf(false, 0, skipped, errors);
+            }
+            // 아티팩트 FINAL 마킹은 아래 공통 로직으로 분기
+            return finalizeAndReturn(artifact, finalOverride, overrideProvided, executed, skipped, errors, sessionId);
+        }
+
         for (int i = 0; i < statements.length; i++) {
             String stmt = statements[i].trim();
             if (stmt.isEmpty() || stmt.startsWith("--")) {
@@ -286,7 +334,22 @@ public class MenuRegistrationService {
             }
         }
 
-        // 아티팩트 상태 FINAL 로 마킹 + override 가 있으면 content 도 갱신 (별도 트랜잭션)
+        return finalizeAndReturn(artifact, finalOverride, overrideProvided, executed, skipped, errors, sessionId);
+    }
+
+    // 'DECLARE @<NAME>' (T-SQL 스칼라 변수 선언) 패턴 감지 — variable scope 보존을 위한 단일 batch 실행 트리거.
+    private static final Pattern TSQL_DECLARE_VAR_PATTERN = Pattern.compile(
+            "(?i)\\bDECLARE\\s+@[A-Za-z_][A-Za-z0-9_]*\\b");
+
+    private boolean containsTsqlDeclareVar(String sql) {
+        if (sql == null || sql.isEmpty()) return false;
+        return TSQL_DECLARE_VAR_PATTERN.matcher(sql).find();
+    }
+
+    // 아티팩트 FINAL 마킹 + COMPLETED 전이 — per-statement / batch 분기 공용 헬퍼.
+    private Map<String, Object> finalizeAndReturn(ComposerArtifact artifact, String finalOverride,
+                                                   boolean overrideProvided, int executed, int skipped,
+                                                   List<String> errors, String sessionId) {
         try {
             defaultTx.executeWithoutResult(status -> {
                 artifact.setStatus(ComposerArtifact.STATUS_FINAL);

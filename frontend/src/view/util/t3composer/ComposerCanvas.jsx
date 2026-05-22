@@ -20,9 +20,15 @@
  *           "FilterBar 시각 분리" + "Mini Dialog 디자인" 섹션
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
-import React, { useState, useMemo } from 'react';
-import { Box, Typography, Button, Chip } from '@mui/material';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Box, Typography, Button, Chip, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
+
+import ReactGridLayout from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 // ── Layer 아이콘 ──
 import TableViewIcon        from '@mui/icons-material/TableView';
@@ -61,6 +67,7 @@ import GridOnIcon           from '@mui/icons-material/GridOn';
 
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarMiniDialog from './FilterBarMiniDialog';
+import { addLayer, removeLayer } from './wizardState';
 
 /** Layer type 별 accent 색 — 좌측 4px stripe + 호버 효과. 파스텔 톤. */
 const LAYER_TYPE_ACCENT = {
@@ -128,9 +135,15 @@ function subtypeHintFor(layer) {
   return SUBTYPE_HINT_ICON[layer?.subtype] || null;
 }
 
+// ── RGL 상수 ──
+const COLS = 12;
+const RGL_MARGIN = [8, 8];
+const RGL_PADDING = [4, 4];
+
 function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker, onCreate }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [addAnchor, setAddAnchor] = useState(null);
 
   const filterItems = spec?.filterBar?.items || [];
   const layers      = spec?.layers || [];
@@ -148,32 +161,148 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
     });
   };
 
+  const handleAddLayer = (type, subtype) => {
+    setAddAnchor(null);
+    onChange(addLayer(spec, { type, subtype }));
+  };
+
+  const handleRemoveLayer = (key) => {
+    if (layers.length <= 1) return;  // 마지막 layer 보호
+    onChange(removeLayer(spec, key));
+  };
+
+  // RGL onLayoutChange — 새 position 으로 spec.layers 갱신
+  const handleLayoutChange = (layout) => {
+    if (!layout || layout.length === 0) return;
+    const byKey = new Map(layout.map((it) => [it.i, it]));
+    const changed = layers.some((l) => {
+      const it = byKey.get(l.key);
+      if (!it) return false;
+      const p = l.position || {};
+      return it.x !== p.x || it.y !== p.y || it.w !== p.w || it.h !== p.h;
+    });
+    if (!changed) return;  // 무한 루프 방지 (RGL 이 마운트 시 한 번 호출)
+    onChange({
+      ...spec,
+      layers: layers.map((l) => {
+        const it = byKey.get(l.key);
+        if (!it) return l;
+        return { ...l, position: { x: it.x, y: it.y, w: it.w, h: it.h } };
+      }),
+    });
+  };
+
+  // RGL layout 배열 (spec.layers 에서 derive)
+  const rglLayout = useMemo(
+    () => layers.map((l) => ({
+      i: l.key,
+      x: l.position?.x ?? 0,
+      y: l.position?.y ?? 0,
+      w: l.position?.w ?? 12,
+      h: l.position?.h ?? 4,
+      minW: 2, minH: 2,
+    })),
+    [layers]
+  );
+
+  // canvas 본문 컨테이너 크기 측정 — RGL width / rowHeight 동적 계산용
+  const gridBoxRef = useRef(null);
+  const [containerW, setContainerW] = useState(800);
+  const [containerH, setContainerH] = useState(480);
+
+  useEffect(() => {
+    const el = gridBoxRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        const r = e.contentRect;
+        setContainerW(r.width);
+        setContainerH(r.height);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // RGL 의 rowHeight = (가용높이 - padding*2 - margin*(rows-1)) / 총rows.
+  const totalRows = useMemo(() => {
+    const maxBottom = layers.reduce((acc, l) => {
+      const p = l.position || {};
+      return Math.max(acc, (p.y || 0) + (p.h || 0));
+    }, 0);
+    return Math.max(12, maxBottom);
+  }, [layers]);
+
+  const rowHeight = useMemo(() => {
+    const usable = containerH - RGL_PADDING[1] * 2 - RGL_MARGIN[1] * Math.max(0, totalRows - 1);
+    return Math.max(24, Math.floor(usable / totalRows));
+  }, [containerH, totalRows]);
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%', minHeight: 0 }}>
 
-      {/* ───── 액션 헤더 — [✨ 화면 생성] 버튼 ───── */}
-      {!readOnly && onCreate && (
+      {/* ───── 액션 헤더 — [+ Layer] dropdown + [✨ 화면 생성] 버튼 ───── */}
+      {!readOnly && (
         <Box sx={{
           flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1,
           pb: 0.5,
         }}>
           <Typography variant="caption" sx={{ color: '#64748b', mr: 'auto' }}>
-            각 영역에 데이터를 채운 뒤 우측 [화면 생성] 버튼을 누르면 Claude 가 산출물을 만들고 미리보기까지 진행합니다.
+            각 영역에 데이터를 채운 뒤 [화면 생성] 클릭 → Claude 가 산출물 + 미리보기 진행.
+            Layer 는 드래그/리사이즈/추가/삭제 가능.
           </Typography>
+
           <Button
-            variant="contained"
+            variant="outlined"
             size="small"
-            startIcon={<AutoAwesomeIcon fontSize="small" />}
-            onClick={() => onCreate(spec)}
+            startIcon={<AddIcon fontSize="small" />}
+            onClick={(e) => setAddAnchor(e.currentTarget)}
             sx={{
-              bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700, letterSpacing: '0.02em',
-              '&:hover': { bgcolor: '#8b7dca' },
-              boxShadow: '0 2px 8px rgba(157,143,212,0.35)',
+              color: '#475569', borderColor: '#cbd5e1', fontWeight: 600,
+              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
             }}
           >
-            화면 생성
+            Layer
           </Button>
+          <Menu
+            anchorEl={addAnchor}
+            open={!!addAnchor}
+            onClose={() => setAddAnchor(null)}
+            slotProps={{ paper: { sx: { minWidth: 200 } } }}
+          >
+            <MenuItem onClick={() => handleAddLayer('GRID',      'GRID_BASE')}>
+              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid (그리드)
+            </MenuItem>
+            <MenuItem onClick={() => handleAddLayer('CHART',     'CHART_BAR')}>
+              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart (차트)
+            </MenuItem>
+            <MenuItem onClick={() => handleAddLayer('CONTAINER', 'CONTAINER_CARD')}>
+              <ViewQuiltIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CONTAINER }} /> Container (컨테이너)
+            </MenuItem>
+            <MenuItem onClick={() => handleAddLayer('DOCUMENT',  'DOC_MARKDOWN_VIEWER')}>
+              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document (문서)
+            </MenuItem>
+            <MenuItem onClick={() => handleAddLayer('AI',        'AI_INSIGHT_CARD')}>
+              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI (AI 패널)
+            </MenuItem>
+          </Menu>
+
+          {onCreate && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AutoAwesomeIcon fontSize="small" />}
+              onClick={() => onCreate(spec)}
+              sx={{
+                bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700, letterSpacing: '0.02em',
+                '&:hover': { bgcolor: '#8b7dca' },
+                boxShadow: '0 2px 8px rgba(157,143,212,0.35)',
+              }}
+            >
+              화면 생성
+            </Button>
+          )}
         </Box>
       )}
 
@@ -223,145 +352,156 @@ function ComposerCanvas({ spec, onChange, readOnly = false, targetCd, onOpenData
         </Typography>
       </Box>
 
-      {/* ───── Body Layers ─────
-          Phase 2B-1 polish: CSS Grid 12-col × 12-row 로 position 활용 (정적 배치).
-          drag/resize 는 Phase 1.5 의 RGL 통합에서. */}
-      <Box sx={{
-        flex: 1, minHeight: 0, overflow: 'auto', p: 0.5,
-        display: 'grid',
-        gridTemplateColumns: 'repeat(12, 1fr)',
-        gridAutoRows: 'minmax(28px, auto)',
-        gap: 1,
+      {/* ───── Body Layers — ReactGridLayout (drag + resize + position 동기화) ───── */}
+      <Box ref={gridBoxRef} sx={{
+        flex: 1, minHeight: 0, overflow: 'auto', position: 'relative',
       }}>
         {layers.length === 0 && (
-          <Box sx={{ gridColumn: '1 / -1', p: 4, textAlign: 'center', color: '#94a3b8' }}>
-            Layer 가 없습니다. ComposerSpec.layers 가 비어있는지 확인하세요.
+          <Box sx={{ p: 4, textAlign: 'center', color: '#94a3b8' }}>
+            Layer 가 없습니다. 우측 상단 [+ Layer] 로 추가하세요.
           </Box>
         )}
-        {layers.map(l => {
-          const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
-          const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
-          const TypeIcon = typeIconFor(l);
-          const SubHintIcon = subtypeHintFor(l);
-          // position { x, y, w, h } → CSS grid 좌표 (1-base, 끝은 +1)
-          const x = l.position?.x ?? 0;
-          const y = l.position?.y ?? 0;
-          const w = l.position?.w ?? 12;
-          const h = l.position?.h ?? 4;
-          const subLabel = l.subtype
-            ? l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '').replace(/_/g, ' ')
-            : '';
-          return (
-            <Box
-              key={l.key}
-              onClick={readOnly ? undefined : () => setEditingLayerKey(l.key)}
-              sx={{
-                gridColumn: `${x + 1} / ${x + w + 1}`,
-                gridRow:    `${y + 1} / ${y + h + 1}`,
-                cursor: readOnly ? 'default' : 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                /* 1) 진한 좌상 → 흰 우하 gradient (type 색 강조) +
-                   2) 우측 큰 radial blob (일러스트 느낌) */
-                background: `
-                  radial-gradient(circle at 90% 70%, ${accent}2e 0%, transparent 55%),
-                  linear-gradient(135deg, ${accent}33 0%, ${accent}12 30%, #ffffff 70%)
-                `,
-                border: `1px solid ${accent}55`,
-                borderLeft: `5px solid ${accent}`,
-                borderRadius: 2.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-                gap: 2,
-                p: 2.5,
-                color: '#1e293b',
-                transition: 'box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease',
-                boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)',
-                '&:hover': readOnly ? {} : {
-                  boxShadow: `0 10px 24px rgba(15,23,42,0.12), 0 0 0 1.5px ${accent}aa, inset 0 1px 0 rgba(255,255,255,0.7)`,
-                  borderColor: `${accent}cc`,
-                  transform: 'translateY(-2px)',
-                },
-              }}
-            >
-              {/* 큰 type 아이콘 — 둥근 흰 원 안 (왼쪽) */}
-              <Box sx={{
-                flexShrink: 0,
-                width: 56, height: 56,
-                borderRadius: '50%',
-                bgcolor: '#ffffff',
-                border: `2px solid ${accent}55`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: `0 4px 12px ${accent}3a`,
-              }}>
-                <TypeIcon sx={{ fontSize: 32, color: accent }} />
-              </Box>
-
-              {/* 텍스트 영역 */}
-              <Box sx={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'flex-start',
-                gap: 0.4, minWidth: 0, zIndex: 1,
-              }}>
-                <Typography sx={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: '#1e293b',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.01em',
+        {layers.length > 0 && containerW > 0 && (
+          <ReactGridLayout
+            className="composer-canvas-grid"
+            cols={COLS}
+            width={containerW}
+            rowHeight={rowHeight}
+            margin={RGL_MARGIN}
+            containerPadding={RGL_PADDING}
+            layout={rglLayout}
+            onLayoutChange={handleLayoutChange}
+            isDraggable={!readOnly}
+            isResizable={!readOnly}
+            draggableHandle=".cnv-layer-drag-handle"
+            compactType={null}
+            preventCollision={false}
+            resizeHandles={['se']}
+          >
+            {layers.map((l) => {
+              const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
+              const accent = LAYER_TYPE_ACCENT[l.type] || '#94a3b8';
+              const TypeIcon = typeIconFor(l);
+              const SubHintIcon = subtypeHintFor(l);
+              const subLabel = l.subtype
+                ? l.subtype.replace(/^(CHART_|GRID_|DOC_|AI_|CONTAINER_)/, '').replace(/_/g, ' ')
+                : '';
+              const canDelete = layers.length > 1;
+              return (
+                <Box key={l.key} sx={{
+                  position: 'relative',
+                  background: `
+                    radial-gradient(circle at 90% 70%, ${accent}2e 0%, transparent 55%),
+                    linear-gradient(135deg, ${accent}33 0%, ${accent}12 30%, #ffffff 70%)
+                  `,
+                  border: `1px solid ${accent}55`,
+                  borderRadius: 2.5,
+                  boxShadow: '0 1px 3px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7)',
+                  overflow: 'hidden',
+                  transition: 'box-shadow 0.18s ease, border-color 0.18s ease',
+                  '&:hover': readOnly ? {} : {
+                    boxShadow: `0 8px 20px rgba(15,23,42,0.10), 0 0 0 1.5px ${accent}aa, inset 0 1px 0 rgba(255,255,255,0.7)`,
+                    borderColor: `${accent}cc`,
+                  },
+                  '&:hover .cnv-layer-remove': { opacity: 1 },
+                  display: 'flex',
                 }}>
-                  {l.title || l.key}
-                </Typography>
+                  {/* 좌측 drag handle stripe (5px) */}
+                  <Box className="cnv-layer-drag-handle" sx={{
+                    width: 5, flexShrink: 0,
+                    bgcolor: accent,
+                    cursor: readOnly ? 'default' : 'grab',
+                    '&:active': { cursor: 'grabbing' },
+                  }} />
 
-                {/* type 칩 + subtype 칩 (작은 라벨) */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
-                  <Box sx={{
-                    px: 0.9, py: 0.15, borderRadius: 0.8,
-                    bgcolor: `${accent}26`, color: accent,
-                    fontSize: 10, fontWeight: 800, letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
-                  }}>
-                    {l.type}
-                  </Box>
-                  {subLabel && (
+                  {/* 본문 — click → mini dialog */}
+                  <Box
+                    onClick={readOnly ? undefined : () => setEditingLayerKey(l.key)}
+                    sx={{
+                      flex: 1, minWidth: 0,
+                      cursor: readOnly ? 'default' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                      gap: 2, p: 2,
+                      color: '#1e293b',
+                    }}
+                  >
+                    {/* type 아이콘 (좌측 원형) */}
                     <Box sx={{
-                      display: 'flex', alignItems: 'center', gap: 0.3,
-                      px: 0.7, py: 0.15, borderRadius: 0.8,
-                      bgcolor: '#f1f5f9', color: '#475569',
-                      fontSize: 10, fontWeight: 600, letterSpacing: '0.04em',
+                      flexShrink: 0,
+                      width: 56, height: 56,
+                      borderRadius: '50%',
+                      bgcolor: '#ffffff',
+                      border: `2px solid ${accent}55`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: `0 4px 12px ${accent}3a`,
                     }}>
-                      {SubHintIcon && <SubHintIcon sx={{ fontSize: 11 }} />}
-                      {subLabel}
+                      <TypeIcon sx={{ fontSize: 32, color: accent }} />
                     </Box>
+
+                    {/* 텍스트 */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, minWidth: 0, zIndex: 1 }}>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#1e293b',
+                                         lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                        {l.title || l.key}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
+                        <Box sx={{ px: 0.9, py: 0.15, borderRadius: 0.8,
+                                    bgcolor: `${accent}26`, color: accent,
+                                    fontSize: 10, fontWeight: 800, letterSpacing: '0.05em',
+                                    textTransform: 'uppercase' }}>
+                          {l.type}
+                        </Box>
+                        {subLabel && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3,
+                                      px: 0.7, py: 0.15, borderRadius: 0.8,
+                                      bgcolor: '#f1f5f9', color: '#475569',
+                                      fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' }}>
+                            {SubHintIcon && <SubHintIcon sx={{ fontSize: 11 }} />}
+                            {subLabel}
+                          </Box>
+                        )}
+                      </Box>
+                      <Typography sx={{ fontSize: 11, fontWeight: hasData ? 700 : 500,
+                                         color: hasData ? '#16a34a' : '#94a3b8',
+                                         lineHeight: 1.3, mt: 0.3 }}>
+                        {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
+                      </Typography>
+                    </Box>
+
+                    {/* 우측 watermark */}
+                    <Box sx={{
+                      position: 'absolute', right: -8, bottom: -16,
+                      opacity: 0.12, pointerEvents: 'none', color: accent,
+                    }}>
+                      <TypeIcon sx={{ fontSize: 140 }} />
+                    </Box>
+                  </Box>
+
+                  {/* 호버 시 우상단 X 삭제 버튼 */}
+                  {!readOnly && canDelete && (
+                    <Tooltip title="Layer 삭제" placement="left">
+                      <IconButton
+                        className="cnv-layer-remove"
+                        size="small"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveLayer(l.key); }}
+                        sx={{
+                          position: 'absolute', top: 4, right: 4,
+                          opacity: 0, transition: 'opacity 0.15s ease',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          color: '#ef4444',
+                          '&:hover': { bgcolor: '#fee2e2' },
+                          width: 24, height: 24,
+                        }}
+                      >
+                        <CloseIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Tooltip>
                   )}
                 </Box>
-
-                <Typography sx={{
-                  fontSize: 11,
-                  fontWeight: hasData ? 700 : 500,
-                  color: hasData ? '#16a34a' : '#94a3b8',
-                  lineHeight: 1.3,
-                  mt: 0.3,
-                }}>
-                  {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
-                </Typography>
-              </Box>
-
-              {/* 우측 큰 watermark 아이콘 — 일러스트 느낌 (반투명, 배경에 떠 있음) */}
-              <Box sx={{
-                position: 'absolute',
-                right: -8,
-                bottom: -16,
-                opacity: 0.12,
-                pointerEvents: 'none',
-                color: accent,
-              }}>
-                <TypeIcon sx={{ fontSize: 140 }} />
-              </Box>
-            </Box>
-          );
-        })}
+              );
+            })}
+          </ReactGridLayout>
+        )}
       </Box>
 
       {/* ───── Dialogs ───── */}

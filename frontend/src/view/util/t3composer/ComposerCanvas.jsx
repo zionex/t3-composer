@@ -35,7 +35,7 @@ import ViewKanbanIcon       from '@mui/icons-material/ViewKanban';
 import BarChartIcon         from '@mui/icons-material/BarChart';
 import StackedBarChartIcon  from '@mui/icons-material/StackedBarChart';
 import ShowChartIcon        from '@mui/icons-material/ShowChart';
-import AreaChartIcon        from '@mui/icons-material/AreaChart';
+// AreaChart 는 MUI 5.11 에 없음 → ShowChart 로 폴백 (이미 import 됨)
 import PieChartIcon         from '@mui/icons-material/PieChart';
 import DonutLargeIcon       from '@mui/icons-material/DonutLarge';
 import ScatterPlotIcon      from '@mui/icons-material/ScatterPlot';
@@ -90,7 +90,7 @@ const SUBTYPE_ICON = {
   CHART_BAR:         BarChartIcon,
   CHART_STACKED_BAR: StackedBarChartIcon,
   CHART_LINE:        ShowChartIcon,
-  CHART_AREA:        AreaChartIcon,
+  CHART_AREA:        ShowChartIcon,
   CHART_PIE:         PieChartIcon,
   CHART_DONUT:       DonutLargeIcon,
   CHART_SCATTER:     ScatterPlotIcon,

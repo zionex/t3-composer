@@ -20,7 +20,8 @@ import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 
 import ComposerCanvas from './ComposerCanvas';
 import MockupPickerDialog from './MockupPickerDialog';
-import { specFromPattern, specFromMockup } from './wizardState';
+import UiPatternPickerDialog from './UiPatternPickerDialog';
+import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
 import { useTargetStore } from './targetStore';
 
 function ModeNewStep({ onBack }) {
@@ -28,6 +29,7 @@ function ModeNewStep({ onBack }) {
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
   const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
+  const [uiPatternPickerOpen, setUiPatternPickerOpen] = useState(false);
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
@@ -98,10 +100,7 @@ function ModeNewStep({ onBack }) {
 
         <Paper variant="outlined"
                sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#10b981', bgcolor: '#f0fdf4' } }}
-               onClick={() => {
-                 alert('UI Pattern picker 통합은 Phase 2 — 지금은 BLANK 로 진입합니다.');
-                 startWithPattern('BLANK');
-               }}>
+               onClick={() => setUiPatternPickerOpen(true)}>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <ViewQuiltIcon sx={{ fontSize: 32, color: '#10b981' }} />
             <Box>
@@ -109,7 +108,7 @@ function ModeNewStep({ onBack }) {
                 T3MES UI Pattern (730개)
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                T3MES 퍼블리싱 패턴 730개에서 선택 — Phase 2 에서 picker 통합
+                T3MES 퍼블리싱 패턴 730개에서 선택 — 단일 layer + 패턴 식별자 보존
               </Typography>
             </Box>
           </Stack>
@@ -142,6 +141,17 @@ function ModeNewStep({ onBack }) {
         setMockupPickerOpen(false);
         if (!entry) return;  // 사용자가 '해제' 한 경우
         setSpec(specFromMockup(entry, { title: '새 화면', menuCd: '' }));
+        setStage('CANVAS');
+      }}
+    />
+    <UiPatternPickerDialog
+      open={uiPatternPickerOpen}
+      onClose={() => setUiPatternPickerOpen(false)}
+      currentValue={null}
+      onConfirm={(entry) => {
+        setUiPatternPickerOpen(false);
+        if (!entry) return;
+        setSpec(specFromUiPattern(entry, { title: '새 화면', menuCd: '' }));
         setStage('CANVAS');
       }}
     />

@@ -8,9 +8,12 @@
  *   Spec: docs/superpowers/specs/2026-05-25-composer-canvas-phase2d3-ai-suggest-design.md
  */
 import React, { useState } from 'react';
-import { Box, Typography, Chip, Button, Stack, Snackbar, Alert, CircularProgress } from '@mui/material';
+import {
+  Box, Typography, Chip, IconButton, Stack, Snackbar, Alert, CircularProgress, TextField,
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import SendIcon from '@mui/icons-material/Send';
 
 import DataInlineEditor from './DataInlineEditor';
 import FilterBarInlinePanel from './FilterBarInlinePanel';
@@ -21,6 +24,7 @@ import { autoSuggestSpec } from './api';
 function DataAndFilterStep({ spec, onChange, targetCd }) {
   const [expandedLayerKey, setExpandedLayerKey] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [instruction, setInstruction] = useState('');
   const [snackbar, setSnackbar] = useState(null);  // { severity, message }
 
   const layers = spec?.layers || [];
@@ -32,14 +36,15 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
     });
   };
 
-  // Phase 2D-3 (재설계) — 1-click 자동완성: 호출 → 결과 통째 append → Snackbar.
-  // 다이얼로그/체크 없음 — 사용자는 적용 후 inline 으로 직접 수정/제거.
+  // Phase 2D-3 (재설계) — chat-style 자동완성:
+  //   instruction 입력 → AI 가 그 지시 반영 / 비어있으면 spec 만으로 자동 유추.
+  //   결과 통째 append → Snackbar. 사용자는 적용 후 inline 으로 직접 수정/제거.
   const handleAutoSuggest = async () => {
     if (suggesting) return;
     setSuggesting(true);
     setSnackbar(null);
     try {
-      const res = await autoSuggestSpec(spec);
+      const res = await autoSuggestSpec(spec, instruction.trim() || null);
       const r = res?.data || {};
       const filterFields = Array.isArray(r.filterFields) ? r.filterFields : [];
       const relations    = Array.isArray(r.relations)    ? r.relations    : [];
@@ -79,6 +84,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
       });
 
       onChange(next);
+      setInstruction('');  // 성공 시 입력 비움
       setSnackbar({
         severity: 'success',
         message: `검색조건 ${filterFields.length}개 · 관계 ${relations.length}개 추가됨.`,
@@ -183,25 +189,59 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         display: 'flex', flexDirection: 'column', gap: 1.5,
         minHeight: 0, overflow: 'auto',
       }}>
-        {/* AI 자동완성 — 1-click 통합 버튼 (FilterBar + 관계 둘 다 즉시 채움) */}
-        <Button
-          variant="contained"
-          fullWidth
-          disabled={suggesting || layers.length === 0}
-          onClick={handleAutoSuggest}
-          startIcon={suggesting
-            ? <CircularProgress size={14} sx={{ color: '#fff' }} />
-            : <AutoFixHighIcon fontSize="small" />}
-          sx={{
-            bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700,
-            fontSize: 12, letterSpacing: '0.02em',
-            boxShadow: '0 2px 8px rgba(157,143,212,0.25)',
-            '&:hover': { bgcolor: '#8B7DCA' },
-            '&.Mui-disabled': { bgcolor: '#e2e8f0', color: '#94a3b8' },
-          }}
-        >
-          {suggesting ? 'AI 분석 중...' : 'AI 자동완성 — 검색조건 + 관계'}
-        </Button>
+        {/* AI 자동완성 — chat-style 입력 박스 (검색조건 + 관계 한 번에)
+            비어있으면 spec 만으로 자동 유추 · 입력하면 그 지시 반영. */}
+        <Box sx={{
+          bgcolor: '#fff', border: '1px solid rgba(157,143,212,0.4)',
+          borderRadius: 1.5, p: 1,
+          display: 'flex', flexDirection: 'column', gap: 0.5,
+        }}>
+          <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mb: 0.3 }}>
+            <AutoFixHighIcon sx={{ fontSize: 16, color: '#9D8FD4' }} />
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
+              AI 자동완성 — 검색조건 + 관계
+            </Typography>
+          </Stack>
+          <TextField
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey)) ||
+                  (e.key === 'Enter' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey)) {
+                e.preventDefault();
+                if (!suggesting && layers.length > 0) handleAutoSuggest();
+              }
+            }}
+            placeholder={'예: "기간 조건 추가" · "master→detail 관계 만들어줘"\n비워두면 spec 만으로 자동 유추'}
+            multiline minRows={2} maxRows={5}
+            fullWidth size="small" variant="outlined"
+            disabled={suggesting}
+            InputProps={{
+              sx: { fontSize: 12, bgcolor: '#fafbfc', py: 0.5,
+                    '& fieldset': { borderColor: '#e2e8f0' } },
+              endAdornment: (
+                <IconButton
+                  onClick={handleAutoSuggest}
+                  disabled={suggesting || layers.length === 0}
+                  size="small"
+                  sx={{
+                    bgcolor: '#9D8FD4', color: '#fff', alignSelf: 'flex-end',
+                    p: 0.5, mb: 0.3,
+                    '&:hover': { bgcolor: '#8B7DCA' },
+                    '&.Mui-disabled': { bgcolor: '#e2e8f0', color: '#94a3b8' },
+                  }}
+                >
+                  {suggesting
+                    ? <CircularProgress size={14} sx={{ color: '#fff' }} />
+                    : <SendIcon sx={{ fontSize: 14 }} />}
+                </IconButton>
+              ),
+            }}
+          />
+          <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
+            {suggesting ? 'AI 분석 중...' : layers.length === 0 ? 'layer 가 1개 이상 필요' : 'Enter 또는 ▶ 클릭으로 생성'}
+          </Typography>
+        </Box>
 
         <FilterBarInlinePanel spec={spec} onChange={onChange} />
         <LayerRelationsPanel spec={spec} onChange={onChange} />

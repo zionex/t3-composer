@@ -422,6 +422,7 @@ export const deletePattern = (id) =>
 
 // Phase 2D-3 — AI 추천 (FilterBar fields + Layer relations).
 //   현재 ComposerSpec 을 보내고 Claude 가 추천한 항목 받음.
+//   instruction (선택): 사용자 추가 지시 (예: "기간 조건 추가"). null/blank 이면 spec 으로 자동 유추.
 //   응답: { filterFields: [{label, type}], relations: [{sourceLayerKey, sourceEvent, targetLayerKey, targetAction, mapping}] }
-export const autoSuggestSpec = (spec) =>
-  zAxios.post('composer/spec/auto-suggest', { spec }, composerReq());
+export const autoSuggestSpec = (spec, instruction) =>
+  zAxios.post('composer/spec/auto-suggest', { spec, instruction }, composerReq());

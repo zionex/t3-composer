@@ -80,11 +80,12 @@ public class AutoSuggestService {
     /**
      * spec → 추천 결과 (filterFields, relations).
      *
-     * @param userId  현재 사용자 — Claude API key 조회용
-     * @param spec    4-step ComposerSpec (meta + layers + ...)
-     * @return        { filterFields: [...], relations: [...] }
+     * @param userId       현재 사용자 — Claude API key 조회용
+     * @param spec         4-step ComposerSpec (meta + layers + ...)
+     * @param instruction  사용자 추가 지시 (선택, null/blank 이면 spec 으로 자동 유추)
+     * @return             { filterFields: [...], relations: [...] }
      */
-    public Map<String, Object> suggest(String userId, Map<String, Object> spec) {
+    public Map<String, Object> suggest(String userId, Map<String, Object> spec, String instruction) {
         if (spec == null) {
             return defaultEmptyResult();
         }
@@ -92,8 +93,9 @@ public class AutoSuggestService {
                 .orElseThrow(() -> new IllegalStateException(
                     "Anthropic API key 가 등록되어 있지 않습니다. 우상단 [API 키] 에서 등록하세요."));
 
-        String userPrompt = buildUserPrompt(spec);
-        log.info("AutoSuggest: userId={} prompt_chars={}", userId, userPrompt.length());
+        String userPrompt = buildUserPrompt(spec, instruction);
+        log.info("AutoSuggest: userId={} prompt_chars={} hasInstruction={}",
+                userId, userPrompt.length(), instruction != null && !instruction.isBlank());
 
         MessagesRequest req = MessagesRequest.builder()
                 .model(MODEL)
@@ -121,8 +123,14 @@ public class AutoSuggestService {
     // ──────────────────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private String buildUserPrompt(Map<String, Object> spec) {
+    private String buildUserPrompt(Map<String, Object> spec, String instruction) {
         StringBuilder sb = new StringBuilder();
+
+        // 사용자 추가 지시 (있으면 최우선 — Claude 가 이걸 가장 무겁게 반영)
+        if (instruction != null && !instruction.isBlank()) {
+            sb.append("[★ 사용자 추가 지시 (최우선 반영)]\n");
+            sb.append(instruction.trim()).append("\n\n");
+        }
 
         // meta
         Map<String, Object> meta = (Map<String, Object>) spec.get("meta");

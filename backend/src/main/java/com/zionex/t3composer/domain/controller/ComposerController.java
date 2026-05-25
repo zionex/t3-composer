@@ -314,7 +314,8 @@ public class ComposerController {
     public Map<String, Object> autoSuggest(@RequestBody AutoSuggestRequest req) {
         String userId = currentUserId();
         Map<String, Object> spec = (req == null) ? null : req.getSpec();
-        return autoSuggestService.suggest(userId, spec);
+        String instruction = (req == null) ? null : req.getInstruction();
+        return autoSuggestService.suggest(userId, spec, instruction);
     }
 
     // ---- Artifacts ----

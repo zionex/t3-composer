@@ -30,6 +30,56 @@ import {
 | `grid.setData(data)` | `grid.dataProvider.fillJsonData(data)` |
 | `grid.getChangedData()` | `grid.dataProvider.getAllStateRows()` → `{created,updated,deleted,createAndDeleted}` |
 
+### §4.2.1 ⛔ BaseGrid 컨테이너 — flex chain 끊김 방지 (필수)
+
+BaseGrid 는 RealGrid2 GridView 로 부모 컨테이너 100% 를 채우는 구조다. 부모 chain 어느 한 칸이라도 height 계산이 깨지면 그리드 body 가 0px 로 collapse 되어 **버튼과 컬럼 헤더는 보이는데 데이터 영역은 빈 흰 화면** 으로 렌더된다.
+
+**필수 규칙**:
+
+1. `BaseGrid` 바로 위 wrapper div 는 **반드시 `flex: 1, minHeight: 0`** 둘 다 명시:
+   ```jsx
+   <div style={{ flex: 1, minHeight: 0 }}>          // ← 둘 다 필수
+     <BaseGrid id="..." items={...} afterGridCreate={...} />
+   </div>
+   ```
+   `minHeight: 0` 없으면 flex 자식의 자연 높이 = 컨텐츠 (BaseGrid 는 자연 높이 0) → wrapper 도 0 → 그리드 보이지 않음.
+
+2. SplitPanel 안에서 ButtonArea + BaseGrid 를 세로 배치할 때 **두 컨테이너 모두 flex column + 마지막 wrapper 에 `minHeight: 0`**:
+   ```jsx
+   <SplitPanel direction="horizontal" sizes={[50,50]} minSize={290}>
+     {/* 좌측 — flex column 으로 ButtonArea(자연) + Grid wrapper(flex:1+minHeight:0) */}
+     <div style={{ display: 'flex', flexDirection: 'column',
+                    height: '100%', minHeight: 0 }}>     // ★ parent 도 minHeight:0
+       <ButtonArea title="...">{/* ... */}</ButtonArea>
+       <div style={{ flex: 1, minHeight: 0 }}>          // ★ grid wrapper minHeight:0
+         <BaseGrid id="masterGrid" items={...} afterGridCreate={...} />
+       </div>
+     </div>
+     <div style={{ display: 'flex', flexDirection: 'column',
+                    height: '100%', minHeight: 0 }}>
+       {/* detail 도 동일 */}
+     </div>
+   </SplitPanel>
+   ```
+
+3. **부모 ContentInner / WorkArea** 는 이미 flex column · flex:1 · minHeight:0 가 기본 제공 — 그쪽은 손대지 않음. 깨지는 지점은 항상 **사용자 작성 wrapper div**.
+
+**검증**: 화면 렌더 시 버튼 영역은 보이는데 그리드 body 가 빈 흰 화면이면 100% 본 규칙 위반. 모든 flex 부모 chain 에서 `minHeight: 0` 확인.
+
+❌ **금지 패턴**:
+```jsx
+<div style={{ flex: 1 }}>                            // minHeight:0 누락 — 그리드 0px collapse
+  <BaseGrid ... />
+</div>
+```
+```jsx
+<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                                      // parent minHeight:0 누락
+  <ButtonArea>...</ButtonArea>
+  <div style={{ flex: 1 }}><BaseGrid/></div>          // wrapper minHeight:0 도 누락
+</div>
+```
+
 ### §4.3 그리드 컬럼 정의 (RealGrid2)
 
 > ⚠️ **`dataType` 는 모든 컬럼 필수**. BaseGrid 가 내부적으로 `item.dataType.toLowerCase() === 'group'` 호출(컬럼 그룹 판별) 하므로 누락 시 화면 진입 즉시 `Cannot read properties of undefined (reading 'toLowerCase')` TypeError. 텍스트 컬럼은 `dataType: 'text'` 명시 (생략 ❌). Hook (`composer-jsx.sh CG-FAB3-DT`) 가 자동 차단.

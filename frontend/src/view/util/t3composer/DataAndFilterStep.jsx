@@ -108,11 +108,12 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         })}
       </Box>
 
-      {/* ── 우측 ~280px column : FilterBar (상) + LayerRelations (하) 세로 배치 ── */}
+      {/* ── 우측 ~280px column : FilterBar (상) + LayerRelations (하) 세로 배치.
+            wrapper 가 단일 스크롤 — 두 패널이 자연 높이로 쌓이고 넘치면 wrapper 가 스크롤. ── */}
       <Box sx={{
         flexShrink: 0, width: 280,
         display: 'flex', flexDirection: 'column', gap: 1.5,
-        minHeight: 0, overflow: 'hidden',
+        minHeight: 0, overflow: 'auto',
       }}>
         <FilterBarInlinePanel spec={spec} onChange={onChange} />
         <LayerRelationsPanel spec={spec} onChange={onChange} />

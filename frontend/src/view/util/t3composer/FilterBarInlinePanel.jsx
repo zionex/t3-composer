@@ -69,20 +69,20 @@ function FilterBarInlinePanel({ spec, onChange }) {
     <Box sx={{
       flexShrink: 0, width: 280,
       display: 'flex', flexDirection: 'column', gap: 1,
-      bgcolor: '#fef9c3', border: '2px solid #f59e0b', borderRadius: 1.5,
+      bgcolor: '#fff', border: '1px solid rgba(143, 196, 212, 0.4)', borderRadius: 1.5,
       p: 1.5, overflow: 'auto',
     }}>
       {/* header */}
       <Stack direction="row" alignItems="center" spacing={0.8}>
-        <FilterListIcon sx={{ fontSize: 18, color: '#92400e' }} />
-        <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400e', flex: 1 }}>
-          🔍 FilterBar (검색조건)
+        <FilterListIcon sx={{ fontSize: 18, color: '#8FC4D4' }} />
+        <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
+          FilterBar (검색조건)
         </Typography>
         <Button
           size="small"
           startIcon={<AddIcon fontSize="small" />}
           onClick={handleAddField}
-          sx={{ fontSize: 11, color: '#92400e' }}
+          sx={{ fontSize: 11, color: '#4A90A4' }}
         >
           필드 추가
         </Button>
@@ -91,7 +91,7 @@ function FilterBarInlinePanel({ spec, onChange }) {
       {/* 빈 상태 */}
       {items.length === 0 && (
         <Typography variant="caption" sx={{
-          color: '#92400e', fontStyle: 'italic', textAlign: 'center', py: 2,
+          color: '#6E7E96', fontStyle: 'italic', textAlign: 'center', py: 2,
         }}>
           필드 없음 — [+ 필드 추가] 클릭
         </Typography>

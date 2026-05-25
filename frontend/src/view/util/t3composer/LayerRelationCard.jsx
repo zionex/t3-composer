@@ -63,26 +63,30 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
 
   return (
     <Box sx={{
-      bgcolor: '#fff', border: `1px solid ${selfRel ? '#dc2626' : '#c084fc'}`,
+      bgcolor: '#fff', border: `1px solid ${selfRel ? '#E0989A' : '#e2e8f0'}`,
       borderRadius: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 0.7,
     }}>
       <Stack direction="row" alignItems="center" spacing={0.5}>
-        <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b21a8', flex: 1 }}>
-          관계 {selfRel ? '⚠ self-loop' : ''}
+        <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#3A4A63', flex: 1 }}>
+          관계 {selfRel && (
+            <Typography component="span" sx={{ fontSize: 10, color: '#E0989A', ml: 0.5 }}>
+              ⚠ self-loop
+            </Typography>
+          )}
         </Typography>
         <IconButton size="small" onClick={onRemove} sx={{ p: 0.3 }}>
-          <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+          <DeleteIcon fontSize="small" sx={{ color: '#E0989A' }} />
         </IconButton>
       </Stack>
 
       <Box>
-        <Typography sx={{ fontSize: 10, color: '#6b21a8', fontWeight: 700 }}>Source</Typography>
+        <Typography sx={{ fontSize: 10, color: '#6E7E96', fontWeight: 700 }}>Source</Typography>
         <FormControl size="small" variant="standard" fullWidth>
           <Select
             value={relation.source?.layerKey || ''}
             onChange={(e) => updateSource('layerKey', e.target.value)}
             displayEmpty
-            sx={{ fontSize: 11, color: '#3b0764' }}
+            sx={{ fontSize: 11, color: '#3A4A63' }}
           >
             <MenuItem value="" sx={{ fontSize: 11, fontStyle: 'italic', color: '#94a3b8' }}>(layer 선택)</MenuItem>
             {layers.map((l) => (
@@ -96,7 +100,7 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
           <Select
             value={relation.source?.event || 'cellClick'}
             onChange={(e) => updateSource('event', e.target.value)}
-            sx={{ fontSize: 11, color: '#64748b' }}
+            sx={{ fontSize: 11, color: '#6E7E96' }}
           >
             {SOURCE_EVENTS.map((ev) => (
               <MenuItem key={ev.value} value={ev.value} sx={{ fontSize: 11 }}>
@@ -107,18 +111,18 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
         </FormControl>
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', color: '#a855f7' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', color: '#9D8FD4' }}>
         <ArrowForwardIcon fontSize="small" />
       </Box>
 
       <Box>
-        <Typography sx={{ fontSize: 10, color: '#6b21a8', fontWeight: 700 }}>Target</Typography>
+        <Typography sx={{ fontSize: 10, color: '#6E7E96', fontWeight: 700 }}>Target</Typography>
         <FormControl size="small" variant="standard" fullWidth>
           <Select
             value={relation.target?.layerKey || ''}
             onChange={(e) => updateTarget('layerKey', e.target.value)}
             displayEmpty
-            sx={{ fontSize: 11, color: '#3b0764' }}
+            sx={{ fontSize: 11, color: '#3A4A63' }}
           >
             <MenuItem value="" sx={{ fontSize: 11, fontStyle: 'italic', color: '#94a3b8' }}>(layer 선택)</MenuItem>
             {layers.map((l) => (
@@ -132,7 +136,7 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
           <Select
             value={relation.target?.action || 'refetch'}
             onChange={(e) => updateTarget('action', e.target.value)}
-            sx={{ fontSize: 11, color: '#64748b' }}
+            sx={{ fontSize: 11, color: '#6E7E96' }}
           >
             {TARGET_ACTIONS.map((a) => (
               <MenuItem key={a.value} value={a.value} sx={{ fontSize: 11 }}>
@@ -145,14 +149,14 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
 
       <Box sx={{ mt: 0.3 }}>
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography sx={{ fontSize: 10, color: '#6b21a8', fontWeight: 700, flex: 1 }}>
+          <Typography sx={{ fontSize: 10, color: '#6E7E96', fontWeight: 700, flex: 1 }}>
             Mapping (source 필드 → target param)
           </Typography>
           <Button
             size="small"
             startIcon={<AddIcon fontSize="small" />}
             onClick={addMappingPair}
-            sx={{ fontSize: 10, color: '#6b21a8', minWidth: 0, p: 0.2 }}
+            sx={{ fontSize: 10, color: '#6D5FA8', minWidth: 0, p: 0.2 }}
           >
             추가
           </Button>
@@ -171,7 +175,7 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
               size="small" variant="standard"
               sx={{ flex: 1, '& input': { fontSize: 10, fontFamily: 'monospace' } }}
             />
-            <Typography sx={{ fontSize: 11, color: '#a855f7' }}>→</Typography>
+            <Typography sx={{ fontSize: 11, color: '#9D8FD4' }}>→</Typography>
             <TextField
               value={v}
               onChange={(e) => updateMappingPair(k, k, e.target.value)}
@@ -180,7 +184,7 @@ function LayerRelationCard({ relation, layers, onUpdate, onRemove }) {
               sx={{ flex: 1, '& input': { fontSize: 10, fontFamily: 'monospace' } }}
             />
             <IconButton size="small" onClick={() => removeMappingPair(k)} sx={{ p: 0.2 }}>
-              <DeleteIcon fontSize="small" sx={{ color: '#ef4444', fontSize: 14 }} />
+              <DeleteIcon fontSize="small" sx={{ color: '#E0989A', fontSize: 14 }} />
             </IconButton>
           </Stack>
         ))}

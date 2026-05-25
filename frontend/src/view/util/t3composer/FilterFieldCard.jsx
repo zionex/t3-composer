@@ -35,7 +35,7 @@ export const FILTER_TYPES = [
 function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, onToggleAffect }) {
   return (
     <Box sx={{
-      bgcolor: '#fff', border: '1px solid #fbbf24', borderRadius: 1,
+      bgcolor: '#fff', border: '1px solid #e2e8f0', borderRadius: 1,
       p: 1, display: 'flex', flexDirection: 'column', gap: 0.7,
     }}>
       {/* 1행: label + 삭제 */}
@@ -45,10 +45,10 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
           onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="라벨"
           size="small" variant="standard" fullWidth
-          inputProps={{ style: { fontSize: 12, fontWeight: 700, color: '#92400e' } }}
+          inputProps={{ style: { fontSize: 12, fontWeight: 700, color: '#3A4A63' } }}
         />
         <IconButton size="small" onClick={onRemove} sx={{ p: 0.3 }}>
-          <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+          <DeleteIcon fontSize="small" sx={{ color: '#E0989A' }} />
         </IconButton>
       </Stack>
 
@@ -57,7 +57,7 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
         <Select
           value={field.type || 'TEXT'}
           onChange={(e) => onUpdate({ type: e.target.value })}
-          sx={{ fontSize: 11, fontFamily: 'monospace', color: '#64748b' }}
+          sx={{ fontSize: 11, fontFamily: 'monospace', color: '#6E7E96' }}
         >
           {FILTER_TYPES.map((t) => (
             <MenuItem key={t.value} value={t.value} sx={{ fontSize: 11, fontFamily: 'monospace' }}>
@@ -70,7 +70,7 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
       {/* 3행: 영향 chip 들 */}
       {layers.length > 0 && (
         <Box sx={{ mt: 0.3 }}>
-          <Typography variant="caption" sx={{ fontSize: 10, color: '#92400e', mr: 0.5 }}>
+          <Typography variant="caption" sx={{ fontSize: 10, color: '#6E7E96', mr: 0.5 }}>
             영향:
           </Typography>
           <Stack direction="row" spacing={0.3} flexWrap="wrap" useFlexGap sx={{ mt: 0.3 }}>
@@ -84,12 +84,12 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
                   onClick={() => onToggleAffect(l.key)}
                   sx={{
                     fontSize: 10, height: 18, cursor: 'pointer',
-                    bgcolor: checked ? '#92400e' : '#fef3c7',
-                    color: checked ? '#fff' : '#92400e',
-                    border: checked ? 'none' : '1px dashed #fbbf24',
+                    bgcolor: checked ? '#8FC4D4' : '#f1f5f9',
+                    color: checked ? '#fff' : '#6E7E96',
+                    border: checked ? 'none' : '1px dashed #cbd5e1',
                     fontWeight: 700,
                     '&:hover': {
-                      bgcolor: checked ? '#78350f' : '#fde68a',
+                      bgcolor: checked ? '#7AB3C5' : '#e2e8f0',
                     },
                   }}
                 />

@@ -30,20 +30,20 @@ function LayerRelationsPanel({ spec, onChange }) {
     <Box sx={{
       flexShrink: 0, width: 280,
       display: 'flex', flexDirection: 'column', gap: 1,
-      bgcolor: '#f3e8ff', border: '2px solid #a855f7', borderRadius: 1.5,
+      bgcolor: '#fff', border: '1px solid rgba(157, 143, 212, 0.4)', borderRadius: 1.5,
       p: 1.5, overflow: 'auto',
     }}>
       <Stack direction="row" alignItems="center" spacing={0.8}>
-        <LinkIcon sx={{ fontSize: 18, color: '#6b21a8' }} />
-        <Typography variant="caption" sx={{ fontWeight: 800, color: '#6b21a8', flex: 1 }}>
-          🔗 Layer 관계
+        <LinkIcon sx={{ fontSize: 18, color: '#9D8FD4' }} />
+        <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
+          Layer 관계
         </Typography>
         <Button
           size="small"
           startIcon={<AddIcon fontSize="small" />}
           onClick={handleAdd}
           disabled={!canAdd}
-          sx={{ fontSize: 11, color: '#6b21a8' }}
+          sx={{ fontSize: 11, color: '#6D5FA8' }}
         >
           관계 추가
         </Button>
@@ -51,7 +51,7 @@ function LayerRelationsPanel({ spec, onChange }) {
 
       {!canAdd && (
         <Typography variant="caption" sx={{
-          color: '#6b21a8', fontStyle: 'italic', textAlign: 'center', py: 1, fontSize: 11,
+          color: '#6E7E96', fontStyle: 'italic', textAlign: 'center', py: 1, fontSize: 11,
         }}>
           layer 1개 이상 필요
         </Typography>
@@ -59,7 +59,7 @@ function LayerRelationsPanel({ spec, onChange }) {
 
       {canAdd && relations.length === 0 && (
         <Typography variant="caption" sx={{
-          color: '#6b21a8', fontStyle: 'italic', textAlign: 'center', py: 2, fontSize: 11,
+          color: '#6E7E96', fontStyle: 'italic', textAlign: 'center', py: 2, fontSize: 11,
         }}>
           관계 없음 — [+ 관계 추가] 클릭<br/>
           (예: master grid 클릭 → detail grid 재조회)

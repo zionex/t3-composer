@@ -1,25 +1,27 @@
 /**
  * DataAndFilterStep — ② 데이터·검색조건 단계.
  *   Phase 2E-4: 좌측 layer = 컴팩트 list (height 36px) + 클릭 시 inline accordion.
- *                popup (DataMiniDialog) 미사용 — 우측 inline 패널과 일관된 UX.
- *   우측 column: FilterBarInlinePanel (위) + LayerRelationsPanel (아래).
+ *   Phase 2D-3 (재설계): 우측 상단 [🪄 AI 자동완성] 단일 버튼 — 1-click 으로 검색조건 +
+ *                        Layer 관계 둘 다 즉시 채움 (다이얼로그·체크 단계 폐기).
  *
- *   Plan: docs/superpowers/plans/2026-05-25-composer-canvas-phase2e4.md
- *   Spec: docs/superpowers/specs/2026-05-25-composer-canvas-phase2e4-data-accordion-design.md
+ *   Plan: docs/superpowers/plans/2026-05-25-composer-canvas-phase2d3-v2-oneclick.md
+ *   Spec: docs/superpowers/specs/2026-05-25-composer-canvas-phase2d3-ai-suggest-design.md
  */
 import React, { useState } from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography, Chip, Button, Stack, Snackbar, Alert, CircularProgress } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 import DataInlineEditor from './DataInlineEditor';
 import FilterBarInlinePanel from './FilterBarInlinePanel';
 import LayerRelationsPanel from './LayerRelationsPanel';
-import AutoSuggestDialog from './AutoSuggestDialog';
 import { addRelation } from './wizardState';
+import { autoSuggestSpec } from './api';
 
 function DataAndFilterStep({ spec, onChange, targetCd }) {
   const [expandedLayerKey, setExpandedLayerKey] = useState(null);
-  const [autoSuggestOpen, setAutoSuggestOpen]   = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [snackbar, setSnackbar] = useState(null);  // { severity, message }
 
   const layers = spec?.layers || [];
 
@@ -30,38 +32,68 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
     });
   };
 
-  // Phase 2D-3 — AI 추천 적용: append, 덮어쓰기 X.
-  const handleAutoSuggestApply = ({ filterFields, relations }) => {
-    let next = spec;
+  // Phase 2D-3 (재설계) — 1-click 자동완성: 호출 → 결과 통째 append → Snackbar.
+  // 다이얼로그/체크 없음 — 사용자는 적용 후 inline 으로 직접 수정/제거.
+  const handleAutoSuggest = async () => {
+    if (suggesting) return;
+    setSuggesting(true);
+    setSnackbar(null);
+    try {
+      const res = await autoSuggestSpec(spec);
+      const r = res?.data || {};
+      const filterFields = Array.isArray(r.filterFields) ? r.filterFields : [];
+      const relations    = Array.isArray(r.relations)    ? r.relations    : [];
 
-    // 1. filterFields append + 모든 layer affects 에 default 등록 (f8d675f 정책)
-    (filterFields || []).forEach((f) => {
-      const newKey = `field_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
-      const curItems   = next.filterBar?.items   || [];
-      const curAffects = { ...(next.filterBar?.affects || {}) };
-      (next.layers || []).forEach((l) => {
-        curAffects[l.key] = [...(curAffects[l.key] || []), newKey];
+      if (filterFields.length === 0 && relations.length === 0) {
+        setSnackbar({ severity: 'info', message: 'AI 가 추천할 항목을 찾지 못했습니다. layer / dataSource 를 더 채워보세요.' });
+        return;
+      }
+
+      let next = spec;
+
+      // 1. filterFields append + 모든 layer affects 에 default 등록 (f8d675f 정책 유지)
+      filterFields.forEach((f) => {
+        const newKey = `field_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+        const curItems   = next.filterBar?.items   || [];
+        const curAffects = { ...(next.filterBar?.affects || {}) };
+        (next.layers || []).forEach((l) => {
+          curAffects[l.key] = [...(curAffects[l.key] || []), newKey];
+        });
+        next = {
+          ...next,
+          filterBar: {
+            ...(next.filterBar || {}),
+            items:   [...curItems, { key: newKey, label: f.label, type: f.type }],
+            affects: curAffects,
+          },
+        };
       });
-      next = {
-        ...next,
-        filterBar: {
-          ...(next.filterBar || {}),
-          items:   [...curItems, { key: newKey, label: f.label, type: f.type }],
-          affects: curAffects,
-        },
-      };
-    });
 
-    // 2. relations append (addRelation helper)
-    (relations || []).forEach((r) => {
-      next = addRelation(next, {
-        source:  { layerKey: r.sourceLayerKey, event: r.sourceEvent },
-        target:  { layerKey: r.targetLayerKey, action: r.targetAction },
-        mapping: r.mapping || {},
+      // 2. relations append (addRelation helper — id 자동)
+      relations.forEach((r2) => {
+        next = addRelation(next, {
+          source:  { layerKey: r2.sourceLayerKey, event: r2.sourceEvent },
+          target:  { layerKey: r2.targetLayerKey, action: r2.targetAction },
+          mapping: r2.mapping || {},
+        });
       });
-    });
 
-    onChange(next);
+      onChange(next);
+      setSnackbar({
+        severity: 'success',
+        message: `검색조건 ${filterFields.length}개 · 관계 ${relations.length}개 추가됨.`,
+      });
+    } catch (e) {
+      setSnackbar({
+        severity: 'error',
+        message: 'AI 호출 실패: ' + (e?.response?.data?.message
+                                     || e?.response?.data?.error
+                                     || e?.message
+                                     || 'unknown'),
+      });
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   return (
@@ -145,32 +177,53 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         })}
       </Box>
 
-      {/* ── 우측 ~280px column : FilterBar (상) + LayerRelations (하) 세로 배치.
-            wrapper 가 단일 스크롤 — 두 패널이 자연 높이로 쌓이고 넘치면 wrapper 가 스크롤. ── */}
+      {/* ── 우측 ~280px column ── */}
       <Box sx={{
         flexShrink: 0, width: 280,
         display: 'flex', flexDirection: 'column', gap: 1.5,
         minHeight: 0, overflow: 'auto',
       }}>
-        <FilterBarInlinePanel
-          spec={spec}
-          onChange={onChange}
-          onOpenAutoSuggest={() => setAutoSuggestOpen(true)}
-        />
-        <LayerRelationsPanel
-          spec={spec}
-          onChange={onChange}
-          onOpenAutoSuggest={() => setAutoSuggestOpen(true)}
-        />
+        {/* AI 자동완성 — 1-click 통합 버튼 (FilterBar + 관계 둘 다 즉시 채움) */}
+        <Button
+          variant="contained"
+          fullWidth
+          disabled={suggesting || layers.length === 0}
+          onClick={handleAutoSuggest}
+          startIcon={suggesting
+            ? <CircularProgress size={14} sx={{ color: '#fff' }} />
+            : <AutoFixHighIcon fontSize="small" />}
+          sx={{
+            bgcolor: '#9D8FD4', color: '#fff', fontWeight: 700,
+            fontSize: 12, letterSpacing: '0.02em',
+            boxShadow: '0 2px 8px rgba(157,143,212,0.25)',
+            '&:hover': { bgcolor: '#8B7DCA' },
+            '&.Mui-disabled': { bgcolor: '#e2e8f0', color: '#94a3b8' },
+          }}
+        >
+          {suggesting ? 'AI 분석 중...' : 'AI 자동완성 — 검색조건 + 관계'}
+        </Button>
+
+        <FilterBarInlinePanel spec={spec} onChange={onChange} />
+        <LayerRelationsPanel spec={spec} onChange={onChange} />
       </Box>
 
-      {/* AI 추천 다이얼로그 — 두 패널이 공유 */}
-      <AutoSuggestDialog
-        open={autoSuggestOpen}
-        onClose={() => setAutoSuggestOpen(false)}
-        spec={spec}
-        onApply={handleAutoSuggestApply}
-      />
+      {/* 자동완성 결과 Snackbar */}
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {snackbar ? (
+          <Alert
+            severity={snackbar.severity}
+            onClose={() => setSnackbar(null)}
+            sx={{ fontWeight: 600 }}
+          >
+            {snackbar.message}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </Box>
   );
 }

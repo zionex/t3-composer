@@ -1,40 +1,41 @@
 /**
  * DataAndFilterStep — ② 데이터·검색조건 단계.
- *   Phase 2E-1: 단순 버전 — 좌측 layer 카드 list + 우측 FilterBar 카드 list. 자세한 입력은 mini dialog.
- *   Phase 2E-2: 우측 FilterBar 를 inline panel 로 강화 (popup 없이 직접 편집).
+ *   Phase 2E-4: 좌측 layer = 컴팩트 list (height 36px) + 클릭 시 inline accordion.
+ *                popup (DataMiniDialog) 미사용 — 우측 inline 패널과 일관된 UX.
+ *   우측 column: FilterBarInlinePanel (위) + LayerRelationsPanel (아래).
  *
- *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 4)
+ *   Plan: docs/superpowers/plans/2026-05-25-composer-canvas-phase2e4.md
+ *   Spec: docs/superpowers/specs/2026-05-25-composer-canvas-phase2e4-data-accordion-design.md
  */
 import React, { useState } from 'react';
-import { Box, Typography, Stack, Chip } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import DataMiniDialog from './DataMiniDialog';
+import DataInlineEditor from './DataInlineEditor';
 import FilterBarInlinePanel from './FilterBarInlinePanel';
 import LayerRelationsPanel from './LayerRelationsPanel';
 
 function DataAndFilterStep({ spec, onChange, targetCd }) {
-  const [editingLayerKey, setEditingLayerKey] = useState(null);
+  const [expandedLayerKey, setExpandedLayerKey] = useState(null);
 
   const layers = spec?.layers || [];
-  const editingLayer = layers.find((l) => l.key === editingLayerKey) || null;
 
-  const handleApplyLayer = (nextLayer) => {
-    if (!nextLayer) return;
+  const handleUpdateDataSource = (layerKey, nextDs) => {
     onChange({
       ...spec,
-      layers: layers.map((l) => (l.key === nextLayer.key ? nextLayer : l)),
+      layers: layers.map((l) => (l.key === layerKey ? { ...l, dataSource: nextDs } : l)),
     });
   };
 
   return (
     <Box sx={{ display: 'flex', gap: 1.5, height: '100%', minHeight: 0 }}>
 
-      {/* ── 좌측 70% : Body Layers ── */}
+      {/* ── 좌측 : Body Layers (컴팩트 list + accordion) ── */}
       <Box sx={{ flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column',
-                  gap: 1, overflow: 'auto' }}>
+                  gap: 0.5, overflow: 'auto' }}>
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e40af',
-                                              flexShrink: 0 }}>
-          📐 Body Layers — 클릭하여 데이터 편집
+                                              flexShrink: 0, mb: 0.5 }}>
+          📐 Body Layers — 클릭하여 펼치고 데이터 편집
         </Typography>
         {layers.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center', color: '#94a3b8' }}>
@@ -42,39 +43,66 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
           </Box>
         )}
         {layers.map((l) => {
-          const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0;
+          const hasData = !!(l.dataSource?.naturalText) || (l.dataSource?.references || []).length > 0
+                      || (l.dataSource?.sqlBlocks || []).length > 0;
+          const expanded = l.key === expandedLayerKey;
           return (
-            <Box
-              key={l.key}
-              onClick={() => setEditingLayerKey(l.key)}
-              sx={{
-                cursor: 'pointer', p: 1.5,
-                bgcolor: '#fff', border: '1px solid #cbd5e1', borderRadius: 1.5,
-                borderLeft: '4px solid #7CA7E0',
-                transition: 'box-shadow 0.15s ease',
-                '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' },
-              }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>
-                    {l.title || l.key}
-                  </Typography>
-                  <Typography sx={{ fontSize: 11, color: '#64748b' }}>
-                    {l.type}{l.subtype ? ` · ${l.subtype}` : ''}
-                    {l.parentKey ? ` · (자식: ⊂ ${l.parentKey})` : ''}
-                  </Typography>
-                </Box>
+            <Box key={l.key}>
+              {/* 컴팩트 layer-row (height 36px) */}
+              <Box
+                onClick={() => setExpandedLayerKey(expanded ? null : l.key)}
+                sx={{
+                  height: 36, display: 'flex', alignItems: 'center', px: 1, gap: 1,
+                  bgcolor: expanded ? '#eff6ff' : '#fff',
+                  border: '1px solid #cbd5e1',
+                  borderLeft: '4px solid #7CA7E0',
+                  borderRadius: expanded ? '4px 4px 0 0' : 1,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: expanded ? '#dbeafe' : '#f8fafc' },
+                }}
+              >
+                <ExpandMoreIcon sx={{ fontSize: 16, color: '#64748b',
+                                       transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                       transition: 'transform 0.15s ease' }} />
+                <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#1e293b',
+                                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {l.title || l.key}
+                  {l.parentKey && (
+                    <Typography component="span" sx={{ fontSize: 10, color: '#94a3b8', ml: 0.5 }}>
+                      ⊂ {l.parentKey}
+                    </Typography>
+                  )}
+                </Typography>
                 <Chip
                   size="small"
-                  label={hasData ? '✓ 설정됨' : '미설정'}
+                  label={hasData ? '✓' : '미설정'}
                   sx={{
+                    height: 18, fontSize: 10,
                     bgcolor: hasData ? '#dcfce7' : '#fef3c7',
                     color:   hasData ? '#166534' : '#92400e',
                     fontWeight: 700,
                   }}
                 />
-              </Stack>
+                <Typography sx={{ fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }}>
+                  {l.type}
+                </Typography>
+              </Box>
+
+              {/* 펼친 상태: 인라인 편집기 */}
+              {expanded && (
+                <Box sx={{
+                  p: 1.5,
+                  border: '1px solid #cbd5e1', borderTop: 'none',
+                  borderRadius: '0 0 4px 4px',
+                  bgcolor: '#f8fafc',
+                }}>
+                  <DataInlineEditor
+                    dataSource={l.dataSource}
+                    onChange={(nextDs) => handleUpdateDataSource(l.key, nextDs)}
+                    targetCd={targetCd}
+                  />
+                </Box>
+              )}
             </Box>
           );
         })}
@@ -89,15 +117,6 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         <FilterBarInlinePanel spec={spec} onChange={onChange} />
         <LayerRelationsPanel spec={spec} onChange={onChange} />
       </Box>
-
-      {/* ── Dialogs ── */}
-      <DataMiniDialog
-        open={!!editingLayer}
-        layer={editingLayer}
-        targetCd={targetCd}
-        onClose={() => setEditingLayerKey(null)}
-        onApply={handleApplyLayer}
-      />
     </Box>
   );
 }

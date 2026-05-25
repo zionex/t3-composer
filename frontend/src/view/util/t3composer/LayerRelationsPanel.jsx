@@ -9,14 +9,15 @@
  *   Plan: docs/superpowers/plans/2026-05-25-composer-canvas-phase2d2a.md (Task 3)
  */
 import React from 'react';
-import { Box, Stack, Typography, Button } from '@mui/material';
+import { Box, Stack, Typography, Button, Tooltip } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import AddIcon from '@mui/icons-material/Add';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 import LayerRelationCard from './LayerRelationCard';
 import { addRelation, removeRelation, updateRelation } from './wizardState';
 
-function LayerRelationsPanel({ spec, onChange }) {
+function LayerRelationsPanel({ spec, onChange, onOpenAutoSuggest }) {
   const relations = spec?.relations || [];
   const layers    = spec?.layers    || [];
 
@@ -33,11 +34,22 @@ function LayerRelationsPanel({ spec, onChange }) {
       bgcolor: '#fff', border: '1px solid rgba(157, 143, 212, 0.4)', borderRadius: 1.5,
       p: 1.5, overflow: 'auto',
     }}>
-      <Stack direction="row" alignItems="center" spacing={0.8}>
+      <Stack direction="row" alignItems="center" spacing={0.3}>
         <LinkIcon sx={{ fontSize: 18, color: '#9D8FD4' }} />
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
           Layer 관계
         </Typography>
+        {onOpenAutoSuggest && (
+          <Tooltip title="AI 추천 (검색조건 + 관계)">
+            <Button
+              size="small"
+              onClick={onOpenAutoSuggest}
+              sx={{ fontSize: 11, color: '#9D8FD4', minWidth: 0, px: 0.5 }}
+            >
+              <AutoFixHighIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+        )}
         <Button
           size="small"
           startIcon={<AddIcon fontSize="small" />}

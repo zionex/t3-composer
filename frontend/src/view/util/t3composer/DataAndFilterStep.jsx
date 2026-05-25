@@ -14,9 +14,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DataInlineEditor from './DataInlineEditor';
 import FilterBarInlinePanel from './FilterBarInlinePanel';
 import LayerRelationsPanel from './LayerRelationsPanel';
+import AutoSuggestDialog from './AutoSuggestDialog';
+import { addRelation } from './wizardState';
 
 function DataAndFilterStep({ spec, onChange, targetCd }) {
   const [expandedLayerKey, setExpandedLayerKey] = useState(null);
+  const [autoSuggestOpen, setAutoSuggestOpen]   = useState(false);
 
   const layers = spec?.layers || [];
 
@@ -25,6 +28,40 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
       ...spec,
       layers: layers.map((l) => (l.key === layerKey ? { ...l, dataSource: nextDs } : l)),
     });
+  };
+
+  // Phase 2D-3 — AI 추천 적용: append, 덮어쓰기 X.
+  const handleAutoSuggestApply = ({ filterFields, relations }) => {
+    let next = spec;
+
+    // 1. filterFields append + 모든 layer affects 에 default 등록 (f8d675f 정책)
+    (filterFields || []).forEach((f) => {
+      const newKey = `field_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+      const curItems   = next.filterBar?.items   || [];
+      const curAffects = { ...(next.filterBar?.affects || {}) };
+      (next.layers || []).forEach((l) => {
+        curAffects[l.key] = [...(curAffects[l.key] || []), newKey];
+      });
+      next = {
+        ...next,
+        filterBar: {
+          ...(next.filterBar || {}),
+          items:   [...curItems, { key: newKey, label: f.label, type: f.type }],
+          affects: curAffects,
+        },
+      };
+    });
+
+    // 2. relations append (addRelation helper)
+    (relations || []).forEach((r) => {
+      next = addRelation(next, {
+        source:  { layerKey: r.sourceLayerKey, event: r.sourceEvent },
+        target:  { layerKey: r.targetLayerKey, action: r.targetAction },
+        mapping: r.mapping || {},
+      });
+    });
+
+    onChange(next);
   };
 
   return (
@@ -115,9 +152,25 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         display: 'flex', flexDirection: 'column', gap: 1.5,
         minHeight: 0, overflow: 'auto',
       }}>
-        <FilterBarInlinePanel spec={spec} onChange={onChange} />
-        <LayerRelationsPanel spec={spec} onChange={onChange} />
+        <FilterBarInlinePanel
+          spec={spec}
+          onChange={onChange}
+          onOpenAutoSuggest={() => setAutoSuggestOpen(true)}
+        />
+        <LayerRelationsPanel
+          spec={spec}
+          onChange={onChange}
+          onOpenAutoSuggest={() => setAutoSuggestOpen(true)}
+        />
       </Box>
+
+      {/* AI 추천 다이얼로그 — 두 패널이 공유 */}
+      <AutoSuggestDialog
+        open={autoSuggestOpen}
+        onClose={() => setAutoSuggestOpen(false)}
+        spec={spec}
+        onApply={handleAutoSuggestApply}
+      />
     </Box>
   );
 }

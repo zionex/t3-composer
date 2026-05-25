@@ -419,3 +419,9 @@ export const togglePatternActive = (id) =>
 
 export const deletePattern = (id) =>
   zAxios.delete(`composer/patterns/${id}`, composerReq());
+
+// Phase 2D-3 — AI 추천 (FilterBar fields + Layer relations).
+//   현재 ComposerSpec 을 보내고 Claude 가 추천한 항목 받음.
+//   응답: { filterFields: [{label, type}], relations: [{sourceLayerKey, sourceEvent, targetLayerKey, targetAction, mapping}] }
+export const autoSuggestSpec = (spec) =>
+  zAxios.post('composer/spec/auto-suggest', { spec }, composerReq());

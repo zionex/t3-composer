@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zionex.t3composer.domain.client.AnthropicApiException;
 import com.zionex.t3composer.domain.dto.AnalyzeQueryRequest;
 import com.zionex.t3composer.domain.dto.ApiKeyRequest;
+import com.zionex.t3composer.domain.dto.AutoSuggestRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromDesignRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromSourceRequest;
 import com.zionex.t3composer.domain.service.DesignDocAnalyzeService;
@@ -38,6 +39,7 @@ import com.zionex.t3composer.domain.dto.SessionDto;
 import com.zionex.t3composer.domain.entity.ComposerSession;
 import com.zionex.t3composer.domain.service.AnthropicApiKeyService;
 import com.zionex.t3composer.domain.service.ArtifactApplyService;
+import com.zionex.t3composer.domain.service.AutoSuggestService;
 import com.zionex.t3composer.domain.service.ArtifactPreviewService;
 import com.zionex.t3composer.domain.service.ComposerService;
 import com.zionex.t3composer.domain.service.PreviewModuleResolver;
@@ -67,6 +69,7 @@ public class ComposerController {
     private final DesignDocExportService designDocExportService;
     private final DesignDocAnalyzeService designDocAnalyzeService;
     private final PrefillFromSourceService prefillFromSourceService;
+    private final AutoSuggestService autoSuggestService;
     private final PrefillFromDesignService prefillFromDesignService;
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
@@ -299,6 +302,19 @@ public class ComposerController {
         return composerService.chat(userId, sessionId, req.getAttachments())
                 .map(MessageDto::from)
                 .doOnError(e -> log.error("Composer chat error: {}", e.getMessage(), e));
+    }
+
+    /**
+     * Phase 2D-3 — AI 추천 (FilterBar + Layer 관계).
+     *
+     * 현재 ComposerSpec 을 Claude 에 전송해 자주 필요할 검색조건/관계 추천 받기.
+     * 응답: { filterFields: [{label, type}], relations: [{sourceLayerKey, sourceEvent, targetLayerKey, targetAction, mapping}] }
+     */
+    @PostMapping("/spec/auto-suggest")
+    public Map<String, Object> autoSuggest(@RequestBody AutoSuggestRequest req) {
+        String userId = currentUserId();
+        Map<String, Object> spec = (req == null) ? null : req.getSpec();
+        return autoSuggestService.suggest(userId, spec);
     }
 
     // ---- Artifacts ----

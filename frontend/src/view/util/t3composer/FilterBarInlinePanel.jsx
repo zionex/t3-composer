@@ -10,13 +10,14 @@
  *   Spec: docs/superpowers/specs/2026-05-22-composer-canvas-phase2e2-filterbar-inline-design.md
  */
 import React from 'react';
-import { Box, Stack, Typography, Button } from '@mui/material';
+import { Box, Stack, Typography, Button, Tooltip } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 import FilterFieldCard from './FilterFieldCard';
 
-function FilterBarInlinePanel({ spec, onChange }) {
+function FilterBarInlinePanel({ spec, onChange, onOpenAutoSuggest }) {
   const items   = spec?.filterBar?.items   || [];
   const affects = spec?.filterBar?.affects || {};
   const layers  = spec?.layers || [];
@@ -73,11 +74,22 @@ function FilterBarInlinePanel({ spec, onChange }) {
       p: 1.5, overflow: 'auto',
     }}>
       {/* header */}
-      <Stack direction="row" alignItems="center" spacing={0.8}>
+      <Stack direction="row" alignItems="center" spacing={0.3}>
         <FilterListIcon sx={{ fontSize: 18, color: '#8FC4D4' }} />
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
           FilterBar (검색조건)
         </Typography>
+        {onOpenAutoSuggest && (
+          <Tooltip title="AI 추천 (검색조건 + 관계)">
+            <Button
+              size="small"
+              onClick={onOpenAutoSuggest}
+              sx={{ fontSize: 11, color: '#9D8FD4', minWidth: 0, px: 0.5 }}
+            >
+              <AutoFixHighIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+        )}
         <Button
           size="small"
           startIcon={<AddIcon fontSize="small" />}

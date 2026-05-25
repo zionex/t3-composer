@@ -49,6 +49,15 @@ function ComposerWizard({ initialSpec, targetCd, onBack }) {
       if (blanks.length > 0) {
         return `FilterBar 필드 ${blanks.length}개에 라벨이 비어있습니다. 입력 후 다음으로 진행하세요.`;
       }
+      // Phase 2D-2a — Layer 관계의 orphan 검사 (존재하지 않는 layer 참조 차단)
+      const layerKeys = new Set((spec?.layers || []).map((l) => l.key));
+      const relations = spec?.relations || [];
+      const orphans = relations.filter((r) =>
+        !layerKeys.has(r.source?.layerKey) || !layerKeys.has(r.target?.layerKey)
+      );
+      if (orphans.length > 0) {
+        return `Layer 관계 ${orphans.length}개의 source/target layer 가 존재하지 않습니다. 정리 후 다음으로 진행.`;
+      }
     }
     return null;
   };

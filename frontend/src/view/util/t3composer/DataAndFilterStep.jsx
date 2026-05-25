@@ -10,6 +10,7 @@ import { Box, Typography, Stack, Chip } from '@mui/material';
 
 import DataMiniDialog from './DataMiniDialog';
 import FilterBarInlinePanel from './FilterBarInlinePanel';
+import LayerRelationsPanel from './LayerRelationsPanel';
 
 function DataAndFilterStep({ spec, onChange, targetCd }) {
   const [editingLayerKey, setEditingLayerKey] = useState(null);
@@ -79,8 +80,15 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         })}
       </Box>
 
-      {/* ── 우측 ~280px : FilterBar inline editor (Phase 2E-2) ── */}
-      <FilterBarInlinePanel spec={spec} onChange={onChange} />
+      {/* ── 우측 ~280px column : FilterBar (상) + LayerRelations (하) 세로 배치 ── */}
+      <Box sx={{
+        flexShrink: 0, width: 280,
+        display: 'flex', flexDirection: 'column', gap: 1.5,
+        minHeight: 0, overflow: 'hidden',
+      }}>
+        <FilterBarInlinePanel spec={spec} onChange={onChange} />
+        <LayerRelationsPanel spec={spec} onChange={onChange} />
+      </Box>
 
       {/* ── Dialogs ── */}
       <DataMiniDialog

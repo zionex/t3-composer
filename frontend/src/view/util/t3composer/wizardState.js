@@ -2454,6 +2454,7 @@ export function createComposerSpec({
         cascade: {},
       },
     ],
+    relations: [],   // Phase 2D-2a — Layer 간 관계 (master→detail 등). spec.layers[].key 참조.
   };
 }
 
@@ -2572,10 +2573,63 @@ export function removeLayer(spec, key) {
 
   const nextAffects = { ...(spec.filterBar?.affects || {}) };
   removeKeys.forEach((k) => { delete nextAffects[k]; });
+
+  // Phase 2D-2a — relations 중 source/target.layerKey 가 삭제 대상이면 제거 (orphan 방지)
+  const existingRelations = Array.isArray(spec.relations) ? spec.relations : [];
+  const nextRelations = existingRelations.filter((r) =>
+    !removeKeys.has(r?.source?.layerKey) && !removeKeys.has(r?.target?.layerKey)
+  );
+
   return {
     ...spec,
     layers: nextLayers,
     filterBar: { ...(spec.filterBar || { items: [] }), affects: nextAffects },
+    relations: nextRelations,
+  };
+}
+
+// ============================================================================
+// Phase 2D-2a — Layer 관계 helpers
+//   spec.relations[] 의 add/remove/update. UI (LayerRelationsPanel) 가 사용.
+// ============================================================================
+
+/**
+ * 새 관계 추가. id 자동, source/target 기본은 첫 두 layer, 빈 mapping.
+ */
+export function addRelation(spec, init = {}) {
+  if (!spec) throw new Error('addRelation: spec required');
+  const layers = Array.isArray(spec.layers) ? spec.layers : [];
+  const relations = Array.isArray(spec.relations) ? spec.relations : [];
+  const newId = `rel_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+  const defaultSource = layers[0]?.key || '';
+  const defaultTarget = layers[1]?.key || layers[0]?.key || '';
+  const relation = {
+    id:     init.id     || newId,
+    source: init.source || { layerKey: defaultSource, event: 'cellClick' },
+    target: init.target || { layerKey: defaultTarget, action: 'refetch' },
+    mapping: init.mapping && typeof init.mapping === 'object' ? { ...init.mapping } : {},
+  };
+  return { ...spec, relations: [...relations, relation] };
+}
+
+/**
+ * 관계 id 로 제거.
+ */
+export function removeRelation(spec, id) {
+  if (!spec || !id) return spec;
+  const relations = Array.isArray(spec.relations) ? spec.relations : [];
+  return { ...spec, relations: relations.filter((r) => r.id !== id) };
+}
+
+/**
+ * 관계 부분 갱신 — patch 가 mapping 이면 통째 교체.
+ */
+export function updateRelation(spec, id, patch) {
+  if (!spec || !id || !patch) return spec;
+  const relations = Array.isArray(spec.relations) ? spec.relations : [];
+  return {
+    ...spec,
+    relations: relations.map((r) => (r.id === id ? { ...r, ...patch } : r)),
   };
 }
 
@@ -2943,6 +2997,20 @@ export function specToInitialPrompt(spec) {
     });
   }
   lines.push('');
+
+  // ── 3.5) Layer 관계 (Phase 2D-2a — informal; Phase 2D-2b 에서 정식 가이드 통합) ──
+  const rels = Array.isArray(spec.relations) ? spec.relations : [];
+  if (rels.length > 0) {
+    lines.push(`[Layer 관계 (${rels.length}개)]`);
+    rels.forEach((r) => {
+      const map = r.mapping || {};
+      const mapStr = Object.keys(map).length > 0
+        ? ` | mapping: ${Object.entries(map).map(([k, v]) => `${k}→${v}`).join(', ')}`
+        : '';
+      lines.push(`- ${r.source?.layerKey} (${r.source?.event}) → ${r.target?.layerKey} (${r.target?.action})${mapStr}`);
+    });
+    lines.push('');
+  }
 
   // ── 4) 지시사항 ──
   lines.push('[지시사항]');

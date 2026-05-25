@@ -2930,6 +2930,42 @@ export function specToInitialPrompt(spec) {
   const tops = allLayers.filter((l) => !l.parentKey);
   lines.push(`[Body Layers (top-level ${tops.length} · 전체 ${allLayers.length})]`);
 
+  // ★ 사용자 의도 레이아웃 — RGL position (x/y) 으로 SplitPanel direction 강제 추론.
+  //   같은 y · 다른 x → horizontal (좌우 분할).
+  //   같은 x · 다른 y → vertical (상하 분할).
+  //   2x2 격자 → 혼합 (사용자가 명시한 격자 그대로 — 단일 SplitPanel 부적합 케이스).
+  //   1개 → 그냥 직접 mount.
+  if (tops.length >= 2) {
+    const withPos = tops.filter((l) => l.position).map((l) => ({
+      key: l.key, title: l.title || l.key,
+      x: l.position.x, y: l.position.y, w: l.position.w, h: l.position.h,
+    }));
+    if (withPos.length === tops.length) {
+      const allSameY = withPos.every((p) => p.y === withPos[0].y);
+      const allSameX = withPos.every((p) => p.x === withPos[0].x);
+      lines.push('');
+      lines.push('[★ 사용자 의도 레이아웃 — RGL position 기반 (반드시 이 방향 준수)]');
+      if (allSameY && !allSameX) {
+        const sortedX = [...withPos].sort((a, b) => a.x - b.x);
+        const sizes = sortedX.map((p) => Math.round((p.w / 12) * 100));
+        lines.push(`- 방향: 좌우 분할 (horizontal)`);
+        lines.push(`- 순서: ${sortedX.map((p) => `${p.title}(x=${p.x},w=${p.w})`).join(' | ')}`);
+        lines.push(`- JSX: <SplitPanel direction="horizontal" sizes={[${sizes.join(',')}]} minSize={290}>`);
+      } else if (allSameX && !allSameY) {
+        const sortedY = [...withPos].sort((a, b) => a.y - b.y);
+        const totalH = sortedY.reduce((s, p) => s + (p.h || 0), 0) || 1;
+        const sizes = sortedY.map((p) => Math.round((p.h / totalH) * 100));
+        lines.push(`- 방향: 상하 분할 (vertical)`);
+        lines.push(`- 순서: ${sortedY.map((p) => `${p.title}(y=${p.y},h=${p.h})`).join(' → ')}`);
+        lines.push(`- JSX: <SplitPanel direction="vertical" sizes={[${sizes.join(',')}]} minSize={200}>`);
+      } else {
+        lines.push(`- 방향: 격자/혼합 — 단순 SplitPanel 부적합. 외곽 vertical SplitPanel + 내부 horizontal SplitPanel 중첩 또는 격자 grid 로 직접 구성.`);
+        lines.push(`- 좌표: ${withPos.map((p) => `${p.title}(x=${p.x},y=${p.y},w=${p.w},h=${p.h})`).join(' / ')}`);
+      }
+      lines.push('- 위 방향과 순서는 사용자가 Layout 단계에서 명시한 의도이며, 임의로 좌우↔상하 변경 금지.');
+    }
+  }
+
   const renderLayer = (l, idx, indent = 0) => {
     const pad = '  '.repeat(indent);
     lines.push('');

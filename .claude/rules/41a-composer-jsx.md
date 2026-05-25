@@ -30,6 +30,27 @@ import {
 | `grid.setData(data)` | `grid.dataProvider.fillJsonData(data)` |
 | `grid.getChangedData()` | `grid.dataProvider.getAllStateRows()` → `{created,updated,deleted,createAndDeleted}` |
 
+### §4.2.0 ⛔ Layout 단계의 RGL position → SplitPanel direction 강제 매핑
+
+사용자가 Composer Wizard 의 ① Layout 단계에서 layer 의 RGL position (x/y/w/h) 을 직접 결정한다. 그 배치는 **사용자 의도 의 단일 진실 저장소** — Claude 는 임의로 좌우↔상하 변경 금지.
+
+**매핑 규칙** (specToInitialPrompt 가 자동 계산해 prompt 의 `[★ 사용자 의도 레이아웃]` 블록으로 전달):
+
+| layer 배치 (top-level 2개+) | SplitPanel direction | sizes |
+|---|---|---|
+| 모두 `y` 동일, `x` 다름 | `horizontal` (좌우) | 각 layer 의 `w` 합비율 (12 cols 기준) |
+| 모두 `x` 동일, `y` 다름 | `vertical` (상하) | 각 layer 의 `h` 합비율 |
+| 격자 / 혼합 (양축 분할) | 외곽 vertical + 내부 horizontal 중첩 또는 격자 grid 직접 구성 | — |
+| 1개 | `<SplitPanel>` 미사용 — 단일 layer 그대로 mount | — |
+
+**예**:
+- layers = [`mainGrid (x=0,y=0,w=6,h=8)`, `chartLayer (x=6,y=0,w=6,h=8)`]
+  → 모두 y=0 (좌우 배치) → `<SplitPanel direction="horizontal" sizes={[50,50]} minSize={290}>`
+- layers = [`masterGrid (x=0,y=0,w=12,h=4)`, `detailGrid (x=0,y=4,w=12,h=4)`]
+  → 모두 x=0 (상하 배치) → `<SplitPanel direction="vertical" sizes={[50,50]} minSize={200}>`
+
+❌ 금지: 사용자가 상하 배치 (y 다름) 인데 Claude 가 멋대로 `direction="horizontal"` 로 생성. 이러면 시각적 의도와 산출물이 어긋남 (사용자가 ↕ 라인 그렸는데 ↔ 가 나옴).
+
 ### §4.2.1 ⛔ BaseGrid 컨테이너 — flex chain 끊김 방지 (필수)
 
 BaseGrid 는 RealGrid2 GridView 로 부모 컨테이너 100% 를 채우는 구조다. 부모 chain 어느 한 칸이라도 height 계산이 깨지면 그리드 body 가 0px 로 collapse 되어 **버튼과 컬럼 헤더는 보이는데 데이터 영역은 빈 흰 화면** 으로 렌더된다.

@@ -87,7 +87,11 @@ function MetaStep({ spec, onChange, targetCd }) {
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-            부모 메뉴 (그룹) — 활성 Target ({targetCd || '미선택'}) 의 메뉴 트리
+            부모 메뉴 (그룹)
+            <Typography component="span" sx={{ color: '#E0989A', fontWeight: 700, ml: 0.3 }}>*</Typography>
+            <Typography component="span" sx={{ color: '#94a3b8', fontWeight: 400, fontSize: 11, ml: 0.5 }}>
+              — 메뉴 등록 위치 선택 (필수)
+            </Typography>
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.7 }}>
             {meta.parentMenuCd ? (
@@ -98,8 +102,8 @@ function MetaStep({ spec, onChange, targetCd }) {
                        fontFamily: 'monospace' }}
               />
             ) : (
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>
-                미선택 — Claude 가 화면 의도에서 추론
+              <Typography variant="caption" sx={{ color: '#E0989A', fontStyle: 'italic' }}>
+                미선택 — [메뉴 선택] 으로 부모를 지정하세요
               </Typography>
             )}
             <Button

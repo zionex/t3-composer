@@ -59,6 +59,13 @@ function ComposerWizard({ initialSpec, targetCd, onBack }) {
         return `Layer 관계 ${orphans.length}개의 source/target layer 가 존재하지 않습니다. 정리 후 다음으로 진행.`;
       }
     }
+    if (stepId === 'META') {
+      // 부모 메뉴 필수 — 메뉴 등록 시 PARENT_ID lookup 필요. 누락 시 Claude 가 추론하면
+      // 실제 운영 메뉴에 없는 코드를 만들어 backend apply 실패.
+      if (!(spec?.meta?.parentMenuCd || '').trim()) {
+        return '부모 메뉴를 선택하세요. [메뉴 선택] 으로 등록 위치를 지정해야 합니다.';
+      }
+    }
     return null;
   };
 

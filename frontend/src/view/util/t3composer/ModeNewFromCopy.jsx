@@ -23,10 +23,14 @@ import RefreshIcon    from '@mui/icons-material/Refresh';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import MenuTreeBrowser from './MenuTreeBrowser';
-import StepByStepWizard from './StepByStepWizard';
+import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { collectSourceForLlm, checkMenuExists, prefillFromSource } from './api';
-import { createInitialSpecFromSource, mergeAiSpecIntoBaseSpec } from './wizardState';
+import {
+  createInitialSpecFromSource,
+  mergeAiSpecIntoBaseSpec,
+  convertStep9SpecToWizardSpec,
+} from './wizardState';
 import { useTargetStore } from './targetStore';
 
 /**
@@ -188,14 +192,16 @@ function ModeNewFromCopy({ onBack }) {
     setWizardEntered(true);
   };
 
-  // Wizard 진입 — StepByStepWizard 에 NEW_FROM_COPY 모드로 위임
+  // Wizard 진입 — ComposerWizard (4-step) 에 NEW_FROM_COPY 모드로 위임.
+  //   prefilledSpec (9-step) 을 convertStep9SpecToWizardSpec 로 4-step 변환.
+  //   _originStep9 가 sourceBundle/sourceMenu 등 mode 메타 보존하므로 별도 prop 불필요 —
+  //   specToInitialPrompt 가 spec._originStep9 에서 직접 가져와 prompt prepend.
   if (wizardEntered && prefilledSpec) {
     return (
-      <StepByStepWizard
+      <ComposerWizard
+        initialSpec={convertStep9SpecToWizardSpec(prefilledSpec)}
         mode="NEW_FROM_COPY"
-        prefilledSpec={prefilledSpec}
-        sourceBundle={sourceBundle}
-        initialModuleCode={prefilledSpec.moduleCode}
+        targetCd={activeTargetCd}
         onBack={() => setWizardEntered(false)}
       />
     );

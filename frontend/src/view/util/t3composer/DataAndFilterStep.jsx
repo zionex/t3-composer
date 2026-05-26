@@ -183,9 +183,10 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         })}
       </Box>
 
-      {/* ── 우측 ~280px column ── */}
+      {/* ── 우측 column — FilterBar 옵션 source (inline/common_code/sp/sql)
+             4종 chip 한 줄 + SQL textarea 가독성을 위해 380px ── */}
       <Box sx={{
-        flexShrink: 0, width: 280,
+        flexShrink: 0, width: 380,
         display: 'flex', flexDirection: 'column', gap: 1.5,
         minHeight: 0, overflow: 'auto',
       }}>

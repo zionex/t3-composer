@@ -3029,6 +3029,15 @@ export function specToInitialPrompt(spec) {
   } else {
     items.forEach((it, idx) => {
       lines.push(`${idx + 1}. ${it.key} (${it.type})${it.label ? ` — label: "${it.label}"` : ''}`);
+      // defaultValue (기본값) — 사용자 지정값 또는 expression. 비어있으면 LLM 이
+      // rules/21 §3.1.0 의 type 별 권장 초기값 사용.
+      if (it.defaultValue && String(it.defaultValue).trim()) {
+        lines.push(`   기본값: ${String(it.defaultValue).trim()}`);
+        lines.push(`   → useForm({ defaultValues: { ${it.key.toLowerCase()}: <위 값/expression 해석> } })`);
+        lines.push(`     · @now → new Date() · @now-1month → date-fns subMonths(new Date(), 1) ·`);
+        lines.push(`     · @session.userId → store/세션 user · @first_option → 옵션 배열의 첫 element value ·`);
+        lines.push(`     · @all_options → 옵션 배열의 모든 value · @latest → 최신 버전 lookup`);
+      }
       // 옵션 source — select-like type 에 한해 사용자가 지정한 options 가 있으면 직렬화.
       //   inline:      [{value, label}, ...] → "Y=사용, N=미사용" 형식으로 표기
       //   common_code: { groupCd } → TB_AD_COMN_CODE 의 GRP_CD 표기 + onMount fetch 가이드
@@ -3291,6 +3300,9 @@ export function convertStep9SpecToWizardSpec(spec9) {
       label: f.label || '',
       type:  f.type  || 'TEXT',
       ...(f.options ? { options: f.options } : {}),
+      ...(f.defaultValue || f.default_value_expression
+        ? { defaultValue: f.defaultValue || f.default_value_expression }
+        : {}),
     }));
   } else if (Array.isArray(fbStep1.items) && fbStep1.items.length > 0) {
     items = fbStep1.items.map((it) => ({
@@ -3298,6 +3310,7 @@ export function convertStep9SpecToWizardSpec(spec9) {
       label: it.label || '',
       type:  it.type  || 'TEXT',
       ...(it.options ? { options: it.options } : {}),
+      ...(it.defaultValue ? { defaultValue: it.defaultValue } : {}),
     }));
   }
   const affects = (fbStep1.affects && typeof fbStep1.affects === 'object')

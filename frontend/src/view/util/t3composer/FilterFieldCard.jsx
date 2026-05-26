@@ -25,6 +25,33 @@ const TYPES_WITH_OPTIONS = new Set([
   'DROPDOWN', 'SELECT', 'MULTISELECT', 'RADIO', 'CHECKBOX', 'AUTOCOMPLETE',
 ]);
 
+// type 별 defaultValue placeholder — rules/21 §3.1.0 권장 초기값 그대로
+//   datetime → null (★ '' 금지: Invalid Date), dateRange → [null, null]
+//   number → null, check → false, multiselect → []
+const DEFAULT_PLACEHOLDER = {
+  TEXT:                "'' (또는 'foo' · @session.userId)",
+  NUMBER:              'null (또는 0 · @now-1)',
+  DATE:                'null (또는 @now · @now-1month · 2026-01-01)',
+  DATETIME:            'null (또는 @now)',
+  DATE_RANGE:          '[null, null] (또는 [@now-1month, @now])',
+  DROPDOWN:            "'' (또는 'Y' · @first_option)",
+  SELECT:              "'' (또는 'Y' · @first_option)",
+  MULTISELECT:         '[] (또는 ["Y","N"] · @all_options)',
+  RADIO:               "'' (또는 'Y' · @first_option)",
+  CHECKBOX:            'false (또는 true)',
+  POPUP:               'null',
+  AUTOCOMPLETE:        '[] 또는 null',
+  DOMAIN_PLAN_SCOPE:   'null (또는 @session.planScope)',
+  DOMAIN_ITEM_SINGLE:  'null',
+  DOMAIN_ITEM_MULTI:   '[]',
+  DOMAIN_ACCOUNT_SINGLE:'null',
+  DOMAIN_ACCOUNT_MULTI:'[]',
+  DOMAIN_LOCATION_MULTI:'[]',
+  DOMAIN_RESOURCE_MULTI:'[]',
+  DOMAIN_USER:         'null (또는 @session.userId)',
+  DOMAIN_VERSION:      'null (또는 @latest)',
+};
+
 // inline 옵션 ⇄ "value=label" 줄 단위 텍스트 변환
 function parseInlineOptions(text) {
   return (text || '')
@@ -247,6 +274,27 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
           )}
         </Box>
       )}
+
+      {/* 2.8행: defaultValue (기본값) — 모든 type 노출.
+                정적 값 (예: 'Y', 0, true, []) 또는 expression (예: @now,
+                @session.userId, @first_option) 자유 입력. 비우면 rules/21
+                §3.1.0 의 type 별 권장 초기값을 LLM 이 자동 사용. */}
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Typography variant="caption" sx={{
+          fontSize: 10, color: '#6E7E96', fontWeight: 700, minWidth: 60,
+        }}>
+          기본값
+        </Typography>
+        <TextField
+          value={field.defaultValue || ''}
+          onChange={(e) => onUpdate({ defaultValue: e.target.value })}
+          placeholder={DEFAULT_PLACEHOLDER[field.type] || '비워두면 type 별 권장값 사용'}
+          size="small" variant="standard" fullWidth
+          inputProps={{
+            style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' },
+          }}
+        />
+      </Stack>
 
       {/* 3행: 영향 chip 들 */}
       {layers.length > 0 && (

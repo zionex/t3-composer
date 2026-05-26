@@ -1,0 +1,137 @@
+{
+  "_comment": "KTNG 명시 화면 (bfktng/cmktng/dpktng/mpktng/rptktng/dpktngapv) 68개를 27개 mockup 패턴으로 그룹화. 표준 T3SmartSCM 화면은 t3smartscm-menu-mapping.json 의 기존 mockup 재사용.",
+  "stats": {
+    "ktngMenus": 68,
+    "mockupPatterns": 27
+  },
+
+  "mockupToMenus": {
+
+    "ktng_bf_promotion": [
+      { "menuId": "UI_BF_KTNG_01", "menuNm": "한국 프로모션 계획", "filePath": "/bf/master/BfKtng01" },
+      { "menuId": "UI_BF_KTNG_02", "menuNm": "해외 프로모션 계획", "filePath": "/bf/master/BfKtng02" }
+    ],
+    "ktng_bf_accuracy_trend": [
+      { "menuId": "UI_BF_KTNG_03", "menuNm": "수요 예측 정확도 (추이)", "filePath": "/bf/report/BfKtng03" }
+    ],
+
+    "ktng_cm_summary": [
+      { "menuId": "UI_CM_KTNG_01", "menuNm": "공헌이익 Summary", "filePath": "/contributionmargin/CmKtng01" }
+    ],
+    "ktng_cm_cost_breakdown": [
+      { "menuId": "UI_CM_KTNG_02", "menuNm": "재료비",            "filePath": "/contributionmargin/CmKtng02" },
+      { "menuId": "UI_CM_KTNG_03", "menuNm": "마킹비",            "filePath": "/contributionmargin/CmKtng03" },
+      { "menuId": "UI_CM_KTNG_04", "menuNm": "하이퍼 인플레이션", "filePath": "/contributionmargin/CmKtng04" },
+      { "menuId": "UI_CM_KTNG_05", "menuNm": "물류비",            "filePath": "/contributionmargin/CmKtng05" },
+      { "menuId": "UI_CM_KTNG_06", "menuNm": "관세",              "filePath": "/contributionmargin/CmKtng06" },
+      { "menuId": "UI_CM_KTNG_07", "menuNm": "정상자재",          "filePath": "/contributionmargin/CmKtng07" },
+      { "menuId": "UI_CM_KTNG_08", "menuNm": "원화가",            "filePath": "/contributionmargin/CmKtng08" }
+    ],
+    "ktng_cm_lvl4": [
+      { "menuId": "UI_CM_KTNG_09", "menuNm": "Lvl 4 코드 & 속성 관리",     "filePath": "/contributionmargin/CmKtng09" },
+      { "menuId": "UI_CM_KTNG_10", "menuNm": "Lvl 4 생산지별 공헌이익",    "filePath": "/contributionmargin/CmKtng10" },
+      { "menuId": "UI_CM_KTNG_11", "menuNm": "Lvl 4 Unmapping 리스트",     "filePath": "/contributionmargin/CmKtng11" }
+    ],
+
+    "ktng_dp_upload": [
+      { "menuId": "UI_DP_KTNG_01", "menuNm": "판매 실적 / 재고 Upload", "filePath": "/datain/actual/DpKtng01" }
+    ],
+    "ktng_dp_price_exchange": [
+      { "menuId": "UI_DP_KTNG_02", "menuNm": "판가 관리", "filePath": "/dp/master/DpKtng02" },
+      { "menuId": "UI_DP_KTNG_19", "menuNm": "환율",      "filePath": "/dp/master/DpKtng19" }
+    ],
+    "ktng_dp_production_alloc": [
+      { "menuId": "UI_DP_KTNG_03", "menuNm": "생산계획 할당 Rule", "filePath": "/mp/master/DpKtng03" }
+    ],
+    "ktng_dp_plc_lifecycle": [
+      { "menuId": "UI_DP_KTNG_04", "menuNm": "신/구품 PLC 현황",       "filePath": "/datain/master/DpKtng04" },
+      { "menuId": "UI_DP_KTNG_14", "menuNm": "EOP 생산 수량 관리",     "filePath": "/datain/master/DpKtng14" },
+      { "menuId": "UI_DP_KTNG_16", "menuNm": "제품 생명주기 조건 관리","filePath": "/datain/master/DpKtng16" }
+    ],
+    "ktng_dp_psi_crosstab": [
+      { "menuId": "UI_DP_KTNG_05", "menuNm": "판매계획 PSI (직수출 유통 O)", "filePath": "/dp/entry/DpKtng05" },
+      { "menuId": "UI_DP_KTNG_06", "menuNm": "판매계획 PSI (직수출 유통 X)", "filePath": "/dp/entry/DpKtng06" },
+      { "menuId": "UI_DP_KTNG_07", "menuNm": "판매계획 PSI (판매법인)",       "filePath": "/dp/entry/DpKtng07" },
+      { "menuId": "UI_DP_KTNG_09", "menuNm": "판매계획 PSI (CC/NGP 내수)",    "filePath": "/dp/entry/DpKtng09" }
+    ],
+    "ktng_dp_org_mapping": [
+      { "menuId": "UI_DP_KTNG_11", "menuNm": "영업조직-제품레벨 매핑", "filePath": "/dp/master/DpKtng11" },
+      { "menuId": "UI_DP_KTNG_12", "menuNm": "영업조직-담당자 매핑",   "filePath": "/dp/master/DpKtng12" }
+    ],
+    "ktng_dp_demand_validation": [
+      { "menuId": "UI_DP_KTNG_15", "menuNm": "수출 수요 적정성 점검", "filePath": "/dp/report/DpKtng15" },
+      { "menuId": "UI_DP_KTNG_17", "menuNm": "내수 수요 적정성 점검", "filePath": "/dp/report/DpKtng17" }
+    ],
+    "ktng_dp_domestic_entry": [
+      { "menuId": "UI_DP_KTNG_18", "menuNm": "내수 수요 입력", "filePath": "/dp/entry/DpKtng18" }
+    ],
+    "ktng_dp_stuffing_report": [
+      { "menuId": "UI_DP_KTNG_20", "menuNm": "Stuffing 리포트", "filePath": "/dp/report/DpKtng20" }
+    ],
+    "ktng_dp_approval": [
+      { "menuId": "UI_DP_KTNG_APV", "menuNm": "결재 요청 현황", "filePath": "/mp/analysisreport/DpKtngApv" }
+    ],
+
+    "ktng_mp_master_data": [
+      { "menuId": "UI_MP_KTNG_01", "menuNm": "기준정보 마스터", "filePath": "/mp/master/MpKtng01" },
+      { "menuId": "UI_MP_KTNG_09", "menuNm": "자재 마스터",     "filePath": "/mp/master/MpKtng09" }
+    ],
+    "ktng_mp_supply_summary": [
+      { "menuId": "UI_MP_KTNG_02", "menuNm": "공급 계획 결과 요약 (제품 형태)", "filePath": "/mp/analysisreport/MpKtng02" }
+    ],
+    "ktng_mp_routing": [
+      { "menuId": "UI_MP_KTNG_03", "menuNm": "공급망 라우팅", "filePath": "/datain/master/MpKtng03" }
+    ],
+    "ktng_mp_rtf_adjustment": [
+      { "menuId": "UI_MP_KTNG_04", "menuNm": "RTF 조정", "filePath": "/mp/analysisreport/MpKtng04" }
+    ],
+    "ktng_mp_load_capacity": [
+      { "menuId": "UI_MP_KTNG_05", "menuNm": "공장 부하 / 가동조건", "filePath": "/mp/master/MpKtng05" },
+      { "menuId": "UI_MP_KTNG_07", "menuNm": "설비 부하 / 가동조건", "filePath": "/mp/master/MpKtng07" }
+    ],
+    "ktng_mp_compare_check": [
+      { "menuId": "UI_MP_KTNG_06", "menuNm": "BF & 회귀분석 예측 비교",  "filePath": "/im/inventoryanalysis/MpKtng06" },
+      { "menuId": "UI_MP_KTNG_08", "menuNm": "설비별 정수 부정수 점검", "filePath": "/mp/analysisreport/MpKtng08" }
+    ],
+
+    "ktng_rpt_accuracy": [
+      { "menuId": "UI_RPT_KTNG_01", "menuNm": "Sell Out 예측 정확도",   "filePath": "/report/monitoring/RptKtng01" },
+      { "menuId": "UI_RPT_KTNG_02", "menuNm": "유통재고 정확도 (판매)", "filePath": "/report/monitoring/RptKtng02" },
+      { "menuId": "UI_RPT_KTNG_03", "menuNm": "유통재고 정확도 (재고)", "filePath": "/report/monitoring/RptKtng03" },
+      { "menuId": "UI_RPT_KTNG_04", "menuNm": "수요입력 현황",           "filePath": "/report/monitoring/RptKtng04" },
+      { "menuId": "UI_RPT_KTNG_05", "menuNm": "수요예측 정확도 (전사)", "filePath": "/report/kpi/RptKtng05" },
+      { "menuId": "UI_RPT_KTNG_06", "menuNm": "수요예측 정확도 (6개월)","filePath": "/report/kpi/RptKtng06" }
+    ],
+    "ktng_rpt_execution": [
+      { "menuId": "UI_RPT_KTNG_07", "menuNm": "MP 실행율 (생산)",       "filePath": "/report/kpi/RptKtng07" },
+      { "menuId": "UI_RPT_KTNG_08", "menuNm": "RTF 실행율 (공급)",       "filePath": "/report/kpi/RptKtng08" },
+      { "menuId": "UI_RPT_KTNG_09", "menuNm": "RTF 실행율 (Sell-In)",    "filePath": "/report/kpi/RptKtng09" },
+      { "menuId": "UI_RPT_KTNG_10", "menuNm": "연간계획 진척율 (생산)", "filePath": "/report/kpi/RptKtng10" },
+      { "menuId": "UI_RPT_KTNG_11", "menuNm": "연간계획 진척율 (판매)", "filePath": "/report/kpi/RptKtng11" }
+    ],
+    "ktng_rpt_inventory_days": [
+      { "menuId": "UI_RPT_KTNG_12", "menuNm": "완제품 재고일수 (생산소)",  "filePath": "/report/monitoring/RptKtng12" },
+      { "menuId": "UI_RPT_KTNG_13", "menuNm": "완제품 재고일수 (판매법인)","filePath": "/report/monitoring/RptKtng13" },
+      { "menuId": "UI_RPT_KTNG_14", "menuNm": "완제품 재고일수 (공장)",   "filePath": "/report/monitoring/RptKtng14" },
+      { "menuId": "UI_RPT_KTNG_15", "menuNm": "장기재고 (완제품)",        "filePath": "/report/monitoring/RptKtng15" },
+      { "menuId": "UI_RPT_KTNG_26", "menuNm": "제조일자별 재고 현황 (WMS)","filePath": "/report/workingreport/RptKtng26" }
+    ],
+    "ktng_rpt_psi_working": [
+      { "menuId": "UI_RPT_KTNG_16", "menuNm": "생산 PSI",                  "filePath": "/report/workingreport/RptKtng16" },
+      { "menuId": "UI_RPT_KTNG_17", "menuNm": "생산계획 대비 실적",         "filePath": "/report/workingreport/RptKtng17" },
+      { "menuId": "UI_RPT_KTNG_18", "menuNm": "Global PSI (판매법인)",      "filePath": "/report/workingreport/RptKtng18" },
+      { "menuId": "UI_RPT_KTNG_19", "menuNm": "Global PSI (직수출 유통 O)", "filePath": "/report/workingreport/RptKtng19" },
+      { "menuId": "UI_RPT_KTNG_20", "menuNm": "Global PSI (직수출 유통 X)", "filePath": "/report/workingreport/RptKtng20" },
+      { "menuId": "UI_RPT_KTNG_21", "menuNm": "판매계획 대비 실적",         "filePath": "/report/workingreport/RptKtng21" },
+      { "menuId": "UI_RPT_KTNG_22", "menuNm": "Global PSI (CC/NGP 내수)",   "filePath": "/report/workingreport/RptKtng22" }
+    ],
+    "ktng_rpt_forecast_daily": [
+      { "menuId": "UI_RPT_KTNG_23", "menuNm": "연간 생산전망", "filePath": "/report/workingreport/RptKtng23" },
+      { "menuId": "UI_RPT_KTNG_24", "menuNm": "연간 판매전망", "filePath": "/report/workingreport/RptKtng24" },
+      { "menuId": "UI_RPT_KTNG_25", "menuNm": "Daily 실적",    "filePath": "/report/workingreport/RptKtng25" }
+    ],
+    "ktng_rpt_personalization": [
+      { "menuId": "UI_RPT_KTNG_00", "menuNm": "개인화 버전 관리", "filePath": "/report/RptKtng00" }
+    ]
+  }
+}

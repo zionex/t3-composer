@@ -30,6 +30,7 @@
     "react-hook-form": "7.27.1",
     "react-resizable": "3.0.4",
     "react-router-dom": "5.2.0",
+    "realgrid": "^2.8.8",
     "sanitize-html": "2.11.0",
     "xlsx": "0.18.5",
     "zustand": "4.4.7"

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "T3_PROJECT_ROOT": "$CLAUDE_PROJECT_DIR",
+    "T3_TARGET_REPO": "c:/vs_project/KTNG",
+    "T3_PROJECT_KIND": "ktng",
+    "T3_CURRENT_DB": "mssql",
+    "T3_DB_SCHEMA": "T3SMARTSCM.dbo"
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Grep",
+      "Glob",
+      "WebFetch",
+      "TodoWrite",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git stash*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git tag*)",
+      "Bash(git show*)",
+      "Bash(mvn*)",
+      "Bash(npm*)",
+      "Bash(yarn*)",
+      "Bash(node*)",
+      "Bash(python*)",
+      "Bash(pip*)",
+      "Bash(curl*)",
+      "Bash(grep*)",
+      "Bash(find*)",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(head*)",
+      "Bash(tail*)",
+      "Bash(echo*)",
+      "Bash(mkdir*)",
+      "Bash(cp*)",
+      "Bash(mv*)",
+      "Bash(touch*)",
+      "Bash(chmod*)",
+      "Bash(sed*)",
+      "Bash(awk*)",
+      "Bash(wc*)",
+      "Bash(sort*)",
+      "Bash(uniq*)",
+      "Bash(xargs*)",
+      "Bash(javap*)",
+      "Bash(java*)",
+      "Bash(ps*)",
+      "Bash(env*)",
+      "Bash(which*)",
+      "Bash(pwd)",
+      "Bash(date)",
+      "Bash(whoami)",
+      "Bash(uname*)"
+    ],
+    "deny": [
+      "Bash(rm -rf*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Read(.env)",
+      "Read(**/secrets/**)",
+      "Read(**/*.key)",
+      "Read(**/*.pem)",
+      "Read(**/application-prod.yaml)",
+      "Read(**/application-prod.yml)"
+    ]
+  },
+  "model": "claude-opus-4-7",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude-project/hooks/pre-tool-use-validator.sh",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude-project/hooks/post-tool-use-linter.sh",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude-project/hooks/user-prompt-context-injector.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude-project/hooks/session-start-briefing.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude-project/hooks/stop-checklist-reminder.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  },
+  "_comment": "KTNG (T3Series 25.1.0) 프로젝트용 rule pack. Target repo: C:/vs_project/KTNG. wingui WAR 단독 + jakarta.* + QueryHandler 기반 SP 직접 호출."
+}

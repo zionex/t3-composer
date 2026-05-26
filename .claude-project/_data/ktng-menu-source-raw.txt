@@ -1,0 +1,475 @@
+메뉴 이름	메뉴 Path
+공급망 모델	supplychainmodel
+거점 포장	sitepacking
+계획 정책	planpolicy
+계획 시나리오	planscenario
+수요 예측	baselineforecast
+수요 예측 현황	baselineforecastestate
+사전 분석	eda
+예측 대상 분석	abcanalysis
+판매 실적 분석	salesanalysis
+예측 인자 분석	factoranalysis
+인자 통계 보고서	factorstats
+시뮬레이션	version
+수요 예측	controlboard
+수요 예측 수행	iscontrolboard
+계획 결과	report
+수요 예측 결과 (요약)	accuracyanalysisreport
+수요 예측 결과 (상세)	forecastresult
+예측 에러	forecasterror
+예측 에러 비교	errorcompare
+버전 별 결과 비교	versioncompare
+버전 별 에러 비교	versionerrorcompare
+수요 예측 정확도 (추이)	bfktng03
+수요 예측 정확도 (상세)	accuracy
+판매 계획	demandplan
+판매 현황	salesstate
+판매 계획 현황	demandplanboard
+기준정보	master
+UI_DP_VALIDATION	validation
+Cut-Off & 입력 현황	version
+판매계획 Cut-Off	controlboard
+판매계획 입력 현황	processstatus
+계획 프로세스 설정	controlboardmaster
+계획 정책 설정	planpolicy
+판매계획 입력 로그	entrylog
+판매계획 입력	entry
+판매계획 입력	entry
+판매계획 PSI (직수출 유통 X)	dpktng06
+판매계획 PSI (직수출 유통 O)	dpktng05
+판매계획 PSI (판매법인)	dpktng07
+판매계획 PSI (CC/NGP 내수)	dpktng09
+판매계획 입력 (Chart)	entrychart
+판매계획 보고서 (전체)	allreport
+판매계획 보고서 Chart (전체)	allreportchart
+판매 계획 점검	entrynotify
+보고서	report
+판매 성과	salesperformance
+실적-판매 비교	comparesalesdp
+판매 계획 점검 (거래처)	planchecksales
+판매 계획 점검 (품목)	plancheckitem
+공급가능 분석	rtfanalysis
+버전 별 판매 계획 비교	compareversion
+버전 추이 비교	compareverprogress
+주문-계획 차감 결과	demandorder
+수출 수요 적정성 점검	dpktng15
+내수 수요 적정성 점검	dpktng17
+Stuffing 리포트	dpktng20
+For Developer	developer
+데모데이터 자동 생성	devmakedata
+연간계획	yearlyplan
+Cut-Off & 입력 현황	master
+연간계획 Cut-Off	controlboard
+연간계획 입력 현황	processstatus
+연간계획 입력	entry
+연간계획 입력	entry
+연간계획 입력 (Chart)	entrychart
+연간계획 보고서 (전체)	allreport
+연간계획 보고서 Chart (전체)	allreportchart
+공급 주문 관리	supplyorder
+판매 계획분석	dpanalysis
+공급 주문 변환	sotransform
+공급 주문 분석	soanalysis
+공급 주문 보정	soadjust
+품목별 공급 주문 추이	soitemtrend
+재고 계획	inventoryplan
+재고 현황	inventoryboard
+거점 재고 현황	inventorylocationboard
+기준정보	master
+보충계획 대상 관리	rptarget
+발주 주기 캘린더	ordercyclecalendar
+발주 휴무 캘린더	orderclosingcalendar
+재고 분석	inventoryanalysis
+재고 현황 상세	inventorydetail
+부진 재고 현황	slowmovingstate
+부적 재고 현황	obsolete
+Loss 재고 현황	lossinventory
+반품 재고 현황	returninventory
+ABC-XYZ	analysis
+ABC-XYZ 등급 분류	abcxyz
+ABC-XYZ 분석 상세	abcxyzanalysisresult
+판매 / 출하 실적 일별 추이	salesshippinghistorycheck
+수요 변동성 분석	demandvariabilityanalysis
+공급 변동성 분석	supplyvariabilityanalysis
+BF & 회귀분석 예측 비교	mpktng06
+ABC 등급 분석	preanalysis
+SABC 분석	sabc
+수요 변동성	demandvariability
+공급 변동성	supplyvariability
+재고 정책	planningsimulation
+재고 정책 시나리오 (목표재고)	targetinventorysimulation
+재고 정책 시나리오 (재고모델)	replenishmentpolicy
+재고 정책 시뮬레이션 결과	targetinventoryresult
+재고 정책 시뮬레이션 결과	targetinventoryresultperiod
+재고 정책 시뮬레이션 결과 비교	imsimulationcompare
+재고 정책 기준	inventorypolicy
+재고 정책 상세	inventorypolicydetail
+재고계획 시뮬레이션	inventoryplansimulation
+공급 주문	demandoverview
+계획 정책 관리	planpolicy
+계획 시나리오	planscenario
+기준정보 검증	datavalidation
+결핍 공급 주문 리스트	shortlatereason
+보고서	analysisreport
+주문 추적 분석	demandordertracking
+재고계획 최적 조합 분석	optcombination
+재고계획 결과 분석	optresult
+보충 계획	replenishmentplan
+기준정보	master
+창고 재고	warehousestock
+이동중 재고	intransitstock
+공급 주문	preanalysis
+공급 주문	demandoverview
+공급 주문 분포	demanddistribution
+재고 정책 기준	inventorypolicy
+재고 정책 상세	inventorypolicydetail
+시뮬레이션	planningsimulation
+보충 계획 수행	rpsimulation
+계획 정책	planpolicy
+계획 시나리오	planscenario
+기준정보 검증	datavalidation
+결핍 공급 주문 리스트	shortlatereason
+계획 결과	analysisreport
+보충 계획 버전간 비교	rpcomparative
+공급 주문 추적	demandordertracking
+보충 계획 PSI	rpresult
+보충계획 결과 분석(MP)	rpresultmp
+글로벌 보충계획 PSI	rppsi
+보충 계획 리스트	polist
+품목 현황	itemstatus
+설비별 부하 현황	resstatus
+공급 계획	masterplan
+공급 계획 현황	masterplanboard
+거점별 공급/출하/재고 추이	supplytrend
+공급 주문	preanalysis
+공급 주문	demandoverview
+공급 주문 분포	demanddistribution
+기준정보	master
+설비 우선순위 분석	resreference
+Lot Size별 생산성	productivity
+설비 종합 효율	resefficiency
+적정 재고 관리	optimalinventory
+시뮬레이션	mpsimulation
+공급 계획 수행	mpsimulation
+계획 정책	planpolicy
+계획 시나리오	planscenario
+UI_MP_KPI_SUMMARY	mpkpi
+계획 결과	analysisreport
+공급 계획 버전간 비교	mpcomparative
+공급 계획 결과 요약 (제품 형태)	mpktng02
+공급 계획 결과 상세 (공급 주문)	rtf
+공급 주문 추적	demandordertracking
+결핍 공급 주문 리스트	shortlatereason
+설비 간트 차트	resourcegantt
+공급 주문 조정	shortagemonitoring
+설비 부하 분석	resutilization
+설비별 부하 현황	resstatus
+공급 계획 PSI	mpresult
+품목별 PSI	itemprodctionplanning
+생산지 / 품목별 PSI	resproductionplanning
+공급 주문 계획 결과	plandetail
+품목 현황	itemstatus
+설비별 생산 계획	resprodplan
+반제품 / 재료 가용성 점검	consumptionplan
+문제 현황 비교	problemanalysis
+공급계획 PSI 비교 분석	mppsianalysis
+글로벌 공급계획 PSI 분석	mppsi
+공장 계획 분석	factoryplananalysis
+RTF 조정	mpktng04
+결재 요청 현황	dpktngapv
+설비별 정수 부정수 점검	mpktng08
+공헌이익	contributionmargin
+공헌이익 Summary	cmktng01
+재료비	cmktng02
+마킹비	cmktng03
+하이퍼 인플레이션	cmktng04
+물류비	cmktng05
+관세	cmktng06
+정상자재	cmktng07
+원화가	cmktng08
+Lvl 4 생산지별 공헌이익	cmktng10
+Lvl 4 Unmapping 리스트	cmktng11
+생산 주문 관리	factoryorder
+생산 요청 분석	requestanalysis
+생산 주문 생성	ordercreation
+생산 주문 분석 및 조정	orderadjustment
+생산 요청 넘기 기준 자재 우선도	mrp
+생산 계획	factoryplan
+생산 실적 분석	productperformance
+실행 성과 분석	fpversusperformance
+투입 오더 점검	inputorderboard
+계획 대비 실적	planagainstperformance
+계획 대비 실적 상세	planagainstperformancedetail
+투입 / 생산 현황	inoutstatus
+투입 / 생산 현황 상세	inoutstatusdetail
+재공 투입 / 생산 현황	wipeohout
+시뮬레이션	simulation
+생산 계획 시뮬레이션	simulation
+생산 계획 컨트롤 보드	controlboard
+시뮬레이션 시나리오	simulationscenario
+시뮬레이션 절차	simulationstep
+계획 결과 요약	simulkpi
+문제 현황	planproblemdashboard
+계획 결과 비교	simulationcompare
+생산 계획 보정 (Gantt)	adjustmentgantt
+생산 계획 보정 (그리드)	adjustmentgrid
+문제 현황 (구)	planproblem
+보고서	analysis
+요약 상세	plandetail
+공정(라인)별 계획 결과	planresult
+설비 가동률 (%)	resourceutilization
+재고 사용 현황	stockresult
+반제품 / 재료 가용성 점검	materialpsi
+설비 간트 차트	resourcegantt
+주문 간트 차트	ordergantt
+주문 추적	ordertracking
+품목별 L/T 분석	itemleadtime
+작업교체 정보	jobchangetimeinfo
+설비별 작업 배치	dispatch
+주문 넘기 분석	delivery
+고객별 생산 계획 분석	prodcustomer
+작업 대기 분석	wipprofile
+투입/생산 현황	inoutstatus
+설비별 생산 계획	resprodplan
+생산/판매/재고 보고서	prodsalesstockstatus
+S&OP	snop
+경영 대시보드	executivedashboard
+품목군별 목표 부합 분석	executivedashboard
+S&OP 수요 점검	simulation
+S&OP 시나리오 비교	keymetrics
+판매 현황	salesboard
+대시보드	dashboard
+UI_SA_08	fpversusperformance
+UI_SA_09	inputorderboard
+UI_SA_06	abcxyz
+수요 예측 현황	baselineforecastboard
+판매 계획 현황	demandplanboard
+재고 현황	inventoryboard
+거점 재고 현황	inventorylocationboard
+공급 계획 현황	masterplanboard
+생산 실적 분석	productperformance
+판매계획 대비 실적 추이	salesplanstate
+판매계획 대비 실적 상세	salesplanstatedetail
+RTF 충족율	salesmpplan
+RTF 충족율 상세	salesmpplandetail
+S&OP 일정	calendar
+S&OP 이슈 덱	meeting
+정기판매 분석	ontimesales
+정기판매 분석 상세	ontimesalesdetail
+판매차질 분석	ontimesalesprbl
+판매 성장율 추이	salesgrowthrate
+판매 성장율 추이 상세	salesgrowthratedetail
+공급계획 KPI	supplyplankpi
+확정 MP 후 변경율	supplyplankpidtl1
+확정 MP 이행율	supplyplankpidtl2
+MP/FP 계획 일치율	supplyplankpidtl3
+확정 FP 이행율	supplyplankpidtl4
+확정 생산계획 준수율	supplyplankpidtl5
+공급자재 PSI	supplymatpsi
+자재 Short 상세 현황	supplymatpsidetail
+개요	overview
+공급 대시보드	supplyboard
+수요 대시보드	newsalesboard
+PSI 대시보드	psiboard
+재고 대시보드	invenboard
+KPI 대시보드	kpiboard
+게시판	noticeboard
+리포트	report
+KPI	kpi
+수요예측 정확도 (전사)	rptktng05
+수요예측 정확도 (6개월)	rptktng06
+MP 실행율 (생산)	rptktng07
+연간계획 진척율 (생산)	rptktng10
+연간계획 진척율 (판매)	rptktng11
+RTF 실행율 (공급)	rptktng08
+RTF 실행율 (Sell-In)	rptktng09
+Monitoring	monitoring
+유통재고 정확도 (판매)	rptktng02
+유통재고 정확도 (재고)	rptktng03
+수요입력 현황	rptktng04
+Sell Out 예측 정확도	rptktng01
+장기재고 (완제품)	rptktng15
+완제품 재고일수 (생산소)	rptktng12
+완제품 재고일수 (판매법인)	rptktng13
+완제품 재고일수 (공장)	rptktng14
+Working Report	workingreport
+생산 PSI	rptktng16
+판매계획 대비 실적	rptktng21
+생산계획 대비 실적	rptktng17
+Global PSI (직수출 유통 O)	rptktng19
+Global PSI (직수출 유통 X)	rptktng20
+Global PSI (판매법인)	rptktng18
+Global PSI (CC/NGP 내수)	rptktng22
+연간 생산전망	rptktng23
+연간 판매전망	rptktng24
+Daily 실적	rptktng25
+제조일자별 재고 현황 (WMS)	rptktng26
+개인화 버전 관리	rptktng00
+데이터 통합	dataintegration
+이전 / 실적 데이터	actual
+판매 실적 (고객사/품목)	actualsales
+판매 실적 (거점/품목)	shippingactual
+판매 실적 / 재고 Upload	dpktng01
+창고 재고	warehousestock
+이동중 재고	intransitstock
+확정 계획	wip
+재료 수급 일정	materialsupplycalendar
+공급망 네트워크	network
+환경 설정	generalconfig
+공급망 라우팅	mpktng03
+거점	site
+품목 (완제품, 상품, 반제품, 재료)	item
+UI_CM_ITEM	itemnew
+거점 품목	siteitem
+거점 BOD	sitebod
+거점 이송 L/T	shipmentlt
+거점 출하 일정	siteshipmentschedule
+거점 / 품목 BOD	planningbom
+거점 / 품목 이송 L/T	transportation
+품목 출하 일정	itemshipmentschedule
+출하 통관 휴무 캘린더	shippingcalendar
+수요 출하지	demandmapping
+거점 창고	sitewarehouse
+저장 위치	storagelocation
+공급망 뷰어	supplychainviewer
+PLC 관리	dataplc
+신/구품 PLC 현황	dpktng04
+EOP 생산 수량 관리	dpktng14
+제품 생명주기 조건 관리	dpktng16
+수요 예측	baselineforecast
+환경 설정	config
+기준정보 검증	validation
+품목별 인자	salesfactor
+일자별 인자	datefactor
+판매 실적 보정	actualsales
+예측 대상	forecasttarget
+신-구 품목 매핑	newtargetsalesmap
+추가 인자 설정	factor
+한국 프로모션 계획	bfktng01
+해외 프로모션 계획	bfktng02
+판매 계획	demandplan
+환경 설정	config
+기준정보 검증	validation
+레벨	level
+고객	customer
+품목 계층	itemhierarchy
+품목 (완제품, 상품)	item
+판매 계층	saleshierarchy
+거래처	account
+관리자-판매 관계	salesauthmap
+담당자-품목 관계	useritemmap
+사용자-거래처 관계	useraccountmap
+담당자-품목-거래처 상세 관계	useritemaccountexclude
+영업조직-제품레벨 매핑	dpktng11
+사용자-레벨 관계	userlevelmap
+영업조직-담당자 매핑	dpktng12
+담당자-품목-거래처 매핑	useritemaccountmap
+판가	salesprice
+판가 관리	dpktng02
+환율	exchangerate
+Measure 데이터	measuredata
+Dimension 데이터	dimdata
+Measure 기준 설정	measure
+화면 Dimension 설정	dimensionset
+화면 Measure 설정	measureset
+내수 수요 입력	dpktng18
+환율	dpktng19
+재고 계획	inventoryplan
+환경 설정	generalconfig
+등급 우선 대상	gradetarget
+재고 비용	stockcost
+수요율 산출 기준	demandratebase
+보충 계획	replenishmentplan
+보충 계획 대상	rptarget
+발주 주기 캘린더	ordercyclecalendar
+발주 휴무 캘린더	orderclosingcalendar
+공급 계획	masterplan
+환경 설정	generalconfig
+엔진 기준정보 검증	enginevalidation
+기준정보 마스터	mpktng01
+기준정보 검증	validation
+설비 마스터	resource
+설비 부하 / 가동조건	mpktng07
+공장 부하 / 가동조건	mpktng05
+공정	routing
+품목별 설비 할당 우선순위	itemrespreference
+품목별 Capa. 소모비율 & Lot Size	itemrescapacity
+생산 BOM	productionbom
+생산계획 할당 Rule	dpktng03
+거점 입고 캘린더	siteincomingcalendar
+공장 / 설비 비가동 & 휴무 캘린더	plantrescalendar
+생산지 이전 캘린더	itemproductioncalendar
+품목 분류	itemclassification
+생산주기 & 연속생산	cycleconsecutive
+창고 재고	warehousestock
+혼합생산 (최소화 비)	productmixmin
+이동중 재고	intransitstock
+최대 생산 제약	productmixmax
+공정 분류	routeclassification
+최대 이전 설비	maxopresgrp
+작업교체 시간	jobchangetime
+선행생산 제약	prebuildlimit
+가용성 점검 대상 재료	materialconstraint
+Lvl 4 코드 & 속성 관리	cmktng09
+자재 마스터	mpktng09
+생산 계획	factoryplan
+기준정보 검증	validation
+품목	item
+공정	route
+BOM	bom
+설비	resource
+BOR	bor
+FLO	flo
+설비 캘린더	resourcecalendar
+설비 휴무 관리	resourcedowntime
+작업교체 시간	jobchangetime
+재고	stock
+재공	wip
+주문	order
+환경설정	fpsetting
+데이터 로딩 (CSV)	dataloading
+Excel 임포트 및 익스포트	dataload
+Excel 임포트 이력	dataloadhistory
+데이터 일괄 처리	dataimport
+데이터 일괄 처리 이력	dataimporthistory
+유틸	util
+워크플로우 다이어그램	flowdiagram
+이슈 관리	issuemgmt
+UI_UT_DASHBOARD_MGMT	dashboardtool
+설정	setting
+사용자 & 권한	userrole
+통합 권한 조회	totalpermission
+사용자	users
+사용자 그룹	usergroup
+사용자 권한	userpermission
+사용자 그룹 권한	grouppermission
+사용자 위임	userdelegation
+계획 범위	planscope
+계획 범위	planscope
+계획 범위 - 사용자	planscopeuser
+계획 범위 - 사용자 그룹	planscopeusergroup
+환경 설정	systemconfig
+공통 코드	commoncode
+다국어	multilingual
+그리드 기본 구성 설정	preference
+메뉴 등직	menubadge
+서버	server
+서버 현황	serverstatus
+라이센스	license
+작업 일정	jobschedule
+엔진 실행 내역	enginehistory
+방문 기록	history
+사용자 접속 이력	loginhistory
+화면 실행 시간 이력	timehistory
+관리자 작업 이력	adminhistory
+레이아웃	layout
+위젯	widgetmgmt
+테마 관리	theme
+작업 일정	scheduler
+작업 일정	schedulerjobmgmt
+작업 일정 실행 이력	schedulerjobhistory
+S&OP 이슈 스케줄	schedulerjobcustom
+인터페이스 로그	report
+파일 업로드	fileuploadlog
+배치 로그	batchlog
+수동배치 인터	manualbatch

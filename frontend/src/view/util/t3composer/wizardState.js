@@ -984,13 +984,15 @@ function jsxTypeToFilterType(type, kind) {
   if (kind === 'UserInputField')   return 'DOMAIN_USER';
   if (kind === 'PlanScope')        return 'DOMAIN_PLAN_SCOPE';
   switch ((type || '').toLowerCase()) {
-    case 'select':    return 'DROPDOWN';
-    case 'check':     return 'CHECKBOX';
-    case 'radio':     return 'RADIO';
-    case 'number':    return 'NUMBER';
-    case 'datetime':  return 'DATE';
-    case 'daterange': return 'DATE_RANGE';
-    default:          return 'TEXT';
+    case 'select':       return 'DROPDOWN';
+    case 'multiselect':  return 'MULTISELECT';
+    case 'check':        return 'CHECKBOX';
+    case 'radio':        return 'RADIO';
+    case 'number':       return 'NUMBER';
+    case 'datetime':     return 'DATETIME';
+    case 'daterange':    return 'DATE_RANGE';
+    case 'autocomplete': return 'AUTOCOMPLETE';
+    default:             return 'TEXT';
   }
 }
 

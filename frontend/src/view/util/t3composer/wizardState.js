@@ -848,14 +848,17 @@ export function inferLayoutFromJsx(jsx) {
   const hasPivot = /\bPivotTable\b|\bcrossTab\b|iteration\s*:\s*{/.test(text);
   const hasDashboard = /<DashboardPanel\b/.test(text);
 
-  // SplitPanel 의 direction 검출 — 'vertical' (상하) / 'horizontal' (좌우, default).
-  //   <SplitPanel direction="vertical" ...> 또는 direction='vertical' 또는 direction={...}.
-  //   사용자가 원본에서 상하 구성했는데 'P04' (LAYOUT_H2, 좌우) 로 잘못 추론되는 사고 방어.
-  let splitDirection = 'horizontal';
+  // SplitPanel 의 direction 검출.
+  //   ★ wingui-core SplitPanel 의 default = 'vertical' (=상하 분할 / block flow).
+  //      소스: /workspace/wingui/packages/wingui-core/component/SplitPanel.js
+  //      `direction={direction || "vertical"}` · vertical|미지정 → block, horizontal → flex.
+  //   즉 <SplitPanel> direction 미명시 = 상하 (= V2). 'horizontal' 명시 시에만 좌우 (= P04).
+  //   (이전 default 'horizontal' 은 shim 기준 — 운영 wingui 와 반대라 사고 났음.)
+  let splitDirection = 'vertical';
   if (hasSplit) {
     const m = /<SplitPanel\b[^>]*?\bdirection\s*=\s*(?:["']([^"']+)["']|\{['"]?([^"'{}]+)['"]?\})/.exec(text);
     const d = (m?.[1] || m?.[2] || '').trim().toLowerCase();
-    if (d === 'vertical' || d === 'v') splitDirection = 'vertical';
+    if (d === 'horizontal' || d === 'h') splitDirection = 'horizontal';
   }
 
   let patternCode = 'P02';

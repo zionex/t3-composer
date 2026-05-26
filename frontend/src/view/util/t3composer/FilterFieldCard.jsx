@@ -149,6 +149,28 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
                 fontWeight: 700,
               }}
             />
+            <Chip
+              size="small" label="sp"
+              onClick={() => patchOptions({ source: 'sp' })}
+              sx={{
+                fontSize: 9.5, height: 18, cursor: 'pointer',
+                bgcolor: source === 'sp' ? '#7CA7E0' : '#fff',
+                color:   source === 'sp' ? '#fff' : '#6E7E96',
+                border: source === 'sp' ? 'none' : '1px solid #cbd5e1',
+                fontWeight: 700,
+              }}
+            />
+            <Chip
+              size="small" label="sql"
+              onClick={() => patchOptions({ source: 'sql' })}
+              sx={{
+                fontSize: 9.5, height: 18, cursor: 'pointer',
+                bgcolor: source === 'sql' ? '#7CA7E0' : '#fff',
+                color:   source === 'sql' ? '#fff' : '#6E7E96',
+                border: source === 'sql' ? 'none' : '1px solid #cbd5e1',
+                fontWeight: 700,
+              }}
+            />
           </Stack>
 
           {source === 'inline' && (
@@ -174,6 +196,54 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
               inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
               sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
             />
+          )}
+
+          {source === 'sp' && (
+            <Stack spacing={0.5}>
+              <TextField
+                size="small" variant="outlined"
+                placeholder="SP 이름 (예: SP_UI_CM_50_POP_Q1)"
+                value={options.sp?.name || ''}
+                onChange={(e) => patchOptions({
+                  sp: { ...(options.sp || {}), name: e.target.value.toUpperCase().trim() },
+                })}
+                inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+              />
+              <TextField
+                multiline minRows={2} maxRows={5}
+                placeholder={'파라미터 JSON (선택)\n예: { "planScope": "PS01", "useYn": "Y" }'}
+                value={options.sp?.paramsJson || ''}
+                onChange={(e) => patchOptions({
+                  sp: { ...(options.sp || {}), paramsJson: e.target.value },
+                })}
+                size="small" variant="outlined"
+                inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+              />
+              <Typography sx={{ fontSize: 9.5, color: '#94a3b8' }}>
+                결과 첫 컬럼=value, 두번째=label 가정. 산출 백엔드에 옵션 endpoint 자동 생성됨.
+              </Typography>
+            </Stack>
+          )}
+
+          {source === 'sql' && (
+            <Stack spacing={0.5}>
+              <TextField
+                multiline minRows={3} maxRows={10}
+                placeholder={'SELECT VAL, LBL FROM TB_... WHERE ...\n첫 컬럼=value · 두번째=label'}
+                value={options.sql?.query || ''}
+                onChange={(e) => patchOptions({
+                  sql: { ...(options.sql || {}), query: e.target.value },
+                })}
+                size="small" variant="outlined"
+                inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+              />
+              <Typography sx={{ fontSize: 9.5, color: '#94a3b8' }}>
+                MSSQL 방언. 산출 백엔드 Controller 에 JdbcTemplate.query 옵션 endpoint 자동 생성됨.
+              </Typography>
+            </Stack>
           )}
         </Box>
       )}

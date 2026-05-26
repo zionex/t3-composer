@@ -3042,6 +3042,28 @@ export function specToInitialPrompt(spec) {
           const gc = opt.commonCode.groupCd;
           lines.push(`   옵션 (common_code): GRP_CD=${gc}`);
           lines.push(`   → 화면 onMount 에 zAxios.get('/system/common/codes',{params:{'group-cd':'${gc}'}}) 로 옵션 fetch (rules/21 §3.3)`);
+        } else if (opt.source === 'sp' && opt.sp?.name) {
+          // sp source — 산출 백엔드 Controller 에 옵션 endpoint 자동 생성하도록 LLM 지시.
+          //   ★ 정책: 신규 화면은 wingui 단독 구동 + RestController + JdbcTemplate (rules/41 §1.1).
+          //         별도 callService 사용 안 함.
+          const spName = opt.sp.name;
+          const params = (opt.sp.paramsJson || '').trim();
+          lines.push(`   옵션 (sp): ${spName}${params ? ` · params=${params}` : ''}`);
+          lines.push(`   → 산출 백엔드 Controller 에 옵션 endpoint 추가:`);
+          lines.push(`        GET /<m>/<feat>/options/${it.key.toLowerCase()}`);
+          lines.push(`        → JdbcTemplate.query("EXEC ${spName} ${params ? '?, ?, ...' : ''}", (rs,i) -> Map.of("value", rs.getString(1), "label", rs.getString(2)))`);
+          lines.push(`   → 화면 onMount 에 zAxios.get('<m>/<feat>/options/${it.key.toLowerCase()}').then(r => setOptions(r.data))`);
+          lines.push(`   → 결과 첫 컬럼=value, 두번째=label 가정 (SELECT 절 순서 준수)`);
+        } else if (opt.source === 'sql' && opt.sql?.query) {
+          // sql source — 산출 백엔드 Controller 에 endpoint + JdbcTemplate.query 직접 실행.
+          const sql = opt.sql.query.trim();
+          lines.push(`   옵션 (sql): 다음 SQL 실행 (MSSQL)`);
+          sql.split(/\r?\n/).forEach((row) => lines.push(`        ${row}`));
+          lines.push(`   → 산출 백엔드 Controller 에 옵션 endpoint 추가:`);
+          lines.push(`        GET /<m>/<feat>/options/${it.key.toLowerCase()}`);
+          lines.push(`        → JdbcTemplate.query("<위 SQL>", (rs,i) -> Map.of("value", rs.getString(1), "label", rs.getString(2)))`);
+          lines.push(`   → 화면 onMount 에 zAxios.get('<m>/<feat>/options/${it.key.toLowerCase()}').then(r => setOptions(r.data))`);
+          lines.push(`   → 결과 첫 컬럼=value, 두번째=label 가정 (SELECT 절 순서 준수)`);
         }
       }
     });

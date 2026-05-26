@@ -599,6 +599,11 @@ export function createInitialSpecFromSource({
     const layoutConfig = spec.step1_layout.layoutConfig;
     const COLS = layoutConfig.cols || 12;
     const ROWS = 12;
+    // 원본 JSX 의 SplitPanel direction 또는 단순 상하 배치 검출 — 'V2' / 'P04' 결정.
+    //   inferLayoutFromJsx 에서 추론된 patternCode 가 'V2' 면 baseGrids 2개도 상하 배치.
+    //   (이전: baseGrids 2개면 무조건 좌우 강제 — direction='vertical' 원본도 좌우로 overwrite 사고.)
+    const inferredPattern = spec.step1_layout.patternCode;
+    const isVertical = inferredPattern === 'V2';
     let newLayers;
     if (baseGrids.length === 1) {
       newLayers = [{
@@ -606,14 +611,21 @@ export function createInitialSpecFromSource({
         title: baseGrids[0], componentType: 'GRID_BASE',
       }];
     } else if (baseGrids.length === 2) {
-      newLayers = [
-        { key: baseGrids[0], x: 0,        y: 0, w: COLS / 2, h: ROWS,
-          title: baseGrids[0], componentType: 'GRID_BASE' },
-        { key: baseGrids[1], x: COLS / 2, y: 0, w: COLS / 2, h: ROWS,
-          title: baseGrids[1], componentType: 'GRID_BASE' },
-      ];
+      newLayers = isVertical
+        ? [  // 상하 (같은 x, 다른 y)
+            { key: baseGrids[0], x: 0, y: 0,         w: COLS, h: ROWS / 2,
+              title: baseGrids[0], componentType: 'GRID_BASE' },
+            { key: baseGrids[1], x: 0, y: ROWS / 2,  w: COLS, h: ROWS / 2,
+              title: baseGrids[1], componentType: 'GRID_BASE' },
+          ]
+        : [  // 좌우 (같은 y, 다른 x)
+            { key: baseGrids[0], x: 0,        y: 0, w: COLS / 2, h: ROWS,
+              title: baseGrids[0], componentType: 'GRID_BASE' },
+            { key: baseGrids[1], x: COLS / 2, y: 0, w: COLS / 2, h: ROWS,
+              title: baseGrids[1], componentType: 'GRID_BASE' },
+          ];
     } else {
-      // 3개 이상 — 좌우/상하 분할 단순 매핑
+      // 3개 이상 — 좌우/상하 분할 단순 매핑 (격자)
       newLayers = baseGrids.slice(0, 4).map((id, i) => ({
         key: id,
         x: (i % 2) * (COLS / 2), y: Math.floor(i / 2) * (ROWS / 2),
@@ -851,6 +863,15 @@ export function inferLayoutFromJsx(jsx) {
   else if (hasSplit) patternCode = splitDirection === 'vertical' ? 'V2' : 'P04';
   else if (hasTabs)  patternCode = 'P03';
   else if (hasPivot) patternCode = 'P06';
+
+  // 디버깅 — prefill 진단용. 사용자가 콘솔에서 원본 JSX 의 detect 결과 확인 가능.
+  if (typeof console !== 'undefined' && console.info) {
+    const head = text.slice(0, 200).replace(/\s+/g, ' ');
+    console.info('[Composer inferLayoutFromJsx]', {
+      patternCode, hasSplit, splitDirection, hasTabs, hasPivot, hasDashboard,
+      textLen: text.length, head,
+    });
+  }
 
   const layoutConfig = defaultLayoutConfigForPattern(patternCode);
   return {

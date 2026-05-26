@@ -1,0 +1,274 @@
+{
+  "_comment": "PLANNEL saas-web 의 화면 ~130개를 42 mockup 패턴으로 그룹화 (R1~R7 전체 완성). T3SmartSCM/KTNG 식 매핑 패턴 동일.",
+  "stats": {
+    "plannelMenus": 130,
+    "mockupPatterns": 42,
+    "completedRounds": 7,
+    "totalMenusMapped": 135
+  },
+
+  "mockupToMenus": {
+
+    "plannel_dm_master_basic": [
+      { "menuId": "DM_ITEM_MASTER",       "menuNm": "Item Master",       "filePath": "/data-management/ItemMaster" },
+      { "menuId": "DM_CUSTOMER_MASTER",   "menuNm": "Customer Master",   "filePath": "/data-management/CustomerMaster" },
+      { "menuId": "DM_SITE_MASTER",       "menuNm": "Site Master",       "filePath": "/data-management/SiteMaster" },
+      { "menuId": "DM_LOCATION_MASTER",   "menuNm": "Location Master",   "filePath": "/data-management/LocationMaster" },
+      { "menuId": "DM_WORKCENTER_MASTER", "menuNm": "Workcenter Master", "filePath": "/data-management/WorkcenterMaster" },
+      { "menuId": "DM_RESOURCE",          "menuNm": "Resource",          "filePath": "/data-management/Resource" },
+      { "menuId": "DM_SUPPLIER_MASTER",   "menuNm": "Supplier Master",   "filePath": "/data-management/SupplierMaster" }
+    ],
+
+    "plannel_dm_hierarchy_tree": [
+      { "menuId": "DM_HRCHY_CONFIG",        "menuNm": "Hierarchy Config",          "filePath": "/data-management/HrchyConfig" },
+      { "menuId": "DM_ITEM_HRCHY_MASTER",   "menuNm": "Item Hierarchy Master",     "filePath": "/data-management/ItemHrchyMaster" },
+      { "menuId": "DM_CUSTOMER_HRCHY",      "menuNm": "Customer Hierarchy Master", "filePath": "/data-management/CustomerHrchyMaster" }
+    ],
+
+    "plannel_dm_calendar_rate": [
+      { "menuId": "DM_CALENDAR_MASTER",       "menuNm": "Cycle Calendar Master",  "filePath": "/data-management/CycleCalendarMaster" },
+      { "menuId": "DM_CALENDAR_GROUP_MASTER", "menuNm": "Calendar Group Master",  "filePath": "/data-management/CalendarGroupMaster" },
+      { "menuId": "DM_EXCHANGE_RATE",         "menuNm": "Exchange Rate",          "filePath": "/data-management/ExchangeRate" },
+      { "menuId": "DM_UNIT_PRICE",            "menuNm": "Unit Price",             "filePath": "/data-management/UnitPrice" }
+    ],
+
+    "plannel_dm_relation_link": [
+      { "menuId": "DM_CUSTOMER_ITEM",        "menuNm": "Customer Item",                 "filePath": "/data-management/CustomerItem" },
+      { "menuId": "DM_LOCATION_ITEM",        "menuNm": "Location Item",                 "filePath": "/data-management/LocationItem" },
+      { "menuId": "DM_CUSTOMER_LOCATION",    "menuNm": "Customer Location",             "filePath": "/data-management/CustomerLocation" },
+      { "menuId": "DM_SUPPLIER_ITEM_MASTER", "menuNm": "Supplier Item Master",          "filePath": "/data-management/SupplierItemMaster" },
+      { "menuId": "DM_HRCHY_PERMISSION",     "menuNm": "Customer Hierarchy Permission", "filePath": "/data-management/HrchyPermission" }
+    ],
+
+    "plannel_dm_bom_route": [
+      { "menuId": "DM_BOM_MASTER",  "menuNm": "BOM Master",  "filePath": "/data-management/BomMaster" },
+      { "menuId": "DM_BOM_DETAIL",  "menuNm": "BOM Detail",  "filePath": "/data-management/BomDetail" },
+      { "menuId": "DM_ROUTE",       "menuNm": "Route",       "filePath": "/data-management/Route" },
+      { "menuId": "DM_ROUTING",     "menuNm": "Routing",     "filePath": "/data-management/ProdRouting" },
+      { "menuId": "DM_BOD_MASTER",  "menuNm": "BOD Master",  "filePath": "/data-management/BodMaster" },
+      { "menuId": "DM_BOD_ITEM",    "menuNm": "BOD Item",    "filePath": "/data-management/BodItem" }
+    ],
+
+    "plannel_dm_planning_grid": [
+      { "menuId": "DM_SALES_PLAN_MASTER",      "menuNm": "Sales Plan Master",      "filePath": "/data-management/SalesPlanMaster" },
+      { "menuId": "DM_FINANCE_PLAN_MASTER",    "menuNm": "Finance Plan Master",    "filePath": "/data-management/FinancePlanMaster" },
+      { "menuId": "DM_PURCHASE_BUDGET",        "menuNm": "Purchase Budget",        "filePath": "/data-management/PurchaseBudget" },
+      { "menuId": "DM_MATERIAL_RECEIPT_PLAN",  "menuNm": "Material Receipt Plan",  "filePath": "/data-management/MaterialReceiptPlan" }
+    ],
+
+    "plannel_dm_transaction_log": [
+      { "menuId": "DM_SALES_TRANSACTION",     "menuNm": "Sales Transaction Master",     "filePath": "/data-management/SalesTransactionMaster" },
+      { "menuId": "DM_INVENTORY_TRANSACTION", "menuNm": "Inventory Transaction Master", "filePath": "/data-management/InventoryTransactionMaster" },
+      { "menuId": "DM_SHIPMENT_TRANSACTION",  "menuNm": "Shipment Transaction Master",  "filePath": "/data-management/ShipmentTransactionMaster" },
+      { "menuId": "DM_PROD_ORDER",            "menuNm": "Production Order",             "filePath": "/data-management/ProdOrder" },
+      { "menuId": "DM_PURCHASE_ORDER_MASTER", "menuNm": "Purchase Order Master",        "filePath": "/data-management/PurchaseOrderMaster" },
+      { "menuId": "DM_INTRANSIT_INVENTORY",   "menuNm": "Intransit Inventory Master",   "filePath": "/data-management/IntransitInventoryMaster" },
+      { "menuId": "DM_BF_FEATURE_DATE",       "menuNm": "BF Feature Date",              "filePath": "/data-management/BfFeatureDate" },
+      { "menuId": "DM_BF_FEATURE_SALES",      "menuNm": "BF Feature Sales",             "filePath": "/data-management/BfFeatureSales" }
+    ],
+
+    "plannel_dp_settings": [
+      { "menuId": "DP_SETTINGS",              "menuNm": "DP Settings",            "filePath": "/demand-plan/dp-config/DpSettings" },
+      { "menuId": "DP_BF_SETTINGS",           "menuNm": "BF Settings",            "filePath": "/demand-plan/dp-config/BfSettings" },
+      { "menuId": "DP_TARGET_ITEM_SELECTION", "menuNm": "Target Item Selection",  "filePath": "/demand-plan/dp-config/TargetItemSelection" },
+      { "menuId": "DP_PLAN_HORIZON_SELECT",   "menuNm": "Plan Horizon Select",    "filePath": "/demand-plan/dp-config/PlanHorizonSelect" }
+    ],
+
+    "plannel_bf_config": [
+      { "menuId": "DP_BF_ALGORITHM_SETTINGS", "menuNm": "BF Algorithm Settings",  "filePath": "/demand-plan/dp-config/BfAlgorithmSettings" },
+      { "menuId": "DP_BF_TRAINING_ADJ",       "menuNm": "BF Training Adjustment", "filePath": "/demand-plan/dp-config/BfTrainingAdjustment" },
+      { "menuId": "DP_ACCESS_CONTROL_ADMIN",  "menuNm": "Access Control Admin",   "filePath": "/demand-plan/dp-config/AccessControlAdmin" }
+    ],
+
+    "plannel_dp_workbench": [
+      { "menuId": "DP_WORKBENCH",             "menuNm": "DP Workbench",                  "filePath": "/demand-plan/dp-workbench/Workbench" },
+      { "menuId": "DP_WORKBENCH_EDITABLE",    "menuNm": "Workbench Editable",            "filePath": "/demand-plan/dp-workbench/WorkbenchEditable" },
+      { "menuId": "DP_VERSION_SELECT",        "menuNm": "DP Version Select",             "filePath": "/demand-plan/dp-workbench/DpVersionSelect" },
+      { "menuId": "DP_SCENARIO_COM",          "menuNm": "Scenario Comparison Dashboard", "filePath": "/demand-plan/demand-management/ScenarioComDashboard" }
+    ],
+
+    "plannel_dp_review": [
+      { "menuId": "DP_BF_REVIEW",             "menuNm": "BF Review",             "filePath": "/demand-plan/demand-management/BfReview" },
+      { "menuId": "DP_PROCESS_MGMT",          "menuNm": "DP Process Management", "filePath": "/demand-plan/demand-management/DpProcessMgmt" },
+      { "menuId": "DP_LIFECYCLE_MGMT",        "menuNm": "Lifecycle Management",  "filePath": "/demand-plan/demand-management/LifecycleMgmt" }
+    ],
+
+    "plannel_dp_monitoring": [
+      { "menuId": "DP_STATUS_DASHBOARD",      "menuNm": "DP Status Dashboard",   "filePath": "/demand-plan/demand-management/DpStatusDashboard" }
+    ],
+
+    "plannel_bf_accuracy": [
+      { "menuId": "DP_BF_ACCURACY_REPORT",    "menuNm": "BF Accuracy Report",    "filePath": "/demand-plan/dp-reports/BfAccuracyReport" },
+      { "menuId": "DP_BF_LEADERBOARD",        "menuNm": "BF Leaderboard",        "filePath": "/demand-plan/dp-reports/BfLeaderboard" },
+      { "menuId": "DP_NPI_HISTORY",           "menuNm": "NPI History",           "filePath": "/demand-plan/dp-config/NpiHistory" }
+    ],
+
+    "plannel_dp_reports": [
+      { "menuId": "DP_PLAN_VS_ACTUAL",        "menuNm": "DP Plan vs Actual",     "filePath": "/demand-plan/dp-reports/DpPlanVsActual" },
+      { "menuId": "DP_TRACKING_REPORT",       "menuNm": "DP Tracking Report",    "filePath": "/demand-plan/dp-reports/DpTrackingReport" },
+      { "menuId": "DP_ITEM_CUSTOMER_SUMMARY", "menuNm": "Item Customer Summary", "filePath": "/demand-plan/dp-salesAnalysis/ItemCustomerSummary" },
+      { "menuId": "DP_BF_FEATURE_ANALYSIS",   "menuNm": "BF Feature Analysis",   "filePath": "/demand-plan/dp-salesAnalysis/BfFeatureAnalysis" }
+    ],
+
+    "plannel_sales_analysis": [
+      { "menuId": "DP_TOP_LEVEL_ITEM",        "menuNm": "Top Level Item Analysis","filePath": "/demand-plan/dp-salesAnalysis/TopLevelItem" }
+    ],
+
+    "plannel_rp_settings": [
+      { "menuId": "RP_SETTINGS",             "menuNm": "RP Settings",             "filePath": "/replenishment-plan/rp-configuration/RpSettings" },
+      { "menuId": "RP_POLICY",               "menuNm": "RP Policy",               "filePath": "/replenishment-plan/rp-configuration/RpPolicy" },
+      { "menuId": "RP_DISTRIBUTION_NETWORK", "menuNm": "RP Distribution Network", "filePath": "/replenishment-plan/rp-configuration/RpDistributionNetwork" }
+    ],
+
+    "plannel_rp_create": [
+      { "menuId": "RP_DEMAND",   "menuNm": "RP Demand",  "filePath": "/replenishment-plan/create-plan/RpDemand" },
+      { "menuId": "RP_RUN",      "menuNm": "Run RP",     "filePath": "/replenishment-plan/create-plan/RunRp" },
+      { "menuId": "RP_REVIEW",   "menuNm": "RP Review",  "filePath": "/replenishment-plan/create-plan/RpReview" }
+    ],
+
+    "plannel_rp_workbench": [
+      { "menuId": "RP_WORKBENCH", "menuNm": "RP Workbench", "filePath": "/replenishment-plan/exception-management/RpWorkbench" }
+    ],
+
+    "plannel_rp_exceptions": [
+      { "menuId": "RP_INV_EXCEPTIONS",        "menuNm": "Inventory Exceptions",        "filePath": "/replenishment-plan/exception-management/InventoryExceptions" },
+      { "menuId": "RP_INV_EXCEPTIONS_DETAIL", "menuNm": "Inventory Exceptions Detail", "filePath": "/replenishment-plan/exception-management/InventoryExceptionsDetail" },
+      { "menuId": "RP_PSI_SIMULATION",        "menuNm": "PSI Simulation",              "filePath": "/replenishment-plan/exception-management/PsiSimulation" }
+    ],
+
+    "plannel_rp_reports": [
+      { "menuId": "RP_ORDER_LIST",            "menuNm": "RP Order List",             "filePath": "/replenishment-plan/reports/RpOrderList" },
+      { "menuId": "RP_PLAN_VS_ACTUAL",        "menuNm": "RP Plan vs Actual",         "filePath": "/replenishment-plan/reports/RpPlanVsActual" },
+      { "menuId": "RP_MONTHLY_TREND",         "menuNm": "RP Monthly Trend",          "filePath": "/replenishment-plan/reports/RpMonthlyTrend" },
+      { "menuId": "RP_PROCUREMENT_STATUS",    "menuNm": "Procurement Status Report", "filePath": "/replenishment-plan/reports/ProcurementStatusReport" },
+      { "menuId": "RP_EXPIRED_INVENTORY",     "menuNm": "Expired Inventory",         "filePath": "/replenishment-plan/reports/ExpiredInventory" }
+    ],
+
+    "plannel_rp_fill_rate": [
+      { "menuId": "RP_FILL_RATE_DASHBOARD",   "menuNm": "Fill Rate Dashboard",              "filePath": "/replenishment-plan/exception-management/FillRateDashboard" },
+      { "menuId": "RP_SCENARIO_COMP",         "menuNm": "RP Scenario Comparison Dashboard", "filePath": "/replenishment-plan/plan-release/RpScenarioCompDashboard" }
+    ],
+
+    "plannel_mp_settings": [
+      { "menuId": "MP_SETTINGS",              "menuNm": "MP Settings",          "filePath": "/master-plan/mp-configuration/MpSettings" },
+      { "menuId": "MP_MATERIAL_CONSTRAINTS",  "menuNm": "Material Constraints", "filePath": "/master-plan/mp-configuration/MaterialConstraints" },
+      { "menuId": "MP_DEMAND_PRIORITY",       "menuNm": "Demand Priority",      "filePath": "/master-plan/mp-configuration/DemandPriority" }
+    ],
+
+    "plannel_mp_create": [
+      { "menuId": "MP_DEMAND",  "menuNm": "MP Demand", "filePath": "/master-plan/create-plan/MpDemand" },
+      { "menuId": "MP_RUN",     "menuNm": "Run MP",    "filePath": "/master-plan/create-plan/RunMP" },
+      { "menuId": "MP_REVIEW",  "menuNm": "MP Review", "filePath": "/master-plan/create-plan/MpReview" }
+    ],
+
+    "plannel_mp_exceptions": [
+      { "menuId": "MP_PROD_EXCEPTIONS",        "menuNm": "Production Exceptions",        "filePath": "/master-plan/exception-management/ProductionExceptions" },
+      { "menuId": "MP_PROD_EXCEPTIONS_DETAIL", "menuNm": "Production Exceptions Detail", "filePath": "/master-plan/exception-management/ProductionExceptionsDetail" },
+      { "menuId": "MP_PSI_SIMULATION",         "menuNm": "MP PSI Simulation",            "filePath": "/master-plan/exception-management/MpPsiSimulation" }
+    ],
+
+    "plannel_mp_reports": [
+      { "menuId": "MP_MRP_ORDER_LIST",     "menuNm": "MRP Order List",           "filePath": "/master-plan/reports/MrpOrderList" },
+      { "menuId": "MP_MRP_REPORT",         "menuNm": "MRP Report",               "filePath": "/master-plan/reports/MrpReport" },
+      { "menuId": "MP_ORDER_TRACKING",     "menuNm": "Order Tracking",           "filePath": "/master-plan/reports/OrderTracking" },
+      { "menuId": "MP_RESOURCE_PROD_PLAN", "menuNm": "Resource Production Plan", "filePath": "/master-plan/reports/ResourceProductionPlan" }
+    ],
+
+    "plannel_mp_scenario": [
+      { "menuId": "MP_SCENARIO_COMP",      "menuNm": "MP Scenario Comparison Dashboard","filePath": "/master-plan/plan-release/MpScenarioComDashboard" }
+    ],
+
+    "plannel_ip_settings": [
+      { "menuId": "IP_SETTINGS", "menuNm": "IP Settings", "filePath": "/inventory-plan/ip-config/IpSettings" }
+    ],
+
+    "plannel_ip_analysis": [
+      { "menuId": "IP_INV_OVERVIEW",         "menuNm": "Inventory Overview",            "filePath": "/inventory-plan/inventory-analysis/InventoryOverview" },
+      { "menuId": "IP_INV_MGMT_OVERVIEW",    "menuNm": "Inventory Management Overview", "filePath": "/inventory-plan/inventory-analysis/InventoryManagementOverview" },
+      { "menuId": "IP_MONTHLY_TREND",        "menuNm": "Monthly Trend",                 "filePath": "/inventory-plan/inventory-analysis/MonthlyByTrend" },
+      { "menuId": "IP_MONTHLY_TREND_DETAIL", "menuNm": "Monthly Trend Detail",          "filePath": "/inventory-plan/inventory-analysis/MonthlyByTrendDetail" },
+      { "menuId": "IP_SALES_COMPARISON",     "menuNm": "Sales Comparison",              "filePath": "/inventory-plan/inventory-analysis/SalesComparison" },
+      { "menuId": "IP_SLOW_MOVING",          "menuNm": "Slow Moving Inventory",         "filePath": "/inventory-plan/inventory-analysis/SlowMovingInventory" },
+      { "menuId": "IP_SUPPLY_INVENTORY",     "menuNm": "Supply Inventory",              "filePath": "/inventory-plan/inventory-analysis/SupplyInventory" }
+    ],
+
+    "plannel_ip_abc_xyz": [
+      { "menuId": "IP_ABC_XYZ_SCENARIOS",    "menuNm": "ABC-XYZ Analysis Scenarios", "filePath": "/inventory-plan/abc-xyz-analysis/AbcXyzAnalysisScenarios" },
+      { "menuId": "IP_ABC_XYZ_RESULTS",      "menuNm": "ABC-XYZ Analysis Results",   "filePath": "/inventory-plan/abc-xyz-analysis/AbcXyzAnalysisResults" }
+    ],
+
+    "plannel_ip_evaluation": [
+      { "menuId": "IP_TARGET_INV_EVAL",        "menuNm": "Target Inventory Evaluation",         "filePath": "/inventory-plan/inventory-evaluation/TargetInventoryEvaluation" },
+      { "menuId": "IP_TARGET_INV_EVAL_RESULT", "menuNm": "Target Inventory Evaluation Result",  "filePath": "/inventory-plan/inventory-evaluation/TargetInventoryEvaluationResult" }
+    ],
+
+    "plannel_ip_simulation": [
+      { "menuId": "IP_TARGET_INV_SIM",         "menuNm": "Target Inventory Simulation",         "filePath": "/inventory-plan/inventory-simulation/TargetInventorySimulation" },
+      { "menuId": "IP_TARGET_INV_SIM_RESULTS", "menuNm": "Target Inventory Simulation Results", "filePath": "/inventory-plan/inventory-simulation/TargetInventorySimulationResults" },
+      { "menuId": "IP_SCENARIO_AI_RECOMMEND",  "menuNm": "IP Scenario AI Recommend",            "filePath": "/inventory-plan/inventory-simulation/IpScenarioAiRecommend" }
+    ],
+
+    "plannel_ip_comparison": [
+      { "menuId": "IP_COMPARISON_DASHBOARD",   "menuNm": "IP Comparison Dashboard",             "filePath": "/inventory-plan/inventory-simulation/IPComparisonDashboard" }
+    ],
+
+    "plannel_auth_signin": [
+      { "menuId": "SYS_SIGNIN",          "menuNm": "Sign In",                   "filePath": "/system/Signin" },
+      { "menuId": "SYS_SIGNUP",          "menuNm": "Sign Up",                   "filePath": "/system/Signup" },
+      { "menuId": "SYS_FORGOT_PASSWORD", "menuNm": "Forgot Password",           "filePath": "/system/ForgotPassword" },
+      { "menuId": "SYS_RESET_PASSWORD",  "menuNm": "Reset Password",            "filePath": "/system/ResetPassword" },
+      { "menuId": "SYS_HELP_SIGNIN",     "menuNm": "Help Sign In",              "filePath": "/system/HelpSignin" },
+      { "menuId": "SYS_MAIL_AUTH",       "menuNm": "Mail Authentication",       "filePath": "/system/MailAuthentication" },
+      { "menuId": "SYS_TWO_FACTOR_AUTH", "menuNm": "Two Factor Authentication", "filePath": "/system/TwoFactorAuthentication" },
+      { "menuId": "SYS_SIGNIN_POLICY",   "menuNm": "Sign In Policy",            "filePath": "/system/SignInPolicy" },
+      { "menuId": "SYS_AUTHENTICATION",  "menuNm": "Authentication",            "filePath": "/system/Authentication" }
+    ],
+
+    "plannel_user_mgmt": [
+      { "menuId": "SYS_USER_MGMT",         "menuNm": "User Management",   "filePath": "/system/UserMgmt" },
+      { "menuId": "SYS_PERSONAL_SETTINGS", "menuNm": "Personal Settings", "filePath": "/system/PersonalSettings" },
+      { "menuId": "SYS_CHANGE_PASSWORD",   "menuNm": "Change Password",   "filePath": "/system/ChangePassword" },
+      { "menuId": "SYS_COMPANY_PROFILE",   "menuNm": "Company Profile",   "filePath": "/system/CompanyProfile" }
+    ],
+
+    "plannel_schedule": [
+      { "menuId": "SYS_SCHEDULE_SETTINGS", "menuNm": "Schedule Settings", "filePath": "/system/ScheduleSettings" },
+      { "menuId": "SYS_SCHEDULE_HISTORY",  "menuNm": "Schedule History",  "filePath": "/system/ScheduleHistory" }
+    ],
+
+    "plannel_audit": [
+      { "menuId": "SYS_AUDIT_TRAIL",       "menuNm": "Audit Trail",       "filePath": "/system/AuditTrail" },
+      { "menuId": "SYS_AUDIT_DIFFERENCE",  "menuNm": "Audit Difference",  "filePath": "/system/AuditDifference" }
+    ],
+
+    "plannel_version_mgmt": [
+      { "menuId": "SYS_VERSION_MGMT",      "menuNm": "Version Management","filePath": "/system/VersionMgmt" }
+    ],
+
+    "plannel_dashboards": [
+      { "menuId": "DASH_INTEGRATED", "menuNm": "Integrated Dashboard", "filePath": "/dashboard/Dashboard" },
+      { "menuId": "DASH_DP",         "menuNm": "DP Dashboard",         "filePath": "/dashboard/DpDashboard" },
+      { "menuId": "DASH_RP",         "menuNm": "RP Dashboard",         "filePath": "/dashboard/RpDashboard" },
+      { "menuId": "DASH_IP",         "menuNm": "IP Dashboard",         "filePath": "/dashboard/IPDashboard" }
+    ],
+
+    "plannel_data_validation": [
+      { "menuId": "DL_DATA_VALIDATION",      "menuNm": "Data Validation",      "filePath": "/data-load/DataValidation" },
+      { "menuId": "DL_DATA_LOAD_VALIDATION", "menuNm": "Data Load Validation", "filePath": "/data-load/DataLoadValidation" }
+    ],
+
+    "plannel_data_transform": [
+      { "menuId": "DL_DATA_TRANSFORM",       "menuNm": "Data Transform",       "filePath": "/data-load/DataTransform" }
+    ],
+
+    "plannel_data_history": [
+      { "menuId": "DL_DATA_HISTORY",         "menuNm": "Data History",         "filePath": "/data-load/DataHistory" },
+      { "menuId": "DL_TRANSFORM_HISTORY",    "menuNm": "Transform History",    "filePath": "/data-load/TransformHistory" }
+    ],
+
+    "plannel_system_error": [
+      { "menuId": "SYS_NOT_FOUND",           "menuNm": "Not Found (404)",      "filePath": "/system/NotFound" }
+    ]
+
+  }
+}

@@ -21,6 +21,8 @@ import { lazy } from 'react';
 import menuMappingJson from './_data/t3smartscm-menu-mapping.json';
 // KTNG 운영 메뉴 ↔ mockup 매핑 (수동 작성, .claude-project/_data/ktng-menu-source-raw.txt 기반)
 import ktngMenuMappingJson from './_data/ktng-menu-mapping.json';
+// PLANNEL 운영 메뉴 ↔ mockup 매핑 (R1: Data Management 7 mockup)
+import plannelMenuMappingJson from './_data/plannel-menu-mapping.json';
 
 // ─────────────────────────────────────────
 // T3SmartSCM — Phase 1~4a 산출물 (54개 mockup)
@@ -553,10 +555,191 @@ const T3SMART_SCM_ENTRIES = [
 ];
 
 // ─────────────────────────────────────────
-// PlaNEL — 향후 작업 placeholder
+// PlaNEL — PLANNEL saas-web 화면 ~130개 → ~42 mockup 패턴 (단계적 진행)
+// 현재 R1: Data Management 7 mockup (37 메뉴 커버)
+// 다음 라운드: R2 Demand Plan (8) · R3 Replen Plan (6) · R4 Master Plan (5) · R5 Inv Plan (6) · R6 System+AI (5) · R7 Dashboard+DataLoad (5)
 // ─────────────────────────────────────────
 const PLANEL_ENTRIES = [
-  // 향후 PlaNEL 화면 mockup 추가 예정. 추가 시 productLine: 'PlaNEL' 자동 부여됨
+  { patternCode: 'plannel_dm_master_basic',     patternLabel: 'PlaNEL — DM 기본 마스터 (Item/Customer/Site/Location/Workcenter/Resource/Supplier)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 7,
+    description: '기본 마스터 CRUD — 단일 BaseGrid + 검색조건 + Add/Save/Delete',
+    component: lazy(() => import('./_planel/plannel_dm_master_basic/DmMasterBasicMockup')) },
+  { patternCode: 'plannel_dm_hierarchy_tree',   patternLabel: 'PlaNEL — DM 계층 마스터 (Hrchy Config / Item Hrchy / Customer Hrchy)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 3,
+    description: '좌측 계층 TreeGrid + 우측 디테일 폼. LV1~LV5 정의 → 노드 클릭 시 우측 속성',
+    component: lazy(() => import('./_planel/plannel_dm_hierarchy_tree/DmHierarchyTreeMockup')) },
+  { patternCode: 'plannel_dm_calendar_rate',    patternLabel: 'PlaNEL — DM 시계열 마스터 (Calendar / Calendar Group / Exchange Rate / Unit Price)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 4,
+    description: '상단 마스터 헤더 + 하단 기간별 매트릭스. 일자/주차/월 column iteration',
+    component: lazy(() => import('./_planel/plannel_dm_calendar_rate/DmCalendarRateMockup')) },
+  { patternCode: 'plannel_dm_relation_link',    patternLabel: 'PlaNEL — DM 관계 마스터 (Customer-Item / Location-Item / Customer-Location / Supplier-Item / Hrchy Perm)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 5,
+    description: '좌측 부모 마스터 + 우측 연결 자식 cross. 좌측 선택 → 우측 체크박스로 연결',
+    component: lazy(() => import('./_planel/plannel_dm_relation_link/DmRelationLinkMockup')) },
+  { patternCode: 'plannel_dm_bom_route',        patternLabel: 'PlaNEL — DM BOM/Route (BOM Master / BOM Detail / Route / Routing / BOD Master / BOD Item)',
+    layoutCategory: 'LAYOUT_ROUTELAYOUT', category: 'domain', usage: 6,
+    description: 'BOM / 공정 라우트 다이어그램. FLODiagram 풍 트리 + 노드별 detail',
+    component: lazy(() => import('./_planel/plannel_dm_bom_route/DmBomRouteMockup')) },
+  { patternCode: 'plannel_dm_planning_grid',    patternLabel: 'PlaNEL — DM 시계열 계획 입력 (Sales Plan / Finance Plan / Purchase Budget / Material Receipt)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 4,
+    description: '시계열 매트릭스 입력 — 좌측 고정 + 시간 버킷 피벗 + 직접 편집 셀',
+    component: lazy(() => import('./_planel/plannel_dm_planning_grid/DmPlanningGridMockup')) },
+  { patternCode: 'plannel_dm_transaction_log',  patternLabel: 'PlaNEL — DM 거래 로그 (Sales/Inventory/Shipment/Prod/Purchase/Intransit/BF Feature 8종)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 8,
+    description: '대량 거래 로그 그리드 — 필터 다중 + 페이지네이션 + 엑셀 익스포트',
+    component: lazy(() => import('./_planel/plannel_dm_transaction_log/DmTransactionLogMockup')) },
+
+  // ── R2: Demand Plan (8 mockup) ──────────────────────────────────────
+  { patternCode: 'plannel_dp_settings',         patternLabel: 'PlaNEL — DP 설정 (DP Settings / BF Settings / Target Item / Plan Horizon)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 4,
+    description: '좌측 설정 카테고리 list + 우측 설정 폼. 4개 DP 정책/설정 통합',
+    component: lazy(() => import('./_planel/plannel_dp_settings/DpSettingsMockup')) },
+  { patternCode: 'plannel_bf_config',           patternLabel: 'PlaNEL — BF 알고리즘 설정 (Algorithm / Training / Access Control)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 3,
+    description: 'BF 앙상블 알고리즘 가중치 + 학습 파라미터 + 권한',
+    component: lazy(() => import('./_planel/plannel_bf_config/BfConfigMockup')) },
+  { patternCode: 'plannel_dp_workbench',        patternLabel: 'PlaNEL — DP 워크벤치 (Workbench / Editable / Version Select / Scenario Compare)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 4,
+    description: '좌측 버전/시나리오 list + 우측 편집 매트릭스',
+    component: lazy(() => import('./_planel/plannel_dp_workbench/DpWorkbenchMockup')) },
+  { patternCode: 'plannel_dp_review',           patternLabel: 'PlaNEL — DP 검토 (BF Review / Process Management / Lifecycle)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 3,
+    description: 'KPI cards + cycle stepper + 검토 진척 패널',
+    component: lazy(() => import('./_planel/plannel_dp_review/DpReviewMockup')) },
+  { patternCode: 'plannel_dp_monitoring',       patternLabel: 'PlaNEL — DP 상태 모니터링 (DP Status Dashboard)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 1,
+    description: '좌측 실시간 alert + 우측 KPI grid',
+    component: lazy(() => import('./_planel/plannel_dp_monitoring/DpMonitoringMockup')) },
+  { patternCode: 'plannel_bf_accuracy',         patternLabel: 'PlaNEL — BF 정확도 & 리더보드 (Accuracy Report / Leaderboard / NPI History)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 3,
+    description: '정확도 트렌드 + 알고리즘 leaderboard + NPI 이력',
+    component: lazy(() => import('./_planel/plannel_bf_accuracy/BfAccuracyMockup')) },
+  { patternCode: 'plannel_dp_reports',          patternLabel: 'PlaNEL — DP 리포트 (Plan vs Actual / Tracking / Item-Customer / Feature)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 4,
+    description: '상단 KPI summary + 하단 Plan/Actual 디테일 그리드',
+    component: lazy(() => import('./_planel/plannel_dp_reports/DpReportsMockup')) },
+  { patternCode: 'plannel_sales_analysis',      patternLabel: 'PlaNEL — Sales 상위 분석 (Top Level Item)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 1,
+    description: 'LV1~LV3 계층 집계 — 수량/금액/점유율/YoY',
+    component: lazy(() => import('./_planel/plannel_sales_analysis/SalesAnalysisMockup')) },
+
+  // ── R3: Replenishment Plan (6 mockup) ────────────────────────────────
+  { patternCode: 'plannel_rp_settings',         patternLabel: 'PlaNEL — RP 설정 (Settings / Policy / Distribution Network)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 3,
+    description: 'RP 정책 + 분배 네트워크 노드 테이블',
+    component: lazy(() => import('./_planel/plannel_rp_settings/RpSettingsMockup')) },
+  { patternCode: 'plannel_rp_create',           patternLabel: 'PlaNEL — RP 계획 생성 (RP Demand / Run RP / RP Review)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 3,
+    description: '좌측 RP step stepper + 우측 실행 로그/결과',
+    component: lazy(() => import('./_planel/plannel_rp_create/RpCreateMockup')) },
+  { patternCode: 'plannel_rp_workbench',        patternLabel: 'PlaNEL — RP 워크벤치 (RP Workbench)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 1,
+    description: 'KPI cards + 발주 추천 그리드. 보충 의사결정 워크벤치',
+    component: lazy(() => import('./_planel/plannel_rp_workbench/RpWorkbenchMockup')) },
+  { patternCode: 'plannel_rp_exceptions',       patternLabel: 'PlaNEL — RP 예외 (Inventory Exceptions / Detail / PSI Simulation)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 3,
+    description: '상단 예외 KPI + 하단 디테일 그리드',
+    component: lazy(() => import('./_planel/plannel_rp_exceptions/RpExceptionsMockup')) },
+  { patternCode: 'plannel_rp_reports',          patternLabel: 'PlaNEL — RP 리포트 (Order List / Plan vs Actual / Monthly Trend / Procurement / Expired)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 5,
+    description: 'KPI + 발주 현황 + 월간 트렌드 통합 대시보드',
+    component: lazy(() => import('./_planel/plannel_rp_reports/RpReportsMockup')) },
+  { patternCode: 'plannel_rp_fill_rate',        patternLabel: 'PlaNEL — RP Fill Rate & 시나리오 (Fill Rate / Scenario Comparison)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 2,
+    description: '창고별 Fill Rate + 시나리오 (A/B/C) 비교',
+    component: lazy(() => import('./_planel/plannel_rp_fill_rate/RpFillRateMockup')) },
+
+  // ── R4: Master Plan (5 mockup) ──────────────────────────────────────
+  { patternCode: 'plannel_mp_settings',         patternLabel: 'PlaNEL — MP 설정 (Settings / Material Constraints / Demand Priority)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 3,
+    description: 'MP 정책 + 자재 capacity 제약 + 거래처 우선순위',
+    component: lazy(() => import('./_planel/plannel_mp_settings/MpSettingsMockup')) },
+  { patternCode: 'plannel_mp_create',           patternLabel: 'PlaNEL — MP 계획 생성 (MP Demand / Run MP / MP Review)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 3,
+    description: '좌측 MP 엔진 step + 우측 실행 로그/결과',
+    component: lazy(() => import('./_planel/plannel_mp_create/MpCreateMockup')) },
+  { patternCode: 'plannel_mp_exceptions',       patternLabel: 'PlaNEL — MP 예외 (Production Exceptions / Detail / PSI Simulation)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 3,
+    description: '상단 생산 예외 KPI + 하단 워크센터 위반 디테일',
+    component: lazy(() => import('./_planel/plannel_mp_exceptions/MpExceptionsMockup')) },
+  { patternCode: 'plannel_mp_reports',          patternLabel: 'PlaNEL — MP 리포트 (MRP Order List / Report / Order Tracking / Resource Plan)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 4,
+    description: 'MRP KPI + WO 현황 + 자원 가동률',
+    component: lazy(() => import('./_planel/plannel_mp_reports/MpReportsMockup')) },
+  { patternCode: 'plannel_mp_scenario',         patternLabel: 'PlaNEL — MP 시나리오 비교 (MP Scenario Comparison Dashboard)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 1,
+    description: '좌측 4개 시나리오 list + 우측 KPI 비교 매트릭스',
+    component: lazy(() => import('./_planel/plannel_mp_scenario/MpScenarioMockup')) },
+
+  // ── R5: Inventory Plan (6 mockup) ────────────────────────────────────
+  { patternCode: 'plannel_ip_settings',         patternLabel: 'PlaNEL — IP 설정 (IP Settings)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 1,
+    description: '재고 정책 / 서비스 레벨 / 동적 안전재고 설정',
+    component: lazy(() => import('./_planel/plannel_ip_settings/IpSettingsMockup')) },
+  { patternCode: 'plannel_ip_analysis',         patternLabel: 'PlaNEL — IP 분석 (Overview / Trend / Slow Moving / Supply 등 7종)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 7,
+    description: '재고 KPI + 월간 트렌드 + Slow Moving 디테일',
+    component: lazy(() => import('./_planel/plannel_ip_analysis/IpAnalysisMockup')) },
+  { patternCode: 'plannel_ip_abc_xyz',          patternLabel: 'PlaNEL — IP ABC-XYZ 분석 (Scenarios / Results)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 2,
+    description: '상단 분석 입력 + 하단 ABC-XYZ 매트릭스 (3×3)',
+    component: lazy(() => import('./_planel/plannel_ip_abc_xyz/IpAbcXyzMockup')) },
+  { patternCode: 'plannel_ip_evaluation',       patternLabel: 'PlaNEL — IP 평가 (Target Inventory Evaluation / Result)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 2,
+    description: '평가 점수 KPI + 카테고리별 비교 + 품목 등급',
+    component: lazy(() => import('./_planel/plannel_ip_evaluation/IpEvaluationMockup')) },
+  { patternCode: 'plannel_ip_simulation',       patternLabel: 'PlaNEL — IP 시뮬레이션 (Simulation / Results / AI Recommend)',
+    layoutCategory: 'LAYOUT_H2', category: 'domain', usage: 3,
+    description: '좌측 시나리오 + AI 추천 / 우측 결과 비교 KPI',
+    component: lazy(() => import('./_planel/plannel_ip_simulation/IpSimulationMockup')) },
+  { patternCode: 'plannel_ip_comparison',       patternLabel: 'PlaNEL — IP 시나리오 비교 (IP Comparison Dashboard)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 1,
+    description: 'Baseline vs Sim-A vs Sim-B 3-시나리오 비교',
+    component: lazy(() => import('./_planel/plannel_ip_comparison/IpComparisonMockup')) },
+
+  // ── R6: System + AI (5 mockup) ──────────────────────────────────────
+  { patternCode: 'plannel_auth_signin',         patternLabel: 'PlaNEL — 인증 (Sign In / Sign Up / Forgot / Reset / 2FA / Mail Auth 9종)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'meta', usage: 9,
+    description: '중앙 인증 카드 + Sign-in Policy 패널',
+    component: lazy(() => import('./_planel/plannel_auth_signin/AuthSigninMockup')) },
+  { patternCode: 'plannel_user_mgmt',           patternLabel: 'PlaNEL — 사용자 & 조직 (User Mgmt / Personal / Change Password / Company)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'meta', usage: 4,
+    description: '조직 KPI + 사용자 목록',
+    component: lazy(() => import('./_planel/plannel_user_mgmt/UserMgmtMockup')) },
+  { patternCode: 'plannel_schedule',            patternLabel: 'PlaNEL — 스케줄러 (Schedule Settings / History)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'meta', usage: 2,
+    description: '스케줄러 cron 설정 + 실행 이력',
+    component: lazy(() => import('./_planel/plannel_schedule/ScheduleMockup')) },
+  { patternCode: 'plannel_audit',               patternLabel: 'PlaNEL — 감사 (Audit Trail / Difference)',
+    layoutCategory: 'LAYOUT_V2', category: 'meta', usage: 2,
+    description: '상단 감사 검색 + 하단 변경 이력 + Diff',
+    component: lazy(() => import('./_planel/plannel_audit/AuditMockup')) },
+  { patternCode: 'plannel_version_mgmt',        patternLabel: 'PlaNEL — 버전 관리 (Version Management)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'meta', usage: 1,
+    description: '데이터 버전 스냅샷 목록 + 복원/비교/삭제',
+    component: lazy(() => import('./_planel/plannel_version_mgmt/VersionMgmtMockup')) },
+
+  // ── R7: Dashboard + Data Load (5 mockup) ─────────────────────────────
+  { patternCode: 'plannel_dashboards',          patternLabel: 'PlaNEL — 통합 대시보드 (Integrated / DP / RP / IP Dashboards)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'dashboard', usage: 4,
+    description: 'Tab 전환 통합 대시보드. 전체 KPI + 모듈별 상태',
+    component: lazy(() => import('./_planel/plannel_dashboards/DashboardsMockup')) },
+  { patternCode: 'plannel_data_validation',     patternLabel: 'PlaNEL — 데이터 검증 (Data Validation / Load Validation)',
+    layoutCategory: 'LAYOUT_DASHBOARD', category: 'domain', usage: 2,
+    description: '업로드 진행 + 검증 결과 + 오류 상세',
+    component: lazy(() => import('./_planel/plannel_data_validation/DataValidationMockup')) },
+  { patternCode: 'plannel_data_transform',      patternLabel: 'PlaNEL — 데이터 변환 (Data Transform)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'domain', usage: 1,
+    description: 'ETL 변환 룰 정의 + 파이프라인 진행',
+    component: lazy(() => import('./_planel/plannel_data_transform/DataTransformMockup')) },
+  { patternCode: 'plannel_data_history',        patternLabel: 'PlaNEL — 데이터 이력 (Data History / Transform History)',
+    layoutCategory: 'LAYOUT_V2', category: 'domain', usage: 2,
+    description: '통계 + LOAD/TRANSFORM 이력 통합 그리드',
+    component: lazy(() => import('./_planel/plannel_data_history/DataHistoryMockup')) },
+  { patternCode: 'plannel_system_error',        patternLabel: 'PlaNEL — 시스템 오류 페이지 (Not Found 404)',
+    layoutCategory: 'LAYOUT_SINGLE', category: 'meta', usage: 1,
+    description: '404 / 권한 오류 등 정적 에러 페이지',
+    component: lazy(() => import('./_planel/plannel_system_error/SystemErrorMockup')) },
 ];
 
 // ─────────────────────────────────────────
@@ -818,13 +1001,18 @@ const KTNG_ENTRIES = [
 // ─────────────────────────────────────────
 const T3SMART_SCM_MOCKUP_TO_MENUS = menuMappingJson?.mockupToMenus || {};
 const KTNG_MOCKUP_TO_MENUS        = ktngMenuMappingJson?.mockupToMenus || {};
+const PLANEL_MOCKUP_TO_MENUS      = plannelMenuMappingJson?.mockupToMenus || {};
 export const MOCKUP_ENTRIES = [
   ...T3SMART_SCM_ENTRIES.map((e) => ({
     productLine: 'T3SmartSCM',
     menus: T3SMART_SCM_MOCKUP_TO_MENUS[e.patternCode] || [],
     ...e,
   })),
-  ...PLANEL_ENTRIES.map((e) => ({ productLine: 'PlaNEL', menus: [], ...e })),
+  ...PLANEL_ENTRIES.map((e) => ({
+    productLine: 'PlaNEL',
+    menus: PLANEL_MOCKUP_TO_MENUS[e.patternCode] || [],
+    ...e,
+  })),
   ...KTNG_ENTRIES.map((e) => ({
     productLine: 'KTNG',
     menus: KTNG_MOCKUP_TO_MENUS[e.patternCode] || [],

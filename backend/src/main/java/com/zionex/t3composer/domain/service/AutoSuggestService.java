@@ -3,9 +3,11 @@ package com.zionex.t3composer.domain.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,7 +52,18 @@ public class AutoSuggestService {
           + "응답은 반드시 다음 JSON 형식만 반환하세요 (설명·markdown·코드펜스 금지):\n"
           + "{\n"
           + "  \"filterFields\": [\n"
-          + "    {\"label\": \"<한국어 라벨>\", \"type\": \"<enum>\"}\n"
+          + "    {\n"
+          + "      \"label\": \"<한국어 라벨>\",\n"
+          + "      \"type\": \"<enum>\",\n"
+          + "      \"options\": {                              // 선택 — select-like type 만\n"
+          + "        \"source\": \"inline|common_code|sp|sql\",\n"
+          + "        \"inline\": [{\"value\":\"Y\",\"label\":\"사용\"}],\n"
+          + "        \"commonCode\": {\"groupCd\":\"USE_YN\"},\n"
+          + "        \"sp\": {\"name\":\"SP_UI_..._POP_Q1\",\"paramsJson\":\"\"},\n"
+          + "        \"sql\": {\"query\":\"SELECT VAL,LBL FROM ...\"}\n"
+          + "      },\n"
+          + "      \"defaultValue\": \"<선택 — 정적 값 또는 expression>\"\n"
+          + "    }\n"
           + "  ],\n"
           + "  \"relations\": [\n"
           + "    {\n"
@@ -62,10 +75,23 @@ public class AutoSuggestService {
           + "    }\n"
           + "  ]\n"
           + "}\n\n"
-          + "[filterFields.type enum]\n"
-          + "TEXT, NUMBER, SELECT, DATE_RANGE,\n"
-          + "DOMAIN_PLAN_SCOPE, DOMAIN_ITEM_MULTI, DOMAIN_ACCOUNT_MULTI,\n"
-          + "DOMAIN_LOCATION_MULTI, DOMAIN_VERSION\n\n"
+          + "[filterFields.type enum — 19종 (filter-bar.schema.json 표준 + DATETIME)]\n"
+          + "기본 10종: TEXT, NUMBER, DATE, DATETIME, DATE_RANGE, DROPDOWN, MULTISELECT,\n"
+          + "         RADIO, CHECKBOX, POPUP, AUTOCOMPLETE (+ SELECT 호환 별칭)\n"
+          + "도메인 9종: DOMAIN_PLAN_SCOPE, DOMAIN_ITEM_SINGLE/MULTI,\n"
+          + "         DOMAIN_ACCOUNT_SINGLE/MULTI, DOMAIN_LOCATION_MULTI,\n"
+          + "         DOMAIN_RESOURCE_MULTI, DOMAIN_USER, DOMAIN_VERSION\n\n"
+          + "[filterFields.options — select-like type (DROPDOWN/SELECT/MULTISELECT/RADIO/CHECKBOX/AUTOCOMPLETE) 만]\n"
+          + "- source 가 'inline' 이면 inline 배열만 채우고 나머지 키는 생략.\n"
+          + "- source 가 'common_code' 이면 commonCode.groupCd 만 (예: USE_YN, STATUS_CD).\n"
+          + "- source 가 'sp' 이면 sp.name + (선택) paramsJson. 결과 첫 컬럼=value, 둘째=label.\n"
+          + "- source 가 'sql' 이면 sql.query (MSSQL). 결과 첫 컬럼=value, 둘째=label.\n"
+          + "- 옵션이 명확하지 않으면 options 자체를 생략 (사용자가 추후 채움).\n\n"
+          + "[filterFields.defaultValue — type 별 권장 초기값 또는 expression]\n"
+          + "- 정적 값 예: 'Y', 0, true, [], null, [null, null].\n"
+          + "- expression: @now, @now-1month, @session.userId, @first_option, @all_options, @latest.\n"
+          + "- 비워두면 LLM 산출 단계에서 type 별 default (datetime→null, multiselect→[], number→null 등)\n"
+          + "  rules/21 §3.1.0 규칙 적용. 사용자 instruction 에 '기본값' 키워드 있으면 적극 채울 것.\n\n"
           + "[relations.sourceEvent enum]\n"
           + "cellClick, cellDblClick, selectionChange, valueChange, manual\n\n"
           + "[relations.targetAction enum]\n"
@@ -255,10 +281,18 @@ public class AutoSuggestService {
     private Map<String, Object> normalize(Map<String, Object> result, Map<String, Object> spec) {
         if (result == null) return defaultEmptyResult();
 
+        // filter-bar.schema.json 표준 19종 (+ DATETIME 보강) — FilterFieldCard 와 동기
         List<String> validTypes = Arrays.asList(
-            "TEXT", "NUMBER", "SELECT", "DATE_RANGE",
-            "DOMAIN_PLAN_SCOPE", "DOMAIN_ITEM_MULTI", "DOMAIN_ACCOUNT_MULTI",
-            "DOMAIN_LOCATION_MULTI", "DOMAIN_VERSION");
+            "TEXT", "NUMBER", "DATE", "DATETIME", "DATE_RANGE",
+            "DROPDOWN", "MULTISELECT", "SELECT", "RADIO", "CHECKBOX",
+            "POPUP", "AUTOCOMPLETE",
+            "DOMAIN_PLAN_SCOPE",
+            "DOMAIN_ITEM_SINGLE", "DOMAIN_ITEM_MULTI",
+            "DOMAIN_ACCOUNT_SINGLE", "DOMAIN_ACCOUNT_MULTI",
+            "DOMAIN_LOCATION_MULTI", "DOMAIN_RESOURCE_MULTI",
+            "DOMAIN_USER", "DOMAIN_VERSION");
+        Set<String> optionedTypes = new HashSet<>(Arrays.asList(
+            "DROPDOWN", "SELECT", "MULTISELECT", "RADIO", "CHECKBOX", "AUTOCOMPLETE"));
         List<String> validEvents = Arrays.asList(
             "cellClick", "cellDblClick", "selectionChange", "valueChange", "manual");
         List<String> validActions = Arrays.asList("refetch", "filter", "setValue");
@@ -272,7 +306,7 @@ public class AutoSuggestService {
             }
         }
 
-        // filterFields 정규화
+        // filterFields 정규화 — label/type 필수, options/defaultValue 는 optional 그대로 보존.
         List<Map<String, Object>> fields = (List<Map<String, Object>>) result.get("filterFields");
         List<Map<String, Object>> okFields = new ArrayList<>();
         if (fields != null) {
@@ -284,6 +318,28 @@ public class AutoSuggestService {
                 Map<String, Object> ok = new LinkedHashMap<>();
                 ok.put("label", label.trim());
                 ok.put("type",  type);
+
+                // options — select-like type 일 때만 보존 (그 외에는 의미 없음).
+                Object optsRaw = f.get("options");
+                if (optsRaw instanceof Map && optionedTypes.contains(type)) {
+                    Map<String, Object> opts = (Map<String, Object>) optsRaw;
+                    Object src = opts.get("source");
+                    if (src != null) {
+                        Map<String, Object> okOpts = new LinkedHashMap<>();
+                        okOpts.put("source", src.toString());
+                        if (opts.get("inline")     != null) okOpts.put("inline",     opts.get("inline"));
+                        if (opts.get("commonCode") != null) okOpts.put("commonCode", opts.get("commonCode"));
+                        if (opts.get("sp")         != null) okOpts.put("sp",         opts.get("sp"));
+                        if (opts.get("sql")        != null) okOpts.put("sql",        opts.get("sql"));
+                        ok.put("options", okOpts);
+                    }
+                }
+
+                // defaultValue — string/number/boolean/null/array 모두 그대로 통과 (frontend 가 해석).
+                if (f.containsKey("defaultValue") && f.get("defaultValue") != null) {
+                    ok.put("defaultValue", f.get("defaultValue"));
+                }
+
                 okFields.add(ok);
             }
         }

@@ -57,6 +57,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
       let next = spec;
 
       // 1. filterFields append + 모든 layer affects 에 default 등록 (f8d675f 정책 유지)
+      //    AI 응답의 options (inline/common_code/sp/sql) · defaultValue 도 함께 옮김.
       filterFields.forEach((f) => {
         const newKey = `field_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
         const curItems   = next.filterBar?.items   || [];
@@ -64,11 +65,14 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         (next.layers || []).forEach((l) => {
           curAffects[l.key] = [...(curAffects[l.key] || []), newKey];
         });
+        const newItem = { key: newKey, label: f.label, type: f.type };
+        if (f.options       != null) newItem.options      = f.options;
+        if (f.defaultValue  != null) newItem.defaultValue = f.defaultValue;
         next = {
           ...next,
           filterBar: {
             ...(next.filterBar || {}),
-            items:   [...curItems, { key: newKey, label: f.label, type: f.type }],
+            items:   [...curItems, newItem],
             affects: curAffects,
           },
         };

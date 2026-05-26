@@ -138,9 +138,19 @@ public class AutoSuggestService {
 
         String text = extractText(resp);
         log.info("AutoSuggest: response_chars={}", text.length());
+        // 디버깅 — 응답 본문 첫 500 자 (options/defaultValue 누락 진단용)
+        log.info("AutoSuggest: response_head=\n{}",
+                text.length() > 500 ? text.substring(0, 500) + "..." : text);
 
         // JSON 파싱 — Claude 가 markdown 코드펜스로 감쌌어도 추출 시도
         Map<String, Object> parsed = parseSuggestJson(text);
+        // 디버깅 — 파싱 결과의 filterFields 첫 element 가 options/defaultValue 가지는지
+        if (parsed != null && parsed.get("filterFields") instanceof List) {
+            List<?> fields = (List<?>) parsed.get("filterFields");
+            if (!fields.isEmpty()) {
+                log.info("AutoSuggest: parsed first field = {}", fields.get(0));
+            }
+        }
         return normalize(parsed, spec);
     }
 
@@ -247,8 +257,11 @@ public class AutoSuggestService {
     }
 
     // markdown 코드펜스 ```json ... ``` 도 감지해 JSON 본문만 추출.
+    //   ⚠️ greedy `.*` 사용 — nested object (options.commonCode 등) 에서 첫 `}` 에
+    //      멈추지 않고 마지막 `}` 까지 매칭. 이전 non-greedy `.*?` 는 옵션 nested 가
+    //      잘려 AI 가 채운 options/defaultValue 가 손실됐다.
     private static final Pattern JSON_FENCE = Pattern.compile(
-            "```(?:json)?\\s*\\n?(\\{.*?\\})\\s*\\n?```", Pattern.DOTALL);
+            "```(?:json)?\\s*\\n?(\\{.*\\})\\s*\\n?```", Pattern.DOTALL);
 
     private Map<String, Object> parseSuggestJson(String text) {
         if (text == null || text.isBlank()) return defaultEmptyResult();

@@ -3029,6 +3029,21 @@ export function specToInitialPrompt(spec) {
   } else {
     items.forEach((it, idx) => {
       lines.push(`${idx + 1}. ${it.key} (${it.type})${it.label ? ` — label: "${it.label}"` : ''}`);
+      // 옵션 source — select-like type 에 한해 사용자가 지정한 options 가 있으면 직렬화.
+      //   inline:      [{value, label}, ...] → "Y=사용, N=미사용" 형식으로 표기
+      //   common_code: { groupCd } → TB_AD_COMN_CODE 의 GRP_CD 표기 + onMount fetch 가이드
+      const opt = it.options;
+      if (opt && opt.source) {
+        if (opt.source === 'inline' && Array.isArray(opt.inline) && opt.inline.length > 0) {
+          const pairs = opt.inline.map((o) => `${o.value}=${o.label}`).join(', ');
+          lines.push(`   옵션 (inline): ${pairs}`);
+          lines.push(`   → <InputField type="select" options={[${opt.inline.map((o) => `{value:'${o.value}',label:'${o.label}'}`).join(',')}]} ...>`);
+        } else if (opt.source === 'common_code' && opt.commonCode?.groupCd) {
+          const gc = opt.commonCode.groupCd;
+          lines.push(`   옵션 (common_code): GRP_CD=${gc}`);
+          lines.push(`   → 화면 onMount 에 zAxios.get('/system/common/codes',{params:{'group-cd':'${gc}'}}) 로 옵션 fetch (rules/21 §3.3)`);
+        }
+      }
     });
   }
   if (Object.keys(affects).length > 0) {
@@ -3253,12 +3268,14 @@ export function convertStep9SpecToWizardSpec(spec9) {
       key:   f.fieldId || f.varName || `field_${Math.random().toString(36).slice(2, 8)}`,
       label: f.label || '',
       type:  f.type  || 'TEXT',
+      ...(f.options ? { options: f.options } : {}),
     }));
   } else if (Array.isArray(fbStep1.items) && fbStep1.items.length > 0) {
     items = fbStep1.items.map((it) => ({
       key:   it.key,
       label: it.label || '',
       type:  it.type  || 'TEXT',
+      ...(it.options ? { options: it.options } : {}),
     }));
   }
   const affects = (fbStep1.affects && typeof fbStep1.affects === 'object')

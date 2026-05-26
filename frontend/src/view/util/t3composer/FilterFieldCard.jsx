@@ -13,12 +13,33 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e2.md (Task 1)
  *   Spec: docs/superpowers/specs/2026-05-22-composer-canvas-phase2e2-filterbar-inline-design.md
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box, TextField, Select, MenuItem, FormControl, IconButton,
   Chip, Stack, Typography,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
+
+// type 이 select-like 일 때만 옵션 영역 노출
+const TYPES_WITH_OPTIONS = new Set([
+  'DROPDOWN', 'SELECT', 'MULTISELECT', 'RADIO', 'CHECKBOX', 'AUTOCOMPLETE',
+]);
+
+// inline 옵션 ⇄ "value=label" 줄 단위 텍스트 변환
+function parseInlineOptions(text) {
+  return (text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const eq = line.indexOf('=');
+      if (eq < 0) return { value: line, label: line };
+      return { value: line.slice(0, eq).trim(), label: line.slice(eq + 1).trim() };
+    });
+}
+function stringifyInlineOptions(arr) {
+  return (arr || []).map((o) => `${o.value}=${o.label}`).join('\n');
+}
 
 // filter-bar.schema.json 표준 + InputField 의 datetime 보강.
 // 기본 10종 (TEXT/NUMBER/DATE/DATETIME/DATE_RANGE/DROPDOWN/RADIO/CHECKBOX/POPUP/AUTOCOMPLETE)
@@ -49,6 +70,19 @@ export const FILTER_TYPES = [
 ];
 
 function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, onToggleAffect }) {
+  const isOptioned = TYPES_WITH_OPTIONS.has(field.type);
+  const options = field.options || {};
+  const source = options.source || 'inline';
+  const inlineText = useMemo(
+    () => stringifyInlineOptions(options.inline),
+    [options.inline],
+  );
+
+  // 옵션 source/값 변경 helper — options 객체 통째로 patch
+  const patchOptions = (patch) => {
+    onUpdate({ options: { ...options, ...patch } });
+  };
+
   return (
     <Box sx={{
       bgcolor: '#fff', border: '1px solid #e2e8f0', borderRadius: 1,
@@ -82,6 +116,67 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
           ))}
         </Select>
       </FormControl>
+
+      {/* 2.5행: select-like type 일 때만 옵션 source 입력 */}
+      {isOptioned && (
+        <Box sx={{
+          bgcolor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 1,
+          p: 0.7, display: 'flex', flexDirection: 'column', gap: 0.5,
+        }}>
+          <Stack direction="row" alignItems="center" spacing={0.4}>
+            <Typography variant="caption" sx={{ fontSize: 10, color: '#6E7E96', mr: 0.3, fontWeight: 700 }}>
+              옵션
+            </Typography>
+            <Chip
+              size="small" label="inline"
+              onClick={() => patchOptions({ source: 'inline' })}
+              sx={{
+                fontSize: 9.5, height: 18, cursor: 'pointer',
+                bgcolor: source === 'inline' ? '#7CA7E0' : '#fff',
+                color:   source === 'inline' ? '#fff' : '#6E7E96',
+                border: source === 'inline' ? 'none' : '1px solid #cbd5e1',
+                fontWeight: 700,
+              }}
+            />
+            <Chip
+              size="small" label="common_code"
+              onClick={() => patchOptions({ source: 'common_code' })}
+              sx={{
+                fontSize: 9.5, height: 18, cursor: 'pointer',
+                bgcolor: source === 'common_code' ? '#7CA7E0' : '#fff',
+                color:   source === 'common_code' ? '#fff' : '#6E7E96',
+                border: source === 'common_code' ? 'none' : '1px solid #cbd5e1',
+                fontWeight: 700,
+              }}
+            />
+          </Stack>
+
+          {source === 'inline' && (
+            <TextField
+              multiline minRows={2} maxRows={6}
+              placeholder={'value=label 형식 한 줄씩\n예:\nY=사용\nN=미사용'}
+              value={inlineText}
+              onChange={(e) => patchOptions({ inline: parseInlineOptions(e.target.value) })}
+              size="small" variant="outlined"
+              inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
+              sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+            />
+          )}
+
+          {source === 'common_code' && (
+            <TextField
+              size="small" variant="outlined"
+              placeholder="GRP_CD (예: USE_YN · STATUS_CD)"
+              value={options.commonCode?.groupCd || ''}
+              onChange={(e) => patchOptions({
+                commonCode: { groupCd: e.target.value.toUpperCase().trim() },
+              })}
+              inputProps={{ style: { fontSize: 11, fontFamily: 'monospace', color: '#3A4A63' } }}
+              sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+            />
+          )}
+        </Box>
+      )}
 
       {/* 3행: 영향 chip 들 */}
       {layers.length > 0 && (

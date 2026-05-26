@@ -865,11 +865,14 @@ export function inferLayoutFromJsx(jsx) {
   else if (hasPivot) patternCode = 'P06';
 
   // 디버깅 — prefill 진단용. 사용자가 콘솔에서 원본 JSX 의 detect 결과 확인 가능.
+  //   SplitPanel 매칭 원문 (full opening tag) 도 함께 노출 — direction prop 정확히 확인.
   if (typeof console !== 'undefined' && console.info) {
     const head = text.slice(0, 200).replace(/\s+/g, ' ');
+    const spMatch = /<SplitPanel\b[^>]*>/.exec(text);
+    const spTag = spMatch ? spMatch[0].replace(/\s+/g, ' ') : '(none)';
     console.info('[Composer inferLayoutFromJsx]', {
       patternCode, hasSplit, splitDirection, hasTabs, hasPivot, hasDashboard,
-      textLen: text.length, head,
+      textLen: text.length, head, splitPanelTag: spTag,
     });
   }
 

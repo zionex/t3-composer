@@ -3420,10 +3420,26 @@ export function convertStep9SpecToWizardSpec(spec9) {
     ? fbStep1.affects
     : {};
 
+  // ── Layer 관계 자동 prefill ──
+  //   두 grid layer 가 있는 V2/P04 패턴은 거의 항상 master → detail (cellClick → refetch).
+  //   사용자가 LayerRelations 카드에서 수정/삭제 가능.
+  //   3개 이상이면 자동 prefill 보류 (사용자가 명시적 추가).
+  const gridLayers = layers.filter((l) => l.type === LAYER_TYPES.GRID);
+  const relations = [];
+  if (gridLayers.length === 2) {
+    relations.push({
+      id: `rel_auto_${gridLayers[0].key}_${gridLayers[1].key}`,
+      source: { layerKey: gridLayers[0].key, event: 'cellClick' },
+      target: { layerKey: gridLayers[1].key, action: 'refetch' },
+      mapping: {},
+    });
+  }
+
   return {
     meta,
     filterBar: { items, affects },
     layers,
+    relations,
     _originStep9: spec9,
   };
 }

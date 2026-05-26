@@ -836,9 +836,19 @@ export function inferLayoutFromJsx(jsx) {
   const hasPivot = /\bPivotTable\b|\bcrossTab\b|iteration\s*:\s*{/.test(text);
   const hasDashboard = /<DashboardPanel\b/.test(text);
 
+  // SplitPanel 의 direction 검출 — 'vertical' (상하) / 'horizontal' (좌우, default).
+  //   <SplitPanel direction="vertical" ...> 또는 direction='vertical' 또는 direction={...}.
+  //   사용자가 원본에서 상하 구성했는데 'P04' (LAYOUT_H2, 좌우) 로 잘못 추론되는 사고 방어.
+  let splitDirection = 'horizontal';
+  if (hasSplit) {
+    const m = /<SplitPanel\b[^>]*?\bdirection\s*=\s*(?:["']([^"']+)["']|\{['"]?([^"'{}]+)['"]?\})/.exec(text);
+    const d = (m?.[1] || m?.[2] || '').trim().toLowerCase();
+    if (d === 'vertical' || d === 'v') splitDirection = 'vertical';
+  }
+
   let patternCode = 'P02';
   if (hasDashboard) patternCode = 'P01';
-  else if (hasSplit) patternCode = 'P04';
+  else if (hasSplit) patternCode = splitDirection === 'vertical' ? 'V2' : 'P04';
   else if (hasTabs)  patternCode = 'P03';
   else if (hasPivot) patternCode = 'P06';
 
@@ -2325,12 +2335,23 @@ export function defaultLayoutConfigForPattern(patternCode, opts) {
           title: '탭 영역', componentType: 'CONTAINER_TAB' },
       ];
       break;
-    case 'P04': // 수평 스플릿 M-D
+    case 'P04': // 수평 스플릿 M-D (좌우 — 같은 y, 다른 x)
       base.filterBar = { h: 2, items: [] };
       base.layers = [
         { key: 'master', x: 0,         y: 0, w: COLS / 2, h: ROWS,
           title: '마스터', componentType: 'GRID_BASE' },
         { key: 'detail', x: COLS / 2,  y: 0, w: COLS / 2, h: ROWS,
+          title: '디테일', componentType: 'GRID_BASE' },
+      ];
+      break;
+    case 'V2': // 수직 스플릿 M-D (상하 — 같은 x, 다른 y) — inferLayoutFromJsx 가 SplitPanel
+               //   direction='vertical' 검출 시 이 case 사용. 원본이 상하 구성인데
+               //   default P04 (horizontal) 로 잘못 추론되던 사고 방어.
+      base.filterBar = { h: 2, items: [] };
+      base.layers = [
+        { key: 'master', x: 0, y: 0,         w: COLS, h: ROWS / 2,
+          title: '마스터', componentType: 'GRID_BASE' },
+        { key: 'detail', x: 0, y: ROWS / 2,  w: COLS, h: ROWS / 2,
           title: '디테일', componentType: 'GRID_BASE' },
       ];
       break;
@@ -2387,11 +2408,17 @@ export function defaultAreasForPattern(patternCode) {
         { id: 'tabSummary', kind: 'grid',   parent: 'tabs', title: '요약' },
         { id: 'tabDetail',  kind: 'grid',   parent: 'tabs', title: '상세' },
       ];
-    case 'P04': // 수평 스플릿 M-D
+    case 'P04': // 수평 스플릿 M-D (좌우)
       return [
         { id: 'mainSearch', kind: 'search', parent: null,  title: '검색 조건' },
         { id: 'master',     kind: 'grid',   parent: 'split-left',  title: '마스터' },
         { id: 'detail',     kind: 'grid',   parent: 'split-right', title: '디테일' },
+      ];
+    case 'V2':  // 수직 스플릿 M-D (상하)
+      return [
+        { id: 'mainSearch', kind: 'search', parent: null,  title: '검색 조건' },
+        { id: 'master',     kind: 'grid',   parent: 'split-top',    title: '마스터' },
+        { id: 'detail',     kind: 'grid',   parent: 'split-bottom', title: '디테일' },
       ];
     case 'P06': // 크로스탭 피벗
       return [

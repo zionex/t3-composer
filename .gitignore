@@ -46,8 +46,9 @@ Thumbs.db
 secrets/
 
 # Composer artifact staging (산출물 — git 관리 X)
-staging/output/
-staging/*.json
+# staging/ 아래는 모두 화면 실행/적용/sync 산출물. .gitkeep 만 추적 유지하여
+# 빈 staging/ 디렉토리 구조는 git 에 남기되 내부 산출물은 모두 ignore.
+staging/*
 !staging/.gitkeep
 
 # Composer Phase 2 preview (docker 내 검증용 임시 산출물)

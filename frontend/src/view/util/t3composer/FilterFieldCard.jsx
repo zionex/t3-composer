@@ -20,16 +20,31 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 
+// filter-bar.schema.json 표준 + InputField 의 datetime 보강.
+// 기본 10종 (TEXT/NUMBER/DATE/DATETIME/DATE_RANGE/DROPDOWN/RADIO/CHECKBOX/POPUP/AUTOCOMPLETE)
+// + 도메인 9종 (DOMAIN_PLAN_SCOPE 외) = 19종. Step7FilterBar 와 동기 유지.
+// SELECT 는 옛 별칭이지만 기존 데이터 호환 위해 같은 의미로 첫 자리에 유지.
 export const FILTER_TYPES = [
-  { value: 'TEXT',                 label: 'TEXT' },
-  { value: 'NUMBER',               label: 'NUMBER' },
-  { value: 'SELECT',               label: 'SELECT' },
-  { value: 'DATE_RANGE',           label: 'DATE_RANGE' },
-  { value: 'DOMAIN_PLAN_SCOPE',    label: 'DOMAIN_PLAN_SCOPE' },
+  { value: 'TEXT',                 label: 'TEXT — 자유 텍스트' },
+  { value: 'NUMBER',               label: 'NUMBER — 숫자' },
+  { value: 'DATE',                 label: 'DATE — 단일 일자' },
+  { value: 'DATETIME',             label: 'DATETIME — 일시' },
+  { value: 'DATE_RANGE',           label: 'DATE_RANGE — 기간 (flatten 자동)' },
+  { value: 'DROPDOWN',             label: 'DROPDOWN — 공통코드/인라인' },
+  { value: 'SELECT',               label: 'SELECT — (DROPDOWN 별칭, 호환 유지)' },
+  { value: 'RADIO',                label: 'RADIO — segmented' },
+  { value: 'CHECKBOX',             label: 'CHECKBOX — Y/N 또는 다중' },
+  { value: 'POPUP',                label: 'POPUP — 마스터 단건' },
+  { value: 'AUTOCOMPLETE',         label: 'AUTOCOMPLETE' },
+  { value: 'DOMAIN_PLAN_SCOPE',    label: 'DOMAIN_PLAN_SCOPE (flatten 자동)' },
+  { value: 'DOMAIN_ITEM_SINGLE',   label: 'DOMAIN_ITEM_SINGLE' },
   { value: 'DOMAIN_ITEM_MULTI',    label: 'DOMAIN_ITEM_MULTI' },
+  { value: 'DOMAIN_ACCOUNT_SINGLE',label: 'DOMAIN_ACCOUNT_SINGLE' },
   { value: 'DOMAIN_ACCOUNT_MULTI', label: 'DOMAIN_ACCOUNT_MULTI' },
   { value: 'DOMAIN_LOCATION_MULTI',label: 'DOMAIN_LOCATION_MULTI' },
-  { value: 'DOMAIN_VERSION',       label: 'DOMAIN_VERSION' },
+  { value: 'DOMAIN_RESOURCE_MULTI',label: 'DOMAIN_RESOURCE_MULTI' },
+  { value: 'DOMAIN_USER',          label: 'DOMAIN_USER' },
+  { value: 'DOMAIN_VERSION',       label: 'DOMAIN_VERSION (flatten 자동)' },
 ];
 
 function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, onToggleAffect }) {

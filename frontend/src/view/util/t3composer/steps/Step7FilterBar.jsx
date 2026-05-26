@@ -11,6 +11,7 @@ const FIELD_TYPES = [
   { value: 'TEXT',                 label: 'TEXT — 자유 텍스트' },
   { value: 'NUMBER',               label: 'NUMBER — 숫자' },
   { value: 'DATE',                 label: 'DATE — 단일 일자' },
+  { value: 'DATETIME',             label: 'DATETIME — 일시' },
   { value: 'DATE_RANGE',           label: 'DATE_RANGE — 기간 (flatten 자동)' },
   { value: 'DROPDOWN',             label: 'DROPDOWN — 공통코드/인라인' },
   { value: 'CHECKBOX',             label: 'CHECKBOX' },

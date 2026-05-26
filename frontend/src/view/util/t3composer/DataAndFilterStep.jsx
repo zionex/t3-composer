@@ -183,10 +183,11 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
         })}
       </Box>
 
-      {/* ── 우측 column — FilterBar 옵션 source (inline/common_code/sp/sql)
-             4종 chip 한 줄 + SQL textarea 가독성을 위해 380px ── */}
+      {/* ── 우측 column — AI 자동완성 / FilterBar / Layer 관계 통합 폭.
+             옵션 chip (4종) 여유 + SQL/AI textarea 한 줄 길이 + 관계 카드
+             가독성 위해 480px (좌측은 flex:1 로 자연 축소) ── */}
       <Box sx={{
-        flexShrink: 0, width: 380,
+        flexShrink: 0, width: 480,
         display: 'flex', flexDirection: 'column', gap: 1.5,
         minHeight: 0, overflow: 'auto',
       }}>

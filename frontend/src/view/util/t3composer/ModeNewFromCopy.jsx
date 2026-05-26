@@ -40,14 +40,14 @@ import { useTargetStore } from './targetStore';
  *   ① 메뉴 트리에서 **복사할 원본 화면** 선택
  *   ② 원본 소스 번들 수집 (collectSourceForLlm)
  *   ③ **신규 메뉴코드 / 제목** 입력 (1줄짜리 필수 정보만)
- *   ④ "9단계 Wizard 시작" 버튼 → StepByStepWizard 진입 (mode='NEW_FROM_COPY')
+ *   ④ "4단계 Wizard 시작" 버튼 → StepByStepWizard 진입 (mode='NEW_FROM_COPY')
  *      - sourceBundle 로부터 spec 자동 prefill (Layout / Overview)
- *      - 사용자가 9단계에서 검토·수정
+ *      - 사용자가 4단계에서 검토·수정
  *      - Step9 Generate 버튼 → 세션 생성 + LLM 호출
  *
  * 변경 전과의 차이:
  *   - 변경 요청 텍스트는 Step9 에서 입력 (또는 Workspace 진입 후 ChatPanel 에서)
- *   - 단일 LLM 호출 → 9단계 구조화 Spec 기반 호출 (토큰 절감 + 단계별 검토 가능)
+ *   - 단일 LLM 호출 → 4단계 구조화 Spec 기반 호출 (토큰 절감 + 단계별 검토 가능)
  */
 function ModeNewFromCopy({ onBack }) {
   // 활성 Target System (운영 DB 직접 조회용)
@@ -228,7 +228,7 @@ function ModeNewFromCopy({ onBack }) {
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: '#0f172a' }}>
-              기존 화면 복사 — 9단계 Wizard
+              기존 화면 복사 — 4단계 Wizard
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b' }}>
               Copy from Existing · 원본 선택 후 단계별 검토·생성
@@ -298,7 +298,7 @@ function ModeNewFromCopy({ onBack }) {
                   <SourceBundleAnalysisPanel bundle={sourceBundle} />
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    수집된 원본 소스 번들 — Wizard 9단계에 자동 prefill 됩니다
+                    수집된 원본 소스 번들 — Wizard 4단계에 자동 prefill 됩니다
                   </Typography>
                   <Divider sx={{ my: 1 }} />
                   <SourceBundlePreview bundle={sourceBundle} />
@@ -380,11 +380,11 @@ function ModeNewFromCopy({ onBack }) {
             </Box>
 
             <Alert severity="info" sx={{ bgcolor: '#f0f9ff' }}>
-              상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 9단계 Wizard 의 각 Step 에서 입력합니다.
+              상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard 의 각 Step 에서 입력합니다.
               자유 텍스트 형태의 추가 요청은 마지막 단계(Step 9 — 생성) 에서 입력 가능합니다.
             </Alert>
 
-            {/* AI 자동 분석 옵션 — sourceBundle 을 LLM 으로 분석해 9단계 spec 정확히 prefill */}
+            {/* AI 자동 분석 옵션 — sourceBundle 을 LLM 으로 분석해 4단계 spec 정확히 prefill */}
             <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#fdf4ff', borderColor: '#a855f7' }}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <AutoAwesomeIcon fontSize="small" sx={{ color: '#a855f7' }} />
@@ -400,7 +400,7 @@ function ModeNewFromCopy({ onBack }) {
                   label={
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 700, color: '#7e22ce' }}>
-                        AI 자동 분석으로 9단계 prefill (권장)
+                        AI 자동 분석으로 4단계 prefill (권장)
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Layer 별 SP (조회/CUD), FilterBar, 컴포넌트, Entity 까지 정확히 추출.
@@ -460,7 +460,7 @@ function ModeNewFromCopy({ onBack }) {
                   '&:hover': { bgcolor: '#059669' },
                 }}
               >
-                {aiPrefilling ? 'AI 분석 중...' : (useAiPrefill ? 'AI 분석 + 9단계 Wizard' : '다음 — 9단계 Wizard')}
+                {aiPrefilling ? 'AI 분석 중...' : (useAiPrefill ? 'AI 분석 + 4단계 Wizard' : '다음 — 4단계 Wizard')}
               </Button>
             </Stack>
           </Box>

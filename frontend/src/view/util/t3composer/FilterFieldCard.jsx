@@ -115,12 +115,17 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
       bgcolor: '#fff', border: '1px solid #e2e8f0', borderRadius: 1,
       p: 1, display: 'flex', flexDirection: 'column', gap: 0.7,
     }}>
-      {/* 1행: label + 삭제 */}
+      {/* 1행: label (라벨 prefix 명시) + 삭제 — 다른 행과 시각 일관 */}
       <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Typography variant="caption" sx={{
+          fontSize: 10, color: '#6E7E96', fontWeight: 700, minWidth: 60,
+        }}>
+          라벨
+        </Typography>
         <TextField
           value={field.label || ''}
           onChange={(e) => onUpdate({ label: e.target.value })}
-          placeholder="라벨"
+          placeholder="예: 사용여부 · 거래처명"
           size="small" variant="standard" fullWidth
           inputProps={{ style: { fontSize: 12, fontWeight: 700, color: '#3A4A63' } }}
         />
@@ -129,20 +134,27 @@ function FilterFieldCard({ field, layers, affectsForField, onUpdate, onRemove, o
         </IconButton>
       </Stack>
 
-      {/* 2행: type */}
-      <FormControl size="small" variant="standard" fullWidth>
-        <Select
-          value={field.type || 'TEXT'}
-          onChange={(e) => onUpdate({ type: e.target.value })}
-          sx={{ fontSize: 11, fontFamily: 'monospace', color: '#6E7E96' }}
-        >
-          {FILTER_TYPES.map((t) => (
-            <MenuItem key={t.value} value={t.value} sx={{ fontSize: 11, fontFamily: 'monospace' }}>
-              {t.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      {/* 2행: type — '타입' prefix 명시 */}
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Typography variant="caption" sx={{
+          fontSize: 10, color: '#6E7E96', fontWeight: 700, minWidth: 60,
+        }}>
+          타입
+        </Typography>
+        <FormControl size="small" variant="standard" fullWidth>
+          <Select
+            value={field.type || 'TEXT'}
+            onChange={(e) => onUpdate({ type: e.target.value })}
+            sx={{ fontSize: 11, fontFamily: 'monospace', color: '#6E7E96' }}
+          >
+            {FILTER_TYPES.map((t) => (
+              <MenuItem key={t.value} value={t.value} sx={{ fontSize: 11, fontFamily: 'monospace' }}>
+                {t.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
 
       {/* 2.5행: select-like type 일 때만 옵션 source 입력 */}
       {isOptioned && (

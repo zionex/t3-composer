@@ -9,7 +9,7 @@ import CloseIcon  from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 
-import { MOCKUP_ENTRIES, CATEGORY_LABEL } from '../t3mockup';
+import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL } from '../t3mockup';
 
 // 미리보기 — 목업 컴포넌트를 가상 화면(1400×900)에 그린 뒤 축소해 전체 레이아웃을 한눈에 노출.
 // DialogContent 높이(560)에 맞춰 세로가 잘리지 않도록 scale 산정 (900 × 0.62 ≈ 558).
@@ -31,22 +31,49 @@ const PREVIEW_SCALE = 0.62;
  *   onConfirm(entry)    entry = MOCKUP_ENTRIES 항목 또는 null (해제)
  */
 function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
-  const [selected, setSelected]   = useState(currentValue || null);
-  const [query, setQuery]         = useState('');
-  const [catFilter, setCatFilter] = useState('ALL');
+  const [selected, setSelected]                 = useState(currentValue || null);
+  const [query, setQuery]                       = useState('');
+  const [productLineFilter, setProductLineFilter] = useState('ALL');
+  const [catFilter, setCatFilter]               = useState('ALL');
 
   useEffect(() => {
-    if (open) { setSelected(currentValue || null); setQuery(''); setCatFilter('ALL'); }
+    if (open) {
+      setSelected(currentValue || null);
+      setQuery('');
+      setProductLineFilter('ALL');
+      setCatFilter('ALL');
+    }
   }, [open, currentValue]);
 
+  // Product Line 별 mockup 개수 (라벨 옆 카운트 표시용)
+  const productLineCounts = useMemo(() => {
+    const m = new Map();
+    for (const e of MOCKUP_ENTRIES) m.set(e.productLine, (m.get(e.productLine) || 0) + 1);
+    return m;
+  }, []);
+  const productLines = useMemo(() => Array.from(productLineCounts.keys()), [productLineCounts]);
+
+  // 카테고리 chip 은 *현재 Product Line 필터 적용 결과* 안에서 등장하는 것만 노출
+  // → KTNG 만 보고있을 때 dashboard 카테고리가 비어있어도 의미없는 chip 안 뜸
   const categories = useMemo(() => {
     const out = [];
-    for (const e of MOCKUP_ENTRIES) if (!out.includes(e.category)) out.push(e.category);
+    const pool = productLineFilter === 'ALL'
+      ? MOCKUP_ENTRIES
+      : MOCKUP_ENTRIES.filter((e) => e.productLine === productLineFilter);
+    for (const e of pool) if (!out.includes(e.category)) out.push(e.category);
     return out;
-  }, []);
+  }, [productLineFilter]);
+
+  // catFilter 가 현재 Product Line 에 없으면 ALL 로 리셋
+  useEffect(() => {
+    if (catFilter !== 'ALL' && !categories.includes(catFilter)) {
+      setCatFilter('ALL');
+    }
+  }, [categories, catFilter]);
 
   const filtered = useMemo(() => {
     let arr = MOCKUP_ENTRIES;
+    if (productLineFilter !== 'ALL') arr = arr.filter((e) => e.productLine === productLineFilter);
     if (catFilter !== 'ALL') arr = arr.filter((e) => e.category === catFilter);
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -55,7 +82,7 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
           .toLowerCase().includes(q));
     }
     return arr;
-  }, [query, catFilter]);
+  }, [query, productLineFilter, catFilter]);
 
   const grouped = useMemo(() => {
     const map = new Map();
@@ -136,7 +163,33 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
                 }}
                 sx={{ mb: 1 }}
               />
+              {/* Product Line — 전체 + 등록된 productLine 별 */}
+              <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ gap: 0.5, mb: 0.6 }}>
+                <Typography variant="caption" sx={{ alignSelf: 'center', mr: 0.5, color: '#94a3b8', fontWeight: 600 }}>
+                  Product
+                </Typography>
+                <Chip
+                  size="small" label={`전체 · ${MOCKUP_ENTRIES.length}`}
+                  onClick={() => setProductLineFilter('ALL')}
+                  color={productLineFilter === 'ALL' ? 'secondary' : 'default'}
+                  variant={productLineFilter === 'ALL' ? 'filled' : 'outlined'}
+                />
+                {productLines.map((pl) => (
+                  <Chip
+                    key={pl} size="small"
+                    label={`${PRODUCT_LINE_LABEL[pl] || pl} · ${productLineCounts.get(pl) || 0}`}
+                    onClick={() => setProductLineFilter(pl)}
+                    color={productLineFilter === pl ? 'secondary' : 'default'}
+                    variant={productLineFilter === pl ? 'filled' : 'outlined'}
+                  />
+                ))}
+              </Stack>
+
+              {/* 카테고리 — 현재 Product Line 안에서 등장하는 것만 */}
               <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ gap: 0.5 }}>
+                <Typography variant="caption" sx={{ alignSelf: 'center', mr: 0.5, color: '#94a3b8', fontWeight: 600 }}>
+                  Category
+                </Typography>
                 <Chip
                   size="small" label="전체"
                   onClick={() => setCatFilter('ALL')}

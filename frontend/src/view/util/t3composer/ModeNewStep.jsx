@@ -1,7 +1,7 @@
 /**
  * ModeNewStep — NEW_STEP 모드 진입 화면. 패턴 picker 3 옵션.
- *   ① SCM Mockup (54개) — MockupPickerDialog
- *   ② UI Pattern (730개) — UiPatternPickerDialog
+ *   ① SCM UI Mockup       — MockupPickerDialog (Product Line · 카테고리 필터)
+ *   ② T3MES UI Pattern    — UiPatternPickerDialog
  *   ③ 빈 캔버스 (P02 / BLANK)
  *
  *   선택 후 ComposerSpec 을 specFromPattern/Mockup/UiPattern() 으로 만들어
@@ -72,10 +72,10 @@ function ModeNewStep({ onBack }) {
             <DashboardCustomizeIcon sx={{ fontSize: 32, color: '#3b82f6' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e40af' }}>
-                SCM UI Mockup (54개)
+                SCM UI Mockup
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                T3SmartSCM 도메인 패턴 54개에서 선택 — layoutCategory 별 layer 자동 prefill
+                Product Line · 카테고리 필터 — mockup 의 실제 layer 구조가 자동 prefill
               </Typography>
             </Box>
           </Stack>
@@ -88,10 +88,10 @@ function ModeNewStep({ onBack }) {
             <ViewQuiltIcon sx={{ fontSize: 32, color: '#10b981' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#065f46' }}>
-                T3MES UI Pattern (730개)
+                T3MES UI Pattern
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                T3MES 퍼블리싱 패턴 730개에서 선택 — 단일 layer + 패턴 식별자 보존
+                T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존
               </Typography>
             </Box>
           </Stack>

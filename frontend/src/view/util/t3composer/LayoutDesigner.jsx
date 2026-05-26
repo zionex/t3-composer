@@ -1619,12 +1619,14 @@ function LayerPropertiesEditor({ layer, allLayers, onChange, onClose }) {
 }
 
 // ============================================================================
-//  LayerBodyPreview — 카테고리별 placeholder 미리보기
-//    GRID / FORM 두 가지 mock 이던 것을 10 그룹에 맞춰 확장
+//  LayerBodyPreview — accent 색 박스 + 가운데 타이틀 한 줄로 통일
+//    이전엔 10개 카테고리(DATA_DISPLAY/CHART/INPUT/...)별로 가짜 mock 을 그렸으나
+//    "Code/Name/Qty/Status" 같은 가짜 컬럼이 실제 컬럼으로 오해되는 사고가 있어
+//    단순 placeholder 로 정리. 카테고리 구분은 accent 색 + 상단 헤더 chip 으로.
+//    탭 컨테이너만 인터랙티브 본문(TabContainerBody) 유지.
 // ============================================================================
 function LayerBodyPreview({ layer, group, code, label, accent, readOnly,
                              onUpdateLayer, onOpenTabSettings, nested = false }) {
-  // 탭 컨테이너 — 전용 인터랙티브 본문 (nested=true 면 재귀 금지)
   if (!nested && group === 'CONTAINER' && code === 'CONTAINER_TAB') {
     return (
       <TabContainerBody layer={layer} accent={accent}
@@ -1634,202 +1636,25 @@ function LayerBodyPreview({ layer, group, code, label, accent, readOnly,
     );
   }
 
-  // 1) DATA_DISPLAY → 테이블 mock
-  if (group === 'DATA_DISPLAY') {
-    return (
-      <Box sx={{ flex: 1, p: 0.5, display: 'flex', flexDirection: 'column', gap: 0.3,
-                 overflow: 'hidden' }}>
-        <Box sx={{ display: 'flex', bgcolor: '#f8fafc', borderRadius: 0.5,
-                   border: '1px solid #e2e8f0' }}>
-          {['Code', 'Name', 'Qty', 'Status'].map((h, i) => (
-            <Box key={i} sx={{ flex: 1, fontSize: 10, fontWeight: 700, color: '#64748b',
-                                px: 0.7, py: 0.4,
-                                borderRight: i < 3 ? '1px solid #e2e8f0' : 'none' }}>
-              {h}
-            </Box>
-          ))}
-        </Box>
-        {Array.from({ length: 6 }).map((_, ri) => (
-          <Box key={ri} sx={{ display: 'flex', borderRadius: 0.4,
-                                bgcolor: ri % 2 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-            {[0, 1, 2, 3].map(ci => (
-              <Box key={ci} sx={{ flex: 1, height: 12,
-                                    borderRight: ci < 3 ? '1px solid rgba(47,55,78,0.5)' : 'none' }} />
-            ))}
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  // 2) CHART → 막대/선 mock (code 별 살짝 변형)
-  if (group === 'CHART') {
-    const isPieLike  = code === 'CHART_PIE' || code === 'CHART_DONUT' || code === 'CHART_GAUGE';
-    const isKpi      = code === 'KPI_CARD';
-    if (isKpi) {
-      return (
-        <Box sx={{ flex: 1, p: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                   overflow: 'hidden' }}>
-          <Typography sx={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>KPI</Typography>
-          <Typography sx={{ fontSize: 22, fontWeight: 800, color: accent, lineHeight: 1.1 }}>
-            87.4%
-          </Typography>
-          <Typography sx={{ fontSize: 9, color: '#10b981', fontWeight: 700 }}>▲ +2.3%</Typography>
-        </Box>
-      );
-    }
-    if (isPieLike) {
-      return (
-        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                   overflow: 'hidden' }}>
-          <Box sx={{ width: 60, height: 60, borderRadius: '50%',
-                     background: `conic-gradient(${accent} 0 45%, ${accent}99 45% 70%, ${accent}55 70% 100%)`,
-                     border: '1px solid #e2e8f0' }} />
-        </Box>
-      );
-    }
-    // 막대/선 차트 mock
-    const bars = [40, 65, 35, 80, 55, 90, 50, 70];
-    return (
-      <Box sx={{ flex: 1, p: 0.7, display: 'flex', alignItems: 'flex-end', gap: 0.5,
-                 overflow: 'hidden' }}>
-        {bars.map((h, i) => (
-          <Box key={i} sx={{ flex: 1, height: `${h}%`,
-                              bgcolor: `${accent}${i % 2 ? 'cc' : '99'}`,
-                              borderRadius: '2px 2px 0 0' }} />
-        ))}
-      </Box>
-    );
-  }
-
-  // 3) INPUT / INPUT_DOMAIN → 폼 mock
-  if (group === 'INPUT' || group === 'INPUT_DOMAIN') {
-    return (
-      <Box sx={{ flex: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 0.7,
-                 overflow: 'hidden' }}>
-        {Array.from({ length: 5 }).map((_, ri) => (
-          <Box key={ri} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 80, fontSize: 10, color: '#64748b', fontWeight: 700,
-                       textAlign: 'right', flexShrink: 0 }}>
-              Field {ri + 1}
-            </Box>
-            <Box sx={{ flex: 1, height: 18, bgcolor: '#f8fafc',
-                       border: '1px solid #e2e8f0', borderRadius: 0.5 }} />
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  // 4) CONTAINER (CARD / DASHBOARD / DRAWER / MODAL) — TAB 은 위에서 이미 처리됨
-  if (group === 'CONTAINER') {
-    return (
-      <Box sx={{ flex: 1, p: 1, overflow: 'hidden' }}>
-        <Box sx={{ width: '100%', height: '100%', border: `1.5px dashed ${accent}88`,
-                   borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography sx={{ fontSize: 10, fontWeight: 700, color: accent }}>{label}</Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  // 5) ACTION → 버튼 mock
-  if (group === 'ACTION') {
-    return (
-      <Box sx={{ flex: 1, p: 0.7, display: 'flex', gap: 0.5, flexWrap: 'wrap',
-                 alignContent: 'flex-start', overflow: 'hidden' }}>
-        {['조회', '저장', '삭제', '엑셀'].map((t, i) => (
-          <Box key={i} sx={{ px: 1, py: 0.3, fontSize: 10, fontWeight: 700,
-                              color: '#fff', bgcolor: i === 0 ? accent : `${accent}99`,
-                              borderRadius: 0.5 }}>
-            {t}
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  // 6) NAVIGATION → 단계/드릴다운 mock
-  if (group === 'NAVIGATION') {
-    return (
-      <Box sx={{ flex: 1, p: 0.7, display: 'flex', alignItems: 'center', gap: 0.5,
-                 overflow: 'hidden' }}>
-        {[1, 2, 3, 4].map((n, i) => (
-          <React.Fragment key={i}>
-            <Box sx={{ width: 18, height: 18, borderRadius: '50%',
-                        bgcolor: i === 0 ? accent : '#e2e8f0',
-                        color: '#fff', fontSize: 10, fontWeight: 800,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {n}
-            </Box>
-            {i < 3 && <Box sx={{ flex: 1, height: 2, bgcolor: '#e2e8f0' }} />}
-          </React.Fragment>
-        ))}
-      </Box>
-    );
-  }
-
-  // 7) FEEDBACK → 알림 mock
-  if (group === 'FEEDBACK') {
-    return (
-      <Box sx={{ flex: 1, p: 0.7, display: 'flex', flexDirection: 'column', gap: 0.4,
-                 overflow: 'hidden' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5,
-                   p: 0.5, borderRadius: 0.5,
-                   bgcolor: `${accent}22`, border: `1px solid ${accent}66` }}>
-          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: accent }} />
-          <Typography sx={{ fontSize: 10, color: '#0f172a' }}>알림 메시지 예시</Typography>
-        </Box>
-        <Box sx={{ height: 10, bgcolor: `${accent}33`, borderRadius: 1, mt: 0.3 }}>
-          <Box sx={{ width: '60%', height: '100%', bgcolor: accent, borderRadius: 1 }} />
-        </Box>
-      </Box>
-    );
-  }
-
-  // 8) DOCUMENT → 문서 라인 mock
-  if (group === 'DOCUMENT') {
-    return (
-      <Box sx={{ flex: 1, p: 1, display: 'flex', flexDirection: 'column', gap: 0.3,
-                 overflow: 'hidden' }}>
-        {[100, 85, 70, 90, 60, 80].map((w, i) => (
-          <Box key={i} sx={{ width: `${w}%`, height: 6, bgcolor: '#e2e8f0', borderRadius: 0.5 }} />
-        ))}
-      </Box>
-    );
-  }
-
-  // 9) AI → AI 채팅 mock
-  if (group === 'AI') {
-    return (
-      <Box sx={{ flex: 1, p: 0.7, display: 'flex', flexDirection: 'column', gap: 0.3,
-                 overflow: 'hidden' }}>
-        {['AI', 'U', 'AI'].map((who, i) => (
-          <Box key={i} sx={{ display: 'flex', justifyContent: who === 'U' ? 'flex-end' : 'flex-start' }}>
-            <Box sx={{
-              maxWidth: '75%', px: 0.7, py: 0.3,
-              borderRadius: 0.8, fontSize: 9, fontWeight: 600,
-              bgcolor: who === 'U' ? '#e2e8f0' : `${accent}44`,
-              color: '#0f172a',
-              border: who === 'U' ? 'none' : `1px solid ${accent}88`,
-            }}>
-              {who === 'U' ? '입력...' : '생성된 응답...'}
-            </Box>
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  // default placeholder
+  const title = layer?.title || label || code || '';
+  const bg = accent || '#64748b';
   return (
-    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-               p: 1, overflow: 'hidden' }}>
-      <Box sx={{ px: 1, py: 0.4, borderRadius: 0.5,
-                 border: `1px dashed ${accent}88`,
-                 color: accent, fontSize: 10, fontWeight: 700 }}>
-        {label || code}
-      </Box>
+    <Box sx={{
+      flex: 1,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      bgcolor: bg,
+      overflow: 'hidden',
+      p: 1.5,
+    }}>
+      <Typography sx={{
+        color: '#fff', fontSize: 14, fontWeight: 600,
+        textAlign: 'center',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        maxWidth: '100%',
+        textShadow: '0 1px 2px rgba(0,0,0,0.15)',
+      }}>
+        {title}
+      </Typography>
     </Box>
   );
 }

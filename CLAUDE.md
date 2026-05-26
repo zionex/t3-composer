@@ -181,8 +181,9 @@ dev 단독이라 SecurityConfig 가 모든 요청 permitAll. `AuthenticationProv
 - **신규 mockup 추가 절차**:
   1. `frontend/src/view/util/t3mockup/<patternCode>/<File>Mockup.jsx` 작성 (MockShell 사용 필수)
   2. `index.js` 의 `T3SMART_SCM_ENTRIES` 또는 `PLANEL_ENTRIES` 배열에 entry 추가 (lazy import path)
-  3. 운영 메뉴 매핑 갱신: `node scripts/mockup-menu-mapping.cjs`
-  4. hook 검증: `.claude/hooks/validators/t3mockup.sh` (M1~M4)
+  3. **`layers` 필드 선언** — `dashboard` 카테고리는 **필수**, 그 외는 선택. mockup 의 *구조* (위치·크기) 만 12-col 좌표로 옮긴다 (`{key, title, type:'CHART'|'GRID', subtype, position:{x,y,w,h}}`). **`title` 은 generic 라벨** (`'KPI 1'`/`'위젯 1'` 등) — mockup 의 구체 텍스트 (`'월 매출'`/`'GP 마진'`) 는 가져오지 말 것. Layout step 은 placeholder 만 보여주고, mockup 의 실제 디자인·의도는 `mockupContextText` 로 Claude 가 자연어 참조함. 미선언 시 `layoutCategory` 의 고정 템플릿 폴백 (mockup 실제 구조와 다를 수 있음 — `dash_executive` 참조). `specFromMockup` (wizardState.js) 가 `entry.layers` 우선 사용.
+  4. 운영 메뉴 매핑 갱신: `node scripts/mockup-menu-mapping.cjs`
+  5. hook 검증: `.claude/hooks/validators/t3mockup.sh` (M1~M5)
 
 ### T3MES UI Pattern 카탈로그 (2026-05-15)
 - **위치**: `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` · 접근: 상단 메뉴 [UI Pattern] Tab

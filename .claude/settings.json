@@ -6,6 +6,7 @@
     "T3_DB_SCHEMA": "T3SMARTSCM.dbo"
   },
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "Read",
       "Write",
@@ -82,7 +83,12 @@
       "Skill(superpowers:executing-plans:*)",
       "Bash(docker compose *)",
       "Bash(cat /tmp/tab2.js)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(head -30 /Users/hej/work/docs/ai/composer/report/2026-05-20.md)",
+      "Read(//Users/hej/work/docs/ai/composer/report/**)",
+      "Bash(/Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/start-server.sh --project-dir /Users/hej/work/projects/t3-composer)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Skill(superpowers:finishing-a-development-branch:*)"
     ],
     "deny": [
       "Bash(rm -rf*)",

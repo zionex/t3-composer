@@ -2855,7 +2855,12 @@ function mockupContextText(entry, layerTitle) {
 
 export function specFromMockup(entry, baseMeta = {}) {
   if (!entry) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
-  const layersDef = layersForLayoutCategory(entry.layoutCategory);
+  // entry.layers 가 선언되어 있으면 mockup 의 실제 구조를 따름 (mockup 작성자가 선언).
+  // 미선언 시 layoutCategory 의 고정 템플릿으로 폴백 — dashboard 처럼 mockup 별 구조가
+  // 다른 카테고리는 entry.layers 선언 권장 (CLAUDE.md "신규 mockup 추가 절차" §5).
+  const layersDef = (Array.isArray(entry.layers) && entry.layers.length > 0)
+    ? entry.layers
+    : layersForLayoutCategory(entry.layoutCategory);
   const base = createComposerSpec({
     ...baseMeta,
     pattern: `MOCKUP_${entry.patternCode}`,

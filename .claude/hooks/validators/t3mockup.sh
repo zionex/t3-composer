@@ -1,10 +1,12 @@
-# T3Mockup — mockup jsx 파일 검증 (M1~M4)
+# T3Mockup — mockup jsx 파일 검증 (M1~M5)
 # Phase 4a/4b/4c 의 mockup 갤러리 (frontend/src/view/util/t3mockup/) 의 규약 강제
 #
 # M1: mockup 파일은 MockShell 을 import + 사용 (헤더 일관성)
 # M2: MockShell 의 patternCode prop 값이 디렉토리명과 1:1 일치
 # M3: 자체 정의 ITEMS/ACCOUNTS/LOCATIONS 보다 _data/mockData.js 의 import 권장
 # M4: index.js 의 MOCKUP_ENTRIES 신규 entry 누락 (lazy import path 가 실재 파일을 가리키지 않음)
+# M5: dashboard 카테고리 mockup (dash_*) 은 index.js entry 에 layers: [...] 선언 필수
+#     (CLAUDE.md "신규 mockup 추가 절차" §3 — Wizard Layout step 의 mockup ↔ layer mismatch 방어)
 
 # 비대상 즉시 패스
 case "$FILE_PATH" in
@@ -64,9 +66,9 @@ fi
 # ─────────────────────────────────────────
 # M4 — MOCKUP_ENTRIES 등록 검사 (Write 시점만 — Edit 는 추적 어려움)
 # ─────────────────────────────────────────
+INDEX_JS="$(dirname "$(dirname "$FILE_PATH")")/index.js"
+
 if [ "$TOOL_NAME" = "Write" ]; then
-  # index.js 안에 같은 디렉토리 path 가 등장하는지
-  INDEX_JS="$(dirname "$(dirname "$FILE_PATH")")/index.js"
   if [ -f "$INDEX_JS" ]; then
     if ! grep -qE "import\(['\"]\.\/$MOCKUP_DIR\/" "$INDEX_JS" 2>/dev/null; then
       warn "[M4] 신규 mockup '$MOCKUP_DIR' 가 index.js 의 MOCKUP_ENTRIES 에 등록되지 않음.
@@ -77,5 +79,34 @@ if [ "$TOOL_NAME" = "Write" ]; then
     fi
   fi
 fi
+
+# ─────────────────────────────────────────
+# M5 — dashboard 카테고리 mockup 은 entry 에 layers: [...] 선언 필수
+#      (mockup 마다 위젯 구성이 달라 LAYOUT_DASHBOARD 고정 템플릿이 어긋남)
+# ─────────────────────────────────────────
+case "$MOCKUP_DIR" in
+  dash_*)
+    if [ -f "$INDEX_JS" ]; then
+      # 해당 patternCode entry 블록에 layers: [ 가 있는지 검사
+      # awk 로 patternCode: 'dash_xxx' 등장하는 entry 의 닫는 } 까지 추출 후 layers 패턴 grep
+      ENTRY_BLOCK="$(awk -v code="$MOCKUP_DIR" '
+        $0 ~ "patternCode:[[:space:]]*[\x27\"]" code "[\x27\"]" { found=1 }
+        found { print; if ($0 ~ /component:[[:space:]]*lazy/) { exit } }
+      ' "$INDEX_JS" 2>/dev/null)"
+      if [ -n "$ENTRY_BLOCK" ] && ! echo "$ENTRY_BLOCK" | grep -qE "layers:[[:space:]]*\[" 2>/dev/null; then
+        warn "[M5] dashboard 카테고리 mockup '$MOCKUP_DIR' 의 index.js entry 에 'layers: [...]' 선언이 없음.
+       LAYOUT_DASHBOARD 의 고정 템플릿(KPI 1개 + 위젯 4개)이 사용되어 mockup 실제 구조와
+       다른 Layout step 이 생성됩니다. mockup 의 실제 Grid 구조를 12-col 좌표로 옮겨주세요:
+         layers: [
+           { key: 'kpi1', title: 'KPI 1', type: 'CHART', subtype: 'KPI_CARD',
+             position: { x: 0, y: 0, w: 3, h: 3 } },
+           ...
+         ],
+       참조: frontend/src/view/util/t3mockup/index.js 의 'dash_executive' entry,
+            CLAUDE.md 'T3Mockup 갤러리 → 신규 mockup 추가 절차 §3'"
+      fi
+    fi
+    ;;
+esac
 
 return 0

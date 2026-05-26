@@ -223,42 +223,61 @@ function extractPanelTemplate(html, index, label) {
 function buildFullHtml(html, tabIndex) {
   let out = html;
 
-  // 1) tab-nav 숨김 CSS 를 <head> 에 주입
+  // 1) tab-nav 숨김 + 깜빡임 방지 CSS — <head> 에 주입.
+  //    panel 초기 visibility:hidden → 부트스트랩이 target panel 에만
+  //    .t3split-target 부여하면 그것만 visible. 0번 panel 의 잠시 노출 방지.
+  //    안전망: html.t3split-fallback 가 붙으면 .panel.active 도 visible →
+  //    부트스트랩이 1.5초 내 활성화 실패해도 원본 default 라도 보이게 보장.
   const hideStyle =
-    '<style>/* T3MES split — hide tab navigation */' +
-    '.tab-nav,#tab-nav{display:none !important;}</style>';
+    '<style>/* T3MES split — hide tab nav + no-flash panel activation */' +
+    '.tab-nav,#tab-nav{display:none !important;}' +
+    '.panel{visibility:hidden;}' +
+    '.panel.t3split-target{visibility:visible;}' +
+    'html.t3split-fallback .panel.active{visibility:visible;}' +
+    '</style>';
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, hideStyle + '\n</head>');
   } else {
     out = hideStyle + '\n' + out;
   }
 
-  // 2) 해당 탭 자동 활성화 부트 스크립트를 </body> 직전에 주입
+  // 2) 해당 탭 자동 활성화 부트 스크립트 — </body> 직전 주입.
   //
-  //  ⚠️ switchTab(i, btnEl) 시그니처 주의 —
-  //     동적 탭 파일의 switchTab 은 두 번째 인자 btnEl 로 `btnEl.classList.add('active')`
-  //     를 수행한다. 과거엔 switchTab(N, null) 을 주입했는데, btnEl=null →
-  //     `null.classList` TypeError 가 패널 토글 코드 *이전* 에서 던져지고
-  //     try/catch 로 조용히 삼켜져 → 패널 전환이 안 되고 항상 0번 패널만 표시됐다.
-  //     해결: ① 실제 .tab-btn[N] 요소를 찾아 넘긴다 (switchTab 정상 동작)
-  //          ② switchTab 이 실패하더라도 .panel/.tab-btn 의 active 클래스를
-  //             직접 토글하는 fallback 을 둔다.
+  //  ⚠️ switchTab(i, btnEl) 시그니처 — 동적 탭 파일의 switchTab 은 두 번째 인자
+  //     btnEl 로 `btnEl.classList.add('active')` 를 수행. 과거엔 switchTab(N, null)
+  //     주입으로 TypeError → 항상 0번 panel 표시 사고. 해결: ① 실제 .tab-btn[N]
+  //     을 찾아 넘김 ② switchTab 실패해도 .panel/.tab-btn active 직접 토글.
+  //
+  //  ⚠️ 깜빡임 방지 (no-flash) — 다중 retry 로 가능한 빠르게 활성화.
+  //     정적 panel: DOMContentLoaded 즉시 성공. 동적 panel: initTabs() 가 panel
+  //     생성 후 load + 60/200ms 재시도에서 성공. 첫 성공 시 done=true 로
+  //     중복 실행 차단. 1.5초 fallback timer 가 영원히 hidden 인 상태 방지.
   const bootScript =
-    '\n<script>/* T3MES split — auto-activate TabPage #' + tabIndex + ' */\n' +
-    '(function(){var I=' + tabIndex + ';\n' +
+    '\n<script>/* T3MES split — auto-activate TabPage #' + tabIndex + ' (no-flash) */\n' +
+    '(function(){var I=' + tabIndex + ',done=false;\n' +
     'function activate(){\n' +
+    '  var panels=document.querySelectorAll(".panel");\n' +
+    '  if(!panels.length)return false;\n' +
     '  var btns=document.querySelectorAll(".tab-btn");\n' +
     '  var btn=btns[I]||null;\n' +
     '  if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}\n' +
-    '  var panels=document.querySelectorAll(".panel");\n' +
-    '  if(panels.length){\n' +
-    '    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});\n' +
-    '    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});\n' +
-    '  }\n' +
+    '  panels.forEach(function(p,idx){\n' +
+    '    p.classList.toggle("active",idx===I);\n' +
+    '    p.classList.toggle("t3split-target",idx===I);\n' +
+    '  });\n' +
+    '  btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});\n' +
+    '  done=true;return true;\n' +
     '}\n' +
-    'function go(){try{activate();}catch(e){}}\n' +
-    'if(document.readyState==="complete")setTimeout(go,120);' +
-    'else window.addEventListener("load",function(){setTimeout(go,120);});})();\n</script>\n';
+    'function tick(){if(done)return;try{activate();}catch(e){}}\n' +
+    'if(document.readyState!=="loading")tick();\n' +
+    'document.addEventListener("DOMContentLoaded",tick);\n' +
+    'window.addEventListener("load",function(){\n' +
+    '  tick();setTimeout(tick,60);setTimeout(tick,200);setTimeout(tick,500);\n' +
+    '});\n' +
+    'setTimeout(function(){\n' +
+    '  if(!done)document.documentElement.classList.add("t3split-fallback");\n' +
+    '},1500);\n' +
+    '})();\n</script>\n';
   if (/<\/body>/i.test(out)) {
     out = out.replace(/<\/body>/i, bootScript + '</body>');
   } else {

@@ -118,7 +118,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 #toast.show{opacity:1}
 @keyframes pulse{0%{opacity:1}50%{opacity:0.5;box-shadow:0 0 10px var(--red)}100%{opacity:1}}
 </style>
-<style>/* T3MES split — hide tab navigation */.tab-nav,#tab-nav{display:none !important;}</style>
+<style>/* T3MES split — hide tab nav + no-flash panel activation */.tab-nav,#tab-nav{display:none !important;}.panel{visibility:hidden;}.panel.t3split-target{visibility:visible;}html.t3split-fallback .panel.active{visibility:visible;}</style>
 </head>
 <body>
 
@@ -537,20 +537,31 @@ function genP27(){
 }
 </script>
 
-<script>/* T3MES split — auto-activate TabPage #18 */
-(function(){var I=18;
+<script>/* T3MES split — auto-activate TabPage #18 (no-flash) */
+(function(){var I=18,done=false;
 function activate(){
+  var panels=document.querySelectorAll(".panel");
+  if(!panels.length)return false;
   var btns=document.querySelectorAll(".tab-btn");
   var btn=btns[I]||null;
   if(typeof switchTab==="function"){try{switchTab(I,btn);}catch(e){}}
-  var panels=document.querySelectorAll(".panel");
-  if(panels.length){
-    panels.forEach(function(p,idx){p.classList.toggle("active",idx===I);});
-    btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
-  }
+  panels.forEach(function(p,idx){
+    p.classList.toggle("active",idx===I);
+    p.classList.toggle("t3split-target",idx===I);
+  });
+  btns.forEach(function(b,idx){b.classList.toggle("active",idx===I);});
+  done=true;return true;
 }
-function go(){try{activate();}catch(e){}}
-if(document.readyState==="complete")setTimeout(go,120);else window.addEventListener("load",function(){setTimeout(go,120);});})();
+function tick(){if(done)return;try{activate();}catch(e){}}
+if(document.readyState!=="loading")tick();
+document.addEventListener("DOMContentLoaded",tick);
+window.addEventListener("load",function(){
+  tick();setTimeout(tick,60);setTimeout(tick,200);setTimeout(tick,500);
+});
+setTimeout(function(){
+  if(!done)document.documentElement.classList.add("t3split-fallback");
+},1500);
+})();
 </script>
 </body>
 </html>

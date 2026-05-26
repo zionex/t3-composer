@@ -28,7 +28,7 @@ function LayerRelationsPanel({ spec, onChange }) {
 
   return (
     <Box sx={{
-      flexShrink: 0, width: 280,
+      flexShrink: 0, width: '100%',
       display: 'flex', flexDirection: 'column', gap: 1,
       bgcolor: '#fff', border: '1px solid rgba(157, 143, 212, 0.4)', borderRadius: 1.5,
       p: 1.5, overflow: 'auto',

@@ -2920,6 +2920,52 @@ export function specToInitialPrompt(spec) {
   if (!spec) return '';
   const lines = [];
   const meta = spec.meta || {};
+  const mode = meta.mode || 'NEW_STEP';
+
+  // ── 모드 별 prepend 가이드 ── (rules/41d §16.4.1 newStepGuide 와 동등)
+  //    spec.meta.mode 가 'NEW_STEP' 외이면 모드 특화 절차/제약을 LLM 에 먼저 알림.
+  //    _originStep9 에 sourceBundle / designDoc 등 mode 메타가 보존되어 있으므로
+  //    필요 시 그것을 직렬화해 함께 prepend.
+  const origin = spec._originStep9 || {};
+
+  if (mode === 'NEW_FROM_COPY') {
+    lines.push('[★ NEW_FROM_COPY — 원본 화면 복제 + 메뉴/import 변경분만 반영]');
+    lines.push('1. 원본 import 리스트 그대로 유지 — 허구 import 추가 금지.');
+    lines.push('2. gridItems 원본 그대로 — 컬럼 추측 추가 금지.');
+    lines.push('3. cascade / Pop* / useFieldCascade 패턴 유지.');
+    lines.push('4. Entity @Column 1:1 복사 — 새 Java 4종 세트 생성 금지 (기존 endpoint 재사용 기본).');
+    lines.push('5. 변경: menuCd / menuFilePath / 컴포넌트명 + 사용자 changeReq 만, 나머지는 byte 동일.');
+    if (origin.sourceMenu) {
+      lines.push(`[참조 원본 메뉴] ${origin.sourceMenu.menuCd || ''} · ${origin.sourceMenu.filePath || ''}`);
+    }
+    lines.push('');
+  } else if (mode === 'EXISTING_MODIFY') {
+    lines.push('[★ EXISTING_MODIFY — 기존 메뉴 수정 + delta 만 변경]');
+    lines.push('1. 원본 import 보존 — 변경하지 않은 파일은 byte 동일 출력.');
+    lines.push('2. 사용자가 명시 요청한 부분만 수정.');
+    lines.push('3. 같은 filePath 산출 → saveWithSupersede 가 이전 버전 자동 DISCARDED.');
+    if (origin.sourceMenu) {
+      lines.push(`[수정 대상 메뉴] ${origin.sourceMenu.menuCd || ''} · ${origin.sourceMenu.filePath || ''}`);
+    }
+    lines.push('');
+  } else if (mode === 'NEW_FROM_DESIGN') {
+    lines.push('[★ NEW_FROM_DESIGN — 설계서 spec 그대로 반영]');
+    lines.push('1. 설계서의 화면 ID / 명칭 / 메뉴 위치 그대로.');
+    lines.push('2. SplitPanel sizes / Tab 매핑 보존 (layoutSizes 그대로).');
+    lines.push('3. BaseGrid items 컬럼 수·순서·dataType 설계서와 일치.');
+    lines.push('4. 새 테이블 DDL 생성 금지 — 기존 테이블 재사용 + 신규 SP_UI_* 만 생성.');
+    if (origin.designDoc?.fileName) {
+      lines.push(`[참조 설계서] ${origin.designDoc.fileName}`);
+    }
+    lines.push('');
+  } else if (mode === 'NEW_NL' || mode === 'NEW_GENERAL') {
+    lines.push('[★ NEW_NL / NEW_GENERAL — 자연어 + 참조 (Mockup/UI Pattern/D&D/DataSource)]');
+    lines.push('1. 자연어 instruction 의 의도를 spec 의 layers/filterBar 와 결합해 화면 구성.');
+    lines.push('2. mockup / UI Pattern 참조가 있으면 그 구조를 기본 골격으로.');
+    lines.push('3. dataSource 가 명시되었으면 그 테이블/SP 만 사용 (다른 테이블로 대체 금지).');
+    lines.push('');
+  }
+  // NEW_STEP (기본) 은 별도 prepend 없음 — 아래 기본 prompt 만.
 
   lines.push('[Composer 신규 화면 생성 — 패턴 기반 시각 편집 모델 (NEW_STEP)]');
   lines.push('');

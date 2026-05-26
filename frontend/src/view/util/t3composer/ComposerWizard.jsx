@@ -32,8 +32,24 @@ const STEPS = [
   { id: 'GENERATE', label: '④ 화면 생성',      color: '#5b21b6', bg: '#f5f3ff', border: '#9D8FD4' },
 ];
 
-function ComposerWizard({ initialSpec, targetCd, onBack }) {
-  const [spec, setSpec] = useState(initialSpec);
+/**
+ * props:
+ *   initialSpec  ComposerSpec — mockup picker · convertStep9SpecToWizardSpec(spec9) 등이 채움
+ *   mode         'NEW_STEP' (기본) | 'NEW_FROM_COPY' | 'EXISTING_MODIFY'
+ *                | 'NEW_FROM_DESIGN' | 'NEW_NL' | 'NEW_GENERAL'
+ *                — spec.meta.mode 에 저장 → specToInitialPrompt 가 mode 별 prepend 가이드 생성
+ *   targetCd     활성 Target Cd
+ *   onBack       뒤로 콜백
+ */
+function ComposerWizard({ initialSpec, mode = 'NEW_STEP', targetCd, onBack }) {
+  // mode 를 spec.meta 에 보존 — 이후 Generate step 의 specToInitialPrompt 가 활용.
+  const [spec, setSpec] = useState(() => {
+    if (!initialSpec) return initialSpec;
+    return {
+      ...initialSpec,
+      meta: { ...(initialSpec.meta || {}), mode },
+    };
+  });
   const [step, setStep] = useState('LAYOUT');
   const [validationError, setValidationError] = useState(null);
 

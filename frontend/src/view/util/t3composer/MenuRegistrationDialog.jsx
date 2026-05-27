@@ -242,11 +242,11 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
         setParentOk(!!exists.data?.exists);
       }
 
-      // 초기 menuPath 복원 — Claude 가 /UT/UserMgmt 같은 엉뚱한 경로를 쓰는 경우 방지.
-      //  1) 실제 메뉴 트리에서 parentMenuCd 조회 → root→parent 전체 경로 확보
-      //  2) leaf 명칭: parseMenuSummary 의 menuPath / screenId 에서 최종 세그먼트
-      //  3) 최종 menuPath = parentFullPath + ' > ' + leaf
-      //     + SQL 내 MENU_PATH 리터럴도 이 값으로 덮어씀
+      // ── 초기 menuPath 정규화 — LOWER(MENU_FILE_PATH) 로 통일 (rules/41 §2.3) ──
+      //   운영 표준 MENU_PATH 는 URL slug (예: '/sample/sample01', '/system/common/commoncode').
+      //   이전엔 parent breadcrumb + ' > ' + leaf (한글 경로) 로 덮어썼는데 운영 형식과 달라
+      //   사용자가 "관리 > 공통코드" 같이 잘못 들어가는 사고 (2026-05-27).
+      //   parsed.fileName 또는 SQL 의 MENU_FILE_PATH 리터럴을 LOWER 처리해 사용.
       let menus = menuTree;
       if (!menus || menus.length === 0) {
         try {
@@ -255,14 +255,13 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
           setMenuTree(menus);
         } catch (_e) { menus = []; }
       }
-      const parentFullPath = resolveAncestorPath(parsed.parentMenuCd, menus);
-      if (parentFullPath) {
-        const leaf = deriveLeafFromSummary(parsed);
-        const rebuiltPath = leaf ? `${parentFullPath} > ${leaf}` : parentFullPath;
-        // SQL 의 MENU_PATH 값도 실제 경로로 덮어씀
-        const fixedSql = rewriteMenuPath(full.data?.content || '', parentFullPath);
+      // MENU_FILE_PATH 값 → LOWER 로 변환. 없으면 parsed.menuPath 그대로 (Claude 작성본 fallback).
+      const normalizedPath = (parsed.fileName || '').trim().toLowerCase()
+        || (parsed.menuPath || '').trim();
+      if (normalizedPath) {
+        const fixedSql = rewriteMenuPath(full.data?.content || '', normalizedPath);
         setMenuSql({ ...full.data, content: fixedSql });
-        setSummary({ ...parsed, menuPath: rebuiltPath });
+        setSummary({ ...parsed, menuPath: normalizedPath });
       } else {
         setSummary(parsed);
       }
@@ -330,31 +329,25 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       nextSql = nextSql.replace(re, `$1${newParent}$2`);
     }
 
-    // 2) MENU_PATH 재작성 — root→부모 전체 경로 우선 사용
-    //    picked.ancestorPath (MenuPickerDialog 가 트리 빌드 시 계산) 가 있으면 그대로,
-    //    없으면 flat 트리에서 직접 조회.
-    const parentFullPath = picked.ancestorPath
-      || resolveAncestorPath(newParent)
-      || picked.menuPath
-      || picked.menuNm
-      || picked.menuCd;
+    // 2) MENU_PATH 재작성 — LOWER(MENU_FILE_PATH) 로 통일 (운영 표준, rules/41 §2.3).
+    //    parent 변경되어도 MENU_PATH 자체는 동일 (URL slug 는 파일 경로 따름).
+    const reparsedTmp = parseMenuSummary(nextSql);
+    const normalizedPath = (reparsedTmp.fileName || '').trim().toLowerCase()
+      || (summary?.fileName || '').trim().toLowerCase()
+      || (reparsedTmp.menuPath || '').trim();
 
-    nextSql = rewriteMenuPath(nextSql, parentFullPath);
+    if (normalizedPath) {
+      nextSql = rewriteMenuPath(nextSql, normalizedPath);
+    }
 
-    // 함수형 업데이트 — React 18 batched state 에서 stale 방지
     setMenuSql((prev) => prev ? { ...prev, content: nextSql } : { content: nextSql });
     const reparsed = parseMenuSummary(nextSql);
-
-    // 최종 표시 경로: 재작성된 SQL 에서 다시 파싱된 값을 우선,
-    // 그게 안 되면 부모 전체 경로 + leaf 로 직접 조립
-    const leaf = deriveLeafFromSummary(reparsed) || deriveLeafFromSummary(summary);
-    const finalMenuPath = (leaf ? `${parentFullPath} > ${leaf}` : parentFullPath);
 
     setSummary((prev) => ({
       ...(prev || {}),
       ...reparsed,
       parentMenuCd: newParent,
-      menuPath: finalMenuPath,
+      menuPath: normalizedPath || reparsed.menuPath,
     }));
     setParentOk(true);
   };
@@ -1106,38 +1099,29 @@ function rewriteSingleInsert(stmt, parentPath) {
 
   const afterCols = stmt.substring(colM.index + colM[0].length);
   // 'VALUES' 와 'SELECT' 각각 처리
+  // ★ parentPath 매개변수의 의미 = "최종 MENU_PATH 컬럼 값" (이전엔 parent breadcrumb
+  //    + leaf 합성. 운영 표준이 LOWER(MENU_FILE_PATH) 인 URL slug 형태라 합성 잘못).
+  //    호출자가 LOWER(menuFilePath) 같은 정확한 값 전달.
   if (verb === 'VALUES') {
-    // VALUES ( ... )
     const vOpen = afterCols.indexOf('(');
     if (vOpen < 0) return stmt;
     const { endIdx, inner } = extractBalancedParen(afterCols, vOpen);
     if (endIdx < 0) return stmt;
     const tokens = splitSqlValues(inner);
     if (idx >= tokens.length) return stmt;
-    const leaf = extractLeafFromLiteral(tokens[idx]);
-    tokens[idx] = `N'${escapeSql(parentPath)}${leaf ? ' > ' + leaf : ''}'`;
+    tokens[idx] = `N'${escapeSql(parentPath)}'`;
     const newInner = tokens.join(', ');
     return stmt.substring(0, colM.index + colM[0].length)
          + afterCols.substring(0, vOpen) + '(' + newInner + ')'
          + afterCols.substring(endIdx + 1);
   } else {
-    // SELECT … (FROM / WHERE / ORDER BY / GROUP BY / HAVING / UNION / 끝)
-    // 서브쿼리 내부의 FROM/WHERE 를 최상위로 오인하지 않도록 **괄호 깊이 0 인 위치**
-    // 에서만 종결 키워드를 찾는다.
     const selectEnd = findTopLevelSelectTerminator(afterCols);
     const selectPart = afterCols.substring(0, selectEnd);
     const rest = afterCols.substring(selectEnd);
 
-    const tokens = splitSqlValues(selectPart);   // 깊이/문자열 보호 split
+    const tokens = splitSqlValues(selectPart);
     if (idx >= tokens.length) return stmt;
-    // 토큰이 문자열 리터럴이 아닐 수도 있음 (SELECT ID FROM ...). 리터럴만 교체 가능.
-    if (/^N?'/.test(tokens[idx].trim())) {
-      const leaf = extractLeafFromLiteral(tokens[idx].trim());
-      tokens[idx] = `N'${escapeSql(parentPath)}${leaf ? ' > ' + leaf : ''}'`;
-    } else {
-      // 비-리터럴이면 리터럴로 강제 교체 (예: '' 또는 다른 SELECT 계산값)
-      tokens[idx] = `N'${escapeSql(parentPath)}'`;
-    }
+    tokens[idx] = `N'${escapeSql(parentPath)}'`;
     const newSelect = tokens.join(', ');
     return stmt.substring(0, colM.index + colM[0].length) + newSelect + rest;
   }

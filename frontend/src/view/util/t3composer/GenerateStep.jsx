@@ -33,8 +33,13 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
         // 사용자가 MetaStep 에서 명시 입력한 menuCd 가 있으면 세션 row 에 즉시 기록.
         // 빈 경우는 Claude 가 MENU_SQL 산출 후 backend 가 추출해 채움.
         const explicitMenuCd = (spec?.meta?.menuCd || '').trim() || null;
+        // ★ mode 는 spec.meta.mode 우선 (Task 1.1 에서 ComposerWizard 가 prop 으로
+        //    받아 spec.meta.mode 에 저장). 5 모드 (NEW_STEP/NEW_FROM_COPY/
+        //    EXISTING_MODIFY/NEW_FROM_DESIGN/NEW_NL/NEW_GENERAL) backend 가 mode 별
+        //    정책 (예: NEW_FROM_COPY 의 SP 누락 허용 — rules/41 §1.1.1) 적용.
+        const mode = spec?.meta?.mode || 'NEW_STEP';
         const res = await createSession({
-          mode: 'NEW_STEP',
+          mode,
           title,
           modelName: 'claude-sonnet-4-5',
           targetCd,

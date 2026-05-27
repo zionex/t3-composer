@@ -264,11 +264,37 @@ public class MenuRegistrationService {
             //   - 각 batch 안에서는 DECLARE @VAR 가 유효 (변수 scope = batch 단위).
             String[] batches = splitTsqlBatches(sql);
             int approxExecuted = 0;
+            int totalAffected  = 0;
             for (int bi = 0; bi < batches.length; bi++) {
                 String batch = batches[bi].trim();
                 if (batch.isEmpty()) continue;
                 try {
-                    targetJdbc.execute(batch);
+                    // batch 안의 INSERT/UPDATE 만 추출해 update() 로 affected rows 집계.
+                    //   targetJdbc.execute() 는 affected rows 반환 안 함 — INSERT WHERE NOT EXISTS
+                    //   가 0 rows affected 라도 success 라 사용자가 "등록됨" 인줄 오해 (2026-05-27 사고).
+                    //   batch 가 DECLARE 변수 포함하면 단일 execute (변수 scope 보존 필요).
+                    boolean hasDeclare = batch.toUpperCase().contains("DECLARE @");
+                    if (hasDeclare) {
+                        targetJdbc.execute(batch);
+                    } else {
+                        // INSERT/UPDATE/DELETE 만 분리 실행 — affected rows 누적
+                        for (String s : splitSqlStatements(batch)) {
+                            String t = s.trim();
+                            if (t.isEmpty() || t.startsWith("--")) continue;
+                            String up = t.toUpperCase();
+                            if (up.startsWith("INSERT") || up.startsWith("UPDATE") || up.startsWith("DELETE")) {
+                                int affected = targetJdbc.update(t);
+                                totalAffected += affected;
+                                if (affected == 0) {
+                                    log.warn("Menu SQL: 0 rows affected — likely 'WHERE NOT EXISTS' skip "
+                                          + "(row already exists). sessionId={} stmt_head={}",
+                                          sessionId, t.substring(0, Math.min(120, t.length())).replaceAll("\\s+", " "));
+                                }
+                            } else {
+                                targetJdbc.execute(t);
+                            }
+                        }
+                    }
                     // batch 안에 들어있는 non-empty statement 수만큼 누적
                     for (String s : splitSqlStatements(batch)) {
                         String t = s.trim();
@@ -285,6 +311,9 @@ public class MenuRegistrationService {
                 }
             }
             executed = approxExecuted;
+            log.info("Menu SQL batch result — sessionId={} statements_executed={} rows_affected={} "
+                  + "(0이면 WHERE NOT EXISTS 로 이미 존재해 skip 됐을 가능성)",
+                    sessionId, approxExecuted, totalAffected);
             // 아티팩트 FINAL 마킹은 아래 공통 로직으로 분기
             return finalizeAndReturn(artifact, finalOverride, overrideProvided, executed, skipped, errors, sessionId);
         }

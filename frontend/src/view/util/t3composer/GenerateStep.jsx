@@ -38,6 +38,10 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
         //    EXISTING_MODIFY/NEW_FROM_DESIGN/NEW_NL/NEW_GENERAL) backend 가 mode 별
         //    정책 (예: NEW_FROM_COPY 의 SP 누락 허용 — rules/41 §1.1.1) 적용.
         const mode = spec?.meta?.mode || 'NEW_STEP';
+        // 진단 — createSession 의 mode 가 NEW_STEP 으로 오면 spec.meta.mode 누락.
+        // 그 경우 ComposerWizard 의 mode prop 또는 initialSpec.meta.mode 추적 필요.
+        console.info('[Composer GenerateStep] createSession mode=', mode,
+          '· spec.meta.mode=', spec?.meta?.mode, '· spec.meta keys=', Object.keys(spec?.meta || {}));
         const res = await createSession({
           mode,
           title,

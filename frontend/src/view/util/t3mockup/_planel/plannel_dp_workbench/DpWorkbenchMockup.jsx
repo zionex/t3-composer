@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography,
   Table, TableHead, TableBody, TableRow, TableCell, List, ListItem, ListItemText } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -25,6 +25,8 @@ const ROWS = [
 ];
 
 export default function DpWorkbenchMockup() {
+  const [selectedV, setSelectedV] = useState('V2026.05.01');
+  const currentV = VERSIONS.find((v) => v.v === selectedV) || VERSIONS[0];
   return (
     <MockShell
       patternCode="plannel_dp_workbench"
@@ -38,22 +40,29 @@ export default function DpWorkbenchMockup() {
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>버전 / 시나리오</Typography>
           </Box>
           <List dense disablePadding sx={{ flex: 1, overflow: 'auto' }}>
-            {VERSIONS.map((v) => (
-              <ListItem key={v.v} sx={{
-                py: 1,
-                backgroundColor: v.active ? 'primary.50' : 'transparent',
-                borderLeft: v.active ? '3px solid' : '3px solid transparent',
-                borderLeftColor: v.active ? 'primary.main' : 'transparent',
-              }}>
+            {VERSIONS.map((v) => {
+              const sel = v.v === selectedV;
+              return (
+              <ListItem key={v.v}
+                onClick={() => setSelectedV(v.v)}
+                sx={{
+                  py: 1, cursor: 'pointer',
+                  backgroundColor: sel ? 'primary.50' : 'transparent',
+                  borderLeft: '3px solid',
+                  borderLeftColor: sel ? 'primary.main' : 'transparent',
+                  '&:hover': { backgroundColor: sel ? 'primary.50' : 'action.hover' },
+                }}>
                 <Stack sx={{ flex: 1 }}>
                   <Stack direction="row" alignItems="center" spacing={0.5}>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>{v.v}</Typography>
                     {v.active && <Chip label="ACTIVE" size="small" color="success" sx={{ height: 16, fontSize: 9 }} />}
+                    {sel && !v.active && <Chip label="조회중" size="small" color="primary" sx={{ height: 16, fontSize: 9 }} />}
                   </Stack>
                   <Typography variant="caption" color="text.secondary">{v.tag} · {v.date}</Typography>
                 </Stack>
               </ListItem>
-            ))}
+              );
+            })}
           </List>
           <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider' }}>
             <Button size="small" fullWidth startIcon={<CompareArrowsIcon />}>시나리오 비교</Button>
@@ -62,10 +71,11 @@ export default function DpWorkbenchMockup() {
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" alignItems="center" sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-            <Chip label="V2026.05.01 · Baseline" color="primary" size="small" sx={{ fontFamily: 'monospace' }} />
-            <Chip label="편집 모드" color="warning" size="small" icon={<EditIcon sx={{ fontSize: 12 }} />} sx={{ ml: 1 }} />
+            <Chip label={`${currentV.v} · ${currentV.tag}`} color="primary" size="small" sx={{ fontFamily: 'monospace' }} />
+            <Chip label={currentV.active ? '편집 모드' : '읽기 전용'} color={currentV.active ? 'warning' : 'default'} size="small"
+              icon={<EditIcon sx={{ fontSize: 12 }} />} sx={{ ml: 1 }} />
             <Box sx={{ flexGrow: 1 }} />
-            <Button size="small" startIcon={<SaveIcon />} variant="contained">저장</Button>
+            <Button size="small" startIcon={<SaveIcon />} variant="contained" disabled={!currentV.active}>저장</Button>
           </Stack>
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             <Table size="small" stickyHeader>

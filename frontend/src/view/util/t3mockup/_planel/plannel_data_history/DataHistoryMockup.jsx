@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,7 +28,11 @@ const HISTORY_ROWS = [
 
 const statusColor = (s) => s === 'SUCCESS' ? 'success' : s === 'WARNING' ? 'warning' : 'error';
 
+const DH_TAB_LABELS = ['전체', 'Load 이력', 'Transform 이력'];
+
 export default function DataHistoryMockup() {
+  const [tab, setTab] = useState(0);
+  const filteredRows = HISTORY_ROWS.filter((r) => tab === 0 || (tab === 1 && r.type === 'LOAD') || (tab === 2 && r.type === 'TRANSFORM'));
   return (
     <MockShell
       patternCode="plannel_data_history"
@@ -38,10 +42,8 @@ export default function DataHistoryMockup() {
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Tabs value={0}>
-            <Tab label="전체" />
-            <Tab label="Load 이력" />
-            <Tab label="Transform 이력" />
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            {DH_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
           </Tabs>
           <Box sx={{ flexGrow: 1 }} />
           <TextField label="기간" size="small" value="2026-05-19 ~ 2026-05-26" sx={{ width: 220 }} />
@@ -81,7 +83,7 @@ export default function DataHistoryMockup() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {HISTORY_ROWS.map((r, i) => (
+            {filteredRows.map((r, i) => (
               <TableRow key={i} hover>
                 <TableCell sx={{ fontFamily: 'monospace', fontSize: 11 }}>{r.time}</TableCell>
                 <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.file}</TableCell>

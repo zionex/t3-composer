@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box, Stack, TextField, MenuItem, Button, Typography, Chip,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Tabs, Tab, Checkbox,
@@ -59,7 +59,11 @@ const UNMAPPED = [
   { ITEM_CD: 'NEW-001',   ITEM_NM: '신제품 코드 미정',         PROD_SITE: '미확인',         PROD_QTY:   5200, PROD_AMT:  18.7, DAYS_OPEN: 45, SUGG_LVL4: '?'        },
 ];
 
+const LVL4_TAB_LABELS = ['속성 관리 (CmKtng09)', '생산지별 공헌이익 (CmKtng10)', 'Unmapping 리스트 (CmKtng11)'];
+
 export default function CmLvl4Mockup() {
+  const [tab, setTab] = useState(2);
+  const [selectedNode, setSelectedNode] = useState('L4-KR-SH');
   return (
     <MockShell
       patternCode="ktng_cm_lvl4"
@@ -95,10 +99,11 @@ export default function CmLvl4Mockup() {
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>{LVL4_TREE.length}개</Typography>
           </Box>
           <Box sx={{ flexGrow: 1, overflow: 'auto', p: 0.5 }}>
-            {LVL4_TREE.map((n, i) => {
-              const sel = i === 0;
+            {LVL4_TREE.map((n) => {
+              const sel = n.code === selectedNode;
               return (
                 <Box key={n.code}
+                  onClick={() => setSelectedNode(n.code)}
                   sx={{
                     p: 1, mb: 0.5, borderRadius: 1,
                     backgroundColor: sel ? 'primary.light' : 'transparent',
@@ -106,6 +111,7 @@ export default function CmLvl4Mockup() {
                     cursor: 'pointer',
                     border: '1px solid',
                     borderColor: sel ? 'primary.main' : 'transparent',
+                    '&:hover': { backgroundColor: sel ? 'primary.light' : 'action.hover' },
                   }}>
                   <Stack direction="row" alignItems="center" spacing={0.5}>
                     {n.status === 'warning' && <WarningAmberIcon fontSize="small" color="warning" />}
@@ -124,10 +130,8 @@ export default function CmLvl4Mockup() {
         {/* Right content with tabs */}
         <Box sx={{ flexGrow: 1, m: 1.5, ml: 0.75, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Tabs value={2} variant="standard">
-              <Tab label="속성 관리 (CmKtng09)" />
-              <Tab label="생산지별 공헌이익 (CmKtng10)" />
-              <Tab label="Unmapping 리스트 (CmKtng11)" />
+            <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="standard">
+              {LVL4_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
             </Tabs>
             <Box sx={{ flexGrow: 1 }} />
             <Stack direction="row" spacing={0.5} sx={{ pr: 1 }}>
@@ -140,7 +144,7 @@ export default function CmLvl4Mockup() {
           <Box sx={{ flexGrow: 1, overflow: 'auto', mt: 1 }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
               <WarningAmberIcon color="error" fontSize="small" />
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>미매핑 품목 — {UNMAPPED.length}건 / 추정 금액 합계 1,447.0K원</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>현재 탭: {LVL4_TAB_LABELS[tab]} · 미매핑 품목 — {UNMAPPED.length}건 / 추정 금액 합계 1,447.0K원</Typography>
               <Box sx={{ flexGrow: 1 }} />
               <Button size="small" variant="outlined" color="warning">추천 Lvl4 일괄 적용</Button>
             </Stack>

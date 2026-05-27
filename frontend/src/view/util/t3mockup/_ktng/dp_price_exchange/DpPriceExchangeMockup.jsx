@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Checkbox } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +27,7 @@ const FX_ROWS = [
 ];
 
 export default function DpPriceExchangeMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_dp_price_exchange" patternLabel="KTNG — 판가 / 환율 관리 (DpKtng02/19)"
       layoutCategory="LAYOUT_SINGLE" description="판가 마스터 + 환율 마스터 — 탭으로 전환. 기간·통화·거래처 채널별 단가 관리.">
@@ -48,7 +49,7 @@ export default function DpPriceExchangeMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-        <Tabs value={0}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label="판가 (DpKtng02)" />
           <Tab label="환율 (DpKtng19)" />
         </Tabs>
@@ -62,6 +63,7 @@ export default function DpPriceExchangeMockup() {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 1 }}>
         {/* Price grid */}
+        {tab === 0 && (
         <TableContainer component={Paper} variant="outlined" sx={{ mb: 1.5 }}>
           <Table size="small" stickyHeader>
             <TableHead>
@@ -89,10 +91,11 @@ export default function DpPriceExchangeMockup() {
             </TableBody>
           </Table>
         </TableContainer>
+        )}
 
-        {/* Mini preview of FX (참고) */}
+        {/* FX — tab 0: 참고 / tab 1: 메인 */}
         <Paper variant="outlined">
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', fontWeight: 700, fontSize: 13 }}>참고 — 환율 (DpKtng19) 미리보기</Box>
+          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', fontWeight: 700, fontSize: 13 }}>{tab === 1 ? '환율 (DpKtng19)' : '참고 — 환율 (DpKtng19) 미리보기'}</Box>
           <TableContainer>
             <Table size="small">
               <TableHead>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab, Typography, Paper,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,7 +28,10 @@ const VIOLATIONS = [
 
 const SEV_COLOR = { high: 'error', mid: 'warning', low: 'info' };
 
+const VAL_TAB_LABELS = ['수출 (DpKtng15)', '내수 (DpKtng17)'];
+
 export default function DpDemandValidationMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_dp_demand_validation" patternLabel="KTNG — 수요 적정성 점검 (DpKtng15/17)"
       layoutCategory="LAYOUT_SINGLE" description="수출/내수 수요 계획의 적정성 룰별 통과/실패 + 위반 품목 상세 리스트.">
@@ -47,9 +50,8 @@ export default function DpDemandValidationMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0}>
-          <Tab label="수출 (DpKtng15)" />
-          <Tab label="내수 (DpKtng17)" />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          {VAL_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
         </Tabs>
       </Box>
 
@@ -83,7 +85,7 @@ export default function DpDemandValidationMockup() {
         {/* Violations */}
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 220 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>위반 항목 상세 ({VIOLATIONS.length}건)</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>위반 항목 상세 ({VIOLATIONS.length}건) — {VAL_TAB_LABELS[tab]}</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Stack direction="row" spacing={0.5}>
               <Chip size="small" label={`HIGH ${VIOLATIONS.filter(v=>v.SEVERITY==='high').length}`} color="error" />

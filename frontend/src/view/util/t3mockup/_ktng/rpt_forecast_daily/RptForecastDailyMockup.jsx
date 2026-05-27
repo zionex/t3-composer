@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -39,6 +39,7 @@ const TOTAL_PLAN_SALE = MONTHLY.reduce((s, m) => s + m.plan_sale, 0);
 const PROG_COLOR = { DONE: 'success', IN_PROGRESS: 'info', WEEKEND: 'default' };
 
 export default function RptForecastDailyMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_rpt_forecast_daily" patternLabel="KTNG — 연간 전망 / Daily 실적 (RptKtng23~25)"
       layoutCategory="LAYOUT_V2" description="연간 생산/판매 전망 (월별 12개월) + Daily 실적 (일별) — 상하 2분할.">
@@ -55,7 +56,7 @@ export default function RptForecastDailyMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0} variant="scrollable">
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable">
           <Tab label="연간 생산전망 (23)" />
           <Tab label="연간 판매전망 (24)" />
           <Tab label="Daily 실적 (25)" />
@@ -63,10 +64,11 @@ export default function RptForecastDailyMockup() {
       </Box>
 
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        {/* 연간 전망 */}
+        {/* 연간 전망 (탭 0,1 공용 — 생산/판매 모두 차트로) */}
+        {(tab === 0 || tab === 1) && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>① 연간 전망 (월별 12개월)</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{tab === 0 ? '연간 생산전망' : '연간 판매전망'} (월별 12개월)</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`Σ 생산 ${TOTAL_PLAN_PROD}M`} color="primary" />
             <Chip size="small" label={`Σ 판매 ${TOTAL_PLAN_SALE}M`} color="success" sx={{ ml: 0.5 }} />
@@ -94,10 +96,13 @@ export default function RptForecastDailyMockup() {
           </Box>
         </Paper>
 
+        )}
+
         {/* Daily */}
+        {tab === 2 && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 220 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>② Daily 실적 (최근 8일)</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Daily 실적 (최근 8일)</Typography>
           </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
@@ -131,6 +136,7 @@ export default function RptForecastDailyMockup() {
             </Table>
           </TableContainer>
         </Paper>
+        )}
       </Box>
     </MockShell>
   );

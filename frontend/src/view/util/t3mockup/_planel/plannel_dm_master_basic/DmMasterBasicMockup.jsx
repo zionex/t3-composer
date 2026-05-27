@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, Checkbox } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -22,6 +22,7 @@ const SAMPLE_ROWS = [
 ];
 
 export default function DmMasterBasicMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="plannel_dm_master_basic"
@@ -49,7 +50,7 @@ export default function DmMasterBasicMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-        <Tabs value={0}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label="Item Master" />
           <Tab label="Customer / Site / Location / Workcenter / Resource / Supplier" disabled />
         </Tabs>

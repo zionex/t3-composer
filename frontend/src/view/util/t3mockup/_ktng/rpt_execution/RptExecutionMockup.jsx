@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab, LinearProgress,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -37,7 +37,10 @@ const ORG_ROWS = [
 
 const STATUS_COLOR = { good: 'success', normal: 'info', warn: 'warning', bad: 'error' };
 
+const EXEC_TAB_LABELS = ['MP 실행율 (07)', 'RTF 공급 (08)', 'RTF Sell-In (09)', '연간 진척율 생산 (10)', '연간 진척율 판매 (11)'];
+
 export default function RptExecutionMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_rpt_execution" patternLabel="KTNG — 실행율 / 진척율 리포트 (RptKtng07~11)"
       layoutCategory="LAYOUT_SINGLE" description="MP 실행율 / RTF 실행율 (공급·Sell-In) / 연간계획 진척율 (생산·판매) 5개 KPI 리포트 — 게이지 + 월별 추이 + 조직별 그리드.">
@@ -53,12 +56,8 @@ export default function RptExecutionMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0} variant="scrollable">
-          <Tab label="MP 실행율 (07)" />
-          <Tab label="RTF 공급 (08)" />
-          <Tab label="RTF Sell-In (09)" />
-          <Tab label="연간 진척율 생산 (10)" />
-          <Tab label="연간 진척율 판매 (11)" />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable">
+          {EXEC_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
         </Tabs>
       </Box>
 
@@ -104,7 +103,7 @@ export default function RptExecutionMockup() {
         {/* Org grid */}
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>조직별 실행/진척율 상세</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>조직별 실행/진척율 상세 — {EXEC_TAB_LABELS[tab]}</Typography>
           </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>

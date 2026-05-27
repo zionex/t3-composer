@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, Chip, Typography, Paper, Tabs, Tab, Avatar } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -25,7 +25,10 @@ const MODULE_OVERVIEW = [
 
 const statusColor = (s) => s === 'on-track' ? 'success' : 'warning';
 
+const DASH_TAB_LABELS = ['Integrated', 'DP', 'RP', 'IP'];
+
 export default function DashboardsMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="plannel_dashboards"
@@ -36,13 +39,10 @@ export default function DashboardsMockup() {
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" alignItems="center">
           <DashboardIcon color="primary" />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, ml: 1 }}>PlaNEL Executive Dashboard</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, ml: 1 }}>PlaNEL Executive Dashboard — {DASH_TAB_LABELS[tab]}</Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Tabs value={0}>
-            <Tab label="Integrated" />
-            <Tab label="DP" />
-            <Tab label="RP" />
-            <Tab label="IP" />
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            {DASH_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
           </Tabs>
         </Stack>
       </Box>

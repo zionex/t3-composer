@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Tabs, Tab, Switch, FormControlLabel,
   Table, TableHead, TableBody, TableRow, TableCell, Divider } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -24,6 +24,7 @@ const DEMAND_PRIORITY = [
 ];
 
 export default function MpSettingsMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="plannel_mp_settings"
@@ -33,7 +34,7 @@ export default function MpSettingsMockup() {
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" alignItems="center">
-          <Tabs value={0}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label="MP 정책" />
             <Tab label="자재 제약" />
             <Tab label="수요 우선순위" />
@@ -43,6 +44,7 @@ export default function MpSettingsMockup() {
         </Stack>
       </Box>
 
+      {tab === 0 && (
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>MP 엔진 파라미터</Typography>
         <Stack direction="row" spacing={2} sx={{ mb: 1.5 }}>
@@ -60,8 +62,10 @@ export default function MpSettingsMockup() {
           <FormControlLabel control={<Switch />} label="다단계 BOM 자동 전개" />
         </Stack>
       </Box>
+      )}
 
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {tab === 1 && (
         <Box sx={{ flex: 1, p: 2, borderRight: '1px solid', borderColor: 'divider', overflow: 'auto' }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'primary.main' }}>자재 Capacity 제약</Typography>
           <Table size="small">
@@ -83,7 +87,9 @@ export default function MpSettingsMockup() {
             </TableBody>
           </Table>
         </Box>
+        )}
 
+        {tab === 2 && (
         <Box sx={{ flex: 1, p: 2, overflow: 'auto' }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'primary.main' }}>수요 우선순위 (Customer Tier)</Typography>
           <Table size="small">
@@ -109,6 +115,7 @@ export default function MpSettingsMockup() {
             </TableBody>
           </Table>
         </Box>
+        )}
       </Box>
     </MockShell>
   );

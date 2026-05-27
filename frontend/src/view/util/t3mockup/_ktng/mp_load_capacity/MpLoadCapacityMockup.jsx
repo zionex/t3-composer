@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, LinearProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,6 +28,7 @@ const RES_ROWS = [
 const loadColor = (l) => l >= 95 ? 'error' : l >= 85 ? 'warning' : 'success';
 
 export default function MpLoadCapacityMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_mp_load_capacity" patternLabel="KTNG — 공장 / 설비 부하 · 가동조건 (MpKtng05/07)"
       layoutCategory="LAYOUT_SINGLE" description="공장 / 설비별 일평균 부하율 + 교대·가동시간 가동조건. 95% 초과는 위험.">
@@ -47,13 +48,14 @@ export default function MpLoadCapacityMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label="공장 단위 (MpKtng05)" />
           <Tab label="설비 단위 (MpKtng07)" />
         </Tabs>
       </Box>
 
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
+        {tab === 0 && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>공장별 부하 — {PLANT_ROWS.length}개</Typography>
@@ -89,6 +91,9 @@ export default function MpLoadCapacityMockup() {
           </TableContainer>
         </Paper>
 
+        )}
+
+        {tab === 1 && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>설비별 부하 — {RES_ROWS.length}개 라인</Typography>
@@ -119,6 +124,7 @@ export default function MpLoadCapacityMockup() {
             </Table>
           </TableContainer>
         </Paper>
+        )}
       </Box>
     </MockShell>
   );

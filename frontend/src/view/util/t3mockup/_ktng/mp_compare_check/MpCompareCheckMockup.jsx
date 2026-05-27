@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +27,7 @@ const INT_ROWS_FIXED = [
 ];
 
 export default function MpCompareCheckMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_mp_compare_check" patternLabel="KTNG — 예측 비교 / 정수 점검 (MpKtng06/08)"
       layoutCategory="LAYOUT_SINGLE" description="BF vs 회귀분석 예측 정확도 비교 (MpKtng06) + 설비별 정수/부정수 점검 (MpKtng08) — 통합 진단 화면.">
@@ -43,7 +44,7 @@ export default function MpCompareCheckMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label="BF vs 회귀 예측 비교 (MpKtng06)" />
           <Tab label="설비별 정수 점검 (MpKtng08)" />
         </Tabs>
@@ -51,9 +52,10 @@ export default function MpCompareCheckMockup() {
 
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
         {/* BF vs REG */}
+        {tab === 0 && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>① BF 예측 vs 회귀분석 예측 — 정확도 비교</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>BF 예측 vs 회귀분석 예측 — 정확도 비교</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`BF 우세 ${ACCURACY_ROWS.filter(r=>r.WINNER==='BF').length}건`} color="primary" />
             <Chip size="small" label={`REG 우세 ${ACCURACY_ROWS.filter(r=>r.WINNER==='REG').length}건`} color="success" sx={{ ml: 0.5 }} />
@@ -88,10 +90,13 @@ export default function MpCompareCheckMockup() {
           </TableContainer>
         </Paper>
 
+        )}
+
         {/* MOQ 점검 */}
+        {tab === 1 && (
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>② 설비별 정수 / 부정수 점검</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>설비별 정수 / 부정수 점검</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`위반 ${INT_ROWS_FIXED.filter(r => r.STATUS==='violation').length}건`} color="error" />
           </Box>
@@ -121,6 +126,7 @@ export default function MpCompareCheckMockup() {
             </Table>
           </TableContainer>
         </Paper>
+        )}
       </Box>
     </MockShell>
   );

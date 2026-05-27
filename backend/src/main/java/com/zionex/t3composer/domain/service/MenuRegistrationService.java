@@ -314,6 +314,24 @@ public class MenuRegistrationService {
             log.info("Menu SQL batch result — sessionId={} statements_executed={} rows_affected={} "
                   + "(0이면 WHERE NOT EXISTS 로 이미 존재해 skip 됐을 가능성)",
                     sessionId, approxExecuted, totalAffected);
+
+            // ★ INSERT 가 1건도 안 들어갔으면 (모든 statement 가 WHERE NOT EXISTS skip) "이미 등록됨" 으로 명확히 실패 응답.
+            //   이전엔 JDBC success 라 "메뉴 등록 완료" 표시 → 사용자가 DB 안 들어간 줄 모름 (2026-05-27 사용자 사고).
+            //   INSERT 가 한 줄도 없는 batch 라면 (예: DECLARE 만 있는 경우) 이 검사 안 함.
+            //   기준: INSERT/UPDATE/DELETE statement 존재 + totalAffected==0 → fail.
+            boolean hasMutation = false;
+            for (String s : splitSqlStatements(sql)) {
+                String t = s.trim().toUpperCase();
+                if (t.startsWith("INSERT") || t.startsWith("UPDATE") || t.startsWith("DELETE")) {
+                    hasMutation = true; break;
+                }
+            }
+            if (hasMutation && totalAffected == 0) {
+                errors.add("메뉴 등록 실패 — 모든 INSERT 가 WHERE NOT EXISTS 로 skip 됐습니다. "
+                        + "이미 같은 MENU_CD (또는 LANG_KEY/MENU_ID) 가 운영 DB 에 등록되어 있습니다. "
+                        + "메뉴 코드를 다른 값으로 변경하거나, 기존 메뉴 사용을 검토하세요.");
+                return resultOf(false, approxExecuted, skipped, errors);
+            }
             // 아티팩트 FINAL 마킹은 아래 공통 로직으로 분기
             return finalizeAndReturn(artifact, finalOverride, overrideProvided, executed, skipped, errors, sessionId);
         }

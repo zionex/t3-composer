@@ -75,10 +75,15 @@ function ModeNewFromCopy({ onBack }) {
     setSelectedMenu(menuNode);
     setSourceBundle(null);
     setError(null);
+    // 1단계 — sync 즉시 표시 (UI 가 비어있지 않게)
     setNewMenuCd(suggestNewMenuCd(menuNode.id));
     setNewTitle(`${menuNode.id} 복사본`);
     setMenuCdCheck(null);
     if (!menuNode.id) return;
+    // 2단계 — async 로 운영 DB collision 회피한 next available 코드 검색 (parallel with source)
+    findNextAvailableMenuCd(menuNode.id).then((avail) => {
+      if (avail) setNewMenuCd(avail);
+    }).catch(() => {});
     setLoadingSource(true);
     try {
       const res = await collectSourceForLlm(menuNode.id, activeTargetCd);
@@ -471,8 +476,11 @@ function ModeNewFromCopy({ onBack }) {
 }
 
 /**
- * 원본 메뉴 코드에서 신규 메뉴 코드를 추천 생성.
- * 규칙: 끝이 숫자면 +1, 아니면 _V2 접미사.
+ * 원본 메뉴 코드에서 신규 메뉴 코드를 추천 생성 (동기 — 즉시 표시용).
+ * 규칙: 끝이 숫자면 +1, 아니면 _COPY 접미사.
+ *
+ * ★ 운영 DB 에 이미 그 코드가 있을 수 있음 (예: UI_AD_01 → UI_AD_02 인데 02 도
+ *   기존 화면) — async 로 next available 찾는 건 findNextAvailableMenuCd 별도.
  */
 function suggestNewMenuCd(origCd) {
   if (!origCd) return '';
@@ -481,6 +489,41 @@ function suggestNewMenuCd(origCd) {
     const next = (parseInt(m[2], 10) + 1).toString().padStart(m[2].length, '0');
     return `${m[1]}${next}`;
   }
-  return `${origCd}_V2`;
+  return `${origCd}_COPY`;
+}
+
+/**
+ * 원본 메뉴 코드 → 운영 DB 에서 collision 안 나는 첫 번째 빈 코드 검색 (async).
+ * 끝이 숫자면 +1, +2, ... 최대 100회 시도. 그래도 못 찾으면 _COPY suffix.
+ * 끝이 숫자가 아니면 _COPY 후 collision 시 _COPY2, _COPY3 ...
+ */
+async function findNextAvailableMenuCd(origCd) {
+  if (!origCd) return '';
+  const m = /^(.*?)(\d+)$/.exec(origCd);
+  const tryCheck = async (candidate) => {
+    try {
+      const r = await checkMenuExists(candidate);
+      return !r?.data?.exists;
+    } catch (_e) {
+      return true;  // 검사 실패해도 후보 사용 — Wizard 에서 사용자 검증
+    }
+  };
+  if (m) {
+    const prefix = m[1];
+    const width  = m[2].length;
+    const start  = parseInt(m[2], 10);
+    for (let i = 1; i <= 100; i++) {
+      const candidate = `${prefix}${(start + i).toString().padStart(width, '0')}`;
+      // eslint-disable-next-line no-await-in-loop
+      if (await tryCheck(candidate)) return candidate;
+    }
+  } else {
+    for (let i = 1; i <= 10; i++) {
+      const candidate = i === 1 ? `${origCd}_COPY` : `${origCd}_COPY${i}`;
+      // eslint-disable-next-line no-await-in-loop
+      if (await tryCheck(candidate)) return candidate;
+    }
+  }
+  return `${origCd}_COPY_${Date.now().toString(36).slice(-4).toUpperCase()}`;
 }
 export default ModeNewFromCopy;

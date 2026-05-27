@@ -348,11 +348,14 @@ public class ArtifactPreviewService {
         // 캐시 hit 시 즉시. miss/실패/키없음 시 raw 원본 fallback (안전).
         String content = a.getContent();
         boolean mockupApplied = false;
-        // ── AI mockup 변환은 EXISTING_MODIFY 만 적용 ──
-        // 신규 생성 (NEW_*) 은 Composer rules 따라 작성된 단순 산출물이라 shim 표면으로 잘 동작.
-        // EXISTING_MODIFY 만 원본 wingui 의 복잡한 의존성 (AG-Grid·@plannel/services·ZDate 등)
-        // 때문에 mockup 변환 필요. 토큰·시간 낭비 회피.
-        boolean needsMockup = mockupTransformService != null && isExistingModify(sessionId);
+        // ── AI mockup 변환은 EXISTING_MODIFY / NEW_FROM_COPY 에 적용 ──
+        // EXISTING_MODIFY · NEW_FROM_COPY 둘 다 원본 wingui jsx 를 byte 단위에 가깝게
+        // 복제하므로 복잡한 의존성 (AG-Grid · @plannel/services · ZDate 등) 그대로 들고옴
+        // → preview shim 표면으로 자연 동작 불가 → mockup 변환 필수.
+        // 그 외 신규 생성 (NEW_STEP / NEW_FROM_DESIGN / NEW_NL / NEW_GENERAL) 은 Composer
+        // rules 따라 작성된 단순 산출물이라 shim 표면으로 잘 동작 — mockup 변환 생략 (토큰 절감).
+        boolean needsMockup = mockupTransformService != null
+            && (isExistingModify(sessionId) || isCopyFromOriginal(sessionId));
         if (needsMockup) {
             String targetCd = lookupTargetCd(sessionId);
             String sessionUserId = lookupUserId(sessionId);
@@ -420,6 +423,21 @@ public class ArtifactPreviewService {
             return sessionRepo.findById(sessionId)
                     .map(com.zionex.t3composer.domain.entity.ComposerSession::getMode)
                     .filter(com.zionex.t3composer.domain.entity.ComposerSession.MODE_EXISTING_MODIFY::equals)
+                    .isPresent();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** session.mode 가 NEW_FROM_COPY 면 true. NEW_FROM_COPY 도 원본 jsx 의 복잡한
+     *  의존성 (AG-Grid · @plannel · ZDate 등) 을 byte 단위로 복제하므로 EXISTING_MODIFY
+     *  와 동일하게 mockup 변환 필요. */
+    private boolean isCopyFromOriginal(String sessionId) {
+        if (sessionId == null || sessionRepo == null) return false;
+        try {
+            return sessionRepo.findById(sessionId)
+                    .map(com.zionex.t3composer.domain.entity.ComposerSession::getMode)
+                    .filter(com.zionex.t3composer.domain.entity.ComposerSession.MODE_NEW_FROM_COPY::equals)
                     .isPresent();
         } catch (Exception e) {
             return false;

@@ -627,9 +627,18 @@ export const getActiveViewID = getActiveViewId;
 // =============================================================================
 
 // ----- SplitPanel — 수평/수직 분할 (단독 환경은 정적 분할, 드래그 리사이저 없음) -----
-export const SplitPanel = ({ direction = 'horizontal', sizes, minSize, sx, children }) => {
+//
+//  ⚠️ wingui-core SplitPanel default direction = 'vertical' (block flow = 상하).
+//     shim 의 default 를 'vertical' 로 맞춰 wingui 본환경과 일관 유지.
+//     소스: /workspace/wingui/packages/wingui-core/component/SplitPanel.js
+//
+//  ⚠️ 자식 panel wrapper 는 minHeight:0 + overflow:hidden 필수.
+//     'auto' 였을 때 자식 (산출물의 flex:1 wrapper + BaseGrid) 의 height 가
+//     0px 로 collapse → 그리드 body 안 보이던 사고 (2026-05-27). overflow:hidden
+//     으로 부모 cycle 차단 + 자식 BaseGrid 가 자체적으로 ResizeObserver 사용해 fit.
+export const SplitPanel = ({ direction = 'vertical', sizes, minSize, sx, children }) => {
     const kids = React.Children.toArray(children).filter(Boolean);
-    const col  = direction === 'vertical';
+    const col  = direction === 'vertical';  // vertical = column flow = 상하
     return (
         <Box sx={{ display: 'flex', flexDirection: col ? 'column' : 'row',
                    flex: 1, minHeight: 0, minWidth: 0, gap: '8px', ...sx }}>
@@ -638,7 +647,8 @@ export const SplitPanel = ({ direction = 'horizontal', sizes, minSize, sx, child
                     flex: `${(sizes && sizes[i]) || (100 / Math.max(1, kids.length))} 1 0`,
                     minWidth:  col ? 0 : (minSize || 0),
                     minHeight: col ? (minSize || 0) : 0,
-                    display: 'flex', flexDirection: 'column', overflow: 'auto',
+                    display: 'flex', flexDirection: 'column',
+                    overflow: 'hidden',  // ★ auto → hidden (자식 grid wrapper height collapse 방지)
                 }}>{kid}</Box>
             ))}
         </Box>

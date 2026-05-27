@@ -434,11 +434,15 @@ public class ComposerController {
     }
 
     /**
-     * 지정 MENU_CD 가 TB_AD_MENU 에 존재하는지 확인 (부모 메뉴 검증용).
+     * 지정 MENU_CD 가 TB_AD_MENU 에 존재하는지 확인.
+     *   - 부모 메뉴 검증 + NEW_FROM_COPY 의 신규 코드 collision 검사 공용.
+     *   - target query param 으로 운영 wingui DB 검사 가능 (없으면 composer-db 폴백).
      */
     @GetMapping("/menus/{menuCd}/exists")
-    public Map<String, Boolean> menuExists(@PathVariable String menuCd) {
-        return Map.of("exists", menuRegistrationService.parentMenuExists(menuCd));
+    public Map<String, Boolean> menuExists(
+            @PathVariable String menuCd,
+            @org.springframework.web.bind.annotation.RequestParam(value = "target", required = false) String targetCd) {
+        return Map.of("exists", menuRegistrationService.parentMenuExists(menuCd, targetCd));
     }
 
     /**

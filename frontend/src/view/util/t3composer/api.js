@@ -289,8 +289,9 @@ export const cancelPreview = (sessionId) =>
     composerReq({ timeout: 60000 })
   );
 
-export const checkMenuExists = (menuCd) =>
-  zAxios.get(`composer/menus/${menuCd}/exists`, composerReq());
+export const checkMenuExists = (menuCd, targetCd) =>
+  zAxios.get(`composer/menus/${menuCd}/exists`,
+    composerReq({ params: targetCd ? { target: targetCd } : undefined }));
 
 // ---- 테이블 자동 lookup (NEW_NL 모드 — 사용자가 입력한 테이블명의 존재 여부 + 컬럼 자동 조회) ----
 // targetCd 미지정 또는 연결 실패 시 backend 가 빈 결과 반환 — TB_* 운영 테이블은 Target Operational DB(MSSQL) 에만 존재.

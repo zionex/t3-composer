@@ -81,7 +81,8 @@ function ModeNewFromCopy({ onBack }) {
     setMenuCdCheck(null);
     if (!menuNode.id) return;
     // 2단계 — async 로 운영 DB collision 회피한 next available 코드 검색 (parallel with source)
-    findNextAvailableMenuCd(menuNode.id).then((avail) => {
+    //         activeTargetCd 전달 — checkMenuExists 가 운영 wingui DB (MSSQL) 검사 (composer-db 폴백 X)
+    findNextAvailableMenuCd(menuNode.id, activeTargetCd).then((avail) => {
       if (avail) setNewMenuCd(avail);
     }).catch(() => {});
     setLoadingSource(true);
@@ -105,7 +106,7 @@ function ModeNewFromCopy({ onBack }) {
       return false;
     }
     try {
-      const res = await checkMenuExists(newMenuCd);
+      const res = await checkMenuExists(newMenuCd, activeTargetCd);
       const exists = !!res?.data?.exists;
       if (exists) {
         setMenuCdCheck({ ok: false, exists: true, msg: '이미 존재하는 메뉴 코드입니다' });
@@ -497,12 +498,12 @@ function suggestNewMenuCd(origCd) {
  * 끝이 숫자면 +1, +2, ... 최대 100회 시도. 그래도 못 찾으면 _COPY suffix.
  * 끝이 숫자가 아니면 _COPY 후 collision 시 _COPY2, _COPY3 ...
  */
-async function findNextAvailableMenuCd(origCd) {
+async function findNextAvailableMenuCd(origCd, targetCd) {
   if (!origCd) return '';
   const m = /^(.*?)(\d+)$/.exec(origCd);
   const tryCheck = async (candidate) => {
     try {
-      const r = await checkMenuExists(candidate);
+      const r = await checkMenuExists(candidate, targetCd);
       return !r?.data?.exists;
     } catch (_e) {
       return true;  // 검사 실패해도 후보 사용 — Wizard 에서 사용자 검증

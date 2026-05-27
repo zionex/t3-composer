@@ -23,7 +23,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -785,15 +784,47 @@ public class MenuRegistrationService {
     }
 
     /**
-     * 등록 전 검증 — 지정한 부모 메뉴가 실제로 존재하는지 확인 (UI 확인용)
+     * 등록 전 검증 — 지정한 메뉴 코드가 실제로 존재하는지 확인 (부모 검증 + collision 검사 공용).
+     *
+     * ★ 운영 wingui DB (Target) 의 TB_AD_MENU 검사. composer-db (PG) 가 아님.
+     *    이전엔 em.createNativeQuery 로 JPA EntityManager 사용 → composer-db (메타) 검사 →
+     *    운영에 이미 있는 UI_AD_02 도 false 반환 → collision 회피 실패 (2026-05-27 사용자 사고).
+     *    targetCd 가 주어지면 그 target 의 운영 DB, 없으면 composer-db (legacy) 폴백.
      */
-    @Transactional(readOnly = true)
-    public boolean parentMenuExists(String menuCd) {
+    public boolean parentMenuExists(String menuCd, String targetCd) {
         if (menuCd == null || menuCd.isBlank()) return false;
-        Object cnt = em.createNativeQuery(
-                "SELECT COUNT(*) FROM TB_AD_MENU WHERE MENU_CD = :cd")
-                .setParameter("cd", menuCd)
-                .getSingleResult();
-        return cnt != null && ((Number) cnt).intValue() > 0;
+
+        // 1) targetCd 주어지면 운영 DB 우선
+        if (targetCd != null && !targetCd.isBlank() && dsRegistry != null) {
+            try {
+                JdbcTemplate tjdbc = dsRegistry.getJdbcTemplate(targetCd);
+                if (tjdbc != null) {
+                    Integer cnt = tjdbc.queryForObject(
+                            "SELECT COUNT(*) FROM TB_AD_MENU WHERE MENU_CD = ?",
+                            Integer.class, menuCd);
+                    return cnt != null && cnt > 0;
+                }
+            } catch (Exception e) {
+                log.warn("parentMenuExists target DB 조회 실패 menuCd={} target={} err={} — composer-db 폴백",
+                        menuCd, targetCd, rootMessage(e));
+            }
+        }
+
+        // 2) 폴백 — composer-db (PG) JPA EntityManager 검사 (테이블 없으면 false)
+        try {
+            Object cnt = em.createNativeQuery(
+                    "SELECT COUNT(*) FROM TB_AD_MENU WHERE MENU_CD = :cd")
+                    .setParameter("cd", menuCd)
+                    .getSingleResult();
+            return cnt != null && ((Number) cnt).intValue() > 0;
+        } catch (Exception e) {
+            log.debug("parentMenuExists composer-db 폴백도 실패 (TB_AD_MENU 없음 가능성) menuCd={}", menuCd);
+            return false;
+        }
+    }
+
+    /** 기존 호출자 (targetCd 모르는 경우) 호환 — composer-db 폴백 동작. */
+    public boolean parentMenuExists(String menuCd) {
+        return parentMenuExists(menuCd, null);
     }
 }

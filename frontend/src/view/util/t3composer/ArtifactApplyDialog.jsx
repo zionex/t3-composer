@@ -35,6 +35,11 @@ import {
   applyPreview, confirmPreview, cancelPreview,
 } from './api';
 
+// 미리보기(=화면 실행) UI 표시 여부. ComposerWorkspace 의 동명 상수와 동기.
+//   2026-05-27 사용자 요청 — 산출물 실행 다이얼로그 안의 "미리보기 (docker 안에서 검증)" Paper
+//   블록 통째 숨김. backend `applyPreview`/`confirmPreview`/`cancelPreview` 는 그대로 보존.
+const SHOW_PREVIEW_UI = false;
+
 /**
  * 산출물 실행 다이얼로그 — MenuRegistrationDialog 와 분리.
  * MENU_SQL 은 메뉴 등록 다이얼로그 전용이므로 여기선 제외.
@@ -384,7 +389,9 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
           />
         </Paper>
 
-        {/* ===== Phase 2a — Preview (docker 컨테이너에서 검증) ===== */}
+        {/* ===== Phase 2a — Preview (docker 컨테이너에서 검증) =====
+            SHOW_PREVIEW_UI=false 면 Paper 블록 통째 렌더 안 함 (2026-05-27 사용자 요청). */}
+        {SHOW_PREVIEW_UI && (
         <Paper variant="outlined" sx={{
           p: 1.8, mb: 2, borderRadius: 2,
           borderColor: previewResult?.success ? 'info.main' : 'divider',
@@ -537,6 +544,7 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
             </Button>
           </Stack>
         </Paper>
+        )}
 
         {result?.policyBlocked && (
           <Alert severity="error" sx={{ mb: 2 }}>

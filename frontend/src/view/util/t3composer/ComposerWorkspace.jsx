@@ -61,6 +61,16 @@ const DEFAULT_MODEL_ID = 'claude-opus-4-7';
 // 2026-05-16 사용자 요청 — 1회만 자동보완. 1회 보완 후에도 오류면 즉시 멈추고 사용자에게 위임.
 const MAX_AUTOFIX = 1;
 
+// ───────────────────────────────────────────────────────────────────────────
+// 미리보기(=화면 실행) UI 표시 여부.
+//   2026-05-27 사용자 요청으로 헤더 [화면 실행] 버튼·[오류 시 자동보완] 체크·
+//   [실행 화면 LIVE] Tab·진행 토스트 모두 숨김. shim/runtime/preview endpoint·
+//   ArtifactPreviewService 는 그대로 보존 — 추후 다시 켜려면 이 상수만 true 로 바꾸면 됨.
+//   영구 제거하려면 별도 PR 로 ArtifactPreviewService·PreviewEmbed·preview/runtime.js·
+//   shim 의 preview-only 컴포넌트까지 정리 필요.
+// ───────────────────────────────────────────────────────────────────────────
+const SHOW_PREVIEW_UI = false;
+
 function modelMeta(id) {
   return MODEL_OPTIONS.find((m) => m.id === id)
       || { id, label: id, sub: id, desc: '', Icon: BoltIcon, color: '#64748b' };
@@ -141,7 +151,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   // 산출물 선택 상태 — Tree(좌) ↔ CodeView(우 Tab) 동기화
   const [selectedArtifactId, setSelectedArtifactId] = useState(null);
   // 우측 Tab — 0: 미리보기, 1: 산출물 소스. 초기값 0 (미리보기)
-  const [rightTab, setRightTab] = useState(0);
+  // 미리보기 UI 숨김 모드에서는 Tab 0 (실행 화면) 이 렌더되지 않으므로 산출물 소스(Tab 1) 가 기본
+  const [rightTab, setRightTab] = useState(SHOW_PREVIEW_UI ? 0 : 1);
   // 미리보기 메타 (PreviewEmbed 가 이걸 보고 lazy import)
   const [previewMeta, setPreviewMeta] = useState(null);  // { sid8, viewSub }
   // Preview 진행 상태 (헤더 [미리보기] 버튼 흐름용)
@@ -536,55 +547,57 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Button>
             </span>
           </Tooltip>
-          {/* [화면 실행] — 산출물 JSX 를 AI 가 시각 mockup 으로 변환해 우측 Tab 에 렌더 (frontend only, 데이터는 sample) */}
-          <Tooltip title="JSX 산출물을 AI mockup 으로 변환해 우측 [실행 화면] 탭에 렌더. 데이터는 sample, SQL/Java apply 는 skip (시각 확인 용). 첫 실행 5~10초, 이후 캐시.">
-            <span>
-              <Button
-                size="small"
-                startIcon={previewBusy
-                  ? <CircularProgress size={14} color="inherit" />
-                  : <LaunchIcon fontSize="small" />}
-                onClick={() => {
-                  // 수동 [화면 실행] — 자동보완 카운터/동일오류 기록 리셋 (새 사이클 시작)
-                  autoFixAttemptRef.current = 0;
-                  lastAutoFixErrorRef.current = '';
-                  handlePreview();
-                }}
-                disabled={previewBusy || !!previewStage}
-                variant="contained"
-                color="info"
-                sx={{ mr: 0.5 }}
-              >
-                {previewBusy ? '실행 중...' : '화면 실행'}
-              </Button>
-            </span>
-          </Tooltip>
-          {/* [오류 시 자동보완] — 체크 시 화면 실행 후 런타임 오류를 AI 가 자동 수정·재실행 */}
-          <Tooltip title={
-              "오류 시 자동보완 — 체크 시:\n"
-            + "[화면 실행] 후 런타임 오류가 발생하면 AI 가 오류 메시지를 분석해\n"
-            + "산출물(JSX/Java/SP)을 자동 수정한 뒤 화면을 다시 실행합니다.\n"
-            + "최대 3회까지 자동 반복하며, 해결되지 않으면 안내 후 멈춥니다."
-          }>
-            <FormControlLabel
-              sx={{ ml: 0, mr: 0.5,
-                    '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={autoFixOnError}
-                  onChange={(e) => setAutoFixOnError(e.target.checked)}
-                  sx={{ p: 0.5 }}
+          {/* [화면 실행] + [오류 시 자동보완] — SHOW_PREVIEW_UI=false 일 때 숨김 (2026-05-27 사용자 요청) */}
+          {SHOW_PREVIEW_UI && (
+            <>
+              <Tooltip title="JSX 산출물을 AI mockup 으로 변환해 우측 [실행 화면] 탭에 렌더. 데이터는 sample, SQL/Java apply 는 skip (시각 확인 용). 첫 실행 5~10초, 이후 캐시.">
+                <span>
+                  <Button
+                    size="small"
+                    startIcon={previewBusy
+                      ? <CircularProgress size={14} color="inherit" />
+                      : <LaunchIcon fontSize="small" />}
+                    onClick={() => {
+                      autoFixAttemptRef.current = 0;
+                      lastAutoFixErrorRef.current = '';
+                      handlePreview();
+                    }}
+                    disabled={previewBusy || !!previewStage}
+                    variant="contained"
+                    color="info"
+                    sx={{ mr: 0.5 }}
+                  >
+                    {previewBusy ? '실행 중...' : '화면 실행'}
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip title={
+                  "오류 시 자동보완 — 체크 시:\n"
+                + "[화면 실행] 후 런타임 오류가 발생하면 AI 가 오류 메시지를 분석해\n"
+                + "산출물(JSX/Java/SP)을 자동 수정한 뒤 화면을 다시 실행합니다.\n"
+                + "최대 3회까지 자동 반복하며, 해결되지 않으면 안내 후 멈춥니다."
+              }>
+                <FormControlLabel
+                  sx={{ ml: 0, mr: 0.5,
+                        '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={autoFixOnError}
+                      onChange={(e) => setAutoFixOnError(e.target.checked)}
+                      sx={{ p: 0.5 }}
+                    />
+                  }
+                  label={
+                    <Stack direction="row" alignItems="center" spacing={0.3}>
+                      <AutoFixHighIcon sx={{ fontSize: 14 }} />
+                      <span>오류 시 자동보완</span>
+                    </Stack>
+                  }
                 />
-              }
-              label={
-                <Stack direction="row" alignItems="center" spacing={0.3}>
-                  <AutoFixHighIcon sx={{ fontSize: 14 }} />
-                  <span>오류 시 자동보완</span>
-                </Stack>
-              }
-            />
-          </Tooltip>
+              </Tooltip>
+            </>
+          )}
           {/* ── [Target System 적용] 그룹 — 메뉴 등록 + 산출물 실행 두 기능 묶음 ── */}
           <Box
             sx={{
@@ -648,8 +661,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         </Stack>
       </Stack>
 
-      {/* Preview 진행 단계 토스트 — 화면 상단 sticky */}
-      {previewStage && (
+      {/* Preview 진행 단계 토스트 — 화면 상단 sticky. SHOW_PREVIEW_UI=false 면 숨김. */}
+      {SHOW_PREVIEW_UI && previewStage && (
         <Box sx={{
           px: 2, py: 1,
           borderBottom: '1px solid',
@@ -759,61 +772,69 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 },
                   }}
                 >
-                  <Tab
-                    icon={<LaunchIcon fontSize="small" />}
-                    iconPosition="start"
-                    label={
-                      <Stack direction="row" alignItems="center" spacing={0.6}>
-                        <span>실행 화면</span>
-                        {previewMeta && (
-                          <Chip size="small" color="success" label="LIVE"
-                                sx={{ height: 16, fontSize: 9, fontWeight: 700 }} />
-                        )}
-                      </Stack>
-                    }
-                  />
+                  {/* [실행 화면] Tab — SHOW_PREVIEW_UI=false 면 숨김 (2026-05-27). */}
+                  {SHOW_PREVIEW_UI && (
+                    <Tab
+                      icon={<LaunchIcon fontSize="small" />}
+                      iconPosition="start"
+                      label={
+                        <Stack direction="row" alignItems="center" spacing={0.6}>
+                          <span>실행 화면</span>
+                          {previewMeta && (
+                            <Chip size="small" color="success" label="LIVE"
+                                  sx={{ height: 16, fontSize: 9, fontWeight: 700 }} />
+                          )}
+                        </Stack>
+                      }
+                      value={0}
+                    />
+                  )}
                   <Tab
                     icon={<CodeIcon fontSize="small" />}
                     iconPosition="start"
                     label="산출물 소스"
+                    value={1}
                   />
                 </Tabs>
               </Box>
-              {/* 새창열기 — 실행 화면이 떠 있을 때만 활성. 클릭 시 preview URL 을 새 브라우저 탭으로 */}
-              <Tooltip title={previewMeta
-                  ? '실행 화면을 새 창으로 열기 (전체화면 보기)'
-                  : '먼저 [화면 실행] 버튼을 눌러 실행 화면을 띄우세요'}>
-                <span>
-                  <IconButton
-                    size="small"
-                    disabled={!previewMeta}
-                    onClick={() => {
-                      if (!session?.id || !previewMeta?.viewSub) return;
-                      // PreviewLoader 는 /preview/<sessionId>/<viewSub> URL 을 받아
-                      // preview/runtime.js 로 산출물 격리 로드. viewSub 의 `.jsx` 는 자동 제거됨.
-                      const vs = String(previewMeta.viewSub).replace(/\.jsx$/i, '');
-                      window.open(`/preview/${session.id}/${vs}`,
-                                  '_blank', 'noopener,noreferrer');
-                    }}
-                    sx={{ mx: 0.5, color: '#475569',
-                          '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' } }}
-                  >
-                    <OpenInNewIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              {/* 새창열기 — 실행 화면 표시일 때만. SHOW_PREVIEW_UI=false 면 숨김. */}
+              {SHOW_PREVIEW_UI && (
+                <Tooltip title={previewMeta
+                    ? '실행 화면을 새 창으로 열기 (전체화면 보기)'
+                    : '먼저 [화면 실행] 버튼을 눌러 실행 화면을 띄우세요'}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      disabled={!previewMeta}
+                      onClick={() => {
+                        if (!session?.id || !previewMeta?.viewSub) return;
+                        const vs = String(previewMeta.viewSub).replace(/\.jsx$/i, '');
+                        window.open(`/preview/${session.id}/${vs}`,
+                                    '_blank', 'noopener,noreferrer');
+                      }}
+                      sx={{ mx: 0.5, color: '#475569',
+                            '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' } }}
+                    >
+                      <OpenInNewIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
             </Box>
-            <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 0 ? 'flex' : 'none', flexDirection: 'column' }}>
-              <PreviewEmbed
-                sessionId={session?.id}
-                sid8={previewMeta?.sid8}
-                viewSub={previewMeta?.viewSub}
-                reloadNonce={previewNonce}
-                onError={handlePreviewError}
-                autoFixing={autoFixActive}
-                autoFixLabel={autoFixLabel}
-              />
-            </Box>
+            {/* [실행 화면] panel — SHOW_PREVIEW_UI=false 면 렌더 안 함. */}
+            {SHOW_PREVIEW_UI && (
+              <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 0 ? 'flex' : 'none', flexDirection: 'column' }}>
+                <PreviewEmbed
+                  sessionId={session?.id}
+                  sid8={previewMeta?.sid8}
+                  viewSub={previewMeta?.viewSub}
+                  reloadNonce={previewNonce}
+                  onError={handlePreviewError}
+                  autoFixing={autoFixActive}
+                  autoFixLabel={autoFixLabel}
+                />
+              </Box>
+            )}
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />
             </Box>

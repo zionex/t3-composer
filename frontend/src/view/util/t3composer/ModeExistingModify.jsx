@@ -22,10 +22,10 @@ import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWorkspace from './ComposerWorkspace';
-import StepByStepWizard from './StepByStepWizard';
+import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { createSession, collectSourceForLlm, importSourceArtifacts } from './api';
-import { createInitialSpecFromSource } from './wizardState';
+import { createInitialSpecFromSource, convertStep9SpecToWizardSpec } from './wizardState';
 import { useTargetStore } from './targetStore';
 
 /**
@@ -35,7 +35,8 @@ import { useTargetStore } from './targetStore';
  *   ⓪ 서브모드 선택 — 자연어 수정 / 단계별 수정
  *   ① 메뉴 트리에서 화면 선택
  *   ② [NL]   소스 번들 프리뷰 → [시작] → ComposerWorkspace 자연어 대화
- *      [STEP] 소스 번들 수집 → StepByStepWizard 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
+ *      [STEP] 소스 번들 수집 → ComposerWizard (4-step) 에 prefilledSpec + mode='EXISTING_MODIFY' 위임
+ *               (createInitialSpecFromSource → convertStep9SpecToWizardSpec 변환)
  */
 function ModeExistingModify({ onBack, startWith = null }) {
   // 활성 Target System (운영 DB 직접 조회용)
@@ -133,7 +134,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
   };
 
   // ─────────────────────────────────────────────────────────────────
-  // [STEP] 단계별 수정 — sourceBundle 로 prefill 한 후 StepByStepWizard 위임
+  // [STEP] 단계별 수정 — sourceBundle 로 prefill 한 후 ComposerWizard (4-step) 위임
   // ─────────────────────────────────────────────────────────────────
   const handleStartStep = () => {
     if (!selectedMenu || !sourceBundle) return;
@@ -177,14 +178,16 @@ function ModeExistingModify({ onBack, startWith = null }) {
     );
   }
 
-  // STEP — Wizard 위임
+  // STEP — Wizard 위임 (ComposerWizard 4-step + 9-step prefill 변환)
+  //   prefilledSpec 은 createInitialSpecFromSource 의 9-step 형식 → convertStep9SpecToWizardSpec 로 4-step 변환.
+  //   _originStep9 가 sourceBundle/sourceMenu 등 mode 메타 보존 — specToInitialPrompt 가 거기서 가져옴.
+  //   (이전 StepByStepWizard 9-step 사용 → ComposerWizard 4-step 으로 이전, NEW_FROM_COPY 와 동일 패턴)
   if (wizardEntered && prefilledSpec) {
     return (
-      <StepByStepWizard
+      <ComposerWizard
+        initialSpec={convertStep9SpecToWizardSpec(prefilledSpec)}
         mode="EXISTING_MODIFY"
-        prefilledSpec={prefilledSpec}
-        sourceBundle={sourceBundle}
-        initialModuleCode={prefilledSpec.moduleCode}
+        targetCd={activeTargetCd}
         onBack={() => setWizardEntered(false)}
       />
     );

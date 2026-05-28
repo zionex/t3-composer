@@ -38,7 +38,7 @@ import {
 // 미리보기(=화면 실행) UI 표시 여부. ComposerWorkspace 의 동명 상수와 동기.
 //   2026-05-27 사용자 요청 — 산출물 실행 다이얼로그 안의 "미리보기 (docker 안에서 검증)" Paper
 //   블록 통째 숨김. backend `applyPreview`/`confirmPreview`/`cancelPreview` 는 그대로 보존.
-const SHOW_PREVIEW_UI = false;
+const SHOW_PREVIEW_UI = true;
 
 /**
  * 산출물 실행 다이얼로그 — MenuRegistrationDialog 와 분리.

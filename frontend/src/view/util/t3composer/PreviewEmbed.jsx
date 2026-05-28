@@ -336,6 +336,10 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             // 이전엔 fetch 후 textContent 로 set 했는데 대용량 텍스트 (>250KB) 의 4개 파일 concat
             // 을 단일 <style> 태그에 넣으면 브라우저 CSS parser 가 첫 파일 끝에서 잘리는 케이스 발생.
             // <link> 는 브라우저 native loader 가 처리해 잘림 / parsing 이슈 0.
+            //
+            // ★ (2026-05-28) link onload 까지 await — 그렇지 않으면 RealGrid 가 CSS 없이
+            //   mount 되어 .rg-root / 체크박스 아이콘 / zebra 등 테마 미적용 사고.
+            //   CSS 가 늦게 도착해도 RealGrid 는 자체 측정값을 재계산하지 않아 unstyled 그대로.
             try {
                 const url = '/composer/preview/css' + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
                 const linkEl = doc.createElement('link');
@@ -343,7 +347,13 @@ function PreviewIframe({ Component, targetCd, onReport }) {
                 linkEl.rel = 'stylesheet';
                 linkEl.type = 'text/css';
                 linkEl.href = url;
+                const cssLoaded = new Promise((resolve) => {
+                    linkEl.onload = resolve;
+                    linkEl.onerror = resolve;   // error 도 진행 (화면은 떠야 함)
+                    setTimeout(resolve, 3000);  // safety timeout
+                });
                 doc.head.appendChild(linkEl);
+                await cssLoaded;                // RealGrid mount 전에 적용 보장
             } catch (_) { /* CSS 실패는 무시 — 화면 자체는 떠야 함 */ }
 
             if (cancelled) return;

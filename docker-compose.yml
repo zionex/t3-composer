@@ -273,9 +273,10 @@ services:
       - ./frontend:/app
       - /app/node_modules
       # frontend 빌드용 wingui-core / RealGrid2 alias 원본 — entrypoint.sh 가 realgrid 자동 복사.
-      # ⚠️ backend 의 Target wingui 경로와 별개 (backend 는 TARGET_<CD>_WINGUI_PATH 만 사용 — 2026-05-28).
-      # 이 변수는 frontend 빌드 전용 — Composer UI 자체의 webpack 의존성.
-      - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
+      # (2026-05-28) COMPOSER_WINGUI_REF_PATH 폐기 — TARGET_T3SERIES_WINGUI_PATH 재사용 (T3SERIES 가
+      # 표준 wingui 모노레포 = packages/wingui/realgrid 보유). PLANNEL/기타 Target 만 쓰는 사용자는
+      # TARGET_T3SERIES_WINGUI_PATH 에 wingui 모노레포 경로 1개만 설정하면 됨.
+      - ${TARGET_T3SERIES_WINGUI_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
       # Target System 별 wingui 폴더 슬롯 (backend 와 동일 패턴) — frontend 도 source bundle 조회 등에 사용
       - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
       - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro

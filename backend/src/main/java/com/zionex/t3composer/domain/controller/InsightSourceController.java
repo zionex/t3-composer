@@ -580,6 +580,13 @@ public class InsightSourceController {
      */
     private ResponseEntity<?> collectFromJsFileTarget(String targetCd, String menuCd) {
         String sourceRoot = pathResolver.resolveSourcePath(targetCd);
+        if (sourceRoot == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Target " + targetCd + " 의 wingui 경로를 찾을 수 없음 "
+                    + "(.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)"
+            ));
+        }
         Path[] menuFileCandidates = new Path[]{
             Path.of(sourceRoot, "src", "pages", "TabMenuList.js"),
             Path.of(sourceRoot, "src", "pages", "TabMenuList.jsx"),

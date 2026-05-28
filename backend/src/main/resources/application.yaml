@@ -73,8 +73,8 @@ app:
     auto-apply-enabled: true
     apply-mode: ${COMPOSER_APPLY_MODE:staging}
     project-root: ${COMPOSER_PROJECT_ROOT:/workspace/staging}
-    wingui-ref-path: ${COMPOSER_WINGUI_REF_PATH:/workspace/wingui}
-    database-ref-path: ${COMPOSER_DATABASE_REF_PATH:/workspace/database}
+    # (2026-05-28) 글로벌 wingui-ref-path / database-ref-path 폐기 — Per-Target (TARGET_<CD>_WINGUI_PATH) 만 사용.
+    # TargetPathResolver 가 /workspace/targets/<CD>/{wingui|database} 채택, 없으면 staging fallback.
     upgrade-version: ${COMPOSER_UPGRADE_VERSION:v26.0.0-20260507}
     preview-frontend-root: ${COMPOSER_PREVIEW_FRONTEND_ROOT:/workspace/preview/frontend}
     preview-java-root: ${COMPOSER_PREVIEW_JAVA_ROOT:/app/src/main/java/com/zionex/t3composer/preview}

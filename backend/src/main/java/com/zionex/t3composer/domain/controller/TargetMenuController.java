@@ -127,6 +127,10 @@ public class TargetMenuController {
      */
     private Map<String, Object> loadJsFileMenus(String targetCd, String lang) throws IOException {
         String root = pathResolver.resolveSourcePath(targetCd);
+        if (root == null) {
+            throw new IOException("Target " + targetCd + " 의 wingui 경로를 찾을 수 없음 "
+                    + "(.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)");
+        }
         Path[] candidates = new Path[]{
             Path.of(root, "src", "pages", "TabMenuList.js"),
             Path.of(root, "src", "pages", "TabMenuList.jsx"),
@@ -464,7 +468,12 @@ public class TargetMenuController {
 
     /** db upgrade 폴더 — Target 별 databaseRefPath 아래의 mssql/upgrade */
     private Path dbUpgradeRoot(String targetCd) {
-        return Path.of(pathResolver.resolveDatabasePath(targetCd), "mssql", "upgrade");
+        String root = pathResolver.resolveDatabasePath(targetCd);
+        if (root == null) {
+            throw new IllegalStateException("Target " + targetCd + " 의 database 경로를 찾을 수 없음 "
+                    + "(.env 의 TARGET_" + targetCd + "_DATABASE_PATH 확인)");
+        }
+        return Path.of(root, "mssql", "upgrade");
     }
 
     /**

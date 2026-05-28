@@ -197,8 +197,6 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       COMPOSER_APPLY_MODE: ${COMPOSER_APPLY_MODE:-staging}
       COMPOSER_PROJECT_ROOT: /workspace/staging
-      COMPOSER_WINGUI_REF_PATH: /workspace/wingui
-      COMPOSER_DATABASE_REF_PATH: /workspace/database
       COMPOSER_UPGRADE_VERSION: ${COMPOSER_UPGRADE_VERSION:-v26.0.0-20260507}
       COMPOSER_PREVIEW_FRONTEND_ROOT: /workspace/preview/frontend
       COMPOSER_PREVIEW_JAVA_ROOT: /app/src/main/java/com/zionex/t3composer/preview
@@ -217,9 +215,8 @@ services:
       - ./staging:/workspace/staging
       # Phase 2a — JSX preview 산출물을 frontend webpack-dev-server 가 watch 하는 위치에 직접 작성.
       - ./frontend/src/view/_preview:/workspace/preview/frontend
-      - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:rw
-      - ${COMPOSER_DATABASE_REF_PATH:-../t3series/t3series-database}:/workspace/database:ro
       # Target System 별 wingui / database 폴더 슬롯 — 호스트 드라이브가 달라도 (C: / D:) 독립 마운트.
+      # (2026-05-28) 글로벌 /workspace/wingui · /workspace/database 마운트 폐기 — Per-Target 만 사용.
       # 미설정 슬롯은 ./empty (빈 폴더) 마운트로 처리 (compose 가 빈 source 거부).
       # Target.wingui_ref_path 에 컨테이너 안 경로를 저장하면 그게 우선 사용되고,
       # 비어있으면 fallback 으로 /workspace/targets/<CD>/{wingui|database} 사용.
@@ -275,7 +272,9 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      # 부모 t3series-wingui 를 read-only 로 마운트 — webpack alias 로 wingui-core / RealGrid2 직접 사용
+      # frontend 빌드용 wingui-core / RealGrid2 alias 원본 — entrypoint.sh 가 realgrid 자동 복사.
+      # ⚠️ backend 의 Target wingui 경로와 별개 (backend 는 TARGET_<CD>_WINGUI_PATH 만 사용 — 2026-05-28).
+      # 이 변수는 frontend 빌드 전용 — Composer UI 자체의 webpack 의존성.
       - ${COMPOSER_WINGUI_REF_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
       # Target System 별 wingui 폴더 슬롯 (backend 와 동일 패턴) — frontend 도 source bundle 조회 등에 사용
       - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro

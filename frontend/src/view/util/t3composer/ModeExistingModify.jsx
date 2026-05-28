@@ -144,11 +144,14 @@ function ModeExistingModify({ onBack, startWith = null }) {
       // 신규 메뉴가 아닌 기존 메뉴 그대로 — newMenuCd 자리에 selectedMenu.id 사용.
       // wizard 의 step2_overview.menuCd 가 자동으로 createSession.targetMenuCd 로 들어가
       // 백엔드는 EXISTING_MODIFY 모드 + 동일 menuCd 로 인식.
+      //   ★ title: TargetMenuController 가 채우는 필드는 `displayName` (다국어 표시명) 이며
+      //     `title` 은 없다. 이전엔 fallback 으로 `selectedMenu.id` (= MENU_CD) 가 화면 제목으로 들어가
+      //     "UI_AD_01" 처럼 표시됨 (2026-05-28).
       const baseSpec = createInitialSpecFromSource({
         sourceMenu:  selectedMenu,
         sourceBundle,
         newMenuCd:   selectedMenu.id,
-        newTitle:    selectedMenu.title || selectedMenu.id,
+        newTitle:    selectedMenu.displayName || selectedMenu.title || selectedMenu.id,
       });
       setPrefilledSpec(baseSpec);
       setWizardEntered(true);

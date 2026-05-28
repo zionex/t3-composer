@@ -1668,11 +1668,19 @@ function inferOverviewFromMenuCd({ sourceMenu, newMenuCd, newTitle, moduleCode }
   const safeMenuCd = (newMenuCd || '').trim();
   const screenName = (newTitle || '').trim();
 
-  // MENU_FILE_PATH 추론: 원본 filePath 의 부모 경로 + 신규 PascalName
-  // 원본 '/util/userinfomgmt/UserInfoMgmt' 에서 마지막 세그먼트만 신규로 치환
+  // MENU_FILE_PATH 추론
+  // ── EXISTING_MODIFY (newMenuCd === sourceMenu.id): 기존 메뉴 그대로 — 원본 filePath 보존 ──
+  //    NEW_FROM_COPY 와 달리 이 케이스는 신규 코드 파생이 없다. menuCdToPascal 도 호출하지 않음
+  //    (예: 'UI_AD_01' → tail='01' → PascalCase 변환해도 그대로 '01' → 원본 '/system/CommonCode'
+  //    가 '/system/01' 로 잘못 덮어쓰임 — 2026-05-28 사고).
+  // ── NEW_FROM_COPY: 원본 filePath 의 module segment + 신규 PascalName ──
   let menuFilePath = '';
   const srcFp = sourceMenu?.filePath || '';
-  if (srcFp && safeMenuCd) {
+  const isExistingModify = !!(sourceMenu && sourceMenu.id && safeMenuCd
+                              && sourceMenu.id === safeMenuCd);
+  if (isExistingModify && srcFp) {
+    menuFilePath = srcFp;                                  // 기존 메뉴 그대로
+  } else if (srcFp && safeMenuCd) {
     const segments = srcFp.split('/').filter(Boolean);
     if (segments.length >= 1) {
       // 자동 추가 폴더 (lowercase 마지막 세그먼트의 직전) 는 skip — 단일/카테고리 + PascalName 형태로 정리

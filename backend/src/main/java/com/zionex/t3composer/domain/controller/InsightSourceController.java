@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
  *   3) JSX 안에서 zAxios.* URL / callService(...) 서비스 ID / SP_UI_* 식별자 grep
  *   4) URL 로 매칭되는 Controller .java 위치 후 같은 디렉토리의 Service/Repository/Entity 동봉
  *
- * 부모 wingui repo 가 마운트되어 있어야 한다 (docker-compose 의 COMPOSER_WINGUI_REF_PATH).
+ * Target 의 wingui repo 가 마운트되어 있어야 한다 (.env 의 TARGET_&lt;CD&gt;_WINGUI_PATH).
  */
 @Slf4j
 @RestController

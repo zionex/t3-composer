@@ -315,7 +315,7 @@ public class TargetMenuController {
         if (menusJs == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseMessage.of(HttpStatus.NOT_FOUND,
-                    "wingui menus.js 를 찾을 수 없습니다 (마운트 확인 — COMPOSER_WINGUI_REF_PATH)"));
+                    "wingui menus.js 를 찾을 수 없습니다 (.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)"));
         }
 
         // 2) 파일 읽기 + JS 변수 선언 제거 → JSON

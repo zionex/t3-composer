@@ -1,383 +1,334 @@
-# 21. 공용 컴포넌트 인벤토리 (PlanNEL)
-
-> 모든 import 는 **`@plannel/components/*`** alias 사용. 신규 화면 작성 시 아래에서 골라 쓰고, **없으면 신규 추가 금지** — 기존 컴포넌트로 조합 가능한지 먼저 검토.
-
-## 1. 레이아웃
-
-| 컴포넌트 | 경로 | 역할 / Props |
-|---|---|---|
-| `FilterContainer` | `@plannel/components/layout/FilterContainer` | 검색조건 + 우측 버튼 영역 wrapper. `({ sx, children, hasIcons })` — 화면 상단 고정 |
-| `ComparisonContainer` | `@plannel/components/layout/ComparisonContainer` | 비교 화면 좌우 분할 |
-| `DashboardComponent` | `@plannel/components/layout/DashboardComponent` | 대시보드 그리드 패널 컨테이너 |
-| `PaginationContainer` | `@plannel/components/PaginationContainer` | 페이지 네비게이션 — `{ currentPage, totalPages, pageSize, pageSizes, setCurrentPage, setPageSize }` |
-| `TabContainer` | `@plannel/components/TabContainer` | 탭 네비 — `{ tabs, selectedTab, setSelectedTab, onTabChange }` |
-| `SplitterContainer` | `@plannel/components/SplitterContainer` | resizable split panel — `{ sizes, setSize, children }` |
-
+---
+description: 화면(.jsx)에서 사용하는 공용 컴포넌트 인벤토리.
+globs:
+  - "**/view/**/*.jsx"
+alwaysApply: false
 ---
 
-## 2. 검색조건 (filter/ 16개)
+# 21. 공용 컴포넌트 인벤토리
 
-| 컴포넌트 | 역할 | 핵심 Props |
-|---|---|---|
-| `AdvancedFilter` | column 별 동적 필터 빌더 (AND/OR 조합) | `{ filterNode, onChange, columnDefs, getOperatorOptions, depth }` 또는 화면 상위에선 `{ columnDefs, advancedFilters, onApply }` |
-| `CustomerAutocomplete` | 거래처 자동완성 (단/복수) | `{ selectedCustomer, setSelectedCustomer, multiple, onBlur }` |
-| `ItemAutocomplete` | 품목 자동완성 | `{ selectedItem, setSelectedItem, multiple, onBlur }` |
-| `CustomerHrchyTreeFilter` | 거래처 계층 트리 | `{ treeData, selectedNodes, setSelectedNodes }` |
-| `ItemHrchyTreeFilter` | 품목 계층 트리 | 동일 |
-| `LocationFilter` | 거점 단건 dropdown | — |
-| `LocationTreeFilter` | 거점 계층 트리 | — |
-| `ResourceFilter` | 자원 선택 | — |
-| `PeriodFilter` | 기간 (from/to) | — |
-| `ClassificationFilter` | 분류 코드 | — |
-| `InvClassCdFilter` | 재고 분류 코드 | — |
-| `ItemTypeFilter` | 품목 유형 dropdown | — |
-| `IpVersionFilter` | IP 버전 선택 | `{ versionId, setVersionId, reloadIpVersionFilter }` |
-| `MpVersionFilter` | MP 버전 선택 | 동일 패턴 |
-| `RpVersionFilter` | RP 버전 선택 | 동일 패턴 |
-| `ZeroExclusionFilter` | "0 제외" 체크박스 | — |
+> 인벤토리 카탈로그만. 코드 표면 (BaseGrid prop · grid API · zAxios · showMessage · store) 의 권위는
+> `41a-composer-jsx.md` · `41c-composer-widgets.md`. 본 문서 예시는 그것을 따름.
 
-### 2.1 검색조건 사용 패턴
+## 1. 최상위 레이아웃 (단일 경로 `@wingui/common/imports`)
 
-```jsx
-// useState + useRef 직접 관리 (react-hook-form 미사용)
-const customerSearch = useRef(reduxViewState?.searchCode ?? "");
-const extraCustomerCodesRef = useRef(reduxViewState?.extraCustomerCodes ?? []);
-const [versionId, setVersionId] = useState(reduxViewState?.versionId ?? null);
-
-<FilterContainer>
-  <CustomerAutocomplete
-    selectedCustomer={customerSearch}
-    setSelectedCustomer={(v) => { customerSearch.current = v; }}
-    multiple={false}
-  />
-  <IpVersionFilter versionId={versionId} setVersionId={setVersionId} />
-  {/* 우측 액션 버튼 영역 */}
-  <Box sx={{ ml: "auto" }}>
-    <SaveButton onClick={handleSave} />
-  </Box>
-</FilterContainer>
-```
-
----
-
-## 3. AG-Grid 헬퍼 (aggrid/ 12개)
-
-| 헬퍼 | 역할 | API |
-|---|---|---|
-| `DefaultGridSetting({title, viewName})` | 그리드 기본 props 빌더 | columnDefs / defaultColDef / rowSelection / paginationPageSize / suppressRowClickSelection / enableCellChangeFlash 등 반환. **모든 그리드 필수** |
-| `DataState` | 행 변경 추적 (created/updated 분리) | `setDataState(e)`, `initialize(gridApi)`, `getAllStateRow(gridApi)`, `getStateData(gridApi, "created"\|"updated")`, `getRowState(gridApi, rowIdx)`, `getRowStyles(params)` |
-| `GridUtils` | 그리드 utility | `getColumnDefs(columns)` (i18n 적용), `autoSizeColumn(columnApi, skipHeader, columns)`, `getColumnIds(api)`, `addRow(api, newRow, addIndex=0, selected=true)`, `getAllData(api)`, `getSortState(params)` → `{orderByColumn, sortType}`, `getColumnGroupId(columnApi, name)`, `gridValueL10N(value, {headerName})` |
-| `GridExportSetting` | Excel/CSV export 스타일 | `excelStyles` (header / alertBackground / dataTypes) |
-| `NumericEditor` | 숫자 입력 셀 에디터 | Props: `min`, `max`, `point`, `sumFields`, `setSnackInfo` |
-| `CalendarGroupRenderer` | 캘린더 그룹 셀 렌더러 | — |
-| `CycleCalendarRenderer` | 사이클 캘린더 셀 렌더러 | — |
-| `CustomDetailHeader` | Master-detail row 헤더 | — |
-| `CustomHeaderGroup` | 컬럼 그룹 헤더 커스텀 | — |
-| `CustomHeaderMenuIcon` | 헤더 메뉴 아이콘 렌더러 | — |
-| `FilterStatusPanel` | 적용된 필터 상태 사이드 패널 | — |
-| `CustomTooltip` | 그리드 셀 툴팁 | — |
-
-### 3.1 표준 그리드 패턴
-
-```jsx
-const gridRef = useRef();
-const defaultGridMemo = useMemo(() => DefaultGridSetting({ title, viewName }), []);
-
-const columnDefs = [
-  { headerName: "customerCd", field: "customerCd",
-    checkboxSelection: true, headerCheckboxSelection: true,
-    cellClass: 'stringType', filterType: 'string' },
-  { headerName: "name", field: "name", filterType: 'string' },
-  { headerName: "qty", field: "qty", type: ["rightAligned"], width: 100, filterType: 'number' },
-  { headerName: "activeFlg", field: "activeFlg", type: ["booleanColumn"], width: 80, filterType: 'boolean' },
-  { headerName: "createdTs", field: "createdTs", type: ["nonEditableColumn"],
-    valueFormatter: dateUtils.formatDateTime, filterType: "timestamp" },
-];
-
-const onGridReady = (params) => {
-  DataState.initialize(params.api);     // 변경 추적 init
-  GridUtils.autoSizeColumn(params.columnApi);
-  setGridLoading(true);
-};
-
-<AgGridReact
-  ref={gridRef}
-  rowData={rows}
-  {...defaultGridMemo}
-  columnDefs={columnDefs}
-  getRowStyle={(p) => DataState.getRowStyles(p)}
-  onGridReady={onGridReady}
-  onSortChanged={(p) => setSortParams(GridUtils.getSortState(p))}
-/>
-```
-
-### 3.2 컬럼 타입 관례 (`type:["..."]`)
-
-| type | 의미 |
+| 컴포넌트 | 역할 |
 |---|---|
-| `"rightAligned"` | 숫자 컬럼 — 우측 정렬 |
-| `"booleanColumn"` | Y/N flag boolean 체크박스 셀 |
-| `"nonEditableColumn"` | 읽기 전용 |
-| `"defaultValueParser"` | 기본 값 파서 적용 |
+| `ContentInner` | 화면 최상위 (flex column, overflow). **모든 화면 필수** |
+| `SearchArea` · `SearchRow` | 조회 조건 영역 |
+| `WorkArea` · `ResultArea` · `StatusArea` | 작업/결과/상태 |
+| `ButtonArea` · `LeftButtonArea` · `RightButtonArea` | 버튼 묶음 |
 
-### 3.3 `filterType` (AdvancedFilter 통합용)
+## 2. 레이아웃 분할 (`@zionex/wingui-core`)
 
-| filterType | AdvancedFilter 가 인식 |
+| 컴포넌트 | 실제 prop |
 |---|---|
-| `"string"` | text contains / equals 등 |
-| `"number"` | 범위 / 비교 |
-| `"boolean"` | true/false 토글 |
-| `"timestamp"` | 날짜 from~to |
+| `SplitPanel` | `direction='horizontal'|'vertical'` · `sizes={[20,80]}` · `minSize={n}` · `sx` ★ `initialSizes/minSizes/defaultSizes` 는 허구 (hook block) |
+| `VLayoutBox`/`HLayoutBox` | `sx` · children — 수직/수평 flex |
+| `TabContainer` | `value` · `onChange` · children `<Tab>` ★ `tabs={[...]}` 허구 (hook block) |
+| `PopupDialog` | `open` · `onClose` · `onSubmit` · `title` · `checks={[grid]}` · `resizeWidth/Height` · `type='CONFIRM'|'NOBUTTONS'` ★ `sizeWidth/sizeHeight/fullWidth/maxWidth` 허구 |
 
-### 3.4 `cellClass` 관례
+## 3. 입력 필드
 
-| cellClass | 용도 |
-|---|---|
-| `"stringType"` | 클립보드/엑셀 export 시 문자열 타입 보존 (숫자처럼 보이는 코드 보호) |
+### 3.1 `InputField` (from `@wingui/common/imports`)
 
-### 3.5 저장 패턴 (`DataState.getStateData`)
+타입: `text`, `number`, `select`, `multiSelect`, `autocomplete`, `dateRange`, `datetime`, `check`, `radio`, `popover`, `textarea`, `time`, **`action`**
+
+`react-hook-form` 의 `control` prop 연결. `useForm()` 에서 `control`, `getValues`, `setValue`, `watch` 추출.
+
+### 3.1.0 ⛔ `useForm({ defaultValues })` — 타입별 초기값 (필수)
+
+| type | ✅ 초기값 | ❌ 금지 |
+|---|---|---|
+| `text`/`textarea`/`action`/`popover` | `''` | — |
+| `select`/`radio` (단일) | `''` 또는 첫 옵션 value | — |
+| `multiSelect`/`autocomplete`(multi) | `[]` | `''` (crash) |
+| `number` | `null` 또는 숫자 | `''` (NaN) |
+| `check` (단일 boolean) | `false` | `''`·`'N'` |
+| **`datetime`** | **`null`** 또는 `new Date()` | **`''` 금지** — Invalid Date |
+| **`dateRange`** | **`[null, null]`** | `''`·`[]` |
+| `time` | `null` 또는 `'HH:mm'` | `''` |
+
+datetime defaultValue `''` → `new Date('')` → Invalid Date → 매 keystroke RangeError + RHF validator throw. 항상 `null` 시작.
+
+### 3.1.1 `type="action"` 팝업 트리거 — children 필수
 
 ```jsx
-const handleSave = () => {
-  const created = DataState.getStateData(gridRef.current.api, "created");
-  const updated = DataState.getStateData(gridRef.current.api, "updated");
-  const changes = [...(created ?? []), ...(updated ?? [])];
-  if (changes.length === 0) {
-    setSnackInfo({ open: true, severity: "info", content: t("MSG_NoChanges") });
-    return;
-  }
-  customerService.upsert(changes).then(() => {
-    setSnackInfo({ open: true, severity: "success", content: t("MSG_SaveSuccess") });
-    retrieve();
-  });
-};
+import SearchIcon from '@mui/icons-material/Search';
+<InputField control={control} type="action" name="deptNm" label="부서" title="부서 검색"
+  readonly={true}                            // ★ readOnly(camel) 아님
+  onClick={() => setDeptPopupOpen(true)}
+>
+  <SearchIcon fontSize="small" />            // ★ children 필수 (없으면 빈 버튼)
+</InputField>
 ```
+❌ 자기닫힘 = 빈 버튼 · `InputProps.endAdornment` = 미동작.
 
----
-
-## 4. 버튼 / 액션 (`@plannel/components/ActionIconButton` named import)
-
-| 버튼 | 용도 | Props |
-|---|---|---|
-| `AddButton` | 신규 행 추가 | `({ label, onClick, ...others })` |
-| `RemoveButton` | 선택 행 삭제 | 동일 |
-| `SaveButton` | 변경 저장 | 동일 |
-| `SettingsButton` | 화면별 설정 (속성 컬럼) 다이얼로그 열기 | 동일 |
-| `FilterButton` | AdvancedFilter 패널 토글 | `{ label, advancedFilterColor, onClick }` (`advancedFilterColor="info"` 면 활성 표시) |
-| `RunButton` | 시뮬레이션 실행 | 동일 |
-| `BulkValueUpdateButton` | 선택 행 일괄 업데이트 | 동일 |
-
-기타 단일 컴포넌트:
-- **`ExcelExportButton`** (`@plannel/components/ExcelExportButton`) — `{ title, service, params, columnDefs, setExcelData, headerFormatter, dataType, formatHeaderList, hasUnsavedChanges, totalRows, isCsv, translationColumns, noteDefs }`
-- **`PaginationContainer`** (`@plannel/components/PaginationContainer`) — 페이지 네비
-
----
-
-## 5. 다이얼로그 / 알림
-
-| 컴포넌트 | 경로 | Props |
-|---|---|---|
-| `Dialog` | `@plannel/components/Dialog` | `{ open, title, actionName, content, checkBox, setChecked, checked, onHandler, onClose, t, el, cancelText, customButton, maxWidth }` |
-| `Snackbar` | `@plannel/components/Snackbar` | `{ onClose, open, content, duration, severity }` (severity: `"success"` / `"error"` / `"info"` / `"warning"`) |
-| `DeleteOptionDialog` | `@plannel/components/DeleteOptionDialog` | 삭제 옵션 (cascade vs 본인만) — `{ open, onConfirm, onCancel }` |
-
-### 5.1 Modal (modal/ 20개)
-
-| 모달 | 역할 | 주요 Props |
-|---|---|---|
-| `AttributeConfigModal` | 사용자 정의 속성 (attr01..attr20) 컬럼 표시 설정 | `{ open, onClose, attrColDefs, setAttrColDefs }` |
-| `CreateVersionModal` | 신규 plan 버전 생성 | `{ open, onClose, onVersionCreate }` |
-| `CalendarModal` | 캘린더 날짜 선택 (큰 grid) | `{ open, dates, onChange }` |
-| `CalendarGroupModal` | 캘린더 그룹 설정 | — |
-| `MeasureModal` | KPI/measure 설정 | `{ open, measures, setMeasures }` |
-| `DimensionModal` | 차원 계층 설정 | — |
-| `ChartCommonConfigModal` | 차트 공통 설정 | — |
-| `ClassificationSettingsModal` | ABC/XYZ 설정 | — |
-| `MultiSelectLocation` | 다중 거점 선택 | `{ selectedLocations, setSelectedLocations }` |
-| `AuthAppSettingModal` | 앱 인증 설정 | — |
-| `InvCovDaysSettings` | 재고 커버리지 일수 설정 | — |
-| `AbcXyzFilterModal` | ABC/XYZ 분석 필터 | — |
-
-### 5.2 알림 사용 패턴
-
-```jsx
-const [snackInfo, setSnackInfo] = useState({ open: false, severity: "", content: "" });
-const [dialogInfo, setDialogInfo] = useState({ open: false, title: "", content: "" });
-
-const handleDelete = () => {
-  setDialogInfo({
-    open: true, title: "delete", content: t("MSG_ConfirmDelete"),
-    action: () => doDelete(),
-  });
-};
-
-<Dialog
-  open={dialogInfo.open}
-  onClose={() => setDialogInfo({ open: false, title: "", content: "" })}
-  title={dialogInfo.title}
-  content={dialogInfo.content}
-  onHandler={() => { dialogInfo.action?.(); setDialogInfo({ open: false, title: "", content: "" }); }}
-/>
-<Snackbar
-  open={snackInfo.open}
-  onClose={() => setSnackInfo({ ...snackInfo, open: false })}
-  severity={snackInfo.severity}
-  content={snackInfo.content}
-/>
-```
-
----
-
-## 6. 기타 단일 파일 컴포넌트 (root `components/`)
+### 3.2 SCM 도메인 특화
 
 | 컴포넌트 | 용도 |
 |---|---|
-| `AutocompleteSearch` | 범용 자동완성 — `{ value, onChange, options, getOptionLabel }` |
-| `OriginDestLocationAutocomplete` | 출발지/도착지 거점 선택 |
-| `BucketToggleButton` | 시간 버킷 (일/주/월) 토글 — `{ value, onChange }` |
-| `ToggleButton` | 다중 옵션 토글 |
-| `CustomStyledSwitch` | MUI Switch 스타일 |
-| `DateCondition` | 날짜 조건 (from/to/single) — `{ conditionList, period, maxDate, minDate, views, selectedSearch, setSelectedSearch, setPeriod, dateFormat, useAutoComplete }` |
-| `GridDatePicker` | AG-Grid 셀 에디터 (날짜) |
-| `GridAutoComplete` | AG-Grid 셀 에디터 (자동완성) |
-| `TextFieldSearch` | 검색 텍스트 입력 |
-| `RpPeriodSlider` | RP 기간 슬라이더 |
-| `ChatWidget` | AI 챗 위젯 |
-| `useChat` | 챗 메시지 관리 hook |
-| `NotificationBell` | 상단 알림 |
-| `Navbar` | 상단 네비 |
-| `Sidebar` | 사이드 네비 |
-| `ModuleVersionSetting` | 모듈별 버전 선택 다이얼로그 |
-| `VersionConfigContent` | 버전 설정 form |
-| `PasswordInput` | 비밀번호 + visibility toggle |
-| `PasswordPolicyContainer` | 비번 강도 표시 |
-| `SelectLanguage` | 언어 dropdown |
-| `SelectExpTime` | 만료 시간 picker |
-| `AbcHeatMap` | ABC-XYZ heatmap |
-| `AggregationIcon` | 집계 표시 아이콘 |
-| `AuthVerify` | 인증 토큰 검증 HOC — `{ children }` |
-| `BackToSignIn` | 로그인 fallback |
-| `GoogleSSOSignIn` | Google OAuth 버튼 |
-| `PlannelFooter` | 푸터 |
+| `PlanScope` | 플랜 스코프 |
+| `LocationMultiSearchBox` · `ItemMultiSearchBox` · `ItemSearchInput` · `AccountSearchInput` · `ResourceMultiSearchBox` | 거점/품목/거래처/리소스 단·복수 |
+| `UserInputField` | 사용자 선택 |
 
----
+### 3.3 공통코드 Dropdown — `InputField type="select"` 사용
 
-## 7. Redux 상태 영속화
+⛔ **산출물에 `CommonCodeSelect` import 금지** — wingui 본 환경에 없는 컴포넌트 (t3-composer preview shim 전용).
 
-```js
-import { useDispatch } from "react-redux";
-import reduxUtil from "@plannel/utils/redux-util";
+```jsx
+const [opts] = useState([{value:'Y',label:'사용'},{value:'N',label:'미사용'}]);
+<InputField control={control} type="select" name="useYn" options={opts} />
 
-const reduxViewState = reduxUtil.getViewState(viewName);   // localStorage / store 통합 (BigInt + ZDate parsing)
-const reduxDispatch  = useDispatch();
-
-// 페이지 진입 시 state 복원
-const [currentPage, setCurrentPage] = useState(reduxViewState?.page ?? 1);
-const [pageSize, setPageSize]       = useState(reduxViewState?.pageSize ?? 100);
-const [advancedFilters, setAdvancedFilters]
-  = useState(reduxViewState?.advancedFilters ?? null);
-
-// 상태 변경 시 store 에 dispatch
-import { updateViewState } from "@plannel/redux/modules/viewStates";
-reduxDispatch(updateViewState({
-  viewName,
-  page: newPage,
-  pageSize: newPageSize,
-  searchCode: customerSearch.current,
-  advancedFilters,
-}));
+// 동적 옵션
+useEffect(() => {
+  zAxios.get('/system/common/codes', { params: { 'group-cd': 'USE_YN' } })
+    .then((res) => setOpts(res.data));
+}, []);
 ```
 
-### 7.1 redux-util export 함수
+## 4. 그리드 (RealGrid2)
 
-| 함수 | 역할 |
+| 컴포넌트 | 경로 | 역할 |
+|---|---|---|
+| `BaseGrid` | `@wingui/common/imports` | 표준 그리드 (RealGrid2 wrapper) |
+| `TreeGrid` | `@zionex/wingui-core/component/grid/TreeGrid` | 계층형 |
+| `GridCnt` | `@wingui/common/imports` | 행 카운터 — `format` prop 필수 |
+| `PivotTable` | `@zionex/wingui-core/component/dstable/PivotTable` | D/M/P/V 컬럼 피벗 |
+
+### 4.1 BaseGrid 실제 API
+
+| 잘못된 이름 (hook block) | 실제 |
 |---|---|
-| `createViewState(viewName, searchCode, page, pageSize)` | 화면 state 초기화 객체 생성 |
-| `createFilterViewState(viewName, filter)` | 필터 state |
-| `createObjectState(viewName, object)` | 임의 object state |
-| `getViewState(viewName)` | 저장된 화면 state 조회 (BigInt + ISO date 자동 parsing) |
-| `updateViewState(payload)` | dispatch 용 action creator |
-| `removeViewState(payload)` | 화면 state 삭제 |
-| `initViewState()` | 전체 초기화 |
-| `getHistoryState()` | 네비 history |
-| `createTabsState(keys, tabIndex, object)` | 탭 state 생성 |
-| `getTabState()` | 탭 state 조회 |
-| `updateTabState(payload)` | 탭 state 업데이트 |
+| `columns={...}` | **`items={...}`** |
+| `afterCreate={fn}` | **`afterGridCreate={fn}`** `(grid, gridView, dataProvider)` |
+| (id 없음) | **`id="<camelCase>Grid"`** (Grid 버튼이 string id 로 참조) |
+| `grid.setData(rows)` | **`grid.dataProvider.fillJsonData(rows)`** |
+| `grid.getChangedData()` | **`grid.dataProvider.getAllStateRows()`** → `{created, updated, deleted}` |
+| (단건 행) | `grid.dataProvider.getJsonRow(idx)` |
 
-### 7.2 redux store 구성 (`@plannel/redux/modules/store.js`)
+### 4.2 그리드 컬럼 정의 — 컴포넌트 밖 + 모든 컬럼 `dataType` 필수
 
-```js
-const rootReducer = combineReducers({
-  historyState: historyReducer,
-  viewStates:   viewReducer,
-  tabState:     persistReducer(persistConfig, tabReducer)   // localStorage 영속
-});
+```jsx
+// 허용 dataType: 'text' | 'number' | 'datetime' | 'boolean' | 'group'
+// key='name', 헤더 라벨='headerText', 정렬='textAlignment'
+let gridItems = [
+  { name: 'userId', dataType: 'text', headerText: '사용자 ID', width: 130, textAlignment: 'center', editable: true,
+    validRules: [{ criteria: 'required' }] },
+  { name: 'userNm', dataType: 'text', headerText: '사용자명', width: 120, editable: true },
+  { name: 'userTp', dataType: 'text', headerText: '유형', width: 110, textAlignment: 'center', editable: true,
+    useDropdown: true, lookupDisplay: true,    // ★ enum 셀 편집 — 4개 필수
+    values: ['ADMIN', 'NORMAL'], labels: ['ADMIN', 'NORMAL'] },
+  { name: 'useYnBool', dataType: 'boolean', headerText: '사용', width: 80, textAlignment: 'center', editable: true },
+  { name: 'joinDt', dataType: 'datetime', headerText: '입사일', width: 110, textAlignment: 'center', editable: true,
+    displayType: 'date', datetimeFormat: 'yyyy-MM-dd',
+    editor: { type: 'date', datetimeFormat: 'yyyy-MM-dd' } },
+];
 ```
 
-- `viewStates`: 화면별 검색조건/페이징 (in-memory · 새로고침 시 사라짐)
-- `tabState`: 열린 탭 목록 (localStorage 영속)
-- `historyState`: 네비 history
-- 커스텀 미들웨어 `customSerializableMiddleware`: BigInt 직렬화 (json-bigint 사용)
+**안티패턴 (hook block):**
+- `field:` (실제 `name:`) · `header:`(실제 `headerText:`) · `textAlign:`(실제 `textAlignment:`)
+- `type:'combo', items:[]` (실제 `useDropdown:true + lookupDisplay:true + values + labels`)
+- `dataType` 누락 → `BaseGrid.jsx:1016` TypeError, 화면 즉시 크래시
+- enum 컬럼에 `lookupDisplay:true` 만 (useDropdown 누락) → 셀 편집 자유 text
 
----
+### 4.3 정렬 규약
+- **LEFT** (기본): 이름·이메일·자유 텍스트 (`textAlignment` 생략)
+- **CENTER**: 코드·날짜·boolean·enum·등록자·일시
+- **`'far'` (RIGHT)**: 숫자
 
-## 8. i18n (`react-i18next` 6언어)
+### 4.4 날짜 포맷
+- 단일 일자 `yyyy-MM-dd` · 일시 `yyyy-MM-dd HH:mm:ss`
+- 그리드 편집 `editor:{type:'date', datetimeFormat:'yyyy-MM-dd'}`
+- 기간 선택 `<InputField type="dateRange" displayType="date">`
 
-```js
-import { useTranslation } from "react-i18next";
-const { t } = useTranslation();
+### 4.5 공용 Grid 버튼 — `grid` prop = **문자열 id**
 
-const label = t("customerName");           // menu/UI label
-const message = t("MSG_SaveSuccess");      // 메시지
+```jsx
+import { transLangKey } from '@zionex/wingui-core';
 
-// AG-Grid 컬럼 — i18n key 그대로 headerName 에 입력하면 GridUtils 가 번역
-{ headerName: "customerCd", field: "customerCd" }
+<GridCnt grid="userInfoGrid" format={"{0} " + transLangKey("CASES") + " " + transLangKey("MSG_0010")} />
+<GridAddRowButton    grid="userInfoGrid" />
+<GridDeleteRowButton grid="userInfoGrid" onDelete={onDelete} onAfterDelete={handleSearch} />
+<GridSaveButton      grid="userInfoGrid" onSave={onSave}     onAfterSave={handleSearch} />
+<GridExcelExportButton grid="userInfoGrid" fileName="사용자정보" />
+```
+❌ `grid={gridStateRef}` (객체) · `<GridCnt grid="...">` 만 (`format` 누락 — 라벨 없이 숫자만)
+
+## 5. 차트
+
+| 컴포넌트 | 경로 | 용도 |
+|---|---|---|
+| `ChartComponent` | `@zionex/wingui-core/component/chart/ChartComponent` | 공용 Chart.js wrapper |
+| `Line`/`Bar`/`Chart`/`PolarArea` | `react-chartjs-2` | 직접 사용 시 |
+| `GanttChart` | `@zionex/wingui-core/component/gantt/GanttChart` | 간트 |
+
+업데이트: `chart.current.data.datasets` 갱신 후 `chart.current.update()`. 강제 리마운트: `chartKey` 증가.
+
+## 6. 다이어그램 · 특수
+
+| 컴포넌트 | 경로 | 역할 |
+|---|---|---|
+| `FLODiagram` | `@zionex/wingui-core/component/workflow/component/FLODiagram` | BOM/공급망 (ReactFlow) |
+| `DashboardPanel` | `@zionex/wingui-core/component/dashboard/DashboardPanel` | react-grid-layout 위젯 캔버스 |
+| `ZEditor` | `@zionex/wingui-core` | TUI Editor WYSIWYG |
+| `MyGoogleMap` | `@zionex/wingui-core` | Google Maps |
+
+## 7. Zustand 스토어
+
+> ★ import 는 **단일 경로 `@wingui/common/imports`**.
+
+```jsx
+import { useViewStore, useContentStore, useUserStore, useMenuStore } from '@wingui/common/imports';
 ```
 
-### 8.1 언어 코드
+| 스토어 | 자주 쓰는 키 | 용도 |
+|---|---|---|
+| `useContentStore` | **`activeViewId`**, `viewList`, `addView`, `removeView` | 활성 뷰 ID |
+| `useViewStore` | **`setViewInfo`**, `getViewInfo`, `viewData` | 뷰별 상태: `globalButtons`, grid ref |
+| `useUserStore` | `userInfo`, `setUserInfo` | 로그인 사용자 |
+| `useMenuStore` | `menuList`, `currentMenu` | 메뉴 경로 |
 
-| 코드 | 언어 |
-|---|---|
-| `en-US` | 영어 |
-| `ko-KR` | 한국어 |
-| `ja-JP` | 일본어 |
-| `zh-TW` | 중국어 (번체) |
-| `zh-CN` | 중국어 (간체) |
-| `vi-VN` | 베트남어 |
+⚠️ **Store 매핑 swap 금지** (hook block):
+```jsx
+// ✅ 올바름
+const [activeViewId] = useContentStore((s) => [s.activeViewId]);
+const [setViewInfo]  = useViewStore((s) => [s.setViewInfo]);
 
-### 8.2 번역 파일 구조
+// ❌ swap — selector undefined → setViewInfo is not a function
+const [activeViewId] = useViewStore((s) => [s.activeViewId]);
+const [setViewInfo]  = useContentStore((s) => [s.setViewInfo]);
+```
 
-`saas-web/src/assets/data/l10n/translation.<lang>.js`:
+## 8. 공통 팝업 (`src/view/common/`)
 
-```js
-export default {
-  menu: { customerName: "거래처명", ... },           // 메뉴 + UI 라벨
-  msg:  { MSG_SaveSuccess: "저장되었습니다.", ... },  // 메시지
-  problem: { ... },                                   // 에러
-  notification: { ... },                              // 알림
-  plannelAgent: { ... },                              // AI 챗봇
-  grid: {                                             // 그리드 셀 값 번역
-    activeFlg: { Y: "사용", N: "미사용" }
-  }
+> ⛔ **사전 검증 필수**: `import X from '@wingui/view/common/Y'` 작성 전 `Y.jsx` 파일 존재 확인. 부재 시 일반 `<InputField>` 대체 또는 같이 생성. (PLANNEL 같은 Target 에서는 부재 컴포넌트 다름)
+
+### 8.1 ✅ 실재 (T3SERIES 기준)
+- `PopSelectItem` · `PopItemMulti` · `PopSelectAccount` · `PopAccountMulti`
+- `PopSelectLvlAndAcct` · `PopSelectLvlAndItem`
+- `PopLocatMst` · `PopLocatTp` · `PopLocatTpMulti`
+- `PopResourceMulti` · `PopRouteMulti`
+- `PopPersonalize` · `PopPersonalizeDp` · `PopKpiWeightConfig`
+- `LogPopup` · `LlmMarkdown` · `IconPicker` · `PopLogout` · `PopSimulationVersion`
+- `SimulationAiPanel`
+
+⚠️ `CommonCodeSelect` 는 산출물 사용 금지 (preview shim 전용).
+
+### 8.2 ❌ 미실재 (rule 표에 있어도) — 사용 시 같이 생성 또는 InputField 대체
+- `PopDepartment` · `PopPosition`
+
+### 8.3 표준 양식 (PopSelectItem 기준 — confirm 콜백 항상 배열)
+
+```jsx
+<PopupDialog open onClose onSubmit={handleSubmit(saveSubmit, onError)}
+  title checks={[grid]} resizeWidth resizeHeight>
+  <SearchArea>
+    <InputField control={control} name="xxxCd" label="코드"
+      onKeyDown={(e) => e.key === 'Enter' && loadPopupData()} />
+  </SearchArea>
+  <WorkArea>
+    <ButtonArea title="도메인명"><RightButtonArea>
+      <CommonButton title="검색" onClick={loadPopupData}>
+        <SearchIcon fontSize="small" />
+      </CommonButton>
+    </RightButtonArea></ButtonArea>
+    <ResultArea><BaseGrid id={`${props.id}_Grid`} items={popupGridItems} /></ResultArea>
+  </WorkArea>
+</PopupDialog>
+```
+
+**props 인터페이스**:
+- `id`: 고유 prefix · `open` · `onClose`
+- `confirm(rows: object[])` — **항상 배열** (호출자는 `firstOf(s)=Array.isArray(s)?s[0]:s` 단건 추출)
+- `multiple`: boolean (default false)
+
+호출자 표준:
+```jsx
+const firstOf = (sel) => Array.isArray(sel) ? sel[0] : sel;
+const handleConfirm = (selected) => {
+  const row = firstOf(selected);
+  if (!row) return;
+  setValue('xxxCd', row.xxxCd);
+  setValue('xxxNm', row.xxxNm);
 };
 ```
 
-## 9. Anti-patterns (컴포넌트 사용 시)
+## 9. 공용 유틸 · 서비스
 
-| ❌ | ✅ |
+| 유틸 | 시그니처 |
 |---|---|
-| `import { ... } from "@wingui/common/imports"` | `@plannel/components/*` (PlanNEL 컴포넌트 시스템 별개) |
-| `<BaseGrid items={...} afterGridCreate={fn}>` | `<AgGridReact columnDefs={...} rowData={...} ref={gridRef} {...defaultGridMemo}>` |
-| `grid.dataProvider.fillJsonData(rows)` | `setRows(rows)` (state 변경 → AG-Grid 자동 리렌더) |
-| `grid.dataProvider.getAllStateRows()` | `DataState.getStateData(api, "created")` + `"updated"` 분리 |
-| `useViewStore` / `useContentStore` | `reduxUtil.getViewState(viewName)` + `useDispatch` |
-| `useFieldCascade` / `applyGridCascade` | (PlanNEL 동등 헬퍼 없음 — 화면별 cascade 수동 구현) |
-| `<PopSelectItem>` / `<PopSelectAccount>` | `<ItemAutocomplete>` / `<CustomerAutocomplete>` (`@plannel/components/filter/...`) |
-| `<CommonCodeSelect groupCd="USE_YN">` | MUI `<Select>` + `<MenuItem>` + 자체 lookup service 또는 `getLookup()` 호출 |
-| `setViewInfo(activeViewId, 'globalButtons', [...])` | 로컬 JSX 에 직접 버튼 (`<AddButton>` / `<SaveButton>` 등) — globalButtons 개념 없음 |
-| `showMessage('확인', '메시지', cb)` | `<Dialog open content onHandler />` + `<Snackbar open severity content />` |
-| `zAxios.get('util/user-infos')` | `customerService.getAll(params)` (service 레이어 경유) — URL 직접 작성 금지 |
-| 컬럼 정의에 `dataType: 'text'` | AG-Grid 는 `cellClass: 'stringType'` + `filterType: 'string'` |
-| `headerText:` (RealGrid 키) | `headerName:` (AG-Grid 키) |
-| `editor: { type: 'date' }` (RealGrid) | `cellEditor: 'agDateCellEditor'` 또는 `GridDatePicker` (AG-Grid) |
-| 한글 라벨 하드코딩 | i18n key + `t("KEY")` 또는 columnDef.headerName 에 i18n key |
+| `zAxios` | wingui REST 클라이언트 (axios wrapper) |
+| `zAxios.get(url, { params })` · `zAxios({method,url,headers,data})` | GET / POST 객체 인자 |
+| `callService(serviceId, paramMap, target)` | 엔진 API (target ∈ `'mp'|'dp'|'bf'|'fp'`). ★ 신규 화면 사용 금지 — BF/DP/MP/FP 계산 수정 전용 |
+| `showMessage(title, message, callback?)` | **첫 인자는 제목 문자열** (★ `'confirm'`/`'error'` 토큰 아님). callback `(answer:boolean) => void` |
+| `useFieldCascade({control, setValue, getValues})` | 검색 form cascade hook |
+| `applyGridCascade(grid, items, {onCellPopupRequest})` | 그리드 cascade — afterGridCreate 안에서 호출 |
+| `buildPopupFilterProps('<child>', getValues)` | Pop\* 에 cascade parent 자동 주입 |
+| `loadRecentSimulationVersion()` | 최근 시뮬 버전 |
+
+### 9.1 zAxios 호출 표준 (신규 화면 = REST)
+
+```jsx
+// 조회
+zAxios.get('util/user-infos', { params: getValues() })
+  .then((res) => grid?.dataProvider.fillJsonData(res.data));
+
+// 저장 (GridSaveButton 표준 — multipart/form-data 'changes')
+const fd = new FormData();
+fd.append('changes', JSON.stringify(payload));
+zAxios({ method:'post', url:'util/user-infos',
+  headers:{'content-type':'multipart/form-data'}, data: fd });
+
+// 삭제 (JSON body)
+zAxios({ method:'post', url:'util/user-infos/delete',
+  headers:{'content-type':'application/json'}, data: rows });
+```
+❌ `zAxios.get('ut/...')` (utility 도메인 잘못된 약어) · `'/api/common/sp/query'` (존재 안 함)
+
+### 9.2 callService (BF/DP/MP/FP 계산 화면 수정 전용)
+
+```jsx
+callService('SRV_GET_SP_UI_BF_10_Q1', { planScope: 'PS01' }, 'bf');
+```
+❌ `callService({url, params})` (객체) · `callService('SP_UI_*', ...)` (SP 이름 첫 인자) · target='common'/'ut'/'cm' (미등록 — 4개 enum 만)
+
+도메인-서버: BF/DP→`'dp'` · CM/MP/IM/RP/SO/UT→`'mp'` · FP→`'fp'`
+
+### 9.3 showMessage
+
+```jsx
+// ✅
+showMessage('확인', '저장하시겠습니까?', (ok) => { if (ok) doSave(); });
+
+// ❌ 타입 토큰 (hook block)
+showMessage('confirm', msg, cb);
+```
+
+## 10. 네이밍 규약
+
+| 대상 | 규약 | 예 |
+|---|---|---|
+| 화면 폴더 | lowercase | `view/util/userinfomgmt/` |
+| 화면 파일 | PascalCase | `UserInfoMgmt.jsx` |
+| 공통 팝업 | `Pop<N>.jsx` | `PopSelectItem.jsx` |
+| 그리드 id | `<camelCase>Grid` (string) | `userInfoGrid` |
+| 그리드 state | `grid`, `masterGrid`, `detailGrid` 등 | (의미 있는 이름) |
+
+## 11. Anti-patterns (요약)
+
+| ❌ | ✅ | 검증 |
+|---|---|---|
+| `ContentInner` 누락 | 최상위 wrapper 필수 | hook block |
+| `gridItems` 컴포넌트 안 선언 | 컴포넌트 밖 (매 렌더 재생성 방지) | hook block |
+| `<BaseGrid columns={} afterCreate={} />` | `items={} afterGridCreate={}` | hook block |
+| 컬럼 `dataType` 누락 | 모든 컬럼 `dataType` 명시 | hook block |
+| Store swap (활성ViewId←useViewStore) | `useContentStore` | hook block |
+| Grid 버튼 `grid={ref}` | `grid="<string-id>"` | hook block |
+| `globalButtons` `{code,onClick}` | `{name,action}` | hook block |
+| `showMessage('confirm',...)` | `showMessage('확인',...)` | hook block |
+| `<InputField type="action" />` 자기닫힘 | children `<SearchIcon/>` | hook warn |
+| datetime defaultValue `''` | `null` | LLM |
+| 산출물에 `CommonCodeSelect` import | `InputField type="select"` | LLM |
+| 신규 화면 `callService` | `zAxios` REST | hook warn |
+| utility 도메인 `ut/` | `util/` (한 자리도 줄이지 않음) | hook block |

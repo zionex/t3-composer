@@ -1,712 +1,239 @@
-# 20. 신규 화면 추가 절차 (PlanNEL)
+---
+description: 화면(.jsx) 신규/수정 시 골격 규칙. 파일 경로·네이밍·메뉴 등록만 다룬다. 코드 표면은 sub-rules 가 권위.
+globs:
+  - "**/view/**/*.jsx"
+  - "**/view/**/*.tsx"
+alwaysApply: false
+---
 
-> **PlanNEL 화면 = 4단계 backend (Entity / Repository / Service / Controller) + 1단계 frontend (page + service) + 메뉴 등록 (TabMenuList.js + i18n)**.
-> 표준 원본: `pages/data-management/CustomerMaster.js` + `controller/WorkcenterController.java`.
+# 20. 화면 개발 골격 규칙
 
-## 0. 전체 단계
-
-```
-1. (DB) DDL 추가 — Liquibase changelog (z_<table>) 또는 직접 PostgreSQL
-2. Backend Entity (saas-application/.../model/<Name>.java)         @Entity @Table("z_<name>") extends BaseEntity
-3. Backend DTO     (saas-application/.../dto/<Name>Dto.java)        + DtoConvertable
-4. Backend Repository (saas-application/.../repository/<Name>Repository.java)        JpaRepository
-   (필요 시) <Name>QueryRepository.java                              QueryDSL 동적 쿼리
-   (필요 시) src/main/resources/mapper/<area>/<Name>Mapper.xml      MyBatis (복잡한 SQL)
-5. Backend Service (saas-application/.../service/<Name>Service.java)
-6. Backend Controller (saas-application/.../controller/<Name>Controller.java)        @RestController @RequestMapping("/api") @PreAuthorize
-7. Frontend service (saas-web/src/services/<area>/<name>-service.js)                  axios wrapper
-8. Frontend page (saas-web/src/pages/<area>/<Name>.js)                                AG-Grid + FilterContainer + Action buttons
-9. Frontend menu (saas-web/src/pages/TabMenuList.js)                                   lv3MenuList 에 entry 추가
-10. i18n (saas-web/src/assets/data/l10n/translation.<lang>.js)                          6언어 키 추가
-```
-
-## 1. 파일 배치
-
-| 영역 | 경로 |
-|---|---|
-| Entity | `saas-application/src/main/java/t3series/saas/model/<Name>.java` |
-| DTO | `saas-application/src/main/java/t3series/saas/dto/<Name>Dto.java` |
-| Repository | `saas-application/src/main/java/t3series/saas/repository/<Name>Repository.java` |
-| QueryRepository (선택) | `saas-application/src/main/java/t3series/saas/repository/<Name>QueryRepository.java` |
-| MyBatis mapper (선택) | `saas-application/src/main/java/t3series/saas/mapper/<area>/<Name>Mapper.java` + `src/main/resources/mapper/<area>/<Name>Mapper.xml` |
-| Service | `saas-application/src/main/java/t3series/saas/service/<Name>Service.java` |
-| Controller | `saas-application/src/main/java/t3series/saas/controller/<Name>Controller.java` |
-| Frontend service | `saas-web/src/services/<area>/<kebab-name>-service.js` (area: `data` / `system` / `dp` / `ip` / `rp` / `mp` / `dashboard`) |
-| Frontend page | `saas-web/src/pages/<area>/<PascalName>.js` |
-| Liquibase changelog | `saas-application/src/main/resources/db/changelog/...` |
-
-## 2. TabMenuList.js 등록
-
-신규 화면이 어느 lv1/lv2 에 속하는지 결정 후 **3곳** 수정:
-`saas-web/src/pages/TabMenuList.js`
-
-### 2.1 상단 import (~60줄 부근)
-
-```js
-import NewItemMaster from "./data-management/NewItemMaster";
-```
-
-### 2.2 `lv3MenuList` 의 그룹 배열에 entry 추가
-
-```js
-const lv3MenuList = {
-  // ...
-  DATA_MGMT: [
-    {
-      key: 130,                                  // 기존과 중복 안 되는 정수 (data-mgmt 100~199)
-      reduxKey: "INPUT_NEW_ITEM",                // = viewName. UPPER_SNAKE
-      title: "newItemMaster",                    // i18n key (camelCase)
-      icon: <LeafIcon />,                         // 또는 다른 MUI Icon
-      groupType: MENU_GROUP.MASTER,              // CONFIG / MASTER / RELATION / PLANNING / TRANSACTION
-      appRoles: ["ROLE_APP_DP", "ROLE_APP_IP"],  // 어느 모듈에서 보일지 (생략 시 모든 모듈)
-      userRoles: ["ROLE_ADMIN", "ROLE_DP_MGR"],   // (생략 시 부모 lv1 의 userRoles 상속)
-      component: <NewItemMaster viewName={"INPUT_NEW_ITEM"} title="newItemMaster" />,
-    },
-  ],
-};
-```
-
-### 2.2.1 key 번호 컨벤션
-
-| 번호 범위 | 도메인 |
-|---|---|
-| 100~999 | Master Data (data-management) |
-| 400~421 | System (admin) |
-| 1000~1999 | Inventory Plan |
-| 2000~2999 | Demand Plan |
-| 3000~3999 | Replenishment Plan |
-| 4000~4999 | Master Plan |
-| 9000~9999 | Dashboard / Analytics |
-
-### 2.2.2 MENU_GROUP 5종 (data-management 내부 정렬용)
-
-```js
-const MENU_GROUP = {
-  CONFIG: "configurationData",
-  MASTER: "masterData",
-  RELATION: "relationalData",
-  PLANNING: "planningData",
-  TRANSACTION: "transactionalData",
-};
-```
-
-### 2.3 i18n 등록
-
-`saas-web/src/assets/data/l10n/translation.<lang>.js` 의 `menu` 섹션에 키 추가 (6언어):
-- ko-KR · en-US · ja-JP · zh-TW · zh-CN · vi-VN
-
-```js
-// translation.ko-kr.js menu 섹션
-menu: {
-  newItemMaster: "신규 항목",
-  // ...
-}
-```
-
-### 2.4 lv1/lv2 메뉴 (이미 있는 것 재사용)
-
-신규 화면용 lv1/lv2 가 필요하지 않은 한 기존 entry 사용. 기존 lv1MenuList:
-- `DASHBOARD` (key: 9999)
-- `DEMAND_PLAN` (key: 1) — `ROLE_APP_DP`
-- `INVENTORY_PLAN` (key: 2) — `ROLE_APP_IP`
-- `REPLENISHMENT_PLAN` (key: 3) — `ROLE_APP_RP`
-- `MASTER_PLAN` (key: 4) — `ROLE_APP_MP`
-- `DATA_INTEGRATION` (key: 5)
-- `USER_ACCOUNT` (key: 6)
-- `ANALYTICS_REPORT` (key: 9000)
-
-기존 lv2 예시 (INVENTORY_PLAN 의 sub):
-- `SUBMENU_IP_SETTINGS` · `IP_PLAN` · `INV_ANALYSIS_MONITORING`
+> 본 문서 = **파일 배치 · 네이밍 · 메뉴 등록** 만.
+> JSX/Java 코드 표면 (BaseGrid prop · zAxios · showMessage · store 매핑 등) 은 sub-rules 가 단일 진실:
+>
+> | 주제 | 정답지 |
+> |---|---|
+> | JSX 표준 | `.claude/rules/41a-composer-jsx.md` |
+> | Java 백엔드 | `.claude/rules/41b-composer-java.md` |
+> | 위젯 / Cascade / POPUP / 공통코드 | `.claude/rules/41c-composer-widgets.md` |
+> | 9-Step Wizard | `.claude/rules/41d-composer-wizard.md` |
+> | SP DDL | `.claude/rules/31-stored-procedures.md` |
+> | DB 스키마 사전 검증 | `.claude/rules/32-sql-schema-verification.md` |
+> | 안티패턴 | `.claude/rules/99-anti-patterns.md` · `99a-composer-anti-patterns.md` |
 
 ---
 
-## 3. 페이지 컴포넌트 골격 (마스터 CRUD)
+## 1. 결정 플로우
 
-표준 원본: `saas-web/src/pages/data-management/CustomerMaster.js`
+```
+요구사항
+  ↓
+업무 유형 식별 (마스터 CRUD · 리포트 · 입력 · 대시보드)
+  ↓
+패턴 선정 (P01 위젯대시보드 / P02 검색+그리드 / P03 검색+탭 / P04 M-D 스플릿 / P06 크로스탭)
+  ↓
+유사 원본 화면 Read (Composer 의 경우 sourceBundle) → 복제 + 변경분만 수정
+  ↓
+백엔드 4종 (Entity · Service · Controller [+ Repository]) + SP_UI_*.sql (CRUD 액션마다)
+  ↓
+메뉴 등록 (TB_AD_MENU + TB_AD_LANG_PACK 4언어 + TB_AD_PERMISSION_GROUP) · 라우팅 자동
+```
+
+## 2. 파일 배치 규칙 (강제)
+
+> `<wingui-root>` = Target 별 wingui 소스 루트. 하드코딩 금지 — Target 마다 다른 경로.
+
+### JSX
+```
+<wingui-root>/src/view/<module>[/<category>]/<lowercase-name>/<PascalName>.jsx
+```
+
+### Java
+```
+<wingui-root>/src/main/java/<package>/domain/<module>/<feature>/
+  <Feature>.java                 @Entity
+  <Feature>Service.java          @Service (JdbcTemplate + EXEC SP)
+  <Feature>Controller.java       @RestController
+  <Feature>Repository.java       (선택)
+```
+
+> `<Feature>` = MENU_FILE_PATH 의 마지막 PascalCase segment **그대로** (축약·확장·번역 금지) — 상세 `41b §5.6.0`.
+> `<lowercase-name>` = `LOWER(<Feature>)` — contentStore 라우팅 규약. 단일 lowercase 토큰, 하이픈/언더스코어 금지.
+
+### 위젯 (대시보드용)
+```
+<wingui-root>/src/view/<module>/widgets/<widget-name>/<WidgetName>.jsx
+```
+ContentInner 래퍼 없이 직접 차트/그리드 렌더.
+
+### ⛔ utility 도메인 — `util/` 단 하나뿐, `ut/` 절대 금지
+
+| ✅ | ❌ |
+|---|---|
+| `view/util/*` · `domain/util/*` · `/util/*` URL · `zAxios.get('util/*')` | 어떤 표면이든 `ut/` 사용 (Hook block) |
+
+상세는 `99-anti-patterns.md §0`.
+
+---
+
+## 3. 필수 구조 (모든 화면 공통)
+
+다음 7개 표면은 sub-rules 의 정답지를 그대로 따른다 — 본 문서는 카탈로그만:
+
+| 표면 | 정답지 |
+|---|---|
+| `<ContentInner>` 래퍼 / 레이아웃 컴포넌트 | `21-components.md §1~2` |
+| Import 블록 (`@wingui/common/imports` 단일) | `41a §4.1` |
+| 그리드 컬럼 정의 (`gridItems` 컴포넌트 밖 + `dataType` 필수) | `41a §4.3` · `21 §4.2` |
+| 글로벌 버튼 (`setViewInfo` + `{name, action}`) | `41a §4.6` |
+| 그리드 객체 (`afterGridCreate` 콜백 + 문자열 `id`) | `41a §4.2` · `4.4` |
+| `useForm({defaultValues})` 타입별 초기값 (datetime → null) | `21 §3.1.0` |
+| Store 매핑 (`activeViewId` ← `useContentStore` · `setViewInfo` ← `useViewStore`) | `41a §4.6` |
+
+⛔ 가장 빈번한 위반: store swap · `gridItems` 컴포넌트 내부 선언 · `dataType` 누락 (`41a §4.3` — 화면 즉시 크래시) · datetime defaultValue `''` (Invalid Date) · `useViewStore` 에서 `activeViewId` 추출.
+
+---
+
+## 4. 서버 통신 = REST (zAxios) 가 기본
+
+신규 화면 4-tier: **zAxios → RestController → JdbcTemplate → SP_UI_***
 
 ```jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+// 조회
+zAxios.get('<module>/<features>', { params: getValues() })
+  .then((res) => grid?.dataProvider.fillJsonData(res.data));
 
-import { AgGridReact } from "@ag-grid-community/react";
-import Box from "@mui/material/Box";
-
-import { useDispatch } from "react-redux";
-import { withTranslation } from "react-i18next";
-import { isEmpty } from "lodash";
-
-import newItemService from "@plannel/services/data/new-item-service";
-import DefaultGridSetting from "@plannel/components/aggrid/DefaultGridSetting";
-import DataState from "@plannel/components/aggrid/DataState";
-import GridUtils from "@plannel/components/aggrid/GridUtils";
-import { AddButton, RemoveButton, SaveButton, FilterButton } from "@plannel/components/ActionIconButton";
-import FilterContainer from "@plannel/components/layout/FilterContainer";
-import PaginationContainer from "@plannel/components/PaginationContainer";
-import Dialog from "@plannel/components/Dialog";
-import Snackbar from "@plannel/components/Snackbar";
-import ExcelExportButton from "@plannel/components/ExcelExportButton";
-import AdvancedFilter from "@plannel/components/filter/AdvancedFilter";
-import reduxUtil from "@plannel/utils/redux-util";
-import dateUtils from "@plannel/utils/date-util";
-
-const NewItemMaster = ({ t, viewName, title }) => {
-  // (1) Redux 상태 복원
-  const reduxViewState = reduxUtil.getViewState(viewName);
-  const reduxDispatch = useDispatch();
-
-  // (2) Pagination state
-  const pageSizes = [100, 200, 500];
-  const [currentPage, setCurrentPage] = useState(reduxViewState?.page ?? 1);
-  const [pageSize, setPageSize]       = useState(reduxViewState?.pageSize ?? pageSizes[0]);
-  const [tPages, setTotalPages]       = useState(0);
-  const [sortParams, setSortParams]   = useState({});
-
-  // (3) 알림 / 다이얼로그
-  const [snackInfo, setSnackInfo]     = useState({ open: false, severity: "", content: "" });
-  const [dialogInfo, setDialogInfo]   = useState({ open: false, title: "", content: "" });
-
-  // (4) Grid + 데이터
-  const gridRef = useRef();
-  const [rows, setRows] = useState([]);
-  const [gridLoading, setGridLoading] = useState(false);
-
-  // (5) 검색조건 ref + AdvancedFilter
-  const codeSearch = useRef(reduxViewState?.searchCode ?? "");
-  const [advancedFilters, setAdvancedFilters]
-    = useState(reduxViewState?.advancedFilters ?? null);
-  const [openFilter, setOpenFilter] = useState(false);
-  const [advancedFilterColor, setAdvancedFilterColor]
-    = useState(!isEmpty(reduxViewState?.advancedFilters) ? "info" : "default");
-
-  // (6) AG-Grid default props (1회만)
-  const defaultGridMemo = useMemo(
-    () => DefaultGridSetting({ title, viewName }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
-  // (7) 컬럼 정의 — type/filterType/cellClass 표준 attribute 활용
-  const columnDefs = [
-    { headerName: "itemCd",   field: "itemCd",   checkboxSelection: true, headerCheckboxSelection: true,
-      filterType: 'string', cellClass: 'stringType' },
-    { headerName: "name",     field: "name",     filterType: 'string' },
-    { headerName: "qty",      field: "qty",      type: ["rightAligned"], filterType: 'number' },
-    { headerName: "activeFlg", field: "activeFlg", type: ["booleanColumn"], width: 80, filterType: 'boolean' },
-    { headerName: "createdTs", field: "createdTs", type: ["nonEditableColumn"],
-      valueFormatter: dateUtils.formatDateTime, filterType: "timestamp" },
-  ];
-
-  // (8) 요청 파라미터 빌더
-  const getRequestParams = () => {
-    const params = {
-      page: currentPage - 1,
-      pageSize,
-      pagination: true,
-      ...sortParams,
-    };
-    const searchFilters = {};
-    if (codeSearch.current) searchFilters.itemCd = codeSearch.current;
-    if (!isEmpty(searchFilters)) params.searchFilters = searchFilters;
-    if (advancedFilters?.children?.length) params.advancedFilters = advancedFilters;
-    return params;
-  };
-
-  // (9) 조회
-  const retrieve = () => {
-    newItemService.getAll(getRequestParams()).then((res) => {
-      const { results, totalPages } = res.data ?? {};
-      setRows(results || []);
-      setTotalPages(totalPages || 0);
-    });
-  };
-
-  const onGridReady = (params) => {
-    DataState.initialize(params.api);     // 행 변경 추적 init
-    setGridLoading(true);
-  };
-
-  useEffect(() => {
-    if (gridLoading) retrieve();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gridLoading, currentPage, pageSize]);
-
-  // (10) 행 추가
-  const addRow = () => {
-    DataState.setDataState(GridUtils.addRow(gridRef.current.api, {
-      id: null, itemCd: "", name: "", qty: 0, activeFlg: true, delFlg: false, verNum: 0,
-    }));
-  };
-
-  // (11) 저장 — DataState 가 created/updated 분리
-  const handleSave = () => {
-    const created = DataState.getStateData(gridRef.current.api, "created");
-    const updated = DataState.getStateData(gridRef.current.api, "updated");
-    const changes = [...(created ?? []), ...(updated ?? [])];
-    if (changes.length === 0) {
-      setSnackInfo({ open: true, severity: "info", content: t("MSG_NoChanges") });
-      return;
-    }
-    newItemService.upsert(changes).then(() => {
-      setSnackInfo({ open: true, severity: "success", content: t("MSG_SaveSuccess") });
-      retrieve();
-    });
-  };
-
-  // (12) 삭제
-  const handleDelete = () => {
-    const selected = gridRef.current.api.getSelectedRows();
-    if (selected.length === 0) return;
-    setDialogInfo({
-      open: true, title: "delete", content: t("MSG_ConfirmDelete"),
-      action: () => {
-        const ids = selected.map((r) => r.id).filter(Boolean).join(",");
-        if (!ids) return;
-        newItemService.remove(ids).then(() => {
-          setSnackInfo({ open: true, severity: "success", content: t("MSG_DeleteSuccess") });
-          retrieve();
-        });
-      },
-    });
-  };
-
-  return (
-    <>
-      <FilterContainer>
-        {/* 검색조건 컴포넌트 (filter/ 디렉토리에서 선택) */}
-        <Box sx={{ ml: "auto" }}>
-          <ExcelExportButton title={title} service={newItemService} params={getRequestParams()} columnDefs={columnDefs} />
-          <AddButton onClick={addRow} />
-          <RemoveButton onClick={handleDelete} />
-          <SaveButton onClick={handleSave} />
-          <FilterButton label="advancedFilter" advancedFilterColor={advancedFilterColor}
-                        onClick={() => setOpenFilter(!openFilter)} />
-        </Box>
-      </FilterContainer>
-      <Box className="ag-theme-balham grid-area" mb={1}>
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', height: '100%', mr: 1.5 }}>
-          <Box sx={{ flexGrow: 1 }}>
-            <AgGridReact
-              ref={gridRef}
-              rowData={rows}
-              {...defaultGridMemo}
-              columnDefs={columnDefs}
-              onGridReady={onGridReady}
-              onSortChanged={(p) => setSortParams(GridUtils.getSortState(p))}
-              getRowStyle={(p) => DataState.getRowStyles(p)}
-            />
-          </Box>
-          {openFilter && (
-            <Box sx={{ width: '30%', overflowY: 'auto', ml: 1, border: 1, borderColor: "#cccccc" }}>
-              <AdvancedFilter columnDefs={columnDefs} advancedFilters={advancedFilters} onApply={setAdvancedFilters} />
-            </Box>
-          )}
-        </Box>
-      </Box>
-      <PaginationContainer
-        currentPage={currentPage} totalPages={tPages}
-        pageSize={pageSize} pageSizes={pageSizes}
-        setCurrentPage={setCurrentPage} setPageSize={setPageSize}
-      />
-      <Dialog
-        open={dialogInfo.open}
-        onClose={() => setDialogInfo({ open: false, title: "", content: "" })}
-        title={dialogInfo.title}
-        content={dialogInfo.content}
-        onHandler={() => { dialogInfo.action?.(); setDialogInfo({ open: false, title: "", content: "" }); }}
-      />
-      <Snackbar
-        open={snackInfo.open}
-        onClose={() => setSnackInfo({ ...snackInfo, open: false })}
-        severity={snackInfo.severity}
-        content={snackInfo.content}
-      />
-    </>
-  );
+// 저장 (GridSaveButton onSave 콜백)
+const onSave = (g, rows) => {
+  const fd = new FormData();
+  fd.append('changes', JSON.stringify(rows));
+  return zAxios({ method:'post', url:'<module>/<features>',
+    headers:{'content-type':'multipart/form-data'}, data: fd });
 };
-
-export default withTranslation()(NewItemMaster);
 ```
+
+상세 (multipart 포맷 · Y/N↔Boolean 변환 · 삭제) — `41a §4.5`.
+
+❌ 신규 화면이 `callService(...)` / 엔진 service XML 사용 금지 (`41a §4.5`). 기존 BF/DP/MP/FP 계산 화면 수정만 예외.
 
 ---
 
-## 4. Frontend service 골격
+## 5. 라우팅 · 메뉴 등록
 
+### 5.1 메뉴 등록 SQL
+
+`TB_AD_MENU` · `TB_AD_LANG_PACK` (ko/en/ja/zh) · `TB_AD_PERMISSION_GROUP` 3종 세트.
+실제 컬럼 + 표준 INSERT 패턴은 `30-database-schema.md §5` · `32-sql-schema-verification.md` 참조.
+
+핵심 (자주 틀리는 부분):
+- TB_AD_MENU 컬럼: `ID · PARENT_ID · MENU_CD · MENU_PATH · MENU_SEQ · MENU_FILE_PATH · USE_YN` + BaseEntity. ❌ `MENU_NM · PARENT_MENU_CD · URL · DEPTH · SORT_ORDER` 미존재
+- TB_AD_LANG_PACK audit: `MODIFY_BY · MODIFY_DTTM` (❌ `UPDATE_BY` 아님)
+- parent lookup: `(SELECT ID FROM TB_AD_MENU WHERE MENU_CD='MENU_<DOMAIN>')` — `MENU_AD` / `MENU_UTIL` / `MENU_DP` 등
+- MENU_FILE_PATH 형식: `/<module>[/<category>]/<PascalName>` (확장자 X · 마지막 직전 ≠ lowercase(마지막))
+- MENU_PATH = `LOWER(MENU_FILE_PATH)` (URL slug)
+- DDL 방언: MSSQL only (`NEWID()` / `GETDATE()`. Oracle `SYSDATE` / `SYS_GUID` 금지)
+
+### 5.2 프런트엔드 라우트
+
+`contentStore.js` 의 자동 변환식:
 ```js
-// saas-web/src/services/data/new-item-service.js
-import restApi from "@plannel/services/utils/rest-api";
-
-const getAll       = (params) => restApi.post("/api/new-items", params);
-const getAllForCSV = (params) => restApi.post("/api/new-items/csv", params);
-const getLookup    = ()       => restApi.get("/api/new-items/lookup");
-const get          = (id)     => restApi.get(`/api/new-items/${id}`);
-const upsert       = (data)   => restApi.post("/api/new-items/save", data);
-const remove       = (ids)    => restApi.delete(`/api/new-items/${ids}`);
-const search       = (params) => restApi.get("/api/search/index/new-item", { params });
-
-const newItemService = { getAll, getAllForCSV, getLookup, get, upsert, remove, search };
-export default newItemService;
+filepath = view.filePath.toLowerCase() + view.filePath.slice(lastIndexOf('/'))
 ```
-
-URL 컨벤션 상세는 `30-data-access.md §1.2`.
+MENU_FILE_PATH `/util/UserInfoMgmt` → `view/util/userinfomgmt/UserInfoMgmt.jsx` 자동 로드. **별도 라우트 코드 불필요**.
 
 ---
 
-## 5. Backend 4종 세트 골격
+## 6. 백엔드 4종 세트
 
-### 5.1 Entity
+상세 코드 템플릿 / import 화이트리스트 / 정책 차단 조건 → **`41b-composer-java.md` §5**.
 
-```java
-package t3series.saas.model;
-
-import javax.persistence.*;                                                 // ★ jakarta 가 아님
-import javax.validation.constraints.NotBlank;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import t3series.saas.config.hibernate.typehandler.BooleanToYNConverter;
-import t3series.saas.multi_tenancy.model.BaseEntity;
-
-@Data
-@EqualsAndHashCode(callSuper = false, exclude = {"itemHrchy"})
-@Entity
-@Table(name = "z_new_item")                                                  // ★ 'z_' prefix
-public class NewItem extends BaseEntity implements DtoConvertable<NewItemDto> {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank
-    @Column(name = "item_cd")
-    private String itemCd;
-
-    @NotBlank
-    private String name;
-
-    @Column(name = "qty_num")
-    private Integer qty;
-
-    @ManyToOne
-    @JoinColumn(name = "hrchy_id")
-    @JsonIgnore                                                              // 양방향 순환 참조 방지
-    private ItemHrchy itemHrchy;
-
-    @Convert(converter = BooleanToYNConverter.class)                         // boolean ↔ Y/N 자동
-    private boolean activeFlg;
-
-    @Convert(converter = BooleanToYNConverter.class)
-    private boolean delFlg;
-
-    // 유연한 속성
-    private String attr01;
-    // ... attr02 ~ attr19
-    private String attr20;
-
-    @Override
-    public NewItemDto toDto() {
-        // 매핑 로직
-        NewItemDto dto = new NewItemDto();
-        dto.setId(this.id);
-        dto.setItemCd(this.itemCd);
-        dto.setName(this.name);
-        dto.setQty(this.qty);
-        dto.setActiveFlg(this.activeFlg);
-        dto.setDelFlg(this.delFlg);
-        return dto;
-    }
-}
-```
-
-### 5.2 DTO
-
-```java
-package t3series.saas.dto;
-
-import lombok.Data;
-import t3series.saas.model.NewItem;
-
-import java.time.LocalDateTime;
-
-@Data
-public class NewItemDto {
-    private Long id;
-    private String itemCd;
-    private String name;
-    private Integer qty;
-    private boolean activeFlg;
-    private boolean delFlg;
-
-    private String attr01; private String attr02; /* ... */ private String attr20;
-
-    // Audit
-    private int verNum;
-    private LocalDateTime createdTs;
-    private String createdUser;
-    private LocalDateTime updatedTs;
-    private String updatedUser;
-
-    public NewItem toEntity() {
-        NewItem e = new NewItem();
-        e.setId(this.id);
-        e.setItemCd(this.itemCd);
-        e.setName(this.name);
-        e.setQty(this.qty);
-        e.setActiveFlg(this.activeFlg);
-        e.setDelFlg(this.delFlg);
-        return e;
-    }
-}
-```
-
-### 5.3 Repository
-
-```java
-package t3series.saas.repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import t3series.saas.model.NewItem;
-
-import java.util.Optional;
-
-public interface NewItemRepository extends JpaRepository<NewItem, Long> {
-    Optional<NewItem> findByItemCdAndDelFlgFalse(String itemCd);
-}
-```
-
-복잡한 검색은 별도 `NewItemQueryRepository` (QueryDSL 사용):
-
-```java
-package t3series.saas.repository;
-
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Repository;
-
-import t3series.saas.dto.NewItemDto;
-import t3series.saas.dto.SearchDto;
-import static t3series.saas.model.QNewItem.newItem;
-
-import java.util.List;
-
-@Repository
-@RequiredArgsConstructor
-public class NewItemQueryRepository {
-    private final JPAQueryFactory queryFactory;
-
-    public Page<NewItemDto> findAll(SearchDto searchDto, Pageable paging) {
-        // QueryDSL 동적 쿼리 + advancedFilters 처리
-        var query = queryFactory.select(Projections.fields(NewItemDto.class,
-                newItem.id, newItem.itemCd, newItem.name, newItem.qty,
-                newItem.activeFlg, newItem.delFlg))
-            .from(newItem)
-            .where(newItem.delFlg.isFalse());
-        // searchDto.searchFilters 처리
-        long total = query.fetchCount();
-        List<NewItemDto> content = query.offset(paging.getOffset()).limit(paging.getPageSize()).fetch();
-        return new PageImpl<>(content, paging, total);
-    }
-}
-```
-
-### 5.4 Service
-
-```java
-package t3series.saas.service;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import t3series.saas.dto.NewItemDto;
-import t3series.saas.dto.SearchDto;
-import t3series.saas.model.NewItem;
-import t3series.saas.repository.NewItemRepository;
-import t3series.saas.repository.NewItemQueryRepository;
-
-import java.util.*;
-
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class NewItemService {
-    private final NewItemRepository repo;
-    private final NewItemQueryRepository queryRepo;
-
-    @Transactional(readOnly = true)
-    public Page<NewItemDto> findAll(SearchDto searchDto, Pageable paging) {
-        return queryRepo.findAll(searchDto, paging);
-    }
-
-    @Transactional(readOnly = true)
-    public List<NewItemDto> findAll(SearchDto searchDto) {
-        return queryRepo.findAll(searchDto, Pageable.unpaged()).getContent();
-    }
-
-    @Transactional
-    public void upsert(List<NewItemDto> rows) {
-        for (NewItemDto dto : rows) {
-            NewItem e = dto.toEntity();
-            repo.save(e);                    // ID 가 있으면 update, 없으면 insert
-        }
-    }
-
-    @Transactional
-    public void delete(List<Long> ids) {
-        repo.deleteAllById(ids);
-    }
-}
-```
-
-### 5.5 Controller
-
-```java
-package t3series.saas.controller;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import t3series.saas.dto.NewItemDto;
-import t3series.saas.dto.SearchDto;
-import t3series.saas.service.NewItemService;
-import t3series.saas.util.PaginationUtil;
-
-import java.util.*;
-
-@Slf4j
-@RestController
-@RequestMapping("/api")
-@RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('APP_DP', 'APP_IP', 'APP_RP', 'APP_MP')")           // 마스터: 모든 모듈 OR
-public class NewItemController {
-    private final NewItemService service;
-
-    @PostMapping("/new-items")
-    public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) SearchDto searchDto) {
-        try {
-            if (searchDto == null) searchDto = new SearchDto();
-
-            String orderBy = searchDto.getOrderByColumn() != null ? searchDto.getOrderByColumn() : "id";
-            Sort sort = "asc".equals(searchDto.getSortType())
-                ? Sort.by(orderBy).ascending()
-                : Sort.by(orderBy).descending();
-
-            Map<String, Object> response;
-            if (searchDto.isPagination()) {
-                Pageable paging = PageRequest.of(searchDto.getPage(), searchDto.getPageSize(), sort);
-                Page<NewItemDto> page = service.findAll(searchDto, paging);
-                response = PaginationUtil.getPageResponse(page, page.getContent());
-            } else {
-                List<NewItemDto> list = service.findAll(searchDto);
-                response = PaginationUtil.getAllPageResponse(list);
-            }
-            if (response.isEmpty()) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/new-items/save")
-    public ResponseEntity<?> save(@RequestBody List<NewItemDto> rows) {
-        service.upsert(rows);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/new-items/{ids}")
-    public ResponseEntity<?> remove(@PathVariable String ids) {
-        List<Long> idList = Arrays.stream(ids.split(",")).map(Long::valueOf).toList();
-        service.delete(idList);
-        return ResponseEntity.ok().build();
-    }
-}
-```
+핵심:
+- `jakarta.persistence/servlet/validation/...` (❌ `javax.*` Spring Boot 3.x 에서 제거)
+- `BaseEntity` 경로: `<package>.web.util.audit.BaseEntity` (❌ 허구 `web.domain.BaseEntity`)
+- Service = JdbcTemplate + EXEC SP (❌ JpaRepository / Specification)
+- Controller 저장: `HttpServletRequest` + `request.getParameter(ServiceConstants.PARAMETER_KEY_DATA)` + ObjectMapper
 
 ---
 
-## 6. 절대 규칙
+## 7. SP_UI_*.sql DDL
 
-| ❌ 금지 | ✅ 표준 | 사유 |
+상세 → **`31-stored-procedures.md`**.
+
+핵심:
+- 네이밍 `SP_UI_<DOMAIN>_<NO>_<ACTION>` (Q1/S1/D1/POP_Q1/CHART_Q1/BATCH)
+- 배치: `t3series-database/mssql/upgrade/vX.Y.Z-YYYYMMDD/procedures/` (Target 별 경로는 환경 변수)
+- MSSQL 방언만
+- 조회 SP 결정론적 `ORDER BY` 필수 (§9 우선순위)
+- 컬럼 사용 전 Entity / 카탈로그 사전 검증 (`32-sql-schema-verification.md`)
+
+---
+
+## 8. 온톨로지 등록 (자연어 질의 대상 화면만)
+
+`tb_is_vwbusnss_ontlgy` 에 `menu_cd` 등록 + 관련 엔티티 → 상세 `10-ontology-first.md`.
+
+---
+
+## 9. 패턴 카탈로그 (스켈레톤은 sub-rules / docs)
+
+| 패턴 | 화면 유형 | 참조 |
 |---|---|---|
-| `jakarta.persistence.*` 사용 | **`javax.persistence.*`** | Spring Boot 2.4.13 — jakarta 는 SB 3.x 부터 |
-| `jakarta.validation.*` | **`javax.validation.*`** | 동일 |
-| 상대 경로 import (`../../services/...`) | **`@plannel/*` alias** | craco webpack alias 강제 |
-| `TB_<DOMAIN>_*` 테이블명 | **`z_<table>`** prefix | PlanNEL 테이블 컨벤션 |
-| `SP_UI_*` Stored Procedure | **JPA Repository + QueryDSL/JPQL** (또는 MyBatis) | PlanNEL 은 SP 사용 안 함 |
-| RealGrid2 / `<BaseGrid>` | **`<AgGridReact>`** | AG-Grid 30 |
-| Zustand store | **Redux Toolkit** (`useDispatch` / `useSelector` / `reduxUtil`) | |
-| URL `/composer/...` / `/util/...` | **`/api/...`** prefix | |
-| TB_AD_MENU INSERT | **TabMenuList.js 의 lv3MenuList 객체 entry** | DB 가 아닌 JS 객체로 메뉴 관리 |
-| `useViewStore` / `useContentStore` | **`reduxUtil.getViewState(viewName)`** + Redux dispatch | |
-| 한글 라벨 하드코딩 | **i18n key** (`t("KEY")` 또는 columnDef.headerName) | 6언어 지원 |
-| `@RequestMapping("/composer/...")` | **`@RequestMapping("/api")`** + method 별 path | |
-| `Controller.save(HttpServletRequest)` + `getParameter("changes")` multipart | **`@PostMapping("/api/x/save") @RequestBody List<XDto>`** | JSON body 표준 |
-| Entity boolean 을 raw 매핑 | **`@Convert(converter = BooleanToYNConverter.class)`** | DB 컬럼은 `CHAR(1) Y/N` |
-| 응답으로 `List<X>` 직접 반환 | **`PaginationUtil.getPageResponse(...)` 또는 `getAllPageResponse(...)` Map** | totalPages 포함 표준 응답 |
-| 인증 없는 endpoint | **`@PreAuthorize("hasAnyRole(...)")` 필수** | 모듈 role: APP_DP / APP_IP / APP_RP / APP_MP / ADMIN |
-| Tenant 무시한 raw SQL | TenantContext 적용된 JPA / QueryDSL | `31-multi-tenancy.md` 참조 |
+| P01 | 위젯 대시보드 (`DashboardPanel` + react-grid-layout) | `21-components.md §6` |
+| P02 | 검색 + 단일 그리드 (마스터 CRUD) | `41a` 전체 + Users.jsx 참조 |
+| P03 | 검색 + 탭 (Summary/Detail) | `21 §2` TabContainer |
+| P04 | 수평/수직 스플릿 마스터-디테일 | `21 §2` SplitPanel + `41a §4.2.1` flex chain |
+| P06 | 크로스탭 피벗 입력 (시간 버킷 동적 컬럼) | `41a §4.3` iteration |
+
+⛔ 표 외 자유 패턴 작명 금지. 상세 코드 예시는 `t3series-wingui/packages/wingui/src/view/util/userinfomgmt/UserInfoMgmt.jsx` 같은 운영 화면을 Read 해서 복제.
 
 ---
 
-## 7. 화면 작성 자기 검증 체크리스트
+## 10. 체크리스트 (배포 전 최종 점검)
 
-### 7.1 페이지 컴포넌트
-- [ ] `withTranslation()` HOC export?
-- [ ] props 가 `({ t, viewName, title })` 시그니처?
-- [ ] `reduxUtil.getViewState(viewName)` 로 page/pageSize/검색조건 복원?
-- [ ] `gridRef = useRef()`, `defaultGridMemo = useMemo(() => DefaultGridSetting({title, viewName}), [])`?
-- [ ] 컬럼 정의에 `field` · `filterType` · (boolean 인 경우) `type:["booleanColumn"]` · (숫자) `type:["rightAligned"]` · (날짜) `valueFormatter: dateUtils.formatDateTime, filterType:"timestamp"`?
-- [ ] `onGridReady` 안에서 `DataState.initialize(params.api)` 호출?
-- [ ] 저장 시 `DataState.getStateData(api, "created")` + `"updated"` 분리 추출?
-- [ ] `<FilterContainer>` 안에 검색조건 + 우측 `<AddButton>` `<RemoveButton>` `<SaveButton>` `<FilterButton>` `<ExcelExportButton>`?
-- [ ] `<PaginationContainer>` 적용?
-- [ ] `<Dialog>` + `<Snackbar>` 알림?
-- [ ] 한글 하드코딩 없음 — 모두 `t("KEY")`?
-- [ ] 모든 import 가 `@plannel/*` alias 또는 외부 라이브러리?
+### 기획
+- [ ] 업무 유형 / 패턴 / 데이터 소스 (테이블·뷰·SP) 확정
+- [ ] 조회 조건은 DOMAIN_* 타입 우선 (`22-filter-bar.md`)
 
-### 7.2 service / controller
-- [ ] Frontend service: `restApi.post("/api/<plural>", params)` (페이징 조회) + `restApi.post("/api/<plural>/save", data)` + `restApi.delete("/api/<plural>/{ids}")`?
-- [ ] Controller: `@RequestMapping("/api")` + `@PostMapping("/<plural>")` + `@RequestBody(required=false) SearchDto`?
-- [ ] `@PreAuthorize("hasAnyRole(...)")` 명시?
-- [ ] Pagination 분기 + `PaginationUtil.getPageResponse` / `getAllPageResponse`?
-- [ ] `try/catch` + `log.error` + `INTERNAL_SERVER_ERROR` 응답?
+### 구현
+- [ ] sub-rules 의 `자기 검증` 항목 통과 (`41a` · `41b` 각 말미)
+- [ ] 모든 utility 산출물이 `util/` (★ `ut/` 한 자리도 사용 안 함)
+- [ ] 신규 화면이 zAxios + RestController + JdbcTemplate + SP 4-tier (callService 사용 X)
 
-### 7.3 entity / repository / service
-- [ ] `import javax.persistence.*` (★ jakarta 아님)?
-- [ ] `extends BaseEntity` (`t3series.saas.multi_tenancy.model.BaseEntity`) 상속?
-- [ ] `@Table(name = "z_<table>")` prefix?
-- [ ] boolean 필드에 `@Convert(converter = BooleanToYNConverter.class)`?
-- [ ] `@ManyToOne` 관계 필드에 `@JsonIgnore` (양방향 순환 방지)?
-- [ ] `DtoConvertable<XDto>` 구현 + `toDto()` / `toEntity()` 메서드?
-- [ ] Repository = `JpaRepository` 단순 + 복잡 쿼리는 `<X>QueryRepository` 별도?
-- [ ] Service `@Transactional(readOnly=true)` (조회) / `@Transactional` (변경)?
+### 통합
+- [ ] TB_AD_MENU + TB_AD_LANG_PACK ko/en/ja/zh + TB_AD_PERMISSION_GROUP 등록
+- [ ] SP_UI_*.sql MSSQL upgrade 폴더 배치 + 조회 SP ORDER BY 결정론적
+- [ ] (자연어 질의 대상) `tb_is_vwbusnss_ontlgy` 등록
 
-### 7.4 메뉴 + i18n
-- [ ] TabMenuList.js 상단 import 추가?
-- [ ] `lv3MenuList[<lv2_key>]` 배열에 entry 추가 (key/reduxKey/title/icon/groupType/component)?
-- [ ] component prop 으로 `viewName={"<reduxKey>"} title="<i18n_key>"` 넘김?
-- [ ] appRoles / userRoles 명시 (또는 부모 lv1 의 것 상속)?
-- [ ] `translation.<lang>.js` 6개 파일 모두에 menu key 추가?
-- [ ] 메시지/그리드 헤더 i18n key 도 추가?
+### 테스트
+- [ ] CRUD 플로우 · validRules required · 다국어 (ko/en/ja/zh) · 권한별 버튼 노출
+- [ ] wingui 단독 기동 (mp/dp/bf/fp server 미기동) 으로 동작
 
 ---
 
-## 8. 자주 틀리는 함정
+## 11. Anti-pattern 카탈로그
 
-- **viewName 이 reduxKey 와 일치 안 함** → reduxUtil.getViewState 가 항상 undefined 리턴 → 새로고침 시 페이지 상태 사라짐
-- **DataState.initialize 누락** → 저장 시 `getStateData(api, "created")` 가 undefined → 저장 동작 안 함
-- **컬럼 정의에 `filterType` 누락** → AdvancedFilter 가 컬럼을 인식 못함
-- **`type:["booleanColumn"]` 누락** → boolean 셀이 true/false 텍스트로 표시
-- **`@JsonIgnore` 누락** → `@ManyToOne` 양방향 관계 → JSON 직렬화 시 StackOverflow
-- **`@Convert(BooleanToYNConverter)` 누락** → DB 의 `Y/N` 가 boolean 으로 매핑 안 됨 → 항상 false
-- **`@PreAuthorize` 누락** → 인증 없이 endpoint 노출 (보안 사고)
-- **`PaginationUtil.getPageResponse` 미사용** → frontend 가 `res.data.results / totalPages` 분해 못함
-- **앞서 만든 i18n key 의 6언어 중 일부 누락** → 해당 언어 사용자에게 raw key 가 노출
+상세 → `99-anti-patterns.md` · `99a-composer-anti-patterns.md`. 핵심만 표:
+
+| 카테고리 | ❌ | ✅ | 검증 |
+|---|---|---|---|
+| 골격 | `ContentInner` 누락 · `gridItems` 컴포넌트 안 선언 | `21 §1` · `41a §4.3` | hook block |
+| 컬럼 | `dataType` 누락 / `field:` / `textAlign:` | `name:` · `dataType:` · `textAlignment:` | hook block |
+| Store | `useViewStore`에서 `activeViewId` 추출 | `useContentStore` | hook block |
+| Form | datetime defaultValue `''` | `null` | LLM/L |
+| 통신 | 신규 화면이 `callService` | `zAxios` REST | hook warn |
+| 경로 | utility 도메인 `ut/` | `util/` | hook block |
+| Java | `javax.*` import | `jakarta.*` | hook block |
+| SQL | TB_AD_MENU 의 `MENU_NM`/`PARENT_MENU_CD` 등 허구 컬럼 | 실제 컬럼만 (`30 §5`) | hook block |
+| 메뉴 | parent `MENU_UT` | `MENU_UTIL` | hook block |
+
+---
+
+## 관련 문서
+
+- 컴포넌트 인벤토리: `21-components.md`
+- FilterBar JSON: `22-filter-bar.md` + `.claude/schemas/filter-bar.schema.json`
+- DB 스키마: `30-database-schema.md`
+- SP: `31-stored-procedures.md`
+- SQL 사전 검증: `32-sql-schema-verification.md`
+- Composer 화면 생성: `41-composer-generation.md` + `41a/b/c/d`
+- 안티패턴: `99-anti-patterns.md` + `99a-composer-anti-patterns.md`

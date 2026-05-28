@@ -340,6 +340,12 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             // ★ (2026-05-28) link onload 까지 await — 그렇지 않으면 RealGrid 가 CSS 없이
             //   mount 되어 .rg-root / 체크박스 아이콘 / zebra 등 테마 미적용 사고.
             //   CSS 가 늦게 도착해도 RealGrid 는 자체 측정값을 재계산하지 않아 unstyled 그대로.
+            if (!targetCd) {
+                // eslint-disable-next-line no-console
+                console.warn('[PreviewEmbed] targetCd 없음 — useTargetStore.currentTargetCd 가 null. '
+                          + 'CSS bundle 이 빈 응답 → realgrid 테마 미적용. '
+                          + '상단 TargetSystemSelector 에서 Target 선택 필요.');
+            }
             try {
                 const url = '/composer/preview/css' + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
                 const linkEl = doc.createElement('link');

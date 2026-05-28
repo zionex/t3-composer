@@ -129,6 +129,11 @@ public class PreviewModuleResolver {
      */
     public String bundleCss(String targetCd) {
         String winguiRoot = pathResolver.resolveWinguiPath(targetCd);
+        if (winguiRoot == null || winguiRoot.isBlank()) {
+            log.warn("bundleCss: winguiRoot 미해석 (targetCd={}) — 빈 CSS 반환. "
+                  + "프런트에서 targetCd 누락 또는 Target 의 wingui 경로 미설정.", targetCd);
+            return "";
+        }
         Path base = Path.of(winguiRoot).toAbsolutePath().normalize();
         if (!Files.isDirectory(base)) return "";
 

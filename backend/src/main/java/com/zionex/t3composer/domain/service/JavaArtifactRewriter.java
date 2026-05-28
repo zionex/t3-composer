@@ -80,6 +80,43 @@ public class JavaArtifactRewriter {
     }
 
     /**
+     * 산출물 Java 를 Target wingui 패키지로 변환 — ArtifactApplyService 가 staging 우회하고
+     * 직접 wingui 에 쓸 때 호출 (2026-05-27).
+     *
+     * 매핑 (sync-files-to-wingui.ps1 의 변환 표 + 자기 패키지):
+     *   - 자기 package:  com.zionex.t3composer.domain.&lt;X&gt;  → com.zionex.t3series.web.domain.&lt;X&gt;
+     *   - import:        EXACT_IMPORT_MAP 의 역방향 (t3composer.* → t3series.*)
+     *   - import:        com.zionex.t3composer.domain.&lt;X&gt;  → com.zionex.t3series.web.domain.&lt;X&gt;
+     *
+     * 한계: 단순 string replace 라 매핑 대상 FQN 이 import/package 외 위치(예: javadoc 안)에
+     *       나오면 같이 치환된다. 매핑 대상은 모두 com.zionex.t3composer.* 라 안전.
+     */
+    public String rewriteToWinguiPackages(String sourceContent) {
+        if (sourceContent == null || sourceContent.isBlank()) return sourceContent;
+        String content = sourceContent;
+
+        // 1) 자기 package 변환 — composer 산출물의 domain 패키지를 wingui 의 web.domain.* 로
+        content = content.replaceAll(
+                "(?m)^(\\s*package\\s+)com\\.zionex\\.t3composer\\.domain\\.",
+                "$1com.zionex.t3series.web.domain.");
+        // 2) import 의 cross-domain 참조
+        content = content.replaceAll(
+                "(?m)^(\\s*import\\s+(?:static\\s+)?)com\\.zionex\\.t3composer\\.domain\\.",
+                "$1com.zionex.t3series.web.domain.");
+
+        // 3) 정확 매핑 (EXACT_IMPORT_MAP 의 wingui ↔ composer 역방향)
+        for (Map.Entry<String, String> e : EXACT_IMPORT_MAP.entrySet()) {
+            String winguiFqn   = e.getKey();
+            String composerFqn = e.getValue();
+            if (!winguiFqn.equals(composerFqn)) {
+                content = content.replace(composerFqn, winguiFqn);
+            }
+        }
+
+        return content;
+    }
+
+    /**
      * @param sourceContent  원본 Java 소스
      * @param sid8           preview 격리용 8자리 sessionId prefix
      */

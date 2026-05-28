@@ -113,6 +113,21 @@ public class ArtifactApplyService {
     /** 세션 Target DB 로 SQL 실행을 라우팅 — 정적 targetDataSource 가 아닌, 세션이 지정한 운영 DB 에서 검증·적용. */
     private final com.zionex.t3composer.config.TargetDataSourceRegistry dsRegistry;
 
+    // ── (2026-05-27) Target wingui 에 직접 쓰기 + Java 패키지 자동 rename ──
+    //   setter injection — bean 없어도 fallback (staging) 동작 보장.
+    private TargetPathResolver targetPathResolver;
+    private JavaArtifactRewriter javaArtifactRewriter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTargetPathResolver(TargetPathResolver resolver) {
+        this.targetPathResolver = resolver;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setJavaArtifactRewriter(JavaArtifactRewriter rewriter) {
+        this.javaArtifactRewriter = rewriter;
+    }
+
     public ArtifactApplyService(ApplicationProperties props,
                                 ComposerArtifactRepository artifactRepo,
                                 ComposerSessionRepository sessionRepo,
@@ -188,9 +203,36 @@ public class ArtifactApplyService {
         // ★ 정책 변경 (2026-04): 파일 저장 / DDL / SP 실행은 autoApply 와 무관하게 항상 수행한다.
         //   autoApply 체크박스는 control-plane 작업 (npm run build · mvn compile = 재빌드/재컴파일)
         //   의 트리거 여부만 결정. 데이터 평면(file/DDL/SP) 은 admin policy 만 통과하면 항상 실행.
-        String root = props.getComposer().getProjectRoot();
+        //
+        // ★ Routing 정책 변경 (2026-05-27 사용자 요청):
+        //   기존엔 글로벌 `app.composer.project-root` (=/workspace/staging) 에 떨궈 sync 스크립트로
+        //   wingui 에 복사하는 2-step 흐름이었다. 사용자 흐름이 staging → sync 단계 우회를 원해서
+        //   세션 targetCd 의 운영 wingui 경로 (TargetPathResolver) 에 직접 쓰도록 변경.
+        //   Java 파일은 파일 쓰기 직전 `JavaArtifactRewriter.rewriteToWinguiPackages` 로 패키지 자동 rename.
+        //   docker-compose 의 T3SERIES wingui 마운트는 :rw 로 풀어두어야 컨테이너 안에서 쓰기 가능.
+        //
+        //   resolveSourcePath 가 실제 wingui 트리(구조 마커 보유 — packages/wingui/src 등) 반환하면 그쪽에 직접.
+        //   못 찾으면 글로벌 staging fallback.
+        String sessTargetCd = sessionRepo.findById(sessionId)
+                .map(ComposerSession::getTargetCd).orElse(null);
+        String root = null;
+        boolean directWingui = false;
+        if (targetPathResolver != null) {
+            String resolved = targetPathResolver.resolveSourcePath(sessTargetCd);
+            if (resolved != null && !resolved.isBlank()) {
+                // resolveSourcePath 가 marker (packages/wingui/src 등) 검증을 거쳐 반환 — 채택된 모든 경로는 wingui 트리.
+                root = resolved;
+                directWingui = true;
+                log.info("Artifact apply routing: sessionId={} targetCd={} direct→wingui root={}",
+                        sessionId, sessTargetCd, root);
+            }
+        }
         if (root == null || root.isBlank()) {
-            return failure("app.composer.project-root 가 설정되지 않았습니다.");
+            root = props.getComposer().getProjectRoot();   // fallback (staging)
+            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", root);
+        }
+        if (root == null || root.isBlank()) {
+            return failure("산출물 출력 루트 결정 실패 — TargetPathResolver 도 fallback 도 빈 값.");
         }
         Path rootPath;
         try {
@@ -199,8 +241,10 @@ public class ArtifactApplyService {
             return failure("project-root 경로 오류: " + e.getMessage());
         }
         if (!Files.isDirectory(rootPath)) {
-            return failure("project-root 가 존재하지 않습니다: " + rootPath);
+            return failure("출력 루트 디렉토리가 존재하지 않습니다: " + rootPath);
         }
+        // directWingui 분기는 file write 시점에서 Java rewrite 호출 여부 결정에 사용
+        final boolean isDirectWinguiWrite = directWingui;
 
         // Supersede 된 이전 버전(STATUS_DISCARDED) 은 apply 대상에서 제외 — 항상 최신만 적용
         List<ComposerArtifact> artifacts =
@@ -325,8 +369,20 @@ public class ArtifactApplyService {
                         record.put("fileErr", "이미 존재 (overwrite=false)");
                         fileFail++;
                     } else {
+                        // ★ Java 산출물 + Target wingui 직접 쓰기 → 패키지 자동 rename
+                        //   (com.zionex.t3composer.* → com.zionex.t3series.web.*) — sync 스크립트 로직 내장.
+                        //   staging fallback 의 경우는 rewrite 안 함 (기존 흐름과 호환 — sync 스크립트가 처리).
+                        String contentToWrite = content;
+                        if (isDirectWinguiWrite && javaArtifactRewriter != null
+                                && isJavaSourceType(type)) {
+                            String rewritten = javaArtifactRewriter.rewriteToWinguiPackages(content);
+                            if (rewritten != null && !rewritten.equals(content)) {
+                                contentToWrite = rewritten;
+                                record.put("javaRenamed", true);
+                            }
+                        }
                         Files.createDirectories(abs.getParent());
-                        Files.writeString(abs, content, StandardCharsets.UTF_8,
+                        Files.writeString(abs, contentToWrite, StandardCharsets.UTF_8,
                                 StandardOpenOption.CREATE,
                                 StandardOpenOption.TRUNCATE_EXISTING,
                                 StandardOpenOption.WRITE);
@@ -554,6 +610,15 @@ public class ArtifactApplyService {
             || type.equals(ComposerArtifact.TYPE_MENUS_JS_PATCH);
     }
 
+    /** Java 소스 타입 여부 — Target wingui 에 직접 쓰기 시 패키지 rename 대상 판정용 */
+    private boolean isJavaSourceType(String type) {
+        if (type == null) return false;
+        return type.equals(ComposerArtifact.TYPE_JAVA_CONTROLLER)
+            || type.equals(ComposerArtifact.TYPE_JAVA_SERVICE)
+            || type.equals(ComposerArtifact.TYPE_JAVA_REPOSITORY)
+            || type.equals(ComposerArtifact.TYPE_JAVA_ENTITY);
+    }
+
     /**
      * 아티팩트의 filePath 를 프로젝트 루트 기준 상대 경로로 정규화.
      * 경로 결정 우선순위:
@@ -572,11 +637,64 @@ public class ArtifactApplyService {
         if (fp != null && !fp.isBlank() && !isAbsoluteLike(fp)) {
             String norm = fp.replace('\\', '/').replaceFirst("^/+", "");
             if (matchesAllowList(norm)) {
+                // SCREEN_JSX 추가 정규화 — contentStore 라우팅 규약 (`view/.../<lowercase>/<Pascal>.jsx`)
+                // 의 자동 폴더가 누락되면 lazy import 실패하므로 자동 보강 (2026-05-27).
+                if (ComposerArtifact.TYPE_SCREEN_JSX.equals(type)) {
+                    norm = ensureJsxLowercaseFolder(norm);
+                }
                 return norm;
             }
         }
         // 2 & 3) 타입별 auto-remap
         return routeByType(type, name);
+    }
+
+    /**
+     * SCREEN_JSX 의 file_path 가 contentStore 라우팅 규약을 따르는지 확인하고 누락 시 보강.
+     *
+     * <p>contentStore.js:
+     * <pre>filepath = view.filePath.toLowerCase() + view.filePath.slice(view.filePath.lastIndexOf('/'))</pre>
+     * 즉 MENU_FILE_PATH `/system/08/System08` 는 자동으로 `/system/08/system08/System08` 로 확장돼
+     * 파일은 반드시 `view/system/08/system08/System08.jsx` 에 있어야 한다.
+     *
+     * <p>Claude 가 종종 자동 폴더 (`system08`) 를 빠뜨리고 `view/system/08/System08.jsx` 로
+     * 작성하는데, 그 위치는 contentStore lazy import 가 찾지 못한다. 본 메서드는 마지막
+     * 두 세그먼트를 검사해 직전 폴더 ≠ `lowercase(PascalName)` 이면 자동 폴더를 끼워넣는다.
+     *
+     * @return 보강된 경로 (이미 규약 충족이면 원본 그대로)
+     */
+    private String ensureJsxLowercaseFolder(String relPath) {
+        if (relPath == null || relPath.isBlank()) return relPath;
+        int slash = relPath.lastIndexOf('/');
+        if (slash < 0) return relPath;                          // 파일명만 — 자동 폴더 무의미
+        String filename = relPath.substring(slash + 1);
+        if (!filename.toLowerCase().endsWith(".jsx")
+                && !filename.toLowerCase().endsWith(".tsx")) {
+            return relPath;
+        }
+        String base = filename.replaceAll("(?i)\\.(jsx|tsx)$", "");
+        if (base.isBlank() || !Character.isUpperCase(base.charAt(0))) {
+            // PascalName 이 아니면 규약 적용 불가 (예: 소문자 파일명) — 그대로
+            return relPath;
+        }
+        String expectedLower = base.toLowerCase();
+
+        String parentPath = relPath.substring(0, slash);        // 예: "packages/wingui/src/view/system/08"
+        int prevSlash = parentPath.lastIndexOf('/');
+        String parentDir = (prevSlash < 0) ? parentPath : parentPath.substring(prevSlash + 1);
+
+        if (parentDir.equals(expectedLower)) {
+            return relPath;                                      // 이미 규약 충족
+        }
+
+        // parent 가 'view' 자체이면 (view/PascalName.jsx 같은 케이스) 자동 폴더 끼울 위치 없음 → 그대로 두고 routeByType 폴백 유도
+        if ("view".equalsIgnoreCase(parentDir)) {
+            return relPath;
+        }
+
+        String fixed = parentPath + "/" + expectedLower + "/" + filename;
+        log.info("SCREEN_JSX filePath 자동 보강: '{}' → '{}' (contentStore 라우팅 규약)", relPath, fixed);
+        return fixed;
     }
 
     /** 파일명이 비어 있을 때 filePath 나 artifactId 에서 이름 추정 */

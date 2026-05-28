@@ -73,6 +73,44 @@ public class ComposerPromptBuilder {
     public String buildSessionSystemPrompt(ComposerSession session) {
         StringBuilder sb = new StringBuilder();
 
+        // ★ MENU SOURCE OVERRIDE — session prompt 최상단에 강제 배치.
+        //   이전엔 session block 의 끝쪽에 있어 위쪽의 rule (TB_AD_MENU INSERT 예시 다수) 에
+        //   묻혀 PLANNEL 세션도 MENU_SQL 산출하는 사고 (2026-05-28).
+        //   여기서 명시한 형식이 rule 안의 TB_AD_MENU 예시보다 우선.
+        String menuSource = resolveMenuSource(session.getTargetCd());
+        if ("JS_FILE".equalsIgnoreCase(menuSource)) {
+            sb.append("\n\n");
+            sb.append("╔══════════════════════════════════════════════════════════════════╗\n");
+            sb.append("║ ★★★ MENU SOURCE OVERRIDE (Target = ").append(session.getTargetCd()).append(") ★★★\n");
+            sb.append("║ 이 Target 은 menu_source='JS_FILE'. 메뉴 등록 산출물은 SQL 이 아니다.\n");
+            sb.append("║ 룰(rules) 안의 'TB_AD_MENU INSERT' · 'TB_AD_LANG_PACK' · 'MENU_SQL' 예시는\n");
+            sb.append("║ 모두 DB Target (T3SERIES 등) 전용이며 본 세션에서는 **절대 사용 금지**.\n");
+            sb.append("╚══════════════════════════════════════════════════════════════════╝\n\n");
+            sb.append("=== 메뉴 등록 산출물 (menu_source=JS_FILE Target — PLANNEL 등) ===\n");
+            sb.append("신규 화면이면 **정확히** 다음 형식의 MENU_JS 아티팩트 1건만 출력:\n\n");
+            sb.append("===FILE: src/pages/TabMenuList.entries.json===\n");
+            sb.append("```json\n");
+            sb.append("{\n");
+            sb.append("  \"entries\": [\n");
+            sb.append("    {\n");
+            sb.append("      \"groupKey\": \"<lv3MenuList 기존 그룹 키 — 예: DATA_MGMT · DASHBOARD · DP · RP · IP · MP — 또는 신규 키>\",\n");
+            sb.append("      \"reduxKey\": \"<UPPER_SNAKE 식별자 — 예: INPUT_MY_NEW_SCREEN>\",\n");
+            sb.append("      \"title\": \"<i18n key — 예: menuMyNewScreen>\",\n");
+            sb.append("      \"componentName\": \"<PascalCase React 컴포넌트명 — 예: MyNewScreen>\",\n");
+            sb.append("      \"componentPath\": \"<src/pages/ 하위 상대경로 (확장자 없이) — 예: data-management/MyNewScreen>\"\n");
+            sb.append("    }\n");
+            sb.append("  ]\n");
+            sb.append("}\n");
+            sb.append("```\n\n");
+            sb.append("⛔ 절대 금지 (위반 시 산출물 거부):\n");
+            sb.append("  - ===FILE: ...menu.sql=== · ===FILE: ...menus.sql=== 등 메뉴 SQL 파일 생성\n");
+            sb.append("  - INSERT INTO TB_AD_MENU / TB_AD_LANG_PACK / TB_AD_PERMISSION_GROUP 어떤 SQL 도\n");
+            sb.append("  - TabMenuList.js 파일 자체를 통째로 덮어쓰기 (entries JSON 만 출력)\n");
+            sb.append("  - 동일 reduxKey 가 이미 존재하는 entry 재생성 (backend 자동 skip 하지만 의도하지 말 것)\n\n");
+            sb.append("✅ 권한: PLANNEL 은 별도 권한 테이블 없음. groupKey 매핑이 곧 접근 제어.\n");
+            sb.append("✅ 다국어: title 의 i18n key 만 명시. i18n 리소스 갱신은 별도 (본 산출물 미포함).\n\n");
+        }
+
         // SP SCREEN_NO 자동 할당 — DB 의 현재 사용 중인 SP 를 조회해 도메인별 권장 NN 주입.
         // 신규 모드일 때만 의미 있으므로 EXISTING_MODIFY 는 생략.
         if (screenNoAllocator != null
@@ -97,36 +135,8 @@ public class ComposerPromptBuilder {
             sb.append("- 업로드 설계서: ").append(session.getDesignDocName()).append("\n");
         }
 
-        // Target 의 menu_source 가 JS_FILE 이면 메뉴 등록 산출물 형식 자체가 다르다.
-        //   T3SERIES 등 (menu_source=DB) → MENU_SQL (TB_AD_MENU INSERT)
-        //   PLANEL    등 (menu_source=JS_FILE) → MENU_JS (TabMenuList.js entry JSON)
-        // ※ TB_CMP_TARGET_RULE 의 정적 prompt 는 target 별로 다르게 로드되므로 본질적
-        //   가이드는 거기에 있고, 여기는 LLM 이 산출물을 만들 때의 *형식 차이* 만 명시.
-        String menuSource = resolveMenuSource(session.getTargetCd());
-        if ("JS_FILE".equalsIgnoreCase(menuSource)) {
-            sb.append("- 메뉴 소스 형식: JS_FILE — 메뉴 등록 산출물은 SQL 이 아니라 JSON\n\n");
-            sb.append("=== 메뉴 등록 산출물 (PLANEL 등 menu_source=JS_FILE Target) ===\n");
-            sb.append("기존 화면 수정이 아닌 신규 화면 생성이면 다음 형식의 MENU_JS 아티팩트 1건 출력:\n\n");
-            sb.append("===FILE: src/pages/TabMenuList.entries.json===\n");
-            sb.append("```json\n");
-            sb.append("{\n");
-            sb.append("  \"entries\": [\n");
-            sb.append("    {\n");
-            sb.append("      \"groupKey\": \"<lv3MenuList 의 기존 그룹 키 — 예: DATA_MGMT · DASHBOARD · DP · RP · IP · MP — 또는 적절한 신규 키>\",\n");
-            sb.append("      \"reduxKey\": \"<UPPER_SNAKE 식별자 — 예: INPUT_MY_NEW_SCREEN>\",\n");
-            sb.append("      \"title\": \"<i18n key — 예: menuMyNewScreen>\",\n");
-            sb.append("      \"componentName\": \"<PascalCase React 컴포넌트명 — 예: MyNewScreen>\",\n");
-            sb.append("      \"componentPath\": \"<src/pages/ 하위 상대경로 (확장자 없이) — 예: data-management/MyNewScreen>\"\n");
-            sb.append("    }\n");
-            sb.append("  ]\n");
-            sb.append("}\n");
-            sb.append("```\n\n");
-            sb.append("⛔ 금지:\n");
-            sb.append("  - TB_AD_MENU / TB_AD_LANG_PACK / TB_AD_PERMISSION 등 DB 메뉴 SQL 생성\n");
-            sb.append("  - TabMenuList.js 파일 자체를 통째로 덮어쓰기 (entries JSON 만 출력)\n");
-            sb.append("  - 동일 reduxKey 가 이미 존재하는 entry 재생성 (backend 가 자동 skip 하지만 의도하지 말 것)\n");
-            sb.append("\n메뉴 표시명(다국어)은 별도 i18n 리소스 파일 갱신이 필요할 수 있으나 본 산출물에는 포함하지 않음 — title 의 i18n key 만 명시.\n");
-        }
+        // JS_FILE Target 의 메뉴 등록 형식은 session prompt 최상단의 ★ MENU SOURCE OVERRIDE 블록 참조.
+        // (중복 선언 방지 — 위에서 이미 menuSource 처리 완료)
 
         return sb.toString();
     }

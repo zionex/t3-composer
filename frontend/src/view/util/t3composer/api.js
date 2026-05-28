@@ -242,6 +242,26 @@ export const prefillFromDesign = ({ parsedDesign, fileName, newMenuCd, newTitle,
     composerReq()
   );
 
+/**
+ * AI 추천 — 자연어 + 압축 mockup 후보를 보내 상위 3개를 AI 재랭킹.
+ * 응답: { items: [{ patternCode, relevance, reason }], mode: 'ai'|'fallback', model }
+ *   mode==='fallback' (키 없음/호출 실패) → 호출부가 프런트 키워드 순서로 폴백.
+ */
+export const recommendMockups = ({ nl, candidates }) =>
+  zAxios.post('composer/recommend-mockups', { nl, candidates }, composerReq());
+
+/**
+ * AI 추천 — 선택한 mockup + 자연어로 4단계 Wizard 부분 prefill.
+ * 응답: { spec: { meta?, filterBar? }, mode: 'ai'|'fallback', model }
+ *   데이터바인딩(실제 테이블/SP)은 채우지 않음 — §13.7 환각 방지.
+ */
+export const prefillFromMockup = ({ nl, mockupPatternCode, mockupMeta, moduleCode, targetCd }) =>
+  zAxios.post(
+    'composer/prefill-from-mockup',
+    { nl, mockupPatternCode, mockupMeta, moduleCode, targetCd },
+    composerReq()
+  );
+
 // ---- Menu Registration ----
 
 // sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 산출물 그대로 실행.

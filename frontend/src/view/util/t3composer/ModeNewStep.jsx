@@ -18,10 +18,12 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
+import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
 
 import ComposerWizard from './ComposerWizard';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
+import AiRecommendPanel from './AiRecommendPanel';
 import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
 import { useTargetStore } from './targetStore';
 
@@ -37,6 +39,16 @@ function ModeNewStep({ onBack }) {
     setSpec(specFromPattern(patternCode, { title: '새 화면', menuCd: '', pattern: patternCode }));
     setStage('WIZARD');
   };
+
+  if (stage === 'AI_RECOMMEND') {
+    return (
+      <AiRecommendPanel
+        targetCd={currentTargetCd}
+        onBack={() => setStage('PICK')}
+        onStart={(s) => { setSpec(s); setStage('WIZARD'); }}
+      />
+    );
+  }
 
   if (stage === 'WIZARD' && spec) {
     return (
@@ -64,6 +76,23 @@ function ModeNewStep({ onBack }) {
       </Typography>
 
       <Stack spacing={2}>
+
+        <Paper variant="outlined"
+               sx={{ p: 2, cursor: 'pointer', borderColor: '#fcd34d',
+                     '&:hover': { borderColor: '#f59e0b', bgcolor: '#fffbeb' } }}
+               onClick={() => setStage('AI_RECOMMEND')}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <AutoAwesomeIcon sx={{ fontSize: 32, color: '#f59e0b' }} />
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#b45309' }}>
+                ✨ AI 추천
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b' }}>
+                자연어로 의도를 적으면 관련 SCM UI Mockup 3개 추천 + 4단계 AI 자동 prefill
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
 
         <Paper variant="outlined"
                sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#3b82f6', bgcolor: '#f8fafc' } }}

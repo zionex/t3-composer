@@ -26,11 +26,15 @@ import com.zionex.t3composer.domain.dto.ApiKeyRequest;
 import com.zionex.t3composer.domain.dto.AutoSuggestRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromDesignRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromSourceRequest;
+import com.zionex.t3composer.domain.dto.RecommendMockupRequest;
+import com.zionex.t3composer.domain.dto.PrefillFromMockupRequest;
 import com.zionex.t3composer.domain.service.DesignDocAnalyzeService;
 import com.zionex.t3composer.domain.service.DesignDocExportService;
 import com.zionex.t3composer.domain.service.MenuRegistrationService;
 import com.zionex.t3composer.domain.service.PrefillFromDesignService;
 import com.zionex.t3composer.domain.service.PrefillFromSourceService;
+import com.zionex.t3composer.domain.service.RecommendMockupService;
+import com.zionex.t3composer.domain.service.PrefillFromMockupService;
 import com.zionex.t3composer.domain.dto.ArtifactDto;
 import com.zionex.t3composer.domain.dto.ChatRequest;
 import com.zionex.t3composer.domain.dto.CreateSessionRequest;
@@ -71,6 +75,8 @@ public class ComposerController {
     private final PrefillFromSourceService prefillFromSourceService;
     private final AutoSuggestService autoSuggestService;
     private final PrefillFromDesignService prefillFromDesignService;
+    private final RecommendMockupService recommendMockupService;
+    private final PrefillFromMockupService prefillFromMockupService;
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
     private final PreviewModuleResolver previewModuleResolver;
@@ -584,6 +590,30 @@ public class ComposerController {
                     "message", e.getMessage()));
         } catch (Exception e) {
             log.error("prefill-from-design failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error",   "server_error",
+                    "message", e.getMessage() != null ? e.getMessage() : "unknown"));
+        }
+    }
+
+    @PostMapping("/recommend-mockups")
+    public ResponseEntity<Map<String, Object>> recommendMockups(@RequestBody RecommendMockupRequest req) {
+        try {
+            return ResponseEntity.ok(recommendMockupService.recommend(currentUserId(), req));
+        } catch (Exception e) {
+            log.error("recommend-mockups failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error",   "server_error",
+                    "message", e.getMessage() != null ? e.getMessage() : "unknown"));
+        }
+    }
+
+    @PostMapping("/prefill-from-mockup")
+    public ResponseEntity<Map<String, Object>> prefillFromMockup(@RequestBody PrefillFromMockupRequest req) {
+        try {
+            return ResponseEntity.ok(prefillFromMockupService.prefill(currentUserId(), req));
+        } catch (Exception e) {
+            log.error("prefill-from-mockup failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "error",   "server_error",
                     "message", e.getMessage() != null ? e.getMessage() : "unknown"));

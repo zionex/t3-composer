@@ -290,7 +290,7 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
   );
 }
 
-function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd }) {
+function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd, parentMenuCd = '' }) {
   if (!nodes || nodes.length === 0) return null;
   return (
     <List dense disablePadding>
@@ -304,7 +304,10 @@ function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd }
             <ListItemButton
               onClick={() => {
                 if (hasChildren) onToggle(node.id);
-                else if (node.filePath) onSelect(node);
+                // 화면(leaf) 선택 시 — 부모 그룹 MENU_CD 를 같이 전달.
+                //   NEW_FROM_COPY 의 신규 화면 default parent 를 원본의 실제 부모로 맞추기 위해
+                //   selectedMenu.parentMenuCd 로 호출자에게 노출 (재귀로 전달받은 parentMenuCd 사용).
+                else if (node.filePath) onSelect({ ...node, parentMenuCd });
               }}
               selected={isSelected}
               sx={{
@@ -389,6 +392,7 @@ function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd }
                   onToggle={onToggle}
                   onSelect={onSelect}
                   selectedMenuCd={selectedMenuCd}
+                  parentMenuCd={node.id}
                 />
               </Collapse>
             )}

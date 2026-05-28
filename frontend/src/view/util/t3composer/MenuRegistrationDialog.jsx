@@ -128,6 +128,30 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
     return parts.join(' > ');
   };
 
+  // ── UI '메뉴 경로' 표시용 breadcrumb 합성 ──
+  //   SQL 의 MENU_PATH 는 운영 표준에 따라 LOWER(MENU_FILE_PATH) (URL slug) 로 통일된다.
+  //   UI 표시는 사람이 읽기 좋은 한글 경로(예: '관리 > 공통코드') 가 필요해서 별도 계산.
+  //   - preserveClaudeOriginal=true: Claude 가 작성한 menuPath 가 한글 breadcrumb 형태면 그대로 채택
+  //     (한글 포함 + '/' 로 시작 안 함 — URL slug 와 구분)
+  //   - 그 외에는 부모 메뉴 트리의 ancestor(root→parent) + fileName 의 마지막 PascalCase segment 로 합성
+  const buildBreadcrumb = (s, menus, { preserveClaudeOriginal = false } = {}) => {
+    if (preserveClaudeOriginal) {
+      const orig = (s?.menuPath || '').trim();
+      if (orig && /[가-힣]/.test(orig) && !orig.startsWith('/')) {
+        return orig;
+      }
+    }
+    const ancestor = resolveAncestorPath(s?.parentMenuCd, menus);
+    let leaf = '';
+    if (s?.fileName) {
+      const segs = s.fileName.replace(/\.jsx?$/, '').split('/').filter(Boolean);
+      leaf = segs[segs.length - 1] || '';
+    }
+    if (!leaf) leaf = s?.screenId || '';
+    if (ancestor && leaf) return `${ancestor} > ${leaf}`;
+    return ancestor || '';
+  };
+
   const reset = () => {
     setMenuSql(null);
     setMenuArtifactType(null);
@@ -183,10 +207,13 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       //   T3SERIES 등 활성 Target 의 운영 메뉴 트리를 보여주기 위함.
       //   이전엔 MENU_JS 분기 안에만 setSessionTargetCd 가 있어 MENU_SQL 세션에서는
       //   null 유지 → composer-db 의 listAllMenus fallback 으로 표시 (운영 트리와 불일치).
+      //   ★ 로컬 변수로도 보관 — 같은 async 함수 내에서 setState 는 즉시 반영되지 않으므로
+      //     이후 checkMenuExists(parsed.parentMenuCd, resolvedTargetCd) 호출에 사용.
+      let resolvedTargetCd = null;
       try {
         const sess = await getSession(sessionId);
-        const tCd = sess?.data?.targetCd || sess?.data?.target_cd || null;
-        setSessionTargetCd(tCd);
+        resolvedTargetCd = sess?.data?.targetCd || sess?.data?.target_cd || null;
+        setSessionTargetCd(resolvedTargetCd);
       } catch (_e) {
         // silent — picker 는 fallback 동작 가능
       }
@@ -233,13 +260,29 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
         return;
       }
 
-      // 이하 기존 MENU_SQL 흐름
-      const parsed = parseMenuSummary(full.data?.content || '');
-      setOriginalSql(full.data?.content || '');
+      // 이하 기존 MENU_SQL 흐름.
+      //   Claude 의 SQL 에 들어있는 inline 주석(`-- 부모: ...` 등) 을 먼저 제거.
+      //   주석이 남아있으면 splitSqlValues 가 토큰을 잘못 자르고 parseMenuSummary 가
+      //   menuPath/fileName 추출 실패 → UI 의 "메뉴 경로"·"MENU_PATH"·"JSX 파일" 이 '-' 로 표시 (2026-05-27).
+      const cleanedContent = stripSqlLineComments(full.data?.content || '');
+      // setMenuSql 도 cleaned 로 갱신 — 이후 rewriteMenuPath/rewriteParentId 가 정확히 동작
+      setMenuSql({ ...full.data, content: cleanedContent });
+      const parsed = parseMenuSummary(cleanedContent);
+      setOriginalSql(cleanedContent);
 
+      // 부모 메뉴 존재 + UUID 조회 — 운영 DB (sessionTargetCd) 기준으로 검사.
+      //   응답 = { exists: boolean, id: string|null }
+      //   id 가 있으면 SQL 의 `(SELECT ID FROM TB_AD_MENU WHERE MENU_CD='...')` subquery 를
+      //   실제 UUID 리터럴로 치환해서 PARENT_ID 가 NULL 로 들어가는 사고를 차단.
+      let parentId = null;
       if (parsed.parentMenuCd) {
-        const exists = await checkMenuExists(parsed.parentMenuCd);
-        setParentOk(!!exists.data?.exists);
+        try {
+          const exists = await checkMenuExists(parsed.parentMenuCd, resolvedTargetCd);
+          setParentOk(!!exists.data?.exists);
+          parentId = exists.data?.id || null;
+        } catch (_e) {
+          setParentOk(null);
+        }
       }
 
       // ── 초기 menuPath 정규화 — LOWER(MENU_FILE_PATH) 로 통일 (rules/41 §2.3) ──
@@ -258,13 +301,30 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       // MENU_FILE_PATH 값 → LOWER 로 변환. 없으면 parsed.menuPath 그대로 (Claude 작성본 fallback).
       const normalizedPath = (parsed.fileName || '').trim().toLowerCase()
         || (parsed.menuPath || '').trim();
-      if (normalizedPath) {
-        const fixedSql = rewriteMenuPath(full.data?.content || '', normalizedPath);
+      console.info('[Composer MenuRegistrationDialog]', {
+        parsedFileName: parsed.fileName,
+        parsedMenuPath: parsed.menuPath,
+        parsedScreenId: parsed.screenId,
+        normalizedPath,
+        contentHead: (full.data?.content || '').slice(0, 300),
+      });
+      // breadcrumb (UI 표시용 한글 경로) — Claude 원본이 한글 breadcrumb 이면 그대로,
+      //   아니면 부모 메뉴 트리에서 ancestor + leaf 합성.
+      const breadcrumb = buildBreadcrumb(parsed, menus, { preserveClaudeOriginal: true });
+      // SQL 정합화: MENU_PATH (URL slug) + PARENT_ID (운영 DB UUID 리터럴) 두 컬럼 모두 치환.
+      //   원본은 이미 cleanedContent (주석 제거됨) 기준 — rewrite 함수가 정확히 토큰 위치 찾음.
+      let fixedSql = cleanedContent;
+      if (normalizedPath) fixedSql = rewriteMenuPath(fixedSql, normalizedPath);
+      if (parentId)       fixedSql = rewriteParentId(fixedSql, parentId);
+      if (fixedSql !== cleanedContent) {
         setMenuSql({ ...full.data, content: fixedSql });
-        setSummary({ ...parsed, menuPath: normalizedPath });
-      } else {
-        setSummary(parsed);
       }
+      setSummary({
+        ...parsed,
+        menuPath: normalizedPath || parsed.menuPath,
+        breadcrumb,
+        parentId,
+      });
 
       // 저장·삭제 기능 자동 감지 → 권한 타입 초기값 결정
       //   1) SCREEN_JSX 에 GridSaveButton / GridDeleteRowButton / S1·D1 호출이 있으면 각각 UPDATE / DELETE 추가
@@ -340,30 +400,62 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
       nextSql = rewriteMenuPath(nextSql, normalizedPath);
     }
 
+    // 3) PARENT_ID 도 운영 DB 의 새 부모 UUID 로 직접 치환 — subquery 의존성 제거.
+    //    picked.id 는 picker 의 노드 식별자(= MENU_CD)일 뿐 UUID 가 아님 (TargetMenuController §216).
+    //    따라서 별도로 checkMenuExists(menuCd, targetCd) 로 UUID 를 조회.
+    let pickedParentId = null;
+    try {
+      const lookup = await checkMenuExists(newParent, sessionTargetCd);
+      pickedParentId = lookup.data?.id || null;
+    } catch (_e) {
+      pickedParentId = null;
+    }
+    if (pickedParentId) {
+      nextSql = rewriteParentId(nextSql, pickedParentId);
+    }
+
     setMenuSql((prev) => prev ? { ...prev, content: nextSql } : { content: nextSql });
     const reparsed = parseMenuSummary(nextSql);
 
-    setSummary((prev) => ({
-      ...(prev || {}),
-      ...reparsed,
-      parentMenuCd: newParent,
-      menuPath: normalizedPath || reparsed.menuPath,
-    }));
+    setSummary((prev) => {
+      const next = {
+        ...(prev || {}),
+        ...reparsed,
+        parentMenuCd: newParent,
+        menuPath: normalizedPath || reparsed.menuPath,
+        parentId: pickedParentId,
+      };
+      // 부모 변경 → Claude 원본 breadcrumb 폐기하고 트리 기준으로 재계산
+      next.breadcrumb = buildBreadcrumb(next, menuTree, { preserveClaudeOriginal: false });
+      return next;
+    });
     setParentOk(true);
   };
 
   // 변경 전 원본 SQL 로 되돌리기
   const revertSql = () => {
     if (!originalSql) return;
-    setMenuSql((m) => m ? { ...m, content: originalSql } : m);
     const reparsed = parseMenuSummary(originalSql);
-    setSummary(reparsed);
+    const breadcrumb = buildBreadcrumb(reparsed, menuTree, { preserveClaudeOriginal: true });
     if (reparsed.parentMenuCd) {
-      checkMenuExists(reparsed.parentMenuCd)
-        .then((r) => setParentOk(!!r.data?.exists))
-        .catch(() => setParentOk(null));
+      checkMenuExists(reparsed.parentMenuCd, sessionTargetCd)
+        .then((r) => {
+          const id = r.data?.id || null;
+          setParentOk(!!r.data?.exists);
+          // 원본 SQL + 운영 DB 의 UUID 로 PARENT_ID 즉시 재치환 (NULL 방지)
+          const restored = id ? rewriteParentId(originalSql, id) : originalSql;
+          setMenuSql((m) => m ? { ...m, content: restored } : { content: restored });
+          setSummary({ ...reparsed, breadcrumb, parentId: id });
+        })
+        .catch(() => {
+          setParentOk(null);
+          setMenuSql((m) => m ? { ...m, content: originalSql } : { content: originalSql });
+          setSummary({ ...reparsed, breadcrumb, parentId: null });
+        });
     } else {
       setParentOk(null);
+      setMenuSql((m) => m ? { ...m, content: originalSql } : { content: originalSql });
+      setSummary({ ...reparsed, breadcrumb, parentId: null });
     }
   };
 
@@ -645,8 +737,9 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
               <Stack spacing={1.2}>
                 <Row label="화면 ID"   value={summary.screenId} />
-                <Row label="메뉴 경로" value={summary.menuPath} />
-                <Row label="JSX 파일"  value={summary.fileName} />
+                <Row label="메뉴 경로" value={summary.breadcrumb || summary.menuPath} />
+                <Row label="MENU_PATH" value={summary.menuPath} mono />
+                <Row label="JSX 파일"  value={summary.fileName} mono />
                 <Divider />
                 <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap>
                   <Typography variant="caption" color="text.secondary" sx={{ width: 100, flexShrink: 0 }}>
@@ -674,6 +767,16 @@ function MenuRegistrationDialog({ open, sessionId, onClose }) {
                       size="small"
                       color="error"
                     />
+                  )}
+                  {summary.parentId && (
+                    <Tooltip title="운영 DB 에서 조회한 부모 메뉴 UUID — SQL 의 PARENT_ID 리터럴로 자동 치환">
+                      <Chip
+                        label={`PARENT_ID: ${summary.parentId}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontFamily: 'Consolas, monospace', fontSize: 10, color: '#475569' }}
+                      />
+                    </Tooltip>
                   )}
                   <Box sx={{ flex: 1 }} />
                   <Tooltip title="실제 메뉴 트리에서 부모를 고르고 SQL 을 자동으로 바꿉니다">
@@ -965,13 +1068,21 @@ TB_AD_MENU 실제 컬럼만 사용:
   );
 }
 
-function Row({ label, value }) {
+function Row({ label, value, mono }) {
   return (
     <Stack direction="row" spacing={2}>
       <Typography variant="caption" color="text.secondary" sx={{ width: 100, flexShrink: 0 }}>
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 500, wordBreak: 'break-all' }}>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 500,
+          wordBreak: 'break-all',
+          fontFamily: mono ? 'Consolas, monospace' : undefined,
+          color: mono ? '#475569' : undefined,
+        }}
+      >
         {value || '-'}
       </Typography>
     </Stack>
@@ -999,7 +1110,9 @@ function parseMenuSummary(sql) {
   // INSERT INTO TB_AD_MENU 블록에서 정확한 MENU_PATH / MENU_FILE_PATH 추출
   const stmts = splitTopLevelStatements(sql);
   for (const stmt of stmts) {
-    if (!/^\s*INSERT\s+INTO\s+\[?TB_AD_MENU\b/i.test(stmt)) continue;
+    // Claude 가 생성하는 SQL 은 `-- (1) 메뉴 등록\nINSERT INTO ...` 형태로 라인 주석이 먼저 옴 —
+    // `^\s*INSERT` 만 쓰면 매치 실패. 줄 시작(라인 head) 어디서든 INSERT INTO TB_AD_MENU 가 있으면 매치.
+    if (!/(?:^|\n)\s*INSERT\s+INTO\s+\[?TB_AD_MENU\b/i.test(stmt)) continue;
     const colM = stmt.match(/INSERT\s+INTO\s+\[?TB_AD_MENU\]?\s*\(([\s\S]*?)\)\s*(VALUES|SELECT)\b/i);
     if (!colM) continue;
     const cols = colM[1].split(',').map((c) => c.trim().replace(/[\[\]"`]/g, '').toUpperCase());
@@ -1034,22 +1147,39 @@ function parseMenuSummary(sql) {
 }
 
 /**
- * TB_AD_MENU INSERT 문의 MENU_PATH 컬럼 값을 `<parentPath> > <leaf>` 로 재작성.
+ * TB_AD_MENU INSERT 문의 MENU_PATH 컬럼 값을 새 리터럴로 재작성. (편의 wrapper)
  *
  * 지원 포맷:
  *   INSERT INTO TB_AD_MENU (A, B, MENU_PATH, ...) VALUES (..., 'old', ...);
  *   INSERT INTO TB_AD_MENU (A, B, MENU_PATH, ...) SELECT ..., 'old', ... ;
  *   INSERT INTO TB_AD_MENU (A, B, MENU_PATH, ...) SELECT ..., 'old', ...
  *       WHERE NOT EXISTS (...);
- *
- * - 컬럼명에 공백 · [] · "" 래핑 허용.
- * - 내부 서브쿼리의 세미콜론에 현혹되지 않도록, 명령문 경계는 최상위 `;`(깊이 0) 기준.
  */
 function rewriteMenuPath(sql, parentPath) {
   if (!sql || !parentPath) return sql;
+  return rewriteMenuColumn(sql, 'MENU_PATH', `N'${escapeSql(parentPath)}'`);
+}
 
+/**
+ * TB_AD_MENU INSERT 문의 PARENT_ID 컬럼 값을 부모 메뉴의 실제 UUID 리터럴로 재작성.
+ *   원본은 `(SELECT ID FROM TB_AD_MENU WHERE MENU_CD = '...')` subquery 인데,
+ *   런타임에 NULL 반환 위험 + SQL 가독성 저하 → 미리 운영 DB 에서 조회한 UUID 를 리터럴로 박는다.
+ */
+function rewriteParentId(sql, parentUuid) {
+  if (!sql || !parentUuid) return sql;
+  return rewriteMenuColumn(sql, 'PARENT_ID', `'${escapeSql(parentUuid)}'`);
+}
+
+/**
+ * 컬럼-범용 rewrite — TB_AD_MENU INSERT 문의 특정 컬럼 값만 정확히 새 리터럴로 교체.
+ *   원본 SQL 의 줄바꿈/들여쓰기/주변 공백을 보존 (in-place 치환).
+ * - 컬럼명에 공백 · [] · "" 래핑 허용.
+ * - 내부 서브쿼리의 세미콜론에 현혹되지 않도록, 명령문 경계는 최상위 `;`(깊이 0) 기준.
+ */
+function rewriteMenuColumn(sql, columnName, newValueLiteral) {
+  if (!sql || !columnName || !newValueLiteral) return sql;
   const statements = splitTopLevelStatements(sql);
-  const rebuilt = statements.map((stmt) => rewriteSingleInsert(stmt, parentPath));
+  const rebuilt = statements.map((stmt) => rewriteSingleInsertColumn(stmt, columnName, newValueLiteral));
   return rebuilt.join(';\n') + (sql.trimEnd().endsWith(';') ? ';' : '');
 }
 
@@ -1084,9 +1214,10 @@ function splitTopLevelStatements(sql) {
   return out;
 }
 
-function rewriteSingleInsert(stmt, parentPath) {
-  // TB_AD_MENU INSERT 가 아니면 그대로
-  if (!/^\s*INSERT\s+INTO\s+\[?TB_AD_MENU\b/i.test(stmt)) return stmt;
+function rewriteSingleInsertColumn(stmt, columnName, newValueLiteral) {
+  // TB_AD_MENU INSERT 가 아니면 그대로.
+  // (Claude SQL 은 INSERT 앞에 `-- ...` 라인 주석을 두므로 `^\s*` 만으로는 매치 실패 — 라인 head 매치로 완화)
+  if (!/(?:^|\n)\s*INSERT\s+INTO\s+\[?TB_AD_MENU\b/i.test(stmt)) return stmt;
 
   // 컬럼 리스트 추출
   const colM = stmt.match(/INSERT\s+INTO\s+\[?TB_AD_MENU\]?\s*\(([\s\S]*?)\)\s*(VALUES|SELECT)\b/i);
@@ -1094,37 +1225,69 @@ function rewriteSingleInsert(stmt, parentPath) {
   const colListRaw = colM[1];
   const verb = colM[2].toUpperCase();
   const cols = colListRaw.split(',').map((c) => c.trim().replace(/[\[\]"`]/g, '').toUpperCase());
-  const idx = cols.indexOf('MENU_PATH');
+  const idx = cols.indexOf(columnName.toUpperCase());
   if (idx < 0) return stmt;
 
-  const afterCols = stmt.substring(colM.index + colM[0].length);
-  // 'VALUES' 와 'SELECT' 각각 처리
-  // ★ parentPath 매개변수의 의미 = "최종 MENU_PATH 컬럼 값" (이전엔 parent breadcrumb
-  //    + leaf 합성. 운영 표준이 LOWER(MENU_FILE_PATH) 인 URL slug 형태라 합성 잘못).
-  //    호출자가 LOWER(menuFilePath) 같은 정확한 값 전달.
+  // ★ 토큰 분해/재조립 (`splitSqlValues` + `tokens.join(', ')`) 방식은 원본 SQL 의 줄바꿈·들여쓰기를
+  //    전부 제거하여 `SELECTLOWER(...)` · `GETDATE()WHERE` 같은 깨진 SQL 을 만든다 (2026-05-27 사고).
+  //    원본 stmt 안에서 idx 번째 토큰의 절대 위치를 찾아 그 구간만 교체 — 주변 공백 모두 보존.
+  const afterColsStart = colM.index + colM[0].length;
+  const afterCols = stmt.substring(afterColsStart);
+
+  let listStart = -1;   // 값 리스트의 절대 시작 인덱스 (stmt 내)
+  let listEnd = -1;     // 값 리스트의 절대 끝 인덱스 (exclusive)
   if (verb === 'VALUES') {
     const vOpen = afterCols.indexOf('(');
     if (vOpen < 0) return stmt;
-    const { endIdx, inner } = extractBalancedParen(afterCols, vOpen);
+    const { endIdx } = extractBalancedParen(afterCols, vOpen);
     if (endIdx < 0) return stmt;
-    const tokens = splitSqlValues(inner);
-    if (idx >= tokens.length) return stmt;
-    tokens[idx] = `N'${escapeSql(parentPath)}'`;
-    const newInner = tokens.join(', ');
-    return stmt.substring(0, colM.index + colM[0].length)
-         + afterCols.substring(0, vOpen) + '(' + newInner + ')'
-         + afterCols.substring(endIdx + 1);
+    listStart = afterColsStart + vOpen + 1;   // '(' 다음 위치
+    listEnd = afterColsStart + endIdx;         // ')' 위치 (exclusive)
   } else {
     const selectEnd = findTopLevelSelectTerminator(afterCols);
-    const selectPart = afterCols.substring(0, selectEnd);
-    const rest = afterCols.substring(selectEnd);
-
-    const tokens = splitSqlValues(selectPart);
-    if (idx >= tokens.length) return stmt;
-    tokens[idx] = `N'${escapeSql(parentPath)}'`;
-    const newSelect = tokens.join(', ');
-    return stmt.substring(0, colM.index + colM[0].length) + newSelect + rest;
+    listStart = afterColsStart;
+    listEnd = afterColsStart + selectEnd;
   }
+
+  const ranges = findTokenRanges(stmt, listStart, listEnd);
+  if (idx >= ranges.length) return stmt;
+  const { start, end } = ranges[idx];
+  return stmt.substring(0, start) + newValueLiteral + stmt.substring(end);
+}
+
+// 값 리스트 [listStart, listEnd) 안에서 depth-0 콤마 기준으로 토큰의 절대 위치 범위를 반환.
+// 각 토큰의 양 끝 공백은 trim 된 인덱스로 돌려줌 — 치환 시 원본의 들여쓰기·줄바꿈은 그대로 유지.
+function findTokenRanges(s, listStart, listEnd) {
+  const ranges = [];
+  let tokStart = listStart;
+  let depth = 0;
+  let inStr = false;
+  for (let i = listStart; i < listEnd; i++) {
+    const c = s[i];
+    if (inStr) {
+      if (c === "'") {
+        if (s[i + 1] === "'") { i++; continue; }
+        inStr = false;
+      }
+      continue;
+    }
+    if (c === "'") { inStr = true; continue; }
+    if (c === '(') { depth++; continue; }
+    if (c === ')') { depth--; continue; }
+    if (c === ',' && depth === 0) {
+      ranges.push(trimRange(s, tokStart, i));
+      tokStart = i + 1;
+    }
+  }
+  ranges.push(trimRange(s, tokStart, listEnd));
+  return ranges;
+}
+
+function trimRange(s, start, end) {
+  let a = start, b = end;
+  while (a < b && /\s/.test(s[a])) a++;
+  while (b > a && /\s/.test(s[b - 1])) b--;
+  return { start: a, end: b };
 }
 
 // SELECT list 가 끝나는 지점을 깊이-0 기준으로 탐색.
@@ -1188,6 +1351,40 @@ function extractBalancedParen(s, startAt) {
 
 function escapeSql(s) {
   return String(s).replace(/'/g, "''");
+}
+
+/**
+ * SQL 의 line 주석 (`-- ...`) 제거. 문자열 리터럴 내부는 그대로 둠.
+ *   Claude 가 만든 MENU_SQL 은 SELECT 의 각 컬럼 값 옆에 `-- 부모: MENU_AD` 같은
+ *   inline 주석을 다는데, splitSqlValues / parseMenuSummary 가 `--` 를 일반 텍스트로
+ *   취급해 토큰이 `-- 신규 메뉴 코드\n    N'/admin/commoncode'` 식으로 섞여
+ *   리터럴 매치 실패 → UI 의 메뉴 경로/MENU_PATH/JSX 파일이 모두 '-' 로 보임 (2026-05-27).
+ *   loadMenuSql 진입 시점에 한 번만 제거하면 이후 모든 parsing/rewrite 가 정상 동작.
+ */
+function stripSqlLineComments(sql) {
+  if (!sql) return sql;
+  let out = '';
+  let inStr = false;
+  for (let i = 0; i < sql.length; i++) {
+    const c = sql[i];
+    if (inStr) {
+      out += c;
+      if (c === "'") {
+        if (sql[i + 1] === "'") { out += "'"; i++; }
+        else inStr = false;
+      }
+      continue;
+    }
+    if (c === "'") { out += c; inStr = true; continue; }
+    // '-- ' 시작 — 줄 끝까지 skip (단 newline 은 보존해서 줄바꿈 유지)
+    if (c === '-' && sql[i + 1] === '-') {
+      while (i < sql.length && sql[i] !== '\n') i++;
+      if (i < sql.length) out += sql[i];   // append '\n'
+      continue;
+    }
+    out += c;
+  }
+  return out;
 }
 
 // 기존 MENU_PATH 리터럴에서 leaf 이름만 추출.

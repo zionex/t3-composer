@@ -439,10 +439,12 @@ public class ComposerController {
      *   - target query param 으로 운영 wingui DB 검사 가능 (없으면 composer-db 폴백).
      */
     @GetMapping("/menus/{menuCd}/exists")
-    public Map<String, Boolean> menuExists(
+    public Map<String, Object> menuExists(
             @PathVariable String menuCd,
             @org.springframework.web.bind.annotation.RequestParam(value = "target", required = false) String targetCd) {
-        return Map.of("exists", menuRegistrationService.parentMenuExists(menuCd, targetCd));
+        // {exists: boolean, id: string|null} — 기존 호출자는 exists 필드만 읽으므로 호환.
+        // id 가 추가되어 프런트가 MENU_SQL 의 subquery 를 리터럴 UUID 로 치환 가능.
+        return menuRegistrationService.lookupMenuInfo(menuCd, targetCd);
     }
 
     /**

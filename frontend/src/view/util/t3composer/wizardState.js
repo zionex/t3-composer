@@ -567,7 +567,13 @@ export function createInitialSpecFromSource({
   }
 
   spec.sourceMenu = sourceMenu
-    ? { menuCd: sourceMenu.id, filePath: sourceMenu.filePath, path: sourceMenu.path }
+    ? {
+        menuCd: sourceMenu.id,
+        filePath: sourceMenu.filePath,
+        path: sourceMenu.path,
+        // 원본의 부모 MENU_CD — Step3 (메타·메뉴) 의 부모 default 로 사용 (MenuTreeBrowser 가 채워줌)
+        parentMenuCd: sourceMenu.parentMenuCd || sourceMenu.parentId || '',
+      }
     : null;
   spec.sourceBundle = sourceBundle || null;
   spec.changeReq = changeReq || '';
@@ -1678,11 +1684,20 @@ function inferOverviewFromMenuCd({ sourceMenu, newMenuCd, newTitle, moduleCode }
     menuFilePath = `/${moduleToPathSeg(moduleCode)}/${menuCdToPascal(safeMenuCd)}`;
   }
 
+  // 부모 메뉴 default — NEW_FROM_COPY 의 가장 자연스러운 default 는
+  //   "원본 화면이 속한 그룹과 동일" 이다. sourceMenu.parentMenuCd 가 있으면 그대로 사용
+  //   (MenuTreeBrowser 가 leaf 선택 시 부모의 MENU_CD 를 함께 채워줌).
+  //   없으면 도메인 prefix 기반 fallback (parentMenuCdFor — 'AD' → 'MENU_AD' 등).
+  //   ★ 도메인 fallback 은 운영 DB 에 그 그룹이 없을 수 있어 (예: 'MENU_AD' 부재) 사용자가 직접
+  //     [메뉴 선택] 으로 정정해야 함. 원본 부모가 있으면 그게 늘 더 정확하다.
+  const inheritedParent = (sourceMenu && (sourceMenu.parentMenuCd || sourceMenu.parentId)) || '';
+  const parentMenuCd = inheritedParent || parentMenuCdFor(moduleCode);
+
   return {
     screenId: safeMenuCd,
     screenName,
     menuCd: safeMenuCd,
-    parentMenuCd: parentMenuCdFor(moduleCode),
+    parentMenuCd,
     menuFilePath,
     langKey: safeMenuCd,
     description: '',
@@ -2204,6 +2219,22 @@ export function formatDesignDocForPrompt({ fileName, parsed, layoutSizes, mainLa
  * 원본 sourceBundle 을 LLM prompt 에 첨부할 텍스트 블록으로 직렬화.
  * NEW_FROM_COPY 모드에서 Wizard payload JSON 과 함께 전달된다.
  */
+// ── sourceBundle 직렬화 토큰 가드 (2026-05-27) ────────────────────────────────
+//   PLANNEL 같은 분리형 Target 은 controllers/services/repositories 가 많아 통째로 넣으면
+//   200K 토큰 한도를 쉽게 넘김 (Anthropic 400 'prompt is too long').
+//   파일당 + 전체 상한 두 단계로 자름.
+//   ★ rules/50 §16.2 의 "테이블 컬럼·SP 파라미터는 자르지 않음" 원칙은 여기 미적용 —
+//      sourceBundle 은 patterns/scaffold 참조용이지 schema 권위 소스가 아님.
+const PER_FILE_CHAR_LIMIT  = 8000;        // 파일 1개당 (≈2000 tokens)
+const TOTAL_BUNDLE_CHAR_LIMIT = 80000;    // 번들 전체 (≈20000 tokens) — 200K 한도의 10%
+const TRUNCATE_NOTICE = '\n\n[... 토큰 절감 위해 잘림 ...]';
+
+function clipFileContent(content) {
+  if (!content) return '';
+  if (content.length <= PER_FILE_CHAR_LIMIT) return content;
+  return content.substring(0, PER_FILE_CHAR_LIMIT) + TRUNCATE_NOTICE;
+}
+
 export function formatSourceBundleForPrompt(bundle) {
   if (!bundle || typeof bundle !== 'object') return '(원본 소스 번들 없음)';
   const sections = [
@@ -2216,20 +2247,39 @@ export function formatSourceBundleForPrompt(bundle) {
     ['PROCEDURES',   bundle.procedures   ],
   ];
   const out = [];
+  let totalSize = 0;
+  let bundleTruncated = false;
+
+  const pushChunk = (s) => {
+    if (bundleTruncated) return;
+    if (totalSize + s.length > TOTAL_BUNDLE_CHAR_LIMIT) {
+      const remain = TOTAL_BUNDLE_CHAR_LIMIT - totalSize;
+      if (remain > 0) out.push(s.substring(0, remain));
+      out.push(`\n\n[... sourceBundle 총량이 ${TOTAL_BUNDLE_CHAR_LIMIT.toLocaleString()}자 한도 초과로 절단됨 — Claude 에 일부만 전달 ...]`);
+      bundleTruncated = true;
+      totalSize = TOTAL_BUNDLE_CHAR_LIMIT;
+      return;
+    }
+    out.push(s);
+    totalSize += s.length;
+  };
+
   for (const [title, data] of sections) {
-    if (!data) continue;
-    out.push(`\n=== ${title} ===`);
+    if (!data || bundleTruncated) continue;
+    pushChunk(`\n=== ${title} ===`);
     if (Array.isArray(data)) {
       for (const item of data) {
+        if (bundleTruncated) break;
         const path = item.path || item.fileName || item.name || 'unknown';
-        const content = item.content || item.source || item.body || '';
-        out.push(`\n---FILE: ${path}---\n${content}`);
+        const content = clipFileContent(item.content || item.source || item.body || '');
+        pushChunk(`\n---FILE: ${path}---\n${content}`);
       }
     } else if (typeof data === 'object') {
       const path = data.path || data.fileName || 'unknown';
-      out.push(`\n---FILE: ${path}---\n${data.content || JSON.stringify(data, null, 2)}`);
+      const raw  = data.content || JSON.stringify(data, null, 2);
+      pushChunk(`\n---FILE: ${path}---\n${clipFileContent(raw)}`);
     } else if (typeof data === 'string') {
-      out.push(data);
+      pushChunk(clipFileContent(data));
     }
   }
   return out.join('\n');

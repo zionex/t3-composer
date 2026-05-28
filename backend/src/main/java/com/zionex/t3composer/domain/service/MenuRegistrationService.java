@@ -827,4 +827,64 @@ public class MenuRegistrationService {
     public boolean parentMenuExists(String menuCd) {
         return parentMenuExists(menuCd, null);
     }
+
+    /**
+     * 메뉴 코드 → {exists, id} 조회.
+     *   - id 는 TB_AD_MENU.ID (CHAR(32) UUID) — 운영 표준 PARENT_ID 컬럼 값.
+     *   - 프런트가 MENU_SQL 의 subquery `(SELECT ID FROM ... WHERE MENU_CD = '...')` 를
+     *     이 UUID 리터럴로 치환해 PARENT_ID 가 NULL 로 들어가는 사고를 차단.
+     *   - targetCd 우선 → composer-db 폴백.
+     */
+    public Map<String, Object> lookupMenuInfo(String menuCd, String targetCd) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("exists", false);
+        result.put("id", null);
+        if (menuCd == null || menuCd.isBlank()) return result;
+
+        // 1) targetCd 우선 — 운영 DB 의 ID 가 곧 INSERT 시 PARENT_ID 에 들어갈 값
+        if (targetCd != null && !targetCd.isBlank() && dsRegistry != null) {
+            try {
+                JdbcTemplate tjdbc = dsRegistry.getJdbcTemplate(targetCd);
+                if (tjdbc != null) {
+                    List<Map<String, Object>> rows = tjdbc.queryForList(
+                            "SELECT ID FROM TB_AD_MENU WHERE MENU_CD = ?", menuCd);
+                    if (!rows.isEmpty()) {
+                        String id = stringOf(rows.get(0).get("ID"));
+                        if (id != null && !id.isBlank()) {
+                            result.put("exists", true);
+                            result.put("id", id);
+                            return result;
+                        }
+                    }
+                    // target DB 에 없으면 더 fallback 하지 않고 false 반환 — 운영 등록 대상이기 때문
+                    return result;
+                }
+            } catch (Exception e) {
+                log.warn("lookupMenuInfo target DB 조회 실패 menuCd={} target={} err={} — composer-db 폴백",
+                        menuCd, targetCd, rootMessage(e));
+            }
+        }
+
+        // 2) 폴백 — composer-db (PG)
+        try {
+            Object id = em.createNativeQuery(
+                    "SELECT ID FROM TB_AD_MENU WHERE MENU_CD = :cd")
+                    .setParameter("cd", menuCd)
+                    .getSingleResult();
+            if (id != null) {
+                String s = id.toString();
+                if (!s.isBlank()) {
+                    result.put("exists", true);
+                    result.put("id", s);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("lookupMenuInfo composer-db 폴백도 실패 menuCd={}", menuCd);
+        }
+        return result;
+    }
+
+    private static String stringOf(Object v) {
+        return v == null ? null : v.toString();
+    }
 }

@@ -40,10 +40,11 @@ import { useTargetStore } from './targetStore';
  *   ① 메뉴 트리에서 **복사할 원본 화면** 선택
  *   ② 원본 소스 번들 수집 (collectSourceForLlm)
  *   ③ **신규 메뉴코드 / 제목** 입력 (1줄짜리 필수 정보만)
- *   ④ "4단계 Wizard 시작" 버튼 → StepByStepWizard 진입 (mode='NEW_FROM_COPY')
- *      - sourceBundle 로부터 spec 자동 prefill (Layout / Overview)
- *      - 사용자가 4단계에서 검토·수정
- *      - Step9 Generate 버튼 → 세션 생성 + LLM 호출
+ *   ④ "4단계 Wizard 시작" 버튼 → ComposerWizard 진입 (mode='NEW_FROM_COPY')
+ *      - sourceBundle 로부터 spec 자동 prefill (CANVAS / DATA / META 단계 데이터)
+ *      - 사용자가 4단계 (CANVAS → DATA → META → GENERATE) 에서 검토·수정
+ *      - GENERATE 단계의 생성 버튼 → 세션 생성 + LLM 호출
+ *      - prefilledSpec 은 9-step 형식이지만 ComposerWizard 진입 직전 convertStep9SpecToWizardSpec 로 변환
  *
  * 변경 전과의 차이:
  *   - 변경 요청 텍스트는 Step9 에서 입력 (또는 Workspace 진입 후 ChatPanel 에서)
@@ -386,8 +387,9 @@ function ModeNewFromCopy({ onBack }) {
             </Box>
 
             <Alert severity="info" sx={{ bgcolor: '#f0f9ff' }}>
-              상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard 의 각 Step 에서 입력합니다.
-              자유 텍스트 형태의 추가 요청은 마지막 단계(Step 9 — 생성) 에서 입력 가능합니다.
+              상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard
+              (① Canvas / ② 데이터·검색조건 / ③ 메타·메뉴 / ④ 화면 생성) 의 각 단계에서 입력합니다.
+              자유 텍스트 형태의 추가 요청은 마지막 단계(④ 화면 생성) 에서 입력 가능합니다.
             </Alert>
 
             {/* AI 자동 분석 옵션 — sourceBundle 을 LLM 으로 분석해 4단계 spec 정확히 prefill */}

@@ -411,7 +411,21 @@ function SubModeCard({ title, subtitle, icon: Icon, color, description, pros, co
 /**
  * 번들을 Claude 에 보낼 긴 텍스트로 직렬화.
  * 각 파일을 마커로 감싸 Claude 가 파일 경계를 인식하도록 한다.
+ *
+ * ★ 토큰 가드 (2026-05-27) — PLANNEL 같은 분리형 Target 은 controllers/services/repositories
+ *   가 많아 통째로 넣으면 200K 토큰 한도를 쉽게 넘김 (Anthropic 400 'prompt is too long').
+ *   파일당 + 전체 두 단계 cap. wizardState.js 의 formatSourceBundleForPrompt 와 동일 정책.
  */
+const PER_FILE_CHAR_LIMIT_EM     = 8000;        // 파일 1개당 (≈2000 tokens)
+const TOTAL_BUNDLE_CHAR_LIMIT_EM = 80000;       // 번들 전체 (≈20000 tokens)
+const TRUNCATE_NOTICE_EM         = '\n\n[... 토큰 절감 위해 잘림 ...]';
+
+function clipFileEM(content) {
+  if (!content) return '';
+  if (content.length <= PER_FILE_CHAR_LIMIT_EM) return content;
+  return content.substring(0, PER_FILE_CHAR_LIMIT_EM) + TRUNCATE_NOTICE_EM;
+}
+
 function formatBundleForPrompt(bundle) {
   if (!bundle || typeof bundle !== 'object') return '(소스 번들 없음)';
 
@@ -428,18 +442,36 @@ function formatBundleForPrompt(bundle) {
   ];
 
   const out = [];
+  let totalSize = 0;
+  let bundleTruncated = false;
+  const pushChunk = (s) => {
+    if (bundleTruncated) return;
+    if (totalSize + s.length > TOTAL_BUNDLE_CHAR_LIMIT_EM) {
+      const remain = TOTAL_BUNDLE_CHAR_LIMIT_EM - totalSize;
+      if (remain > 0) out.push(s.substring(0, remain));
+      out.push(`\n\n[... sourceBundle 총량이 ${TOTAL_BUNDLE_CHAR_LIMIT_EM.toLocaleString()}자 한도 초과로 절단됨 — Claude 에 일부만 전달 ...]`);
+      bundleTruncated = true;
+      totalSize = TOTAL_BUNDLE_CHAR_LIMIT_EM;
+      return;
+    }
+    out.push(s);
+    totalSize += s.length;
+  };
+
   for (const [title, data] of sections) {
-    if (!data) continue;
-    out.push(`\n=== ${title} ===`);
+    if (!data || bundleTruncated) continue;
+    pushChunk(`\n=== ${title} ===`);
     if (Array.isArray(data)) {
       for (const item of data) {
+        if (bundleTruncated) break;
         const path = item.path || item.fileName || item.name || 'unknown';
-        const content = item.content || item.source || item.body || '';
-        out.push(`\n---FILE: ${path}---\n${content}`);
+        const content = clipFileEM(item.content || item.source || item.body || '');
+        pushChunk(`\n---FILE: ${path}---\n${content}`);
       }
     } else if (typeof data === 'object') {
       const path = data.path || data.fileName || 'unknown';
-      out.push(`\n---FILE: ${path}---\n${data.content || JSON.stringify(data, null, 2)}`);
+      const raw  = data.content || JSON.stringify(data, null, 2);
+      pushChunk(`\n---FILE: ${path}---\n${clipFileEM(raw)}`);
     }
   }
   return out.join('\n');

@@ -346,6 +346,10 @@ function PreviewIframe({ Component, targetCd, onReport }) {
                           + 'CSS bundle 이 빈 응답 → realgrid 테마 미적용. '
                           + '상단 TargetSystemSelector 에서 Target 선택 필요.');
             }
+            // 진단 로그 — Network 탭의 link 요청이 안 보이는 경우 setup 도달 여부 확인용 (2026-05-28)
+            // eslint-disable-next-line no-console
+            console.info('[PreviewEmbed] iframe setup 진입 · targetCd=' + (targetCd || '(없음)')
+                       + ' · CSS link inject 시작');
             try {
                 const url = '/composer/preview/css' + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
                 const linkEl = doc.createElement('link');

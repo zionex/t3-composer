@@ -4,7 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -30,13 +33,24 @@ public class PreviewModuleResolver {
 
     /** CSS bundle 후보 — wingui 본 환경의 import 순서 그대로 concat (뒤 파일이 앞을 override).
      *  부재 파일은 skip.
-     *  wingui index.js: realgrid-style.css 를 base 로 사용 (sky-blue 아님). */
+     *  wingui index.js: realgrid-style.css 를 base 로 사용 (sky-blue 아님).
+     *  ★ font-awesome all.min.css 를 realgrid-basic.css 앞에 둠 — realgrid-basic 의
+     *    체크박스/체크마크가 'Font Awesome 5 Free' 의 \f0c8/\f14a glyph 를 사용. @font-face
+     *    선언이 먼저 있어야 iframe 안에서 글리프가 렌더됨 (없으면 ☐/☒ unicode fallback). */
     private static final List<String> CSS_BUNDLE_PATHS = Arrays.asList(
+            "src/main/webapp/js/font-awesome/css/all.min.css",
             "packages/node_modules/realgrid/dist/realgrid-style.css",
             "packages/wingui/src/component/grid/realgrid-basic.css",
             "packages/wingui/src/style/ReactDatePicker.css",
             "src/main/webapp/css/realgrid-custom.css"
     );
+
+    /** font-awesome all.min.css 의 `url(../webfonts/X.woff2)` 참조를 woff2 파일을 base64 로
+     *  인코드한 data URL 로 치환 — iframe 안의 CSS 가 별도 HTTP 요청 없이 폰트를 로드.
+     *  나머지 포맷 (eot/woff/ttf/svg) 의 url(...) 은 빈 문자열로 치환해 304 시도 회피
+     *  (모든 모던 브라우저는 woff2 우선 사용). */
+    private static final Pattern WEBFONT_URL =
+            Pattern.compile("url\\(\\.\\./webfonts/([^)\"']+?\\.(woff2|woff|ttf|eot|svg))[^)]*\\)");
 
     private final TargetPathResolver pathResolver;
 
@@ -144,6 +158,10 @@ public class PreviewModuleResolver {
             if (!Files.isRegularFile(p)) continue;
             try {
                 String text = Files.readString(p, StandardCharsets.UTF_8);
+                if (rel.endsWith("/all.min.css")) {
+                    // FA all.min.css 의 webfont URL → base64 data URL (woff2 만 인라인, 나머지 제거)
+                    text = inlineWebfontUrls(text, p.getParent());
+                }
                 sb.append("/* === ").append(rel).append(" === */\n");
                 sb.append(text);
                 if (!text.endsWith("\n")) sb.append('\n');
@@ -153,6 +171,41 @@ public class PreviewModuleResolver {
             }
         }
         return sb.toString();
+    }
+
+    /** all.min.css 안의 `url(../webfonts/X.woff2)` 를 woff2 base64 data URL 로 치환.
+     *  woff2 외 포맷 url 은 빈 url 로 치환 (브라우저가 시도하지 않도록).
+     *  cssDir 는 all.min.css 가 있는 디렉토리 (../webfonts 의 기준). */
+    private String inlineWebfontUrls(String css, Path cssDir) {
+        Matcher m = WEBFONT_URL.matcher(css);
+        StringBuilder out = new StringBuilder(css.length() + 200_000);
+        while (m.find()) {
+            String fileName = m.group(1);   // 예: "fa-regular-400.woff2"
+            String fmt = m.group(2);
+            String replacement;
+            if ("woff2".equalsIgnoreCase(fmt)) {
+                Path fontPath = cssDir.resolve("../webfonts/" + fileName).normalize();
+                if (Files.isRegularFile(fontPath)) {
+                    try {
+                        byte[] bytes = Files.readAllBytes(fontPath);
+                        String b64 = Base64.getEncoder().encodeToString(bytes);
+                        replacement = "url(data:font/woff2;base64," + b64 + ")";
+                    } catch (Exception e) {
+                        log.warn("webfont 읽기 실패 {} — {}", fontPath, e.getMessage());
+                        replacement = "url(about:blank)";
+                    }
+                } else {
+                    log.warn("webfont 없음 {} — iframe checkbox 글리프 fallback 가능", fontPath);
+                    replacement = "url(about:blank)";
+                }
+            } else {
+                // eot/woff/ttf/svg — woff2 가 인라인되어 있으므로 시도 자체를 차단
+                replacement = "url(about:blank)";
+            }
+            m.appendReplacement(out, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(out);
+        return out.toString();
     }
 
     /** 결과 — raw text + 매칭된 wingui base-relative 경로 (디버깅용 헤더에 사용). */

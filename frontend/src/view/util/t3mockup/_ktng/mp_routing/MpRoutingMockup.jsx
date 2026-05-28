@@ -5,8 +5,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // MpKtng03 — 공급망 라우팅. From → To 거점 간 운송 경로 + L/T + 비용.
+// 운영 원본 styleCallback: LOCAT_01_NM~05_NM, ITEM_CD, ITEM_LV_04_NM, STD_ROUTE_NO, CREATE_BY (편집 가능 셀)
+//                          mockup 의 의미 매칭 셀: FROM, TO (거점단계) — info 톤.
 
 const ROUTES = [
   { FROM: '신탄진 공장', TO: '서울 DC',     MODE: 'TRUCK', LT_DAYS: 1,  COST: 850000,  PRIORITY: 1, USE_YN: 'Y' },
@@ -116,10 +119,11 @@ export default function MpRoutingMockup() {
               </TableHead>
               <TableBody>
                 {ROUTES.map((r, i) => (
+                  // 운영 MpKtng03 styleCallback: 거점단계 셀 (LOCAT_01~05_NM) → mockup 의 FROM, TO 만 info 톤
                   <TableRow key={i} hover>
-                    <TableCell>{r.FROM}</TableCell>
+                    <TableCell sx={cellSx('info')}>{r.FROM}</TableCell>
                     <TableCell sx={{ textAlign: 'center', color: 'text.secondary' }}><ArrowForwardIcon fontSize="small" /></TableCell>
-                    <TableCell>{r.TO}</TableCell>
+                    <TableCell sx={cellSx('info')}>{r.TO}</TableCell>
                     <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.MODE} color={MODE_COLOR[r.MODE]} /></TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LT_DAYS}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.COST.toLocaleString()}</TableCell>

@@ -6,8 +6,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CancelIcon from '@mui/icons-material/Cancel';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // DpKtngApv — 결재 요청 현황 (수요계획 결재 워크플로)
+// 운영 styleCallback 컬럼: [ID, TITLE, APV_TYPE, APV_REQUEST, APV_ADMIN_STATUS]
 
 const SUMMARY = [
   { label: '결재 대기',  count: 8,  color: 'warning', icon: HourglassEmptyIcon },
@@ -27,10 +29,10 @@ const ROWS = [
 ];
 
 const STATUS_INFO = {
-  pending:   { label: '결재대기', color: 'warning' },
-  in_review: { label: '진행중',   color: 'info' },
-  approved:  { label: '승인',     color: 'success' },
-  rejected:  { label: '반려',     color: 'error' },
+  pending:   { label: '결재대기', color: 'warning', tone: 'pending'  },
+  in_review: { label: '진행중',   color: 'info',    tone: 'info'     },
+  approved:  { label: '승인',     color: 'success', tone: 'success'  },
+  rejected:  { label: '반려',     color: 'error',   tone: 'danger'   },
 };
 
 export default function DpApprovalMockup() {
@@ -91,18 +93,19 @@ export default function DpApprovalMockup() {
               <TableBody>
                 {ROWS.map((r, i) => {
                   const info = STATUS_INFO[r.STATUS];
+                  const tone = info.tone;
                   return (
                     <TableRow key={i} hover>
-                      <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.APRV_NO}</TableCell>
-                      <TableCell>{r.TITLE}</TableCell>
-                      <TableCell>{r.REQUESTER}</TableCell>
+                      <TableCell sx={cellSx(tone, { mono: true })}>{r.APRV_NO}</TableCell>
+                      <TableCell sx={cellSx(tone)}>{r.TITLE}</TableCell>
+                      <TableCell sx={cellSx(tone)}>{r.REQUESTER}</TableCell>
                       <TableCell>{r.DEPT}</TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.REQUEST_DT}</TableCell>
                       <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>
                         <Chip size="small" label={r.STEP} variant="outlined" color={r.STATUS === 'pending' ? 'warning' : r.STATUS === 'approved' ? 'success' : 'info'} />
                       </TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.AMOUNT}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={info.label} color={info.color} /></TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.AMOUNT}</TableCell>
+                      <TableCell sx={cellSx(tone, { align: 'center' })}><Chip size="small" label={info.label} color={info.color} /></TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         {r.STATUS === 'pending' || r.STATUS === 'in_review' ?
                           <Stack direction="row" spacing={0.5} justifyContent="center">

@@ -81,7 +81,7 @@ export default function DpUploadMockup() {
                       <TableCell sx={{ textAlign: 'center' }}>
                         <Chip size="small" icon={<Icon fontSize="small" />} label={h.status.toUpperCase()} color={STATUS_COLOR[h.status]} />
                       </TableCell>
-                      <TableCell sx={{ fontSize: 12, color: h.status === 'error' ? 'error.main' : 'text.secondary' }}>{h.msg}</TableCell>
+                      <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>{h.msg}</TableCell>
                     </TableRow>
                   );
                 })}

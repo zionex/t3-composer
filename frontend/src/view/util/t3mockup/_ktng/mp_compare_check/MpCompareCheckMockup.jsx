@@ -3,9 +3,11 @@ import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // MpKtng06 (BF & 회귀분석 예측 비교), MpKtng08 (설비별 정수 부정수 점검)
 // 두 비교/점검 화면을 같은 패턴 — 좌측 차트(비교) + 우측 위반 리스트
+// 운영 원본 styleCallback: MpKtng08 의 PLANT_CD (mockup 의 RES_CD = 설비/공장 식별자) 만 info 톤.
 
 const ACCURACY_ROWS = [
   { ITEM_LV3: 'KING-RED', PERIOD: '2026-06', BF: 12500, REG: 11800, ACTUAL: 12300, BF_MAPE: 1.6, REG_MAPE: 4.1, WINNER: 'BF' },
@@ -18,12 +20,12 @@ const ACCURACY_ROWS = [
 
 // 설비별 정수/부정수 점검 (MpKtng08) — 작업단위 정수 검증
 const INT_ROWS_FIXED = [
-  { RES_CD: 'L01-MK', ITEM_LV3: 'KING-RED', PLAN_QTY: 35000, MOQ: 50000, ALT: 'OVER',   GAP: -15000, STATUS: 'violation' },
-  { RES_CD: 'L02-MK', ITEM_LV3: 'KING-BLU', PLAN_QTY: 40500, MOQ: 50000, ALT: 'OVER',   GAP:  -9500, STATUS: 'violation' },
-  { RES_CD: 'L03-PK', ITEM_LV3: 'SLIM',     PLAN_QTY: 28000, MOQ: 30000, ALT: 'OVER',   GAP:  -2000, STATUS: 'violation' },
-  { RES_CD: 'L11-MK', ITEM_LV3: 'KING-RED', PLAN_QTY: 75000, MOQ: 50000, ALT: 'OK',     GAP:      0, STATUS: 'normal'    },
-  { RES_CD: 'L21-MK', ITEM_LV3: 'SLIM',     PLAN_QTY: 18000, MOQ: 30000, ALT: 'OVER',   GAP: -12000, STATUS: 'violation' },
-  { RES_CD: 'L22-NGP',ITEM_LV3: 'NGP-DEV',  PLAN_QTY: 12500, MOQ: 10000, ALT: 'OK',     GAP:      0, STATUS: 'normal'    },
+  { RES_CD: 'L01-MK', ITEM_LV3: 'KING-RED', PLAN_QTY: 35000, MOQ: 50000, ALT: 'OVER',   GAP: -15000 },
+  { RES_CD: 'L02-MK', ITEM_LV3: 'KING-BLU', PLAN_QTY: 40500, MOQ: 50000, ALT: 'OVER',   GAP:  -9500 },
+  { RES_CD: 'L03-PK', ITEM_LV3: 'SLIM',     PLAN_QTY: 28000, MOQ: 30000, ALT: 'OVER',   GAP:  -2000 },
+  { RES_CD: 'L11-MK', ITEM_LV3: 'KING-RED', PLAN_QTY: 75000, MOQ: 50000, ALT: 'OK',     GAP:      0 },
+  { RES_CD: 'L21-MK', ITEM_LV3: 'SLIM',     PLAN_QTY: 18000, MOQ: 30000, ALT: 'OVER',   GAP: -12000 },
+  { RES_CD: 'L22-NGP',ITEM_LV3: 'NGP-DEV',  PLAN_QTY: 12500, MOQ: 10000, ALT: 'OK',     GAP:      0 },
 ];
 
 export default function MpCompareCheckMockup() {
@@ -72,14 +74,15 @@ export default function MpCompareCheckMockup() {
               </TableHead>
               <TableBody>
                 {ACCURACY_ROWS.map((r, i) => (
+                  // MpKtng06 운영 jsx 에는 styleCallback 없음 — 정량 강조 제거, plain 행만 유지
                   <TableRow key={i} hover>
                     <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ITEM_LV3}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.PERIOD}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.BF.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REG.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.ACTUAL.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.BF_MAPE <= r.REG_MAPE ? 'success.main' : 'inherit', fontWeight: r.BF_MAPE <= r.REG_MAPE ? 700 : 400 }}>{r.BF_MAPE.toFixed(1)}%</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.REG_MAPE < r.BF_MAPE ? 'success.main' : 'inherit', fontWeight: r.REG_MAPE < r.BF_MAPE ? 700 : 400 }}>{r.REG_MAPE.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.BF_MAPE.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REG_MAPE.toFixed(1)}%</TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>
                       <Chip size="small" label={r.WINNER} color={r.WINNER === 'BF' ? 'primary' : r.WINNER === 'REG' ? 'success' : 'default'} />
                     </TableCell>
@@ -97,28 +100,26 @@ export default function MpCompareCheckMockup() {
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>설비별 정수 / 부정수 점검</Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            <Chip size="small" label={`위반 ${INT_ROWS_FIXED.filter(r => r.STATUS==='violation').length}건`} color="error" />
           </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  {['RES_CD','ITEM_LV3','PLAN 수량','MOQ (정수 단위)','상태','GAP','권고'].map((c) => (
+                  {['RES_CD','ITEM_LV3','PLAN 수량','MOQ (정수 단위)','GAP','권고'].map((c) => (
                     <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: ['PLAN 수량','MOQ (정수 단위)','GAP'].includes(c) ? 'right' : (['상태','권고'].includes(c) ? 'center' : 'left') }}>{c}</TableCell>
+                      textAlign: ['PLAN 수량','MOQ (정수 단위)','GAP'].includes(c) ? 'right' : (c === '권고' ? 'center' : 'left') }}>{c}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {INT_ROWS_FIXED.map((r, i) => (
-                  <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'violation' ? 'error.light' : 'transparent' }}>
-                    <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.RES_CD}</TableCell>
+                  // 운영 MpKtng08 styleCallback: PLANT_CD (mockup 의 RES_CD = 설비/공장 식별자) 만 info 톤
+                  <TableRow key={i} hover>
+                    <TableCell sx={cellSx('info', { mono: true })}>{r.RES_CD}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.ITEM_LV3}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN_QTY.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.MOQ.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS === 'violation' ? '부정수' : '정수'} color={r.STATUS === 'violation' ? 'error' : 'success'} /></TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.GAP < 0 ? 'error.main' : 'inherit', fontWeight: r.GAP < 0 ? 700 : 400 }}>{r.GAP.toLocaleString()}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.GAP.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.ALT} color={r.ALT === 'OK' ? 'success' : 'warning'} variant="outlined" /></TableCell>
                   </TableRow>
                 ))}

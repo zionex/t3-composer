@@ -23,6 +23,8 @@ import menuMappingJson from './_data/t3smartscm-menu-mapping.json';
 import ktngMenuMappingJson from './_data/ktng-menu-mapping.json';
 // PLANNEL 운영 메뉴 ↔ mockup 매핑 (R1: Data Management 7 mockup)
 import plannelMenuMappingJson from './_data/plannel-menu-mapping.json';
+// ORON 운영 메뉴 ↔ mockup 매핑 (수동 작성, 사용자 제공 메뉴 목록 기반)
+import oronMenuMappingJson from './_data/oron-menu-mapping.json';
 
 // ─────────────────────────────────────────
 // T3SmartSCM — Phase 1~4a 산출물 (54개 mockup)
@@ -1232,11 +1234,200 @@ const KTNG_ENTRIES = [
 ];
 
 // ─────────────────────────────────────────
+// ORON (오론) — view/oron 의 ORN_* 화면 ~118개를 22개 mockup 패턴으로 그룹화.
+// MP(8) · PK(6) · DP(3) · RP(3) · YP(2). 화장품 OEM/자사 SCM 도메인 (마스크/세럼/토너/선크림/포장재).
+// ─────────────────────────────────────────
+const ORON_ENTRIES = [
+  // ── MP — 공급/생산계획 (8 mockups) ──────────────────────────────────
+  { patternCode: 'oron_mp_master',        patternLabel: 'ORON — MP 기준정보 마스터 (완제품/반제품/자재/자원/그룹)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 5, description: '공급 계획 기준정보 5개 탭 통합 CRUD (완제품·반제품·원부자재·생산라인·제품그룹)',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/mp_master/OronMpMasterMockup')) },
+  { patternCode: 'oron_mp_bom_route',     patternLabel: 'ORON — BOM + 생산순서 정의', layoutCategory: 'LAYOUT_H2', category: 'domain',
+    usage: 2, description: '좌측 BOM 트리 다단 전개 + 우측 생산순서 (라인별 공정 SEQ + SETUP/RUN_RATE)',
+    layers: [
+      { key: 'bomTree',  title: '마스터 그리드', type: 'GRID', subtype: 'GRID_TREE', position: { x: 0, y: 0, w: 5, h: 12 } },
+      { key: 'seqGrid',  title: '디테일 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 5, y: 0, w: 7, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/mp_bom_route/OronMpBomRouteMockup')) },
+  { patternCode: 'oron_mp_capacity',      patternLabel: 'ORON — 생산능력 + 캘린더 + 작업교체시간', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 5, description: 'BOR + JC_TIME 매트릭스 + 라인 캘린더 + 동시생산제약',
+    layers: [
+      { key: 'borGrid',  title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',  position: { x: 0, y: 0, w: 7, h: 6 } },
+      { key: 'jcMatrix', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE',  position: { x: 7, y: 0, w: 5, h: 6 } },
+      { key: 'calGrid',  title: '그리드 3', type: 'GRID', subtype: 'GRID_BASE',  position: { x: 0, y: 6, w: 12, h: 6 } },
+    ],
+    component: lazy(() => import('./_oron/mp_capacity/OronMpCapacityMockup')) },
+  { patternCode: 'oron_mp_simulation',    patternLabel: 'ORON — 공급계획 시뮬레이션 컨트롤보드', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 3, description: '공급계획 엔진 6단계 진행 + 실시간 로그 + 기준정보 점검 결과',
+    layers: [
+      { key: 'stepper',  title: '패널 1', type: 'CHART', subtype: 'STEPPER',  position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',     title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',     title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',     title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',     title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'logPanel', title: '로그',   type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 5, w: 7,  h: 7 } },
+      { key: 'validPanel', title: '패널 3', type: 'GRID', subtype: 'GRID_BASE', position: { x: 7, y: 5, w: 5, h: 7 } },
+    ],
+    component: lazy(() => import('./_oron/mp_simulation/OronMpSimulationMockup')) },
+  { patternCode: 'oron_mp_plan_adj',      patternLabel: 'ORON — 완제품/반제품 생산계획 편성·수정', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 6, description: '라인×품목 주별 크로스탭 (수요 vs 계획 차이 시각화) + 편성 저장',
+    layers: [
+      { key: 'planGrid', title: '그리드', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/mp_plan_adj/OronMpPlanAdjMockup')) },
+  { patternCode: 'oron_mp_mrp_psi',       patternLabel: 'ORON — 원부자재 발주요청 + PSI', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 6, description: '원부자재 PSI 크로스탭(주별) + 발주요청 (내자/외자/통합) + 자재별 재고',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/mp_mrp_psi/OronMpMrpPsiMockup')) },
+  { patternCode: 'oron_mp_material_move', patternLabel: 'ORON — 공장이동 요청·확정 (반제품/자재/외자)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 4, description: '공장간 자재 이동 요청→본사 확정→운송→도착 워크플로우 (외자 통관 포함)',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/mp_material_move/OronMpMaterialMoveMockup')) },
+  { patternCode: 'oron_mp_bundle',        patternLabel: 'ORON — 번들작업 + OEM 요청 + 생산실적 대비', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 4, description: '번들 작업 헤더+상세 (구성 품목 재고/부족) + 라인×품목 계획 대비 실적',
+    layers: [
+      { key: 'bundleHdr', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 6, h: 6 } },
+      { key: 'bundleDtl', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 6, y: 0, w: 6, h: 6 } },
+      { key: 'planAct',   title: '그리드 3', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
+    ],
+    component: lazy(() => import('./_oron/mp_bundle/OronMpBundleMockup')) },
+
+  // ── PK — 포장재 계획 (6 mockups) ────────────────────────────────────
+  { patternCode: 'oron_pk_master',        patternLabel: 'ORON — 포장재 기준정보 (제품/반제품/자재/자원/재고)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 10, description: '포장재 계획 기준정보 7개 탭 통합 CRUD. 인쇄→가공→분단 공정 체인',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/pk_master/OronPkMasterMockup')) },
+  { patternCode: 'oron_pk_simulation',    patternLabel: 'ORON — 포장재 계획 생성 + 시나리오 관리', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 2, description: '포장재 6단계 엔진 (수요→재고→인쇄→가공→분단→확정) + 시나리오 카탈로그 + 로그',
+    layers: [
+      { key: 'stepper',   title: '패널 1', type: 'CHART', subtype: 'STEPPER',   position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'scenGrid',  title: '로그',   type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 3, w: 6,  h: 9 } },
+      { key: 'logPane',   title: '패널 3', type: 'GRID',  subtype: 'GRID_BASE', position: { x: 6, y: 3, w: 6,  h: 9 } },
+    ],
+    component: lazy(() => import('./_oron/pk_simulation/OronPkSimulationMockup')) },
+  { patternCode: 'oron_pk_process_plan',  patternLabel: 'ORON — 인쇄/가공/분단 생산계획 관리·점검', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 7, description: '상단 공정별 생산계획 (라인×품목, Setup/End) + 하단 자동/수동 점검 결과',
+    layers: [
+      { key: 'planGrid',   title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 7 } },
+      { key: 'notifyGrid', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_oron/pk_process_plan/OronPkProcessPlanMockup')) },
+  { patternCode: 'oron_pk_daily_plan',    patternLabel: 'ORON — 일일/주간 생산계획 + 배송계획', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 5, description: '일별 라인×품목 생산 크로스탭 + 공장간/외부 배송계획',
+    layers: [
+      { key: 'dailyGrid',   title: '그리드 1', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 0, w: 12, h: 7 } },
+      { key: 'deliveryGrid',title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE',  position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_oron/pk_daily_plan/OronPkDailyPlanMockup')) },
+  { patternCode: 'oron_pk_mat_req',       patternLabel: 'ORON — 자재/잉크/원단/지관 소요량 + 발주 분배', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 8, description: '자재별 소요량 자동 생성 + 보유 재고 차감 + 부족분 발주 + 공장별 분배',
+    layers: [
+      { key: 'reqGrid',  title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 7 } },
+      { key: 'distGrid', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_oron/pk_mat_req/OronPkMatReqMockup')) },
+  { patternCode: 'oron_pk_actual',        patternLabel: 'ORON — 포장재 생산실적 + 이슈 + 전송', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 5, description: 'KPI + 생산계획 대비 실적 + 라인별 이슈사항 + 배송/생산 전송 조회',
+    layers: [
+      { key: 'kpi1',     title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi2',     title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 3, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi3',     title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 6, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi4',     title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 9, y: 0, w: 3,  h: 3 } },
+      { key: 'actGrid',  title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 3, w: 12, h: 5 } },
+      { key: 'issueGrid', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
+    ],
+    component: lazy(() => import('./_oron/pk_actual/OronPkActualMockup')) },
+
+  // ── DP — 수요/판매계획 (3 mockups) ──────────────────────────────────
+  { patternCode: 'oron_dp_entry',         patternLabel: 'ORON — 판매계획 입력 (PSI 크로스탭)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 3, description: '좌측 고정 5컬럼 + 우측 동적 월 버킷. 판매계획 vs 실적(잠금) vs 재고계획',
+    layers: [
+      { key: 'kpi1',    title: 'KPI 1', type: 'CHART', subtype: 'KPI_CARD',   position: { x: 0, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi2',    title: 'KPI 2', type: 'CHART', subtype: 'KPI_CARD',   position: { x: 3, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi3',    title: 'KPI 3', type: 'CHART', subtype: 'KPI_CARD',   position: { x: 6, y: 0, w: 3,  h: 3 } },
+      { key: 'kpi4',    title: 'KPI 4', type: 'CHART', subtype: 'KPI_CARD',   position: { x: 9, y: 0, w: 3,  h: 3 } },
+      { key: 'psiGrid', title: '그리드', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 3, w: 12, h: 9 } },
+    ],
+    component: lazy(() => import('./_oron/dp_entry/OronDpEntryMockup')) },
+  { patternCode: 'oron_dp_chart',         patternLabel: 'ORON — 판매계획 입력/보고서 (Chart)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 3, description: '라인 차트 (V현재 vs V이전 vs 실적 vs BF) + 채널별 Stacked Bar',
+    layers: [
+      { key: 'lineChart',  title: '차트 1', type: 'CHART', subtype: 'CHART_LINE', position: { x: 0, y: 0, w: 12, h: 7 } },
+      { key: 'stackChart', title: '차트 2', type: 'CHART', subtype: 'CHART_BAR',  position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_oron/dp_chart/OronDpChartMockup')) },
+  { patternCode: 'oron_dp_master_review', patternLabel: 'ORON — 판매계획 기준정보 + 검토 + 적중률', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 6, description: '담당자 관리 · 전략 브랜드 · 출고가 · 매핑 · 계획 검토 · 적중률 보고서 통합',
+    layers: [
+      { key: 'userMap',   title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 4 } },
+      { key: 'brandGrid', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 4, w: 12, h: 4 } },
+      { key: 'accGrid',   title: '그리드 3', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
+    ],
+    component: lazy(() => import('./_oron/dp_master_review/OronDpMasterReviewMockup')) },
+
+  // ── RP — 분배계획 (3 mockups) ───────────────────────────────────────
+  { patternCode: 'oron_rp_request',       patternLabel: 'ORON — 분배요청/주문 입력·조회·확정', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 8, description: '물류센터·영업소 주문 입력→조회→특정 요청/확정→추가의뢰→거점 기준정보',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/rp_request/OronRpRequestMockup')) },
+  { patternCode: 'oron_rp_availability',  patternLabel: 'ORON — 분배 가용량 + 시뮬레이션 + 결과', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 6, description: '분배 5단계 엔진 + 품목별 가용량 산정 + 주문별 할당 결과',
+    layers: [
+      { key: 'stepper',   title: '패널 1', type: 'CHART', subtype: 'STEPPER',   position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',      title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',      title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',      title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',      title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'availGrid', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 5, w: 6,  h: 7 } },
+      { key: 'allocGrid', title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 6, y: 5, w: 6,  h: 7 } },
+    ],
+    component: lazy(() => import('./_oron/rp_availability/OronRpAvailabilityMockup')) },
+  { patternCode: 'oron_rp_actual',        patternLabel: 'ORON — 분배 계획/실적 + 출하 + OSLS 수신', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 3, description: '거점별 분배 계획 vs 실적 주별 크로스탭 + OSLS 인터페이스 수신 이력',
+    layers: [
+      { key: 'planActGrid', title: '그리드 1', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 0, w: 12, h: 7 } },
+      { key: 'oslsGrid',    title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE',  position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_oron/rp_actual/OronRpActualMockup')) },
+
+  // ── YP — 연간계획 (2 mockups) ───────────────────────────────────────
+  { patternCode: 'oron_yp_controlboard',  patternLabel: 'ORON — 연간계획 생성·관리 컨트롤보드', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 3, description: '연간계획 6단계 (목표→마케팅→영업팀→원료감자→통합조정→확정) + 팀별 진척 현황',
+    layers: [
+      { key: 'stepper',   title: '패널 1', type: 'CHART', subtype: 'STEPPER',   position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',      title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',      title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',      title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',      title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'teamGrid',  title: '그리드', type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 5, w: 12, h: 7 } },
+    ],
+    component: lazy(() => import('./_oron/yp_controlboard/OronYpControlBoardMockup')) },
+  { patternCode: 'oron_yp_entry',         patternLabel: 'ORON — 연간계획 입력 (마케팅/영업/원료) + 비교', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 8, description: '브랜드×Lvl3 12개월 크로스탭 입력 + 전년 대비 성장률/목표 비교',
+    layers: [
+      { key: 'entryGrid', title: '그리드', type: 'GRID', subtype: 'GRID_PIVOT', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_oron/yp_entry/OronYpEntryMockup')) },
+];
+
+// ─────────────────────────────────────────
 // 최종 export — 각 entry 에 productLine + menus (운영 매핑) 자동 부여
 // ─────────────────────────────────────────
 const T3SMART_SCM_MOCKUP_TO_MENUS = menuMappingJson?.mockupToMenus || {};
 const KTNG_MOCKUP_TO_MENUS        = ktngMenuMappingJson?.mockupToMenus || {};
 const PLANEL_MOCKUP_TO_MENUS      = plannelMenuMappingJson?.mockupToMenus || {};
+const ORON_MOCKUP_TO_MENUS        = oronMenuMappingJson?.mockupToMenus || {};
 export const MOCKUP_ENTRIES = [
   ...T3SMART_SCM_ENTRIES.map((e) => ({
     productLine: 'T3SmartSCM',
@@ -1253,6 +1444,11 @@ export const MOCKUP_ENTRIES = [
     menus: KTNG_MOCKUP_TO_MENUS[e.patternCode] || [],
     ...e,
   })),
+  ...ORON_ENTRIES.map((e) => ({
+    productLine: 'ORON',
+    menus: ORON_MOCKUP_TO_MENUS[e.patternCode] || [],
+    ...e,
+  })),
 ];
 
 // 운영 메뉴ID → mockup patternCode 역방향 lookup
@@ -1261,7 +1457,8 @@ export const MENU_TO_MOCKUP = menuMappingJson?.menuToMockup || {};
 export const PRODUCT_LINE_LABEL = {
   T3SmartSCM: 'T3SmartSCM',
   PlaNEL:     'PlanNEL',  // ★ 표시 라벨 — code key 는 'PlaNEL' 유지 (spec.productLine 호환)
-  KTNG:       'KTNG',
+  KTNG:       'KT&G',
+  ORON:       'Orion',
 };
 
 export const CATEGORY_LABEL = {

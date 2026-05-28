@@ -7,6 +7,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // CmKtng02~08 공통 패턴 — 비용 항목 1개를 상세 분석
 //   02 재료비 / 03 마킹비 / 04 하이퍼인플레이션 / 05 물류비 / 06 관세 / 07 정상자재 / 08 원화가
@@ -171,25 +172,26 @@ export default function CmCostBreakdownMockup() {
                       else if (c.name === 'UNIT_COST' || c.name === 'PER_PROD') display = v.toFixed(2) + '원';
                       else if (c.name === 'TOTAL_AMT') display = fmtN(v) + 'K원';
                       else if (c.name === 'YOY') display = fmtPct(v);
-                      const color = isPct ? (v > 0 ? 'error.main' : 'success.main') : 'inherit';
-                      return (
-                        <TableCell key={c.name}
-                          sx={{ textAlign: c.align,
-                                fontFamily: (isNum || isPct) ? 'monospace' : 'inherit',
-                                fontWeight: isPct ? 600 : 400, color }}>
-                          {display}
-                        </TableCell>
-                      );
+                      // 운영 CmKtng02~08 styleCallback 식별자 컬럼 합집합 (PROD_CNTRY_CD/ITEM_GRP_CD/PROD_ITEM_NM 등) 대응:
+                      //   mockup 의 식별자 PROD_SITE (생산지/국가-공장) · ITEM_LV3 (품목 그룹) 에만 cellSx('info')
+                      const isIdentity = c.name === 'PROD_SITE' || c.name === 'ITEM_LV3';
+                      const sx = isIdentity
+                        ? cellSx('info', { align: c.align })
+                        : {
+                            textAlign: c.align,
+                            fontFamily: (isNum || isPct) ? 'monospace' : 'inherit',
+                          };
+                      return <TableCell key={c.name} sx={sx}>{display}</TableCell>;
                     })}
                   </TableRow>
                 ))}
-                <TableRow sx={{ backgroundColor: 'warning.light' }}>
-                  <TableCell colSpan={2} sx={{ fontWeight: 700, color: 'warning.contrastText' }}>합계</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: 'warning.contrastText' }}>{fmtN(TOTAL.PROD_QTY)} 본</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: 'warning.contrastText' }}>-</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: 'warning.contrastText' }}>{fmtN(TOTAL.TOTAL_AMT)}K원</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: 'warning.contrastText' }}>{(TOTAL.TOTAL_AMT / TOTAL.PROD_QTY * 1000).toFixed(2)}원</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: 'warning.contrastText' }}>+2.4%</TableCell>
+                <TableRow>
+                  <TableCell colSpan={2} sx={{ textAlign: 'left', fontWeight: 700 }}>합계</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{fmtN(TOTAL.PROD_QTY)} 본</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>-</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{fmtN(TOTAL.TOTAL_AMT)}K원</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{(TOTAL.TOTAL_AMT / TOTAL.PROD_QTY * 1000).toFixed(2)}원</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>+2.4%</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

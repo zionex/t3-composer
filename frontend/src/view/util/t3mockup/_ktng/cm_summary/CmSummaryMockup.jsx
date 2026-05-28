@@ -6,6 +6,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // KTNG 공헌이익 — CmKtng01~11. Summary + 비용 항목 breakdown (재료비/마킹비/하이퍼/물류비/관세/원화가 등)
 
@@ -170,15 +171,15 @@ export default function ContributionMarginMockup() {
                     {SITE_COLUMNS.map((c) => {
                       const v = row[c.name];
                       const display = c.fmt ? fmt(v, c.fmt) : v;
-                      let color = c.emphasize ? 'success.dark' : 'inherit';
-                      if (c.name === 'cmPct' && v < 30) color = 'warning.main';
-                      return (
-                        <TableCell key={c.name}
-                          sx={{ textAlign: c.align, fontFamily: c.fmt ? 'monospace' : 'inherit',
-                                fontWeight: c.emphasize ? 700 : 400, color }}>
-                          {display}
-                        </TableCell>
-                      );
+                      // 운영 CmKtng01 styleCallback 식별자 컬럼 (BASE_YM) 대응:
+                      //   mockup 의 식별자 컬럼인 'site' (생산지) 에만 cellSx('info') 유지
+                      const sx = c.name === 'site'
+                        ? cellSx('info', { align: c.align })
+                        : {
+                            textAlign: c.align,
+                            fontFamily: c.fmt ? 'monospace' : 'inherit',
+                          };
+                      return <TableCell key={c.name} sx={sx}>{display}</TableCell>;
                     })}
                   </TableRow>
                 ))}

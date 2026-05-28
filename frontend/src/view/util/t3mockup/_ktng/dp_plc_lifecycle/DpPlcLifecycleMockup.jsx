@@ -4,6 +4,7 @@ import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab, Paper, Typogr
 import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // DpKtng04 (신/구품 PLC 현황), DpKtng14 (EOP 생산수량), DpKtng16 (제품 생명주기 조건)
 // 3개를 PLC stage timeline + 그리드 + EOP 정보로 통합
@@ -26,6 +27,7 @@ const ROWS = [
 ];
 
 const STATUS_COLOR = { launching: 'info', normal: 'success', replacement: 'warning', declining: 'warning', eop: 'error' };
+const STATUS_TONE  = { launching: 'info', normal: 'normal',  replacement: 'warning', declining: 'warning', eop: 'danger' };
 
 const PLC_TAB_LABELS = ['PLC 현황 (DpKtng04)', 'EOP 생산수량 (DpKtng14)', '생명주기 조건 (DpKtng16)'];
 
@@ -86,17 +88,18 @@ export default function DpPlcLifecycleMockup() {
               <TableBody>
                 {ROWS.map((r, i) => {
                   const stage = STAGES.find((s) => s.key === r.STAGE);
+                  const tone = STATUS_TONE[r.STATUS] || 'normal';
                   return (
-                    <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'eop' ? 'error.light' : (r.STATUS === 'declining' ? 'warning.light' : 'transparent') }}>
+                    <TableRow key={i} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ITEM_CD}</TableCell>
                       <TableCell>{r.ITEM_NM}</TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.OLD_CD !== '-' ? `→ ${r.OLD_CD}` : '-'}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STAGE} sx={{ backgroundColor: stage.color, color: '#fff' }} /></TableCell>
+                      <TableCell sx={cellSx(tone, { align: 'center' })}><Chip size="small" label={r.STAGE} sx={{ backgroundColor: stage.color, color: '#fff' }} /></TableCell>
                       <TableCell sx={{ fontFamily: 'monospace' }}>{r.LAUNCH_DT}</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', color: r.EOP_DT !== '-' ? 'error.main' : 'inherit' }}>{r.EOP_DT}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{r.EOP_DT}</TableCell>
                       <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.EOP_QTY}</TableCell>
                       <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LIFE}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS} color={STATUS_COLOR[r.STATUS]} /></TableCell>
+                      <TableCell sx={cellSx(tone, { align: 'center' })}><Chip size="small" label={r.STATUS} color={STATUS_COLOR[r.STATUS]} /></TableCell>
                     </TableRow>
                   );
                 })}

@@ -113,7 +113,7 @@ export default function MpMasterDataMockup() {
                 </TableHead>
                 <TableBody>
                   {MAT_ROWS.map((r, i) => (
-                    <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'short' ? 'warning.light' : 'transparent' }}>
+                    <TableRow key={i} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.MAT_CD}</TableCell>
                       <TableCell>{r.MAT_NM}</TableCell>
                       <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.UOM} variant="outlined" /></TableCell>

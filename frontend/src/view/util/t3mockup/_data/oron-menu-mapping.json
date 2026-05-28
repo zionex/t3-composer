@@ -1,0 +1,171 @@
+{
+  "_comment": "ORON (오론) 운영 화면 — view/oron 의 ORN_* 화면 ~120개를 22개 mockup 패턴으로 그룹화. MENU_CD 는 사용자가 제공한 메뉴 목록 기준. 표준 T3SmartSCM 화면은 t3smartscm-menu-mapping.json 의 기존 mockup 재사용.",
+  "stats": {
+    "oronMenus": 118,
+    "mockupPatterns": 22
+  },
+
+  "mockupToMenus": {
+
+    "oron_mp_master": [
+      { "menuId": "UI_MP_ITEM",          "menuNm": "완제품관리",   "filePath": "/masterplan/master/ornmpitem/OrnMpItem" },
+      { "menuId": "UI_MP_ORN_HALB_ITEM", "menuNm": "반제품관리",   "filePath": "/masterplan/master/ornmphalbitem/OrnMpHalbItem" },
+      { "menuId": "UI_MP_ORN_MRP_ITEM",  "menuNm": "원부자재관리", "filePath": "/masterplan/master/ornmrpitem/OrnMrpItem" },
+      { "menuId": "UI_MP_ORN_RESOURCE",  "menuNm": "생산라인관리", "filePath": "/masterplan/master/ornmpresource/OrnMpResource" },
+      { "menuId": "UI_MP_ORN_ITEM_GRP",  "menuNm": "제품그룹관리", "filePath": "/masterplan/master/ornmpitemgrp/OrnMpItemGrp" }
+    ],
+    "oron_mp_bom_route": [
+      { "menuId": "UI_MP_ORN_BOM",       "menuNm": "BOM관리",      "filePath": "/masterplan/master/ornmpbom/OrnMpBom" },
+      { "menuId": "UI_MP_ORN_PROD_SEQ",  "menuNm": "생산순서 정의", "filePath": "/masterplan/planningsimulation/ornmpprodseq/OrnMpProdSeq" }
+    ],
+    "oron_mp_capacity": [
+      { "menuId": "UI_MP_ORN_BOR",       "menuNm": "생산능력정의",   "filePath": "/masterplan/master/ornmpbor/OrnMpBor" },
+      { "menuId": "UI_MP_ORN_BOR_SET",   "menuNm": "공용설비제약",   "filePath": "/factoryplan/master/ornmpborset/OrnMpBorSet" },
+      { "menuId": "UI_MP_ORN_CALENDAR",  "menuNm": "생산라인 캘린더", "filePath": "/masterplan/master/ornmpcalendar/OrnMpCalendar" },
+      { "menuId": "UI_MP_JC_TIME",       "menuNm": "작업교체시간관리", "filePath": "/masterplan/master/ornmpjctime/OrnMpJcTime" },
+      { "menuId": "UI_MP_ORN_BY_PRODUCT","menuNm": "동시생산제약",   "filePath": "/factoryplan/master/ornmpbyproduct/OrnMpByProduct" }
+    ],
+    "oron_mp_simulation": [
+      { "menuId": "UI_MP_ORN_PLAN_DMND",      "menuNm": "공급계획 시뮬레이션",     "filePath": "/masterplan/planningsimulation/ornmpplandmnd/OrnMpPlanDmnd" },
+      { "menuId": "UI_MP_ORN_DATA_VALID",     "menuNm": "기준정보 점검",           "filePath": "/factoryplan/planningsimulation/ornmpdatavalid/OrnMpDataValid" },
+      { "menuId": "UI_MP_ORN_DATA_VALID_INQ", "menuNm": "기준정보 점검 결과 조회", "filePath": "/factoryplan/planningsimulation/ornmpdatavalidinq/OrnMpDataValidInq" }
+    ],
+    "oron_mp_plan_adj": [
+      { "menuId": "UI_MP_ORN_PLAN_RST_ADJ",   "menuNm": "완제품 생산계획 편성/수정", "filePath": "/masterplan/planresult/ornmpplanrstadj/OrnMpPlanRstAdj" },
+      { "menuId": "UI_MP_ORN_HALB_RST_ADJ",   "menuNm": "반제품 생산계획 편성/수정", "filePath": "/masterplan/planresult/ornmphalbrstadj/OrnMpHalbRstAdj" },
+      { "menuId": "UI_MP_ORN_PLAN_RST_SRC",   "menuNm": "완제품 생산계획 조회",      "filePath": "/masterplan/planresult/ornmpplanrstsrc/OrnMpPlanRstSrc" },
+      { "menuId": "UI_MP_ORN_HALB_RST_SRC",   "menuNm": "반제품 생산계획 조회",      "filePath": "/masterplan/planresult/ornmphalbrstsrc/OrnMpHalbRstSrc" },
+      { "menuId": "UI_MP_ORN_PROD_AVAIL",     "menuNm": "공급가용결과조회",         "filePath": "/masterplan/planresult/ornmpprodavail/OrnMpProdAvail" },
+      { "menuId": "UI_MP_ORN_SIMUL_COMPARE",  "menuNm": "버전별 생산계획 비교",      "filePath": "/masterplan/planresult/ornmpsimulcompare/OrnMpSimulCompare" }
+    ],
+    "oron_mp_mrp_psi": [
+      { "menuId": "UI_MP_ORN_MRP_TOT",    "menuNm": "원부자재 발주요청(통합)", "filePath": "/factoryplan/matmgmt/ornmpmrptot/OrnMpMrpTot" },
+      { "menuId": "UI_MP_ORN_MRP_LOC",    "menuNm": "원부자재 발주요청(내자)", "filePath": "/factoryplan/matmgmt/ornmpmrploc/OrnMpMrpLoc" },
+      { "menuId": "UI_MP_ORN_MRP_TOT_VN", "menuNm": "원부자재 발주요청(외자)", "filePath": "/factoryplan/matmgmt/ornmpmrptotvn/OrnMpMrpTotVn" },
+      { "menuId": "UI_MP_ORN_MAT_PSI",    "menuNm": "원부자재 PSI 조회",       "filePath": "/factoryplan/matmgmt/ornmpmatpsi/OrnMpMatPsi" },
+      { "menuId": "UI_MP_ORN_FERT_PSI",   "menuNm": "완제품 PSI 조회",         "filePath": "/masterplan/planresult/ornmpfertpsi/OrnMpFertPsi" },
+      { "menuId": "UI_MP_ORN_STOCK_MGMT", "menuNm": "자재별 재고 조회/수정",   "filePath": "/factoryplan/planningsimulation/mpstockmgmt/MpStockMgmt" }
+    ],
+    "oron_mp_material_move": [
+      { "menuId": "UI_MP_ORN_HALB_MOVE",   "menuNm": "반제품 공장이동 요청", "filePath": "/masterplan/planresult/ornmphalbmove/OrnMpHalbMove" },
+      { "menuId": "UI_MP_ORN_MAT_MOVE",    "menuNm": "원부자재 공장이동 요청", "filePath": "/factoryplan/matmgmt/ornmpmatmove/OrnMpMatMove" },
+      { "menuId": "UI_MP_ORN_MAT_MOVE_VN", "menuNm": "외자 이동요청(공장)",   "filePath": "/factoryplan/matmgmt/ornmpmatmovevn/OrnMpMatMoveVn" },
+      { "menuId": "UI_MP_ORN_MAT_MOVE_HQ", "menuNm": "외자 이동확정(본사)",   "filePath": "/factoryplan/matmgmt/ornmpmatmovehq/OrnMpMatMoveHq" }
+    ],
+    "oron_mp_bundle": [
+      { "menuId": "UI_MP_ORN_BUNDLE_REQ",   "menuNm": "번들작업관리",            "filePath": "/masterplan/planningsimulation/ornmpbundlereq/OrnMpBundleReq" },
+      { "menuId": "UI_MP_ORN_BUNDLE_PLAN",  "menuNm": "번들 반제품 계획 관리",   "filePath": "/masterplan/planningsimulation/ornmpbundleplan/OrnMpBundlePlan" },
+      { "menuId": "UI_MP_ORN_OEM_PROD_REQ", "menuNm": "OEM 제품 생산 요청",      "filePath": "/masterplan/planningsimulation/ornmpoemprodreq/OrnMpOemProdReq" },
+      { "menuId": "UI_MP_ORN_PLAN_ACT_INQ", "menuNm": "생산계획 대비 실적 조회", "filePath": "/masterplan/planresult/ornmpplanactinq/OrnMpPlanActInq" }
+    ],
+
+    "oron_pk_master": [
+      { "menuId": "UI_PK_ORN_PACK_MGMT", "menuNm": "포장재 제품 관리",    "filePath": "/packplan/pkmaster/ornpkmgmt/OrnPkMgmt" },
+      { "menuId": "UI_PK_ORN_HALB_MGMT", "menuNm": "포장재 반제품 관리",  "filePath": "/packplan/pkmaster/ornhalbmgmt/OrnHalbMgmt" },
+      { "menuId": "UI_PK_ORN_MAT_MGMT",  "menuNm": "소요량 생성 원/부자재 관리", "filePath": "/packplan/pkmaster/ornmatmgmt/OrnMatMgmt" },
+      { "menuId": "UI_PK_ORN_RES_MGMT",  "menuNm": "공정별 라인 관리",    "filePath": "/packplan/pkmaster/ornresmgmt/OrnResMgmt" },
+      { "menuId": "UI_PK_ORN_BOR",       "menuNm": "라인별 생산 능력 관리", "filePath": "/packplan/pkmaster/ornbor/OrnBor" },
+      { "menuId": "UI_PK_ORN_BOM",       "menuNm": "포장재 BOM 조회",     "filePath": "/packplan/pkmaster/ornbom/OrnBom" },
+      { "menuId": "UI_PK_ORN_CALENDAR",  "menuNm": "자원캘린더",          "filePath": "/packplan/pkmaster/orncalendar/OrnCalendar" },
+      { "menuId": "UI_PK_ORN_WORK_HOUR", "menuNm": "생산 근무 시간 입력", "filePath": "/packplan/pkmaster/ornworkhour/OrnWorkHour" },
+      { "menuId": "UI_PK_ORN_DATA_VALID","menuNm": "기준 정보 검증",      "filePath": "/packplan/planningsimulation/pkornvalid/PkOrnValid" },
+      { "menuId": "UI_PK_ORN_STOCK",     "menuNm": "제품별 재고현황",     "filePath": "/packplan/pkmaster/ornstock/OrnStock" }
+    ],
+    "oron_pk_simulation": [
+      { "menuId": "UI_PK_ORN_PACK_SIMUL", "menuNm": "생산계획 생성",      "filePath": "/packplan/planningsimulation/pksimulation/PKSimulation" },
+      { "menuId": "UI_PK_ORN_PACK_SNRIO", "menuNm": "계획 시나리오 관리", "filePath": "/packplan/planningsimulation/planscenario/PlanScenario" }
+    ],
+    "oron_pk_process_plan": [
+      { "menuId": "UI_PK_ORN_PACK_PRINT_MGMT",   "menuNm": "인쇄 생산계획 관리", "filePath": "/packplan/planresult/ornprintmgmt/OrnPrintMgmt" },
+      { "menuId": "UI_PK_ORN_PACK_PROC_MGMT",    "menuNm": "가공 생산계획 관리", "filePath": "/packplan/planresult/ornprocmgmt/OrnProcMgmt" },
+      { "menuId": "UI_PK_ORN_PACK_CUT_MGMT",     "menuNm": "분단 생산계획 관리", "filePath": "/packplan/planresult/orncutmgmt/OrnCutMgmt" },
+      { "menuId": "UI_PK_ORN_PACK_CUT_MGMT_NEW", "menuNm": "분단 생산계획 관리 (NEW)", "filePath": "/packplan/planresult/orncutmgmtnew/OrnCutMgmtNew" },
+      { "menuId": "UI_PK_ORN_PACK_PRINT_NOTIFY", "menuNm": "인쇄 생산계획 점검", "filePath": "/packplan/planresult/ornprintnotify/OrnPrintNotify" },
+      { "menuId": "UI_PK_ORN_PACK_PROC_NOTIFY",  "menuNm": "가공 생산계획 점검", "filePath": "/packplan/planresult/ornprocnotify/OrnProcNotify" },
+      { "menuId": "UI_PK_ORN_PACK_CUT_NOTIFY",   "menuNm": "분단 생산계획 점검", "filePath": "/packplan/planresult/ornpackcutnotify/OrnPackCutNotify" }
+    ],
+    "oron_pk_daily_plan": [
+      { "menuId": "UI_PK_ORN_PACK_DAILY_PLAN",   "menuNm": "일일 생산계획 관리",     "filePath": "/packplan/planresult/ornpackdailyplan/OrnPackDailyPlan" },
+      { "menuId": "UI_PK_ORN_PACK_WKLY_PRT",     "menuNm": "주간 생산계획/실적 의뢰서", "filePath": "/packplan/planresult/ornpackwklyprt/OrnPackWklyPrt" },
+      { "menuId": "UI_PK_ORN_PACK_DELIVY_PLAN",  "menuNm": "배송계획 관리",          "filePath": "/packplan/planningsimulation/ornpackdelivyplan/OrnPackDelivyPlan" },
+      { "menuId": "UI_PK_ORN_PACK_OTHER_PLAN",   "menuNm": "배송계획 관리 (타공장)", "filePath": "/packplan/planningsimulation/ornotherplan/OrnOtherPlan" },
+      { "menuId": "UI_PK_ORN_PACK_DAILY_REQ_DTL","menuNm": "일별 원/부재료 소요량 명세", "filePath": "/packplan/planresult/orndailyreqdtl/OrnDailyReqDtl" }
+    ],
+    "oron_pk_mat_req": [
+      { "menuId": "UI_PK_ORN_PACK_MAT_REQ_CRT",  "menuNm": "자재 소요량 생성",     "filePath": "/packplan/pkmaster/ornmatreqcrt/OrnMatReqCrt" },
+      { "menuId": "UI_PK_ORN_PACK_INK_REQ_CRT",  "menuNm": "잉크 소요량 생성",     "filePath": "/packplan/pkmaster/orninkreqcrt/OrnInkReqCrt" },
+      { "menuId": "UI_PK_ORN_PACK_INK_ORD_DIST", "menuNm": "잉크 발주량 일일 분배", "filePath": "/packplan/planresult/orninkorddist/OrnInkOrdDist" },
+      { "menuId": "UI_PK_ORN_PACK_FILM_ORD_DIST","menuNm": "원단 발주량 일일 분배", "filePath": "/packplan/planresult/ornfilmorddist/OrnFilmOrdDist" },
+      { "menuId": "UI_PK_ORN_PACK_TUBE_ORD_DIST","menuNm": "지관 발주량 일일 분배", "filePath": "/packplan/planresult/orntubeorddist/OrnTubeOrdDist" },
+      { "menuId": "UI_PK_ORN_PACK_TUBE_MGMT",    "menuNm": "지관 소요량 관리",     "filePath": "/packplan/pkmaster/orntubemgmt/OrnTubeMgmt" },
+      { "menuId": "UI_PK_ORN_PACK_OEM_ORD",      "menuNm": "임가공 발주서",        "filePath": "/packplan/planningsimulation/pkoemord/PkOemOrd" },
+      { "menuId": "UI_PK_ORN_PACK_MAT_PURC",     "menuNm": "자재 발주내역 조회",   "filePath": "/packplan/planresult/ornmatpurc/OrnMatPurc" }
+    ],
+    "oron_pk_actual": [
+      { "menuId": "UI_PK_ORN_PACK_PLAN_ACT", "menuNm": "생산계획 대비 실적", "filePath": "/packplan/planresult/ornplanact/OrnPlanAct" },
+      { "menuId": "UI_PK_ORN_PROD_ACT_OVRL", "menuNm": "생산실적 종합 조회", "filePath": "/packplan/planresult/ornprodactovrl/OrnProdActOvrl" },
+      { "menuId": "UI_PK_ORN_PACK_RMK_SRC",  "menuNm": "생산 이슈사항 조회", "filePath": "/packplan/planresult/ornpackrmksrc/OrnPackRmkSrc" },
+      { "menuId": "UI_PK_ORN_PACK_TRANS",    "menuNm": "배송/생산 전송 조회", "filePath": "/packplan/planresult/ornpacktrans/OrnPackTrans" },
+      { "menuId": "UI_PK_ORN_ORD_RST",       "menuNm": "기간별 발주/생산실적", "filePath": "/packplan/planresult/ornordrst/OrnOrdRst" }
+    ],
+
+    "oron_dp_entry": [
+      { "menuId": "UI_DP_95", "menuNm": "판매계획 입력",     "filePath": "/demandplan/entry/entry" },
+      { "menuId": "UI_DP_93", "menuNm": "판매계획 관리",     "filePath": "/demandplan/controlboard/controlboard" },
+      { "menuId": "UI_DP_94", "menuNm": "판매계획 입력현황", "filePath": "/demandplan/entry/processstatus" }
+    ],
+    "oron_dp_chart": [
+      { "menuId": "UI_DP_95_CHART", "menuNm": "판매계획 입력 (Chart)",   "filePath": "/demandplan/entry/entrychart" },
+      { "menuId": "UI_DP_96_CHART", "menuNm": "판매계획 보고서 (Chart)", "filePath": "/demandplan/report/allreportchart" },
+      { "menuId": "UI_DP_96",       "menuNm": "판매계획 보고서",          "filePath": "/demandplan/report/allreportchart" }
+    ],
+    "oron_dp_master_review": [
+      { "menuId": "UI_DP_ORN_USER_DP_ACC_MAP",            "menuNm": "판매계획 입력 담당자 관리", "filePath": "/demandplan/master/ornuserdpaccmap/OrnUserDpAccMap" },
+      { "menuId": "UI_DP_ORN_SHPP_PRICE",                 "menuNm": "출고가",                   "filePath": "/demandplan/master/ornshppprice/OrnShppPrice" },
+      { "menuId": "UI_DP_ORN_STRAT_BRAND_MGMT",           "menuNm": "전략브랜드 관리",          "filePath": "/demandplan/master/ornstartbrandmgmt/OrnStartBrandMgmt" },
+      { "menuId": "UI_DP_ORN_DMND_ACC_ITEM_MAP_PFRSTLT",  "menuNm": "거래처-품목-Mapping 실적 조회", "filePath": "/demandplan/analysis/orndpaccitemmap/OrnDpAccItemMap" },
+      { "menuId": "UI_DP_ORN_DP_ENTRY_SUMMARY",           "menuNm": "판매계획 검토",            "filePath": "/demandplan/entry/orndpentrysummary/OrnDpEntrySummary" },
+      { "menuId": "UI_DP_ORN_SALES_PLAN_REPORT_01",       "menuNm": "판매계획 적중률",          "filePath": "/demandplan/analysis/orndpsalesplanreport01/OrnDpSalesPlanReport01" }
+    ],
+
+    "oron_rp_request": [
+      { "menuId": "UI_RP_ORN_01", "menuNm": "물류센터/영업소 주문 입력",    "filePath": "/replenishmentplan/preanalysis/ornreforderadj/OrnRefOrderAdj" },
+      { "menuId": "UI_RP_ORN_05", "menuNm": "물류센터/영업소 주문조회",      "filePath": "/replenishmentplan/preanalysis/ornreforderview/OrnRefOrderView" },
+      { "menuId": "UI_RP_ORN_06", "menuNm": "특정 분배 요청",               "filePath": "/replenishmentplan/preanalysis/ornsalesorder/OrnSalesOrder" },
+      { "menuId": "UI_RP_ORN_07", "menuNm": "특정 분배 요청 조회/확정",      "filePath": "/replenishmentplan/preanalysis/ornsalesordercnf/OrnSalesOrderCnf" },
+      { "menuId": "UI_RP_ORN_08", "menuNm": "추가의뢰 조회/수정",           "filePath": "/replenishmentplan/preanalysis/orntransferorderedit/OrnTransferOrderEdit" },
+      { "menuId": "UI_RP_ORN_09", "menuNm": "추가의뢰 요청",               "filePath": "/replenishmentplan/preanalysis/orntransferorderask/OrnTransferOrderAsk" },
+      { "menuId": "UI_RP_ORN_10", "menuNm": "거점 기준정보 설정",           "filePath": "/replenishmentplan/preanalysis/ornlocatmapping/OrnLocatMapping" },
+      { "menuId": "UI_RP_ORN_11", "menuNm": "물류센터 분배 입력(익산-제주)", "filePath": "/replenishmentplan/preanalysis/orncenteradj/OrnCenterAdj" }
+    ],
+    "oron_rp_availability": [
+      { "menuId": "UI_RP_ORN_02",        "menuNm": "분배 가용량 생성",          "filePath": "/replenishmentplan/preanalysis/ornavailadj/OrnAvailAdj" },
+      { "menuId": "UI_RP_ORN_03",        "menuNm": "분배 가용량 입력",          "filePath": "/replenishmentplan/preanalysis/ornavailcnf/OrnAvailCnf" },
+      { "menuId": "UI_RP_ORN_22",        "menuNm": "분배 가용량 보정(검사중재고)", "filePath": "/replenishmentplan/preanalysis/ornqistock/OrnQiStock" },
+      { "menuId": "UI_RP_ORN_21",        "menuNm": "공장재고검토",              "filePath": "/replenishmentplan/preanalysis/ornstockreport/OrnStockReport" },
+      { "menuId": "UI_RP_ORN_PLAN_ADJ",  "menuNm": "분배계획 시뮬레이션",        "filePath": "/masterplan/planningsimulation/ornplanadj/OrnPlanAdj" },
+      { "menuId": "UI_RP_ORN_04",        "menuNm": "분배결과 조회",             "filePath": "/replenishmentplan/rpplanresult/ornresultview/OrnResultView" }
+    ],
+    "oron_rp_actual": [
+      { "menuId": "UI_RP_ORN_PLAN_ACTUAL", "menuNm": "분배 계획/실적", "filePath": "/replenishmentplan/analysisreport/ornplanactual/OrnPlanActual" },
+      { "menuId": "UI_RP_ORN_77",          "menuNm": "출하실적 조회",  "filePath": "/replenishmentplan/analysisreport/rporn77/RpOrn77" },
+      { "menuId": "UI_RP_ORN_91",          "menuNm": "OSLS 수신",      "filePath": "/replenishmentplan/preanalysis/ornoslsreceive/OrnOslsReceive" }
+    ],
+
+    "oron_yp_controlboard": [
+      { "menuId": "UI_YP_ORN_CONTROL_BOARD", "menuNm": "연간계획 생성",     "filePath": "/snop/yearlyplan/ypcontrolboard" },
+      { "menuId": "UI_BP_93",                "menuNm": "연간계획 관리",     "filePath": "/demandplan/controlboard/controlboard" },
+      { "menuId": "UI_BP_94",                "menuNm": "연간계획 입력현황", "filePath": "/demandplan/yearlyplan/processstatus" }
+    ],
+    "oron_yp_entry": [
+      { "menuId": "UI_YP_ORN_MKT_YP_PLAN",     "menuNm": "마케팅 연간계획 입력", "filePath": "/snop/yearlyplan/ornypmktplan/OrnYpMktPlan" },
+      { "menuId": "UI_YP_ORN_SALES_MAN_PLAN",  "menuNm": "영업팀 연간계획 입력", "filePath": "/snop/yearlyplan/salesmanplan/SalesManPlan" },
+      { "menuId": "UI_YP_ORN_PTT_REQ_PLAN",    "menuNm": "연간 원료감자 계획",   "filePath": "/snop/yearlyplan/pttreqplan/PttReqPlan" },
+      { "menuId": "UI_BP_95",                  "menuNm": "연간계획 입력",        "filePath": "/demandplan/yearlyplan/entry" },
+      { "menuId": "UI_BP_95_CHART",            "menuNm": "연간계획 입력 (Chart)", "filePath": "/demandplan/yearlyplan/entrychart" },
+      { "menuId": "UI_BP_96",                  "menuNm": "연간계획 주문 정보",   "filePath": "/demandplan/yearlyplan/allreport" },
+      { "menuId": "UI_BP_96_CHART",            "menuNm": "연간계획 주문 정보 (Chart)", "filePath": "/demandplan/yearlyplan/allreportchart" },
+      { "menuId": "UI_YP_ORN_YP_PLAN_COMPARE", "menuNm": "연간계획 비교",        "filePath": "/snop/yearlyplan/ornypplancompare/OrnYpPlanCompare" }
+    ]
+  }
+}

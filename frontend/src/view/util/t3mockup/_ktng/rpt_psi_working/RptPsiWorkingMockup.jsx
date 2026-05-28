@@ -107,10 +107,12 @@ export default function RptPsiWorkingMockup() {
                         zIndex: c.sticky ? 1 : undefined,
                         fontWeight: c.name === 'MEASURE' ? 700 : 400,
                         color: c.name === 'MEASURE' ? `${MEASURE_COLOR[r.MEASURE]}.main` : 'inherit',
-                      }}>{r[c.name]}</TableCell>
+                      }}>
+                        {r[c.name]}
+                      </TableCell>
                     ))}
                     {r.vals.map((v, j) => (
-                      <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace', color: v == null ? 'text.disabled' : 'inherit' }}>
+                      <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                         {fmtN(v)}
                       </TableCell>
                     ))}

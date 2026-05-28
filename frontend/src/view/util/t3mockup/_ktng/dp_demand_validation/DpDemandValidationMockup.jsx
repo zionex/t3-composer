@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MockShell from '../../_shared/MockShell';
+import { cellSx, percentStatus, deltaStatus } from '../../_shared/styleCallback';
 
 // DpKtng15 (수출 수요 적정성 점검), DpKtng17 (내수 수요 적정성 점검)
 // 적정성 룰별 점검 결과 + 위반 항목 그리드
@@ -27,6 +28,7 @@ const VIOLATIONS = [
 ];
 
 const SEV_COLOR = { high: 'error', mid: 'warning', low: 'info' };
+const SEV_TONE  = { high: 'danger', mid: 'warning', low: 'info' };
 
 const VAL_TAB_LABELS = ['수출 (DpKtng15)', '내수 (DpKtng17)'];
 
@@ -70,15 +72,18 @@ export default function DpDemandValidationMockup() {
           </Paper>
           <Paper variant="outlined" sx={{ p: 1.5, flex: 2 }}>
             <Typography variant="caption" color="text.secondary">룰별 통과율</Typography>
-            {RULES.map((r) => (
-              <Stack key={r.rule} direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
-                <Typography variant="caption" sx={{ minWidth: 180 }}>{r.rule}</Typography>
-                <Box sx={{ flex: 1, height: 8, backgroundColor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
-                  <Box sx={{ width: `${r.pct}%`, height: '100%', backgroundColor: r.pct >= 95 ? '#10b981' : r.pct >= 90 ? '#f59e0b' : '#ef4444' }} />
-                </Box>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace', minWidth: 50, fontWeight: 600 }}>{r.pct}%</Typography>
-              </Stack>
-            ))}
+            {RULES.map((r) => {
+              const pctTone = percentStatus(r.pct);
+              return (
+                <Stack key={r.rule} direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ minWidth: 180 }}>{r.rule}</Typography>
+                  <Box sx={{ flex: 1, height: 8, backgroundColor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
+                    <Box sx={{ width: `${r.pct}%`, height: '100%', backgroundColor: r.pct >= 95 ? '#10b981' : r.pct >= 90 ? '#f59e0b' : '#ef4444' }} />
+                  </Box>
+                  <Box component="span" sx={{ ...cellSx(pctTone, { mono: true, align: 'right' }), display: 'inline-block', minWidth: 50, px: 0.5, borderRadius: 0.5, fontSize: 12 }}>{r.pct}%</Box>
+                </Stack>
+              );
+            })}
           </Paper>
         </Stack>
 
@@ -103,20 +108,24 @@ export default function DpDemandValidationMockup() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {VIOLATIONS.map((v, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{v.ITEM_CD}</TableCell>
-                    <TableCell>{v.ACCOUNT}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace' }}>{v.PERIOD}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{v.PLAN.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'text.secondary' }}>{v.REF.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: v.DIFF < 0 ? 'error.main' : 'success.main' }}>
-                      {v.DIFF > 0 ? '+' : ''}{v.DIFF.toFixed(1)}%
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12 }}><Chip size="small" label={v.RULE} variant="outlined" /></TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={v.SEVERITY.toUpperCase()} color={SEV_COLOR[v.SEVERITY]} /></TableCell>
-                  </TableRow>
-                ))}
+                {VIOLATIONS.map((v, i) => {
+                  const tone = SEV_TONE[v.SEVERITY];
+                  const diffTone = deltaStatus(v.DIFF);
+                  return (
+                    <TableRow key={i} hover>
+                      <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{v.ITEM_CD}</TableCell>
+                      <TableCell>{v.ACCOUNT}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{v.PERIOD}</TableCell>
+                      <TableCell sx={cellSx(tone, { mono: true, align: 'right' })}>{v.PLAN.toLocaleString()}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'text.secondary' }}>{v.REF.toLocaleString()}</TableCell>
+                      <TableCell sx={cellSx(diffTone, { mono: true, align: 'right' })}>
+                        {v.DIFF > 0 ? '+' : ''}{v.DIFF.toFixed(1)}%
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 12 }}><Chip size="small" label={v.RULE} variant="outlined" /></TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={v.SEVERITY.toUpperCase()} color={SEV_COLOR[v.SEVERITY]} /></TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

@@ -78,7 +78,7 @@ export default function RptPersonalizationMockup() {
                 {ROWS.map((r, i) => (
                   <TableRow key={i} hover>
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <StarIcon fontSize="small" sx={{ color: r.FAV ? '#f59e0b' : 'action.disabled' }} />
+                      <StarIcon fontSize="small" sx={{ color: r.FAV ? '#f59e0b' : 'action.disabled', verticalAlign: 'middle' }} />
                     </TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.CODE}</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{r.NAME}</TableCell>

@@ -7,6 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // BfKtng03 — 수요예측 정확도 (추이). 시계열 라인 차트 + 비교 그리드 패턴.
 
@@ -160,22 +161,26 @@ export default function BfAccuracyTrendMockup() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {TABLE_ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    {TABLE_COLS.map((c) => {
-                      const v = r[c.name];
-                      const isPct = c.name !== 'period';
-                      const color = c.name === 'mape1' || c.name === 'mape3'
-                        ? (v >= 85 ? 'success.main' : v >= 75 ? 'warning.main' : 'error.main')
-                        : 'inherit';
-                      return (
-                        <TableCell key={c.name} sx={{ textAlign: c.align, fontFamily: c.name === 'period' ? 'monospace' : 'monospace', color, fontWeight: (c.name === 'mape1' || c.name === 'mape3') ? 600 : 400 }}>
-                          {isPct ? `${v.toFixed(1)}%` : v}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
+                {TABLE_ROWS.map((r, i) => {
+                  return (
+                    <TableRow key={i} hover>
+                      {TABLE_COLS.map((c) => {
+                        const v = r[c.name];
+                        const isPct = c.name !== 'period';
+                        // 운영 BfKtng03 styleCallback 식별자 컬럼 (SALES_ORG/SALES_LV_CD) 대응:
+                        //   mockup 의 식별자 컬럼인 'period' (월) 에만 cellSx('info') 유지
+                        const baseSx = c.name === 'period'
+                          ? cellSx('info', { align: c.align })
+                          : { textAlign: c.align, fontFamily: 'monospace' };
+                        return (
+                          <TableCell key={c.name} sx={baseSx}>
+                            {isPct ? `${v.toFixed(1)}%` : v}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

@@ -113,7 +113,7 @@ export default function MpSupplySummaryMockup() {
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.P_QTY.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.S_QTY.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.I_QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: r.FILL_RATE >= 95 ? 'success.main' : r.FILL_RATE >= 90 ? 'warning.main' : 'error.main' }}>{r.FILL_RATE.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.FILL_RATE.toFixed(1)}%</TableCell>
                   </TableRow>
                 ))}
                 <TableRow sx={{ backgroundColor: 'primary.light' }}>

@@ -90,12 +90,12 @@ export default function RptAccuracyMockup() {
                     <TableCell>{r.ITEM_LV2}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.ACTUAL.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: `${BAND_COLOR[r.BAND]}.main` }}>{r.ACCURACY.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.ACCURACY.toFixed(1)}%</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.MAPE.toFixed(1)}%</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.BIAS < 0 ? 'error.main' : 'success.main', fontWeight: 600 }}>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                       {r.BIAS > 0 ? '+' : ''}{r.BIAS.toLocaleString()}
                     </TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontWeight: 700, color: r.TREND === '+' ? 'success.main' : r.TREND === '-' ? 'error.main' : 'text.secondary' }}>
+                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>
                       {r.TREND === '+' ? '↑' : r.TREND === '-' ? '↓' : '→'}
                     </TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>

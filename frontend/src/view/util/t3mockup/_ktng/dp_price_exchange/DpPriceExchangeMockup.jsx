@@ -10,11 +10,11 @@ import MockShell from '../../_shared/MockShell';
 // DpKtng02 (판가 관리), DpKtng19 (환율) — 단순 마스터 그리드 with tabs
 
 const PRICE_ROWS = [
-  { ITEM_LV3_CD: 'KING-RED', ITEM_NM: '레드 시리즈', SALES_ORG: 'KT&G', CHANNEL: '편의점', START_DT: '2026-05-01', END_DT: '2026-12-31', PRICE: 4500, CURR: 'KRW' },
-  { ITEM_LV3_CD: 'KING-BLU', ITEM_NM: '블루 시리즈', SALES_ORG: 'KT&G', CHANNEL: '편의점', START_DT: '2026-05-01', END_DT: '2026-12-31', PRICE: 4500, CURR: 'KRW' },
-  { ITEM_LV3_CD: 'NGP-DEV',  ITEM_NM: 'illuvia DEV', SALES_ORG: 'KT&G', CHANNEL: '온라인', START_DT: '2026-06-01', END_DT: '2026-12-31', PRICE: 35000,CURR: 'KRW' },
-  { ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',   SALES_ORG: 'GLOBAL', CHANNEL: '인도',  START_DT: '2026-04-01', END_DT: '2026-12-31', PRICE:  2.85, CURR: 'USD' },
-  { ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',   SALES_ORG: 'GLOBAL', CHANNEL: '몽골',  START_DT: '2026-04-01', END_DT: '2026-12-31', PRICE:  2.95, CURR: 'USD' },
+  { ITEM_LV3_CD: 'KING-RED', ITEM_NM: '레드 시리즈', SALES_ORG: 'KT&G', CHANNEL: '편의점', START_DT: '2026-05-01', END_DT: '2026-12-31', PRICE: 4500, CURR: 'KRW', status: 'normal' },
+  { ITEM_LV3_CD: 'KING-BLU', ITEM_NM: '블루 시리즈', SALES_ORG: 'KT&G', CHANNEL: '편의점', START_DT: '2026-05-01', END_DT: '2026-12-31', PRICE: 4500, CURR: 'KRW', status: 'normal' },
+  { ITEM_LV3_CD: 'NGP-DEV',  ITEM_NM: 'illuvia DEV', SALES_ORG: 'KT&G', CHANNEL: '온라인', START_DT: '2026-06-01', END_DT: '2026-12-31', PRICE: 35000,CURR: 'KRW', status: 'info' },
+  { ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',   SALES_ORG: 'GLOBAL', CHANNEL: '인도',  START_DT: '2026-04-01', END_DT: '2026-12-31', PRICE:  2.85, CURR: 'USD', status: 'normal' },
+  { ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',   SALES_ORG: 'GLOBAL', CHANNEL: '몽골',  START_DT: '2026-04-01', END_DT: '2026-12-31', PRICE:  2.95, CURR: 'USD', status: 'normal' },
 ];
 
 const FX_ROWS = [
@@ -112,7 +112,7 @@ export default function DpPriceExchangeMockup() {
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.PERIOD}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.RATE}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>{r.RATE_PREV}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', color: r.DIFF.startsWith('-') ? 'error.main' : 'success.main', fontWeight: 600 }}>{r.DIFF}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.DIFF}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

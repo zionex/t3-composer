@@ -90,7 +90,7 @@ export default function DpStuffingReportMockup() {
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.CNTR}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CTN}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CBM}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.FILL >= 90 ? 'success.main' : r.FILL >= 80 ? 'warning.main' : 'error.main', fontWeight: 600 }}>{r.FILL.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.FILL.toFixed(1)}%</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.SAIL_DT}</TableCell>
                     <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS.toUpperCase()} color={STATUS_COLOR[r.STATUS]} /></TableCell>
                   </TableRow>

@@ -118,14 +118,14 @@ export default function RptForecastDailyMockup() {
                   const rate = d.plan > 0 ? (d.actual / d.plan) * 100 : null;
                   const gap = d.actual - d.plan;
                   return (
-                    <TableRow key={i} hover sx={{ backgroundColor: d.prog === 'WEEKEND' ? 'grey.100' : 'transparent' }}>
+                    <TableRow key={i} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{d.date}</TableCell>
                       <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{d.plan.toLocaleString()}</TableCell>
                       <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{d.actual.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: rate == null ? 'text.disabled' : rate >= 100 ? 'success.main' : rate >= 95 ? 'warning.main' : 'error.main' }}>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                         {rate == null ? '-' : rate.toFixed(1) + '%'}
                       </TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: gap < 0 ? 'error.main' : 'success.main', fontWeight: 600 }}>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                         {d.prog === 'WEEKEND' ? '-' : (gap > 0 ? '+' : '') + gap.toLocaleString()}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'right' }}><Chip size="small" label={d.prog} color={PROG_COLOR[d.prog]} /></TableCell>

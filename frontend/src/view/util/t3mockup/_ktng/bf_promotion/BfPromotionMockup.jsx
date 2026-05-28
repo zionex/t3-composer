@@ -9,6 +9,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // BfKtng01 (한국 프로모션 계획), BfKtng02 (해외 프로모션 계획) 공통 패턴
 // SALES_ORG · ACCOUNT · ITEM_LV3 · START_DT · END_DT · PROMOTION_TYPE · DISCOUNT_RATE · DESCRIPTION
@@ -113,25 +114,45 @@ export default function BfPromotionMockup() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {ROWS.map((r, i) => (
-                <TableRow key={i} hover>
-                  <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
-                  <TableCell sx={{ textAlign: 'center', color: 'text.secondary' }}>{i + 1}</TableCell>
-                  {COLUMNS.map((c) => {
-                    const v = r[c.name] ?? '-';
-                    const isNum = c.name === 'DISCOUNT_RATE';
-                    return (
-                      <TableCell key={c.name}
-                        sx={{ textAlign: c.align,
-                              fontFamily: (c.name.endsWith('_CD') || c.name.endsWith('_DT') || isNum) ? 'monospace' : 'inherit',
-                              color: isNum ? 'success.dark' : 'inherit',
-                              fontWeight: isNum ? 600 : 400 }}>
-                        {isNum ? `${v.toFixed(1)}%` : v}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
+              {ROWS.map((r, i) => {
+                // 운영 BfKtng01/02 styleCallback editable 셀:
+                //   SALES_ORG, PROMOTION_TYPE, ITEM_LV3_CD/ITEM_CD, ITEM_LV3_NM/ITEM_NM, END_DT → cellSx('info')
+                //   DISCOUNT_RATE → cellSx('warning')  (할인율 의미 강조)
+                const EDITABLE_INFO = new Set(['SALES_ORG', 'PROMOTION_TYPE', 'ITEM_LV3_CD', 'ITEM_LV3_NM', 'END_DT']);
+                return (
+                  <TableRow key={i} hover>
+                    <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
+                    <TableCell sx={{ textAlign: 'center', color: 'text.secondary' }}>{i + 1}</TableCell>
+                    {COLUMNS.map((c) => {
+                      const v = r[c.name] ?? '-';
+                      const isNum = c.name === 'DISCOUNT_RATE';
+                      const isCode = c.name.endsWith('_CD') || c.name.endsWith('_DT');
+                      if (isNum) {
+                        return (
+                          <TableCell key={c.name} sx={cellSx('warning', { mono: true, align: c.align })}>
+                            {`${v.toFixed(1)}%`}
+                          </TableCell>
+                        );
+                      }
+                      if (EDITABLE_INFO.has(c.name)) {
+                        return (
+                          <TableCell key={c.name}
+                            sx={cellSx('info', { mono: isCode, align: c.align })}>
+                            {v}
+                          </TableCell>
+                        );
+                      }
+                      return (
+                        <TableCell key={c.name}
+                          sx={{ textAlign: c.align,
+                                fontFamily: isCode ? 'monospace' : 'inherit' }}>
+                          {v}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

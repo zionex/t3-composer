@@ -88,20 +88,11 @@ export default function DpDomesticEntryMockup() {
                   <TableCell>{r.ACCOUNT_NM}</TableCell>
                   <TableCell sx={{ fontFamily: 'monospace' }}>{r.ITEM_LV3}</TableCell>
                   <TableCell>{r.ITEM_NM}</TableCell>
-                  {r.vals.map((v, j) => {
-                    const edited = i === 3 && j === 6;  // 임의 셀 1개 "변경됨" 표시
-                    const editable = j >= 2;  // 가까운 미래는 readonly, 먼 미래만 편집 가능
-                    return (
-                      <TableCell key={j} sx={{
-                        textAlign: 'right', fontFamily: 'monospace',
-                        backgroundColor: edited ? '#e3f2fd' : (editable ? '#fff9c4' : 'transparent'),
-                        fontWeight: edited ? 700 : 400,
-                        color: edited ? 'info.dark' : 'inherit',
-                      }}>
-                        {v.toLocaleString()}
-                      </TableCell>
-                    );
-                  })}
+                  {r.vals.map((v, j) => (
+                    <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
+                      {v.toLocaleString()}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
               <TableRow sx={{ backgroundColor: 'primary.light' }}>

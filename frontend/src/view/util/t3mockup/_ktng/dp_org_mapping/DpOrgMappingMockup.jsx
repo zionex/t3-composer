@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MockShell from '../../_shared/MockShell';
+import { cellSx } from '../../_shared/styleCallback';
 
 // DpKtng11 (영업조직-제품레벨), DpKtng12 (영업조직-담당자) 매핑
 
@@ -74,7 +75,7 @@ export default function DpOrgMappingMockup() {
                 {PROD_MAP.map((r, i) => (
                   <TableRow key={i} hover>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.SALES_ORG}</TableCell>
-                    <TableCell>{r.SALES_ORG_NM}</TableCell>
+                    <TableCell sx={cellSx('info')}>{r.SALES_ORG_NM}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}><Chip size="small" label={r.ITEM_LV1} variant="outlined" /></TableCell>
                     <TableCell>{r.ITEM_LV1_NM}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.ITEM_LV2}</TableCell>
@@ -113,7 +114,7 @@ export default function DpOrgMappingMockup() {
                   <TableRow key={i} hover>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.SALES_ORG}</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.USER_ID}</TableCell>
-                    <TableCell>{r.USER_NM}</TableCell>
+                    <TableCell sx={cellSx('info')}>{r.USER_NM}</TableCell>
                     <TableCell><Chip size="small" label={r.ROLE} color={r.ROLE === '팀장' ? 'primary' : 'default'} variant="outlined" /></TableCell>
                     <TableCell>{r.USE_YN === 'Y' ? <Chip size="small" label="Y" color="success" /> : <Chip size="small" label="N" />}</TableCell>
                   </TableRow>

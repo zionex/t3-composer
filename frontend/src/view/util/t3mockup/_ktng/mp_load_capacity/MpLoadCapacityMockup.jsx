@@ -77,7 +77,7 @@ export default function MpLoadCapacityMockup() {
                     <TableCell sx={{ textAlign: 'right' }}>{r.LINE_CNT}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA_DAY.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN_DAY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: `${loadColor(r.LOAD)}.main` }}>{r.LOAD.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOAD.toFixed(1)}%</TableCell>
                     <TableCell sx={{ minWidth: 130 }}>
                       <LinearProgress variant="determinate" value={Math.min(r.LOAD, 100)} color={loadColor(r.LOAD)} sx={{ height: 8, borderRadius: 1 }} />
                     </TableCell>
@@ -116,7 +116,7 @@ export default function MpLoadCapacityMockup() {
                     <TableCell>{r.RES_NM}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA_H.toLocaleString()}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN_H.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: `${loadColor(r.LOAD)}.main` }}>{r.LOAD.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOAD.toFixed(1)}%</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.JC_TIME}</TableCell>
                   </TableRow>
                 ))}

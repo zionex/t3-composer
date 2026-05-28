@@ -60,16 +60,17 @@ export default function DpProductionAllocMockup() {
               {ROWS.map((r, i) => {
                 const total = RATIO_BY_ITEM[r.ITEM_LV3_CD];
                 const isFirst = ROWS.findIndex((x) => x.ITEM_LV3_CD === r.ITEM_LV3_CD) === i;
+                const groupStatus = total === 100 ? 'success' : 'danger';
                 return (
                   <TableRow key={i} hover>
                     <TableCell sx={{ fontFamily: 'monospace', fontWeight: isFirst ? 700 : 400 }}>{r.ITEM_LV3_CD}</TableCell>
                     <TableCell>{r.ITEM_NM}</TableCell>
                     <TableCell>{r.PROD_SITE}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}><Chip size="small" label={r.PRIORITY} color={r.PRIORITY === 1 ? 'primary' : 'default'} variant="outlined" /></TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.RATIO.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.RATIO.toFixed(1)}%</TableCell>
                     <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.EFFECTIVE}</TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>
-                      {isFirst && <Chip size="small" label={total === 100 ? `합계 ${total}%` : `합계 ${total}%`} color={total === 100 ? 'success' : 'error'} />}
+                      {isFirst && <Chip size="small" label={`합계 ${total}%`} color={groupStatus === 'success' ? 'success' : 'error'} />}
                     </TableCell>
                   </TableRow>
                 );

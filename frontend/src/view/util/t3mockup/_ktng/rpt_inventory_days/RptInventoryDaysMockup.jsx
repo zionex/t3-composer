@@ -94,26 +94,26 @@ export default function RptInventoryDaysMockup() {
               </TableHead>
               <TableBody>
                 {ROWS.map((r, i) => (
-                  <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'bad' ? 'error.light' : 'transparent' }}>
+                  <TableRow key={i} hover>
                     <TableCell>{r.LOCATION}</TableCell>
                     <TableCell>{r.ITEM_LV2}</TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: r.DAYS > 90 ? 'error.main' : r.DAYS > 30 ? 'warning.main' : 'success.main' }}>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                       {r.DAYS} 일
                     </TableCell>
                     <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.AMT.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'success.dark' }}>{(r.AGE_30 / 1000).toFixed(1)}K</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'info.dark' }}>{(r.AGE_60 / 1000).toFixed(1)}K</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'warning.dark' }}>{(r.AGE_90 / 1000).toFixed(1)}K</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.AGE_180 > 0 ? 'error.dark' : 'text.disabled', fontWeight: r.AGE_180 > 0 ? 700 : 400 }}>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{(r.AGE_30 / 1000).toFixed(1)}K</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{(r.AGE_60 / 1000).toFixed(1)}K</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{(r.AGE_90 / 1000).toFixed(1)}K</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
                       {(r.AGE_180 / 1000).toFixed(1)}K
                     </TableCell>
                     <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS.toUpperCase()} color={STATUS_COLOR[r.STATUS]} /></TableCell>
                   </TableRow>
                 ))}
-                <TableRow sx={{ backgroundColor: 'error.light' }}>
-                  <TableCell colSpan={8} sx={{ fontWeight: 700, color: 'error.contrastText' }}>장기재고 (180일+) 합계</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: 'error.contrastText' }}>{(TOTAL / 1000).toFixed(1)}K</TableCell>
+                <TableRow>
+                  <TableCell colSpan={8}>장기재고 (180일+) 합계</TableCell>
+                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{(TOTAL / 1000).toFixed(1)}K</TableCell>
                   <TableCell />
                 </TableRow>
               </TableBody>

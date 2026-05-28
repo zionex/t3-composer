@@ -51,13 +51,22 @@ const UNMAPPED_COLS = [
   { name: 'DAYS_OPEN',  label: '미매핑일수', width: 100, align: 'right' },
   { name: 'SUGG_LVL4',  label: '추천 Lvl4',  width: 120, align: 'left' },
 ];
-const UNMAPPED = [
+// UNMAPPED row status — DAYS_OPEN/추천 가용 여부 기준
+//   DAYS_OPEN > 30 OR SUGG_LVL4 == '?' → danger · > 14 → warning · 그 외 normal
+function unmappedRowStatus(r) {
+  if (r.DAYS_OPEN > 30 || r.SUGG_LVL4 === '?') return 'danger';
+  if (r.DAYS_OPEN > 14) return 'warning';
+  return 'normal';
+}
+
+const UNMAPPED_RAW = [
   { ITEM_CD: 'TL-RD-077', ITEM_NM: '레드 한정판 골드 20pcs', PROD_SITE: '신탄진 공장',   PROD_QTY:  85000, PROD_AMT: 272.9, DAYS_OPEN: 12, SUGG_LVL4: 'L4-KR-SH' },
   { ITEM_CD: 'EQ-IL-208', ITEM_NM: 'illuvia 디바이스 V4 한정', PROD_SITE: '대전 공장',     PROD_QTY:  42000, PROD_AMT: 168.0, DAYS_OPEN:  8, SUGG_LVL4: 'L4-KR-DJ' },
   { ITEM_CD: 'TL-EX-512', ITEM_NM: '수출 KING-SIZE 100mm 신규', PROD_SITE: '인도네시아', PROD_QTY: 320000, PROD_AMT: 944.0, DAYS_OPEN: 25, SUGG_LVL4: 'L4-GL-ID' },
   { ITEM_CD: 'TL-MN-901', ITEM_NM: '몽골 한정 라이트',         PROD_SITE: '몽골',          PROD_QTY:  18500, PROD_AMT:  44.4, DAYS_OPEN: 35, SUGG_LVL4: 'L4-GL-MN' },
   { ITEM_CD: 'NEW-001',   ITEM_NM: '신제품 코드 미정',         PROD_SITE: '미확인',         PROD_QTY:   5200, PROD_AMT:  18.7, DAYS_OPEN: 45, SUGG_LVL4: '?'        },
 ];
+const UNMAPPED = UNMAPPED_RAW.map((r) => ({ ...r, status: unmappedRowStatus(r) }));
 
 const LVL4_TAB_LABELS = ['속성 관리 (CmKtng09)', '생산지별 공헌이익 (CmKtng10)', 'Unmapping 리스트 (CmKtng11)'];
 
@@ -162,7 +171,7 @@ export default function CmLvl4Mockup() {
                 </TableHead>
                 <TableBody>
                   {UNMAPPED.map((r, i) => (
-                    <TableRow key={i} hover sx={{ backgroundColor: r.DAYS_OPEN > 30 ? 'error.light' : 'transparent' }}>
+                    <TableRow key={i} hover>
                       <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
                       {UNMAPPED_COLS.map((c) => {
                         const v = r[c.name];
@@ -171,14 +180,11 @@ export default function CmLvl4Mockup() {
                         if (c.name === 'PROD_QTY') display = v.toLocaleString() + ' 본';
                         else if (c.name === 'PROD_AMT') display = v.toFixed(1) + 'K원';
                         else if (c.name === 'DAYS_OPEN') display = v + ' 일';
-                        const color = c.name === 'DAYS_OPEN' ? (v > 30 ? 'error.dark' : v > 14 ? 'warning.main' : 'inherit')
-                                  : c.name === 'SUGG_LVL4' && v === '?' ? 'error.main' : 'inherit';
-                        const fontWeight = c.name === 'DAYS_OPEN' || c.name === 'SUGG_LVL4' ? 600 : 400;
-                        return (
-                          <TableCell key={c.name} sx={{ textAlign: c.align, fontFamily: isMono ? 'monospace' : 'inherit', color, fontWeight }}>
-                            {display}
-                          </TableCell>
-                        );
+                        const sx = {
+                          textAlign: c.align,
+                          fontFamily: isMono ? 'monospace' : 'inherit',
+                        };
+                        return <TableCell key={c.name} sx={sx}>{display}</TableCell>;
                       })}
                     </TableRow>
                   ))}

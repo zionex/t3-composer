@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Collapse, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab, FormControlLabel, Checkbox } from '@mui/material';
+import { Box, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab, FormControlLabel, Checkbox } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import DownloadIcon from '@mui/icons-material/Download';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
@@ -780,19 +780,22 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     <ExpandMoreIcon fontSize="small"
                       sx={{ color: '#94a3b8', transform: chatExpanded ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
                   </Box>
-                  <Collapse in={chatExpanded} sx={{ flex: chatExpanded ? 1 : 'none', minHeight: 0, overflow: 'hidden' }}
-                            timeout={150}>
-                    <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                      <ChatPanel
-                        ref={chatRef}
-                        sessionId={session.id}
-                        onNewAssistantMsg={triggerRefresh}
-                        onGenStatus={setGenStatus}
-                        initialPrompt={initialPrompt}
-                        initialAttachments={initialAttachments}
-                      />
-                    </Box>
-                  </Collapse>
+                  {/* 채팅 본문 — 항상 마운트(접혀도 initialPrompt 자동 전송 동작).
+                       펼침: flex:1+minHeight:0 (ChatPanel 내부 스크롤 정상) · 접힘: height:0.
+                       ※ MUI Collapse 는 열릴 때 높이를 content(auto)로 잡아 내부 스크롤이
+                          깨지므로 사용하지 않음 (검증된 비-접힘 래퍼와 동일 구조 사용). */}
+                  <Box sx={chatExpanded
+                    ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }
+                    : { flex: 'none', height: 0, overflow: 'hidden' }}>
+                    <ChatPanel
+                      ref={chatRef}
+                      sessionId={session.id}
+                      onNewAssistantMsg={triggerRefresh}
+                      onGenStatus={setGenStatus}
+                      initialPrompt={initialPrompt}
+                      initialAttachments={initialAttachments}
+                    />
+                  </Box>
                 </Box>
               ) : (
                 <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>

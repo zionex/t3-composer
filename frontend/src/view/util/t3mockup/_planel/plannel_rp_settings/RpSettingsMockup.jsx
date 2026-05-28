@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Tabs, Tab, Switch, FormControlLabel,
   Table, TableHead, TableBody, TableRow, TableCell, Divider } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -16,6 +16,7 @@ const NETWORK_ROWS = [
 ];
 
 export default function RpSettingsMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="plannel_rp_settings"
@@ -25,7 +26,7 @@ export default function RpSettingsMockup() {
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Tabs value={0}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label="RP 정책" />
             <Tab label="분배 네트워크" />
             <Tab label="고급 설정" disabled />
@@ -35,6 +36,7 @@ export default function RpSettingsMockup() {
         </Stack>
       </Box>
 
+      {tab === 0 && (
       <Box sx={{ p: 2 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>정책 파라미터</Typography>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -54,9 +56,11 @@ export default function RpSettingsMockup() {
           <FormControlLabel control={<Switch />} label="공급 우선순위 적용" />
         </Stack>
       </Box>
+      )}
 
-      <Divider />
+      {tab === 0 && <Divider />}
 
+      {tab === 1 && (
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>분배 네트워크</Typography>
         <Table size="small">
@@ -84,6 +88,7 @@ export default function RpSettingsMockup() {
           </TableBody>
         </Table>
       </Box>
+      )}
     </MockShell>
   );
 }

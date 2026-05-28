@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, Button, Chip, Typography, Paper, LinearProgress,
-  Stepper, Step, StepLabel, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
+  Stepper, Step, StepButton, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
@@ -26,6 +26,8 @@ const LOG_LINES = [
 ];
 
 export default function RpCreateMockup() {
+  const [activeStep, setActiveStep] = useState(1);
+  const current = RP_STEPS[activeStep] || RP_STEPS[0];
   return (
     <MockShell
       patternCode="plannel_rp_create"
@@ -36,10 +38,10 @@ export default function RpCreateMockup() {
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <Box sx={{ width: '34%', borderRight: '1px solid', borderColor: 'divider', p: 2, overflow: 'auto' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>실행 단계</Typography>
-          <Stepper activeStep={1} orientation="vertical">
+          <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
             {RP_STEPS.map((s, i) => (
               <Step key={s.label} completed={s.status === 'done'}>
-                <StepLabel>
+                <StepButton onClick={() => setActiveStep(i)} sx={{ textAlign: 'left' }}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{s.label}</Typography>
                     {s.status === 'running' && <Chip label="RUNNING" size="small" color="warning" sx={{ height: 18 }} />}
@@ -47,7 +49,7 @@ export default function RpCreateMockup() {
                   {s.status === 'running' && (
                     <LinearProgress variant="determinate" value={s.progress} sx={{ mt: 0.5, height: 4 }} />
                   )}
-                </StepLabel>
+                </StepButton>
               </Step>
             ))}
           </Stepper>
@@ -55,9 +57,12 @@ export default function RpCreateMockup() {
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" alignItems="center" sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-            <Chip label="RP Engine — Step 2/5" color="warning" />
+            <Chip
+              label={`RP Engine — Step ${activeStep + 1}/${RP_STEPS.length} · ${current.label}`}
+              color={current.status === 'done' ? 'success' : current.status === 'running' ? 'warning' : 'default'}
+            />
             <Box sx={{ flexGrow: 1 }} />
-            <Button size="small" disabled>다음</Button>
+            <Button size="small" disabled={activeStep >= RP_STEPS.length - 1} onClick={() => setActiveStep((s) => Math.min(s + 1, RP_STEPS.length - 1))}>다음</Button>
             <Button size="small" startIcon={<PlayArrowIcon />} variant="contained">재실행</Button>
           </Stack>
 
@@ -65,11 +70,11 @@ export default function RpCreateMockup() {
             <Paper elevation={0} sx={{ p: 2, mb: 2, border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>실행 진척</Typography>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                <Typography variant="caption">BOM 전개 → 재고 차감 → 발주 계산</Typography>
+                <Typography variant="caption">{current.label}</Typography>
                 <Box sx={{ flexGrow: 1 }} />
-                <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>67%</Typography>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>{current.progress}%</Typography>
               </Stack>
-              <LinearProgress variant="determinate" value={67} sx={{ height: 8, borderRadius: 1 }} />
+              <LinearProgress variant="determinate" value={current.progress} sx={{ height: 8, borderRadius: 1 }} />
             </Paper>
 
             <Paper elevation={0} sx={{ p: 0, border: '1px solid', borderColor: 'divider' }}>

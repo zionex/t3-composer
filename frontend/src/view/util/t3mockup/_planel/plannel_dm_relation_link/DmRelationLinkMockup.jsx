@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, Checkbox, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -30,6 +30,8 @@ const CHILD_ROWS = [
 ];
 
 export default function DmRelationLinkMockup() {
+  const [selectedCD, setSelectedCD] = useState('CUST-K001');
+  const current = PARENT_ROWS.find((r) => r.CD === selectedCD) || PARENT_ROWS[0];
   return (
     <MockShell
       patternCode="plannel_dm_relation_link"
@@ -68,9 +70,10 @@ export default function DmRelationLinkMockup() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PARENT_ROWS.map((r, idx) => (
-                  <TableRow key={r.CD} hover selected={idx === 0}
-                    sx={{ '&.Mui-selected': { backgroundColor: 'primary.100' } }}>
+                {PARENT_ROWS.map((r) => (
+                  <TableRow key={r.CD} hover selected={r.CD === selectedCD}
+                    onClick={() => setSelectedCD(r.CD)}
+                    sx={{ cursor: 'pointer', '&.Mui-selected': { backgroundColor: 'primary.100' } }}>
                     <TableCell sx={{ fontFamily: 'monospace' }}>{r.CD}</TableCell>
                     <TableCell>
                       {r.NM} <Chip label={r.region} size="small" sx={{ ml: 0.5, fontSize: 10 }} />
@@ -89,7 +92,7 @@ export default function DmRelationLinkMockup() {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" alignItems="center" sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'success.50' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              Item (자식) — Samsung Display 의 12개 연결
+              Item (자식) — {current.NM} 의 {current.linked}개 연결
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Button size="small" startIcon={<SaveIcon />} variant="contained">관계 저장</Button>

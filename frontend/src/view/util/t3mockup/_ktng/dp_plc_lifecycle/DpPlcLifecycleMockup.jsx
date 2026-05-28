@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab, Paper, Typography,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,7 +27,10 @@ const ROWS = [
 
 const STATUS_COLOR = { launching: 'info', normal: 'success', replacement: 'warning', declining: 'warning', eop: 'error' };
 
+const PLC_TAB_LABELS = ['PLC 현황 (DpKtng04)', 'EOP 생산수량 (DpKtng14)', '생명주기 조건 (DpKtng16)'];
+
 export default function DpPlcLifecycleMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_dp_plc_lifecycle" patternLabel="KTNG — PLC / EOP / 생명주기 (DpKtng04/14/16)"
       layoutCategory="LAYOUT_SINGLE" description="제품 생명주기 단계별 현황 + 신/구품 매핑 + EOP 생산수량 관리.">
@@ -47,10 +50,8 @@ export default function DpPlcLifecycleMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0}>
-          <Tab label="PLC 현황 (DpKtng04)" />
-          <Tab label="EOP 생산수량 (DpKtng14)" />
-          <Tab label="생명주기 조건 (DpKtng16)" />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          {PLC_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
         </Tabs>
       </Box>
 
@@ -69,7 +70,7 @@ export default function DpPlcLifecycleMockup() {
         {/* Item list */}
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>품목별 생명주기 현황</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>품목별 생명주기 현황 — {PLC_TAB_LABELS[tab]}</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Button size="small" startIcon={<SaveIcon />}>저장</Button>
           </Box>

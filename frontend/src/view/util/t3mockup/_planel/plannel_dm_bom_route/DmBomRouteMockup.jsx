@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Tabs, Tab, Paper, Divider } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
@@ -41,6 +41,7 @@ const NodeBox = ({ node, level }) => (
 );
 
 export default function DmBomRouteMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="plannel_dm_bom_route"
@@ -61,7 +62,7 @@ export default function DmBomRouteMockup() {
             <MenuItem value="V2026.05">V2026.05</MenuItem>
           </TextField>
           <Box sx={{ flexGrow: 1 }} />
-          <Tabs value={0}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label="BOM" />
             <Tab label="Route" disabled />
             <Tab label="BOD" disabled />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab, Paper, Typography,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Checkbox } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,6 +28,7 @@ const MAT_ROWS = [
 ];
 
 export default function MpMasterDataMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_mp_master_data" patternLabel="KTNG — MP 기준정보 / 자재 마스터 (MpKtng01/09)"
       layoutCategory="LAYOUT_SINGLE" description="MP 운영을 위한 기준정보 + 자재 마스터. 탭으로 전환.">
@@ -46,7 +47,7 @@ export default function MpMasterDataMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-        <Tabs value={0}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label="기준정보 마스터 (MpKtng01)" />
           <Tab label="자재 마스터 (MpKtng09)" />
         </Tabs>
@@ -59,70 +60,74 @@ export default function MpMasterDataMockup() {
       </Box>
 
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {/* 기준정보 마스터 */}
-        <Paper variant="outlined" sx={{ flex: 1 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>① 기준정보 마스터 — {BASE_ROWS.length}건</Typography>
-          </Box>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox" sx={{ backgroundColor: 'grey.100' }}><Checkbox size="small" disabled /></TableCell>
-                  {['ITEM_CD','ITEM_NM','PLANT','LOT_SIZE','CYCLE (h)','CAPA (본/일)','USE_YN'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: c === 'USE_YN' ? 'center' : (c.includes('SIZE') || c.includes('CAPA') || c.includes('CYCLE') ? 'right' : 'left') }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {BASE_ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ITEM_CD}</TableCell>
-                    <TableCell>{r.ITEM_NM}</TableCell>
-                    <TableCell>{r.PLANT}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOT_SIZE.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CYCLE}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.USE_YN} color="success" /></TableCell>
+        {/* 기준정보 마스터 — MpKtng01 */}
+        {tab === 0 && (
+          <Paper variant="outlined" sx={{ flex: 1 }}>
+            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>기준정보 마스터 — {BASE_ROWS.length}건</Typography>
+            </Box>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox" sx={{ backgroundColor: 'grey.100' }}><Checkbox size="small" disabled /></TableCell>
+                    {['ITEM_CD','ITEM_NM','PLANT','LOT_SIZE','CYCLE (h)','CAPA (본/일)','USE_YN'].map((c) => (
+                      <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: c === 'USE_YN' ? 'center' : (c.includes('SIZE') || c.includes('CAPA') || c.includes('CYCLE') ? 'right' : 'left') }}>{c}</TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {BASE_ROWS.map((r, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ITEM_CD}</TableCell>
+                      <TableCell>{r.ITEM_NM}</TableCell>
+                      <TableCell>{r.PLANT}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOT_SIZE.toLocaleString()}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CYCLE}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA.toLocaleString()}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.USE_YN} color="success" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        )}
 
-        {/* 자재 마스터 미리보기 */}
-        <Paper variant="outlined" sx={{ flex: 1 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>② 자재 마스터 — {MAT_ROWS.length}건 / Short {MAT_ROWS.filter(r=>r.STATUS==='short').length}건</Typography>
-          </Box>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {['MAT_CD','자재명','UOM','SAFETY','REORDER','L/T (일)','상태'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: ['SAFETY','REORDER','L/T (일)'].includes(c) ? 'right' : (c === '상태' || c === 'UOM' ? 'center' : 'left') }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {MAT_ROWS.map((r, i) => (
-                  <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'short' ? 'warning.light' : 'transparent' }}>
-                    <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.MAT_CD}</TableCell>
-                    <TableCell>{r.MAT_NM}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.UOM} variant="outlined" /></TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.SAFETY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REORDER.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LEAD_DAYS}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS.toUpperCase()} color={r.STATUS === 'short' ? 'warning' : 'success'} /></TableCell>
+        {/* 자재 마스터 — MpKtng09 */}
+        {tab === 1 && (
+          <Paper variant="outlined" sx={{ flex: 1 }}>
+            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>자재 마스터 — {MAT_ROWS.length}건 / Short {MAT_ROWS.filter(r=>r.STATUS==='short').length}건</Typography>
+            </Box>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {['MAT_CD','자재명','UOM','SAFETY','REORDER','L/T (일)','상태'].map((c) => (
+                      <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
+                        textAlign: ['SAFETY','REORDER','L/T (일)'].includes(c) ? 'right' : (c === '상태' || c === 'UOM' ? 'center' : 'left') }}>{c}</TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {MAT_ROWS.map((r, i) => (
+                    <TableRow key={i} hover sx={{ backgroundColor: r.STATUS === 'short' ? 'warning.light' : 'transparent' }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.MAT_CD}</TableCell>
+                      <TableCell>{r.MAT_NM}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.UOM} variant="outlined" /></TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.SAFETY.toLocaleString()}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REORDER.toLocaleString()}</TableCell>
+                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LEAD_DAYS}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.STATUS.toUpperCase()} color={r.STATUS === 'short' ? 'warning' : 'success'} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        )}
       </Box>
     </MockShell>
   );

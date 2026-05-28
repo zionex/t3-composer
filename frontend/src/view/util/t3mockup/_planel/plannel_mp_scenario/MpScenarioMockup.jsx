@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, Button, Chip, Typography, Paper,
   Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
@@ -24,6 +24,8 @@ const COMPARE_METRICS = [
 ];
 
 export default function MpScenarioMockup() {
+  const [selected, setSelected] = useState('B');
+  const current = SCENARIOS.find((s) => s.id === selected) || SCENARIOS[0];
   return (
     <MockShell
       patternCode="plannel_mp_scenario"
@@ -41,18 +43,23 @@ export default function MpScenarioMockup() {
           </Stack>
           <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
             <Stack spacing={1}>
-              {SCENARIOS.map((s) => (
-                <Paper key={s.id} elevation={s.id === 'B' ? 4 : 1} sx={{
-                  p: 1.5,
-                  border: s.id === 'B' ? '2px solid' : '1px solid',
-                  borderColor: s.id === 'B' ? 'success.main' : 'divider',
-                  backgroundColor: s.id === 'B' ? 'success.50' : undefined,
-                }}>
+              {SCENARIOS.map((s) => {
+                const sel = s.id === selected;
+                return (
+                <Paper key={s.id} elevation={sel ? 4 : 1}
+                  onClick={() => setSelected(s.id)}
+                  sx={{
+                    p: 1.5, cursor: 'pointer',
+                    border: sel ? '2px solid' : '1px solid',
+                    borderColor: sel ? 'success.main' : 'divider',
+                    backgroundColor: sel ? 'success.50' : undefined,
+                    '&:hover': { borderColor: sel ? 'success.main' : 'primary.main' },
+                  }}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Chip label={`SIM-${s.id}`} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700 }}
-                      color={s.id === 'B' ? 'success' : 'default'} />
+                      color={sel ? 'success' : 'default'} />
                     <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>{s.name}</Typography>
-                    {s.id === 'B' && <CheckCircleIcon color="success" sx={{ fontSize: 18 }} />}
+                    {sel && <CheckCircleIcon color="success" sx={{ fontSize: 18 }} />}
                   </Stack>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Chip label={`Fill ${s.fillRate}%`} size="small" variant="outlined"
@@ -64,31 +71,43 @@ export default function MpScenarioMockup() {
                       sx={{ fontSize: 10 }} />
                   </Stack>
                 </Paper>
-              ))}
+                );
+              })}
             </Stack>
           </Box>
         </Box>
 
         <Box sx={{ flex: 1, p: 2, overflow: 'auto' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>KPI 비교 매트릭스</Typography>
+          <Stack direction="row" alignItems="center" sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>KPI 비교 매트릭스</Typography>
+            <Chip label={`강조: SIM-${selected} · ${current.name}`} size="small" color="success" sx={{ ml: 1.5 }} />
+          </Stack>
           <Table size="small">
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
                 <TableCell sx={{ fontWeight: 700 }}>Metric</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>SIM-A</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'right', backgroundColor: 'success.50' }}>SIM-B ✓</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>SIM-C</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'right' }}>SIM-D</TableCell>
+                {SCENARIOS.map((s) => (
+                  <TableCell key={s.id} sx={{
+                    fontWeight: 700, textAlign: 'right',
+                    backgroundColor: s.id === selected ? 'success.50' : undefined,
+                  }}>SIM-{s.id}{s.id === selected ? ' ✓' : ''}</TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {COMPARE_METRICS.map((m) => (
                 <TableRow key={m.metric} hover>
                   <TableCell sx={{ fontWeight: 600 }}>{m.metric}</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{m.a}</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, backgroundColor: 'success.50' }}>{m.b}</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{m.c}</TableCell>
-                  <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{m.d}</TableCell>
+                  {['a','b','c','d'].map((k, i) => {
+                    const sel = SCENARIOS[i].id === selected;
+                    return (
+                      <TableCell key={k} sx={{
+                        textAlign: 'right', fontFamily: 'monospace',
+                        fontWeight: sel ? 700 : 400,
+                        backgroundColor: sel ? 'success.50' : undefined,
+                      }}>{m[k]}</TableCell>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableBody>

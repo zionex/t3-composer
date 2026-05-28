@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper,
   Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,6 +20,8 @@ const AUDIT_ROWS = [
 const actionColor = (a) => a === 'CREATE' ? 'success' : a === 'DELETE' ? 'error' : 'info';
 
 export default function AuditMockup() {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const current = AUDIT_ROWS[selectedIdx] || AUDIT_ROWS[0];
   return (
     <MockShell
       patternCode="plannel_audit"
@@ -63,8 +65,9 @@ export default function AuditMockup() {
             </TableHead>
             <TableBody>
               {AUDIT_ROWS.map((r, i) => (
-                <TableRow key={i} hover selected={i === 0}
-                  sx={{ '&.Mui-selected': { backgroundColor: 'primary.50' } }}>
+                <TableRow key={i} hover selected={i === selectedIdx}
+                  onClick={() => setSelectedIdx(i)}
+                  sx={{ cursor: 'pointer', '&.Mui-selected': { backgroundColor: 'primary.50' } }}>
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: 11 }}>{r.dt}</TableCell>
                   <TableCell>{r.user}</TableCell>
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.table}</TableCell>
@@ -83,22 +86,28 @@ export default function AuditMockup() {
           </Stack>
 
           <Stack spacing={1.5}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+              <Chip label={current.table} size="small" sx={{ fontFamily: 'monospace' }} />
+              <Chip label={current.action} size="small" color={actionColor(current.action)} />
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{current.field}</Typography>
+            </Stack>
+
             <Paper elevation={0} sx={{ p: 1.5, backgroundColor: 'error.50', borderLeft: '4px solid', borderLeftColor: 'error.main' }}>
               <Typography variant="caption" color="error.dark" sx={{ fontWeight: 700 }}>BEFORE (old)</Typography>
               <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'error.dark', mt: 0.5 }}>
-                planHorizon = 12
+                {current.field} = {current.oldVal}
               </Typography>
             </Paper>
             <Paper elevation={0} sx={{ p: 1.5, backgroundColor: 'success.50', borderLeft: '4px solid', borderLeftColor: 'success.main' }}>
               <Typography variant="caption" color="success.dark" sx={{ fontWeight: 700 }}>AFTER (new)</Typography>
               <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'success.dark', mt: 0.5 }}>
-                planHorizon = 18
+                {current.field} = {current.newVal}
               </Typography>
             </Paper>
 
             <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
-              <Chip label="By: 김계획" size="small" variant="outlined" />
-              <Chip label="2026-05-26 14:23" size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: 10 }} />
+              <Chip label={`By: ${current.user}`} size="small" variant="outlined" />
+              <Chip label={current.dt} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: 10 }} />
               <Chip label="IP: 10.0.42.12" size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: 10 }} />
             </Stack>
 

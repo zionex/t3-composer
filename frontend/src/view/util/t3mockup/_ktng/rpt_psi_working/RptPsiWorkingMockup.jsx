@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -44,6 +44,7 @@ const MEASURE_COLOR = { PLAN: 'primary', ACTUAL: 'success', INV: 'warning' };
 const fmtN = (n) => n == null ? '-' : n.toLocaleString();
 
 export default function RptPsiWorkingMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_rpt_psi_working" patternLabel="KTNG — Working Report PSI (RptKtng16~22)"
       layoutCategory="LAYOUT_SINGLE" description="7개 채널 PSI / 계획 vs 실적 — 거점 × 품목군 × 주차별 PLAN/ACTUAL/INV. 미래 주차는 ACTUAL 비어있음.">
@@ -63,8 +64,8 @@ export default function RptPsiWorkingMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0} variant="scrollable" scrollButtons="auto">
-          {CHANNELS.map((c, i) => <Tab key={c.key} label={c.label} />)}
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
+          {CHANNELS.map((c) => <Tab key={c.key} label={c.label} />)}
         </Tabs>
       </Box>
 
@@ -74,6 +75,7 @@ export default function RptPsiWorkingMockup() {
           <Chip size="small" label="ACTUAL" color="success" variant="outlined" />
           <Chip size="small" label="INV" color="warning" variant="outlined" />
           <Box sx={{ flexGrow: 1 }} />
+          <Chip size="small" label={`채널: ${CHANNELS[tab].label}`} color="info" variant="outlined" />
           <Typography variant="caption" color="text.secondary">현재 주차: W21 (실적 미래 주차는 미입력)</Typography>
         </Stack>
 

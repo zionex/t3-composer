@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,7 +27,10 @@ const ROWS = [
 
 const BAND_COLOR = { green: 'success', yellow: 'warning', red: 'error' };
 
+const ACC_TAB_LABELS = ['Sell Out 정확도 (01)', '유통재고 판매 (02)', '유통재고 재고 (03)', '수요입력 현황 (04)', '수요예측 전사 (05)', '수요예측 6개월 (06)'];
+
 export default function RptAccuracyMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_rpt_accuracy" patternLabel="KTNG — 예측 정확도 리포트 (RptKtng01~06)"
       layoutCategory="LAYOUT_SINGLE" description="Sell Out / 유통재고 / 수요예측 / 수요입력 등 6개 KTNG 정확도 리포트 — 탭 전환 + 조직·품목군별 그리드.">
@@ -47,13 +50,8 @@ export default function RptAccuracyMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0} variant="scrollable">
-          <Tab label="Sell Out 정확도 (01)" />
-          <Tab label="유통재고 판매 (02)" />
-          <Tab label="유통재고 재고 (03)" />
-          <Tab label="수요입력 현황 (04)" />
-          <Tab label="수요예측 전사 (05)" />
-          <Tab label="수요예측 6개월 (06)" />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable">
+          {ACC_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
         </Tabs>
       </Box>
 
@@ -73,7 +71,7 @@ export default function RptAccuracyMockup() {
 
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>조직 · 품목군별 정확도 상세</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>조직 · 품목군별 정확도 상세 — {ACC_TAB_LABELS[tab]}</Typography>
           </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>

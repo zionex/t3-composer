@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -29,7 +29,10 @@ const ROWS = [
 const STATUS_COLOR = { good: 'success', normal: 'info', warn: 'warning', bad: 'error' };
 const TOTAL = ROWS.reduce((s, r) => s + r.AGE_180, 0);
 
+const TAB_LABELS = ['생산소 (12)', '판매법인 (13)', '공장 (14)', '장기재고 (15)', 'WMS (26)'];
+
 export default function RptInventoryDaysMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell patternCode="ktng_rpt_inventory_days" patternLabel="KTNG — 재고일수 / 장기재고 리포트 (RptKtng12~15, 26)"
       layoutCategory="LAYOUT_SINGLE" description="완제품 재고일수 (생산소·판매법인·공장) + 장기재고 + 제조일자별 WMS — 거점·품목군 × 30/60/90/180일 구간.">
@@ -49,12 +52,8 @@ export default function RptInventoryDaysMockup() {
       </Box>
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={0} variant="scrollable">
-          <Tab label="생산소 (12)" />
-          <Tab label="판매법인 (13)" />
-          <Tab label="공장 (14)" />
-          <Tab label="장기재고 (15)" />
-          <Tab label="WMS (26)" />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable">
+          {TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
         </Tabs>
       </Box>
 
@@ -74,7 +73,7 @@ export default function RptInventoryDaysMockup() {
 
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 280 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>거점·품목군별 재고일수 + Aging</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>거점·품목군별 재고일수 + Aging — {TAB_LABELS[tab]}</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Stack direction="row" spacing={0.5}>
               <Chip size="small" label="30일 이내" color="success" variant="outlined" />

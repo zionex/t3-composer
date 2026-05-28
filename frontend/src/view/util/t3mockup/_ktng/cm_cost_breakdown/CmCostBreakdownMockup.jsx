@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
@@ -58,7 +58,10 @@ const TREND = [
 const fmtN = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
 
+const COST_TAB_LABELS = ['재료비 (CmKtng02)', '마킹비 (CmKtng03)', '하이퍼인플레이션 (CmKtng04)', '물류비 (CmKtng05)', '관세 (CmKtng06)', '정상자재 (CmKtng07)', '원화가 (CmKtng08)'];
+
 export default function CmCostBreakdownMockup() {
+  const [tab, setTab] = useState(0);
   return (
     <MockShell
       patternCode="ktng_cm_cost_breakdown"
@@ -94,13 +97,13 @@ export default function CmCostBreakdownMockup() {
 
       {/* 비용 항목 탭 */}
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', px: 1.5 }}>
-        <Tabs value={0} variant="standard" scrollButtons="auto">
-          {COST_ITEMS.map((c) => (
-            <Tab key={c.key} label={c.key} sx={{ color: c.active ? c.color : undefined, fontWeight: c.active ? 700 : 400 }} />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="standard" scrollButtons="auto">
+          {COST_ITEMS.map((c, i) => (
+            <Tab key={c.key} label={c.key} sx={{ color: i === tab ? c.color : undefined, fontWeight: i === tab ? 700 : 400 }} />
           ))}
         </Tabs>
         <Box sx={{ flexGrow: 1 }} />
-        <Chip size="small" label="현재: 재료비 (CmKtng02)" color="warning" />
+        <Chip size="small" label={`현재: ${COST_TAB_LABELS[tab]}`} color="warning" />
       </Box>
 
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'auto' }}>
@@ -123,7 +126,7 @@ export default function CmCostBreakdownMockup() {
         {/* 월별 추이 mini chart */}
         <Paper variant="outlined" sx={{ p: 1.5 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>월별 재료비 추이 (단위: M원)</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>월별 {COST_ITEMS[tab].key} 추이 (단위: M원)</Typography>
             <Chip size="small" label="평균 306M / 월" color="warning" variant="outlined" />
           </Stack>
           <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 90, mt: 1 }}>
@@ -140,7 +143,7 @@ export default function CmCostBreakdownMockup() {
         {/* Detail grid */}
         <Paper variant="outlined" sx={{ flex: 1, minHeight: 200, display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>생산지·품목별 재료비 상세</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>생산지·품목별 {COST_ITEMS[tab].key} 상세</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`${ROWS.length} rows`} />
             <Button size="small" startIcon={<DownloadIcon />} sx={{ ml: 1 }}>Excel</Button>

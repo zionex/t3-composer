@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Stack, Button, Chip, Typography, Paper, List, ListItem, ListItemText } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
@@ -22,6 +22,8 @@ const RESULT_KPIS = [
 ];
 
 export default function IpSimulationMockup() {
+  const [selected, setSelected] = useState('S1');
+  const current = SCENARIOS.find((s) => s.id === selected) || SCENARIOS[0];
   return (
     <MockShell
       patternCode="plannel_ip_simulation"
@@ -39,13 +41,18 @@ export default function IpSimulationMockup() {
           </Stack>
           <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
             <Stack spacing={1.5}>
-              {SCENARIOS.map((s) => (
-                <Paper key={s.id} elevation={s.id === 'S1' ? 4 : 1} sx={{
-                  p: 1.5,
-                  border: s.id === 'S1' ? '2px solid' : '1px solid',
-                  borderColor: s.id === 'S1' ? 'success.main' : 'divider',
-                  backgroundColor: s.id === 'S1' ? 'success.50' : undefined,
-                }}>
+              {SCENARIOS.map((s) => {
+                const sel = s.id === selected;
+                return (
+                <Paper key={s.id} elevation={sel ? 4 : 1}
+                  onClick={() => setSelected(s.id)}
+                  sx={{
+                    p: 1.5, cursor: 'pointer',
+                    border: sel ? '2px solid' : '1px solid',
+                    borderColor: sel ? 'success.main' : 'divider',
+                    backgroundColor: sel ? 'success.50' : undefined,
+                    '&:hover': { borderColor: sel ? 'success.main' : 'primary.main' },
+                  }}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Chip label={s.id} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700 }} />
                     {s.ai && <Chip label="🤖 AI" size="small" color="primary" />}
@@ -54,7 +61,8 @@ export default function IpSimulationMockup() {
                   </Stack>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{s.tier}</Typography>
                 </Paper>
-              ))}
+                );
+              })}
             </Stack>
             <Paper elevation={0} sx={{ p: 1.5, mt: 2, backgroundColor: 'primary.50', border: '1px dashed', borderColor: 'primary.main' }}>
               <Stack direction="row" alignItems="center">
@@ -71,7 +79,7 @@ export default function IpSimulationMockup() {
         </Box>
 
         <Box sx={{ flex: 1, p: 2, overflow: 'auto' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>시뮬 결과 — S1 + S2 적용 시</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>시뮬 결과 — {current.id} ({current.name}) 적용 시</Typography>
           <Stack spacing={1.5}>
             {RESULT_KPIS.map((k) => (
               <Paper key={k.label} elevation={1} sx={{ p: 1.5 }}>

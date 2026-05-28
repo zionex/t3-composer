@@ -70,7 +70,7 @@ const MAX_AUTOFIX = 1;
 //   영구 제거하려면 별도 PR 로 ArtifactPreviewService·PreviewEmbed·preview/runtime.js·
 //   shim 의 preview-only 컴포넌트까지 정리 필요.
 // ───────────────────────────────────────────────────────────────────────────
-const SHOW_PREVIEW_UI = false;
+const SHOW_PREVIEW_UI = true;
 
 function modelMeta(id) {
   return MODEL_OPTIONS.find((m) => m.id === id)

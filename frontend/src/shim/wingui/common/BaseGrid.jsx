@@ -228,7 +228,11 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
     }, [id]);
 
     return (
-        <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        // outer Box: flex container 부모면 flex:1 으로, 일반 block 부모면 height:100% 으로 양쪽 호환.
+        //   (2026-05-28) 산출물의 wrapper `<div style={{flex:1,minHeight:0}}>` 가 flex container 가
+        //   아닐 때 flex:1 만으로는 outer Box height=0 → grid body 0px collapse. height:100% 추가로
+        //   부모가 block-level 일 때도 정상 expand. 부모가 flex container 면 flex:1 가 우선 적용됨.
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%', position: 'relative' }}>
             <Box
                 ref={containerRef}
                 sx={{

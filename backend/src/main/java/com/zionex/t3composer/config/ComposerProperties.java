@@ -16,8 +16,10 @@ import lombok.extern.slf4j.Slf4j;
  *
  * 추가 필드 (단독 환경 전용):
  * - apply-mode: staging | direct
- * - wingui-ref-path: 부모 wingui 폴더 read-only 경로
- * - database-ref-path: 부모 t3series-database 폴더 경로
+ *
+ * (2026-05-28) 글로벌 wingui-ref-path / database-ref-path 필드 폐기.
+ *   대신 Per-Target (`tb_cmp_target_system.source_ref_path` 또는 `/workspace/targets/<CD>/wingui`)
+ *   만 사용. TargetPathResolver 가 우선순위 처리.
  */
 @Slf4j
 @Data
@@ -30,14 +32,12 @@ public class ComposerProperties {
     /** staging | direct */
     private String applyMode = "staging";
 
-    /** Files.write 의 base 경로. staging mode 일 때 staging dir, direct mode 일 때 wingui dir */
+    /**
+     * Files.write 의 base 경로. staging mode (글로벌 fallback).
+     *   (2026-05-28) Per-Target routing 도입 후엔 ArtifactApplyService 가
+     *   TargetPathResolver.resolveSourcePath(targetCd) 우선 사용, 못 찾을 때만 이 path 로 fallback.
+     */
     private String projectRoot;
-
-    /** 부모 wingui 폴더 (NEW_FROM_COPY 의 sourceBundle 수집용 read-only) */
-    private String winguiRefPath;
-
-    /** 부모 t3series-database 폴더 */
-    private String databaseRefPath;
 
     /** DDL/SP 파일을 upgrade 폴더에 저장할 때 사용할 버전 폴더명 */
     private String upgradeVersion;
@@ -81,23 +81,19 @@ public class ComposerProperties {
     }
 
     /**
-     * apply-mode 가 'direct' 면 startup 시 projectRoot 를 winguiRefPath 로 자동 전환.
-     * 이로써 ArtifactApplyService 등 기존 코드 (props.getComposer().getProjectRoot()) 는 변경 없이
-     * staging/direct 두 모드 모두 정상 동작.
+     * (2026-05-28) apply-mode 의 direct 자동 전환 로직 폐기 —
+     *   Per-Target routing (TargetPathResolver) 가 ArtifactApplyService 에 도입된 이후,
+     *   글로벌 winguiRefPath 기반의 direct 전환은 더 이상 의미 없음. apply-mode 는
+     *   staging fallback 의 base path 결정 용도로만 유지.
+     *   direct 시도 시 경고만 남기고 staging 으로 fallback (호환성).
      */
     @PostConstruct
     void resolveEffectiveProjectRoot() {
         if (isDirectMode()) {
-            if (winguiRefPath != null && !winguiRefPath.isBlank()) {
-                String prev = projectRoot;
-                this.projectRoot = winguiRefPath;
-                log.info("Composer apply-mode=direct → projectRoot 전환: {} → {}", prev, projectRoot);
-            } else {
-                log.warn("Composer apply-mode=direct 인데 winguiRefPath 가 비어있어 staging 으로 fallback");
-                this.applyMode = "staging";
-            }
-        } else {
-            log.info("Composer apply-mode=staging, projectRoot={}", projectRoot);
+            log.warn("Composer apply-mode=direct 는 폐기됨 — Per-Target wingui (TARGET_<CD>_WINGUI_PATH) "
+                  + "가 자동으로 사용됨. staging fallback 으로 전환.");
+            this.applyMode = "staging";
         }
+        log.info("Composer apply-mode=staging, projectRoot={} (Per-Target 미해석 시 fallback)", projectRoot);
     }
 }

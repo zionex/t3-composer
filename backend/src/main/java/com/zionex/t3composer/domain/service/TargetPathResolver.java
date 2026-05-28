@@ -19,8 +19,10 @@ import lombok.RequiredArgsConstructor;
  *  2. Per-Target 마운트 convention — /workspace/targets/&lt;CD&gt;/{wingui|database}
  *     (docker-compose 에서 TARGET_&lt;CD&gt;_WINGUI_PATH 가 .env 에 설정된 경우 활성 —
  *     mount path 의 'wingui' 토큰은 호환을 위한 내부 이름이며 의미는 'source')
- *  3. app.composer.wingui-ref-path / database-ref-path (글로벌 fallback — application.yaml)
- *  4. 컨테이너 안 default (/workspace/wingui · /workspace/database)
+ *
+ * (2026-05-28) 글로벌 wingui-ref-path / database-ref-path fallback 폐기.
+ *   사용자 의도 (Target 별 유연한 소스 생성 · 하드코딩 제거) 에 따라 Per-Target 만 사용.
+ *   못 찾으면 null 반환 — 호출자가 staging fallback 또는 에러 처리.
  *
  * 각 후보는 단순 디렉토리 존재가 아니라 <b>구조 마커</b> 보유 여부로 채택한다.
  * docker-compose 는 per-Target slot 미설정 시 빈 './empty' (.gitkeep 만 든) 디렉토리를
@@ -35,9 +37,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TargetPathResolver {
 
-    private static final String DEFAULT_WINGUI_PATH   = "/workspace/wingui";
-    private static final String DEFAULT_DATABASE_PATH = "/workspace/database";
-    private static final String TARGETS_BASE          = "/workspace/targets";
+    // (2026-05-28) DEFAULT_WINGUI_PATH / DEFAULT_DATABASE_PATH 폐기 —
+    //   Per-Target slot 만 사용. 못 찾으면 null 반환 (호출자 staging fallback 또는 에러).
+    private static final String TARGETS_BASE = "/workspace/targets";
 
     // 후보 디렉토리가 "실제 소스/DB 루트" 인지 가리는 하위 구조 마커.
     // 빈 './empty' placeholder 슬롯 (.gitkeep 만 보유) 은 이 마커가 없어 자동 탈락한다.
@@ -62,6 +64,7 @@ public class TargetPathResolver {
     public String resolveSourcePath(String targetCd) {
         // 각 단계의 path 는 컨테이너 안에서 wingui 소스 구조(SOURCE_MARKER)를 가질 때만 채택.
         // 빈 placeholder 슬롯이나 잘못된 host path 는 자동으로 다음 우선순위로 fallback.
+        // (2026-05-28) 글로벌 fallback 폐기 — Per-Target 만. 못 찾으면 null 반환.
         String byTarget = targetCd == null ? null
                 : targetRepo.findById(targetCd).map(TargetSystem::getSourceRefPath).orElse(null);
         if (looksLikeSourceRoot(byTarget)) return byTarget;
@@ -69,9 +72,7 @@ public class TargetPathResolver {
             String convention = TARGETS_BASE + "/" + targetCd + "/wingui";
             if (looksLikeSourceRoot(convention)) return convention;
         }
-        String global = props.getComposer().getWinguiRefPath();
-        if (looksLikeSourceRoot(global)) return global;
-        return DEFAULT_WINGUI_PATH;
+        return null;
     }
 
     /** @deprecated 이전 이름 호환 — {@link #resolveSourcePath(String)} 사용. */
@@ -81,6 +82,7 @@ public class TargetPathResolver {
     }
 
     public String resolveDatabasePath(String targetCd) {
+        // (2026-05-28) 글로벌 fallback 폐기 — Per-Target 만. 못 찾으면 null 반환.
         String byTarget = targetCd == null ? null
                 : targetRepo.findById(targetCd).map(TargetSystem::getDatabaseRefPath).orElse(null);
         if (looksLikeDatabaseRoot(byTarget)) return byTarget;
@@ -88,9 +90,7 @@ public class TargetPathResolver {
             String convention = TARGETS_BASE + "/" + targetCd + "/database";
             if (looksLikeDatabaseRoot(convention)) return convention;
         }
-        String global = props.getComposer().getDatabaseRefPath();
-        if (looksLikeDatabaseRoot(global)) return global;
-        return DEFAULT_DATABASE_PATH;
+        return null;
     }
 
     /**

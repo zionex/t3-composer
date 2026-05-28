@@ -53,7 +53,8 @@ public class ComposerPromptBuilder {
     }
 
     public String buildSystemPrompt(ComposerSession session) {
-        return buildStaticSystemPrompt(session.getTargetCd()) + buildSessionSystemPrompt(session);
+        // ruleScope 전달 — 이 wrapper 로 호출돼도 화면 생성 rule 선별이 적용되도록.
+        return buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope()) + buildSessionSystemPrompt(session);
     }
 
     /**
@@ -64,6 +65,11 @@ public class ComposerPromptBuilder {
      */
     public String buildStaticSystemPrompt(String targetCd) {
         return composer.compose(targetCd);
+    }
+
+    /** ruleScope 기반 정적 블록 — 화면 생성 시 필요한 rule 만 포함. */
+    public String buildStaticSystemPrompt(String targetCd, String ruleScope) {
+        return composer.compose(targetCd, ruleScope);
     }
 
     /**

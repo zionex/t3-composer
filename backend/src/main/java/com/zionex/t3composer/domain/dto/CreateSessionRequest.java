@@ -26,4 +26,10 @@ public class CreateSessionRequest {
      * 미지정 시 NULL → wingui 글로벌 fallback.
      */
     private String targetCd;
+
+    /**
+     * 화면 생성 시 system prompt rule 선별 scope — 활성 플래그를 콤마로 직렬화.
+     * 예: "backend,filter" / "backend" / "" (core only). 미지정(null)이면 전체 rule.
+     */
+    private String ruleScope;
 }

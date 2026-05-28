@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab, FormControlLabel, Checkbox } from '@mui/material';
+import { Box, Collapse, IconButton, Tooltip, Stack, Typography, Chip, Button, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert, AlertTitle, Tabs, Tab, FormControlLabel, Checkbox } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import DownloadIcon from '@mui/icons-material/Download';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
@@ -16,6 +16,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import DnsIcon from '@mui/icons-material/Dns';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import EditNoteIcon from '@mui/icons-material/EditOutlined';
 
 import { zAxios } from '@wingui/common/imports';
 
@@ -143,7 +144,7 @@ function buildFixPrompt(errInfo, previewMeta, opts) {
  *  - 메뉴 등록  (MENU_SQL 만 실행 — TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)
  *  - 산출물 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
  */
-function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader }) {
+function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader, chatCollapsed = false }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [menuDialogOpen, setMenuDialogOpen]   = useState(false);
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
@@ -178,6 +179,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   const autoFixingRef = React.useRef(false);             // 자동보완 진행 중 재진입 가드
   const lastAutoFixErrorRef = React.useRef('');          // 직전 보완 시점의 오류 메시지 (동일오류 반복 감지)
   const chatRef = React.useRef(null);                    // ChatPanel — 프로그램적 채팅 전송용
+  const [chatExpanded, setChatExpanded] = React.useState(!chatCollapsed);
+  const [genStatus, setGenStatus] = React.useState(null); // { phase:'sending'|'done'|'error', message }
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', title: '', message: '' });
 
   // AI 엔진(모델) 전환 — 세션 생성 후/이어하기 진입 후에도 변경 가능
@@ -723,6 +726,24 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       )}
 
       {/* ───── 본문 — 좌측 (작업내역 ↔ 산출물 트리) | 우측 (Tab: 미리보기 / 소스) ───── */}
+      {chatCollapsed && genStatus && genStatus.phase !== 'done' && (
+        <Box sx={{ px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider',
+                   display: 'flex', alignItems: 'center', gap: 1,
+                   bgcolor: genStatus.phase === 'error' ? '#fef2f2' : '#eff6ff' }}>
+          {genStatus.phase === 'sending' && <CircularProgress size={16} />}
+          <Typography variant="body2" sx={{ flex: 1, fontWeight: 600,
+                     color: genStatus.phase === 'error' ? '#b91c1c' : '#1e40af',
+                     whiteSpace: 'pre-wrap' }}>
+            {genStatus.phase === 'sending' ? '🪄 화면 생성 중…' : `⚠ 생성 실패: ${genStatus.message || ''}`}
+          </Typography>
+          {genStatus.phase === 'error' && (
+            <Button size="small" variant="outlined" color="error"
+                    onClick={() => { setGenStatus({ phase: 'sending' }); chatRef.current?.sendMessage(initialPrompt); }}>
+              재시도
+            </Button>
+          )}
+        </Box>
+      )}
       <SplitPane
         direction="horizontal"
         initial={32}  /* 좌측 32%, 우측 68% (요청대로 우측이 큰 영역) */
@@ -746,15 +767,45 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               </Box>
             }
             second={
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                <ChatPanel
-                  ref={chatRef}
-                  sessionId={session.id}
-                  onNewAssistantMsg={triggerRefresh}
-                  initialPrompt={initialPrompt}
-                  initialAttachments={initialAttachments}
-                />
-              </Box>
+              chatCollapsed ? (
+                <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <Box onClick={() => setChatExpanded((v) => !v)}
+                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 1, cursor: 'pointer',
+                             borderBottom: chatExpanded ? '1px solid rgba(0,0,0,0.06)' : 'none', flexShrink: 0,
+                             '&:hover': { bgcolor: '#f8fafc' } }}>
+                    <EditNoteIcon fontSize="small" sx={{ color: '#64748b' }} />
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569', flex: 1 }}>
+                      수정 요청 {chatExpanded ? '' : '— 추가로 고칠 내용을 입력하려면 펼치기'}
+                    </Typography>
+                    <ExpandMoreIcon fontSize="small"
+                      sx={{ color: '#94a3b8', transform: chatExpanded ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+                  </Box>
+                  <Collapse in={chatExpanded} sx={{ flex: chatExpanded ? 1 : 'none', minHeight: 0, overflow: 'hidden' }}
+                            timeout={150}>
+                    <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                      <ChatPanel
+                        ref={chatRef}
+                        sessionId={session.id}
+                        onNewAssistantMsg={triggerRefresh}
+                        onGenStatus={setGenStatus}
+                        initialPrompt={initialPrompt}
+                        initialAttachments={initialAttachments}
+                      />
+                    </Box>
+                  </Collapse>
+                </Box>
+              ) : (
+                <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <ChatPanel
+                    ref={chatRef}
+                    sessionId={session.id}
+                    onNewAssistantMsg={triggerRefresh}
+                    onGenStatus={setGenStatus}
+                    initialPrompt={initialPrompt}
+                    initialAttachments={initialAttachments}
+                  />
+                </Box>
+              )
             }
           />
         }

@@ -123,6 +123,7 @@ public class ComposerService {
                 .mode(req.getMode())
                 .targetMenuCd(req.getTargetMenuCd())
                 .targetCd(req.getTargetCd())
+                .ruleScope(req.getRuleScope())
                 .title(req.getTitle() != null ? req.getTitle() : defaultTitle(req))
                 .modelName(req.getModelName() != null ? req.getModelName() : DEFAULT_MODEL)
                 .status(ComposerSession.STATUS_ACTIVE)
@@ -629,7 +630,7 @@ public class ComposerService {
         // 정적 블록 (TB_CMP_TARGET_RULE + TB_CMP_TARGET_HOOK 의 content 합본) 에
         // cache_control 부착 → 같은 target 의 후속 호출은 5분 TTL 안에서 input token
         // 비용 90% 절감 (Anthropic Prompt Caching). targetCd 별로 캐시 키 자연 분리.
-        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getTargetCd());
+        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope());
         String sessionPart = promptBuilder.buildSessionSystemPrompt(session);
 
         List<SystemBlock> systemBlocks = new ArrayList<>();

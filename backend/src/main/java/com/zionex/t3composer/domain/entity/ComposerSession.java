@@ -66,6 +66,13 @@ public class ComposerSession {
     @Column(name = "TARGET_CD", length = 50)
     private String targetCd;
 
+    /**
+     * 화면 생성 시 system prompt rule 선별 scope — 활성 플래그를 콤마로 직렬화.
+     * 예: "backend,filter" / "backend" / "" (core only). null = 전체 rule.
+     */
+    @Column(name = "RULE_SCOPE", length = 40)
+    private String ruleScope;
+
     @Column(name = "TITLE")
     private String title;
 

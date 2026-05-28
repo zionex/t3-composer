@@ -32,7 +32,7 @@ import { listMessages, sendChat } from './api';
  *   initialPrompt     : 세션 최초 진입 시 자동 전송할 사용자 메시지 (선택)
  */
 const ChatPanel = forwardRef(function ChatPanel(
-  { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments }, ref) {
+  { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments, onGenStatus }, ref) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -96,6 +96,7 @@ const ChatPanel = forwardRef(function ChatPanel(
     if (!message) return false;
     setInput('');
     setSending(true);
+    if (onGenStatus) onGenStatus({ phase: 'sending' });
     setError(null);
     let ok = false;
     try {
@@ -115,6 +116,7 @@ const ChatPanel = forwardRef(function ChatPanel(
       await reload();
       if (onNewAssistantMsg) onNewAssistantMsg();
       ok = true;
+      if (onGenStatus) onGenStatus({ phase: 'done' });
     } catch (e) {
       // 백엔드가 502 (Anthropic 오류) · 400 · 500 등을 반환하는 경우
       // data.message 에 사용자 친화적 메시지가 있음
@@ -162,9 +164,11 @@ const ChatPanel = forwardRef(function ChatPanel(
           }, 30_000);
         }
         setError(msg);
+        if (onGenStatus) onGenStatus({ phase: 'error', message: msg });
         // 낙관적으로 추가한 temp 메시지 롤백
         setMessages((prev) => prev.filter((m) => !String(m.id || '').startsWith('temp-')));
       }
+      if (ok && onGenStatus) onGenStatus({ phase: 'done' });
     } finally {
       setSending(false);
     }

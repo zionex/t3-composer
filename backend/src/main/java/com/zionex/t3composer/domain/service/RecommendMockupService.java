@@ -29,7 +29,8 @@ public class RecommendMockupService {
 
     private static final String MODEL_NAME = "claude-sonnet-4-5";
     private static final int MAX_TOKENS = 1024;
-    private static final int TOP_N = 3;
+    private static final int TOP_EXISTING = 4;
+    private static final int TOP_SYNTHESIZED = 2;
 
     private final AnthropicClient anthropicClient;
     private final AnthropicApiKeyService apiKeyService;
@@ -74,6 +75,7 @@ public class RecommendMockupService {
 
             Map<String, Object> result = new HashMap<>();
             result.put("items", items);
+            result.put("synthesized", List.of());
             result.put("mode", "ai");
             result.put("model", resp != null ? resp.getModel() : MODEL_NAME);
             return result;
@@ -175,7 +177,7 @@ public class RecommendMockupService {
                 item.put("relevance", m.get("relevance"));
                 item.put("reason", m.get("reason"));
                 out.add(item);
-                if (out.size() >= TOP_N) break;
+                if (out.size() >= TOP_EXISTING) break;
             }
             return out;
         } catch (Exception e) {
@@ -187,6 +189,7 @@ public class RecommendMockupService {
     private Map<String, Object> fallback() {
         Map<String, Object> result = new HashMap<>();
         result.put("items", List.of());
+        result.put("synthesized", List.of());
         result.put("mode", "fallback");
         return result;
     }

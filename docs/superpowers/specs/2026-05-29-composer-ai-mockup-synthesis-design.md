@@ -18,9 +18,9 @@
 
 ### In scope
 
-- `recommend-mockups` endpoint 의 응답 스키마 확장 — `synthesized` 필드 추가
-- AI 가 후보 mockup 의 `layers` 정보를 받아 재조합 mockup 1건 제안
-- 프런트 결과 카드 = **기존 mockup 2 + 재조합 1 고정 mix**
+- `recommend-mockups` endpoint 의 응답 스키마 확장 — `synthesized` 필드(배열) 추가
+- AI 가 후보 mockup 의 `layers` 정보를 받아 재조합 mockup **최대 2건** 제안
+- 프런트 결과 카드 = **2행 × 3열 = 최대 6칸** · 정상 mix = **existing 4 + synthesized 2**
 - 재조합 mockup 의 미리보기 = **12컬럼 wireframe + 각 layer 박스 + 출처 mockup 라벨 칩**
 - 사용자가 재조합본 선택 시: 새 endpoint `prefill-from-synthesized` 호출 → spec 의 layer 별 `naturalText` 에 **각 layer 의 출처 mockup 컨텍스트** 주입
 - 합성 실패 시 graceful fallback (재조합 칸 placeholder)
@@ -40,10 +40,11 @@
    └─ NL 입력: "수요계획 입력 + 실적 비교 KPI 같이 보여줘"
    └─ [추천 템플릿 찾기] 클릭
         ↓ recommend-mockups (1회 LLM)
-        ↓ 응답: { items:[existing×2], synthesized:{...} }
+        ↓ 응답: { items:[existing×최대4], synthesized:[...최대2] }
    ┌──────────────┬──────────────┬──────────────┐
-   │ 기존 mockup A │ 기존 mockup B │ 🪄 AI 재조합 │  ← 카드 3열 (purple accent)
-   │ (Top 관련도)  │              │              │
+   │ 기존 mockup A │ 기존 mockup B │ 기존 mockup C │  ← 1행 (amber accent · Top 강조)
+   ├──────────────┼──────────────┼──────────────┤
+   │ 기존 mockup D │ 🪄 AI 재조합1 │ 🪄 AI 재조합2 │  ← 2행 (synthesized = purple)
    └──────────────┴──────────────┴──────────────┘
         ↓ 사용자 카드 클릭
         ├─ existing → prefillFromMockup(기존)
@@ -52,6 +53,8 @@
               ↓ + AI prefill 병합
    [Wizard Step1 진입]
 ```
+
+배치 규칙: existing 은 관련도 순으로 1행 좌→우 우선 채움, 그 뒤 2행 좌측 한 칸 더. synthesized 2건은 2행 가운데·우측. 비율을 항상 4:2 로 강제하지 않고 — synthesized 가 1건만 나오거나 0건이면 existing 으로 채워 6칸을 메운다 (자세히 §4.3).
 
 ## 4. Architecture
 
@@ -103,61 +106,76 @@ return scoreMockupCandidates(nl, entries)
 
 #### System prompt 변경 ([RecommendMockupService.java](backend/src/main/java/com/zionex/t3composer/domain/service/RecommendMockupService.java) `buildSystemPrompt`)
 
-기존 규칙 1~5 유지하고 아래 규칙 추가:
+기존 규칙 1~5 중:
+- **규칙 4 수정**: "Return at most 3 items." → "Return at most **4 items**."
+
+아래 규칙 추가:
 
 ```
-6. Additionally, propose ONE synthesized mockup if combining layers from multiple candidates
-   would serve the user's request better than any single candidate.
-   - Output it in the top-level "synthesized" field (or set "synthesized": null if not beneficial).
-   - synthesized.layers[].sourceMockupCode MUST reference a patternCode from the candidates list.
-   - synthesized.layers[].position.{x,y,w,h} use a 12-column grid (x+w <= 12). Reasonable h is 2~8.
-   - Cover the canvas — layers should not overlap and should fill the grid coherently.
-   - reason (Korean, max 60 chars) explains why combination beats single-mockup choice.
+6. Additionally, propose UP TO 2 synthesized mockups if combining layers from multiple
+   candidates would serve the user's request better than any single candidate.
+   - Output them as an array in the top-level "synthesized" field (or [] if none beneficial).
+   - The 2 synthesized must offer meaningfully different combinations (don't return
+     near-duplicates).
+   - synthesized[].layers[].sourceMockupCode MUST reference a patternCode from candidates.
+   - synthesized[].layers[].position.{x,y,w,h} use a 12-column grid (x+w <= 12).
+     Reasonable h is 2~8.
+   - Layers should not overlap and should fill the grid coherently.
+   - reason (Korean, max 60 chars) explains why this combination beats single-mockup choice.
 
 Output format:
 {
   "items": [{"patternCode": "...", "relevance": 94, "reason": "..."}, ...],
-  "synthesized": {
-    "label": "수요계획 입력 + 실적비교 대시보드",
-    "description": "월별 입력 그리드 위에 전년 대비 KPI 와 실적 추이 차트",
-    "reason": "단일 mockup 으로 입력+분석을 동시에 충족하는 것이 없음",
-    "layers": [
-      {"key": "kpiRow", "title": "전년 대비 KPI", "type": "CHART", "subtype": "kpi",
-       "position": {"x": 0, "y": 0, "w": 12, "h": 2}, "sourceMockupCode": "dash_kpi_sales"},
-      {"key": "inputGrid", "title": "월별 계획 입력", "type": "GRID", "subtype": "editable",
-       "position": {"x": 0, "y": 2, "w": 8, "h": 6}, "sourceMockupCode": "grid_monthly_plan"},
-      {"key": "trendChart", "title": "실적 추이", "type": "CHART", "subtype": "line",
-       "position": {"x": 8, "y": 2, "w": 4, "h": 6}, "sourceMockupCode": "dash_trend"}
-    ]
-  } | null
+  "synthesized": [
+    {
+      "label": "수요계획 입력 + 실적비교 대시보드",
+      "description": "월별 입력 그리드 위에 전년 대비 KPI 와 실적 추이 차트",
+      "reason": "단일 mockup 으로 입력+분석을 동시에 충족하는 것이 없음",
+      "layers": [
+        {"key": "kpiRow", "title": "전년 대비 KPI", "type": "CHART", "subtype": "kpi",
+         "position": {"x": 0, "y": 0, "w": 12, "h": 2}, "sourceMockupCode": "dash_kpi_sales"},
+        {"key": "inputGrid", "title": "월별 계획 입력", "type": "GRID", "subtype": "editable",
+         "position": {"x": 0, "y": 2, "w": 8, "h": 6}, "sourceMockupCode": "grid_monthly_plan"},
+        {"key": "trendChart", "title": "실적 추이", "type": "CHART", "subtype": "line",
+         "position": {"x": 8, "y": 2, "w": 4, "h": 6}, "sourceMockupCode": "dash_trend"}
+      ]
+    }
+    /* (선택) 두 번째 재조합 — 입력 강조 대신 분석 강조 등 다른 의도 */
+  ]
 }
 ```
 
 #### Parser/validator 확장 ([RecommendMockupService.java](backend/src/main/java/com/zionex/t3composer/domain/service/RecommendMockupService.java) `parseItems` 확장)
 
-새 메서드 `parseSynthesized(rawJson, validCodes)`:
+상수:
+- `TOP_EXISTING = 4` (기존 `TOP_N=3` 대체)
+- `TOP_SYNTHESIZED = 2`
 
-1. JSON 의 `synthesized` 키 추출 — null 이면 그대로 null 반환
-2. `layers` 가 비어있거나 배열 아니면 null 반환
-3. 각 layer 검증:
-   - `sourceMockupCode` 가 `validCodes` 셋(후보 patternCode) 에 있는지
-   - `type` ∈ `{CHART, GRID, FORM, OTHER}` (mockup layer convention 과 일치 — 단, 이번 PR 에서는 검증만, 변환 없음)
-   - `position.x + position.w <= 12`, `position.x >= 0`, `position.w >= 1`
-   - `position.y >= 0`, `position.h >= 1`
-4. 검증 실패 layer 가 1개라도 있으면 전체 synthesized = null (보수적). 로그 warn.
-5. 검증 통과 시 `Map<String,Object>` 로 캡슐화해 결과의 `synthesized` 키에 넣어 반환.
+새 메서드 `parseSynthesized(rawJson, validCodes) → List<Map<String,Object>>`:
+
+1. JSON 의 `synthesized` 키 추출. 키 누락 또는 null 또는 빈 배열 → `[]` 반환
+2. `synthesized` 가 배열이 아니면 → `[]`, 로그 warn (LLM 이 단일 객체로 잘못 반환한 케이스)
+3. 각 synthesized item 별로:
+   - `layers` 가 배열이 아니거나 비어있으면 이 item drop, 다음으로
+   - 각 layer 검증:
+     - `sourceMockupCode` 가 `validCodes` 셋(후보 patternCode) 에 있는지
+     - `type` ∈ `{CHART, GRID, FORM, OTHER}` (mockup layer convention 과 일치 — 단, 이번 PR 에서는 검증만, 변환 없음)
+     - `position.x + position.w <= 12`, `position.x >= 0`, `position.w >= 1`
+     - `position.y >= 0`, `position.h >= 1`
+4. **item 단위 보수성**: 한 item 안에서 layer 1개라도 검증 실패 → 그 item 전체 drop (다른 item 은 살림). 로그 warn 으로 어느 item / 어느 layer / 왜 실패했는지 기록.
+5. 살아남은 item 을 순서대로 `TOP_SYNTHESIZED` 까지 잘라 반환. 0개면 `[]`.
 
 `recommend()` 응답 구조 (변경 후):
 ```java
-result.put("items", items);
-result.put("synthesized", synthesized);   // 신규 — Map<String,Object> or null
+result.put("items", items);                  // List, 최대 4
+result.put("synthesized", synthesizedList);  // 신규 — List<Map<String,Object>>, 0~2개
 result.put("mode", "ai");
 result.put("model", ...);
 ```
 
 #### `fallback()` 변경
 
-`synthesized: null` 추가. 외부적으로 응답 스키마 일관성 유지.
+`synthesized: []` 추가 (List). 외부적으로 응답 스키마 일관성 유지 (null 대신 빈 배열로 — 프런트가 항상 배열로 다룸).
 
 ### 4.2 백엔드 — 신규 endpoint `prefill-from-synthesized`
 
@@ -215,9 +233,13 @@ results: Array<
 >
 ```
 
-**onSearch 의 응답 처리** — 3열 카드를 채우는 규칙:
+**onSearch 의 응답 처리** — 2행 × 3열 = 6칸 채우는 규칙:
 
 ```js
+const TARGET_SLOTS = 6;
+const TARGET_EXISTING = 4;          // 정상 mix 시 existing 한도
+const TARGET_SYNTHESIZED = 2;       // 정상 mix 시 synthesized 한도
+
 const existingAll = (data.items || [])
   .map((it) => ({
     kind: 'existing',
@@ -227,20 +249,28 @@ const existingAll = (data.items || [])
   }))
   .filter((x) => x.entry);
 
-let cards;
-if (data.synthesized) {
-  // 정상: existing 2 + synthesized 1
-  cards = [
-    ...existingAll.slice(0, 2),
-    { kind: 'synthesized', synth: data.synthesized },
-  ];
-} else {
-  // 합성 실패: existing 최대 3개로 채움 (사용자가 빈자리를 보지 않게)
-  cards = existingAll.slice(0, 3);
+const synthAll = (Array.isArray(data.synthesized) ? data.synthesized : [])
+  .map((s) => ({ kind: 'synthesized', synth: s }));
+
+// 정상 mix: existing 4 + synthesized 2.
+// synthesized 가 부족하면 existing 으로 그 자리를 메움(역도 동일).
+// 두 풀의 합이 6 미만일 때만 placeholder 로 보충.
+const eUse = existingAll.slice(0, TARGET_EXISTING);
+const sUse = synthAll.slice(0, TARGET_SYNTHESIZED);
+
+// 1차: 정상 mix 후보
+let cards = [...eUse, ...sUse];
+
+// 2차: 비는 자리를 다른 풀로 보충 (existing 우선)
+if (cards.length < TARGET_SLOTS) {
+  const eExtra = existingAll.slice(TARGET_EXISTING);
+  const sExtra = synthAll.slice(TARGET_SYNTHESIZED);
+  for (const c of eExtra) { if (cards.length >= TARGET_SLOTS) break; cards.push(c); }
+  for (const c of sExtra) { if (cards.length >= TARGET_SLOTS) break; cards.push(c); }
 }
 
-// 그래도 빈자리 남으면 placeholder (existing 도 부족할 때만)
-while (cards.length < 3) {
+// 3차: 그래도 비면 placeholder (existing/synth 둘 다 부족할 때만)
+while (cards.length < TARGET_SLOTS) {
   cards.push({ kind: 'placeholder', message: cards.length === 0
     ? '관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도해보세요.'
     : 'AI 가 적절한 추가 템플릿을 찾지 못했습니다.' });
@@ -249,7 +279,19 @@ while (cards.length < 3) {
 setResults(cards);
 ```
 
-핵심: ① synthesized 있으면 existing 은 정확히 2개로 잘라 mix 보장. ② synthesized 없으면 existing 3개로 폴백 — 사용자가 "재조합 없음" 으로 손해보지 않게. ③ existing 까지 부족하면 placeholder 로 채워 3열 레이아웃 유지.
+핵심: ① 정상 응답이면 정확히 existing 4 + synthesized 2 mix. ② 한쪽이 모자라면 다른 쪽이 메움 (existing 5/synth 1, existing 6/synth 0, existing 2/synth 4 같은 케이스 모두 OK). ③ 양쪽 합 < 6 일 때만 placeholder. ④ existing 은 항상 관련도 순서 유지 — 1행 첫 칸이 가장 강한 추천.
+
+**렌더 — 2행 × 3열 grid**:
+
+```jsx
+<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+           gridTemplateRows: 'repeat(2, 1fr)', gap: 1.2,
+           flex: 1, minHeight: 0 }}>
+  {cards.map((item, idx) => /* 카드 컴포넌트 분기 */)}
+</Box>
+```
+
+기존의 `display: 'flex', gap: 1.2` 단일 row 를 grid 로 교체. 각 카드는 grid 셀 안에서 `height: '100%'` 로 채움. 카드 내부 thumbnail 높이를 290px 고정에서 비율 기반 (`flex: 1, minHeight: 0`) 으로 바꿔 2행에서도 깔끔히 들어가게 함. 카드 본문은 최소 높이 보장(`minHeight: 130px` 정도).
 
 **onPick 분기**:
 
@@ -458,10 +500,11 @@ export function prefillFromSynthesized(body) {
 
 1. NL 입력 → `recommendMockups({ nl, candidates })`
    - 입력: candidates 12개 (layers 정보 포함) + nl
-   - 출력: `{ items: [...최대 3], synthesized: {...}|null, mode: 'ai' }`
-2. 결과 카드 3열:
-   - synthesized 정상: existing 앞 2 + synthesized 1
-   - synthesized null: existing 최대 3 (4.3 의 fallback 규칙)
+   - 출력: `{ items: [...최대 4], synthesized: [...최대 2], mode: 'ai' }`
+2. 결과 카드 2행 × 3열 = 6칸:
+   - 정상 mix: existing 4 + synthesized 2
+   - synthesized 부족: existing 으로 보충 (existing 5/synth 1, existing 6/synth 0 등)
+   - existing 도 부족: 나머지를 placeholder 로 (자세히 §4.3)
 3. 선택 → 분기:
    - existing → `prefillFromMockup` (기존)
    - synthesized → `prefillFromSynthesized` (신규)
@@ -472,22 +515,23 @@ export function prefillFromSynthesized(body) {
 
 | 케이스 | 처리 |
 |---|---|
-| candidates < 3 (재조합 재료 부족) | 백엔드가 system prompt 마지막에 "Skip synthesis if fewer than 3 candidates" 지시. `synthesized: null` 반환 → 프런트 placeholder 카드 |
-| AI 가 `synthesized: null` 반환 | placeholder 카드 ("AI 가 적절한 재조합을 만들지 못했습니다") |
-| AI 가 invalid layer (sourceMockupCode 환각, position 범위 벗어남) 반환 | `parseSynthesized` 가 검증 실패 → null 처리 + 로그 warn |
+| candidates < 3 (재조합 재료 부족) | 백엔드가 system prompt 마지막에 "Skip synthesis if fewer than 3 candidates" 지시. `synthesized: []` 반환 → 프런트 4.3 fallback 으로 existing 최대 6개 사용 |
+| AI 가 `synthesized: []` 반환 | existing 으로 6칸 채움. existing 도 부족하면 placeholder |
+| AI 가 `synthesized` 에 1개만 반환 | 다른 5칸을 existing 으로 채움 (4.3 의 보충 로직) |
+| AI 가 invalid layer (sourceMockupCode 환각, position 범위 벗어남) 반환 | `parseSynthesized` 가 해당 item drop, 다른 item 은 살림 + 로그 warn |
 | `prefillFromSynthesized` LLM 호출 실패 | catch 블록에서 `specFromSynthesized(synth, baseMeta)` 만으로 Wizard 진입 (prefill 없이) |
 | `synth.layers` 0개 | `specFromSynthesized` 가 BLANK spec 으로 폴백 |
 | `MOCKUP_ENTRIES` 에 없는 `sourceMockupCode` | preview 카드 출처 칩 미표시, naturalText 도 코드값 그대로 표기 (graceful) |
-| recommend-mockups 전체 실패 | 기존 fallback 경로 (`keywordTop` 으로 existing 3건). `synthesized` 무시 |
-| Anthropic API key 없음 | `fallback()` — items: [], synthesized: null. 프런트는 keyword 매칭 결과 3건 (기존 그대로) |
+| recommend-mockups 전체 실패 | 기존 fallback 경로 (`keywordTop` 으로 existing). `synthesized` 무시 |
+| Anthropic API key 없음 | `fallback()` — items: [], synthesized: []. 프런트는 keyword 매칭 결과로 existing 6개까지 사용 |
 
 ### 5.3 Hallucination guards (백엔드)
 
-- `sourceMockupCode` 가 candidates 의 patternCode 셋 외부면 drop → drop 후 layer 부족하면 synthesized 전체 null
-- `position.x+w > 12` 또는 음수 → null
-- `position` 키 누락 → null
-- `type` 이 `{KPI, CHART, GRID, FORM, OTHER}` 외 → null (보수적; 향후 확장 가능)
-- 한 layer 라도 검증 실패면 전체 synthesized null — 부분 성공으로 사용자를 혼란시키지 않음
+- `sourceMockupCode` 가 candidates 의 patternCode 셋 외부면 → 그 layer 가 속한 item 전체 drop
+- `position.x+w > 12` 또는 음수 → 그 item drop
+- `position` 키 누락 → 그 item drop
+- `type` 이 `{KPI, CHART, GRID, FORM, OTHER}` 외 → 그 item drop (보수적; 향후 확장 가능)
+- **Item 단위 보수성**: 한 item 의 layer 1개라도 실패면 그 item 전체 drop. 다른 item 은 살아남음. 살아남은 item 이 0개여도 `[]` 가 반환되어 응답 스키마는 항상 일관.
 
 ## 6. Testing
 
@@ -495,12 +539,16 @@ export function prefillFromSynthesized(body) {
 
 `RecommendMockupServiceTest` 에 케이스 추가:
 
-- AI 응답에 valid `synthesized` 포함 → result["synthesized"] 가 비어있지 않은 Map
-- `synthesized.layers[].sourceMockupCode` 가 candidates 외부 → null 반환
-- `position.x+w > 12` → null
-- `synthesized: null` 응답 → result["synthesized"] = null
-- `synthesized` 키 누락 → result["synthesized"] = null
-- `synthesize: false` Request → AI 호출 시 synthesis 규칙 비활성 (system prompt 분기) + 응답 null 그대로
+- AI 응답에 valid `synthesized` 2개 포함 → result["synthesized"] 가 List size 2
+- AI 응답에 valid 1 + invalid 1 → result["synthesized"] 가 List size 1 (invalid item 만 drop, log warn)
+- `synthesized` 가 단일 객체로 잘못 옴 → result["synthesized"] = [] (log warn)
+- `synthesized.layers[].sourceMockupCode` 가 candidates 외부 → 해당 item drop
+- `position.x+w > 12` → 해당 item drop
+- `synthesized: null` 또는 빈 배열 응답 → result["synthesized"] = []
+- `synthesized` 키 누락 → result["synthesized"] = []
+- `items` 가 4 초과로 반환 → 4개로 자름 (`TOP_EXISTING = 4`)
+- `synthesized` 가 3개 이상 반환 → 2개로 자름 (`TOP_SYNTHESIZED = 2`)
+- `synthesize: false` Request → AI 호출 시 synthesis 규칙 비활성 (system prompt 분기) + 응답 항상 []
 
 `PrefillFromSynthesizedServiceTest`:
 
@@ -524,12 +572,13 @@ export function prefillFromSynthesized(body) {
 
 1. `frontend npm run dev` + `backend mvn spring-boot:run` (단독 환경)
 2. NL "수요계획 입력 + 실적 대시보드" 입력 → [추천 템플릿 찾기]
-3. 카드 3열 확인: existing 2 + synthesized 1 (purple accent + 🪄 칩)
-4. SynthesizedMockupPreview 가 12-col wireframe 으로 렌더, layer 박스에 type 칩 + title + "from: ..." 표시
+3. 카드 **2행 × 3열 = 6칸** 확인: existing 4 + synthesized 2 (synthesized 카드만 purple accent + 🪄 칩)
+4. SynthesizedMockupPreview 가 12-col wireframe 으로 렌더, layer 박스에 type 칩 + title + "from: ..." 표시. 두 재조합본이 의도가 서로 다른지 (description/reason 차이) 육안 확인
 5. 재조합 카드 [이 재조합으로 시작 →] 클릭 → prefilling 표시 → Wizard Step1 진입
-6. Wizard Step1 에서 layers 가 synth.layers 와 동일한 position 으로 표시
+6. Wizard Step1 에서 layers 가 해당 synth.layers 와 동일한 position 으로 표시
 7. Step3 데이터 단계로 이동 → 각 layer 의 naturalText 에 "[참조 패턴] ... (AI 재조합)" + "[이 layer 의 원본 mockup] ..." 포함 확인
-8. AI 가 합성을 거부하는 NL (모호한 입력 "그냥 뭐 좀 만들어줘") → placeholder 카드 표시 확인
+8. AI 가 합성을 거부하는 NL (모호한 입력 "그냥 뭐 좀 만들어줘") → existing 으로 6칸 보충되는지 확인 (placeholder 가 보이면 안 되는 게 정상)
+9. candidates 풀이 4개 미만인 NL (예: 도메인 외 "맛집 추천 화면") → existing 4개 + placeholder 2개 가 보이는 케이스 확인
 
 ## 7. 신규 / 수정 파일 (예상 라인 수)
 
@@ -558,3 +607,4 @@ export function prefillFromSynthesized(body) {
 1. **placeholder 카드의 시각 처리** — 회색 점선 보더만으로 충분한지, 아니면 "기존 추천 더 보기" CTA 를 넣을지. 일단 점선만 — 사용성 피드백 받고 보강.
 2. **synth.layers 의 `type` enum 의 권위** — 본 spec 은 `{KPI, CHART, GRID, FORM, OTHER}` 가정. 실제 `MOCKUP_ENTRIES` 의 layer type 분포를 grep 으로 한 번 더 확인하고 prompt 와 validator 동기화.
 3. **재조합 카드의 wireframe 줌인** — 기존 existing 카드는 mouseDown 으로 zoom overlay 가 뜨는데, synthesized 도 동일하게 줌인 가능하게 할지. v1 에서는 동일 UX 적용 — overlay 안에서도 `SynthesizedMockupPreview` 를 큰 사이즈로 렌더.
+4. **6칸 grid 에서 카드 thumbnail 높이** — 기존 1행 3열 일 때 thumbnail 290px 였음. 2행 으로 바뀌면 panel 높이를 절반 정도 나눠 쓰게 되어 thumbnail 이 더 작아짐. 구현 시 실제 panel 높이 측정해 (a) thumbnail flex 비율 (b) 카드 내부 본문 영역 최소 높이 결정. 결과적으로 SynthesizedMockupPreview 의 wireframe 가독성이 너무 떨어지면 카드 hover 시 더 큰 미리보기 popper 추가 검토.

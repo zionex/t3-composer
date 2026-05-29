@@ -48,6 +48,8 @@ public class RecommendMockupService {
             return fallback();
         }
 
+        boolean synthesizeFlag = req.getSynthesize() == null || Boolean.TRUE.equals(req.getSynthesize());
+
         try {
             String apiKey = apiKeyOpt.get();
             String systemPrompt = buildSystemPrompt();
@@ -88,15 +90,41 @@ public class RecommendMockupService {
 
     private String buildSystemPrompt() {
         return "You are a UI mockup recommendation assistant for T3SmartSCM, an enterprise SCM system.\n" +
-               "Your task is to rank the provided mockup candidates by relevance to the user's natural language request.\n\n" +
+               "Your task is to rank the provided mockup candidates by relevance to the user's natural language request,\n" +
+               "and OPTIONALLY propose up to 2 synthesized mockups that combine layers from multiple candidates when\n" +
+               "no single candidate covers the user's request well.\n\n" +
                "Rules:\n" +
-               "1. Return ONLY a JSON object with an \"items\" array. Each item must have keys: patternCode (string), relevance (integer 0-100), reason (string, Korean, max 30 chars).\n" +
-               "2. Include only candidates from the provided list — do NOT invent new patternCode values.\n" +
-               "3. Sort by relevance descending.\n" +
-               "4. Return at most 3 items.\n" +
-               "5. If no candidates are relevant, return { \"items\": [] }.\n\n" +
+               "1. Return ONLY a JSON object with keys \"items\" (array) and \"synthesized\" (array).\n" +
+               "2. \"items\": rank candidates by relevance. Each item: { patternCode (string), relevance (integer 0-100), reason (string, Korean, max 30 chars) }.\n" +
+               "   - Include only candidates from the provided list — do NOT invent new patternCode values.\n" +
+               "   - Sort by relevance descending.\n" +
+               "   - Return at most 4 items.\n" +
+               "3. \"synthesized\": propose UP TO 2 synthesized mockups when combining layers from multiple candidates\n" +
+               "   would serve the user's request better than any single candidate. Return [] if none beneficial.\n" +
+               "   - Skip synthesis entirely if fewer than 3 candidates are provided.\n" +
+               "   - The 2 synthesized must offer meaningfully different combinations (no near-duplicates).\n" +
+               "   - Each synthesized item: { label (string, Korean), description (string, Korean), reason (string, Korean, max 60 chars), layers (array) }.\n" +
+               "   - synthesized[].layers[]: { key (string, camelCase), title (string, Korean), type (string — copy from candidate layer type, e.g. 'GRID', 'CHART_LINE', 'KPI_CARD'), subtype (string or null), position ({x,y,w,h} integers), sourceMockupCode (string) }.\n" +
+               "   - sourceMockupCode MUST reference a patternCode from the candidates list.\n" +
+               "   - position uses a 12-column grid: x in [0,11], w in [1,12], x+w <= 12. y >= 0, h in [1,12].\n" +
+               "   - Layers should not overlap and should fill the grid coherently.\n" +
+               "4. If no candidates are relevant at all, return { \"items\": [], \"synthesized\": [] }.\n\n" +
                "Output format (JSON object only, no markdown fences, no extra text):\n" +
-               "{ \"items\": [ { \"patternCode\": \"...\", \"relevance\": 94, \"reason\": \"이유\" } ] }";
+               "{\n" +
+               "  \"items\": [ { \"patternCode\": \"...\", \"relevance\": 94, \"reason\": \"이유\" } ],\n" +
+               "  \"synthesized\": [\n" +
+               "    {\n" +
+               "      \"label\": \"수요계획 입력 + 실적비교 대시보드\",\n" +
+               "      \"description\": \"월별 입력 그리드 위에 전년 대비 KPI 와 실적 추이 차트\",\n" +
+               "      \"reason\": \"단일 mockup 으로 입력+분석을 동시에 충족하는 것이 없음\",\n" +
+               "      \"layers\": [\n" +
+               "        { \"key\": \"kpiRow\",     \"title\": \"전년 대비 KPI\", \"type\": \"KPI_CARD\",   \"subtype\": null, \"position\": {\"x\":0,\"y\":0,\"w\":12,\"h\":2}, \"sourceMockupCode\": \"widget_dashboard\" },\n" +
+               "        { \"key\": \"inputGrid\",  \"title\": \"월별 계획 입력\", \"type\": \"GRID\",       \"subtype\": null, \"position\": {\"x\":0,\"y\":2,\"w\":8,\"h\":6},  \"sourceMockupCode\": \"search_grid\" },\n" +
+               "        { \"key\": \"trendChart\", \"title\": \"실적 추이\",      \"type\": \"CHART_LINE\", \"subtype\": null, \"position\": {\"x\":8,\"y\":2,\"w\":4,\"h\":6},  \"sourceMockupCode\": \"P09_chart_view\" }\n" +
+               "      ]\n" +
+               "    }\n" +
+               "  ]\n" +
+               "}";
     }
 
     private String buildUserPrompt(String nl, List<Map<String, Object>> candidates) {

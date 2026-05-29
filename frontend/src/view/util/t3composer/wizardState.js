@@ -1,3 +1,5 @@
+import { MOCKUP_ENTRIES } from '../t3mockup';
+
 /**
  * 단계별 생성 Wizard (NEW_STEP 모드) 의 9단계 데이터 모델.
  *
@@ -2998,17 +3000,14 @@ export function specFromMockup(entry, baseMeta = {}) {
   return base;
 }
 
-// MOCKUP_ENTRIES patternCode → entry lookup, memoized at module scope.
-// Lazy require avoids a potential circular import while keeping the helper simple.
-let __MOCKUP_CODE_TO_ENTRY = null;
-function getMockupCodeToEntry() {
-  if (__MOCKUP_CODE_TO_ENTRY) return __MOCKUP_CODE_TO_ENTRY;
-  // eslint-disable-next-line global-require
-  const { MOCKUP_ENTRIES } = require('../t3mockup');
+// MOCKUP_ENTRIES patternCode → entry lookup, built once at module init.
+const __MOCKUP_CODE_TO_ENTRY = (() => {
   const m = new Map();
   for (const e of MOCKUP_ENTRIES) m.set(e.patternCode, e);
-  __MOCKUP_CODE_TO_ENTRY = m;
   return m;
+})();
+function getMockupCodeToEntry() {
+  return __MOCKUP_CODE_TO_ENTRY;
 }
 
 /**

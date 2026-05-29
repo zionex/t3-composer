@@ -75,9 +75,17 @@ public class RecommendMockupService {
             String rawText = extractText(resp);
             List<Map<String, Object>> items = parseItems(rawText, candidates);
 
+            Set<String> validCodes = candidates.stream()
+                    .map(c -> c.get("patternCode") instanceof String s ? s : null)
+                    .filter(s -> s != null)
+                    .collect(Collectors.toSet());
+            List<Map<String, Object>> synthesized = synthesizeFlag
+                    ? parseSynthesized(rawText, validCodes)
+                    : new ArrayList<>();
+
             Map<String, Object> result = new HashMap<>();
             result.put("items", items);
-            result.put("synthesized", List.of());
+            result.put("synthesized", synthesized);
             result.put("mode", "ai");
             result.put("model", resp != null ? resp.getModel() : MODEL_NAME);
             return result;
@@ -212,6 +220,123 @@ public class RecommendMockupService {
             log.warn("[RecommendMockupService] Failed to parse AI response JSON: {}", e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> parseSynthesized(String rawText, Set<String> validCodes) {
+        // Reuse fence-stripping logic from parseItems by re-extracting the JSON object
+        String json = rawText;
+        java.util.regex.Matcher fence = java.util.regex.Pattern
+                .compile("```(?:json)?\\s*([\\s\\S]*?)```")
+                .matcher(rawText);
+        if (fence.find()) {
+            json = fence.group(1).trim();
+        }
+        int start = json.indexOf('{');
+        int end = json.lastIndexOf('}');
+        if (start < 0 || end < 0 || end <= start) {
+            return new ArrayList<>();
+        }
+        json = json.substring(start, end + 1);
+
+        Map<String, Object> wrapper;
+        try {
+            wrapper = objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+        Object synthObj = wrapper.get("synthesized");
+        if (synthObj == null) {
+            return new ArrayList<>();
+        }
+        if (!(synthObj instanceof List)) {
+            log.warn("[RecommendMockupService] 'synthesized' is not a list (got {}). Treating as empty.",
+                     synthObj.getClass().getSimpleName());
+            return new ArrayList<>();
+        }
+        List<Map<String, Object>> rawItems = (List<Map<String, Object>>) synthObj;
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map<String, Object> item : rawItems) {
+            Map<String, Object> validated = validateSynthesizedItem(item, validCodes);
+            if (validated == null) continue;
+            out.add(validated);
+            if (out.size() >= TOP_SYNTHESIZED) break;
+        }
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> validateSynthesizedItem(Map<String, Object> item, Set<String> validCodes) {
+        if (item == null) return null;
+        Object label = item.get("label");
+        Object layersObj = item.get("layers");
+        if (!(label instanceof String) || ((String) label).isBlank()) {
+            log.warn("[RecommendMockupService] synthesized item missing label, dropped");
+            return null;
+        }
+        if (!(layersObj instanceof List) || ((List<?>) layersObj).isEmpty()) {
+            log.warn("[RecommendMockupService] synthesized item '{}' has no layers, dropped", label);
+            return null;
+        }
+        List<Map<String, Object>> layers = (List<Map<String, Object>>) layersObj;
+        List<Map<String, Object>> validatedLayers = new ArrayList<>();
+        for (Map<String, Object> layer : layers) {
+            if (!isValidLayer(layer, validCodes)) {
+                log.warn("[RecommendMockupService] synthesized item '{}' dropped — invalid layer: {}", label, layer);
+                return null;   // item-level conservatism: any invalid layer fails the whole item
+            }
+            // Normalize the layer to only the keys we promise downstream
+            Map<String, Object> norm = new HashMap<>();
+            norm.put("key",              layer.get("key"));
+            norm.put("title",            layer.get("title"));
+            norm.put("type",             layer.get("type"));
+            norm.put("subtype",          layer.get("subtype"));
+            norm.put("position",         layer.get("position"));
+            norm.put("sourceMockupCode", layer.get("sourceMockupCode"));
+            validatedLayers.add(norm);
+        }
+        Map<String, Object> out = new HashMap<>();
+        out.put("label",       label);
+        out.put("description", item.getOrDefault("description", ""));
+        out.put("reason",      item.getOrDefault("reason", ""));
+        out.put("layers",      validatedLayers);
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isValidLayer(Map<String, Object> layer, Set<String> validCodes) {
+        if (layer == null) return false;
+        Object key = layer.get("key");
+        Object title = layer.get("title");
+        Object type = layer.get("type");
+        Object src = layer.get("sourceMockupCode");
+        Object posObj = layer.get("position");
+
+        if (!(key instanceof String) || ((String) key).isBlank()) return false;
+        if (!(title instanceof String) || ((String) title).isBlank()) return false;
+        if (!(type instanceof String) || ((String) type).isBlank()) return false;
+        if (!(src instanceof String) || !validCodes.contains((String) src)) return false;
+        if (!(posObj instanceof Map)) return false;
+
+        Map<String, Object> pos = (Map<String, Object>) posObj;
+        Integer x = asInt(pos.get("x"));
+        Integer y = asInt(pos.get("y"));
+        Integer w = asInt(pos.get("w"));
+        Integer h = asInt(pos.get("h"));
+        if (x == null || y == null || w == null || h == null) return false;
+        if (x < 0 || y < 0) return false;
+        if (w < 1 || h < 1) return false;
+        if (x + w > 12) return false;
+        return true;
+    }
+
+    private static Integer asInt(Object v) {
+        if (v instanceof Integer i) return i;
+        if (v instanceof Number n) return n.intValue();
+        if (v instanceof String s) {
+            try { return Integer.parseInt(s.trim()); } catch (Exception e) { return null; }
+        }
+        return null;
     }
 
     private Map<String, Object> fallback() {

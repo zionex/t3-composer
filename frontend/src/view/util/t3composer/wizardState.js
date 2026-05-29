@@ -2998,6 +2998,82 @@ export function specFromMockup(entry, baseMeta = {}) {
   return base;
 }
 
+// MOCKUP_ENTRIES patternCode → entry lookup, memoized at module scope.
+// Lazy require avoids a potential circular import while keeping the helper simple.
+let __MOCKUP_CODE_TO_ENTRY = null;
+function getMockupCodeToEntry() {
+  if (__MOCKUP_CODE_TO_ENTRY) return __MOCKUP_CODE_TO_ENTRY;
+  // eslint-disable-next-line global-require
+  const { MOCKUP_ENTRIES } = require('../t3mockup');
+  const m = new Map();
+  for (const e of MOCKUP_ENTRIES) m.set(e.patternCode, e);
+  __MOCKUP_CODE_TO_ENTRY = m;
+  return m;
+}
+
+/**
+ * Per-layer natural-language context for a synthesized mockup — one block per layer
+ * describing the synthesis intent (overall reason) + the layer's source mockup.
+ * Claude uses this to align each layer's data binding with the original design.
+ */
+function synthesizedContextText(synth, layer, sourceEntry) {
+  const lines = [
+    `[참조 패턴] ${synth.label || '재조합'} (AI 재조합)`,
+  ];
+  if (synth.reason || synth.description) {
+    lines.push(`[조합 의도] ${synth.reason || synth.description}`);
+  }
+  if (sourceEntry) {
+    lines.push(`[이 layer 의 원본 mockup] ${sourceEntry.patternLabel || sourceEntry.patternCode}`);
+    if (sourceEntry.description) lines.push(`[원본 설명] ${sourceEntry.description}`);
+  } else if (layer.sourceMockupCode) {
+    lines.push(`[이 layer 의 원본 mockup] ${layer.sourceMockupCode}`);
+  }
+  if (layer.title) lines.push(`[이 영역의 역할] ${layer.title}`);
+  lines.push('');
+  lines.push('이 영역에서 보여줄 데이터를 자유롭게 보완하세요 — 또는 Data Source 탐색에서 Table/SP 를 직접 참조 추가.');
+  return lines.join('\n');
+}
+
+/**
+ * Synthesized 카드 선택 시 Wizard 로 넘기는 베이스 spec 생성.
+ * specFromMockup 과 동일한 shape 의 ComposerSpec 을 만들되:
+ *   - pattern = 'SYNTHESIZED'
+ *   - layers   = synth.layers (key/title/type/subtype/position 보존)
+ *   - 각 layer.dataSource.naturalText 에 layer 별 출처 mockup 컨텍스트 주입
+ */
+export function specFromSynthesized(synth, baseMeta = {}) {
+  if (!synth || !Array.isArray(synth.layers) || synth.layers.length === 0) {
+    return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
+  }
+  const codeToEntry = getMockupCodeToEntry();
+  const base = createComposerSpec({
+    ...baseMeta,
+    pattern: 'SYNTHESIZED',
+    title: baseMeta.title || synth.label || '새 화면',
+  });
+  base.layers = synth.layers.map((d) => {
+    const src = codeToEntry.get(d.sourceMockupCode);
+    return {
+      key: d.key,
+      title: d.title,
+      type: d.type,
+      subtype: d.subtype || null,
+      position: d.position,
+      dataSource: {
+        mode: 'NL',
+        naturalText: synthesizedContextText(synth, d, src),
+        references: [],
+        sqlBlocks: [],
+      },
+      columns: [],
+      cascade: {},
+    };
+  });
+  base.filterBar.affects = Object.fromEntries(base.layers.map((l) => [l.key, []]));
+  return base;
+}
+
 /**
  * UiPatternPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
  *   entry: ALL_ENTRIES 항목 (file, tabIndex, label, sectionCode, ...)

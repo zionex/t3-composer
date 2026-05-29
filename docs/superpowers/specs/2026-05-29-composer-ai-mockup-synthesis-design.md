@@ -215,27 +215,41 @@ results: Array<
 >
 ```
 
-**onSearch 의 응답 처리**:
+**onSearch 의 응답 처리** — 3열 카드를 채우는 규칙:
 
 ```js
-const items = (data.items || [])
+const existingAll = (data.items || [])
   .map((it) => ({
     kind: 'existing',
     entry: codeToEntry.get(it.patternCode),
     relevance: it.relevance,
     reason: it.reason,
   }))
-  .filter((x) => x.entry)
-  .slice(0, 2);
+  .filter((x) => x.entry);
 
-const synthCard = data.synthesized
-  ? { kind: 'synthesized', synth: data.synthesized }
-  : { kind: 'placeholder', message: 'AI 가 적절한 재조합을 만들지 못했습니다 — 위 두 템플릿 중 선택하세요' };
+let cards;
+if (data.synthesized) {
+  // 정상: existing 2 + synthesized 1
+  cards = [
+    ...existingAll.slice(0, 2),
+    { kind: 'synthesized', synth: data.synthesized },
+  ];
+} else {
+  // 합성 실패: existing 최대 3개로 채움 (사용자가 빈자리를 보지 않게)
+  cards = existingAll.slice(0, 3);
+}
 
-setResults([...items, synthCard]);
+// 그래도 빈자리 남으면 placeholder (existing 도 부족할 때만)
+while (cards.length < 3) {
+  cards.push({ kind: 'placeholder', message: cards.length === 0
+    ? '관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도해보세요.'
+    : 'AI 가 적절한 추가 템플릿을 찾지 못했습니다.' });
+}
+
+setResults(cards);
 ```
 
-존재 수 부족 시 (existing 이 1개 이하) — 남는 자리에 추가 placeholder. UI 는 항상 3열 유지.
+핵심: ① synthesized 있으면 existing 은 정확히 2개로 잘라 mix 보장. ② synthesized 없으면 existing 3개로 폴백 — 사용자가 "재조합 없음" 으로 손해보지 않게. ③ existing 까지 부족하면 placeholder 로 채워 3열 레이아웃 유지.
 
 **onPick 분기**:
 
@@ -444,8 +458,10 @@ export function prefillFromSynthesized(body) {
 
 1. NL 입력 → `recommendMockups({ nl, candidates })`
    - 입력: candidates 12개 (layers 정보 포함) + nl
-   - 출력: `{ items: [...×2~3], synthesized: {...}|null, mode: 'ai' }`
-2. 결과 카드 3열 (existing 2 + synthesized 1)
+   - 출력: `{ items: [...최대 3], synthesized: {...}|null, mode: 'ai' }`
+2. 결과 카드 3열:
+   - synthesized 정상: existing 앞 2 + synthesized 1
+   - synthesized null: existing 최대 3 (4.3 의 fallback 규칙)
 3. 선택 → 분기:
    - existing → `prefillFromMockup` (기존)
    - synthesized → `prefillFromSynthesized` (신규)

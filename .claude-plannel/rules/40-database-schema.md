@@ -25,6 +25,36 @@ postgres
 
 각 테넌트 schema 는 **z_* 테이블 전체 set 동일 구조**로 보유.
 
+## 1.1 Multi-tenancy 핵심 원칙 (SaaS 핵심)
+
+> ★ **schema-per-tenant 격리** — `tenant_id` 컬럼이 비즈니스 테이블에 **존재하지 않는다**. 격리는 PostgreSQL schema level 에서만 이루어짐.
+
+| 항목 | T3Series(wingui) | PlanNEL(SaaS) |
+|---|---|---|
+| 격리 방식 | `PLAN_SCOPE` 컬럼 필터 | PostgreSQL schema 분리 |
+| 연결 전환 | 없음 (단일 DB) | `connection.setSchema(tenantSchema)` 자동 |
+| 테넌트 식별 컬럼 | 비즈니스 테이블에 존재 | **비즈니스 테이블에 없음** |
+| 테넌트 메타 | — | `public.tenant` (tenant_id, schema, name) |
+
+**구현**: `SchemaBasedMultiTenantConnectionProvider` 가 Hibernate `CurrentTenantIdentifierResolver` 와 연동 → 요청마다 올바른 schema 로 `connection.setSchema()` 호출. Entity 는 `@Table(name = "z_customer")` 만 적으면 됨 — schema prefix 하드코딩 금지.
+
+```java
+// ❌ 금지 — schema 하드코딩
+@Table(name = "zionex.z_customer")
+
+// ✅ 올바름 — schema 는 Hibernate 가 search_path 로 자동 주입
+@Table(name = "z_customer")
+```
+
+쿼리에서도 schema prefix 없이 작성:
+```sql
+-- ❌ 금지 — schema 하드코딩
+SELECT * FROM zionex.z_customer WHERE active_flg = 'Y';
+
+-- ✅ 올바름 — search_path 가 자동으로 올바른 테넌트 schema 로 resolve
+SELECT * FROM z_customer WHERE active_flg = 'Y';
+```
+
 ## 2. 테이블명 컨벤션
 
 ### 2.1 prefix `z_*`
@@ -90,7 +120,7 @@ z_p13n · z_lang_pack · z_audit_log
 | `updated_by` | BIGINT | 수정자 user ID |
 | `ver_num` | INTEGER | Optimistic Locking version |
 
-→ Java `BaseEntity` (`t3series.saas.multi_tenancy.model.BaseEntity`) 상속하면 자동 매핑.
+→ Java `BaseEntity` (`t3series.saas.model.BaseEntity`) 상속하면 자동 매핑.
 
 ## 4. 기본키 — Instagram-style ID
 
@@ -410,10 +440,16 @@ SELECT c.customer_cd, c.name, c.updated_ts, u.username AS updated_user
 
 | ❌ | ✅ |
 |---|---|
-| 테이블명 `TB_*` (T3Series 컨벤션) | `z_<lowercase_snake>` |
+| 테이블명 `TB_*` / `TB_AD_*` / `TB_UT_*` (T3Series 컨벤션) | `z_<lowercase_snake>` |
 | 테이블명 대문자 / camelCase | 소문자 + snake_case |
 | 컬럼명 `EMAIL` (대문자) | `email` (소문자) |
 | 컬럼명 `userId` (camelCase) | `user_id` (snake_case) |
+| audit 컬럼명 `MODIFY_BY` / `MODIFY_DTTM` (T3Series 명칭) | `updated_by` / `updated_ts` (PlanNEL BaseEntity 규약) |
+| audit 컬럼명 `CREATE_BY` / `CREATE_DTTM` (T3Series 명칭) | `created_by` / `created_ts` |
+| audit 컬럼명 `UPDATE_BY` / `UPDATE_DTTM` | `updated_by` / `updated_ts` |
+| `BaseEntity` 경로 `t3series.saas.multi_tenancy.model.BaseEntity` | `t3series.saas.model.BaseEntity` |
+| 비즈니스 테이블에 `tenant_id` 컬럼 추가 (T3Series `PLAN_SCOPE` 방식) | schema-per-tenant — 컬럼 없음 |
+| SQL / Entity 에 schema prefix 하드코딩 (`zionex.z_customer`) | `z_customer` 만 — search_path 자동 |
 | boolean 컬럼을 `BOOLEAN` 으로 | `CHAR(1)` + `Y/N` (BooleanToYNConverter 호환) |
 | timestamp 를 `TIMESTAMP WITH TIME ZONE` | `TIMESTAMP` (컨벤션) |
 | ID 를 `SERIAL` / `IDENTITY` 로 | `BIGINT DEFAULT zionex.next_unique_id()` (Instagram-style) |
@@ -421,8 +457,8 @@ SELECT c.customer_cd, c.name, c.updated_ts, u.username AS updated_user
 | 신규 테이블에 audit 컬럼 누락 | 6컬럼 (id/created_ts/created_by/updated_ts/updated_by/ver_num) 필수 |
 | Liquibase 우회한 ALTER TABLE 직접 실행 | 모든 schema 변경은 changelog 통해 |
 | `public.*` 비즈니스 테이블 추가 | `public` 은 시스템 only — 비즈니스는 테넌트 schema |
-| schema 하드코딩 (`zionex.z_customer` 안 SQL) | schema 미지정 — Hibernate 가 search_path 자동 |
 | Entity 의 `@Column(name=...)` 누락 — 자동 변환과 컬럼명 다름 | 명시 (예: `@Column(name = "desc_txt")` for `descTxt`) |
 | FK 컬럼에 인덱스 누락 | `CREATE INDEX idx_<table>_<col>` 명시 |
 | `attr01..attr20` 컬럼 추가하면서 의미 문서화 안 함 | 사용 패턴은 `z_p13n` 또는 별도 메타에 문서화 |
 | 새 모듈 prefix 임의 사용 | `z_bf_` / `z_dp_` / `z_ip_` / `z_rp_` / `z_mp_` 5종 안에서 |
+| SP 기반 CRUD (`SP_UI_*` / `callService`) | JPA Repository + Service (PostgreSQL 은 JdbcTemplate + SP 불필요) |

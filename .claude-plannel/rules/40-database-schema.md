@@ -111,16 +111,25 @@ z_p13n · z_lang_pack · z_audit_log
 
 ### 3.2 Audit 컬럼 (모든 z_* 테이블 공통 — `BaseEntity` 상속)
 
+**BaseEntity 가 제공** (상속만 하면 자동 매핑):
+
 | 컬럼 | 타입 | 설명 |
 |---|---|---|
-| `id` | BIGINT | PK (Instagram-style ID) |
 | `created_ts` | TIMESTAMP NOT NULL | 생성 시각 (Hibernate 자동) |
 | `created_by` | BIGINT | 생성자 user ID |
 | `updated_ts` | TIMESTAMP NOT NULL | 수정 시각 (Hibernate 자동) |
 | `updated_by` | BIGINT | 수정자 user ID |
 | `ver_num` | INTEGER | Optimistic Locking version |
 
-→ Java `BaseEntity` (`t3series.saas.model.BaseEntity`) 상속하면 자동 매핑.
+**각 Entity 가 직접 선언** (BaseEntity 는 `abstract Long getId()` 만 제공):
+
+```java
+@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Column(name = "id")
+private Long id;
+```
+
+→ Java `BaseEntity` (`t3series.saas.model.BaseEntity`) 상속하면 audit 5컬럼 자동 매핑. `id` 는 각 Entity 에서 직접 선언 필수.
 
 ## 4. 기본키 — Instagram-style ID
 
@@ -382,16 +391,18 @@ FOREIGN KEY (hrchy_id) REFERENCES zionex.z_customer_hrchy (id);
 
 ## 9. 자주 쓰는 쿼리 패턴
 
+> **★ 이 절의 SQL 은 모두 schema prefix 없이 작성** — runtime 은 connection-level schema (`search_path`) 로 테넌트 schema 를 자동 resolve 한다 (§1.1). `zionex.` 와 같은 schema prefix 하드코딩 금지.
+
 ### 9.1 Active 만 조회 + 삭제 안 된 것
 ```sql
-SELECT * FROM zionex.z_customer
+SELECT * FROM z_customer
  WHERE active_flg = 'Y' AND del_flg = 'N'
  ORDER BY customer_cd;
 ```
 
 ### 9.2 검색 + 페이징
 ```sql
-SELECT * FROM zionex.z_customer
+SELECT * FROM z_customer
  WHERE active_flg = 'Y'
    AND (customer_cd ILIKE '%' || :keyword || '%' OR name ILIKE '%' || :keyword || '%')
  ORDER BY customer_cd
@@ -402,10 +413,10 @@ SELECT * FROM zionex.z_customer
 ```sql
 WITH RECURSIVE hrchy AS (
     SELECT id, hrchy_cd, parent_id, 0 AS level
-      FROM zionex.z_customer_hrchy WHERE parent_id IS NULL
+      FROM z_customer_hrchy WHERE parent_id IS NULL
     UNION ALL
     SELECT h.id, h.hrchy_cd, h.parent_id, p.level + 1
-      FROM zionex.z_customer_hrchy h
+      FROM z_customer_hrchy h
       JOIN hrchy p ON h.parent_id = p.id
 )
 SELECT * FROM hrchy ORDER BY level, hrchy_cd;
@@ -414,17 +425,35 @@ SELECT * FROM hrchy ORDER BY level, hrchy_cd;
 ### 9.4 Audit 누가 언제
 ```sql
 SELECT c.customer_cd, c.name, c.updated_ts, u.username AS updated_user
-  FROM zionex.z_customer c
-  LEFT JOIN zionex.z_user u ON u.id = c.updated_by
+  FROM z_customer c
+  LEFT JOIN z_user u ON u.id = c.updated_by
  ORDER BY c.updated_ts DESC
  LIMIT 100;
 ```
 
-## 10. 신규 테이블 체크리스트
+## 10. 자주 혼동되는 컬럼 함정
+
+T3Series(wingui) 작업 경험이 있는 LLM 이 자주 PlanNEL 에서 잘못 적용하는 컬럼명. 이 표는 빠른 참조용 — 산출물에 wingui 컬럼명이 나오면 자동 차단.
+
+| ❌ wingui 컬럼명 | ✅ PlanNEL 컬럼명 | 비고 |
+|---|---|---|
+| `MODIFY_BY` (NVARCHAR) | `updated_by` (BIGINT) | PlanNEL 은 user_id (Long), wingui 는 user_name (string) |
+| `MODIFY_DTTM` | `updated_ts` | PlanNEL 은 LocalDateTime |
+| `UPDATE_BY` | `updated_by` | wingui 일부 테이블 변형 — 동일하게 금지 |
+| `UPDATE_DTTM` | `updated_ts` | |
+| `CREATE_BY` | `created_by` | |
+| `CREATE_DTTM` | `created_ts` | |
+| `PLAN_SCOPE` (컬럼 필터 방식) | (없음 — schema-per-tenant 분리) | wingui 는 column filter, PlanNEL 은 connection schema 분리 (§1.1) |
+| `USE_YN` ('Y'/'N') | `active_flg` ('Y'/'N') | 이름만 다름, 값 형태 동일 |
+| `tenant_id` (컬럼 추가) | (없음 — schema 레벨 격리) | 비즈니스 테이블에 tenant_id 컬럼 추가 금지 (§1.1) |
+
+→ wingui 컬럼명이 산출물 SQL/Entity 에 등장하면 즉시 차단. `99a` 의 hook 도 동일 패턴 검사.
+
+## 11. 신규 테이블 DDL 체크리스트
 
 - [ ] 테이블명 = `z_<lowercase_snake>` ?
 - [ ] PK = `id BIGINT` (DEFAULT `zionex.next_unique_id()`) ?
-- [ ] Audit 6컬럼 (created_ts/created_by/updated_ts/updated_by/ver_num) 포함 ?
+- [ ] Audit 5컬럼 (created_ts/created_by/updated_ts/updated_by/ver_num) 포함 ? (`id` 는 각 Entity 직접 선언)
 - [ ] UNIQUE 자연 키 (예: `customer_cd`) 정의 ?
 - [ ] FK 컬럼 (`*_id`) 에 인덱스 ?
 - [ ] boolean 컬럼은 `CHAR(1)` + DEFAULT `'N'` 또는 `'Y'` ?
@@ -436,7 +465,18 @@ SELECT c.customer_cd, c.name, c.updated_ts, u.username AS updated_user
 - [ ] DTO + Repository + Service + Controller 4종 세트 작성 ?
 - [ ] `@PreAuthorize` 명시 ?
 
-## 11. Anti-patterns
+## 12. SQL 쿼리 작성 체크리스트
+
+- [ ] schema prefix (`zionex.` 등) 없이 작성 — connection-level search_path 가 테넌트 schema 로 자동 라우팅 (§1.1)
+- [ ] WHERE 절에 `active_flg = 'Y'` 적용 (soft-delete 패턴 — del_flg 도 사용 시 함께)
+- [ ] 텍스트 검색은 `ILIKE` 사용 (PostgreSQL case-insensitive, T3Series 의 `LIKE` 그대로 쓰지 말 것)
+- [ ] 페이지네이션은 `LIMIT $1 OFFSET $2` — `TOP` (MSSQL 잔재) / `ROWNUM` (Oracle 잔재) 사용 안 함
+- [ ] 정렬은 결정론적 — `ORDER BY` 에 PK (`id`) 또는 unique 컬럼을 tie-breaker 로 마지막에 포함
+- [ ] BIGINT/NUMERIC 파라미터 비교 시 명시적 타입 캐스팅 권장 (`= $1::bigint`)
+- [ ] wingui 컬럼명 사용 안 함 — §10 함정 표 참조 (`MODIFY_BY`, `CREATE_DTTM`, `PLAN_SCOPE` 등)
+- [ ] audit 컬럼 직접 SET 안 함 — Hibernate `@CreatedDate` / `@LastModifiedDate` 가 자동 관리
+
+## 13. Anti-patterns
 
 | ❌ | ✅ |
 |---|---|

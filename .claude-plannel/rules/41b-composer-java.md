@@ -126,6 +126,8 @@ public interface FeatureMapper {
         @Param("limit") Long limit
     );
 
+    int countAll(@Param("searchFilters") Map<String, Object> searchFilters);
+
     void insert(@Param("feature") FeatureDto feature, @Param("userId") Long userId);
 
     int update(@Param("feature") FeatureDto feature, @Param("userId") Long userId);
@@ -133,6 +135,26 @@ public interface FeatureMapper {
     void softDeleteByIds(@Param("ids") List<Long> ids, @Param("userId") Long userId);
 }
 ```
+
+### MyBatis XML UPDATE 패턴 (ver_num 낙관적 잠금 — 필수)
+
+`update` 메서드의 XML 은 반드시 `WHERE id = #{feature.id} AND ver_num = #{feature.verNum}` 조건을 포함하고, SET 절에서 `ver_num = ver_num + 1` 을 증가시켜야 한다. 이 조건이 없으면 낙관적 잠금이 동작하지 않아 동시 수정 시 silent overwrite 발생.
+
+```xml
+<update id="update" parameterType="t3series.saas.dto.FeatureDto">
+    UPDATE z_feature
+       SET feature_cd  = #{feature.featureCd},
+           feature_nm  = #{feature.featureNm},
+           use_yn      = #{feature.useYn},
+           ver_num     = ver_num + 1,
+           updated_by  = #{userId},
+           updated_ts  = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+     WHERE id      = #{feature.id}
+       AND ver_num = #{feature.verNum}
+</update>
+```
+
+`update` 의 반환값(`int`)은 실제 갱신된 행 수다. `WHERE ver_num = #{feature.verNum}` 조건 불일치 시 0 반환 → Service 에서 `OptimisticLockingFailureException` throw → Controller 가 HTTP 409 반환.
 
 ---
 
@@ -350,7 +372,8 @@ public class FeatureDto {
 ```java
 // saas-plannel 에 이미 존재 — 재사용. 새로 만들지 말 것.
 // t3series.saas.dto.SearchDto
-// 주요 필드: page (int), size (int), filters (Map<String,Object>), orderBy (String)
+// 주요 필드: page (int), pageSize (int), searchFilters (Map<String,Object>), orderByColumn (String)
+// getter: getPage(), getPageSize(), getSearchFilters(), getOrderByColumn()
 ```
 
 ### Controller
@@ -430,6 +453,7 @@ package t3series.saas.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -437,8 +461,6 @@ import t3series.saas.config.LoggedUserContext;
 import t3series.saas.dto.FeatureDto;
 import t3series.saas.dto.SearchDto;
 import t3series.saas.mapper.master.FeatureMapper;
-import t3series.saas.model.Feature;
-import t3series.saas.repository.FeatureRepository;
 import t3series.saas.util.PaginationUtil;
 import java.util.*;
 
@@ -447,19 +469,18 @@ import java.util.*;
 @RequiredArgsConstructor
 public class FeatureService {
 
-    private final FeatureRepository featureRepository;   // JPA — 단순 CRUD
     private final FeatureMapper featureMapper;           // MyBatis — 페이지네이션
 
     public Map<String, Object> getFeatures(SearchDto searchDto) {
         if (searchDto == null) searchDto = new SearchDto();
 
-        Map<String, Object> filters = searchDto.getFilters() != null
-            ? searchDto.getFilters() : new HashMap<>();
+        Map<String, Object> filters = searchDto.getSearchFilters() != null
+            ? searchDto.getSearchFilters() : new HashMap<>();
         int page = searchDto.getPage() > 0 ? searchDto.getPage() - 1 : 0;
-        int size = searchDto.getSize() > 0 ? searchDto.getSize() : 20;
+        int size = searchDto.getPageSize() > 0 ? searchDto.getPageSize() : 20;
         long offset = (long) page * size;
 
-        List<FeatureDto> results = featureMapper.findAll(filters, searchDto.getOrderBy(), offset, (long) size);
+        List<FeatureDto> results = featureMapper.findAll(filters, searchDto.getOrderByColumn(), offset, (long) size);
         long total = results.isEmpty() ? 0 : featureMapper.countAll(filters);
 
         Pageable pageable = PageRequest.of(page, size);
@@ -476,7 +497,7 @@ public class FeatureService {
             } else {
                 int updated = featureMapper.update(dto, userId);
                 if (updated == 0) {
-                    throw new org.springframework.dao.OptimisticLockingFailureException(
+                    throw new OptimisticLockingFailureException(
                         "Feature " + dto.getId() + " was modified by another user");
                 }
             }

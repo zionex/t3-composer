@@ -263,6 +263,18 @@ export const prefillFromMockup = ({ nl, mockupPatternCode, mockupMeta, moduleCod
     composerReq()
   );
 
+/**
+ * AI 추천 — 재조합된 synthesized mockup + 자연어로 4단계 Wizard 부분 prefill.
+ * 응답: { spec: { meta?, filterBar? }, mode: 'ai'|'fallback', model }
+ *   prefillFromMockup 과 응답 shape 동일 — 호출부 mergeAiPrefillIntoSpec 재사용.
+ */
+export const prefillFromSynthesized = ({ nl, synthesized, moduleCode, targetCd }) =>
+  zAxios.post(
+    'composer/prefill-from-synthesized',
+    { nl, synthesized, moduleCode, targetCd },
+    composerReq()
+  );
+
 // ---- Menu Registration ----
 
 // sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 산출물 그대로 실행.

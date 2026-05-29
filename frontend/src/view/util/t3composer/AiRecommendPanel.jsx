@@ -20,6 +20,7 @@ const ACCENT_BG2    = '#fff7ed'; // orange-50 (그라데이션 끝)
 const ACCENT_BORDER = '#fde68a'; // amber-200 (보더)
 const ACCENT_CHIP   = '#fef3c7'; // amber-100 (chip 배경)
 const ACCENT_TEXT   = '#92400e'; // amber-800 (요약 텍스트)
+const ACCENT_SOFT   = '#fcd34d'; // amber-300 — card border
 
 const SYNTH_ACCENT       = '#8b5cf6';  // purple-500
 const SYNTH_ACCENT_DARK  = '#6d28d9';  // purple-700
@@ -27,6 +28,7 @@ const SYNTH_ACCENT_HOVER = '#7c3aed';  // purple-600
 const SYNTH_ACCENT_BG    = '#f5f3ff';  // purple-50
 const SYNTH_ACCENT_CHIP  = '#ede9fe';  // purple-100
 const SYNTH_ACCENT_TEXT  = '#5b21b6';  // purple-800
+const SYNTH_ACCENT_SOFT  = '#c4b5fd'; // purple-300 — card border
 
 const THUMB_W = 1400;   // mockup 컴포넌트 가상 폭
 const THUMB_H = 900;
@@ -216,8 +218,8 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
         <Box key={`ex-${entry.patternCode}`} sx={{
           display: 'flex', flexDirection: 'column', minWidth: 0,
           bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
-          border: `2px solid ${ACCENT}`,
-          boxShadow: '0 4px 14px rgba(245,158,11,0.18)',
+          border: `2px solid ${ACCENT_SOFT}`,
+          boxShadow: '0 2px 8px rgba(245,158,11,0.10)',
         }}>
           <Box
             onMouseDown={(e) => { e.preventDefault(); startZoom(entry); }}
@@ -268,8 +270,8 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
         <Box key={`syn-${idx}`} sx={{
           display: 'flex', flexDirection: 'column', minWidth: 0,
           bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
-          border: `2px solid ${SYNTH_ACCENT}`,
-          boxShadow: '0 4px 14px rgba(139,92,246,0.18)',
+          border: `2px solid ${SYNTH_ACCENT_SOFT}`,
+          boxShadow: '0 2px 8px rgba(139,92,246,0.10)',
         }}>
           <Box sx={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden',
                      borderBottom: '1px solid #f1f5f9', bgcolor: '#fff' }}>

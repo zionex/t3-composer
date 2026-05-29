@@ -30,7 +30,7 @@ public class RecommendMockupService {
     private static final String MODEL_NAME = "claude-sonnet-4-5";
     private static final int MAX_TOKENS = 1024;
     private static final int TOP_EXISTING = 4;
-    private static final int TOP_SYNTHESIZED = 2;
+    private static final int TOP_SYNTHESIZED = 2; // used by parseSynthesized in next task
 
     private final AnthropicClient anthropicClient;
     private final AnthropicApiKeyService apiKeyService;

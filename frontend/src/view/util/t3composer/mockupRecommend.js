@@ -59,6 +59,14 @@ export function buildMockupCandidates(nl, entries, limit = 12) { // limit=12: �
       category: entry.category || '',
       productLine: entry.productLine || '',
       menuNames: (entry.menus || []).map((m) => m.menuNm || '').filter(Boolean),
+      // 신규: 재조합 재료 — layer 의 type/title/position 만 (component 는 미포함)
+      layers: (entry.layers || []).map((l) => ({
+        key: l.key,
+        title: l.title,
+        type: l.type,
+        subtype: l.subtype || null,
+        position: l.position,
+      })),
     }));
 }
 

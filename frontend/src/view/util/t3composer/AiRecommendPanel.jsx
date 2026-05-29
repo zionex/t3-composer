@@ -212,13 +212,12 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     if (item.kind === 'existing') {
       const entry = item.entry;
       const Thumb = entry.component;
-      const top = idx === 0;
       return (
         <Box key={`ex-${entry.patternCode}`} sx={{
           display: 'flex', flexDirection: 'column', minWidth: 0,
           bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
-          border: top ? `2px solid ${ACCENT}` : '1px solid #e2e8f0',
-          boxShadow: top ? '0 4px 14px rgba(245,158,11,0.18)' : 'none',
+          border: `2px solid ${ACCENT}`,
+          boxShadow: '0 4px 14px rgba(245,158,11,0.18)',
         }}>
           <Box
             onMouseDown={(e) => { e.preventDefault(); startZoom(entry); }}
@@ -237,7 +236,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
             {item.relevance != null && (
               <Chip label={`관련도 ${item.relevance}%`} size="small"
                     sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
-                          bgcolor: top ? ACCENT_CHIP : '#f1f5f9', color: top ? ACCENT_DARK : '#64748b' }} />
+                          bgcolor: ACCENT_CHIP, color: ACCENT_DARK }} />
             )}
             <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{entry.patternLabel}</Typography>
             <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{entry.description}</Typography>
@@ -249,11 +248,10 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                 📋 {(entry.menus || []).slice(0, 2).map((m) => m.menuNm).join(' · ')}
               </Typography>
             )}
-            <Button variant={top ? 'contained' : 'outlined'} size="small" onClick={() => onPick(item, idx)}
+            <Button variant="contained" size="small" onClick={() => onPick(item, idx)}
                     disabled={fillingIdx !== null}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
-                          ...(top ? { bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }
-                                  : { color: ACCENT_DARK, borderColor: ACCENT }) }}>
+                          bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }}>
               {fillingIdx === idx ? '분석 중…' : '이 템플릿으로 시작 →'}
             </Button>
           </Box>

@@ -50,7 +50,7 @@ const MyView = ({ t }) => {
 **필수 체크**:
 - 컨테이너 `Box` 에 `className="ag-theme-balham"` **필수** (없으면 스타일 없는 흰 화면)
 - 컨테이너에 명시적 `height` 또는 `flex:1 + minHeight:0` 필수 (AG-Grid 는 부모 높이 100% 채움)
-- `ref={gridRef}` 는 `DataState.getAllStateData(gridRef)` 등 유틸에 필요
+- `ref={gridRef}` 는 `DataState.getAllStateData(gridRef.current?.api)` 등 유틸에 필요
 
 ### §1.2 DefaultGridSetting — 팩토리 함수 (컴포넌트 아님)
 
@@ -158,12 +158,12 @@ DataState.initialize(gridRef.current?.api);
 //    수동 등록이 필요할 때만:
 onCellValueChanged={(e) => DataState.setDataState(e)}
 
-// ③ 저장 직전 변경 행 추출
-const changedData = DataState.getAllStateData(gridRef);
-// 반환: { created: [], updated: [], deleted: [], createAndDeleted: [] }
+// ③ 저장 직전 변경 행 추출 (created + updated 합친 flat 배열 반환)
+const changedData = DataState.getAllStateData(gridRef.current?.api);
+// 반환: [...createdRows, ...updatedRows]  ← 평탄 배열 (객체 아님)
 
-// ④ 삭제 행 추출 전용
-const deleteRows = DataState.deleteState(gridRef);
+// ④ 선택 행 삭제 — gridApi 와 삭제할 rowNode 배열을 함께 전달
+DataState.deleteState(gridRef.current?.api, selectedNodes);
 ```
 
 **중요**: `DataState.initialize` 는 서비스 호출 `.finally()` 에서 호출.
@@ -378,8 +378,8 @@ import {
 | `CheckButton` | `"check"` | 확인/검증 |
 | `LockButton` | `"lock"` | 잠금 |
 | `UnlockButton` | `"unlock"` | 잠금 해제 |
-| `DownloadButton` | `"download"` | 다운로드/엑셀 |
-| `UploadButton` | `"upload"` | 업로드 |
+| `DownloadButton` | `"export"` | 다운로드/엑셀 |
+| `UploadButton` | `"import"` | 업로드 |
 | `BulkValueUpdateButton` | `"bulkValueUpdate"` | 일괄 값 수정 |
 | `SettingsButton` | `"settings"` | 설정 |
 | `FullScreenButton` | `"fullScreen"` | 전체화면 |
@@ -424,7 +424,7 @@ const SaveButton = ({ label = "save", ...others }) => {
 ### §4.1 읽기 — `reduxUtil.getViewState`
 
 ```js
-import reduxUtil from "@plannel/utils/reduxUtil";
+import reduxUtil from "@plannel/utils/redux-util";
 
 // 컴포넌트 마운트 시 또는 이벤트 핸들러에서 store 직접 읽기 (훅 불필요)
 const reduxViewState = reduxUtil.getViewState(viewName);
@@ -692,21 +692,21 @@ const loadData = () => {
     });
 };
 
-// 저장
+// 저장 — getAllStateData 는 flat 배열 반환 (created + updated 합산)
 const handleSave = () => {
-  const changedData = DataState.getAllStateData(gridRef);
-  const toSave = [...changedData.created, ...changedData.updated];
+  const toSave = DataState.getAllStateData(gridRef.current?.api);
   if (!toSave.length) return;
   someService.save(toSave)
     .then(() => { alert(t("MSG_SaveSuccess")); loadData(); })
     .catch(e => console.error(e));
 };
 
-// 삭제
+// 삭제 — deleteState(gridApi, deleteNodes) 두 인자 필수
 const handleDelete = () => {
-  const deleteRows = DataState.deleteState(gridRef);
-  if (!deleteRows.length) return;
-  someService.delete(deleteRows)
+  const selectedNodes = gridRef.current?.api?.getSelectedNodes() ?? [];
+  if (!selectedNodes.length) return;
+  DataState.deleteState(gridRef.current?.api, selectedNodes);
+  someService.delete(selectedNodes.map(n => n.data))
     .then(() => loadData())
     .catch(e => console.error(e));
 };
@@ -735,7 +735,7 @@ import GridUtils from "@plannel/components/aggrid/GridUtils";
 import FilterContainer from "@plannel/components/layout/FilterContainer";
 import { SaveButton, DeleteButton } from "@plannel/components/ActionIconButton";
 import { updateViewState } from "@plannel/redux/modules/viewStates";
-import reduxUtil from "@plannel/utils/reduxUtil";
+import reduxUtil from "@plannel/utils/redux-util";
 import someService from "@plannel/services/some/some-service";
 
 const viewName = "MyPage";
@@ -783,8 +783,10 @@ const MyPage = ({ t }) => {
   };
 
   const handleSave = () => {
-    const { created, updated } = DataState.getAllStateData(gridRef);
-    someService.save([...created, ...updated])
+    // getAllStateData 는 flat 배열 (created + updated 합산)
+    const toSave = DataState.getAllStateData(gridRef.current?.api);
+    if (!toSave.length) return;
+    someService.save(toSave)
       .then(() => { alert(t("MSG_SaveSuccess")); loadData(); })
       .catch(e => console.error(e));
   };
@@ -808,7 +810,10 @@ const MyPage = ({ t }) => {
 
       <Box sx={{ display: "flex", gap: 1, my: 1 }}>
         <SaveButton onClick={handleSave} />
-        <DeleteButton onClick={() => DataState.deleteState(gridRef)} />
+        <DeleteButton onClick={() => {
+          const nodes = gridRef.current?.api?.getSelectedNodes() ?? [];
+          if (nodes.length) DataState.deleteState(gridRef.current?.api, nodes);
+        }} />
       </Box>
 
       <Box className="ag-theme-balham" sx={{ flex: 1, minHeight: 0 }}>
@@ -828,7 +833,305 @@ export default withTranslation()(MyPage);
 
 ---
 
-## §9. 안티패턴 카탈로그
+## §9. 라우팅 (react-router-dom v6)
+
+### §9.1 기본 사용법
+
+```jsx
+import { useNavigate, Route, Routes, useLocation, Navigate } from "react-router-dom";
+import RouteList from "@plannel/routeList";
+```
+
+`RouteList` 는 `@plannel/routeList` 에서 임포트하는 라우트 상수 맵이다. 경로 문자열을 직접 하드코딩하지 않고 `RouteList.SCM.path` 형태로 참조한다.
+
+### §9.2 인증 가드 패턴
+
+```jsx
+// App.js 패턴 — 로그인 여부에 따라 라우트 분기
+const user = localStorage.getItem("user");
+if (!user) {
+  return (
+    <Routes>
+      <Route path={RouteList.Signin.path} element={<SigninPage />} />
+      <Route path="/*" element={<Navigate to={RouteList.Signin.path} replace />} />
+    </Routes>
+  );
+}
+
+// 로그인 상태 — 전체 앱 라우트
+return (
+  <Routes>
+    <Route path={RouteList.Dashboard.path} element={<DashboardPage />} />
+    <Route path={RouteList.SCM.path}       element={<ScmPage />} />
+    {/* ... */}
+    <Route path="/*" element={<Navigate to={RouteList.Dashboard.path} replace />} />
+  </Routes>
+);
+```
+
+### §9.3 프로그래매틱 네비게이션
+
+```jsx
+const navigate = useNavigate();
+
+// 경로 이동
+navigate(RouteList.SCM.path);
+
+// 뒤로가기
+navigate(-1);
+
+// 현재 경로 확인
+const location = useLocation();
+console.log(location.pathname);
+```
+
+### §9.4 URL 파라미터
+
+```jsx
+// 라우트 정의
+<Route path="/detail/:id" element={<DetailPage />} />
+
+// 컴포넌트 내부
+import { useParams } from "react-router-dom";
+const { id } = useParams();
+```
+
+### §9.5 절대 금지
+
+| ❌ | ✅ |
+|---|---|
+| `window.location.href = '/some/path'` | `navigate(RouteList.SomePage.path)` |
+| 경로 문자열 하드코딩 `navigate('/scm')` | `navigate(RouteList.SCM.path)` |
+| `<a href="/page">` (전체 새로고침) | `<Link to={RouteList.Page.path}>` |
+| v5 스타일 `<Switch><Route>` | v6 `<Routes><Route>` |
+
+---
+
+## §10. 차트
+
+### §10.1 라이브러리 인벤토리
+
+| 라이브러리 | 버전 | 용도 |
+|---|---|---|
+| `recharts` | ~2.11.0 | **Primary** — 페이지 레벨 차트 |
+| `ag-charts-react` | ^8.1.0 | AG Charts (그리드와 연동 시) |
+
+### §10.2 recharts 기본 사용법
+
+```jsx
+import {
+  BarChart, Bar,
+  LineChart, Line,
+  PieChart, Pie, Cell,
+  ComposedChart,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer,
+  Area, Brush,
+} from "recharts";
+```
+
+**항상 `ResponsiveContainer` 로 감싼다** — 부모 컨테이너 크기에 반응.
+
+```jsx
+// 기본 Bar 차트
+<ResponsiveContainer width="100%" height={300}>
+  <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    <Bar dataKey="value" fill="#1976d2" />
+  </BarChart>
+</ResponsiveContainer>
+
+// ComposedChart (Bar + Line 혼합)
+<ResponsiveContainer width="100%" height={300}>
+  <ComposedChart data={chartData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="month" />
+    <YAxis yAxisId="left" />
+    <YAxis yAxisId="right" orientation="right" />
+    <Tooltip />
+    <Legend />
+    <Bar yAxisId="left" dataKey="qty" fill="#1976d2" />
+    <Line yAxisId="right" type="monotone" dataKey="rate" stroke="#f50057" />
+  </ComposedChart>
+</ResponsiveContainer>
+```
+
+### §10.3 데이터 형태
+
+recharts 는 **배열 of 객체** 형태를 기대한다:
+
+```js
+// ✅ 올바른 데이터 형태
+const chartData = [
+  { name: "Jan", sales: 400, forecast: 350 },
+  { name: "Feb", sales: 300, forecast: 320 },
+  { name: "Mar", sales: 600, forecast: 580 },
+];
+```
+
+### §10.4 ag-charts-react (AG Charts)
+
+그리드 데이터를 직접 차트로 연동하거나 AG Charts 스타일이 필요할 때:
+
+```jsx
+import { AgCharts } from "ag-charts-react";
+
+const options = {
+  data: chartData,
+  series: [{ type: "bar", xKey: "month", yKey: "value" }],
+};
+
+<AgCharts options={options} style={{ height: 300 }} />
+```
+
+---
+
+## §11. 사이드바·메뉴
+
+### §11.1 컴포넌트 구조
+
+| 컴포넌트 | 경로 | 역할 |
+|---|---|---|
+| `Sidebar` | `@plannel/components/Sidebar` | 좌측 사이드바 컨테이너 |
+| `TabContainer` | `@plannel/components/TabContainer` | 탭 기반 메뉴 컨테이너 |
+| `TabMenuList` | `@plannel/pages/TabMenuList` | **메뉴 구조 단일 진실 저장소** |
+
+### §11.2 TabMenuList — 메뉴 정의
+
+`TabMenuList.js` 는 전체 앱의 탭·메뉴 구조를 정의한다. **메뉴 추가·수정 시 이 파일이 단일 진실 저장소**다.
+
+```js
+// TabMenuList.js 구조 예시
+import RouteList from "@plannel/routeList";
+
+const tabMenuList = [
+  {
+    id: "demand",
+    label: "menu.demand",       // i18n 키
+    icon: <SomeIcon />,
+    children: [
+      { id: "dp-workbench", label: "menu.dpWorkbench", path: RouteList.DpWorkbench.path },
+    ],
+  },
+];
+
+export default tabMenuList;
+```
+
+### §11.3 App.js 연동 패턴
+
+```jsx
+import Sidebar from "@plannel/components/Sidebar";
+import TabContainer from "@plannel/components/TabContainer";
+import tabMenuList from "@plannel/pages/TabMenuList";
+
+// Sidebar 에 tabMenuList 주입
+<Sidebar menuList={tabMenuList} />
+
+// TabContainer 에서 현재 탭 관리
+<TabContainer tabs={tabMenuList} />
+```
+
+### §11.4 사이드바 collapse 상태
+
+사이드바 접힘 상태는 Redux 또는 로컬 state 로 관리:
+
+```jsx
+const [sidebarOpen, setSidebarOpen] = useState(true);
+
+// 또는 Redux
+const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
+const dispatch = useDispatch();
+dispatch(toggleSidebar());
+```
+
+---
+
+## §12. 네이밍 규약
+
+### §12.1 파일 네이밍
+
+| 종류 | 규약 | 예시 |
+|---|---|---|
+| 페이지 컴포넌트 | `PascalCase.js` | `TargetInventorySimulation.js` |
+| 공용 컴포넌트 | `PascalCase.js` | `ActionIconButton.js`, `DefaultGridSetting.js` |
+| 유틸리티/서비스 | `kebab-case.js` | `redux-util.js`, `some-service.js` |
+| Redux 슬라이스 | `camelCase.js` | `viewStates.js` |
+| 스타일 모듈 | `PascalCase.module.css` | `MyPage.module.css` |
+
+### §12.2 컴포넌트 네이밍
+
+```js
+// 페이지 컴포넌트 — PascalCase, withTranslation HOC 필수
+const MyPage = ({ t }) => { ... };
+export default withTranslation()(MyPage);
+
+// 공용 컴포넌트 — PascalCase
+const FilterContainer = ({ children, ...props }) => { ... };
+export default FilterContainer;
+```
+
+### §12.3 Redux 슬라이스 네이밍
+
+```js
+// slice 이름 — camelCase
+const viewStatesSlice = createSlice({
+  name: "viewStates",
+  // ...
+});
+
+// action creator — camelCase 동사
+dispatch(updateViewState({ viewName, loading: true }));
+dispatch(resetViewState(viewName));
+```
+
+### §12.4 i18n 키 규약
+
+| 패턴 | 예시 | 용도 |
+|---|---|---|
+| `menu.xxx` | `menu.demand`, `menu.dpWorkbench` | 메뉴·탭 라벨 |
+| `MSG_xxx` | `MSG_SAVE_SUCCESS`, `MSG_DELETE_CONFIRM` | 공통 메시지 |
+| `label.xxx` | `label.itemCode`, `label.planDate` | 폼 필드 라벨 |
+| `btn.xxx` | `btn.search`, `btn.save` | 버튼 텍스트 |
+| `col.xxx` | `col.itemCd`, `col.qty` | 그리드 컬럼 헤더 |
+
+```jsx
+// 컴포넌트 내부 사용
+const { t } = useTranslation();
+t("menu.demand")         // → "수요 계획" (ko) / "Demand Plan" (en)
+t("MSG_SAVE_SUCCESS")    // → "저장되었습니다."
+t("col.itemCd")          // → "품목 코드"
+```
+
+### §12.5 MUI sx 규약
+
+```jsx
+// ✅ sx prop 에서 theme 토큰 활용
+sx={{ p: 2, mb: 1, bgcolor: "background.paper" }}
+
+// ✅ 조건부 스타일
+sx={{ color: isActive ? "primary.main" : "text.secondary" }}
+
+// ❌ 금지 — 인라인 style 혼용 (유지보수 어려움)
+style={{ marginBottom: 8, color: "#1976d2" }}
+
+// ✅ 복합 레이아웃
+sx={{
+  display: "flex",
+  flexDirection: "column",
+  flex: 1,
+  minHeight: 0,        // flex 자식 overflow 필수
+  gap: 1,
+}}
+```
+
+---
+
+## §13. 안티패턴 카탈로그
 
 | # | ❌ 금지 | ✅ PlanNEL 표준 | 이유 |
 |---|---|---|---|
@@ -840,7 +1143,7 @@ export default withTranslation()(MyPage);
 | AP-6 | `zAxios.get('/util/...')` | `someService.getAll(params).then(...)` | 서비스 레이어 경유 필수 |
 | AP-7 | `<BaseGrid items={colDefs} afterGridCreate={fn} />` | `<AgGridReact ref={gridRef} columnDefs={colDefs} onGridReady={fn} />` | API 완전 상이 |
 | AP-8 | `grid.dataProvider.fillJsonData(rows)` | `setRowData(rows)` (React state) | AG-Grid 는 React state 패턴 |
-| AP-9 | `grid.dataProvider.getAllStateRows()` | `DataState.getAllStateData(gridRef)` | DataState 유틸 사용 |
+| AP-9 | `grid.dataProvider.getAllStateRows()` | `DataState.getAllStateData(gridRef.current?.api)` → flat array | DataState 유틸 사용 |
 | AP-10 | `multipart/form-data` + `'changes'` key POST | JSON body `{ created, updated, deleted }` | `30-data-access.md §3` |
 | AP-11 | `createAsyncThunk` 로 API 결과 저장 | `useState` + `.then()/.catch()` 직접 처리 | `30-data-access.md §10` |
 | AP-12 | `applyGridCascade` / `useFieldCascade` | AG-Grid `onCellValueChanged` + 직접 필드 연동 로직 | wingui-core 전용 |

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useRef, useEffect, Suspense } from 'react';
 import {
   Box, Typography, Button, Stack, TextField, Chip, CircularProgress,
 } from '@mui/material';
@@ -43,10 +43,11 @@ const EXAMPLES = ['거래처별 단가 관리', '공급계획 시뮬레이션', 
 function AiRecommendPanel({ onBack, onStart, targetCd }) {
   const [nl, setNl] = useState('');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
-  const [prefilling, setPrefilling] = useState(false); // 선택 후 prefill 중
+  const [fillingIdx, setFillingIdx] = useState(null); // 선택 후 prefill 중 (카드 인덱스)
   const [results, setResults] = useState(null);        // Array<existing | synthesized | placeholder>
   const [mode, setMode] = useState(null);              // 'ai' | 'fallback'
   const [zoomEntry, setZoomEntry] = useState(null);
+  const zoomStopRef = useRef(null);
 
   const codeToEntry = useMemo(() => {
     const m = new Map();
@@ -58,12 +59,25 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
   // 문제를 피하려고, 닫기는 window 의 mouseup 으로 처리(버튼을 떼는 순간 어디서든 닫힘).
   const startZoom = (entry) => {
     setZoomEntry(entry);
+    // Track the listener so we can clean it up on unmount if the user is still holding the button.
+    if (zoomStopRef.current) {
+      window.removeEventListener('mouseup', zoomStopRef.current);
+    }
     const stop = () => {
       setZoomEntry(null);
       window.removeEventListener('mouseup', stop);
+      if (zoomStopRef.current === stop) zoomStopRef.current = null;
     };
+    zoomStopRef.current = stop;
     window.addEventListener('mouseup', stop);
   };
+
+  useEffect(() => () => {
+    if (zoomStopRef.current) {
+      window.removeEventListener('mouseup', zoomStopRef.current);
+      zoomStopRef.current = null;
+    }
+  }, []);
 
   const onSearch = async () => {
     if (!nl.trim() || loading) return;
@@ -128,9 +142,9 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     setResults(cards);
   };
 
-  const onPick = async (item) => {
-    if (!item || item.kind === 'placeholder' || prefilling) return;
-    setPrefilling(true);
+  const onPick = async (item, idx) => {
+    if (!item || item.kind === 'placeholder' || fillingIdx !== null) return;
+    setFillingIdx(idx);
 
     if (item.kind === 'existing') {
       const entry = item.entry;
@@ -153,7 +167,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
       } catch {
         onStart(base);
       } finally {
-        setPrefilling(false);
+        setFillingIdx(null);
       }
       return;
     }
@@ -173,7 +187,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
       } catch {
         onStart(base);
       } finally {
-        setPrefilling(false);
+        setFillingIdx(null);
       }
       return;
     }
@@ -235,12 +249,12 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                 📋 {(entry.menus || []).slice(0, 2).map((m) => m.menuNm).join(' · ')}
               </Typography>
             )}
-            <Button variant={top ? 'contained' : 'outlined'} size="small" onClick={() => onPick(item)}
-                    disabled={prefilling}
+            <Button variant={top ? 'contained' : 'outlined'} size="small" onClick={() => onPick(item, idx)}
+                    disabled={fillingIdx !== null}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
                           ...(top ? { bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }
                                   : { color: ACCENT_DARK, borderColor: ACCENT }) }}>
-              {prefilling ? '분석 중…' : '이 템플릿으로 시작 →'}
+              {fillingIdx === idx ? '분석 중…' : '이 템플릿으로 시작 →'}
             </Button>
           </Box>
         </Box>
@@ -286,11 +300,11 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                 })}
               </Stack>
             )}
-            <Button variant="contained" size="small" onClick={() => onPick(item)}
-                    disabled={prefilling}
+            <Button variant="contained" size="small" onClick={() => onPick(item, idx)}
+                    disabled={fillingIdx !== null}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
                           bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER } }}>
-              {prefilling ? '분석 중…' : '이 재조합으로 시작 →'}
+              {fillingIdx === idx ? '분석 중…' : '이 재조합으로 시작 →'}
             </Button>
           </Box>
         </Box>

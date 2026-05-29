@@ -359,7 +359,7 @@ public class FeatureDto {
     private String featureCd;
     private String featureNm;
     private String useYn;
-    private Integer verNum;                   // 낙관적 잠금 — 저장 시 필수 전달
+    private int verNum;                        // 낙관적 잠금 — 저장 시 필수 전달
 
     // 조회 전용 (JOIN 결과 등)
     private LocalDateTime createdTs;
@@ -476,7 +476,7 @@ public class FeatureService {
 
         Map<String, Object> filters = searchDto.getSearchFilters() != null
             ? searchDto.getSearchFilters() : new HashMap<>();
-        int page = searchDto.getPage() > 0 ? searchDto.getPage() - 1 : 0;
+        int page = Math.max(0, searchDto.getPage());
         int size = searchDto.getPageSize() > 0 ? searchDto.getPageSize() : 20;
         long offset = (long) page * size;
 

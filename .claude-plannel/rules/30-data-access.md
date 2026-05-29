@@ -258,8 +258,9 @@ public class WorkcenterController {
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class CompanyController {
-    private final CompanyService companyService;
     private final CompanyRepository companyRepository;
+    private final CompanyQueryRepository companyQueryRepository;
+    private final CompanyService companyService;
     private final TenantCurrencyService tenantCurrencyService;
 
     @GetMapping("/company")

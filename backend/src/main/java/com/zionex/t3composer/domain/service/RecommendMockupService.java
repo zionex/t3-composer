@@ -164,6 +164,35 @@ public class RecommendMockupService {
         return sb.toString().trim();
     }
 
+    /**
+     * Strip optional ```json fences, locate the outer { ... } object, and deserialize
+     * it into a Map. Shared by parseItems and parseSynthesized — both methods read
+     * different top-level keys from the same wrapper.
+     */
+    private Optional<Map<String, Object>> extractJsonWrapper(String rawText) {
+        String json = rawText;
+        java.util.regex.Matcher fence = java.util.regex.Pattern
+                .compile("```(?:json)?\\s*([\\s\\S]*?)```")
+                .matcher(rawText);
+        if (fence.find()) {
+            json = fence.group(1).trim();
+        }
+        int start = json.indexOf('{');
+        int end = json.lastIndexOf('}');
+        if (start < 0 || end < 0 || end <= start) {
+            log.warn("[RecommendMockupService] No JSON object found in response");
+            return Optional.empty();
+        }
+        try {
+            Map<String, Object> wrapper = objectMapper.readValue(
+                    json.substring(start, end + 1), new TypeReference<>() {});
+            return Optional.of(wrapper);
+        } catch (Exception e) {
+            log.warn("[RecommendMockupService] Failed to parse AI response JSON: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> parseItems(String rawText, List<Map<String, Object>> candidates) {
         // Build valid patternCode set for hallucination guard
@@ -175,76 +204,37 @@ public class RecommendMockupService {
                 .filter(s -> s != null)
                 .collect(Collectors.toSet());
 
-        // Strip fenced code blocks if present
-        String json = rawText;
-        java.util.regex.Matcher fence = java.util.regex.Pattern
-                .compile("```(?:json)?\\s*([\\s\\S]*?)```")
-                .matcher(rawText);
-        if (fence.find()) {
-            json = fence.group(1).trim();
-        }
-
-        // Extract JSON object wrapper { "items": [...] }
-        int start = json.indexOf('{');
-        int end = json.lastIndexOf('}');
-        if (start < 0 || end < 0 || end <= start) {
-            log.warn("[RecommendMockupService] No JSON object found in response, raw: {}", rawText);
+        Optional<Map<String, Object>> wrapperOpt = extractJsonWrapper(rawText);
+        if (wrapperOpt.isEmpty()) return new ArrayList<>();
+        Map<String, Object> wrapper = wrapperOpt.get();
+        Object itemsObj = wrapper.get("items");
+        if (!(itemsObj instanceof List)) {
+            log.warn("[RecommendMockupService] 'items' key missing or not a list in response");
             return new ArrayList<>();
         }
-        json = json.substring(start, end + 1);
-
-        try {
-            Map<String, Object> wrapper = objectMapper.readValue(json, new TypeReference<>() {});
-            Object itemsObj = wrapper.get("items");
-            if (!(itemsObj instanceof List)) {
-                log.warn("[RecommendMockupService] 'items' key missing or not a list in response");
-                return new ArrayList<>();
+        List<Map<String, Object>> parsed = (List<Map<String, Object>>) itemsObj;
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map<String, Object> m : parsed) {
+            Object pc = m.get("patternCode");
+            if (!(pc instanceof String) || !validCodes.contains((String) pc)) {
+                log.warn("[RecommendMockupService] Dropping hallucinated patternCode: {}", pc);
+                continue;
             }
-            List<Map<String, Object>> parsed = (List<Map<String, Object>>) itemsObj;
-            List<Map<String, Object>> out = new ArrayList<>();
-            for (Map<String, Object> m : parsed) {
-                Object pc = m.get("patternCode");
-                if (!(pc instanceof String) || !validCodes.contains((String) pc)) {
-                    log.warn("[RecommendMockupService] Dropping hallucinated patternCode: {}", pc);
-                    continue;
-                }
-                Map<String, Object> item = new HashMap<>();
-                item.put("patternCode", pc.toString());
-                item.put("relevance", m.get("relevance"));
-                item.put("reason", m.get("reason"));
-                out.add(item);
-                if (out.size() >= TOP_EXISTING) break;
-            }
-            return out;
-        } catch (Exception e) {
-            log.warn("[RecommendMockupService] Failed to parse AI response JSON: {}", e.getMessage());
-            return new ArrayList<>();
+            Map<String, Object> item = new HashMap<>();
+            item.put("patternCode", pc.toString());
+            item.put("relevance", m.get("relevance"));
+            item.put("reason", m.get("reason"));
+            out.add(item);
+            if (out.size() >= TOP_EXISTING) break;
         }
+        return out;
     }
 
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> parseSynthesized(String rawText, Set<String> validCodes) {
-        // Reuse fence-stripping logic from parseItems by re-extracting the JSON object
-        String json = rawText;
-        java.util.regex.Matcher fence = java.util.regex.Pattern
-                .compile("```(?:json)?\\s*([\\s\\S]*?)```")
-                .matcher(rawText);
-        if (fence.find()) {
-            json = fence.group(1).trim();
-        }
-        int start = json.indexOf('{');
-        int end = json.lastIndexOf('}');
-        if (start < 0 || end < 0 || end <= start) {
-            return new ArrayList<>();
-        }
-        json = json.substring(start, end + 1);
-
-        Map<String, Object> wrapper;
-        try {
-            wrapper = objectMapper.readValue(json, new TypeReference<>() {});
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+        Optional<Map<String, Object>> wrapperOpt = extractJsonWrapper(rawText);
+        if (wrapperOpt.isEmpty()) return new ArrayList<>();
+        Map<String, Object> wrapper = wrapperOpt.get();
         Object synthObj = wrapper.get("synthesized");
         if (synthObj == null) {
             return new ArrayList<>();
@@ -303,7 +293,6 @@ public class RecommendMockupService {
         return out;
     }
 
-    @SuppressWarnings("unchecked")
     private boolean isValidLayer(Map<String, Object> layer, Set<String> validCodes) {
         if (layer == null) return false;
         Object key = layer.get("key");
@@ -316,9 +305,8 @@ public class RecommendMockupService {
         if (!(title instanceof String) || ((String) title).isBlank()) return false;
         if (!(type instanceof String) || ((String) type).isBlank()) return false;
         if (!(src instanceof String) || !validCodes.contains((String) src)) return false;
-        if (!(posObj instanceof Map)) return false;
+        if (!(posObj instanceof Map<?, ?> pos)) return false;
 
-        Map<String, Object> pos = (Map<String, Object>) posObj;
         Integer x = asInt(pos.get("x"));
         Integer y = asInt(pos.get("y"));
         Integer w = asInt(pos.get("w"));
@@ -326,8 +314,7 @@ public class RecommendMockupService {
         if (x == null || y == null || w == null || h == null) return false;
         if (x < 0 || y < 0) return false;
         if (w < 1 || h < 1) return false;
-        if (x + w > 12) return false;
-        return true;
+        return x + w <= 12;
     }
 
     private static Integer asInt(Object v) {

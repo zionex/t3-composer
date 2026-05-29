@@ -984,3 +984,27 @@ export { updateHistoryState } from "@plannel/redux/modules/historyState";
 | 응답 `{data: [...]}` (자유 형식) | 표준 `{results, totalPages, totalElements, page, pageSize}` Map |
 | `@Transactional` 을 Controller 에 부착 | Service 레벨에만 |
 | QueryDSL Q클래스 import 경로 무시 | `import static t3series.saas.model.QCustomer.customer;` 표준 |
+
+---
+
+## 13. 체크리스트
+
+### Java Controller 작성 시
+- [ ] 패키지 `t3series.saas.<도메인>` 아래에 작성 — `com.zionex.t3series.web.*` 사용 안 함
+- [ ] `@RestController` + `@RequestMapping("/api")` 클래스 레벨 + 메서드별 `@PostMapping("/<plural-resource>/...")`
+- [ ] `@PreAuthorize` 로 역할 가드 — `hasAnyRole('APP_DP','APP_IP','APP_RP','APP_MP')` 중 해당 모듈만 (§3.3)
+- [ ] 리스트 조회는 `POST /api/<resource>` + `@RequestBody(required=false) SearchDto` — GET 사용 안 함 (§1.2)
+- [ ] 응답은 `PaginationUtil.getPageResponse(...)` 또는 `getAllPageResponse(...)` — raw `List<>` 직접 반환 금지 (§1.4)
+- [ ] 저장은 `@RequestBody List<FeatureDto>` JSON — `HttpServletRequest.getParameter("changes")` (wingui multipart 패턴) 사용 안 함
+- [ ] 낙관적 잠금 — `BaseEntity.verNum` (`@Version`) 필드 DTO 에 포함, `OptimisticLockException` 발생 시 409 처리 (§4.2)
+- [ ] `javax.persistence.*` 사용 (★ `jakarta.*` 아님 — Spring Boot 2.4) (§4.1)
+- [ ] Service 에만 `@Transactional` 부착 — Controller 에는 금지 (§6.1)
+
+### Frontend axios / Service 작성 시
+- [ ] 서비스 파일 위치 `src/services/<area>/<feature>-service.js` — 화면 컴포넌트에서 axios 직접 호출 금지 (§1)
+- [ ] 도메인별 axios instance — `restApi` / `restApiDP` / `restApiIP` / `restApiRP` / `restApiMP` 중 적절한 것 사용 (§2)
+- [ ] 페이지네이션 — frontend 1-base → backend 0-base 변환: `page: currentPage - 1` (§10.1)
+- [ ] 결과 null-safe — `res.data?.results ?? []` 패턴 (§10.1)
+- [ ] API 결과를 `useState` 로 받음 — Redux store 에 저장하지 않음, `createAsyncThunk` 미사용 (§11.4)
+- [ ] UI 상태 (필터/탭/페이지) 만 Redux `viewStates` slice 에 persist (§11)
+- [ ] 에러 처리 — `.catch(...)` + 사용자 알림. raw `fetch()` 사용 안 함

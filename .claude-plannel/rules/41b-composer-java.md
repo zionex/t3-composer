@@ -23,7 +23,23 @@
 
 ---
 
-## §5.1 Java 파일 구조 (4~5 종 세트)
+## §5.1 정책 차단 조건 (PlanNEL Composer apply 단계 검증)
+
+PlanNEL 산출물은 wingui 와 다른 정책 — 핵심 차이:
+- ❌ SP 자체 없음 — `SP_UI_*.sql` 산출 시도가 곧 anti-pattern (§5.3)
+- ❌ 엔진 service XML 없음
+- ⚠️ `SQL_DDL` (새 `z_*` 테이블 DDL) 정책은 §5.2 참조
+
+| # | 차단 조건 | 적용 모드 |
+|---|---|---|
+| A | `SP_UI_*.sql` 또는 `SP_<DOMAIN>_*.sql` 형식의 SP DDL 산출 | 모든 모드 |
+| B | wingui 엔진 service XML (`*_service.xml`) 산출 | 모든 모드 |
+| C | 새 `z_*` 테이블 DDL (`SQL_DDL`) | NEW_FROM_DESIGN/NEW_FROM_COPY/NEW_STEP (NL/GENERAL 이외) |
+| D | `com.zionex.t3series.web.*` 패키지 import | 모든 모드 |
+
+---
+
+## §5.1a Java 파일 구조 (4~5 종 세트)
 
 | 파일 | 역할 | 필수? |
 |---|---|---|
@@ -39,7 +55,21 @@
 
 ---
 
-## §5.2 ORM 레이어 선택 기준
+## §5.2 모드별 DDL 정책
+
+PlanNEL 은 `z_*` PostgreSQL 테이블만 사용 (SP/View 없음). 새 테이블 생성 권한은 모드별로 다름:
+
+| 모드 | 새 `z_*` Table | 기존 Table 재사용 |
+|---|---|---|
+| NEW_NL / NEW_GENERAL | ✅ 허용 (스키마 작성 후 마이그레이션 폴더 등록) | 권장 |
+| NEW_FROM_DESIGN | ❌ 생성 금지 (설계서 기반은 기존 스키마 매핑) | 필수 |
+| NEW_FROM_COPY | ❌ 생성 금지 (원본 화면의 테이블 재사용) | 필수 |
+| NEW_STEP | ❌ 생성 금지 (Wizard 산출은 기존 스키마만) | 필수 |
+| EXISTING_MODIFY | ✅ ALTER 만 허용 (DROP/CREATE 금지) | — |
+
+---
+
+## §5.2b ORM 레이어 선택 기준
 
 | 상황 | 사용할 레이어 |
 |---|---|
@@ -530,18 +560,11 @@ MyBatis 로 INSERT/UPDATE 할 때는 `setAuditInfo()` 를 호출하거나 mapper
 
 ## §5.10 낙관적 잠금 (Optimistic Locking)
 
-PlanNEL 은 `ver_num` 컬럼 기반 낙관적 잠금을 사용한다.
+PlanNEL Entity 는 모두 `@Version` 으로 낙관적 락 적용. 충돌 시 `OptimisticLockingFailureException` throw. 구체 처리 패턴(Controller 409 반환, MyBatis `ver_num = #{dto.verNum}` WHERE 절)은 §5.6 의 Service/Controller 템플릿 참조.
 
-- **JPA 저장**: `@Version` 어노테이션이 자동으로 버전 비교 → 충돌 시 `OptimisticLockingFailureException`
-- **MyBatis 저장**: UPDATE WHERE 절에 `ver_num = #{feature.verNum}` 포함 → `int` 반환값 0이면 수동으로 예외 throw
-
-```java
-// Controller — 409 Conflict 반환
-} catch (OptimisticLockingFailureException e) {
-    log.error(e.getMessage(), e);
-    return new ResponseEntity<>(HttpStatus.CONFLICT);
-}
-```
+| ❌ | ✅ |
+|---|---|
+| `ver_num` 컬럼 없이 Entity 작성 → 동시 수정 시 마지막 쓰기가 silent 덮어쓰기 | `BaseEntity` 상속 → `ver_num` 자동 포함 (§5.9) |
 
 ---
 

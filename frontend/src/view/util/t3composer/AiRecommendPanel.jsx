@@ -7,8 +7,9 @@ import AutoAwesomeIcon  from '@mui/icons-material/AutoAwesome';
 
 import { MOCKUP_ENTRIES } from '../t3mockup';
 import { buildMockupCandidates, scoreMockupCandidates, mergeAiPrefillIntoSpec } from './mockupRecommend';
-import { specFromMockup } from './wizardState';
-import { recommendMockups, prefillFromMockup } from './api';
+import { specFromMockup, specFromSynthesized } from './wizardState';
+import { recommendMockups, prefillFromMockup, prefillFromSynthesized } from './api';
+import SynthesizedMockupPreview from './SynthesizedMockupPreview';
 
 // 앰버 팔레트 — 패턴 선택 화면의 "AI 추천" 카드와 통일 (빈 캔버스 보라와 구분)
 const ACCENT        = '#f59e0b'; // amber-500 (메인 accent)
@@ -19,6 +20,13 @@ const ACCENT_BG2    = '#fff7ed'; // orange-50 (그라데이션 끝)
 const ACCENT_BORDER = '#fde68a'; // amber-200 (보더)
 const ACCENT_CHIP   = '#fef3c7'; // amber-100 (chip 배경)
 const ACCENT_TEXT   = '#92400e'; // amber-800 (요약 텍스트)
+
+const SYNTH_ACCENT       = '#8b5cf6';  // purple-500
+const SYNTH_ACCENT_DARK  = '#6d28d9';  // purple-700
+const SYNTH_ACCENT_HOVER = '#7c3aed';  // purple-600
+const SYNTH_ACCENT_BG    = '#f5f3ff';  // purple-50
+const SYNTH_ACCENT_CHIP  = '#ede9fe';  // purple-100
+const SYNTH_ACCENT_TEXT  = '#5b21b6';  // purple-800
 
 const THUMB_W = 1400;   // mockup 컴포넌트 가상 폭
 const THUMB_H = 900;
@@ -36,7 +44,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
   const [nl, setNl] = useState('');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
   const [prefilling, setPrefilling] = useState(false); // 선택 후 prefill 중
-  const [results, setResults] = useState(null);        // [{ entry, relevance, reason }]
+  const [results, setResults] = useState(null);        // Array<existing | synthesized | placeholder>
   const [mode, setMode] = useState(null);              // 'ai' | 'fallback'
   const [zoomEntry, setZoomEntry] = useState(null);
 
@@ -61,54 +69,235 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     if (!nl.trim() || loading) return;
     setLoading(true);
     setResults(null);
-    // 1) 프런트 키워드 스코어 — 후보 압축 + 폴백 순서 확보
+
+    const TARGET_SLOTS       = 6;
+    const TARGET_EXISTING    = 4;
+    const TARGET_SYNTHESIZED = 2;
+
+    // 1) Front-side keyword score as fallback ordering
     const keywordTop = scoreMockupCandidates(nl, MOCKUP_ENTRIES);
     const candidates = buildMockupCandidates(nl, MOCKUP_ENTRIES, 12);
+
+    let cards = [];
+    let resolvedMode = 'fallback';
     try {
       const res = await recommendMockups({ nl, candidates });
       const data = res?.data || {};
-      if (data.mode === 'ai' && Array.isArray(data.items) && data.items.length > 0) {
-        const items = data.items
-          .map((it) => ({ entry: codeToEntry.get(it.patternCode), relevance: it.relevance, reason: it.reason }))
+      if (data.mode === 'ai') {
+        resolvedMode = 'ai';
+        const existingAll = (data.items || [])
+          .map((it) => ({
+            kind: 'existing',
+            entry: codeToEntry.get(it.patternCode),
+            relevance: it.relevance,
+            reason: it.reason,
+          }))
           .filter((x) => x.entry);
-        setResults(items.length > 0 ? items : keywordTop.slice(0, 3).map((s) => ({ entry: s.entry })));
-        setMode(items.length > 0 ? 'ai' : 'fallback');
+        const synthAll = (Array.isArray(data.synthesized) ? data.synthesized : [])
+          .map((s) => ({ kind: 'synthesized', synth: s }));
+
+        const eUse = existingAll.slice(0, TARGET_EXISTING);
+        const sUse = synthAll.slice(0, TARGET_SYNTHESIZED);
+        cards = [...eUse, ...sUse];
+
+        if (cards.length < TARGET_SLOTS) {
+          const eExtra = existingAll.slice(TARGET_EXISTING);
+          const sExtra = synthAll.slice(TARGET_SYNTHESIZED);
+          for (const c of eExtra) { if (cards.length >= TARGET_SLOTS) break; cards.push(c); }
+          for (const c of sExtra) { if (cards.length >= TARGET_SLOTS) break; cards.push(c); }
+        }
       } else {
-        setResults(keywordTop.slice(0, 3).map((s) => ({ entry: s.entry })));
-        setMode('fallback');
+        cards = keywordTop.slice(0, TARGET_SLOTS).map((s) => ({ kind: 'existing', entry: s.entry }));
       }
     } catch {
-      setResults(keywordTop.slice(0, 3).map((s) => ({ entry: s.entry })));
-      setMode('fallback');
+      cards = keywordTop.slice(0, TARGET_SLOTS).map((s) => ({ kind: 'existing', entry: s.entry }));
     } finally {
       setLoading(false);
     }
+
+    while (cards.length < TARGET_SLOTS) {
+      cards.push({
+        kind: 'placeholder',
+        message: cards.length === 0
+          ? '관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도해보세요.'
+          : 'AI 가 적절한 추가 템플릿을 찾지 못했습니다.',
+      });
+    }
+
+    setMode(resolvedMode);
+    setResults(cards);
   };
 
-  const onPick = async (entry) => {
-    if (!entry || prefilling) return;
+  const onPick = async (item) => {
+    if (!item || item.kind === 'placeholder' || prefilling) return;
     setPrefilling(true);
-    const base = specFromMockup(entry, { title: entry.patternLabel || '새 화면', menuCd: '' });
-    try {
-      const res = await prefillFromMockup({
-        nl,
-        mockupPatternCode: entry.patternCode,
-        mockupMeta: {
-          patternLabel: entry.patternLabel,
-          description: entry.description,
-          layers: entry.layers,
-          menus: entry.menus,
-        },
-        moduleCode: '',
-        targetCd,
-      });
-      const aiSpec = res?.data?.spec || null;
-      onStart(mergeAiPrefillIntoSpec(base, aiSpec));
-    } catch {
-      onStart(base); // 폴백 — specFromMockup 만
-    } finally {
-      setPrefilling(false);
+
+    if (item.kind === 'existing') {
+      const entry = item.entry;
+      const base = specFromMockup(entry, { title: entry.patternLabel || '새 화면', menuCd: '' });
+      try {
+        const res = await prefillFromMockup({
+          nl,
+          mockupPatternCode: entry.patternCode,
+          mockupMeta: {
+            patternLabel: entry.patternLabel,
+            description: entry.description,
+            layers: entry.layers,
+            menus: entry.menus,
+          },
+          moduleCode: '',
+          targetCd,
+        });
+        const aiSpec = res?.data?.spec || null;
+        onStart(mergeAiPrefillIntoSpec(base, aiSpec));
+      } catch {
+        onStart(base);
+      } finally {
+        setPrefilling(false);
+      }
+      return;
     }
+
+    if (item.kind === 'synthesized') {
+      const synth = item.synth;
+      const base = specFromSynthesized(synth, { title: synth.label || '새 화면', menuCd: '' });
+      try {
+        const res = await prefillFromSynthesized({
+          nl,
+          synthesized: synth,
+          moduleCode: '',
+          targetCd,
+        });
+        const aiSpec = res?.data?.spec || null;
+        onStart(mergeAiPrefillIntoSpec(base, aiSpec));
+      } catch {
+        onStart(base);
+      } finally {
+        setPrefilling(false);
+      }
+      return;
+    }
+  };
+
+  const renderCard = (item, idx) => {
+    if (item.kind === 'placeholder') {
+      return (
+        <Box key={`ph-${idx}`} sx={{
+          bgcolor: '#fff', borderRadius: 2,
+          border: '1.5px dashed #cbd5e1',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          p: 2, color: '#94a3b8',
+        }}>
+          <Typography variant="body2" sx={{ textAlign: 'center', fontSize: 11 }}>
+            {item.message}
+          </Typography>
+        </Box>
+      );
+    }
+
+    if (item.kind === 'existing') {
+      const entry = item.entry;
+      const Thumb = entry.component;
+      const top = idx === 0;
+      return (
+        <Box key={`ex-${entry.patternCode}`} sx={{
+          display: 'flex', flexDirection: 'column', minWidth: 0,
+          bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
+          border: top ? `2px solid ${ACCENT}` : '1px solid #e2e8f0',
+          boxShadow: top ? '0 4px 14px rgba(245,158,11,0.18)' : 'none',
+        }}>
+          <Box
+            onMouseDown={(e) => { e.preventDefault(); startZoom(entry); }}
+            sx={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden',
+                  borderBottom: '1px solid #f1f5f9', cursor: 'zoom-in', bgcolor: '#fff',
+                  userSelect: 'none' }}
+          >
+            <Box sx={{ width: THUMB_W, height: THUMB_H,
+                       transform: 'scale(0.18)', transformOrigin: 'top left', pointerEvents: 'none' }}>
+              <Suspense fallback={<Box sx={{ p: 4 }}><CircularProgress size={20} /></Box>}>
+                {Thumb ? <Thumb /> : null}
+              </Suspense>
+            </Box>
+          </Box>
+          <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
+            {item.relevance != null && (
+              <Chip label={`관련도 ${item.relevance}%`} size="small"
+                    sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
+                          bgcolor: top ? ACCENT_CHIP : '#f1f5f9', color: top ? ACCENT_DARK : '#64748b' }} />
+            )}
+            <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{entry.patternLabel}</Typography>
+            <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{entry.description}</Typography>
+            {item.reason && (
+              <Typography sx={{ fontSize: 10.5, color: ACCENT_DARK, fontStyle: 'italic' }}>"{item.reason}"</Typography>
+            )}
+            {(entry.menus || []).length > 0 && (
+              <Typography sx={{ fontSize: 9.5, color: '#94a3b8' }}>
+                📋 {(entry.menus || []).slice(0, 2).map((m) => m.menuNm).join(' · ')}
+              </Typography>
+            )}
+            <Button variant={top ? 'contained' : 'outlined'} size="small" onClick={() => onPick(item)}
+                    disabled={prefilling}
+                    sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
+                          ...(top ? { bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }
+                                  : { color: ACCENT_DARK, borderColor: ACCENT }) }}>
+              {prefilling ? '분석 중…' : '이 템플릿으로 시작 →'}
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
+
+    if (item.kind === 'synthesized') {
+      const synth = item.synth;
+      const sourceCodes = Array.from(new Set(
+        (synth.layers || []).map((l) => l.sourceMockupCode).filter(Boolean)
+      ));
+      return (
+        <Box key={`syn-${idx}`} sx={{
+          display: 'flex', flexDirection: 'column', minWidth: 0,
+          bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
+          border: `2px solid ${SYNTH_ACCENT}`,
+          boxShadow: '0 4px 14px rgba(139,92,246,0.18)',
+        }}>
+          <Box sx={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden',
+                     borderBottom: '1px solid #f1f5f9', bgcolor: '#fff' }}>
+            <SynthesizedMockupPreview layers={synth.layers} />
+          </Box>
+          <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
+            <Chip label="🪄 AI 재조합" size="small"
+                  sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
+                        bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
+            <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{synth.label}</Typography>
+            {synth.description && (
+              <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{synth.description}</Typography>
+            )}
+            {synth.reason && (
+              <Typography sx={{ fontSize: 10.5, color: SYNTH_ACCENT_DARK, fontStyle: 'italic' }}>"{synth.reason}"</Typography>
+            )}
+            {sourceCodes.length > 0 && (
+              <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.3 }}>
+                {sourceCodes.slice(0, 3).map((code) => {
+                  const src = codeToEntry.get(code);
+                  return (
+                    <Chip key={code} size="small" label={src ? (src.patternLabel || code) : code}
+                          sx={{ height: 16, fontSize: 9, bgcolor: SYNTH_ACCENT_BG, color: SYNTH_ACCENT_TEXT,
+                                border: `1px solid ${SYNTH_ACCENT_CHIP}` }} />
+                  );
+                })}
+              </Stack>
+            )}
+            <Button variant="contained" size="small" onClick={() => onPick(item)}
+                    disabled={prefilling}
+                    sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
+                          bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER } }}>
+              {prefilling ? '분석 중…' : '이 재조합으로 시작 →'}
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -149,7 +338,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           {results && (
             <Box sx={{ p: 1.2, bgcolor: ACCENT_BG, border: `1px solid ${ACCENT_BORDER}`, borderRadius: 1.5,
                        fontSize: 11, color: ACCENT_TEXT }}>
-              🔎 관련 mockup {results.length}개 추천
+              🔎 관련 mockup {results.filter((c) => c.kind !== 'placeholder').length}개 추천
               {mode === 'fallback' && <Chip label="키워드 매칭" size="small"
                 sx={{ ml: 0.6, height: 16, fontSize: 9, bgcolor: '#e2e8f0' }} />}
             </Box>
@@ -163,65 +352,19 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
               <Typography variant="body2">자연어로 만들고 싶은 화면을 적고 "추천 템플릿 찾기" 를 누르세요.</Typography>
             </Box>
           )}
-          {results && results.length === 0 && (
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-              <Typography variant="body2">관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도하거나 패턴 선택에서 직접 고르세요.</Typography>
+          {results && (
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateRows: 'repeat(2, 1fr)',
+              gap: 1.2,
+              flex: 1,
+              minHeight: 0,
+            }}>
+              {results.map((item, idx) => renderCard(item, idx))}
             </Box>
           )}
-          {results && results.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 1.2, flex: 1, minHeight: 0 }}>
-              {results.map(({ entry, relevance, reason }, idx) => {
-                const Thumb = entry.component;
-                const top = idx === 0;
-                return (
-                  <Box key={entry.patternCode}
-                       sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-                             bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
-                             border: top ? `2px solid ${ACCENT}` : '1px solid #e2e8f0',
-                             boxShadow: top ? '0 4px 14px rgba(245,158,11,0.18)' : 'none' }}>
-                    {/* 큰 썸네일 — 꾹 누르면 확대 (떼면 닫힘) */}
-                    <Box
-                      onMouseDown={(e) => { e.preventDefault(); startZoom(entry); }}
-                      sx={{ position: 'relative', height: 290, overflow: 'hidden',
-                            borderBottom: '1px solid #f1f5f9', cursor: 'zoom-in', bgcolor: '#fff',
-                            userSelect: 'none' }}
-                    >
-                      <Box sx={{ width: THUMB_W, height: THUMB_H,
-                                 transform: 'scale(0.30)', transformOrigin: 'top left', pointerEvents: 'none' }}>
-                        <Suspense fallback={<Box sx={{ p: 4 }}><CircularProgress size={20} /></Box>}>
-                          {Thumb ? <Thumb /> : null}
-                        </Suspense>
-                      </Box>
-                    </Box>
-                    {/* 카드 본문 */}
-                    <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.6, flex: 1 }}>
-                      {relevance != null && (
-                        <Chip label={`관련도 ${relevance}%`} size="small"
-                          sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
-                                bgcolor: top ? ACCENT_CHIP : '#f1f5f9', color: top ? ACCENT_DARK : '#64748b' }} />
-                      )}
-                      <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{entry.patternLabel}</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>{entry.description}</Typography>
-                      {reason && <Typography sx={{ fontSize: 10.5, color: ACCENT_DARK, fontStyle: 'italic' }}>“{reason}”</Typography>}
-                      {(entry.menus || []).length > 0 && (
-                        <Typography sx={{ fontSize: 9.5, color: '#94a3b8' }}>
-                          📋 {(entry.menus || []).slice(0, 2).map((m) => m.menuNm).join(' · ')}
-                        </Typography>
-                      )}
-                      <Button variant={top ? 'contained' : 'outlined'} size="small" onClick={() => onPick(entry)}
-                              disabled={prefilling}
-                              sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
-                                    ...(top ? { bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }
-                                            : { color: ACCENT_DARK, borderColor: ACCENT }) }}>
-                        {prefilling ? '분석 중…' : '이 템플릿으로 시작 →'}
-                      </Button>
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-          {results && results.length > 0 && (
+          {results && results.some((c) => c.kind !== 'placeholder') && (
             <Typography sx={{ fontSize: 10.5, color: '#94a3b8', textAlign: 'center' }}>
               선택 후 → ① Layout ② 데이터·검색조건 ③ 메타·메뉴 ④ 생성 <b style={{ color: ACCENT_DARK }}>(AI 자동 prefill)</b>
             </Typography>

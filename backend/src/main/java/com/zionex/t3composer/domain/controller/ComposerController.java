@@ -28,6 +28,8 @@ import com.zionex.t3composer.domain.dto.PrefillFromDesignRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromSourceRequest;
 import com.zionex.t3composer.domain.dto.RecommendMockupRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromMockupRequest;
+import com.zionex.t3composer.domain.service.PrefillFromSynthesizedService;
+import com.zionex.t3composer.domain.dto.PrefillFromSynthesizedRequest;
 import com.zionex.t3composer.domain.service.DesignDocAnalyzeService;
 import com.zionex.t3composer.domain.service.DesignDocExportService;
 import com.zionex.t3composer.domain.service.MenuRegistrationService;
@@ -77,6 +79,7 @@ public class ComposerController {
     private final PrefillFromDesignService prefillFromDesignService;
     private final RecommendMockupService recommendMockupService;
     private final PrefillFromMockupService prefillFromMockupService;
+    private final PrefillFromSynthesizedService prefillFromSynthesizedService;
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
     private final PreviewModuleResolver previewModuleResolver;
@@ -614,6 +617,18 @@ public class ComposerController {
             return ResponseEntity.ok(prefillFromMockupService.prefill(currentUserId(), req));
         } catch (Exception e) {
             log.error("prefill-from-mockup failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error",   "server_error",
+                    "message", e.getMessage() != null ? e.getMessage() : "unknown"));
+        }
+    }
+
+    @PostMapping("/prefill-from-synthesized")
+    public ResponseEntity<Map<String, Object>> prefillFromSynthesized(@RequestBody PrefillFromSynthesizedRequest req) {
+        try {
+            return ResponseEntity.ok(prefillFromSynthesizedService.prefill(currentUserId(), req));
+        } catch (Exception e) {
+            log.error("prefill-from-synthesized failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "error",   "server_error",
                     "message", e.getMessage() != null ? e.getMessage() : "unknown"));

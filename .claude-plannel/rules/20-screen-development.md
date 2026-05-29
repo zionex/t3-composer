@@ -67,15 +67,15 @@ saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
 ```jsx
 // App.js (발췌)
 <Routes>
-  <Route path={RouteList.MAIN.path} element={<Home />} />
-  <Route path={RouteList.SCM.path} element={<TabContainer data={showedTabsInfo} ... />} />
-  <Route path={RouteList.HELP.path} element={<HelpPage />} />
+  <Route path={RouteList.Home.path} element={<Home />} />
+  <Route path={RouteList.SCM.path} element={<TabsWith data={showedTabsInfo} ... />} />
+  <Route path={RouteList.Help.path} element={<HelpPage />} />
   {/* 시스템 경로만 여기 등록 */}
 </Routes>
 ```
 
 `RouteList.SCM.path = "/scm"` 아래에 **모든 비즈니스 화면이 탭 체계로 렌더**된다.
-`TabContainer` 는 `showedTabsInfo` (열린 탭 목록) 를 받아 각 탭의 `component` JSX 를 표시한다.
+`TabsWith` 는 `showedTabsInfo` (열린 탭 목록) 를 받아 각 탭의 `component` JSX 를 표시한다.
 
 ### 3.2 새 비즈니스 화면 추가 시 라우트 파일 수정 금지
 

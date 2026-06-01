@@ -71,15 +71,26 @@ public class ComposerProperties {
         "**/oracle/procedures/**",
         "**/oracle/upgrade/**",
         // PlanNEL — saas-web/ (TARGET_PLANNEL_WINGUI_PATH)
+        // Both **/src/.../** and src/.../** are needed: Java PathMatcher with leading **/ does
+        // not reliably match paths where the mount-point prefix was already stripped, leaving
+        // the path starting directly with src/ (no leading segment for ** to absorb).
         "**/src/pages/**",
+        "src/pages/**",
         "**/src/services/**",
+        "src/services/**",
         "**/src/components/**",
+        "src/components/**",
         "**/src/redux/**",
+        "src/redux/**",
         "**/src/utils/**",
+        "src/utils/**",
         "**/src/hooks/**",
+        "src/hooks/**",
         "**/src/assets/data/l10n/**",
+        "src/assets/data/l10n/**",
         // PlanNEL — saas-application/ (TARGET_PLANNEL_BACKEND_PATH)
-        "**/src/main/resources/mapper/**"
+        "**/src/main/resources/mapper/**",
+        "src/main/resources/mapper/**"
     );
 
     public boolean isStagingMode() {

@@ -232,7 +232,7 @@ services:
       # EXISTING_MODIFY 모드의 InsightSourceController 가 Controller/Service/Repository .java 를
       # 찾으려면 backend root 가 별도 마운트로 컨테이너에 보여야 함.
       # tb_cmp_target_system.backend_ref_path = '/workspace/targets/PLANNEL/backend' 매칭.
-      - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:ro
+      - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:rw
       - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:rw
       - ${TARGET_LGES_NEXTSCM_DATABASE_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/database:ro
       # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.

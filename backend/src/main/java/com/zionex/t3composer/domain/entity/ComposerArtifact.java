@@ -42,6 +42,8 @@ public class ComposerArtifact {
     public static final String TYPE_MENU_JS           = "MENU_JS";
     /** PlanNEL 류 frontend 의 비-페이지 모듈 (.js/.ts) — services / redux slices / utils / hooks / components. */
     public static final String TYPE_FRONTEND_JS_MODULE = "FRONTEND_JS_MODULE";
+    /** MyBatis Mapper XML (saas-application/src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml). */
+    public static final String TYPE_MYBATIS_MAPPER_XML = "MYBATIS_MAPPER_XML";
     public static final String TYPE_DESIGN_DOC_UPLOAD = "DESIGN_DOC_UPLOAD";
     public static final String TYPE_SOURCE_SNAPSHOT   = "SOURCE_SNAPSHOT";
     public static final String TYPE_OTHER             = "OTHER";

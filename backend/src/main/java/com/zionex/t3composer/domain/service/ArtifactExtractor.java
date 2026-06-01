@@ -116,6 +116,10 @@ public class ArtifactExtractor {
         boolean isLiquibaseYaml = (lower.endsWith(".yaml") || lower.endsWith(".yml"))
                                && lower.contains("db/changelog/");
 
+        // MyBatis Mapper XML — saas-application/src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml
+        boolean isMybatisMapperXml = lower.endsWith(".xml")
+                && (lower.contains("/mapper/") || lower.endsWith("mapper.xml"));
+
         // PLANEL 류 (menu_source='JS_FILE') 의 메뉴 등록 entry JSON.
         //   `tabmenulist` 단어가 path 에 들어가면 MENU_JS — JSX 분류기보다 먼저 매치되어야 함
         //   (PlanNEL 의 saas-web 은 .js 확장자라 `.js in /pages/` JSX 분류와 충돌 회피).
@@ -136,6 +140,8 @@ public class ArtifactExtractor {
                 return ComposerArtifact.TYPE_FRONTEND_JS_MODULE;
             }
         }
+
+        if (isMybatisMapperXml)                                            return ComposerArtifact.TYPE_MYBATIS_MAPPER_XML;
 
         if (isJava) {
             if (lower.contains("controller")) return ComposerArtifact.TYPE_JAVA_CONTROLLER;

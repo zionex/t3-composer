@@ -708,6 +708,10 @@ public class ArtifactApplyService {
         if (isJavaSourceType(type)) {
             return backendRoot != null ? backendRoot : frontendRoot;
         }
+        if (ComposerArtifact.TYPE_MYBATIS_MAPPER_XML.equals(type)) {
+            // MyBatis Mapper XML lives inside saas-application/src/main/resources/mapper/
+            return backendRoot != null ? backendRoot : frontendRoot;
+        }
         if (ComposerArtifact.TYPE_SQL_DDL.equals(type) || ComposerArtifact.TYPE_SQL_SP.equals(type)) {
             // PlanNEL Liquibase changelogs live inside saas-application/src/main/resources/db/changelog/
             // → route to backendRoot, not databaseRoot
@@ -730,7 +734,8 @@ public class ArtifactApplyService {
             || type.equals(ComposerArtifact.TYPE_JAVA_SERVICE)
             || type.equals(ComposerArtifact.TYPE_JAVA_REPOSITORY)
             || type.equals(ComposerArtifact.TYPE_JAVA_ENTITY)
-            || type.equals(ComposerArtifact.TYPE_MENUS_JS_PATCH);
+            || type.equals(ComposerArtifact.TYPE_MENUS_JS_PATCH)
+            || type.equals(ComposerArtifact.TYPE_MYBATIS_MAPPER_XML);
     }
 
     /** Java 소스 타입 여부 — Target wingui 에 직접 쓰기 시 패키지 rename 대상 판정용 */
@@ -909,6 +914,11 @@ public class ArtifactApplyService {
             case "MENU_JS":
                 // TabMenuList 편집 — filePath 없이 도달한 경우 기본 경로 반환
                 return "src/pages/TabMenuList.js";
+            case "MYBATIS_MAPPER_XML": {
+                // MyBatis Mapper XML — filePath 없이 도달한 경우 mapper/<name> 으로 배치
+                String base = safeName.replaceAll("(?i)\\.xml$", "");
+                return "src/main/resources/mapper/" + base + ".xml";
+            }
             default:
                 return null;
         }

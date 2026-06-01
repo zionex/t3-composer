@@ -134,6 +134,8 @@ Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉�
 
 산출물 생성 시 LLM 은 가독성을 위해 `saas-application/...` · `saas-web/...` 접두어를 그대로 사용한다. Composer 의 apply 단계가 위 매핑으로 자동 변환해 실제 파일을 쓴다.
 
+> ★ **`@plannel` craco alias**: `saas-web/craco.config.js` 에서 `@plannel` = `src/` 로 설정. 따라서 페이지의 `import x from "@plannel/services/<area>/<x>-service"` = 파일 시스템상 `src/services/<area>/<x>-service.js`. 산출물 경로(`saas-web/src/services/<area>/<x>-service.js`)와 import 경로(`@plannel/services/<area>/<x>-service`)가 일치해야 webpack 이 resolve 한다 — service 파일명 오타 또는 파일 미산출 시 `Module not found`.
+
 ### §3.1 Frontend (saas-web/ = TARGET_PLANNEL_WINGUI_PATH — §3.0 참조)
 
 ★ 본 표의 경로는 모두 **`TARGET_PLANNEL_WINGUI_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_WINGUI_PATH/src/pages/...` 가 실제 host 경로 (§3.0).
@@ -142,9 +144,11 @@ Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉�
 |---|---|---|
 | `src/pages/TabMenuList.js` (모디파이) | ✅ | **2가지 변경 모두 필수**: ① 파일 상단에 `import <Feature> from "./<domain-kebab>/<Feature>";` static import 추가 ② 소속 lv2 의 `lv3MenuList` 배열에 새 항목 추가. 자세히는 20 §4.5 |
 | `src/pages/<domain-kebab>/<Feature>.js` | ✅ | React 컴포넌트 — `withTranslation()` HOC 권장 (21 §5) |
-| `src/services/<domain>/<feature>Service.js` | ✅ | axios wrapper — 도메인별 인스턴스 사용 (30 §2.1) |
+| `src/services/<area>/<feature>-service.js` ★ | ✅ **페이지와 1:1 페어** | **kebab-case `<feature>-service.js`** (NOT camelCase `<feature>Service.js`!) — axios wrapper, 도메인별 인스턴스 (`restApi` / `restApiDP` / `restApiIP` / `restApiRP` / `restApiMP`) 사용. 30 §1 · §2.1 참조. ★ 페이지 생성 시 이 파일도 반드시 함께 산출 — 화면이 `@plannel/services/<area>/<feature>-service` 를 import 하므로 파일 없으면 webpack `Module not found`. |
 | `src/redux/slices/<feature>Slice.js` | 조건부 | UI 상태만 (필터/탭/페이지). API 결과는 useState |
 | **`src/assets/data/l10n/translation.<locale>.json` 6개 언어** | ✅ | en-us / ja-jp / ko-kr / vi-vn / zh-cn / zh-tw — 20 §5 |
+
+> ★ **페이지 + service 파일은 반드시 페어로 산출**. 페이지가 `import featureService from "@plannel/services/<area>/<feature>-service"` 처럼 import 하면, 같은 산출물 세트에 `src/services/<area>/<feature>-service.js` 가 반드시 포함되어야 한다. import 만 하고 service 파일을 산출 안 하면 webpack 빌드 실패 (`Module not found: Can't resolve '@plannel/services/<area>/<feature>-service'`).
 
 #### 도메인별 axios 인스턴스 선택
 
@@ -169,7 +173,7 @@ import React, { Component } from "react";
 import { withTranslation } from "react-i18next";
 import { Box, Button } from "@mui/material";
 import { AgGridReact } from "@ag-grid-community/react";
-import featureService from "../../services/<domain>/featureService";
+import featureService from "@plannel/services/<area>/<feature>-service";
 
 class Feature extends Component {
   constructor(props) {
@@ -304,7 +308,8 @@ src/assets/data/l10n/
 ### §5.2 Frontend 산출물
 
 - [ ] 페이지 파일 경로: `src/pages/<domain-kebab>/<PascalName>.js`?
-- [ ] 서비스 파일 경로: `src/services/<domain>/<featureName>Service.js`?
+- [ ] 서비스 파일 경로: `src/services/<area>/<feature>-service.js`? (kebab-case, NOT `<feature>Service.js`)
+- [ ] 페이지가 `@plannel/services/<area>/<feature>-service` 를 import 하는데 그 service 파일이 산출물 세트에 포함되어 있는가? (페이지-service 파일 1:1 페어 누락 시 webpack `Module not found`)
 - [ ] TabMenuList.js: ① 파일 상단 static import 추가 AND ② lv3 항목 추가 — 둘 다 필수?
 - [ ] i18n 6개 언어 `translation.*.json` 모두 갱신?
 
@@ -358,6 +363,8 @@ src/assets/data/l10n/
 | `@Column(name = "TB_...")`에 schema prefix | `@Table(name = "z_customer")` schema prefix 없음 | 40 §1.1 |
 | `composer-jsx.sh` / wingui hook 참조 | 해당 없음 (PlanNEL Composer 전용 hook 사용) | — |
 | ❌ `CustomReport.jsx` 또는 `CustomReport.js.jsx` (이중 확장자) | ✅ `CustomReport.js` (`.js` 만 — `saas-web/` 은 CRA/craco 기반이며 전체 코드베이스가 `.js` 로 React 컴포넌트 작성) | 20 §2.1 |
+| ❌ 페이지에서 `@plannel/services/<area>/<feature>-service` 를 import 하면서 그 service 파일(`src/services/<area>/<feature>-service.js`)은 산출물 세트에 없음 | ✅ 페이지와 service 파일을 **항상 함께** 산출 (1:1 페어) — import 만 쓰고 파일 미산출 시 webpack `Module not found` | 41 §3.1, 30 §1 |
+| ❌ camelCase service 파일명 (`customerService.js`, `materialService.js`) | ✅ kebab-case (`customer-service.js`, `material-service.js`) — saas-plannel 실제 컨벤션 (30 §1 참조) | 30 §1 |
 
 ---
 

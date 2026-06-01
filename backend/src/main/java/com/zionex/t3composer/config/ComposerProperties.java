@@ -69,7 +69,17 @@ public class ComposerProperties {
         "**/mssql/procedures/**",
         "**/mssql/upgrade/**",
         "**/oracle/procedures/**",
-        "**/oracle/upgrade/**"
+        "**/oracle/upgrade/**",
+        // PlanNEL — saas-web/ (TARGET_PLANNEL_WINGUI_PATH)
+        "**/src/pages/**",
+        "**/src/services/**",
+        "**/src/components/**",
+        "**/src/redux/**",
+        "**/src/utils/**",
+        "**/src/hooks/**",
+        "**/src/assets/data/l10n/**",
+        // PlanNEL — saas-application/ (TARGET_PLANNEL_BACKEND_PATH)
+        "**/src/main/resources/mapper/**"
     );
 
     public boolean isStagingMode() {

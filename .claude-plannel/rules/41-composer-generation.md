@@ -115,6 +115,13 @@ lv3MenuList["SUBMENU_IP_SETTINGS"] = [
 
 ### §3.0 경로 매핑 — `.env` 변수 ↔ 산출물 경로
 
+> ★ **T3SERIES vs PlanNEL 구조 차이** — 혼동 주의:
+>
+> - **T3SERIES (wingui)** — backend + frontend 가 **한 프로젝트** (단일 repo, Maven 다중 모듈). 경로 루트 하나(`TARGET_T3SERIES_WINGUI_PATH`)에서 `src/main/java/...` (backend) 와 `packages/wingui/src/view/...` (frontend) 모두 해결됨.
+> - **PlanNEL** — backend 와 frontend 가 **별개 모듈** (`saas-plannel/` 모노레포의 sibling 디렉토리). `saas-application/` (Spring Boot 2.4.13 backend) 과 `saas-web/` (React CRA/craco frontend, `.js` 확장자) 가 각자의 경로 변수를 가짐 (아래 표 참조).
+>
+> 산출물 파일을 작성할 때 backend 파일(`saas-application/...`)과 frontend 파일(`saas-web/...`)의 경로 접두어를 반드시 구분해야 한다 — 같은 루트에 넣으면 오적용됨.
+
 Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉토리이고, 컨테이너 내부에서는 마운트된 경로로 보인다. 본 rule 의 `saas-application/...` · `saas-web/...` 접두어는 다음 매핑을 가진다:
 
 | Rule 표기 | `.env` 변수 | host 경로 (`.env` 값) | composer-backend 컨테이너 마운트 |
@@ -350,6 +357,7 @@ src/assets/data/l10n/
 | `PLAN_SCOPE` 컬럼 필터로 테넌트 격리 | schema-per-tenant — `tenant_id` 컬럼 없음 | 40 §1.1 |
 | `@Column(name = "TB_...")`에 schema prefix | `@Table(name = "z_customer")` schema prefix 없음 | 40 §1.1 |
 | `composer-jsx.sh` / wingui hook 참조 | 해당 없음 (PlanNEL Composer 전용 hook 사용) | — |
+| ❌ `CustomReport.jsx` 또는 `CustomReport.js.jsx` (이중 확장자) | ✅ `CustomReport.js` (`.js` 만 — `saas-web/` 은 CRA/craco 기반이며 전체 코드베이스가 `.js` 로 React 컴포넌트 작성) | 20 §2.1 |
 
 ---
 

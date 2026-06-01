@@ -88,6 +88,16 @@ app:
       - "**/mssql/upgrade/**"
       - "**/oracle/procedures/**"
       - "**/oracle/upgrade/**"
+      # PlanNEL — saas-web/ (TARGET_PLANNEL_WINGUI_PATH)
+      - "**/src/pages/**"
+      - "**/src/services/**"
+      - "**/src/components/**"
+      - "**/src/redux/**"
+      - "**/src/utils/**"
+      - "**/src/hooks/**"
+      - "**/src/assets/data/l10n/**"
+      # PlanNEL — saas-application/ (TARGET_PLANNEL_BACKEND_PATH)
+      - "**/src/main/resources/mapper/**"
   # Target 거버넌스 설정 스냅샷 — 시크릿 암호화 마스터키 + 스냅샷 대상 루트.
   snapshot:
     secret-key: ${COMPOSER_SNAPSHOT_SECRET_KEY:}

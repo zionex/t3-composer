@@ -642,6 +642,12 @@ public class ArtifactApplyService {
                 if (ComposerArtifact.TYPE_SCREEN_JSX.equals(type)) {
                     norm = ensureJsxLowercaseFolder(norm);
                 }
+                // 방어 — LLM 이 .js 파일에 SCREEN_JSX 분류된 경우 .js.jsx / .js.tsx 이중 확장자 제거
+                if (norm.toLowerCase().endsWith(".js.jsx") || norm.toLowerCase().endsWith(".js.tsx")) {
+                    String fixed = norm.replaceAll("(?i)\\.js\\.(jsx|tsx)$", ".js");
+                    log.warn("이중 확장자 제거: '{}' → '{}'", norm, fixed);
+                    norm = fixed;
+                }
                 return norm;
             }
         }
@@ -665,6 +671,8 @@ public class ArtifactApplyService {
      */
     private String ensureJsxLowercaseFolder(String relPath) {
         if (relPath == null || relPath.isBlank()) return relPath;
+        // PlanNEL saas-web/ 은 src/pages/ 하위 구조를 사용 — wingui contentStore 라우팅 규약 (view/<lowercase>/<Pascal>) 미적용
+        if (!relPath.contains("/view/")) return relPath;
         int slash = relPath.lastIndexOf('/');
         if (slash < 0) return relPath;                          // 파일명만 — 자동 폴더 무의미
         String filename = relPath.substring(slash + 1);
@@ -737,7 +745,8 @@ public class ArtifactApplyService {
                 // UserInfoMgmt.jsx → t3series-wingui/packages/wingui/src/view/util/userinfomgmt/UserInfoMgmt.jsx
                 // (Composer 생성물은 보통 UT 모듈; 실제로는 도메인 접두어가 fileName 에 들어가 있지 않아
                 //  기본값으로 util/<lowercase-name>/ 아래 배치. 필요 시 사용자가 이동)
-                String base = safeName.replaceAll("\\.jsx$|\\.tsx$", "");
+                // 확장자 제거: .jsx / .tsx / .js (PlanNEL saas-web/ 은 .js 확장자 사용 — 미제거 시 .js.jsx 이중 확장자 발생)
+                String base = safeName.replaceAll("(?i)\\.(jsx|tsx|js)$", "");
                 String module = guessModuleFromName(base); // 예: UserInfoMgmt → util
                 String folder = base.toLowerCase();
                 return "t3series-wingui/packages/wingui/src/view/" + module + "/" + folder + "/" + base + ".jsx";
@@ -1336,6 +1345,16 @@ public class ArtifactApplyService {
 
         // 수정 모드는 기존 파일 스타일 유지를 위해 정책 검증을 생략 (너무 제한적)
         if (!isNewMode) {
+            return violations;
+        }
+
+        // PlanNEL 은 구조가 다름 — JPA + QueryDSL + MyBatis 기반이라 SP_UI_* 개념이 없고,
+        // 패키지/경로 규약(`/ut/`, `mp/dp/bf/fpserver/config/*_service.xml`, `com.zionex.t3series.web.domain.ut`)도
+        // 적용되지 않는다. wingui 네이티브 규약 전체를 스킵하고 PlanNEL 전용 룰셋 (.claude-plannel/rules/) 을 따른다.
+        String targetCd = session != null ? session.getTargetCd() : null;
+        if ("PLANNEL".equalsIgnoreCase(targetCd)) {
+            log.info("Composer wingui 네이티브 정책 검증 스킵: targetCd=PLANNEL sessionId={}",
+                    session != null ? session.getId() : "-");
             return violations;
         }
 

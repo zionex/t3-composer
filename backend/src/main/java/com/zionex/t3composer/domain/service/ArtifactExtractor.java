@@ -117,6 +117,19 @@ public class ArtifactExtractor {
         if (lower.endsWith("menus.js") || lower.contains("/menus.js")) return ComposerArtifact.TYPE_MENUS_JS_PATCH;
         if (isJsx)                                                     return ComposerArtifact.TYPE_SCREEN_JSX;
 
+        // PlanNEL frontend 비-페이지 모듈 — services / redux / utils / hooks / components
+        // (TabMenuList 와 menus.js 는 위에서 이미 분류됨)
+        if (lower.endsWith(".js") || lower.endsWith(".ts")) {
+            if (lower.contains("/services/")
+             || lower.contains("/redux/")
+             || lower.contains("/slices/")
+             || lower.contains("/utils/")
+             || lower.contains("/hooks/")
+             || lower.contains("/components/")) {
+                return ComposerArtifact.TYPE_FRONTEND_JS_MODULE;
+            }
+        }
+
         if (isJava) {
             if (lower.contains("controller")) return ComposerArtifact.TYPE_JAVA_CONTROLLER;
             if (lower.contains("service"))    return ComposerArtifact.TYPE_JAVA_SERVICE;

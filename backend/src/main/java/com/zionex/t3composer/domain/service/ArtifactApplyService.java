@@ -658,6 +658,8 @@ public class ArtifactApplyService {
     private boolean isFileArtifactType(String type) {
         if (type == null) return false;
         return type.equals(ComposerArtifact.TYPE_SCREEN_JSX)
+            || type.equals(ComposerArtifact.TYPE_FRONTEND_JS_MODULE)
+            || type.equals(ComposerArtifact.TYPE_MENU_JS)
             || type.equals(ComposerArtifact.TYPE_JAVA_CONTROLLER)
             || type.equals(ComposerArtifact.TYPE_JAVA_SERVICE)
             || type.equals(ComposerArtifact.TYPE_JAVA_REPOSITORY)
@@ -829,6 +831,18 @@ public class ArtifactApplyService {
                 return "t3series-wingui/src/main/java/com/zionex/t3series/web/domain/generated/"
                      + subdir + "/" + base + ".java";
             }
+            case "FRONTEND_JS_MODULE": {
+                // filePath 없이 여기까지 도달한 경우(드묾) — 파일명 패턴으로 폴더 추정
+                String base = safeName.replaceAll("(?i)\\.(js|ts)$", "");
+                String area = base.contains("-service") || base.endsWith("Service") ? "services"
+                            : base.contains("-slice")  || base.endsWith("Slice")   ? "redux/slices"
+                            : base.contains("Hook")    || base.contains("-hook")    ? "hooks"
+                            : "utils";
+                return "src/" + area + "/" + safeName;
+            }
+            case "MENU_JS":
+                // TabMenuList 편집 — filePath 없이 도달한 경우 기본 경로 반환
+                return "src/pages/TabMenuList.js";
             default:
                 return null;
         }

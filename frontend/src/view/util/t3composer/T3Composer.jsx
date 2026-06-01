@@ -11,6 +11,11 @@ import {
   Tooltip,
   CircularProgress,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
 import DescriptionIcon       from '@mui/icons-material/Description';
@@ -343,6 +348,7 @@ function T3Composer() {
   const [modifyStartWith, setModifyStartWith] = useState(null);  // 기존 화면 수정 서브모드 ('NL'|'STEP')
   const [apiKeyRegistered, setApiKeyReg]    = useState(null);
   const [apiKeyDialogOpen, setApiKeyDialog] = useState(false);
+  const [confirmHomeOpen, setConfirmHomeOpen] = useState(false);
 
   // ─────────────────────────────────────────
   // Browser history ↔ 내부 mode 연동
@@ -366,6 +372,25 @@ function T3Composer() {
     const onPop = () => setMode(null);
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // 좌측 로고 클릭으로 발화되는 home reset 신호 — mode !== null 이면 confirm, 아니면 no-op
+  useEffect(() => {
+    const handler = () => {
+      if (mode === null) return;        // 이미 모드 선택 화면 — 추가 동작 불필요
+      setConfirmHomeOpen(true);
+    };
+    window.addEventListener('t3composer:resetToHome', handler);
+    return () => window.removeEventListener('t3composer:resetToHome', handler);
+  }, [mode]);
+
+  const handleHomeConfirm = useCallback(() => {
+    setConfirmHomeOpen(false);
+    setMode(null);
+  }, []);
+
+  const handleHomeCancel = useCallback(() => {
+    setConfirmHomeOpen(false);
   }, []);
 
   // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
@@ -572,6 +597,21 @@ function T3Composer() {
         onClose={() => setApiKeyDialog(false)}
         onSaved={handleApiKeySaved}
       />
+
+      <Dialog open={confirmHomeOpen} onClose={handleHomeCancel} maxWidth="xs" fullWidth>
+        <DialogTitle>모드 선택 화면으로 돌아가기</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            현재 입력한 내용은 사라집니다. (세션은 History 에서 이어할 수 있습니다.)
+            <br />
+            모드 선택 화면으로 돌아가시겠습니까?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleHomeCancel}>취소</Button>
+          <Button onClick={handleHomeConfirm} variant="contained" autoFocus>돌아가기</Button>
+        </DialogActions>
+      </Dialog>
     </ContentInner>
   );
 }

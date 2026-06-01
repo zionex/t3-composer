@@ -106,6 +106,9 @@ app:
       # PlanNEL — saas-application/ (TARGET_PLANNEL_BACKEND_PATH)
       - "**/src/main/resources/mapper/**"
       - "src/main/resources/mapper/**"
+      # PlanNEL — Liquibase changelog YAML files
+      - "**/src/main/resources/db/changelog/**"
+      - "src/main/resources/db/changelog/**"
   # Target 거버넌스 설정 스냅샷 — 시크릿 암호화 마스터키 + 스냅샷 대상 루트.
   snapshot:
     secret-key: ${COMPOSER_SNAPSHOT_SECRET_KEY:}

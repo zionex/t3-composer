@@ -90,7 +90,10 @@ public class ComposerProperties {
         "src/assets/data/l10n/**",
         // PlanNEL — saas-application/ (TARGET_PLANNEL_BACKEND_PATH)
         "**/src/main/resources/mapper/**",
-        "src/main/resources/mapper/**"
+        "src/main/resources/mapper/**",
+        // PlanNEL — Liquibase changelog YAML files
+        "**/src/main/resources/db/changelog/**",
+        "src/main/resources/db/changelog/**"
     );
 
     public boolean isStagingMode() {

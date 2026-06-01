@@ -110,12 +110,19 @@ public class ArtifactExtractor {
         boolean isJava = lower.endsWith(".java") || lower.endsWith("_java");
         boolean isSql  = lower.endsWith(".sql")  || lower.endsWith("_sql");
 
+        // PlanNEL Liquibase YAML changelog — .yaml or .yml file under db/changelog/.
+        // Treated as TYPE_SQL_DDL so the apply pipeline (allow-list guard,
+        // auto-include into db.changelog-tenant.yaml master) handles it correctly.
+        boolean isLiquibaseYaml = (lower.endsWith(".yaml") || lower.endsWith(".yml"))
+                               && lower.contains("db/changelog/");
+
         // PLANEL 류 (menu_source='JS_FILE') 의 메뉴 등록 entry JSON.
         //   `tabmenulist` 단어가 path 에 들어가면 MENU_JS — JSX 분류기보다 먼저 매치되어야 함
         //   (PlanNEL 의 saas-web 은 .js 확장자라 `.js in /pages/` JSX 분류와 충돌 회피).
         if (lower.contains("tabmenulist"))                             return ComposerArtifact.TYPE_MENU_JS;
         if (lower.endsWith("menus.js") || lower.contains("/menus.js")) return ComposerArtifact.TYPE_MENUS_JS_PATCH;
         if (isJsx)                                                     return ComposerArtifact.TYPE_SCREEN_JSX;
+        if (isLiquibaseYaml)                                           return ComposerArtifact.TYPE_SQL_DDL;
 
         // PlanNEL frontend 비-페이지 모듈 — services / redux / utils / hooks / components
         // (TabMenuList 와 menus.js 는 위에서 이미 분류됨)

@@ -117,11 +117,11 @@ lv3MenuList["SUBMENU_IP_SETTINGS"] = [
 
 | 파일 | 필수 | 설명 |
 |---|---|---|
-| `src/pages/<domain-kebab>/<Feature>.js` | ✅ | React 컴포넌트 — `withTranslation()` HOC 권장 (21 §5) |
-| `src/services/<domain>/<feature>Service.js` | ✅ | axios wrapper — 도메인별 인스턴스 사용 (30 §2.1) |
-| `src/redux/slices/<feature>Slice.js` | 조건부 | UI 상태만 (필터/탭/페이지). API 결과는 useState |
-| **TabMenuList.js 항목 추가** | ✅ | lv3 entry — 20 §4.4-4.5 |
-| **`translation.<locale>.json` 6개 언어** | ✅ | en-us / ja-jp / ko-kr / vi-vn / zh-cn / zh-tw — 20 §5 |
+| `saas-web/src/pages/TabMenuList.js` (모디파이) | ✅ | **2가지 변경 모두 필수**: ① 파일 상단에 `import <Feature> from "./<domain-kebab>/<Feature>";` static import 추가 ② 소속 lv2 의 `lv3MenuList` 배열에 새 항목 추가. 자세히는 20 §4.5 |
+| `saas-web/src/pages/<domain-kebab>/<Feature>.js` | ✅ | React 컴포넌트 — `withTranslation()` HOC 권장 (21 §5) |
+| `saas-web/src/services/<domain>/<feature>Service.js` | ✅ | axios wrapper — 도메인별 인스턴스 사용 (30 §2.1) |
+| `saas-web/src/redux/slices/<feature>Slice.js` | 조건부 | UI 상태만 (필터/탭/페이지). API 결과는 useState |
+| **`saas-web/src/assets/data/l10n/translation.<locale>.json` 6개 언어** | ✅ | en-us / ja-jp / ko-kr / vi-vn / zh-cn / zh-tw — 20 §5 |
 
 #### 도메인별 axios 인스턴스 선택
 
@@ -193,15 +193,17 @@ export default withTranslation()(Feature);
 
 ### §3.2 Backend (saas-application/)
 
-| 파일 | 필수 | 설명 |
+> 위 표 경로 = `saas-application/src/main/java/<package as path>/<File>.java` 형식으로 표기.
+
+| 파일 경로 | 필수 | 설명 |
 |---|---|---|
-| `<Feature>.java` | ✅ | Entity — `@Table(name="z_<feature>")`, BaseEntity 상속 |
-| `<Feature>Dto.java` | ✅ | 컨트롤러 ↔ 서비스 DTO (Entity 직접 노출 금지) |
-| `<Feature>Service.java` | ✅ | `@Service` + 트랜잭션 |
-| `<Feature>Controller.java` | ✅ | `@RestController` + `@RequestMapping("/api")` |
-| `<Feature>Repository.java` | 선택 | `JpaRepository` — 단순 PK 조회/저장 |
-| `<Feature>QueryRepository.java` | 선택 | `JPAQueryFactory` — 조건부 단일 조회 |
-| `<Feature>Mapper.java` + `.xml` | 선택 | MyBatis — 페이지네이션 / 벌크 처리 |
+| `saas-application/src/main/java/t3series/saas/model/<Feature>.java` | ✅ | Entity — `@Table(name="z_<feature>")`, BaseEntity 상속 |
+| `saas-application/src/main/java/t3series/saas/dto/<Feature>Dto.java` | ✅ | 컨트롤러 ↔ 서비스 DTO (Entity 직접 노출 금지) |
+| `saas-application/src/main/java/t3series/saas/service/<Feature>Service.java` | ✅ | `@Service` + 트랜잭션 |
+| `saas-application/src/main/java/t3series/saas/controller/<Feature>Controller.java` | ✅ | `@RestController` + `@RequestMapping("/api")` |
+| `saas-application/src/main/java/t3series/saas/repository/<Feature>Repository.java` | 선택 | `JpaRepository` — 단순 PK 조회/저장 |
+| `saas-application/src/main/java/t3series/saas/repository/<Feature>QueryRepository.java` | 선택 | `JPAQueryFactory` — 조건부 단일 조회 |
+| `saas-application/src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java` + `.xml` | 선택 | MyBatis — 페이지네이션 / 벌크 처리 |
 
 패키지 배치 (41b §5.5.1):
 ```
@@ -275,9 +277,9 @@ saas-web/src/assets/data/l10n/
 
 ### §5.2 Frontend 산출물
 
-- [ ] 페이지 파일 경로: `src/pages/<domain-kebab>/<PascalName>.js`?
-- [ ] 서비스 파일 경로: `src/services/<domain>/<featureName>Service.js`?
-- [ ] TabMenuList.js lv3 항목 추가 (static import + component JSX)?
+- [ ] 페이지 파일 경로: `saas-web/src/pages/<domain-kebab>/<PascalName>.js`?
+- [ ] 서비스 파일 경로: `saas-web/src/services/<domain>/<featureName>Service.js`?
+- [ ] TabMenuList.js: ① 파일 상단 static import 추가 AND ② lv3 항목 추가 — 둘 다 필수?
 - [ ] i18n 6개 언어 `translation.*.json` 모두 갱신?
 
 ### §5.3 Backend 산출물
@@ -311,7 +313,7 @@ saas-web/src/assets/data/l10n/
 | ❌ wingui 패턴 | ✅ PlanNEL 등가 | 참조 |
 |---|---|---|
 | `UI_<DOMAIN>_<NAME>` MENU_CD 발행 | `TabMenuList.js` lv3 entry + i18n menu 키 | 20 §4-5 |
-| `MENU_FILE_PATH = "/<module>/<File>"` | `src/pages/<domain-kebab>/<PascalName>.js` 파일 경로 | 20 §2 |
+| `MENU_FILE_PATH = "/<module>/<File>"` | `saas-web/src/pages/<domain-kebab>/<PascalName>.js` 파일 경로 | 20 §2 |
 | `TB_AD_MENU INSERT` SQL 산출 | `TabMenuList.js` 항목 추가 (코드 변경) | 20 §4 |
 | `TB_AD_LANG_PACK INSERT` 산출 | `translation.*.json` 6개 갱신 | 20 §5 |
 | `SP_UI_<DOMAIN>_<NO>_<ACTION>` SP 작성 | Java Service 안에서 직접 처리 | 41b §5.3 |

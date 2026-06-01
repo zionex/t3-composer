@@ -612,6 +612,6 @@ PlanNEL Entity 는 모두 `@Version` 으로 낙관적 락 적용. 충돌 시 `Op
 - `41-composer-generation.md` — 생성 메인 규약
 - `41a-composer-jsx.md` — JSX 표준
 - `30-data-access.md` — PlanNEL DB / ORM 상세
-- `saas-plannel/src/main/java/t3series/saas/controller/CustomerController.java` — 실제 참조 원본
-- `saas-plannel/src/main/java/t3series/saas/service/CustomerService.java` — 실제 참조 원본
-- `saas-plannel/src/main/java/t3series/saas/mapper/master/CustomerMapper.java` — 실제 참조 원본
+- `saas-plannel/saas-application/src/main/java/t3series/saas/controller/CustomerController.java` — 실제 참조 원본
+- `saas-plannel/saas-application/src/main/java/t3series/saas/service/CustomerService.java` — 실제 참조 원본
+- `saas-plannel/saas-application/src/main/java/t3series/saas/mapper/master/CustomerMapper.java` — 실제 참조 원본

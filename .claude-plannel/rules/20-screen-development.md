@@ -16,7 +16,7 @@
   ↓
 유사 원본 화면 Read → 복제 + 변경분만 수정
   ↓
-페이지 파일 생성 (src/pages/<domain>/<ScreenName>.js)
+페이지 파일 생성 (saas-web/src/pages/<domain>/<ScreenName>.js)
   ↓
 TabMenuList.js lv3 항목 추가 (lv1 · lv2 가 없으면 먼저 추가)
   ↓
@@ -37,20 +37,20 @@ saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
 
 | ✅ 예 | ❌ 금지 |
 |---|---|
-| `src/pages/inventory-plan/IpSettings.js` | `src/pages/inventoryPlan/IpSettings.js` (camel 폴더) |
-| `src/pages/data-management/LocationMaster.js` | `src/pages/DataManagement/LocationMaster.js` (Pascal 폴더) |
-| `src/pages/demand-plan/DpForecast.js` | `src/pages/dp/DpForecast.js` (약어 폴더) |
+| `saas-web/src/pages/inventory-plan/IpSettings.js` | `src/pages/inventoryPlan/IpSettings.js` (camel 폴더 + saas-web/ 누락) |
+| `saas-web/src/pages/data-management/LocationMaster.js` | `src/pages/DataManagement/LocationMaster.js` (Pascal 폴더 + saas-web/ 누락) |
+| `saas-web/src/pages/demand-plan/DpForecast.js` | `src/pages/dp/DpForecast.js` (약어 폴더 + saas-web/ 누락) |
 
 규칙:
 - 폴더명: **kebab-case** (소문자 + 하이픈)
 - 파일명: **PascalCase.js** (`.jsx` 금지 — 기존 코드베이스 전체 `.js`)
-- 서브 카테고리가 필요하면 한 단계 더 : `src/pages/<domain>/<category>/<PascalCase>.js`
+- 서브 카테고리가 필요하면 한 단계 더 : `saas-web/src/pages/<domain>/<category>/<PascalCase>.js`
 
 ### 2.2 관련 파일 위치 규약
 
 | 종류 | 위치 |
 |---|---|
-| 페이지 컴포넌트 | `src/pages/<domain>/[<category>/]<Name>.js` |
+| 페이지 컴포넌트 | `saas-web/src/pages/<domain>/[<category>/]<Name>.js` |
 | 재사용 컴포넌트 | `src/components/<domain>/<ComponentName>.js` |
 | 서비스(API 호출) | `src/services/<domain>/ServiceName.js` |
 | Redux 슬라이스 | `src/redux/<domain>/sliceName.js` |
@@ -331,7 +331,7 @@ AG-Grid 사용 상세 → `21-components.md §3`.
 
 ## 7. 체크리스트 (배포 전 최종 점검)
 
-- [ ] 페이지 파일 경로: `src/pages/<domain-kebab-case>/<PascalCase>.js`
+- [ ] 페이지 파일 경로: `saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js`
 - [ ] 파일 확장자 `.js` (`.jsx` 아님)
 - [ ] `TabMenuList.js` static import 추가
 - [ ] lv3 항목: `key` 유니크 정수 · `reduxKey` 유니크 UPPER_SNAKE · `viewName = reduxKey`
@@ -347,7 +347,7 @@ AG-Grid 사용 상세 → `21-components.md §3`.
 
 | ❌ | ✅ | 결과 |
 |---|---|---|
-| `src/pages/InventoryPlan/IpSettings.js` (Pascal 폴더) | `src/pages/inventory-plan/IpSettings.js` | 파일 탐색 규약 위반 |
+| `src/pages/InventoryPlan/IpSettings.js` (Pascal 폴더) | `saas-web/src/pages/inventory-plan/IpSettings.js` | 파일 탐색 규약 위반 |
 | `IpSettings.jsx` (jsx 확장자) | `IpSettings.js` | 기존 코드베이스 불일치 |
 | `export default IpSettings` (HOC 없이) | `export default withTranslation()(IpSettings)` | `t` prop undefined |
 | `({ t, viewName })` (title 누락) | `({ t, viewName, title })` | title undefined |

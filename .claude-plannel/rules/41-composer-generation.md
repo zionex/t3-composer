@@ -203,7 +203,8 @@ export default withTranslation()(Feature);
 | `saas-application/src/main/java/t3series/saas/controller/<Feature>Controller.java` | ✅ | `@RestController` + `@RequestMapping("/api")` |
 | `saas-application/src/main/java/t3series/saas/repository/<Feature>Repository.java` | 선택 | `JpaRepository` — 단순 PK 조회/저장 |
 | `saas-application/src/main/java/t3series/saas/repository/<Feature>QueryRepository.java` | 선택 | `JPAQueryFactory` — 조건부 단일 조회 |
-| `saas-application/src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java` + `.xml` | 선택 | MyBatis — 페이지네이션 / 벌크 처리 |
+| `saas-application/src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java` | 선택 | MyBatis Mapper interface (`@Mapper` 어노테이션) — 페이지네이션 / 벌크 처리 |
+| `saas-application/src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml` | 선택 (Mapper.java 와 쌍) | MyBatis XML SQL — `<subdomain>` 폴더가 java 측과 동일하게 (master/dp/ip/mp/rp/notification 등) |
 
 패키지 배치 (41b §5.5.1):
 ```

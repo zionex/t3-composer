@@ -107,6 +107,11 @@ public class FeatureQueryRepository {
 
 ### MyBatis Mapper 패턴
 
+> **파일 위치 (두 곳 — 반드시 분리)**:
+> - Java interface: `saas-application/src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java`
+> - XML SQL: `saas-application/src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml`
+> (`<subdomain>` 은 동일하게 — `master` / `dp` / `ip` / `mp` / `rp` / `notification` / `quicksight` / `audittrail`)
+
 ```java
 package t3series.saas.mapper.master;
 
@@ -277,7 +282,8 @@ MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
   <Feature>Controller.java        → CustomerController.java @RestController
   <Feature>Repository.java        → CustomerRepository.java (선택, JpaRepository)
   <Feature>QueryRepository.java   → CustomerQueryRepository.java (선택, QueryDSL)
-  <Feature>Mapper.java            → CustomerMapper.java (선택, MyBatis)
+  <Feature>Mapper.java            → CustomerMapper.java (선택, MyBatis @Mapper interface)
+  resources/mapper/<subdomain>/<Feature>Mapper.xml → resources/mapper/master/CustomerMapper.xml (선택, MyBatis XML)
 
 패키지:
   entity:     t3series.saas.model
@@ -286,6 +292,7 @@ MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
   controller: t3series.saas.controller
   repository: t3series.saas.repository
   mapper:     t3series.saas.mapper.<subdomain>   예: t3series.saas.mapper.master
+  mapper XML: saas-application/src/main/resources/mapper/<subdomain>/  (java 측 subdomain 과 동일)
 ```
 
 ### §5.5.2 절대 규칙

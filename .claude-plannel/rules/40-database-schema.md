@@ -134,7 +134,7 @@ private Long id;
 ## 4. 기본키 — Instagram-style ID
 
 ```sql
-CREATE OR REPLACE FUNCTION zionex.next_unique_id() RETURNS BIGINT AS $$
+CREATE OR REPLACE FUNCTION public.next_unique_id() RETURNS BIGINT AS $$
 DECLARE
     shard_id INT := 1;
     epoch DATE := '2021-01-01';
@@ -146,16 +146,20 @@ BEGIN
     now_ms := floor(extract(EPOCH FROM clock_timestamp()) * 1000);
     next_id := (now_ms - epoch_ms) << 23
         | (shard_id << 16)
-        | (nextval('zionex.table_id_seq') % 65536);
+        | (nextval('public.table_id_seq') % 65536);
     RETURN next_id;
 END;
 $$ LANGUAGE plpgsql;
 ```
 
+> ★ PK 컬럼: `id BIGINT NOT NULL DEFAULT public.next_unique_id()` — schema 는 항상 `public`,
+> `zionex.next_unique_id()` 또는 `zionex.table_id_seq` 는 실제 PlanNEL 에 존재하지 않음.
+> Liquibase changeset 의 `defaultValueComputed` 에도 `public.next_unique_id()` 로 작성.
+
 테이블 정의:
 ```sql
 CREATE TABLE zionex.z_customer (
-    id BIGINT NOT NULL DEFAULT zionex.next_unique_id(),
+    id BIGINT NOT NULL DEFAULT public.next_unique_id(),
     customer_cd VARCHAR NOT NULL,
     name VARCHAR NOT NULL,
     -- ...
@@ -216,7 +220,7 @@ z_route                   ← 라우팅
 `UNIQUE` 제약 패턴:
 ```sql
 CREATE TABLE zionex.z_bod_item (
-    id BIGINT NOT NULL DEFAULT zionex.next_unique_id(),
+    id BIGINT NOT NULL DEFAULT public.next_unique_id(),
     bod_id BIGINT,
     item_id BIGINT,
     -- ...
@@ -333,7 +337,7 @@ spring:
                 name: id
                 type: BIGINT
                 constraints: { primaryKey: true, nullable: false }
-                defaultValueComputed: zionex.next_unique_id()
+                defaultValueComputed: public.next_unique_id()
             - column: { name: item_cd, type: VARCHAR, constraints: { nullable: false } }
             - column: { name: name, type: VARCHAR }
             - column: { name: active_flg, type: CHAR(1), defaultValue: 'Y' }
@@ -360,6 +364,58 @@ spring:
           tableName: z_customer
           columns:
             - column: { name: priority_num, type: INTEGER, defaultValue: 0 }
+```
+
+### 7.3 Liquibase master 자동 include (Composer 산출물 전용)
+
+> Composer 가 `SQL_DDL` 아티팩트를 `saas-application/src/main/resources/db/changelog/` 아래에 배치하면, `ArtifactApplyService` 가 파일을 쓴 직후 자동으로 `db.changelog-tenant.yaml` 마스터에 `include` 항목을 추가한다.
+
+**흐름**:
+```
+[아티팩트 실행] 클릭
+  ↓
+ArtifactApplyService.apply()
+  ├─ SQL_DDL (경로에 db/changelog/ 포함) → backendRoot(saas-application) 에 파일 write
+  └─ (PLANNEL target 한정) db.changelog-tenant.yaml 마스터 끝에 append:
+       - include:
+           file: db/changelog/<NEW_FILE_NAME>.yaml
+  ↓
+saas-application 재시작 시 Liquibase 가 새 changeset 자동 인식·실행
+```
+
+**LLM 이 지켜야 할 규칙**:
+- 산출물 changelog YAML 은 **독립 파일**로 출력. 마스터(`db.changelog-tenant.yaml`)는 직접 편집하지 말 것 — 백엔드가 자동 처리.
+- 파일 경로: `saas-application/src/main/resources/db/changelog/db.changelog-<날짜>-<기능명>.yaml`
+- changeset id 형식: `YYYY-MM-DD-<기능명>` (예: `2026-06-01-add-z-promo-item`)
+- `defaultValueComputed: public.next_unique_id()` — schema 는 `public`, `zionex.` 아님
+
+**독립 파일 예시**:
+```yaml
+# saas-application/src/main/resources/db/changelog/db.changelog-2026-06-01-add-z-promo-item.yaml
+databaseChangeLog:
+  - changeSet:
+      id: 2026-06-01-add-z-promo-item
+      author: composer
+      changes:
+        - createTable:
+            tableName: z_promo_item
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints: { primaryKey: true, nullable: false }
+                  defaultValueComputed: public.next_unique_id()
+              - column: { name: promo_cd, type: VARCHAR, constraints: { nullable: false } }
+              - column: { name: item_id, type: BIGINT }
+              - column: { name: active_flg, type: CHAR(1), defaultValue: 'Y' }
+              - column: { name: created_ts, type: TIMESTAMP, defaultValueComputed: CURRENT_TIMESTAMP }
+              - column: { name: created_by, type: BIGINT, defaultValue: 0 }
+              - column: { name: updated_ts, type: TIMESTAMP, defaultValueComputed: CURRENT_TIMESTAMP }
+              - column: { name: updated_by, type: BIGINT, defaultValue: 0 }
+              - column: { name: ver_num, type: INTEGER, defaultValue: 0 }
+        - addUniqueConstraint:
+            tableName: z_promo_item
+            columnNames: promo_cd, item_id
 ```
 
 ## 8. 인덱스 / 제약
@@ -452,7 +508,7 @@ T3Series(wingui) 작업 경험이 있는 LLM 이 자주 PlanNEL 에서 잘못 �
 ## 11. 신규 테이블 DDL 체크리스트
 
 - [ ] 테이블명 = `z_<lowercase_snake>` ?
-- [ ] PK = `id BIGINT` (DEFAULT `zionex.next_unique_id()`) ?
+- [ ] PK = `id BIGINT NOT NULL DEFAULT public.next_unique_id()` — schema 는 `public` (실제 함수 위치) ?
 - [ ] Audit 5컬럼 (created_ts/created_by/updated_ts/updated_by/ver_num) 포함 ? (`id` 는 각 Entity 직접 선언)
 - [ ] UNIQUE 자연 키 (예: `customer_cd`) 정의 ?
 - [ ] FK 컬럼 (`*_id`) 에 인덱스 ?
@@ -492,7 +548,7 @@ T3Series(wingui) 작업 경험이 있는 LLM 이 자주 PlanNEL 에서 잘못 �
 | SQL / Entity 에 schema prefix 하드코딩 (`zionex.z_customer`) | `z_customer` 만 — search_path 자동 |
 | boolean 컬럼을 `BOOLEAN` 으로 | `CHAR(1)` + `Y/N` (BooleanToYNConverter 호환) |
 | timestamp 를 `TIMESTAMP WITH TIME ZONE` | `TIMESTAMP` (컨벤션) |
-| ID 를 `SERIAL` / `IDENTITY` 로 | `BIGINT DEFAULT zionex.next_unique_id()` (Instagram-style) |
+| ID 를 `SERIAL` / `IDENTITY` 로 | `BIGINT NOT NULL DEFAULT public.next_unique_id()` (Instagram-style) |
 | 시퀀스 직접 사용 (`nextval('seq')`) | `next_unique_id()` 함수 |
 | 신규 테이블에 audit 컬럼 누락 | 6컬럼 (id/created_ts/created_by/updated_ts/updated_by/ver_num) 필수 |
 | Liquibase 우회한 ALTER TABLE 직접 실행 | 모든 schema 변경은 changelog 통해 |

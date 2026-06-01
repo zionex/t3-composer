@@ -442,6 +442,39 @@ public class ArtifactApplyService {
                                 StandardOpenOption.WRITE);
                         record.put("fileOk", true);
                         fileOk++;
+
+                        // PlanNEL Liquibase auto-include — new SQL_DDL changelog file must be
+                        // referenced from db.changelog-tenant.yaml master, otherwise Liquibase
+                        // won't pick it up on saas-application startup.
+                        if (isDdl && "PLANNEL".equals(sessTargetCd)) {
+                            try {
+                                Path masterPath = pickedRootPath.resolve(
+                                        "src/main/resources/db/changelog/db.changelog-tenant.yaml");
+                                String relNorm = targetPath.replace('\\', '/');
+                                int chIdx = relNorm.indexOf("db/changelog/");
+                                if (Files.isRegularFile(masterPath) && chIdx >= 0) {
+                                    String includeRel = relNorm.substring(chIdx);
+                                    String masterContent = Files.readString(masterPath, StandardCharsets.UTF_8);
+                                    if (!masterContent.contains(includeRel)) {
+                                        String includeBlock = "  - include:\n      file: " + includeRel + "\n";
+                                        String newMaster = masterContent.endsWith("\n")
+                                                ? masterContent + includeBlock
+                                                : masterContent + "\n" + includeBlock;
+                                        Files.writeString(masterPath, newMaster, StandardCharsets.UTF_8);
+                                        log.info("PLANNEL Liquibase master 갱신 — {} 에 include 추가 ({})",
+                                                masterPath, includeRel);
+                                        record.put("masterChangelogUpdated", true);
+                                        record.put("masterIncludeAdded", includeRel);
+                                    } else {
+                                        log.info("PLANNEL Liquibase master 이미 {} include 보유 — 변경 없음",
+                                                includeRel);
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                log.warn("PLANNEL Liquibase master 갱신 실패 ({}): {}",
+                                        a.getFileName(), ex.getMessage());
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     record.put("fileOk", false);
@@ -670,10 +703,19 @@ public class ArtifactApplyService {
     private String pickRootForArtifact(ComposerArtifact a, String relPath,
                                        String frontendRoot, String backendRoot, String databaseRoot) {
         String type = a.getArtifactType();
+        String lower = (relPath == null) ? "" : relPath.toLowerCase().replace('\\', '/');
+
         if (isJavaSourceType(type)) {
             return backendRoot != null ? backendRoot : frontendRoot;
         }
         if (ComposerArtifact.TYPE_SQL_DDL.equals(type) || ComposerArtifact.TYPE_SQL_SP.equals(type)) {
+            // PlanNEL Liquibase changelogs live inside saas-application/src/main/resources/db/changelog/
+            // → route to backendRoot, not databaseRoot
+            if (lower.contains("db/changelog/")
+                    || lower.contains("src/main/resources/")
+                    || lower.endsWith(".yaml") || lower.endsWith(".yml")) {
+                return backendRoot != null ? backendRoot : frontendRoot;
+            }
             return databaseRoot != null ? databaseRoot : frontendRoot;
         }
         return frontendRoot;

@@ -1,5 +1,7 @@
 # 41b. Composer — Java 백엔드 표준 (PlanNEL / saas-plannel)
 
+> ⚠️ **PlanNEL Spring Boot 2.4.13 — `javax.*` 만 사용**. `jakarta.*` import 가 들어가면 즉시 컴파일 실패 (해당 클래스가 classpath 에 없음). Spring Boot 3 의 jakarta 컨벤션을 기억하고 있다면 즉시 잊을 것.
+
 > **PlanNEL 전용** — wingui(T3SmartSCM) 와 완전히 다른 스택.
 > 이 파일이 생성하는 모든 Java 산출물은 `saas-plannel` 레포의 Spring Boot 2.4.13 / PostgreSQL 환경에서 동작한다.
 > 생성 전 반드시 이 파일을 참조할 것.

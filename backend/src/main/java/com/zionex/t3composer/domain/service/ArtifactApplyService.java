@@ -402,13 +402,37 @@ public class ArtifactApplyService {
                         // ★ Java 산출물 + Target wingui 직접 쓰기 → 패키지 자동 rename
                         //   (com.zionex.t3composer.* → com.zionex.t3series.web.*) — sync 스크립트 로직 내장.
                         //   staging fallback 의 경우는 rewrite 안 함 (기존 흐름과 호환 — sync 스크립트가 처리).
+                        //   ★ 2026-06-01: T3SERIES 전용 rewriter — PlanNEL (t3series.saas.*) 등 다른 Target 에는 실행 금지.
+                        //   wingui 패키지 구조가 다른 Target 에서 rewriteToWinguiPackages 를 실행하면
+                        //   정상적인 패키지명이 손상된다.
                         String contentToWrite = content;
                         if (isDirectWinguiWrite && javaArtifactRewriter != null
-                                && isJavaSourceType(type)) {
+                                && isJavaSourceType(type)
+                                && "T3SERIES".equals(sessTargetCd)) {
                             String rewritten = javaArtifactRewriter.rewriteToWinguiPackages(content);
                             if (rewritten != null && !rewritten.equals(content)) {
                                 contentToWrite = rewritten;
                                 record.put("javaRenamed", true);
+                            }
+                        }
+                        // ★ PlanNEL 방어: Spring Boot 2.4.13 는 jakarta.* classpath 없음.
+                        //   LLM 이 규칙(41b §5.4)을 어기고 jakarta.* 를 쓰면 즉시 컴파일 실패.
+                        //   import 라인 + 인라인 타입 참조 양쪽을 javax.* 로 자동 교정한다.
+                        if (isJavaSourceType(type) && "PLANNEL".equals(sessTargetCd)) {
+                            String fixed = contentToWrite
+                                    // import 라인 (import jakarta. / import static jakarta.)
+                                    .replaceAll("(?m)^(\\s*import\\s+(?:static\\s+)?)jakarta\\.", "$1javax.")
+                                    // 인라인 타입 참조 — 앞에 식별자 문자가 없는 경우만 치환
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.persistence\\.", "javax.persistence.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.validation\\.", "javax.validation.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.servlet\\.", "javax.servlet.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.annotation\\.", "javax.annotation.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.transaction\\.", "javax.transaction.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.inject\\.", "javax.inject.");
+                            if (!fixed.equals(contentToWrite)) {
+                                log.info("PLANNEL Java artifact: rewrote jakarta.* → javax.* in {}", a.getFileName());
+                                contentToWrite = fixed;
+                                record.put("jakartaFixed", true);
                             }
                         }
                         Files.createDirectories(abs.getParent());

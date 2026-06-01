@@ -215,28 +215,50 @@ public class ArtifactApplyService {
         //   못 찾으면 글로벌 staging fallback.
         String sessTargetCd = sessionRepo.findById(sessionId)
                 .map(ComposerSession::getTargetCd).orElse(null);
-        String root = null;
+        // ★ 2026-06-01: 단일 root → 3개 root (frontend / backend / database) 로 분리.
+        //   PlanNEL 같은 target 은 frontend(saas-web/) 와 backend(saas-application/) 가
+        //   별개 디렉토리이므로 Java 아티팩트를 frontend root 기준으로 경로를 쌓으면
+        //   "saas-web/saas-application/..." 같은 잘못된 경로가 생성된다.
+        //   T3SERIES 처럼 monorepo 인 경우 resolveBackendPath 가 동일 root 를 반환하므로 호환.
+        String frontendRoot = null;
+        String backendRoot  = null;
+        String databaseRoot = null;
         boolean directWingui = false;
         if (targetPathResolver != null) {
-            String resolved = targetPathResolver.resolveSourcePath(sessTargetCd);
-            if (resolved != null && !resolved.isBlank()) {
-                // resolveSourcePath 가 marker (packages/wingui/src 등) 검증을 거쳐 반환 — 채택된 모든 경로는 wingui 트리.
-                root = resolved;
+            String resolvedFront = targetPathResolver.resolveSourcePath(sessTargetCd);
+            if (resolvedFront != null && !resolvedFront.isBlank()) {
+                frontendRoot = resolvedFront;
                 directWingui = true;
-                log.info("Artifact apply routing: sessionId={} targetCd={} direct→wingui root={}",
-                        sessionId, sessTargetCd, root);
             }
+            String resolvedBack = targetPathResolver.resolveBackendPath(sessTargetCd);
+            if (resolvedBack != null && !resolvedBack.isBlank()) {
+                backendRoot = resolvedBack;
+            } else {
+                backendRoot = frontendRoot;   // monorepo fallback
+            }
+            try {
+                String resolvedDb = targetPathResolver.resolveDatabasePath(sessTargetCd);
+                if (resolvedDb != null && !resolvedDb.isBlank()) {
+                    databaseRoot = resolvedDb;
+                }
+            } catch (Throwable ignored) { /* resolveDatabasePath 는 선택적 — 없어도 진행 */ }
+            if (databaseRoot == null || databaseRoot.isBlank()) databaseRoot = frontendRoot;
+            log.info("Artifact apply routing: sessionId={} targetCd={} frontend={} backend={} database={}",
+                    sessionId, sessTargetCd, frontendRoot, backendRoot, databaseRoot);
         }
-        if (root == null || root.isBlank()) {
-            root = props.getComposer().getProjectRoot();   // fallback (staging)
-            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", root);
+        if (frontendRoot == null || frontendRoot.isBlank()) {
+            frontendRoot = props.getComposer().getProjectRoot();   // fallback (staging)
+            if (backendRoot  == null || backendRoot.isBlank())  backendRoot  = frontendRoot;
+            if (databaseRoot == null || databaseRoot.isBlank()) databaseRoot = frontendRoot;
+            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", frontendRoot);
         }
-        if (root == null || root.isBlank()) {
+        if (frontendRoot == null || frontendRoot.isBlank()) {
             return failure("산출물 출력 루트 결정 실패 — TargetPathResolver 도 fallback 도 빈 값.");
         }
+        // rootPath 는 frontendRoot 기반 유지 — triggerControlPlane(npm build) 이 이 경로를 사용.
         Path rootPath;
         try {
-            rootPath = Paths.get(root).toAbsolutePath().normalize();
+            rootPath = Paths.get(frontendRoot).toAbsolutePath().normalize();
         } catch (Exception e) {
             return failure("project-root 경로 오류: " + e.getMessage());
         }
@@ -245,6 +267,10 @@ public class ArtifactApplyService {
         }
         // directWingui 분기는 file write 시점에서 Java rewrite 호출 여부 결정에 사용
         final boolean isDirectWinguiWrite = directWingui;
+        // 람다 내부에서 사용하기 위한 effectively-final 복사
+        final String fFrontendRoot = frontendRoot;
+        final String fBackendRoot  = backendRoot;
+        final String fDatabaseRoot = databaseRoot;
 
         // Supersede 된 이전 버전(STATUS_DISCARDED) 은 apply 대상에서 제외 — 항상 최신만 적용
         List<ComposerArtifact> artifacts =
@@ -361,9 +387,13 @@ public class ArtifactApplyService {
                                 "저장 경로를 확정할 수 없음 (fileName 으로 auto-route 실패): "
                                 + a.getFilePath());
                     }
-                    Path abs = rootPath.resolve(targetPath).normalize();
-                    ensureUnderRoot(rootPath, abs);
-                    ensureMatchesAllowList(rootPath, abs);
+                    // ★ 아티팩트 타입 별 root 선택 — Java 는 backendRoot, SQL 은 databaseRoot, 그 외 frontendRoot
+                    Path pickedRootPath = Paths.get(
+                            pickRootForArtifact(a, targetPath, fFrontendRoot, fBackendRoot, fDatabaseRoot)
+                    ).toAbsolutePath().normalize();
+                    Path abs = pickedRootPath.resolve(targetPath).normalize();
+                    ensureUnderRoot(pickedRootPath, abs);
+                    ensureMatchesAllowList(pickedRootPath, abs);
                     if (!opts.overwrite && Files.exists(abs)) {
                         record.put("fileOk", false);
                         record.put("fileErr", "이미 존재 (overwrite=false)");
@@ -600,6 +630,31 @@ public class ArtifactApplyService {
     // File helpers
     // --------------------------------------------------------
 
+    /**
+     * 아티팩트 타입(+ 상대 경로)을 보고 실제 파일을 쓸 root 를 선택한다.
+     *
+     * <ul>
+     *   <li>Java 소스 (JAVA_*) → backendRoot</li>
+     *   <li>SQL DDL / SP     → databaseRoot</li>
+     *   <li>그 외 (JSX / MENU_SQL 등) → frontendRoot</li>
+     * </ul>
+     *
+     * T3SERIES(monorepo)는 세 root 가 모두 동일하므로 기존 동작과 호환.
+     * PlanNEL 처럼 frontend(saas-web/) 와 backend(saas-application/) 가 분리된 경우
+     * Java 파일이 saas-web/saas-application/... 으로 잘못 배치되는 문제를 방지.
+     */
+    private String pickRootForArtifact(ComposerArtifact a, String relPath,
+                                       String frontendRoot, String backendRoot, String databaseRoot) {
+        String type = a.getArtifactType();
+        if (isJavaSourceType(type)) {
+            return backendRoot != null ? backendRoot : frontendRoot;
+        }
+        if (ComposerArtifact.TYPE_SQL_DDL.equals(type) || ComposerArtifact.TYPE_SQL_SP.equals(type)) {
+            return databaseRoot != null ? databaseRoot : frontendRoot;
+        }
+        return frontendRoot;
+    }
+
     private boolean isFileArtifactType(String type) {
         if (type == null) return false;
         return type.equals(ComposerArtifact.TYPE_SCREEN_JSX)
@@ -636,6 +691,11 @@ public class ArtifactApplyService {
         // 1) 원본 filePath 사용 시도
         if (fp != null && !fp.isBlank() && !isAbsoluteLike(fp)) {
             String norm = fp.replace('\\', '/').replaceFirst("^/+", "");
+            // ★ 방어 (2026-06-01): LLM 이 절대경로 prefix (saas-application/ · saas-web/) 를
+            //   경로 앞에 붙이는 경우 제거한다. pickRootForArtifact 가 올바른 root 를 선택하므로
+            //   이 prefix 를 그대로 두면 root/saas-application/saas-application/... 같은 이중 경로가 만들어진다.
+            norm = norm.replaceFirst("^saas-application/", "")
+                       .replaceFirst("^saas-web/", "");
             if (matchesAllowList(norm)) {
                 // SCREEN_JSX 추가 정규화 — contentStore 라우팅 규약 (`view/.../<lowercase>/<Pascal>.jsx`)
                 // 의 자동 폴더가 누락되면 lazy import 실패하므로 자동 보강 (2026-05-27).

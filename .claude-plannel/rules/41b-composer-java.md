@@ -108,8 +108,8 @@ public class FeatureQueryRepository {
 ### MyBatis Mapper 패턴
 
 > **파일 위치 (두 곳 — 반드시 분리)**:
-> - Java interface: `saas-application/src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java`
-> - XML SQL: `saas-application/src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml`
+> - Java interface: `src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java`
+> - XML SQL: `src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml`
 > (`<subdomain>` 은 동일하게 — `master` / `dp` / `ip` / `mp` / `rp` / `notification` / `quicksight` / `audittrail`)
 
 ```java
@@ -294,7 +294,7 @@ MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
   controller: t3series.saas.controller
   repository: t3series.saas.repository
   mapper:     t3series.saas.mapper.<subdomain>   예: t3series.saas.mapper.master
-  mapper XML: saas-application/src/main/resources/mapper/<subdomain>/  (java 측 subdomain 과 동일)
+  mapper XML: src/main/resources/mapper/<subdomain>/  (java 측 subdomain 과 동일)
 ```
 
 ### §5.5.2 절대 규칙
@@ -621,6 +621,6 @@ PlanNEL Entity 는 모두 `@Version` 으로 낙관적 락 적용. 충돌 시 `Op
 - `41-composer-generation.md` — 생성 메인 규약
 - `41a-composer-jsx.md` — JSX 표준
 - `30-data-access.md` — PlanNEL DB / ORM 상세
-- `saas-plannel/saas-application/src/main/java/t3series/saas/controller/CustomerController.java` — 실제 참조 원본
-- `saas-plannel/saas-application/src/main/java/t3series/saas/service/CustomerService.java` — 실제 참조 원본
-- `saas-plannel/saas-application/src/main/java/t3series/saas/mapper/master/CustomerMapper.java` — 실제 참조 원본
+- `src/main/java/t3series/saas/controller/CustomerController.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본
+- `src/main/java/t3series/saas/service/CustomerService.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본
+- `src/main/java/t3series/saas/mapper/master/CustomerMapper.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본

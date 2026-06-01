@@ -3,6 +3,8 @@
 > 본 문서 = **파일 배치 · 라우팅 · 메뉴 등록 · i18n 키 등록** 만.
 > 컴포넌트 코드 표면(AG-Grid · MUI · Redux · 서비스 호출)은 `21-components.md` 가 단일 진실.
 
+★ 본 문서의 모든 파일 경로(Frontend)는 **`TARGET_PLANNEL_WINGUI_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_WINGUI_PATH/src/pages/...` 가 실제 host 경로 (41 §3.0).
+
 ---
 
 ## 1. 결정 플로우
@@ -16,7 +18,7 @@
   ↓
 유사 원본 화면 Read → 복제 + 변경분만 수정
   ↓
-페이지 파일 생성 (saas-web/src/pages/<domain>/<ScreenName>.js)
+페이지 파일 생성 (src/pages/<domain>/<ScreenName>.js)
   ↓
 TabMenuList.js lv3 항목 추가 (lv1 · lv2 가 없으면 먼저 추가)
   ↓
@@ -32,25 +34,25 @@ i18n 키 6개 언어 JSON 에 모두 추가
 ### 2.1 페이지 파일 위치
 
 ```
-saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
+src/pages/<domain-kebab-case>/<PascalCase>.js
 ```
 
 | ✅ 예 | ❌ 금지 |
 |---|---|
-| `saas-web/src/pages/inventory-plan/IpSettings.js` | `src/pages/inventoryPlan/IpSettings.js` (camel 폴더 + saas-web/ 누락) |
-| `saas-web/src/pages/data-management/LocationMaster.js` | `src/pages/DataManagement/LocationMaster.js` (Pascal 폴더 + saas-web/ 누락) |
-| `saas-web/src/pages/demand-plan/DpForecast.js` | `src/pages/dp/DpForecast.js` (약어 폴더 + saas-web/ 누락) |
+| `src/pages/inventory-plan/IpSettings.js` | `src/pages/inventoryPlan/IpSettings.js` (camel 폴더) |
+| `src/pages/data-management/LocationMaster.js` | `src/pages/DataManagement/LocationMaster.js` (Pascal 폴더) |
+| `src/pages/demand-plan/DpForecast.js` | `src/pages/dp/DpForecast.js` (약어 폴더) |
 
 규칙:
 - 폴더명: **kebab-case** (소문자 + 하이픈)
 - 파일명: **PascalCase.js** (`.jsx` 금지 — 기존 코드베이스 전체 `.js`)
-- 서브 카테고리가 필요하면 한 단계 더 : `saas-web/src/pages/<domain>/<category>/<PascalCase>.js`
+- 서브 카테고리가 필요하면 한 단계 더 : `src/pages/<domain>/<category>/<PascalCase>.js`
 
 ### 2.2 관련 파일 위치 규약
 
 | 종류 | 위치 |
 |---|---|
-| 페이지 컴포넌트 | `saas-web/src/pages/<domain>/[<category>/]<Name>.js` |
+| 페이지 컴포넌트 | `src/pages/<domain>/[<category>/]<Name>.js` |
 | 재사용 컴포넌트 | `src/components/<domain>/<ComponentName>.js` |
 | 서비스(API 호출) | `src/services/<domain>/ServiceName.js` |
 | Redux 슬라이스 | `src/redux/<domain>/sliceName.js` |
@@ -95,7 +97,7 @@ saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
 
 ## 4. 메뉴 등록 — TabMenuList.js
 
-`saas-web/src/pages/TabMenuList.js` 가 **모든 비즈니스 화면 메뉴의 단일 진실 저장소**.
+`src/pages/TabMenuList.js` 가 **모든 비즈니스 화면 메뉴의 단일 진실 저장소**.
 DB 등록 없이 이 파일만 수정하면 사이드바 · 탭 · 권한 체크가 모두 동작한다.
 
 ### 4.1 3단계 메뉴 계층
@@ -213,7 +215,7 @@ const lv3MenuList = {
 ### 5.1 6개 언어 파일 모두 필수
 
 ```
-saas-web/src/assets/data/l10n/
+src/assets/data/l10n/
 ├── translation.en-us.json
 ├── translation.ja-jp.json
 ├── translation.ko-kr.json
@@ -331,7 +333,7 @@ AG-Grid 사용 상세 → `21-components.md §3`.
 
 ## 7. 체크리스트 (배포 전 최종 점검)
 
-- [ ] 페이지 파일 경로: `saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js`
+- [ ] 페이지 파일 경로: `src/pages/<domain-kebab-case>/<PascalCase>.js`
 - [ ] 파일 확장자 `.js` (`.jsx` 아님)
 - [ ] `TabMenuList.js` static import 추가
 - [ ] lv3 항목: `key` 유니크 정수 · `reduxKey` 유니크 UPPER_SNAKE · `viewName = reduxKey`
@@ -347,7 +349,7 @@ AG-Grid 사용 상세 → `21-components.md §3`.
 
 | ❌ | ✅ | 결과 |
 |---|---|---|
-| `src/pages/InventoryPlan/IpSettings.js` (Pascal 폴더) | `saas-web/src/pages/inventory-plan/IpSettings.js` | 파일 탐색 규약 위반 |
+| `src/pages/InventoryPlan/IpSettings.js` (Pascal 폴더) | `src/pages/inventory-plan/IpSettings.js` | 파일 탐색 규약 위반 |
 | `IpSettings.jsx` (jsx 확장자) | `IpSettings.js` | 기존 코드베이스 불일치 |
 | `export default IpSettings` (HOC 없이) | `export default withTranslation()(IpSettings)` | `t` prop undefined |
 | `({ t, viewName })` (title 누락) | `({ t, viewName, title })` | title undefined |

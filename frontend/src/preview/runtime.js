@@ -213,13 +213,13 @@ function makeAgGridStub() {
             || (propsRowData && propsRowData[0]
                 ? Object.keys(propsRowData[0]).slice(0, 7).map(k => ({ field: k, headerName: k }))
                 : []);
-        // [Sample 데이터] rowData 가 비어있거나 미전달 + sample 모드 ON + columnDefs 있음 →
-        //   columnDefs.field 를 BaseGrid items 형식으로 변환해 column-aware sample 생성.
+        // PlanNEL preview 에서는 항상 sample 데이터 생성 (sample mode flag 우회) —
+        //   preview 자체가 비-운영이므로 sample 데이터가 항상 도움이 됨.
         //   `[] || x` 는 `[]` 가 truthy 라 fallback 발화 안 함 → 명시적 length 체크 필수.
         let rowData;
         if (propsRowData && propsRowData.length > 0) {
             rowData = propsRowData;
-        } else if (isSampleModeEnabled() && columnDefs.length > 0) {
+        } else if (columnDefs.length > 0) {
             const items = columnDefs.map(c => ({
                 name: c.field,
                 dataType: c.cellDataType
@@ -230,26 +230,57 @@ function makeAgGridStub() {
                 labels: c.cellEditorParams && c.cellEditorParams.values,
                 lookupDisplay: true,
             }));
-            rowData = generateSampleRowsFromItems(items, 10);
+            try {
+                rowData = generateSampleRowsFromItems(items, 10);
+            } catch (e) {
+                rowData = [];
+            }
         } else {
             rowData = [];
         }
+        const containerStyle = {
+            // ★ 핵심 — flex 부모 (e.g., <Box sx={{ flex: 1, minHeight: 0 }}>) 안에서 height 보장
+            height: '100%',
+            minHeight: 200,
+            width: '100%',
+            border: '1px solid #d1d5db',
+            borderRadius: 4,
+            overflow: 'auto',
+            background: '#fff',
+            boxSizing: 'border-box',
+        };
         const trStyle = { borderBottom: '1px solid #e5e7eb' };
         const thStyle = { textAlign: 'left', padding: '6px 8px', background: '#f3f4f6',
-                          borderBottom: '2px solid #d1d5db', fontSize: 12, fontWeight: 600 };
+                          borderBottom: '2px solid #d1d5db', fontSize: 12, fontWeight: 600,
+                          whiteSpace: 'nowrap' };
         const tdStyle = { padding: '6px 8px', fontSize: 12 };
-        return React.createElement('div', {
-            style: { border: '1px solid #d1d5db', borderRadius: 4, overflow: 'auto', maxHeight: 480 },
-        }, React.createElement('table', { style: { width: '100%', borderCollapse: 'collapse' } },
-            React.createElement('thead', null,
-                React.createElement('tr', null,
-                    columnDefs.map((c, i) => React.createElement('th', { key: i, style: thStyle },
-                        c.headerName || c.field)))),
-            React.createElement('tbody', null,
-                rowData.map((row, i) => React.createElement('tr', { key: i, style: trStyle },
-                    columnDefs.map((c, j) => React.createElement('td', { key: j, style: tdStyle },
-                        row && c.field ? String(row[c.field] ?? '') : '')))))
-        ));
+        if (columnDefs.length === 0) {
+            // columnDefs 가 비어있을 때 (런타임이 onGridReady 의 setColumnDefs 호출을 못 보면 발생) 안내
+            return React.createElement('div', { style: containerStyle },
+                React.createElement('div', {
+                    style: { padding: 12, color: '#6b7280', fontSize: 12 }
+                }, '미리보기: columnDefs 가 비어있어 컬럼이 표시되지 않습니다 (onGridReady 의 setColumnDefs 호출은 stub 에서 실행되지 않음).')
+            );
+        }
+        return React.createElement('div', { style: containerStyle },
+            React.createElement('table', { style: { width: '100%', borderCollapse: 'collapse' } },
+                React.createElement('thead', null,
+                    React.createElement('tr', null,
+                        columnDefs.map((c, i) => React.createElement('th', { key: i, style: thStyle },
+                            c.headerName || c.field || `col${i+1}`)))),
+                React.createElement('tbody', null,
+                    rowData.length > 0
+                        ? rowData.map((row, i) => React.createElement('tr', { key: i, style: trStyle },
+                            columnDefs.map((c, j) => React.createElement('td', { key: j, style: tdStyle },
+                                row && c.field ? String(row[c.field] ?? '') : ''))))
+                        : React.createElement('tr', null,
+                            React.createElement('td', {
+                                colSpan: columnDefs.length,
+                                style: { ...tdStyle, textAlign: 'center', color: '#9ca3af', padding: 24 },
+                            }, '미리보기: 데이터 없음 — 실제 화면에서 조회 시 데이터가 표시됩니다.'))
+                )
+            )
+        );
     };
     AgGridReact.displayName = 'PreviewMockAgGrid';
     return AgGridReact;

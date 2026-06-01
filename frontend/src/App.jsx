@@ -55,6 +55,13 @@ function TabbedHome() {
         setActiveKey(key);
     }, []);
 
+    const handleLogoClick = useCallback(() => {
+        // Composer Tab 활성화 — 닫혀 있으면 열고, 열려 있으면 active 만 전환
+        openTab('composer');
+        // T3Composer 에 reset 신호 전달 — listener 가 mode !== null 이면 confirm
+        window.dispatchEvent(new CustomEvent('t3composer:resetToHome'));
+    }, [openTab]);
+
     // 외부에서 Tab 활성화 요청 — 이력의 [이어하기] 등이 dispatch
     useEffect(() => {
         const h = (e) => {
@@ -94,39 +101,62 @@ function TabbedHome() {
                 }}
             >
                 {/* 로고 + 프로그램명 + 접기 토글 */}
-                <Box sx={{
-                    display: 'flex', alignItems: 'center', gap: 1,
-                    px: collapsed ? 0 : 1.5, py: 1.2, minHeight: 52,
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    borderBottom: '1px solid', borderColor: 'divider',
-                }}>
-                    <Tooltip title="T3Composer v1.0 — AI 화면 생성 워크스페이스" placement="right">
-                        <Box sx={{ display: 'flex', cursor: 'default' }}>
+                <Tooltip title="Composer 홈으로 — 모드 선택 화면" placement="right">
+                    <Box
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Composer 홈으로"
+                        onClick={handleLogoClick}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleLogoClick();
+                            }
+                        }}
+                        sx={{
+                            display: 'flex', alignItems: 'center', gap: 1,
+                            px: collapsed ? 0 : 1.5, py: 1.2, minHeight: 52,
+                            justifyContent: collapsed ? 'center' : 'flex-start',
+                            borderBottom: '1px solid', borderColor: 'divider',
+                            cursor: 'pointer',
+                            transition: 'background-color .15s ease',
+                            '&:hover': { bgcolor: 'rgba(124,167,224,0.10)' },
+                            '&:focus-visible': {
+                                outline: '2px solid',
+                                outlineColor: 'primary.main',
+                                outlineOffset: '-2px',
+                            },
+                        }}
+                    >
+                        <Box sx={{ display: 'flex' }}>
                             <Logo size={collapsed ? 30 : 28} />
                         </Box>
-                    </Tooltip>
-                    {!collapsed && (
-                        <>
-                            <Typography component="div" sx={{
-                                flex: 1, fontSize: '0.92rem', fontWeight: 800,
-                                color: 'primary.dark', letterSpacing: '-0.3px', whiteSpace: 'nowrap',
-                            }}>
-                                T3Composer
-                                <Box component="span" sx={{
-                                    fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', ml: 0.5,
+                        {!collapsed && (
+                            <>
+                                <Typography component="div" sx={{
+                                    flex: 1, fontSize: '0.92rem', fontWeight: 800,
+                                    color: 'primary.dark', letterSpacing: '-0.3px', whiteSpace: 'nowrap',
                                 }}>
-                                    v1.0
-                                </Box>
-                            </Typography>
-                            <Tooltip title="메뉴 접기">
-                                <IconButton size="small" onClick={() => setCollapsed(true)}
-                                            sx={{ color: 'text.secondary' }}>
-                                    <KeyboardDoubleArrowLeftIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </>
-                    )}
-                </Box>
+                                    T3Composer
+                                    <Box component="span" sx={{
+                                        fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', ml: 0.5,
+                                    }}>
+                                        v1.0
+                                    </Box>
+                                </Typography>
+                                <Tooltip title="메뉴 접기">
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => { e.stopPropagation(); setCollapsed(true); }}
+                                        sx={{ color: 'text.secondary' }}
+                                    >
+                                        <KeyboardDoubleArrowLeftIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </>
+                        )}
+                    </Box>
+                </Tooltip>
                 {collapsed && (
                     <Box sx={{
                         display: 'flex', justifyContent: 'center', py: 0.4,

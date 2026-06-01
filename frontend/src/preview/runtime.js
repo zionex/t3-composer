@@ -64,6 +64,14 @@ import * as Zustand from 'zustand';
 import * as Immer from 'immer';
 import * as DateFns from 'date-fns';
 
+// chart.js v3 + react-chartjs-2 — 산출물이 자주 사용. namespace 통째로 등록해
+//   `import { Chart, CategoryScale, LinearScale, ... } from 'chart.js'` +
+//   `Chart.register(...)` 패턴이 그대로 동작. 미등록 시 named export Chart 가
+//   makeFallbackModule 의 React stub 함수로 폴백되어 `Chart.register is not a function`
+//   크래시 (§13.0 표면 #3 — npm 모듈 패리티).
+import * as ChartJsCore from 'chart.js';
+import * as ReactChartJs2 from 'react-chartjs-2';
+
 // ============================================================================
 // Mock 환경 — 화면 실행 시 API 호출이 sample 데이터를 받도록
 // ============================================================================
@@ -401,6 +409,135 @@ const REGISTRY = {
     'immer': esModule(Immer),
     'date-fns': esModule(DateFns),
 
+    // chart.js + react-chartjs-2 — 산출물 자주 사용. 실모듈 등록.
+    //   chart.js v3 의 모든 named export(Chart · CategoryScale · LinearScale · BarElement ·
+    //   LineElement · PointElement · ArcElement · Title · Tooltip · Legend · Filler ·
+    //   PolarAreaController 등)가 namespace 에 들어있어 `import { ... } from 'chart.js'` +
+    //   `Chart.register(...)` 패턴 그대로 동작.
+    //   `chart.js/auto` 도 동일 namespace 로 매핑 (auto entry 는 모든 controller/scale 을
+    //   자동 register 한 Chart 클래스를 default 로 노출 — preview 에서는 명시 register
+    //   안 해도 작동하도록 default 를 Chart 로 alias).
+    'chart.js': esModule(ChartJsCore),
+    'chart.js/auto': esModule({ ...ChartJsCore, default: ChartJsCore.Chart }),
+    'react-chartjs-2': esModule(ReactChartJs2),
+    // chartjs-plugin-* / chartjs-adapter-* — 산출물이 import 만 하고 명시 사용은 적음.
+    //   미등록 시 makeFallbackModule 의 SAFE_STUB 로도 동작 가능하나, default plugin 객체로
+    //   기대하는 API 호환을 위해 빈 plugin 객체를 default 로 노출 (Chart.register(plugin)
+    //   호출이 no-op 으로 통과).
+    'chartjs-plugin-datalabels':  defaultModule({ id: 'datalabels',  beforeInit: () => {}, afterInit: () => {} }),
+    'chartjs-plugin-annotation':  defaultModule({ id: 'annotation',  beforeInit: () => {}, afterInit: () => {} }),
+    'chartjs-adapter-date-fns':   esModule({}),
+
+    // recharts — 미설치 npm. 산출물이 자주 사용 (LineChart/BarChart/ResponsiveContainer 등).
+    //   makeFallbackModule 폴백 시 stub 컴포넌트가 작은 노란 점선 박스로만 표시 → 차트
+    //   카드 영역이 collapse 되어 위 KPI 카드와 시각적으로 겹친 듯 보임.
+    //   §13.0 표면 #3 패리티 — recharts 표면 전체를 mockup 컴포넌트로 닫는다.
+    //   ResponsiveContainer 가 부모 width/height 를 채우고 LineChart/BarChart 가 SVG
+    //   mockup 을 그려 카드 영역이 본래 크기로 펼쳐진다.
+    'recharts': esModule((function () {
+        const renderLineMockup = () => React.createElement('svg', {
+            width: '100%', height: '100%', viewBox: '0 0 400 200',
+            preserveAspectRatio: 'none', style: { display: 'block' },
+        }, [
+            React.createElement('line', { key: 'g1', x1: 0, y1: 50,  x2: 400, y2: 50,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('line', { key: 'g2', x1: 0, y1: 100, x2: 400, y2: 100,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('line', { key: 'g3', x1: 0, y1: 150, x2: 400, y2: 150,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('polyline', { key: 'p1', fill: 'none', stroke: '#1976d2',
+                strokeWidth: 2, points: '0,140 80,110 160,90 240,70 320,55 400,40' }),
+            React.createElement('polyline', { key: 'p2', fill: 'none', stroke: '#2e7d32',
+                strokeWidth: 2, points: '0,150 80,130 160,115 240,95 320,80 400,65' }),
+            React.createElement('circle', { key: 'd1', cx: 0,   cy: 140, r: 3, fill: '#1976d2' }),
+            React.createElement('circle', { key: 'd2', cx: 80,  cy: 110, r: 3, fill: '#1976d2' }),
+            React.createElement('circle', { key: 'd3', cx: 160, cy: 90,  r: 3, fill: '#1976d2' }),
+            React.createElement('circle', { key: 'd4', cx: 240, cy: 70,  r: 3, fill: '#1976d2' }),
+            React.createElement('circle', { key: 'd5', cx: 320, cy: 55,  r: 3, fill: '#1976d2' }),
+            React.createElement('circle', { key: 'd6', cx: 400, cy: 40,  r: 3, fill: '#1976d2' }),
+        ]);
+        const renderBarMockup = () => React.createElement('svg', {
+            width: '100%', height: '100%', viewBox: '0 0 400 200',
+            preserveAspectRatio: 'none', style: { display: 'block' },
+        }, [
+            React.createElement('line', { key: 'g1', x1: 0, y1: 50,  x2: 400, y2: 50,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('line', { key: 'g2', x1: 0, y1: 100, x2: 400, y2: 100,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('line', { key: 'g3', x1: 0, y1: 150, x2: 400, y2: 150,
+                stroke: '#e5e7eb', strokeDasharray: '3 3' }),
+            React.createElement('rect', { key: 'b1', x: 40,  y: 80,  width: 50, height: 110, fill: '#1976d2' }),
+            React.createElement('rect', { key: 'b2', x: 130, y: 110, width: 50, height: 80,  fill: '#1976d2' }),
+            React.createElement('rect', { key: 'b3', x: 220, y: 60,  width: 50, height: 130, fill: '#1976d2' }),
+            React.createElement('rect', { key: 'b4', x: 310, y: 130, width: 50, height: 60,  fill: '#1976d2' }),
+        ]);
+        const renderPieMockup = () => React.createElement('svg', {
+            width: '100%', height: '100%', viewBox: '0 0 200 200', style: { display: 'block' },
+        }, [
+            React.createElement('circle', { key: 'p',  cx: 100, cy: 100, r: 70, fill: '#1976d2' }),
+            React.createElement('path',   { key: 'p2', d: 'M 100,100 L 100,30 A 70,70 0 0 1 170,100 z', fill: '#2e7d32' }),
+            React.createElement('path',   { key: 'p3', d: 'M 100,100 L 170,100 A 70,70 0 0 1 150,150 z', fill: '#ed6c02' }),
+        ]);
+        const makeChart = (kind) => {
+            function ChartC(props) {
+                const renderFn = kind === 'bar' ? renderBarMockup
+                               : kind === 'pie' ? renderPieMockup
+                               : renderLineMockup;
+                return React.createElement('div', {
+                    style: {
+                        width: (props && props.width) || '100%',
+                        height: (props && props.height) || '100%',
+                        position: 'relative',
+                    },
+                }, renderFn());
+            }
+            ChartC.displayName = 'PreviewRechartsChart(' + kind + ')';
+            return ChartC;
+        };
+        function ResponsiveContainer(props) {
+            const w = (props && props.width != null) ? props.width : '100%';
+            const h = (props && props.height != null) ? props.height : 240;
+            const ws = typeof w === 'number' ? w + 'px' : w;
+            const hs = typeof h === 'number' ? h + 'px' : h;
+            return React.createElement('div', {
+                style: { width: ws, height: hs, position: 'relative' },
+            }, props && props.children);
+        }
+        ResponsiveContainer.displayName = 'PreviewRechartsResponsiveContainer';
+        const NullEl = (n) => { function E() { return null; } E.displayName = 'PreviewRecharts' + n; return E; };
+        return {
+            ResponsiveContainer,
+            LineChart:      makeChart('line'),
+            BarChart:       makeChart('bar'),
+            AreaChart:      makeChart('line'),
+            ComposedChart:  makeChart('line'),
+            PieChart:       makeChart('pie'),
+            ScatterChart:   makeChart('line'),
+            RadarChart:     makeChart('line'),
+            RadialBarChart: makeChart('bar'),
+            FunnelChart:    makeChart('bar'),
+            Treemap:        makeChart('bar'),
+            // 자식 element 들 — 부모 차트가 mockup 렌더하므로 null 반환
+            Line: NullEl('Line'), Bar: NullEl('Bar'), Area: NullEl('Area'),
+            Pie: NullEl('Pie'), Scatter: NullEl('Scatter'), Radar: NullEl('Radar'),
+            Funnel: NullEl('Funnel'),
+            XAxis: NullEl('XAxis'), YAxis: NullEl('YAxis'), ZAxis: NullEl('ZAxis'),
+            CartesianGrid: NullEl('CartesianGrid'),
+            Tooltip: NullEl('Tooltip'), Legend: NullEl('Legend'),
+            Cell: NullEl('Cell'), Label: NullEl('Label'), LabelList: NullEl('LabelList'),
+            ReferenceLine: NullEl('ReferenceLine'), ReferenceArea: NullEl('ReferenceArea'),
+            ReferenceDot: NullEl('ReferenceDot'),
+            Brush: NullEl('Brush'), Sector: NullEl('Sector'),
+            PolarGrid: NullEl('PolarGrid'),
+            PolarAngleAxis: NullEl('PolarAngleAxis'),
+            PolarRadiusAxis: NullEl('PolarRadiusAxis'),
+            Cross: NullEl('Cross'), Curve: NullEl('Curve'),
+            Dot: NullEl('Dot'), Rectangle: NullEl('Rectangle'),
+            ErrorBar: NullEl('ErrorBar'), Customized: NullEl('Customized'),
+            Text: NullEl('Text'), Symbols: NullEl('Symbols'), Trapezoid: NullEl('Trapezoid'),
+        };
+    })()),
+
     // react-router-dom — 격리 미리보기용 stub (실제 라우터는 Router 컨텍스트 필요).
     //   EXISTING_MODIFY 가 import 한 원본 화면이 라우터를 써도 미리보기가 렌더되도록.
     'react-router-dom': buildReactRouterShim(),
@@ -597,23 +734,33 @@ const SAFE_STUB = (function buildSafeStub() {
 // `@mui/icons-material/<Unknown>` 같은 미등록 import 가 들어와도 화면이 깨지지 않게
 // fallback. icon 은 placeholder 'X' span 으로, 그 외는 명확한 에러.
 function makeFallbackIcon(spec) {
-    const Comp = (props) => React.createElement('span', {
-        ...props,
-        title: '[stub] ' + spec,
-        style: { display: 'inline-block', width: 16, height: 16, ...(props && props.style) },
-    });
+    // ★ 일반 function 키워드 — 화살표 함수는 [[Construct]] 없어 `new Comp()` 호출 시
+    //   "ctor is not a constructor" TypeError. recharts 같은 미등록 라이브러리의
+    //   클래스 컴포넌트가 React 내부에서 new 시도될 때 graceful 하게 동작하도록.
+    function Comp(props) {
+        return React.createElement('span', {
+            ...props,
+            title: '[stub] ' + spec,
+            style: { display: 'inline-block', width: 16, height: 16, ...(props && props.style) },
+        });
+    }
     Comp.displayName = 'PreviewStubIcon(' + spec + ')';
     return defaultModule(Comp);
 }
 function makeFallbackComponent(spec) {
-    const Comp = (props) => React.createElement('div', {
-        style: {
-            display: 'inline-flex', alignItems: 'center', padding: '4px 8px',
-            border: '1px dashed #f59e0b', borderRadius: 4,
-            background: '#fef3c7', color: '#92400e', fontSize: 12,
-        },
-        title: '[stub] ' + spec,
-    }, '[stub] ' + (spec.split('/').pop() || spec));
+    // ★ 일반 function 키워드 — 동일 이유 (화살표 함수는 new 불가). 미등록 npm
+    //   (recharts · react-grid-layout 등) 의 컴포넌트가 클래스 형태로 인식되어
+    //   React/외부 코드가 `new C(props)` 시도해도 TypeError 없이 작동.
+    function Comp(props) {
+        return React.createElement('div', {
+            style: {
+                display: 'inline-flex', alignItems: 'center', padding: '4px 8px',
+                border: '1px dashed #f59e0b', borderRadius: 4,
+                background: '#fef3c7', color: '#92400e', fontSize: 12,
+            },
+            title: '[stub] ' + spec,
+        }, '[stub] ' + (spec.split('/').pop() || spec));
+    }
     Comp.displayName = 'PreviewStubComponent(' + spec + ')';
     return defaultModule(Comp);
 }
@@ -655,12 +802,26 @@ function makeFallbackModule(spec) {
         : null;
     const baseDefault = /^[A-Z]/.test(lastSeg) ? stubCompWithMethods : SAFE_STUB;
     const target = { __esModule: true, default: baseDefault };
+    // PascalCase named export 도 정적 메서드 접근 + new 호출 양쪽 안전해야 함.
+    //   예: `import { Chart } from 'chart.js'` (미등록) → `Chart.register(...)` 호출.
+    //   stubComp 만 반환하면 React 컴포넌트 함수에 `.register` 가 없어 TypeError.
+    //   stubComp 를 Proxy 로 감싸 React 가 호출하면 placeholder element + 정적 속성 접근은
+    //   SAFE_STUB 반환 + `new C(args)` 도 SAFE_STUB 반환 (어떤 라이브러리의 클래스 패턴이든
+    //   "is not a constructor" 크래시 방어).
+    const wrapPascalNamed = (comp) => new Proxy(comp, {
+        get(t, prop) {
+            if (prop in t) return t[prop];
+            if (typeof prop !== 'string') return undefined;
+            return SAFE_STUB;
+        },
+        construct() { return SAFE_STUB; },
+    });
     return new Proxy(target, {
         get(t, prop) {
             if (prop in t) return t[prop];
             if (typeof prop !== 'string') return undefined;
-            // 대문자 시작 → 컴포넌트 stub · 그 외 → SAFE_STUB (호출·체이닝·HOC 모두 호환)
-            const v = /^[A-Z]/.test(prop) ? stubComp : SAFE_STUB;
+            // 대문자 시작 → 컴포넌트 stub (정적 메서드 접근 안전) · 그 외 → SAFE_STUB
+            const v = /^[A-Z]/.test(prop) ? wrapPascalNamed(stubComp) : SAFE_STUB;
             t[prop] = v;   // 동일 export 가 매번 같은 참조이도록 캐시
             return v;
         },
@@ -724,6 +885,16 @@ function previewRequire(spec) {
             const mod = esModule({ ...ZionexWinguiCore, default: ZionexWinguiCore[lastSeg] });
             REGISTRY[spec] = mod;
             return mod;
+        }
+        // PascalCase subpath 인데 shim namespace 에 미존재 (예: DashboardPanel · GanttChart ·
+        //   FLODiagram 등 — wingui 본 환경엔 있지만 composer shim 미보유) →
+        //   makeFallbackModule 로 컴포넌트 stub default 노출. 두 번째 분기로 가면
+        //   default 가 namespace object 가 되어 JSX `<DashboardPanel>` 가 "got: object"
+        //   "Element type is invalid" 크래시. §13.0 표면 #1 패리티 graceful fallback.
+        if (/^[A-Z]/.test(lastSeg)) {
+            const stub = makeFallbackModule(spec);
+            REGISTRY[spec] = stub;
+            return stub;
         }
         // 그 외 (utils/lang/store/component 통합) — 통째로 노출. 임의 named import
         // (transLangKey · onErrorInput · themeStoreApi 등) 가 namespace 에 있으면 작동.

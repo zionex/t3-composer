@@ -81,9 +81,9 @@
 | E2 | `import com.zionex.t3series.web.util.audit.BaseEntity` | `import t3series.saas.model.BaseEntity` | 41b §5.4 |
 | E3 | `import com.zionex.t3series.web.util.data.ResponseMessage` | `import t3series.saas.response.ResponseMessage` | 41b §5.4 |
 | E4 | `import jakarta.persistence.*` / `jakarta.validation.*` (Spring Boot 3 가정) | `import javax.persistence.*` / `javax.validation.*` (Spring Boot 2.4) | 41b §5.4 |
-| E5 | `@Qualifier("targetJdbcTemplate")` — Composer preview 전용 qualifier | 해당 없음 (PlanNEL 은 단일 PostgreSQL 데이터소스) | 41b §5.11 |
+| E5 | `@Qualifier("targetJdbcTemplate")` — Composer preview 전용 qualifier | 해당 없음 (PlanNEL 은 단일 PostgreSQL 데이터소스) | 41b §5.4 |
 | E6 | `@RequestMapping("/util/<feature>")` 또는 `/composer/...` class 레벨 | `@RequestMapping("/api")` class 레벨 + 메서드에 구체 경로 | 41b §5.7 |
-| E7 | `Integer verNum` (Wrapper) | `int verNum` (primitive) — BaseEntity 규약 | 41b §5.6 |
+| E7 | `Integer verNum` (Wrapper) | `int verNum` (primitive) — BaseEntity 규약 | 41b §5.10 |
 | E8 | Entity 와 DTO 를 같은 클래스로 사용 | Entity(`<Feature>.java`) 와 DTO(`<Feature>Dto.java`) 반드시 분리 | 41b §5.1a |
 | E9 | `ResponseMessage.builder().message(...).build()` (Lombok @Builder 가정) | `ResponseMessage.ok()` / `error(msg)` — 정적 팩토리 메서드 | 41b §5.8 |
 | E10 | `HttpServletRequest` + `request.getParameter("changes")` + ObjectMapper 패턴 | `@RequestBody <FeatureDto>` 또는 `@RequestBody List<FeatureDto>` JSON 직접 수신 | 41b §5.7 |

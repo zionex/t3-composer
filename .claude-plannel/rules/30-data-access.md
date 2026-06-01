@@ -336,7 +336,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import t3series.saas.config.hibernate.typehandler.BooleanToYNConverter;
-import t3series.saas.multi_tenancy.model.BaseEntity;
+import t3series.saas.model.BaseEntity;
 
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = {"customerHrchy"})
@@ -376,7 +376,7 @@ public class Customer extends BaseEntity implements DtoConvertable<CustomerDto> 
 
 ### 4.2 BaseEntity — Audit + Optimistic Locking
 
-`t3series.saas.multi_tenancy.model.BaseEntity`:
+`t3series.saas.model.BaseEntity`:
 
 ```java
 @Data

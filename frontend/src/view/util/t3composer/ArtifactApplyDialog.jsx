@@ -46,6 +46,9 @@ const SHOW_PREVIEW_UI = true;
  *
  * 적용 대상:
  *   · SCREEN_JSX / JAVA_ENTITY / JAVA_SERVICE / JAVA_CONTROLLER / JAVA_REPOSITORY → 파일 저장
+ *   · FRONTEND_JS_MODULE (PlanNEL services/redux/utils/hooks 등) → 파일 저장
+ *   · MENU_JS (PlanNEL TabMenuList 항목) → 파일 저장
+ *   · MYBATIS_MAPPER_XML (PlanNEL Mapper XML) → 파일 저장
  *   · SQL_DDL → CREATE TABLE 실행 (옵션)
  *   · SQL_SP → CREATE OR ALTER PROCEDURE 실행 (옵션)
  *   · MENUS_JS_PATCH → menus.js 패치 (선택)
@@ -344,8 +347,11 @@ function ArtifactApplyDialog({ open, sessionId, onClose }) {
   };
 
   const fileItems = artifacts.filter((a) =>
-    ['SCREEN_JSX', 'JAVA_ENTITY', 'JAVA_SERVICE', 'JAVA_CONTROLLER', 'JAVA_REPOSITORY', 'MENUS_JS_PATCH']
-      .includes(a.artifactType));
+    [
+      'SCREEN_JSX', 'JAVA_ENTITY', 'JAVA_SERVICE', 'JAVA_CONTROLLER', 'JAVA_REPOSITORY', 'MENUS_JS_PATCH',
+      // PlanNEL 추가 산출물 타입
+      'FRONTEND_JS_MODULE', 'MENU_JS', 'MYBATIS_MAPPER_XML',
+    ].includes(a.artifactType));
   const ddlItems = artifacts.filter((a) => a.artifactType === 'SQL_DDL');
   const spItems  = artifacts.filter((a) => a.artifactType === 'SQL_SP');
 

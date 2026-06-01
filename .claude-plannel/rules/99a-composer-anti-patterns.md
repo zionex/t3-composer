@@ -1,171 +1,166 @@
-# 99a. Composer 화면 생성 안티패턴 카탈로그
+# 99a. Composer 화면 생성 안티패턴 카탈로그 (PlanNEL)
 
-> 본 문서 = **표 형식 카탈로그**. 사건 경위·코드 예시는 git history 또는 hook 메시지 참조.
-> 99-anti-patterns.md §9-1 분리. 전체 규약: `41-composer-generation.md` + sub `41a/b/c/d`.
+> **PlanNEL 전용** — wingui(T3SmartSCM) 와의 오염 차단이 핵심 목적.
+> 이 카탈로그의 모든 ❌ 항목은 wingui 컨벤션이 PlanNEL 산출물에 그대로 흘러들어올 때 발생하는 패턴이다.
+> 전체 규약: `41-composer-generation.md` + `41b-composer-java.md` + 자매 규칙 참조.
 
-## A. 참조·구현 방식
+---
 
-| # | ❌ | ✅ | 검증 |
+## A. 참조 방식
+
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-A1 | 유사 원본 안 읽고 자유 창작 | Read 2~3개 후 `참조 원본:` 명시 | LLM |
-| CG-A2 | 신규 화면에 SP_UI_*.sql 누락 (NEW_FROM_COPY 제외) / 엔진 service XML 생성 | SP_UI_*.sql 필수 + RestController + JdbcTemplate | hook H |
-| CG-A3 | 신규 화면이 외부 엔진 기동 의존 / `callService(...)` | wingui 단독 — RestController + JdbcTemplate + SP | server H |
-| CG-A4 | Entity/Service/Controller 누락 또는 Service 가 JpaRepository/Specification | Entity + Service(JdbcTemplate SP) + Controller. Repository 선택 | server H |
-| CG-A5 | 공통 유틸 (BaseEntity/ResponseMessage 등) 무시 중복 구현 | 기존 유틸 재사용 | LLM |
-| CG-A6 | Controller 저장이 `@RequestBody List<T>` | `HttpServletRequest` + `request.getParameter("changes")` + ObjectMapper | LLM |
-| CG-A7 | 존재하지 않는 Pop\* 컴포넌트 import (예: PopDepartment 부재) | 파일 사전 확인. 부재 시 InputField 대체 또는 Pop\* 같이 생성 | LLM |
+| A1 | 유사 원본 없이 자유 창작 | 가장 비슷한 기존 페이지/slice/Controller 1개 이상 Read 후 복제 | 41 §0 |
+| A2 | 출력 맨 앞 4줄 선언 누락 (`참조 원본:` / `원본 import 리스트` / `치환 매핑` / `신규 추가: 없음`) | 4줄 선언 필수 — 산출물 최초 라인부터 명시 | 41 §0.1 |
+| A3 | 참조 원본으로 wingui `view/system/usermgmt/Users.jsx` 를 지목 | `saas-plannel` 의 실제 기존 페이지/컨트롤러 파일 지목 | 41 §0.2 |
 
-## B. MENU_CD / MENU_FILE_PATH / MENU_PATH
+---
 
-| # | ❌ | ✅ | 검증 |
+## B. 페이지 / 메뉴 / 라우팅
+
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-B1 | `UT_USER_INFO_MGMT` (UI_ 누락) · `MENU_UT_*` · 소문자/하이픈 | `UI_<DOMAIN>_<NAME>` UPPER_SNAKE | hook H |
-| CG-B2 | MENU_FILE_PATH 마지막 직전 == lowercase(마지막) — 이중화 | `/<module>[/<category>]/<PascalCase>` | hook H |
-| CG-B3 | MENU_FILE_PATH 에 `.jsx` 확장자 | 확장자 없이 | hook H |
-| CG-B4 | MENU_FILE_PATH 마지막 segment 가 lowercase | PascalCase 강제 | hook warn |
-| CG-B5 | MENU_PATH 에 대문자 | 모두 lowercase | hook warn |
-| CG-B6 | MENU_PATH ≠ LOWER(MENU_FILE_PATH) | 페어 등식 유지 | LLM |
-| CG-B7 | parent `MENU_UT` (util) | `MENU_UTIL` | hook H |
-| CG-B8 | menus.js 만 수정 (DB 미등록) | TB_AD_MENU INSERT 필수 | LLM |
-| CG-B9 | MENU_SQL 에 Oracle 구문 (`SYSDATE`/`SYS_GUID`) | MSSQL (`GETDATE()`/`NEWID()`) | hook H |
+| B1 | `UI_<DOMAIN>_<NAME>` MENU_CD 발행 | `TabMenuList.js` lv3 entry + i18n menu 키 6개 언어 갱신 | 20 §4-5 |
+| B2 | `MENU_FILE_PATH = "/<module>/<File>"` 형식 경로 산출 | `src/pages/<domain-kebab>/<PascalName>.js` 파일 경로 | 20 §2 |
+| B3 | `TB_AD_MENU INSERT` SQL 산출 | `TabMenuList.js` 항목 추가 (코드 변경) | 20 §4 |
+| B4 | `TB_AD_LANG_PACK INSERT` SQL 산출 | `translation.<locale>.json` 6개 갱신 | 20 §5 |
+| B5 | `MENU_PATH ≠ LOWER(MENU_FILE_PATH)` | 해당 없음 — PlanNEL 은 react-router-dom v6 경로 직접 관리 | 20 §3 |
+| B6 | `App.js` 에 `<Route path="/scm/..." element={<Page />} />` 직접 추가 | `TabMenuList.js` 에 lv3 항목 추가만 — App.js 라우트 자동 연동 | 20 §3 |
+| B7 | `menus.js` 또는 `DB` 없이 라우트 파일 수정 | `TabMenuList.js` + i18n 파일 2곳만 | 20 §4 |
+| B8 | 폴더명 PascalCase (`src/pages/InventoryPlan/`) | kebab-case 필수 (`src/pages/inventory-plan/`) | 20 §2 |
+
+---
 
 ## C. JSX 표면 API
 
-| # | ❌ | ✅ | 검증 |
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-C1 | `@wingui/common/store/*` · `@zionex/wingui-core/*` 직접 | `@wingui/common/imports` 단일 | hook H |
-| CG-C2 | `<BaseGrid columns={} afterCreate={} />` | `items={} afterGridCreate={}` | hook H |
-| CG-C3 | 컬럼 key `field:` · `type:'combo', items:[]` | `name:` · `useDropdown:true + lookupDisplay + values + labels` | hook H |
-| CG-C4 | enum 컬럼에 `lookupDisplay:true` 만 (useDropdown 누락) | 4개 모두 (useDropdown + lookupDisplay + values + labels) | hook warn |
-| CG-C5 | `grid.setData / getChangedData / getChanges` | `grid.dataProvider.fillJsonData / getAllStateRows / getJsonRow` | hook H |
-| CG-C6 | `<GridSaveButton grid={ref}>` (객체) | `grid="userInfoGrid"` (문자열 id) | hook H |
-| CG-C7 | `globalButtons: [{code, onClick}]` | `[{name, action}]` | hook H |
-| CG-C8 | `showMessage('confirm', msg, cb)` | `showMessage('확인', msg, cb)` | hook H |
-| CG-C9 | `<InputField type="action" />` 자기닫힘 · `InputProps.endAdornment` | children `<SearchIcon/>` 필수 | hook warn |
-| CG-C10 | 컬럼에 `button:'action'`/`buttonVisibility` 수동 | `applyGridCascade` 자동 주입 | hook warn |
-| CG-C11 | BaseGrid 컬럼 `dataType` 누락 → 화면 즉시 크래시 | 모든 컬럼에 `dataType` | hook H |
-| CG-C12 | Store swap — `useViewStore`에서 `activeViewId` / `useContentStore`에서 `setViewInfo` | `activeViewId` ← `useContentStore` · `setViewInfo` ← `useViewStore` | hook H |
-| CG-C13 | `useForm` 의 datetime/dateRange/number/check/multiSelect 빈 문자열 default | `datetime→null` · `dateRange→[null,null]` · `number→null` · `check→false` · `multiSelect→[]` | LLM |
+| C1 | `import { BaseGrid } from '@wingui/common/imports'` | `import { AgGridReact } from "@ag-grid-community/react"` | 21 §6 AP-1 |
+| C2 | `import { ContentInner, SearchArea, InputField } from '@wingui/common/imports'` | MUI `Box`, `FilterContainer`, `TextField` 직접 사용 | 21 §6 AP-2 |
+| C3 | `import { SplitPanel } from '@zionex/wingui-core'` | MUI `Box` flex 레이아웃 직접 구성 | 21 §6 AP-13 |
+| C4 | `import { TabContainer } from '@zionex/wingui-core'` | MUI `Tabs` + `Tab` 직접 구성 | 21 §6 AP-14 |
+| C5 | `import { useViewStore, useContentStore } from '@wingui/common/imports'` | `useDispatch()` + `dispatch(updateViewState({viewName,...}))` | 21 §4 AP-3 |
+| C6 | `setViewInfo(activeViewId, 'globalButtons', [...])` | `reduxDispatch(updateViewState({ viewName, ...uiState }))` | 21 §4 AP-4 |
+| C7 | `transLangKey('KEY')` | `const { t } = useTranslation(); t('menu.key')` | 21 §5 AP-5 |
+| C8 | `<BaseGrid items={colDefs} afterGridCreate={fn} />` | `<AgGridReact ref={gridRef} columnDefs={colDefs} onGridReady={fn} />` | 21 §6 AP-7 |
+| C9 | `grid.dataProvider.fillJsonData(rows)` | `setRowData(rows)` (React state 직접) | 21 §6 AP-8 |
+| C10 | `grid.dataProvider.getAllStateRows()` | `DataState.getAllStateData(gridRef.current?.api)` → flat array | 21 §6 AP-9 |
+| C11 | `applyGridCascade` / `useFieldCascade` 사용 | AG-Grid `onCellValueChanged` + 직접 필드 연동 로직 | 21 §6 AP-12 |
+| C12 | `gridItems` / `columnDefs` 를 컴포넌트 함수 내부에 선언 (매 렌더마다 재생성) | 컴포넌트 밖 또는 `useMemo(() => DefaultGridSetting({...}), [])` | 21 §6 AP-17 |
+| C13 | 그리드 컨테이너에 `minHeight: 0` 누락 — 0px collapse | `sx={{ flex: 1, minHeight: 0 }}` 부모 체인 전체 필수 | 21 §6 AP-15 |
+| C14 | `className` 없이 `<AgGridReact />` 렌더 | 부모 `Box` 에 `className="ag-theme-balham"` 필수 | 21 §6 AP-16 |
+| C15 | `export default withTranslation()` HOC 누락 | `export default withTranslation()(MyPage)` — t prop 미주입 시 번역 불가 | 21 §6 AP-21 |
+| C16 | `headerName` 에 한글 하드코딩 | i18n 키 + `GridUtils.gridValueL10N(t)` | 21 §6 AP-19 |
+| C17 | 데이터 로드 후 `DataState.initialize` 생략 — 더티 상태 누적 | `.finally(() => DataState.initialize(gridRef.current?.api))` | 21 §6 AP-18 |
+| C18 | `window.location.href = '/some/path'` | `navigate(RouteList.SomePage.path)` | 21 §2 |
+
+---
 
 ## D. 서버 통신
 
-| # | ❌ | ✅ | 검증 |
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-D1 | 신규 화면이 `callService` / `engine/...` URL | `zAxios.get('<m>/<fs>')` REST | hook warn |
-| CG-D2 | `callService({url, params})` 객체 인자 | `callService(serviceId, paramMap, target)` (계산 화면 전용) | hook H |
-| CG-D3 | `callService('SP_UI_*', ...)` SP 이름 첫 인자 | XML `<service id>` 값 | hook H |
-| CG-D4 | `target='common'/'ut'/'cm'` 미등록 | `mp` / `dp` / `bf` / `fp` 4개만 | hook H |
-| CG-D5 | 도메인-서버 매핑 위반 | CM/MP/IM/RP/SO → mp · BF/DP → dp · FP → fp | LLM |
+| D1 | `zAxios.get('/util/...')` 직접 호출 | `@plannel/services/<area>/<name>-service.js` 안에 wrapping 후 호출 | 30 §12 |
+| D2 | `zAxios.post(url, body, composerReq())` | PlanNEL axios 래퍼(`restApi`/`restApiDP`/`restApiIP`/`restApiRP`/`restApiMP`) | 30 §2 |
+| D3 | `multipart/form-data` + `'changes'` key POST | JSON body — Controller 에서 `@RequestBody List<FeatureDto>` 수신 | 21 AP-10, 41b §5.7 |
+| D4 | `callService(serviceId, paramMap, target)` 엔진 라우팅 호출 | 해당 없음 — PlanNEL 은 단독 Spring Boot 서비스 | 41 §6 |
+| D5 | `createAsyncThunk` 로 API 호출 결과를 Redux store 에 저장 | `useState` + axios `.then()/.catch()` 직접 처리, Redux 는 UI 상태만 | 30 §10-11 AP-11 |
+| D6 | URL 경로 `/composer/...` 또는 `/util/...` (wingui 컨벤션) | `/api/<plural-resource>` — kebab-case 복수형 | 30 §12 |
+| D7 | `GET /api/customers?filter=...` (검색조건이 긴 GET) | `POST /api/customers` + JSON body `SearchDto` | 30 §12 |
+| D8 | `@RequestMapping("/customers")` 클래스 레벨에 단수/전체 경로 선언 | 클래스 레벨 `/api` 고정 + 메서드 레벨에 `/customers/...` | 30 §3, 41b §5.7 |
+| D9 | 응답으로 `List<T>` 직접 반환 | `PaginationUtil.getPageResponse(...)` 또는 `getAllPageResponse(...)` | 30 §12 |
+| D10 | `@Transactional` 을 Controller 에 부착 | Service 레벨에만 `@Transactional` | 30 §12 |
 
-## E. Master 필드 / 공통코드 / Cascade
+---
 
-| # | ❌ | ✅ | 검증 |
+## E. Java 백엔드
+
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-E1 | Master 필드 자유 text | 기본 POPUP (Pop\* 재사용) | hook warn |
-| CG-E2 | 산출물에 `CommonCodeSelect` import (preview shim 전용) | `<InputField type="select" options={...}>` + 동적 fetch | LLM |
-| CG-E3 | Cascade parent 잘못 모델링 (독립 마스터를 종속으로) | 독립 마스터는 popup-only | LLM |
-| CG-E4 | cascade 컬럼인데 `useFieldCascade` / `applyGridCascade` 누락 | form 에 useFieldCascade · grid afterGridCreate 에 applyGridCascade | hook warn |
-| CG-E5 | POPUP confirm 콜백을 단건 객체 가정 | 항상 배열 · `firstOf(sel)` 추출 | LLM |
+| E1 | `package com.zionex.t3series.web.*` | `package t3series.saas.<feature>` | 41b §5.5 |
+| E2 | `import com.zionex.t3series.web.util.audit.BaseEntity` | `import t3series.saas.model.BaseEntity` | 41b §5.4 |
+| E3 | `import com.zionex.t3series.web.util.data.ResponseMessage` | `import t3series.saas.response.ResponseMessage` | 41b §5.4 |
+| E4 | `import jakarta.persistence.*` / `jakarta.validation.*` (Spring Boot 3 가정) | `import javax.persistence.*` / `javax.validation.*` (Spring Boot 2.4) | 41b §5.4 |
+| E5 | `@Qualifier("targetJdbcTemplate")` — Composer preview 전용 qualifier | 해당 없음 (PlanNEL 은 단일 PostgreSQL 데이터소스) | 41b §5.4 |
+| E6 | `@RequestMapping("/util/<feature>")` 또는 `/composer/...` class 레벨 | `@RequestMapping("/api")` class 레벨 + 메서드에 구체 경로 | 41b §5.7 |
+| E7 | `Integer verNum` (Wrapper) | `int verNum` (primitive) — BaseEntity 규약 | 41b §5.10 |
+| E8 | Entity 와 DTO 를 같은 클래스로 사용 | Entity(`<Feature>.java`) 와 DTO(`<Feature>Dto.java`) 반드시 분리 | 41b §5.1a |
+| E9 | `ResponseMessage.builder().message(...).build()` (Lombok @Builder 가정) | `ResponseMessage.ok()` / `error(msg)` — 정적 팩토리 메서드 | 41b §5.8 |
+| E10 | `HttpServletRequest` + `request.getParameter("changes")` + ObjectMapper 패턴 | `@RequestBody <FeatureDto>` 또는 `@RequestBody List<FeatureDto>` JSON 직접 수신 | 41b §5.7 |
+| E11 | `@PreAuthorize` 누락 — 미인증 endpoint | `@PreAuthorize("hasAnyRole('ADMIN', 'APP_DP', 'APP_IP', ...)")` 필수 | 41b §5.0 |
+| E12 | `LoggedUserContext` 없이 현재 사용자 ID 하드코딩 | `LoggedUserContext.get()` 으로 현재 사용자 ID 획득 | 41b §5.11 |
+| E13 | `OptimisticLockingFailureException` 처리 누락 | catch 후 `HttpStatus.CONFLICT`(409) 반환 | 41b §5.10 |
+| E14 | `BeanPropertyRowMapper` + `jdbcTemplate.query("EXEC ...")` (SP 호출) | QueryDSL / MyBatis XML / JPA Repository (SP 없음) | 41b §5.3 |
 
-## F. 9단계 Wizard 통합
+---
 
-| # | ❌ | ✅ |
-|---|---|---|
-| CG-F1 | `ModeNewFromCopy/Design` 가 직접 `createSession` | `prefilledSpec` + `mode` 로 `StepByStepWizard` 위임 |
-| CG-F2 | 모드별 별도 prompt builder | `newStepGuide(StepGuideMode.{PLAIN,COPY,DESIGN})` 단일 |
-| CG-F3~F4 | 빈 spec | `createInitialSpecFromSource/Design(...)` prefill |
-| CG-F5 | 변경 요청을 진입 화면 텍스트박스 (단일 호출) | Step9 의 `changeReq` 자유 텍스트 |
-| CG-F6 | `parsedDesign` / `sourceBundle` 텍스트 안 보냄 | `format*ForPrompt` 로 첨부 |
-| CG-F7 | spec.sourceMenu / designDoc 메타가 payload 에 누락 | payload 에 포함 |
+## F. SQL / DB
 
-## G. 아티팩트 파일경로 환각
-
-| # | ❌ | ✅ | 검증 |
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-G1 | ===FILE: path 끝 `_sql`/`_jsx`/`_java` (underscore) | 정규 확장자 dot — `.sql` / `.jsx` / `.java` | hook H |
-| CG-G2 | classifyArtifact 가 매치 실패 시 `TYPE_OTHER` | underscore fallback + 디렉토리 기반 보강 | LLM |
-| CG-G3 | MENU_SQL path 에 `menu` 단어 없음 → `TYPE_SQL_DDL` | path 에 `/menus/` 또는 `menu`/`tb_ad_menu` 단어 | LLM |
-| CG-G4 | 분류 실패 OTHER 가 DB 에 남음 | DB 진단 SQL 로 ARTIFACT_TYPE 점검 | LLM |
+| F1 | `SP_UI_<DOMAIN>_<NO>_<ACTION>` SP 작성 또는 `SP_UI_*.sql` 산출 | 해당 없음 — 모든 로직을 Java Service 안에서 처리 | 41b §5.3 |
+| F2 | 테이블명 `TB_*` / `TB_AD_*` / `TB_UT_*` | `z_<lowercase_snake>` (예: `z_customer`, `z_ip_settings`) | 40 §2 |
+| F3 | 테이블명 또는 컬럼명 대문자 / CamelCase | 소문자 + snake_case 필수 | 40 §13 |
+| F4 | audit 컬럼 `MODIFY_BY` / `MODIFY_DTTM` (T3Series 명칭) | `updated_by` (BIGINT) / `updated_ts` (TIMESTAMP) | 40 §10 |
+| F5 | audit 컬럼 `CREATE_BY` / `CREATE_DTTM` (T3Series 명칭) | `created_by` (BIGINT) / `created_ts` (TIMESTAMP) | 40 §10 |
+| F6 | `CREATE TABLE TB_<domain>_*` — wingui 컨벤션 테이블 신규 생성 | `CREATE TABLE z_<feature>` (PostgreSQL, lowercase snake) | 40 §2 |
+| F7 | 비즈니스 테이블에 `tenant_id` / `PLAN_SCOPE` 컬럼 추가 | schema-per-tenant — 컬럼 없음 (connection-level schema 라우팅) | 40 §1.1 |
+| F8 | SQL / Entity 에 schema prefix 하드코딩 (`zionex.z_customer`) | `z_customer` 만 — search_path 자동 적용 | 40 §1.1 |
+| F9 | `USE_YN` 컬럼명 | `active_flg` (`CHAR(1)`, Y/N, `BooleanToYNConverter`) | 40 §10 |
+| F10 | boolean 컬럼을 DB `BOOLEAN` 타입으로 | `CHAR(1)` + Y/N + `@Convert(converter = BooleanToYNConverter.class)` | 40 §13 |
+| F11 | ID 를 `SERIAL` / `IDENTITY` / `nextval(seq)` 로 | `BIGINT DEFAULT zionex.next_unique_id()` (Instagram-style) | 40 §13 |
+| F12 | 신규 테이블에 audit 컬럼 누락 | 6컬럼 필수: `id, created_ts, created_by, updated_ts, updated_by, ver_num` | 40 §13 |
+| F13 | Liquibase 우회한 ALTER TABLE 직접 실행 | 모든 schema 변경은 Liquibase changelog 통해 | 40 §13 |
+| F14 | `@Column(name=...)` 누락 — 자동 변환에 의존 | 명시 필수 (예: `@Column(name = "desc_txt")` for `descTxt`) | 40 §13 |
+| F15 | FK 컬럼에 인덱스 누락 | `CREATE INDEX idx_<table>_<col>` 명시 | 40 §13 |
 
-## H. Grid 라이프사이클 — 버튼 무반응
+---
 
-| # | ❌ | ✅ | 검증 |
+## G. 아티팩트 파일 경로
+
+| # | ❌ wingui/잘못된 패턴 | ✅ PlanNEL 표준 | 참조 |
 |---|---|---|---|
-| CG-H1 | `<GridAddRowButton initRow={}>` / `addInfo={}` (미인식 prop) | `grid="..."` 만 또는 `onGetData={() => ({...})}` | hook H |
-| CG-H2 | `<GridSaveButton url="..." />` (onSave 누락) | `onSave={(g,rows) => zAxios.post(...)}` | hook H |
-| CG-H3 | `useRef(null)` grid + 자동조회 `useEffect(()=>{},[])` → 영구 빈 그리드 | `useState(null)` + `setGrid` in `afterGridCreate` + `useEffect(()=>{if(grid)onSearch()},[grid])` | hook H |
+| G1 | `===FILE:` path 끝 `_js`/`_java`/`_sql` (underscore 확장자) | 정규 dot 확장자 `.js` / `.java` / `.sql` | 41 §5 |
+| G2 | JSX 파일명 PascalCase 폴더 (`src/pages/InventoryPlan/`) | 폴더는 kebab-case, 파일만 PascalCase (`src/pages/inventory-plan/IpSettings.js`) | 20 §2 |
+| G3 | Java 파일 클래스명 축약 (`Customer*.java` for `/customers/CustomerMgmt`) | `<Feature>` = 경로 마지막 segment 1:1 (`CustomerMgmt*.java`) | 41b §5.6 |
+| G4 | Java 패키지 디렉토리에 하이픈/언더스코어 (`customer-mgmt`) | 단일 소문자 concat (`customermgmt`) | 41b §5.6 |
 
-**GridButton.jsx 실제 props 화이트리스트:**
-| 컴포넌트 | props |
-|---|---|
-| `GridAddRowButton` | `grid` · `onBeforeAdd` · `onAfterAdd` · `onGetData` |
-| `GridDeleteRowButton` | `grid` · `onBeforeDelete` · `onDelete(grid, rows)` · `onAfterDelete` |
-| `GridSaveButton` | `grid` · `onBeforeSave` · `onSave(grid, changeRowData)` · `onAfterSave` |
-| `GridExcelExportButton` | `grid` · `fileName` · `sheetName` |
+---
 
-## I. V2 메뉴 — URL 환각 금지
+## H. 생성 모드별 추가 제약
 
-**핵심**: V2 distinction = **메뉴 코드 한정**. zAxios URL · Controller · Service · Entity · Table · SP 는 단일 자원 공유.
-
-| 표면 | V-접미어? |
-|---|---|
-| `MENU_CD` (`UI_<DOMAIN>_<NAME>_V2`) | ✅ |
-| `MENU_FILE_PATH` · JSX 파일명 | 별도 화면일 때만 |
-| **zAxios URL** | ❌ 항상 Controller `@RequestMapping` 과 일치 |
-| 백엔드 (Controller/Service/Entity/Table/SP) | 일반적으로 공유 |
-
-| # | ❌ | ✅ | 검증 |
+| # | 모드 | ❌ 잘못된 패턴 | ✅ 올바른 처리 |
 |---|---|---|---|
-| CG-I1 | MENU_CD `_V2` 라서 URL `-v2` 환각 | URL = Controller `@RequestMapping` 1:1 일치 | hook H |
-| CG-I2 | NEW_FROM_COPY 로 V2 만들 때 backend 전부 fork | 동일 backend 재사용 기본 |  |
-| CG-I3 | URL 의 v-접미어 발견하고 Controller 를 그쪽에 맞춤 | 백엔드가 진실 — URL 의 v-접미어 제거 | LLM |
+| H1 | NEW_FROM_COPY | 기존 Entity/Repository 두고 새 `z_*` 테이블 DDL 생성 | 원본 Entity 재사용 — 새 DDL 생성 금지 |
+| H2 | NEW_FROM_COPY | 백엔드 Controller/Service 전부 fork (별도 파일 생성) | 동일 backend 재사용 기본 — `TabMenuList.js` + i18n 만 추가 |
+| H3 | NEW_FROM_DESIGN | 설계서 필드를 새 `z_*` 테이블로 매핑 | 기존 테이블 컬럼 범위 내에서 DTO 설계 (40 §10 컬럼 검증 절차) |
+| H4 | 모든 모드 | `SP_UI_*.sql` 산출 시도 | 해당 없음 — PostgreSQL + JPA 환경 (41b §5.3) |
+| H5 | 모든 모드 | wingui 엔진 service XML (`*_service.xml`) 산출 | 해당 없음 |
+| H6 | EXISTING_MODIFY | `DROP TABLE` / 컬럼 이름 변경 DDL 산출 | `ALTER TABLE ... ADD COLUMN` 만 허용 (Liquibase changelog) |
 
-## J. Standalone preview Service / SP routing
+---
 
-| # | ❌ | ✅ |
-|---|---|---|
-| CG-J1 | Service 가 `private final JdbcTemplate jdbcTemplate;` (qualifier 없음) | `JavaArtifactRewriter` 가 `@Qualifier("targetJdbcTemplate")` 자동 주입 |
-| CG-J2 | Lombok `@RequiredArgsConstructor` 가 `@Qualifier` 미복사 | `lombok.config` 에 `copyableAnnotations += @Qualifier` |
-| CG-J3 | `ResponseMessage.builder()` 호출 (Lombok @Builder 없음) | `ok()` / `error(msg)` / `ofSuccess()` / `ofFail(msg)` |
-| CG-J4 | `JdbcTemplate` qualifier 없이 인젝션 | `@Qualifier("composerJdbcTemplate")` (메타) 또는 `@Qualifier("targetJdbcTemplate")` (운영) |
-| CG-J5 | Grid 버튼이 `getAllStateRows()` 전 commit 없음 | shim 이 `g.commit(true)` 자동 |
-| CG-J6 | AI prefill `source:"SP"` 인데 spName/crudSp 빈 string | `mergeAiSpecIntoBaseSpec` 사후 정합화 |
-| CG-J7 | NEW_FROM_COPY / EXISTING_MODIFY 각자 local SourceBundlePreview | `SourceBundleSection.jsx` 공용 |
-| CG-J8 | Repository finder camelCase→snake 단순 변환 | Entity `@Column(name)` 매핑 우선 |
-| CG-J9 | entities[0].name = `User.java` (확장자 포함) | `className` 필드 별도 (확장자 제거) |
-| CG-J10 | entities[0] 가 `UserDeserializer.java` 같은 비-Entity | `looksLikeNonEntity()` 자동 제외 |
+## 빠른 자기 검증 (출력 직전)
 
-## K. Target DB 접근
+산출물에 아래 패턴이 있으면 즉시 수정:
 
-| # | ❌ | ✅ |
-|---|---|---|
-| CG-K1 | 트리 응답 `source:"local"` 인데 매핑 부족 보고 | Target `db_url` 미설정/연결 실패 — TargetSystemSelector 확인 |
-| CG-K2 | UI 입력값이 docker down/up 후 사라진 줄 오해 | composer-db 에 영구 저장. 다중 환경은 `.env` 의 `TARGET_<CD>_DB_*` |
-| CG-K3 | Target 변경했는데 결과 안 바뀜 | `activeTargetCd` prop 명시 전달 |
-| CG-K4 | jsonb 컬럼 때문에 `targetRepo.save(t)` 실패 | `composerJdbcTemplate.update(...)` 직접 SQL |
-| CG-K5 | TargetMenuController 가 `targetJdbcTemplate` 만 (활성 Target 무시) | `pickJdbc(targetCd)` 헬퍼 — live + 폴백 |
+```
+❌ 아래 중 하나라도 있으면 PlanNEL 이 아닌 wingui 산출물이다
+---------------------------------------------------------
+import ... from '@wingui/common/imports'
+import ... from '@zionex/wingui-core'
+useViewStore / useContentStore / setViewInfo
+transLangKey(
+zAxios.get / zAxios.post
+callService(
+multipart/form-data + 'changes'
+com.zionex.t3series.web
+jakarta.persistence / jakarta.validation
+@Qualifier("targetJdbcTemplate")
+TB_AD_MENU / TB_AD_LANG_PACK / TB_UT_* / TB_AD_*
+SP_UI_ / EXEC SP_UI_
+MODIFY_BY / MODIFY_DTTM / CREATE_BY / CREATE_DTTM
+createAsyncThunk (API 결과 저장 목적)
+```
 
-## L. Java 클래스 네이밍 충돌
-
-**도출식** (`41b §5.6.0`):
-- `<Feature>` = MENU_FILE_PATH 마지막 segment **그대로** (글자수까지 1:1)
-- `<feature_dir>` = `LOWER(<Feature>)` — 단일 lowercase 토큰
-- 4종: `<Feature>.java` / `<Feature>Controller.java` / `<Feature>Service.java` / `<Feature>Repository.java` (선택)
-
-| # | ❌ | ✅ | 검증 |
-|---|---|---|---|
-| CG-L1 | MENU_FILE_PATH `/util/UserInfoMgmt` 인데 Java `UserInfo*.java` 축약 | `UserInfoMgmt*.java` 1:1 | hook H |
-| CG-L2 | 디렉토리 `userinfomgmt` 안에 `UserInfo*.java` | 디렉토리 = `userinfomgmt`, 클래스 = `UserInfoMgmt*` | hook H |
-| CG-L3 | 디렉토리에 하이픈/언더스코어 | 단일 lowercase concat | hook H |
-| CG-L4 | `@Service("xxx")` 명시 빈 이름 | Spring 기본 (첫 글자 lowercase) | hook warn |
-| CG-L5 | JSX export ≠ Java 클래스명 | export 명 = Java `<Feature>` = MENU_FILE_PATH 마지막 셋 다 동일 | LLM |
-| CG-L6 | `BaseEntity`/`ResponseMessage` 신규 생성 | 공용은 import 만 | LLM |
-
-## M. 사용자 선택 데이터 소스 대체 금지
-
-| # | ❌ | ✅ | 검증 |
-|---|---|---|---|
-| CG-M1 | `=== 데이터 소스 ===` 의 테이블을 이름 비슷한 다른 것으로 대체 | 블록에 적힌 그 테이블/SP **만** 사용 | INVARIANTS §②-2 |
-| CG-M2 | 운영 코어 테이블에 `CREATE TABLE` 생성 | 기존 테이블 매핑 — CREATE 금지 | hook H + `tableCollisionBlocked` |
-| CG-M3 | 테이블 검증을 targetCd 없이 → composer-db 만 → "미존재" 오판 | 세션 `targetCd` 로 운영 DB 질의 | backend |
-| CG-M4 | 화면 도메인 ≠ 테이블 도메인이라며 교체 | 도메인 불일치 정상 — 사용자 지정 우선 | LLM |
+모두 없어야 PlanNEL 산출물이다.

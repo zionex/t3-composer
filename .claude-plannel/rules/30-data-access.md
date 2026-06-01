@@ -258,8 +258,9 @@ public class WorkcenterController {
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class CompanyController {
-    private final CompanyService companyService;
     private final CompanyRepository companyRepository;
+    private final CompanyQueryRepository companyQueryRepository;
+    private final CompanyService companyService;
     private final TenantCurrencyService tenantCurrencyService;
 
     @GetMapping("/company")
@@ -335,7 +336,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import t3series.saas.config.hibernate.typehandler.BooleanToYNConverter;
-import t3series.saas.multi_tenancy.model.BaseEntity;
+import t3series.saas.model.BaseEntity;
 
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = {"customerHrchy"})
@@ -375,7 +376,7 @@ public class Customer extends BaseEntity implements DtoConvertable<CustomerDto> 
 
 ### 4.2 BaseEntity — Audit + Optimistic Locking
 
-`t3series.saas.multi_tenancy.model.BaseEntity`:
+`t3series.saas.model.BaseEntity`:
 
 ```java
 @Data
@@ -782,7 +783,189 @@ String whereClause = searchDto.getFilterBuilder(MyColumnEnum.values());
 
 ---
 
-## 10. Anti-patterns
+## 10. Frontend 컴포넌트 데이터 흐름
+
+saas-plannel 은 **`createAsyncThunk` 를 사용하지 않는다**. 모든 API 호출은 컴포넌트(또는 커스텀 훅) 안에서 service 메서드를 직접 호출하고 `.then()/.catch()` 로 처리한다. Redux 는 **API 결과 저장에 사용되지 않으며**, 뷰 필터/페이지네이션 같은 UI 상태 영속화에만 쓰인다.
+
+### 10.1 데이터 fetching 표준 패턴
+
+```js
+// src/pages/<domain>/<Feature>.js
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import customerService from "@plannel/services/data/customer-service";
+import { updateViewState } from "@plannel/redux/modules/viewStates";
+import reduxUtil from "@plannel/utils/redux-util";
+
+const VIEW_NAME = "CustomerPage";
+
+const CustomerPage = () => {
+  // 1. API 결과는 로컬 state 로 관리
+  const [customers, setCustomers] = useState([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // 2. 뷰 상태 (필터, 페이지 번호 등) 는 Redux 에서 복원
+  const dispatch = useDispatch();
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = reduxUtil.getViewState(VIEW_NAME);
+    return saved?.currentPage ?? 1;
+  });
+  const [filters, setFilters] = useState(() => {
+    const saved = reduxUtil.getViewState(VIEW_NAME);
+    return saved?.filters ?? {};
+  });
+
+  // 3. 직접 service 호출 + .then() 처리
+  const fetchCustomers = () => {
+    setLoading(true);
+    customerService
+      .getAll({
+        searchFilters: filters,
+        page: currentPage - 1,           // frontend 1-base → backend 0-base
+        pageSize: 50,
+        pagination: true,
+        orderByColumn: "customerCd",
+        sortType: "asc",
+      })
+      .then((res) => {
+        setCustomers(res.data?.results ?? []);
+        setTotalElements(res.data?.totalElements ?? 0);
+      })
+      .catch((e) => {
+        console.error(e);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // 4. 뷰 상태 Redux 에 저장 (탭 이동 후 돌아와도 필터 유지)
+  const saveViewState = (patch) => {
+    dispatch(updateViewState({ viewName: VIEW_NAME, ...patch }));
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [currentPage, filters]);  // 필터·페이지 변경 시 재조회
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    saveViewState({ currentPage: page });
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+    saveViewState({ filters: newFilters, currentPage: 1 });
+  };
+
+  // ... JSX
+};
+```
+
+### 10.2 저장 패턴 (그리드 변경 → POST /save)
+
+```js
+const handleSave = (changedRows) => {
+  customerService
+    .upsert(changedRows)          // POST /api/customers/save, body: List<CustomerDto>
+    .then(() => {
+      fetchCustomers();           // 저장 후 목록 재조회
+    })
+    .catch((e) => console.error(e));
+};
+
+const handleDelete = (selectedIds) => {
+  const ids = selectedIds.join(",");
+  customerService
+    .remove(ids)                  // DELETE /api/customers/{ids}
+    .then(() => fetchCustomers())
+    .catch((e) => console.error(e));
+};
+```
+
+---
+
+## 11. Redux Toolkit — UI 상태 영속화
+
+Redux 는 **API 응답 캐싱이나 async 상태 관리에 쓰이지 않는다** (createAsyncThunk 미사용). 역할은 다음 셋:
+
+1. **viewStates** — 각 페이지의 필터·정렬·페이지 번호·탭 상태를 메모리에 저장, 탭 전환 후 복귀 시 복원
+2. **historyState** — 페이지 이동 이력
+3. **tabState** (`redux-persist`) — 열린 탭 목록 영속화 (브라우저 새로고침 후에도 복원)
+
+### 11.1 Redux 구조
+
+```
+src/redux/
+├── modules/
+│   ├── store.js          — combineReducers + BigInt serializability middleware
+│   ├── viewStates.js     — createSlice (viewInfos 배열)
+│   ├── historyState.js   — createSlice (이력)
+│   └── tabState.js       — createSlice + redux-persist
+└── index.js
+```
+
+### 11.2 viewStates slice
+
+```js
+// src/redux/modules/viewStates.js
+import { createSlice } from "@reduxjs/toolkit";
+
+export const viewState = createSlice({
+  name: "viewStates",
+  initialState: { viewInfos: [] },
+  reducers: {
+    updateViewState: (state, action) => {
+      const existing = state.viewInfos.find(v => v.viewName === action.payload.viewName);
+      if (existing) {
+        Object.assign(existing, action.payload);
+      } else {
+        state.viewInfos.push(action.payload);
+      }
+    },
+    removeViewState: (state, action) => {
+      state.viewInfos = state.viewInfos.filter(v => v.viewName !== action.payload);
+    },
+    initViewState: (state) => { state.viewInfos = []; }
+  }
+});
+
+export const { updateViewState, removeViewState, initViewState } = viewState.actions;
+export default viewState.reducer;
+```
+
+### 11.3 reduxUtil helpers
+
+```js
+// src/utils/redux-util.js — store 에서 직접 읽기 (hook 없이 호출 가능)
+import store from "@plannel/redux/modules/store";
+import JSONbig from "json-bigint";
+
+export const getViewState = (viewName) => {
+  const state = store.getState();
+  const found = state.viewStates.viewInfos?.find(v => v.viewName === viewName);
+  if (!found) return null;
+  // BigInt 직렬화 복원
+  return JSONbig({ useNativeBigInt: true }).parse(JSONbig.stringify(found));
+};
+
+// dispatch 래퍼 — 화면 컴포넌트에서 임포트하여 바로 사용
+export { updateViewState, removeViewState, initViewState } from "@plannel/redux/modules/viewStates";
+export { updateHistoryState } from "@plannel/redux/modules/historyState";
+```
+
+### 11.4 사용 규칙
+
+| 케이스 | 방법 |
+|---|---|
+| 현재 뷰의 필터/페이지 저장 | `dispatch(updateViewState({ viewName: VIEW_NAME, filters, currentPage }))` |
+| 저장된 뷰 상태 복원 | `reduxUtil.getViewState(VIEW_NAME)` — `useState` 초기값에 사용 |
+| API 결과 저장 | ❌ Redux 사용 금지 → `useState` 로 관리 |
+| 비동기 액션 | ❌ `createAsyncThunk` 미사용 → 직접 `.then()/.catch()` |
+
+---
+
+## 12. Anti-patterns
 
 | ❌ | ✅ |
 |---|---|
@@ -802,3 +985,27 @@ String whereClause = searchDto.getFilterBuilder(MyColumnEnum.values());
 | 응답 `{data: [...]}` (자유 형식) | 표준 `{results, totalPages, totalElements, page, pageSize}` Map |
 | `@Transactional` 을 Controller 에 부착 | Service 레벨에만 |
 | QueryDSL Q클래스 import 경로 무시 | `import static t3series.saas.model.QCustomer.customer;` 표준 |
+
+---
+
+## 13. 체크리스트
+
+### Java Controller 작성 시
+- [ ] 패키지 `t3series.saas.<도메인>` 아래에 작성 — `com.zionex.t3series.web.*` 사용 안 함
+- [ ] `@RestController` + `@RequestMapping("/api")` 클래스 레벨 + 메서드별 `@PostMapping("/<plural-resource>/...")`
+- [ ] `@PreAuthorize` 로 역할 가드 — `hasAnyRole('APP_DP','APP_IP','APP_RP','APP_MP')` 중 해당 모듈만 (§3.3)
+- [ ] 리스트 조회는 `POST /api/<resource>` + `@RequestBody(required=false) SearchDto` — GET 사용 안 함 (§1.2)
+- [ ] 응답은 `PaginationUtil.getPageResponse(...)` 또는 `getAllPageResponse(...)` — raw `List<>` 직접 반환 금지 (§1.4)
+- [ ] 저장은 `@RequestBody List<FeatureDto>` JSON — `HttpServletRequest.getParameter("changes")` (wingui multipart 패턴) 사용 안 함
+- [ ] 낙관적 잠금 — `BaseEntity.verNum` (`@Version`) 필드 DTO 에 포함, `OptimisticLockException` 발생 시 409 처리 (§4.2)
+- [ ] `javax.persistence.*` 사용 (★ `jakarta.*` 아님 — Spring Boot 2.4) (§4.1)
+- [ ] Service 에만 `@Transactional` 부착 — Controller 에는 금지 (§6.1)
+
+### Frontend axios / Service 작성 시
+- [ ] 서비스 파일 위치 `src/services/<area>/<feature>-service.js` — 화면 컴포넌트에서 axios 직접 호출 금지 (§1)
+- [ ] 도메인별 axios instance — `restApi` / `restApiDP` / `restApiIP` / `restApiRP` / `restApiMP` 중 적절한 것 사용 (§2)
+- [ ] 페이지네이션 — frontend 1-base → backend 0-base 변환: `page: currentPage - 1` (§10.1)
+- [ ] 결과 null-safe — `res.data?.results ?? []` 패턴 (§10.1)
+- [ ] API 결과를 `useState` 로 받음 — Redux store 에 저장하지 않음, `createAsyncThunk` 미사용 (§11.4)
+- [ ] UI 상태 (필터/탭/페이지) 만 Redux `viewStates` slice 에 persist (§11)
+- [ ] 에러 처리 — `.catch(...)` + 사용자 알림. raw `fetch()` 사용 안 함

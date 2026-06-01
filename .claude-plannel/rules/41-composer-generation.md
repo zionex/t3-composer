@@ -113,7 +113,21 @@ lv3MenuList["SUBMENU_IP_SETTINGS"] = [
 
 ## §3. 산출물 세트 — Composer 의무 생성 목록
 
-### §3.1 Frontend (saas-web/)
+### §3.0 경로 매핑 — `.env` 변수 ↔ 산출물 경로
+
+Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉토리이고, 컨테이너 내부에서는 마운트된 경로로 보인다. 본 rule 의 `saas-application/...` · `saas-web/...` 접두어는 다음 매핑을 가진다:
+
+| Rule 표기 | `.env` 변수 | host 경로 (`.env` 값) | composer-backend 컨테이너 마운트 |
+|---|---|---|---|
+| `saas-application/...` | `TARGET_PLANNEL_BACKEND_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application` | `/workspace/targets/PLANNEL/backend/...` |
+| `saas-web/...` | `TARGET_PLANNEL_WINGUI_PATH` ※ | 예: `/Users/<user>/work/projects/saas-plannel/saas-web` | `/workspace/targets/PLANNEL/wingui/...` |
+| (DDL/migration) | `TARGET_PLANNEL_DATABASE_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application/src/main/resources/db/changelog` (혹은 별도) | `/workspace/targets/PLANNEL/database/...` |
+
+※ `TARGET_PLANNEL_WINGUI_PATH` 의 이름은 T3SERIES wingui 컨벤션의 잔재 — PlanNEL 에서는 React 프런트엔드 (`saas-web/`) 를 가리킨다.
+
+산출물 생성 시 LLM 은 가독성을 위해 `saas-application/...` · `saas-web/...` 접두어를 그대로 사용한다. Composer 의 apply 단계가 위 매핑으로 자동 변환해 실제 파일을 쓴다.
+
+### §3.1 Frontend (saas-web/ = TARGET_PLANNEL_WINGUI_PATH — §3.0 참조)
 
 | 파일 | 필수 | 설명 |
 |---|---|---|
@@ -191,7 +205,7 @@ class Feature extends Component {
 export default withTranslation()(Feature);
 ```
 
-### §3.2 Backend (saas-application/)
+### §3.2 Backend (saas-application/ = TARGET_PLANNEL_BACKEND_PATH — §3.0 참조)
 
 > 위 표 경로 = `saas-application/src/main/java/<package as path>/<File>.java` 형식으로 표기.
 

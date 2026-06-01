@@ -268,6 +268,8 @@ import java.util.*;
 
 ### §5.5.1 도출식
 
+> ★ 본 rule 의 `saas-application/...` = `TARGET_PLANNEL_BACKEND_PATH` (`.env`). 컨테이너 내부에서는 `/workspace/targets/PLANNEL/backend/...` 로 마운트. 자세히는 41 §3.0.
+
 ```
 MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
                                             └─ <Feature> = Customer

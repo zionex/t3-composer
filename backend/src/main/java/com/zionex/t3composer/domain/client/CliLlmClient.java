@@ -80,14 +80,30 @@ public class CliLlmClient implements LlmClient {
                 return;
             }
 
-            List<String> cmd = List.of(
-                    props.getBinary(),
-                    "-p",
-                    "--verbose",
-                    "--input-format",  "stream-json",
-                    "--output-format", "stream-json",
-                    "--model",         request.getModel() == null ? "" : request.getModel()
-            );
+            // claude CLI 호출 명령 구성.
+            //  - -p / --verbose: print 모드 + verbose (stream-json 출력에 필수)
+            //  - --input-format=stream-json: stdin 으로 대화 메시지 라인 단위 전달
+            //  - --output-format=stream-json: stdout 으로 SSE-호환 이벤트 받기
+            //  - --include-partial-messages: 글자 단위 증분 streaming (ChatPanel 타이핑 UX)
+            //  - --system-prompt: ★ 시스템 프롬프트는 CLI 플래그로만 인식됨 (stdin 의 system 라인은 무시)
+            //  - --exclude-dynamic-system-prompt-sections: 컨테이너 cwd/env/git 메타 자동 주입 차단
+            //                                              (Composer 의 정제된 prompt 만 사용)
+            //  - --model: API 모드와 동일한 model id 그대로 전달
+            String sysText = extractSystemText(request.getSystem());
+            java.util.ArrayList<String> cmd = new java.util.ArrayList<>();
+            cmd.add(props.getBinary());
+            cmd.add("-p");
+            cmd.add("--verbose");
+            cmd.add("--input-format");  cmd.add("stream-json");
+            cmd.add("--output-format"); cmd.add("stream-json");
+            cmd.add("--include-partial-messages");
+            cmd.add("--exclude-dynamic-system-prompt-sections");
+            if (sysText != null && !sysText.isEmpty()) {
+                cmd.add("--system-prompt");
+                cmd.add(sysText);
+            }
+            cmd.add("--model");
+            cmd.add(request.getModel() == null ? "" : request.getModel());
 
             final LlmCliProcess proc;
             try {
@@ -150,19 +166,34 @@ public class CliLlmClient implements LlmClient {
                 .map(MessagesResponseAssembler::build);
     }
 
-    private void writeRequest(OutputStream stdin, MessagesRequest request) {
-        try (OutputStream os = stdin) {
-            if (request.getSystem() != null) {
-                os.write(mapper.writeValueAsBytes(java.util.Map.of(
-                        "type", "system",
-                        "content", request.getSystem()
-                )));
-                os.write('\n');
+    /**
+     * 시스템 프롬프트 블록 리스트에서 텍스트만 추출해 단일 문자열로 합친다.
+     * cache_control 등 메타는 CLI 가 무시하므로 버린다 (CLI 가 자체 캐싱 관리).
+     */
+    static String extractSystemText(java.util.List<AnthropicModels.SystemBlock> system) {
+        if (system == null || system.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (AnthropicModels.SystemBlock b : system) {
+            if (b == null) continue;
+            String t = b.getText();
+            if (t != null && !t.isEmpty()) {
+                if (sb.length() > 0) sb.append("\n\n");
+                sb.append(t);
             }
+        }
+        return sb.toString();
+    }
+
+    private void writeRequest(OutputStream stdin, MessagesRequest request) {
+        // ★ system prompt 는 stdin 으로 전달하지 않는다 — CLI 의 --system-prompt 플래그로만
+        //   인식됨. 여기서는 대화 메시지 (user / assistant) 만 stream-json 라인으로 emit.
+        try (OutputStream os = stdin) {
             if (request.getMessages() != null) {
-                for (Object m : request.getMessages()) {
+                for (AnthropicModels.Message m : request.getMessages()) {
+                    if (m == null) continue;
+                    String role = m.getRole() == null ? "user" : m.getRole();
                     os.write(mapper.writeValueAsBytes(java.util.Map.of(
-                            "type", "user",
+                            "type",    role,    // "user" 또는 "assistant" — 이력 재현용
                             "message", m
                     )));
                     os.write('\n');

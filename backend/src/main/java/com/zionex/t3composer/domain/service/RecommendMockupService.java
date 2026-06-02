@@ -1,7 +1,7 @@
 package com.zionex.t3composer.domain.service;
 
 import com.zionex.t3composer.domain.dto.RecommendMockupRequest;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -32,7 +32,7 @@ public class RecommendMockupService {
     private static final int TOP_EXISTING = 4;
     private static final int TOP_SYNTHESIZED = 2; // used by parseSynthesized in next task
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper;
 
@@ -71,7 +71,7 @@ public class RecommendMockupService {
                     ))
                     .build();
 
-            MessagesResponse resp = anthropicClient.sendMessages(apiKey, mreq).block();
+            MessagesResponse resp = llmClient.sendMessages(apiKey, mreq).block();
             String rawText = extractText(resp);
             List<Map<String, Object>> items = parseItems(rawText, candidates);
 

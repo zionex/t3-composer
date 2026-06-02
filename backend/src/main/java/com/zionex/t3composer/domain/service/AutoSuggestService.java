@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AutoSuggestService {
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -130,7 +130,7 @@ public class AutoSuggestService {
                 .messages(List.of(Message.builder().role("user").content(userPrompt).build()))
                 .build();
 
-        MessagesResponse resp = anthropicClient.sendMessages(apiKey, req).block();
+        MessagesResponse resp = llmClient.sendMessages(apiKey, req).block();
         if (resp == null) {
             log.warn("AutoSuggest: empty response");
             return defaultEmptyResult();

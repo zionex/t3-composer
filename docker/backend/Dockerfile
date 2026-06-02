@@ -35,4 +35,7 @@ ENV JAVA_OPTS="-Xms256m -Xmx1024m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seo
 
 # spring-boot:run 으로 띄워 DevTools 가 target/classes 변경 시 자동 restart.
 # host 마운트로 src 가 바뀌면 외부 (또는 ArtifactApplyService) 가 mvn compile 트리거 → 자동 재기동.
-ENTRYPOINT ["sh", "-c", "mvn -B -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments=\"$JAVA_OPTS\""]
+COPY docker/backend/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

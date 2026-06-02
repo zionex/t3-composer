@@ -83,6 +83,7 @@ public class CliLlmClient implements LlmClient {
             List<String> cmd = List.of(
                     props.getBinary(),
                     "-p",
+                    "--verbose",
                     "--input-format",  "stream-json",
                     "--output-format", "stream-json",
                     "--model",         request.getModel() == null ? "" : request.getModel()

@@ -374,31 +374,67 @@ function T3Composer() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // 좌측 로고 클릭으로 발화되는 home reset 신호 — mode !== null 이면 confirm, 아니면 no-op
-  useEffect(() => {
-    const handler = () => {
-      if (mode === null) return;        // 이미 모드 선택 화면 — 추가 동작 불필요
-      setConfirmHomeOpen(true);
-    };
-    window.addEventListener('t3composer:resetToHome', handler);
-    return () => window.removeEventListener('t3composer:resetToHome', handler);
-  }, [mode]);
-
-  const handleHomeConfirm = useCallback(() => {
-    setConfirmHomeOpen(false);
-    setMode(null);
-  }, []);
-
-  const handleHomeCancel = useCallback(() => {
-    setConfirmHomeOpen(false);
-  }, []);
-
-  // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
+  // ── resume-related state — 아래 home reset useEffect / handleHomeConfirm 의 deps 가
+  //    eagerly 평가되므로 그 useEffect/useCallback 보다 먼저 선언돼야 함 (TDZ 회피).
   const location = useLocation();
   const history  = useHistory();
   const [resumeSession, setResumeSession] = useState(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeError, setResumeError]     = useState(null);
+
+  // 좌측 로고 클릭으로 발화되는 home reset 신호 — workspace 진입 상태면 confirm, 아니면 no-op.
+  // workspace 는 두 경로로 진입 가능:
+  //   ① mode-driven : mode !== null (ModeNewStep / ModeNewGeneral / ... 진입)
+  //   ② resume      : History [이어하기] → resumeSession 세팅 (mode 는 null 유지)
+  // 두 경로 모두 home 복귀 대상 — mode 만 보면 ②에서 silent no-op (홈 안감 사고).
+  useEffect(() => {
+    const handler = () => {
+      if (mode === null && !resumeSession) return;   // 이미 mode 선택 화면 — 추가 동작 불필요
+      setConfirmHomeOpen(true);
+    };
+    window.addEventListener('t3composer:resetToHome', handler);
+    return () => window.removeEventListener('t3composer:resetToHome', handler);
+  }, [mode, resumeSession]);
+
+  const handleHomeConfirm = useCallback(() => {
+    setConfirmHomeOpen(false);
+    setMode(null);
+    // resume 경로도 함께 해제 — 그렇지 않으면 line 534 (if (resumeSession)) 분기가
+    // 우선해 워크스페이스가 계속 렌더됨. URL state 도 청소해 다시 들어와도 자동
+    // resume 되지 않게 함 (backFromResume 와 동일 처리).
+    setResumeSession(null);
+    setResumeError(null);
+    if (history && location) {
+      history.replace({ pathname: location.pathname, search: location.search, state: {} });
+    }
+  }, [history, location]);
+
+  const handleHomeCancel = useCallback(() => {
+    setConfirmHomeOpen(false);
+  }, []);
+
+  // Home reset confirm dialog — loading/resume/error/main 어느 분기에서든 mount 되어야 함.
+  // (이전 사고: main 분기 안에만 두어, resume 진입 상태(line 546 early return)에서는
+  //  setConfirmHomeOpen(true) 가 호출돼도 다이얼로그가 트리에 존재하지 않아 화면에 안 떴음.)
+  const confirmHomeDialog = (
+    <Dialog open={confirmHomeOpen} onClose={handleHomeCancel} maxWidth="xs" fullWidth>
+      <DialogTitle>모드 선택 화면으로 돌아가기</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          현재 입력한 내용은 사라집니다. (세션은 History 에서 이어할 수 있습니다.)
+          <br />
+          모드 선택 화면으로 돌아가시겠습니까?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleHomeCancel}>취소</Button>
+        <Button onClick={handleHomeConfirm} variant="contained" autoFocus>돌아가기</Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
+  // (location/history/resumeSession state 선언은 위로 이동 — home reset useEffect deps TDZ 회피)
 
   const checkApiKey = async () => {
     try {
@@ -533,22 +569,25 @@ function T3Composer() {
   // 히스토리에서 "이어하기" 로 들어온 경우 — 모드 선택 스킵하고 Workspace 직접 노출
   if (resumeSession) {
     return (
-      <ContentInner>
-        <WorkArea>
-          <ComposerWorkspace
-            session={resumeSession}
-            initialPrompt={null}
-            extraHeader={
-              <Button size="small"
-                      startIcon={<ArrowBackIcon fontSize="small" />}
-                      onClick={backFromResume}
-                      sx={{ mr: 1 }}>
-                종료
-              </Button>
-            }
-          />
-        </WorkArea>
-      </ContentInner>
+      <>
+        <ContentInner>
+          <WorkArea>
+            <ComposerWorkspace
+              session={resumeSession}
+              initialPrompt={null}
+              extraHeader={
+                <Button size="small"
+                        startIcon={<ArrowBackIcon fontSize="small" />}
+                        onClick={backFromResume}
+                        sx={{ mr: 1 }}>
+                  종료
+                </Button>
+              }
+            />
+          </WorkArea>
+        </ContentInner>
+        {confirmHomeDialog}
+      </>
     );
   }
 
@@ -598,20 +637,7 @@ function T3Composer() {
         onSaved={handleApiKeySaved}
       />
 
-      <Dialog open={confirmHomeOpen} onClose={handleHomeCancel} maxWidth="xs" fullWidth>
-        <DialogTitle>모드 선택 화면으로 돌아가기</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            현재 입력한 내용은 사라집니다. (세션은 History 에서 이어할 수 있습니다.)
-            <br />
-            모드 선택 화면으로 돌아가시겠습니까?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleHomeCancel}>취소</Button>
-          <Button onClick={handleHomeConfirm} variant="contained" autoFocus>돌아가기</Button>
-        </DialogActions>
-      </Dialog>
+      {confirmHomeDialog}
     </ContentInner>
   );
 }

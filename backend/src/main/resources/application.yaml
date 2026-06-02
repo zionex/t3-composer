@@ -125,3 +125,10 @@ logging:
     com.zionex.t3composer: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
+
+llm:
+  backend: ${LLM_BACKEND:api}
+  cli:
+    binary: ${LLM_CLI_BINARY:/usr/local/bin/claude}
+    timeout-minutes: ${LLM_CLI_TIMEOUT_MIN:40}
+    max-concurrent: ${LLM_CLI_MAX_CONCURRENT:4}

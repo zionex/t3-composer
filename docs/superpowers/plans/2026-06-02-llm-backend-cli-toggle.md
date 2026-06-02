@@ -2254,6 +2254,38 @@ This task does NOT involve writing code — it's a checklist to run against a re
 
   After running through all 7 checks, paste the checklist (with completed marks) into the PR description for Phase 4. No commit needed for this task.
 
+#### Task 15 — Verification Log (2026-06-02)
+
+**Automated verifications** (executed during subagent-driven implementation):
+
+- **API mode boot (Test 1)** — PASS
+  - `ApiLlmClient initialized (baseUrl=https://api.anthropic.com, apiVersion=2023-06-01)`
+  - `Started T3ComposerApplication in 75.176 seconds`
+  - `LLM backend = api (HTTP API mode)`
+
+- **CLI mode boot (Test 2)** — PASS
+  - `[entrypoint] claude CLI ready (2.1.159 (Claude Code))`
+  - `[entrypoint] /root/.claude 마운트 확인 (호스트 ~/.claude 재사용 중)`
+  - `LLM backend = cli (binary=/usr/bin/claude, ~/.claude mounted)`
+  - No `IllegalStateException`, no `ApiLlmClient initialized`
+
+- **Concurrency property binds (Test 6 — automated portion)** — PASS
+  - `LLM_CLI_MAX_CONCURRENT=1` env override produces clean CLI-mode startup (Semaphore(1) created without throwing)
+
+- **`~/.claude` mount is read-write (Test 7)** — PASS
+  - `touch /root/.claude/.t3composer-mount-test` succeeds and is visible from host (write-through confirmed)
+  - delete from container propagates back to host
+  - Note: `.credentials.json` lives in macOS keychain on this host, not in `~/.claude/`, so its presence/timestamp is not a meaningful check on darwin; the RW write-through itself confirms refresh tokens would persist if they landed there.
+
+- **All unit tests pass** — PASS (29 tests run, 0 failures, 0 errors, 1 skipped — `LlmCliIntegrationTest` is env-gated)
+
+**Manual verifications still required by the user** (require browser interaction with ComposerWorkspace):
+
+- [ ] **Test 3** — Open ComposerWorkspace with `LLM_BACKEND=cli`, start a natural-language screen creation, verify glasses-by-glasses streaming in ChatPanel.
+- [ ] **Test 4** — Attach an image mockup in NEW_GENERAL mode, verify the LLM responds to the image (no "I cannot see an image").
+- [ ] **Test 5** — On the host: `claude /logout`, then trigger a request from ComposerWorkspace, verify 401 with message containing "구독 로그인 필요". Re-login on host afterwards.
+- [ ] **Test 6 (UI portion)** — Set `LLM_CLI_MAX_CONCURRENT=1`, restart, trigger two simultaneous requests, verify second returns 429.
+
 ---
 
 ### Task 16: Update CLAUDE.md with §1.7 LLM Backend section

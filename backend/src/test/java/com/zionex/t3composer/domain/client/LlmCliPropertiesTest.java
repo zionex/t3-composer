@@ -14,7 +14,7 @@ class LlmCliPropertiesTest {
     @Test
     void bindsAllFieldsFromMap() {
         Map<String, Object> source = Map.of(
-                "llm.cli.binary",          "/usr/local/bin/claude",
+                "llm.cli.binary",          "/usr/bin/claude",
                 "llm.cli.timeout-minutes", "30",
                 "llm.cli.max-concurrent",  "8"
         );
@@ -22,7 +22,7 @@ class LlmCliPropertiesTest {
 
         LlmCliProperties bound = new Binder(props).bind("llm.cli", LlmCliProperties.class).get();
 
-        assertThat(bound.getBinary()).isEqualTo("/usr/local/bin/claude");
+        assertThat(bound.getBinary()).isEqualTo("/usr/bin/claude");
         assertThat(bound.getTimeoutMinutes()).isEqualTo(30);
         assertThat(bound.getMaxConcurrent()).isEqualTo(8);
     }
@@ -34,7 +34,7 @@ class LlmCliPropertiesTest {
         LlmCliProperties bound = new Binder(empty).bind("llm.cli", LlmCliProperties.class)
                 .orElseGet(LlmCliProperties::new);
 
-        assertThat(bound.getBinary()).isEqualTo("/usr/local/bin/claude");
+        assertThat(bound.getBinary()).isEqualTo("/usr/bin/claude");
         assertThat(bound.getTimeoutMinutes()).isEqualTo(40);
         assertThat(bound.getMaxConcurrent()).isEqualTo(4);
     }

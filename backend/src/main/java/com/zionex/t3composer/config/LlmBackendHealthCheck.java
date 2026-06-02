@@ -26,7 +26,7 @@ public class LlmBackendHealthCheck {
     @Value("${llm.backend:api}")
     private String backend;
 
-    @Value("${llm.cli.binary:/usr/local/bin/claude}")
+    @Value("${llm.cli.binary:/usr/bin/claude}")
     private String cliBinary;
 
     @EventListener(ApplicationReadyEvent.class)

@@ -13,8 +13,8 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "llm.cli")
 public class LlmCliProperties {
 
-    /** claude CLI 바이너리 절대 경로. 기본: {@code /usr/local/bin/claude} */
-    private String binary = "/usr/local/bin/claude";
+    /** claude CLI 바이너리 절대 경로. 기본: {@code /usr/bin/claude} */
+    private String binary = "/usr/bin/claude";
 
     /** subprocess 응답 timeout (분). 초과 시 destroyForcibly + 504. 기본 40. */
     private int timeoutMinutes = 40;

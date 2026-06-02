@@ -206,6 +206,12 @@ services:
       # 스냅샷 시크릿(.env 의 API키·비밀번호, db_password) 암호화 마스터키.
       # 비어있으면 .env 캡처/복원 시 명확한 오류. 분실 시 기존 스냅샷 시크릿 복호화 불가 — 별도 백업 필수.
       COMPOSER_SNAPSHOT_SECRET_KEY: ${COMPOSER_SNAPSHOT_SECRET_KEY:-}
+      # LLM 백엔드 토글 (2026-06-02 추가)
+      # api (기본): Anthropic HTTP API · cli: 호스트 ~/.claude 로그인 + claude CLI subprocess
+      LLM_BACKEND: ${LLM_BACKEND:-api}
+      LLM_CLI_BINARY: ${LLM_CLI_BINARY:-/usr/local/bin/claude}
+      LLM_CLI_TIMEOUT_MIN: ${LLM_CLI_TIMEOUT_MIN:-40}
+      LLM_CLI_MAX_CONCURRENT: ${LLM_CLI_MAX_CONCURRENT:-4}
     ports:
       - "${COMPOSER_BACKEND_PORT:-8090}:8090"
     volumes:
@@ -244,6 +250,10 @@ services:
       # 직접 read/write. repo 루트 통째 마운트 — .env 단일파일 마운트의 inode 끊김 회피.
       # 노출만 될 뿐 backend/·frontend/·staging/·.git/ 등은 excludeGlobs 가 절대 touch 안 함.
       - ./:/workspace/repo:rw
+      # LLM CLI 모드용 — 호스트 ~/.claude 로그인 정보 (OAuth 토큰) 컨테이너에 노출.
+      # rw 인 이유: claude CLI 가 토큰 refresh 결과를 호스트에 다시 써 동기화.
+      # 호스트에 ~/.claude 가 없으면 docker 가 빈 디렉토리 자동 생성 — LLM_BACKEND=api 시 무해.
+      - ${HOME}/.claude:/root/.claude:rw
     networks:
       - composer-net
     healthcheck:

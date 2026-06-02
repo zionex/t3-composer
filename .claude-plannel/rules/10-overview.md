@@ -304,7 +304,7 @@ $$ LANGUAGE plpgsql;
 - 파일: `saas-web/src/assets/data/l10n/translation.<lang>.js`
 - 섹션: `menu` · `msg` · `problem` · `notification` · `plannelAgent` · `grid` (별도)
 - 사용: `t("KEY")` 또는 props `t`
-- AG-Grid 컬럼 `headerName` 에 i18n key 그대로 넣으면 GridUtils.gridValueL10N 이 번역
+- AG-Grid 컬럼 `headerName` 에 i18n key 그대로 넣으면 onGridReady 에서 `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` 호출 시 내부 `getColumnDefs(columnDefs)` 가 자동 번역
 
 ```javascript
 const { t } = useTranslation();

@@ -50,9 +50,12 @@
 | C13 | 그리드 컨테이너에 `minHeight: 0` 누락 — 0px collapse | `sx={{ flex: 1, minHeight: 0 }}` 부모 체인 전체 필수 | 21 §6 AP-15 |
 | C14 | `className` 없이 `<AgGridReact />` 렌더 | 부모 `Box` 에 `className="ag-theme-balham"` 필수 | 21 §6 AP-16 |
 | C15 | `export default withTranslation()` HOC 누락 | `export default withTranslation()(MyPage)` — t prop 미주입 시 번역 불가 | 21 §6 AP-21 |
-| C16 | `headerName` 에 한글 하드코딩 | i18n 키 + `GridUtils.gridValueL10N(t)` | 21 §6 AP-19 |
+| C16 | `headerName` 에 한글 하드코딩 | i18n 키 + `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` (헤더 i18n 자동 처리) | 21 §6 AP-19 |
 | C17 | 데이터 로드 후 `DataState.initialize` 생략 — 더티 상태 누적 | `.finally(() => DataState.initialize(gridRef.current?.api))` | 21 §6 AP-18 |
 | C18 | `window.location.href = '/some/path'` | `navigate(RouteList.SomePage.path)` | 21 §2 |
+| C19 | `GridUtils.gridValueL10N(t)(columnDefs)` 커링 호출 (존재하지 않는 API) | `setColumnDefs` 가 자동 변환 — 별도 호출 불필요 | 21 §6 AP-22 — 실행 시 `key.indexOf is not a function` TypeError |
+| C20 | `GridUtils.setColumnDefs(e.api, columnDefs)` 위치인자 | `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` 단일 객체 | 21 §6 AP-23 — 시그니처 `(params)` 단일 객체 |
+| C21 | `<AgGridReact rowData={...} {...defaultGridMemo} />` — `columnDefs` prop 누락 → 빈 그리드 | `<AgGridReact rowData={...} columnDefs={columnDefs} {...defaultGridMemo} />` | 21 §6 AP-24 — `DefaultGridSetting` 반환에 columnDefs 미포함 (실측 확인됨) |
 
 ---
 

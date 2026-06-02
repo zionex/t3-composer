@@ -565,7 +565,13 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                       lastAutoFixErrorRef.current = '';
                       handlePreview();
                     }}
-                    disabled={previewBusy || !!previewStage}
+                    // 진행 중(applying/compiling/restarting/autofixing) 일 때만 disable.
+                    // 종단 상태(failed/ready)는 enable — 사용자가 채팅으로 오류를 직접 수정한 뒤
+                    // 곧바로 재실행 가능해야 함. onClick 이 autoFixAttemptRef=0 리셋 + handlePreview
+                    // 가 setPreviewStage({phase:'applying'}) 로 stale 'failed' 를 덮어쓰므로 안전.
+                    disabled={previewBusy || (!!previewStage
+                              && previewStage.phase !== 'failed'
+                              && previewStage.phase !== 'ready')}
                     variant="contained"
                     color="info"
                     sx={{ mr: 0.5 }}

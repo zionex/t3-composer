@@ -85,11 +85,23 @@ public class CliLlmClient implements LlmClient {
             //  - --input-format=stream-json: stdin 으로 대화 메시지 라인 단위 전달
             //  - --output-format=stream-json: stdout 으로 SSE-호환 이벤트 받기
             //  - --include-partial-messages: 글자 단위 증분 streaming (ChatPanel 타이핑 UX)
-            //  - --system-prompt: ★ 시스템 프롬프트는 CLI 플래그로만 인식됨 (stdin 의 system 라인은 무시)
-            //  - --exclude-dynamic-system-prompt-sections: 컨테이너 cwd/env/git 메타 자동 주입 차단
-            //                                              (Composer 의 정제된 prompt 만 사용)
+            //  - --system-prompt-file: ★ 시스템 프롬프트는 CLI 플래그로만 인식됨.
+            //      --system-prompt <inline> 은 argv 단일 인자 128KB 한도(E2BIG) 때문에 사용 불가
+            //      → 임시 파일에 써서 path 만 전달. subprocess 종료 후 정리.
             //  - --model: API 모드와 동일한 model id 그대로 전달
             String sysText = extractSystemText(request.getSystem());
+            final java.nio.file.Path sysPromptFile;
+            try {
+                sysPromptFile = (sysText != null && !sysText.isEmpty())
+                        ? writeSystemPromptToTempFile(sysText)
+                        : null;
+            } catch (Exception fileErr) {
+                gate.release();
+                sink.error(new LlmCliException(503,
+                        "system prompt 임시 파일 쓰기 실패: " + fileErr.getMessage()));
+                return;
+            }
+
             java.util.ArrayList<String> cmd = new java.util.ArrayList<>();
             cmd.add(props.getBinary());
             cmd.add("-p");
@@ -97,10 +109,9 @@ public class CliLlmClient implements LlmClient {
             cmd.add("--input-format");  cmd.add("stream-json");
             cmd.add("--output-format"); cmd.add("stream-json");
             cmd.add("--include-partial-messages");
-            cmd.add("--exclude-dynamic-system-prompt-sections");
-            if (sysText != null && !sysText.isEmpty()) {
-                cmd.add("--system-prompt");
-                cmd.add(sysText);
+            if (sysPromptFile != null) {
+                cmd.add("--system-prompt-file");
+                cmd.add(sysPromptFile.toString());
             }
             cmd.add("--model");
             cmd.add(request.getModel() == null ? "" : request.getModel());
@@ -109,6 +120,7 @@ public class CliLlmClient implements LlmClient {
             try {
                 proc = invoker.start(cmd);
             } catch (Exception startErr) {
+                if (sysPromptFile != null) deleteQuietly(sysPromptFile);
                 gate.release();
                 sink.error(new LlmCliException(503, "CLI 시작 실패: " + startErr.getMessage()));
                 return;
@@ -148,6 +160,7 @@ public class CliLlmClient implements LlmClient {
                 } catch (Exception e) {
                     sink.error(new LlmCliException(503, "CLI stream read failed: " + e.getMessage()));
                 } finally {
+                    if (sysPromptFile != null) deleteQuietly(sysPromptFile);
                     gate.release();
                 }
             }, Schedulers.boundedElastic()::schedule);
@@ -164,6 +177,25 @@ public class CliLlmClient implements LlmClient {
                 .reduce(new MessagesResponseAssembler(),
                         (acc, sse) -> acc.feed(sse.event(), sse.data()))
                 .map(MessagesResponseAssembler::build);
+    }
+
+    /**
+     * 시스템 프롬프트 텍스트를 임시 파일에 UTF-8 로 쓰고 path 를 돌려준다.
+     * subprocess 종료 후 호출자가 {@link #deleteQuietly(java.nio.file.Path)} 로 정리.
+     */
+    static java.nio.file.Path writeSystemPromptToTempFile(String text) throws java.io.IOException {
+        java.nio.file.Path tmp = java.nio.file.Files.createTempFile("t3composer-sysprompt-", ".txt");
+        java.nio.file.Files.writeString(tmp, text, java.nio.charset.StandardCharsets.UTF_8);
+        return tmp;
+    }
+
+    /** 임시 파일 best-effort 삭제 (실패해도 throw 안 함). */
+    static void deleteQuietly(java.nio.file.Path path) {
+        try {
+            java.nio.file.Files.deleteIfExists(path);
+        } catch (Exception e) {
+            // intentionally ignored — temp 디렉토리 cleanup 은 OS 가 보장
+        }
     }
 
     /**

@@ -10,10 +10,19 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-         maven wget \
+         maven wget curl \
          fontconfig fonts-noto-core fonts-noto-cjk \
     && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
+
+# Node.js 18 + @anthropic-ai/claude-code CLI (LLM_BACKEND=cli 모드용)
+# host 의 ~/.claude 가 /root/.claude 로 마운트되어 dev 본인 로그인 재사용.
+# API 모드 (LLM_BACKEND=api 또는 미설정) 에서도 설치만 하고 사용 안 함 — 토글 즉시 전환 가능.
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
+ && npm install -g @anthropic-ai/claude-code \
+ && claude --version \
+ && rm -rf /var/lib/apt/lists/*
 
 # 캐시 워밍 — 실제 빌드 시점에는 host 마운트가 덮어쓰지만, 첫 이미지 빌드 시 dependency 다운로드를
 # layer 에 박아두어 host pom.xml 이 같으면 named volume 도 빠르게 채워짐.

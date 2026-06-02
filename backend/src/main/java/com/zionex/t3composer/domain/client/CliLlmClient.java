@@ -48,25 +48,26 @@ public class CliLlmClient implements LlmClient {
 
     public CliLlmClient(LlmCliInvoker invoker,
                         ObjectMapper mapper,
-                        LlmCliProperties props,
-                        Semaphore concurrencyGate) {
-        this.invoker         = invoker;
-        this.mapper          = mapper;
-        this.props           = props;
-        this.concurrencyGate = concurrencyGate;
+                        LlmCliProperties props) {
+        this.invoker = invoker;
+        this.mapper  = mapper;
+        this.props   = props;
     }
 
     @PostConstruct
     void initSemaphore() {
-        if (concurrencyGate == null) {
-            concurrencyGate = new Semaphore(props.getMaxConcurrent());
-        }
+        this.concurrencyGate = new Semaphore(props.getMaxConcurrent());
+    }
+
+    /** Package-private hook for tests to inject a deterministic semaphore. */
+    void setConcurrencyGateForTest(Semaphore s) {
+        this.concurrencyGate = s;
     }
 
     @Override
     public Flux<ServerSentEvent<String>> streamMessages(String apiKey, MessagesRequest request) {
         return Flux.<ServerSentEvent<String>>create(sink -> {
-            Semaphore gate = effectiveGate();
+            Semaphore gate = concurrencyGate;
             try {
                 if (!gate.tryAcquire(1, TimeUnit.SECONDS)) {
                     sink.error(new LlmCliException(429,
@@ -146,11 +147,6 @@ public class CliLlmClient implements LlmClient {
                 .reduce(new MessagesResponseAssembler(),
                         (acc, sse) -> acc.feed(sse.event(), sse.data()))
                 .map(MessagesResponseAssembler::build);
-    }
-
-    private Semaphore effectiveGate() {
-        if (concurrencyGate == null) initSemaphore();
-        return concurrencyGate;
     }
 
     private void writeRequest(OutputStream stdin, MessagesRequest request) {

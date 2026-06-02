@@ -1,9 +1,9 @@
 package com.zionex.t3composer.domain.client;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
 import com.zionex.t3composer.domain.client.AnthropicModels.Usage;
 
@@ -13,11 +13,7 @@ import com.zionex.t3composer.domain.client.AnthropicModels.Usage;
  */
 class MessagesResponseAssembler {
 
-    private static final Pattern TEXT_DELTA = Pattern.compile("\"text\":\"([^\"]*)\"");
-    private static final Pattern INPUT_TOK  = Pattern.compile("\"input_tokens\":(\\d+)");
-    private static final Pattern OUTPUT_TOK = Pattern.compile("\"output_tokens\":(\\d+)");
-    private static final Pattern ID         = Pattern.compile("\"id\":\"([^\"]+)\"");
-    private static final Pattern MODEL      = Pattern.compile("\"model\":\"([^\"]+)\"");
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final StringBuilder text = new StringBuilder();
     private String id;
@@ -27,21 +23,28 @@ class MessagesResponseAssembler {
 
     MessagesResponseAssembler feed(String event, String data) {
         if (data == null) return this;
+        JsonNode node;
+        try {
+            node = MAPPER.readTree(data);
+        } catch (Exception e) {
+            return this;
+        }
         switch (event == null ? "" : event) {
-            case "message_start":
-                id    = firstGroup(ID,    data);
-                model = firstGroup(MODEL, data);
+            case "message_start": {
+                JsonNode msg = node.path("message");
+                if (id == null)    id    = msg.path("id").asText(null);
+                if (model == null) model = msg.path("model").asText(null);
                 break;
+            }
             case "content_block_delta": {
-                String chunk = firstGroup(TEXT_DELTA, data);
-                if (chunk != null) text.append(chunk);
+                String chunk = node.path("delta").path("text").asText("");
+                if (!chunk.isEmpty()) text.append(chunk);
                 break;
             }
             case "message_delta": {
-                String in  = firstGroup(INPUT_TOK,  data);
-                String out = firstGroup(OUTPUT_TOK, data);
-                if (in  != null) inputTokens  = Integer.parseInt(in);
-                if (out != null) outputTokens = Integer.parseInt(out);
+                JsonNode usage = node.path("usage");
+                if (usage.has("input_tokens"))  inputTokens  = usage.get("input_tokens").asInt();
+                if (usage.has("output_tokens")) outputTokens = usage.get("output_tokens").asInt();
                 break;
             }
             default:
@@ -65,10 +68,5 @@ class MessagesResponseAssembler {
                 "text", text.toString()
         )));
         return r;
-    }
-
-    private static String firstGroup(Pattern p, String data) {
-        Matcher m = p.matcher(data);
-        return m.find() ? m.group(1) : null;
     }
 }

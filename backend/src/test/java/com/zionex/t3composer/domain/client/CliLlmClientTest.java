@@ -30,7 +30,8 @@ class CliLlmClientTest {
                 "{\"type\":\"result\",\"subtype\":\"success\",\"usage\":{\"input_tokens\":5,\"output_tokens\":1}}"
         );
         FakeInvoker invoker = new FakeInvoker(cliOutput, "", 0);
-        CliLlmClient client = new CliLlmClient(invoker, mapper, props(), null);
+        CliLlmClient client = new CliLlmClient(invoker, mapper, props());
+        client.initSemaphore();    // emulate @PostConstruct in unit test
 
         MessagesRequest req = new MessagesRequest();
         req.setModel("x");
@@ -50,7 +51,8 @@ class CliLlmClientTest {
     @Test
     void nonZeroExitProducesLlmCliException() {
         FakeInvoker invoker = new FakeInvoker("", "Error: Please run claude /login", 1);
-        CliLlmClient client = new CliLlmClient(invoker, mapper, props(), null);
+        CliLlmClient client = new CliLlmClient(invoker, mapper, props());
+        client.initSemaphore();    // emulate @PostConstruct in unit test
 
         MessagesRequest req = new MessagesRequest();
         req.setModel("x");
@@ -68,7 +70,8 @@ class CliLlmClientTest {
         FakeInvoker invoker = new FakeInvoker(
                 "{\"type\":\"result\",\"subtype\":\"success\",\"usage\":{\"input_tokens\":0,\"output_tokens\":0}}",
                 "", 0);
-        CliLlmClient client = new CliLlmClient(invoker, mapper, props(), null);
+        CliLlmClient client = new CliLlmClient(invoker, mapper, props());
+        client.initSemaphore();    // emulate @PostConstruct in unit test
 
         MessagesRequest req = new MessagesRequest();
         req.setModel("x");

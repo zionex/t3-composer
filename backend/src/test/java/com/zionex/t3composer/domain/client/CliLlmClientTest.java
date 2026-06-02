@@ -84,7 +84,7 @@ class CliLlmClientTest {
 
     private LlmCliProperties props() {
         LlmCliProperties p = new LlmCliProperties();
-        p.setBinary("/usr/local/bin/claude");
+        p.setBinary("/usr/bin/claude");
         p.setTimeoutMinutes(1);
         p.setMaxConcurrent(2);
         return p;

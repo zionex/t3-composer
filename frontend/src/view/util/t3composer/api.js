@@ -145,9 +145,19 @@ export const testTargetDbConnection = (targetCd, payload) =>
 export const pingTargetDbConnection = (targetCd) =>
   zAxios.get(`composer/targets/${encodeURIComponent(targetCd)}/db-connection/ping`, composerReq());
 
-/** Target System 별 source / database 소스 폴더 경로 저장 — payload: { sourceRefPath, databaseRefPath } */
+/** Target System 별 source / backend / database 폴더 경로 저장 — payload: { sourceRefPath, backendRefPath, databaseRefPath } */
 export const updateTargetRefPaths = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
+
+/**
+ * Workspace 폴더 한 단계 listing (UI 폴더 picker 용).
+ * params: { path?: string } — 비우면 컨테이너 안의 /workspace/projects 시작.
+ * 응답: { ok, path, parent, initial_cwd, is_root, items: [{name, type:'dir', child_count}], message? }
+ */
+export const browseFs = (path) =>
+  zAxios.get('composer/fs/browse', composerReq({
+    params: path ? { path } : {}
+  }));
 
 // ---- Target 거버넌스 설정 스냅샷 / 복원 ----
 // 현재 디스크의 .claude/** · CLAUDE.md · README.md · TROUBLESHOOTING.md · .env · docs/**

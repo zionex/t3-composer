@@ -7,15 +7,18 @@ import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Stack, Typography, Box, Alert, CircularProgress, Chip,
+  InputAdornment, IconButton, Tooltip,
 } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from '@mui/icons-material/Save';
 import FolderIcon from '@mui/icons-material/Folder';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 import {
-  getTarget, updateTargetDbConnection, testTargetDbConnection,
+  getTarget, updateTargetDbConnection, testTargetDbConnection, updateTargetRefPaths,
 } from './api';
+import FolderPickerDialog from './FolderPickerDialog';
 
 const DRIVER_BY_DBTYPE = {
   MSSQL:      'com.microsoft.sqlserver.jdbc.SQLServerDriver',
@@ -38,9 +41,12 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
   const [target, setTarget]   = useState(null);
   const [form, setForm]       = useState({
     dbUrl: '', dbUsername: '', dbPassword: '', dbDriverClass: '',
+    sourceRefPath: '', backendRefPath: '',
   });
   const [testResult, setTestResult] = useState(null);
   const [savedMsg, setSavedMsg]     = useState(null);
+  // FolderPicker — 어느 필드를 위해 열렸는지 추적
+  const [pickerOpen, setPickerOpen] = useState(null);   // null | 'sourceRefPath' | 'backendRefPath'
 
   useEffect(() => {
     if (!open || !targetCd) return;
@@ -52,10 +58,12 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         const t = res.data;
         setTarget(t);
         setForm({
-          dbUrl:         t.dbUrl || '',
-          dbUsername:    t.dbUsername || '',
-          dbPassword:    t.dbPassword || '',
-          dbDriverClass: t.dbDriverClass || DRIVER_BY_DBTYPE[t.dbType] || '',
+          dbUrl:          t.dbUrl || '',
+          dbUsername:     t.dbUsername || '',
+          dbPassword:     t.dbPassword || '',
+          dbDriverClass:  t.dbDriverClass || DRIVER_BY_DBTYPE[t.dbType] || '',
+          sourceRefPath:  t.sourceRefPath  || '',
+          backendRefPath: t.backendRefPath || '',
         });
       })
       .catch((e) => setTestResult({ success: false, error: '대상 로딩 실패: ' + (e?.message || '') }))
@@ -79,7 +87,15 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
     setSaving(true);
     setSavedMsg(null);
     try {
-      await updateTargetDbConnection(targetCd, form);
+      // DB 연결 정보 + ref paths 두 endpoint 모두 호출 (Target 별로 변경된 것 모두 영속).
+      await updateTargetDbConnection(targetCd, {
+        dbUrl: form.dbUrl, dbUsername: form.dbUsername,
+        dbPassword: form.dbPassword, dbDriverClass: form.dbDriverClass,
+      });
+      await updateTargetRefPaths(targetCd, {
+        sourceRefPath:  form.sourceRefPath  || '',
+        backendRefPath: form.backendRefPath || '',
+      });
       setSavedMsg({ kind: 'success', text: '저장됨 — 다음 메뉴 트리/소스 조회부터 적용됩니다' });
       if (onSaved) onSaved();
     } catch (e) {
@@ -87,6 +103,11 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
     } finally {
       setSaving(false);
     }
+  };
+
+  // 폴더 picker 가 닫히면서 선택된 path 를 해당 필드에 채움
+  const handlePickerSelect = (p) => {
+    if (pickerOpen) setForm((f) => ({ ...f, [pickerOpen]: p }));
   };
 
   const placeholder = target ? (PLACEHOLDER_BY_DBTYPE[target.dbType] || 'jdbc:...') : '';
@@ -149,34 +170,54 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               </Alert>
             )}
 
-            {/* Target source/database 경로 — readonly. 마운트 변경은 .env 의
-                TARGET_<CD>_WINGUI_PATH / DATABASE_PATH 로만 가능. */}
+            {/* Target source / backend 경로 — editable. 우측 탐색 버튼이 FolderPickerDialog 호출. */}
             <Stack direction="row" alignItems="center" spacing={1}
                    sx={{ pt: 1, mt: 1, borderTop: '1px solid #e2e8f0' }}>
               <FolderIcon fontSize="small" sx={{ color: '#64748b' }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>
-                Target source path (readonly)
+                Target source path
               </Typography>
             </Stack>
             <Alert severity="info" sx={{ bgcolor: '#f1f5f9', '& .MuiAlert-icon': { color: '#64748b' } }}>
-              마운트 경로는 <code>.env</code> 의 <code>TARGET_{targetCd}_WINGUI_PATH</code> /
-              <code> TARGET_{targetCd}_DATABASE_PATH</code> 로만 변경할 수 있습니다.
-              변경 후 <code>docker compose up -d --force-recreate composer-backend</code> 필요.
+              컨테이너 안 절대경로 입력 (또는 우측 <strong>탐색</strong> 버튼).
+              <strong> source</strong> 는 frontend root, <strong>backend</strong> 는 backend root
+              (PLANNEL 처럼 monorepo 가 아닌 경우만 별도 지정 — 비우면 source 와 동일 가정).
+              비워두면 docker-compose 의 <code>/workspace/targets/{targetCd}/wingui</code> fallback.
             </Alert>
             <TextField
               label="source 폴더 경로" fullWidth size="small"
-              value={target.sourceRefPath || '(미설정 — 컨테이너 안 /workspace/targets/' + targetCd + '/wingui 자동 사용)'}
+              value={form.sourceRefPath}
+              onChange={(e) => setForm({ ...form, sourceRefPath: e.target.value })}
+              placeholder={`(미설정 — 컨테이너 안 /workspace/targets/${targetCd}/wingui 자동 사용)`}
               InputProps={{
-                readOnly: true,
-                sx: { fontFamily: 'monospace', fontSize: 12, bgcolor: '#f8fafc' },
+                sx: { fontFamily: 'monospace', fontSize: 12 },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="폴더 탐색">
+                      <IconButton size="small" onClick={() => setPickerOpen('sourceRefPath')}>
+                        <FolderOpenIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
               }}
             />
             <TextField
-              label="database 폴더 경로" fullWidth size="small"
-              value={target.databaseRefPath || '(미설정 — 컨테이너 안 /workspace/targets/' + targetCd + '/database 자동 사용)'}
+              label="backend 폴더 경로 (분리 구조일 때만)" fullWidth size="small"
+              value={form.backendRefPath}
+              onChange={(e) => setForm({ ...form, backendRefPath: e.target.value })}
+              placeholder="(미설정 — source 와 동일한 root 가정. PLANNEL 처럼 분리되었으면 backend root 지정)"
               InputProps={{
-                readOnly: true,
-                sx: { fontFamily: 'monospace', fontSize: 12, bgcolor: '#f8fafc' },
+                sx: { fontFamily: 'monospace', fontSize: 12 },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="폴더 탐색">
+                      <IconButton size="small" onClick={() => setPickerOpen('backendRefPath')}>
+                        <FolderOpenIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
               }}
             />
 
@@ -197,11 +238,19 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
           variant="contained"
           startIcon={saving ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : <SaveIcon />}
           onClick={handleSave}
-          disabled={!form.dbUrl || saving}
+          disabled={saving}
         >
           저장
         </Button>
       </DialogActions>
+
+      <FolderPickerDialog
+        open={!!pickerOpen}
+        initialPath={pickerOpen ? form[pickerOpen] : ''}
+        title={pickerOpen === 'backendRefPath' ? 'backend 폴더 선택' : 'source 폴더 선택'}
+        onClose={() => setPickerOpen(null)}
+        onSelect={handlePickerSelect}
+      />
     </Dialog>
   );
 }

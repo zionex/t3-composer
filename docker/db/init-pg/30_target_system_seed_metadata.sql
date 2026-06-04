@@ -35,9 +35,9 @@ INSERT INTO dbo.TB_CMP_TARGET_SYSTEM (
     ),
     (
         'PLANNEL', 'PlanNEL',
-        'PlanNEL — T3SERIES 메타를 기준으로 초기 등록. 차후 각 시스템 분석 후 분기.',
-        'MSSQL', 'org.hibernate.dialect.SQLServerDialect',
-        'REACT', 'REALGRID2', 'MUI',
+        'PlanNEL — PostgreSQL · AG-Grid · React + MUI · Liquibase migration.',
+        'POSTGRESQL', 'org.hibernate.dialect.PostgreSQLDialect',
+        'REACT', 'AGGRID', 'MUI',
         '[{"code": "AD", "name": "Admin"}, {"code": "BF", "name": "Baseline Forecasting"}, {"code": "CM", "name": "Common Master"}, {"code": "DP", "name": "Demand Planning"}, {"code": "DPD", "name": "DP Dimension"}, {"code": "FO", "name": "Forecast"}, {"code": "FP", "name": "Factory Planning"}, {"code": "IM", "name": "Inventory Management"}, {"code": "MP", "name": "Master Planning"}, {"code": "RP", "name": "Replenishment Planning"}, {"code": "SA", "name": "Sales Aggregation"}, {"code": "SALES", "name": "Sales Report"}, {"code": "SO", "name": "Sales/Stock Order"}, {"code": "UT", "name": "Utility"}]'::jsonb,
         '{"claude": "/workspace/wingui/.claude", "wingui": "/workspace/wingui", "database": "/workspace/database"}'::jsonb,
         '{"sp_prefix": "SP_UI_", "menu_prefix": "UI_", "sp_action_d": "D", "sp_action_q": "Q", "sp_action_s": "S", "table_prefix": "TB_", "audit_columns": ["CREATE_BY", "CREATE_DTTM", "MODIFY_BY", "MODIFY_DTTM"], "menu_group_prefix": "MENU_"}'::jsonb,

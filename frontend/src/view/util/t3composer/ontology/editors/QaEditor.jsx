@@ -122,7 +122,7 @@ function QaEditor({ id, targetCd, onSaved, onDeleted, onCancelNew }) {
         </Stack>
 
         <Stack direction="row" alignItems="flex-end" spacing={0.5}>
-          <TextField label="Answer" fullWidth size="small" required multiline minRows={12} maxRows={28}
+          <TextField label="Answer" fullWidth size="small" required multiline minRows={16} maxRows={22}
             value={dto.answer || ''} onChange={setField('answer')}
             sx={{ '& textarea': { resize: 'vertical', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: 12 } }} />
           <AiSuggestButton field="answer" kind="QA" targetCd={targetCd}

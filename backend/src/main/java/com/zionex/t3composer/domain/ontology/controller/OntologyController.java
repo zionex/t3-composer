@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zionex.t3composer.domain.ontology.dto.TreeNodeDto;
 import com.zionex.t3composer.domain.ontology.service.OntologyService;
+import com.zionex.t3composer.shared.auth.AuthenticationProvider;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +21,18 @@ public class OntologyController {
 
     private final OntologyService service;
     private final com.zionex.t3composer.domain.ontology.service.OntologySuggestService suggestService;
+    private final AuthenticationProvider authenticationProvider;
+
+    /** 현재 로그인 사용자 id — Anthropic API key 조회/감사용. dev fallback. */
+    private String currentUserId() {
+        try {
+            var info = authenticationProvider.getAuthenticationInfo();
+            String uid = info == null ? null : info.getUserId();
+            return (uid == null || uid.isBlank()) ? "composer-dev" : uid;
+        } catch (Exception e) {
+            return "composer-dev";
+        }
+    }
 
     @GetMapping("/tree")
     public List<TreeNodeDto> tree(
@@ -52,7 +65,7 @@ public class OntologyController {
             @org.springframework.web.bind.annotation.RequestBody
                 com.zionex.t3composer.domain.ontology.dto.QaDto dto,
             @RequestParam(value = "targetCd", required = false) String targetCd) {
-        return service.createQa(targetCd, dto, "composer-dev");
+        return service.createQa(targetCd, dto, currentUserId());
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/qa/{id}")
@@ -68,7 +81,7 @@ public class OntologyController {
             catch (Exception ignore) { /* 헤더 무효 — 충돌 검사 skip */ }
         }
         try {
-            var saved = service.updateQa(targetCd, id, dto, ifMatchDt, "composer-dev");
+            var saved = service.updateQa(targetCd, id, dto, ifMatchDt, currentUserId());
             return org.springframework.http.ResponseEntity.ok(saved);
         } catch (com.zionex.t3composer.domain.ontology.service.OntologyService.OptimisticLockException ex) {
             return org.springframework.http.ResponseEntity
@@ -80,7 +93,7 @@ public class OntologyController {
     public void deleteQa(
             @PathVariable String id,
             @RequestParam(value = "targetCd", required = false) String targetCd) {
-        service.deleteQa(targetCd, id, "composer-dev");
+        service.deleteQa(targetCd, id, currentUserId());
     }
 
     // ─────────────────────────── Entity ───────────────────────────
@@ -107,7 +120,7 @@ public class OntologyController {
             @org.springframework.web.bind.annotation.RequestBody
                 com.zionex.t3composer.domain.ontology.dto.EntityDto dto,
             @RequestParam(value = "targetCd", required = false) String targetCd) {
-        return service.createEntity(targetCd, dto, "composer-dev");
+        return service.createEntity(targetCd, dto, currentUserId());
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/entity/{id}")
@@ -116,14 +129,14 @@ public class OntologyController {
             @org.springframework.web.bind.annotation.RequestBody
                 com.zionex.t3composer.domain.ontology.dto.EntityDto dto,
             @RequestParam(value = "targetCd", required = false) String targetCd) {
-        return service.updateEntity(targetCd, id, dto, "composer-dev");
+        return service.updateEntity(targetCd, id, dto, currentUserId());
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/entity/{id}")
     public void deleteEntity(
             @PathVariable String id,
             @RequestParam(value = "targetCd", required = false) String targetCd) {
-        service.deleteEntity(targetCd, id, "composer-dev");
+        service.deleteEntity(targetCd, id, currentUserId());
     }
 
     // ─────────────────────────── View / Process ───────────────────────────
@@ -148,6 +161,6 @@ public class OntologyController {
     public com.zionex.t3composer.domain.ontology.dto.SuggestResponse suggest(
             @org.springframework.web.bind.annotation.RequestBody
                 com.zionex.t3composer.domain.ontology.dto.SuggestRequest req) {
-        return suggestService.suggest("composer-dev", req);
+        return suggestService.suggest(currentUserId(), req);
     }
 }

@@ -238,6 +238,12 @@ services:
       # tb_cmp_target_system.backend_ref_path = '/workspace/targets/PLANNEL/backend' 매칭.
       - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:rw
       - ${TARGET_LGES_NEXTSCM_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:rw
+      # (2026-06-04) Workspace 부모 폴더 — UI 의 [📁 Source 등록] 다이얼로그가 폴더 탐색 시
+      # 이 마운트의 sub-path 만 선택 가능. backend 는 컨테이너 안 경로
+      # /workspace/projects/<repo>/... 형태로 Target source_ref_path / backend_ref_path 에 저장.
+      # 사용자 호스트의 ~/work/projects 하위 모든 SCM repo 가 한 번에 노출 — 다른 드라이브
+      # repo 는 못 등록 (필요 시 COMPOSER_WORKSPACE_ROOT 변경).
+      - ${COMPOSER_WORKSPACE_ROOT:-${HOME}/work/projects}:/workspace/projects:rw
       # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.
       # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
       # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.

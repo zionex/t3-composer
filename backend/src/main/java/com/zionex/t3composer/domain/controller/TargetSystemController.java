@@ -103,11 +103,12 @@ public class TargetSystemController {
     }
 
     /**
-     * Target 의 ref path (source / database) 저장.
-     * body: { sourceRefPath, databaseRefPath }
-     * 컨테이너 안 절대경로 입력 (예: /workspace/projects/t3series/t3series-wingui).
-     * 빈 문자열 / null 도 허용 (글로벌 fallback 으로 동작).
+     * Target 의 ref path (source / backend / database) 저장.
+     * body: { sourceRefPath, backendRefPath?, databaseRefPath? }
+     * 컨테이너 안 절대경로 입력 (예: /workspace/projects/saas-plannel/saas-web).
+     * 빈 문자열 / null 도 허용 (마운트 convention fallback 으로 동작).
      *
+     * 검증: 비어있지 않은 path 는 모두 /workspace/ 하위여야 함 (path traversal 차단).
      * 옛 필드명 winguiRefPath 도 한시적으로 수신 (frontend 캐시 호환) — 사라지면 제거.
      */
     @PutMapping("/{targetCd}/ref-paths")
@@ -118,18 +119,42 @@ public class TargetSystemController {
         }
         String src = body.get("sourceRefPath");
         if (src == null) src = body.get("winguiRefPath");   // 옛 키 호환
+
+        String srcVal = sanitizeContainerPath(src, "sourceRefPath");
+        String backVal = sanitizeContainerPath(body.get("backendRefPath"), "backendRefPath");
+        String dbVal = sanitizeContainerPath(body.get("databaseRefPath"), "databaseRefPath");
+
         // jsonb 컬럼 회피 — 변경 컬럼만 직접 UPDATE.
         composerDbJdbc.update(
-            "UPDATE dbo.tb_cmp_target_system SET source_ref_path=?, database_ref_path=?, " +
-            "modify_by='composer', modify_dttm=now() WHERE target_cd=?",
-            nullIfBlank(src),
-            nullIfBlank(body.get("databaseRefPath")),
-            targetCd);
+            "UPDATE dbo.tb_cmp_target_system SET source_ref_path=?, backend_ref_path=?, " +
+            "database_ref_path=?, modify_by='composer', modify_dttm=now() WHERE target_cd=?",
+            srcVal, backVal, dbVal, targetCd);
         return targetRepo.findById(targetCd).orElseThrow();
     }
 
     private static String nullIfBlank(String s) {
         return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    /**
+     * UI 가 보낸 path 가 컨테이너 안의 /workspace/ 하위인지 검증.
+     * 빈 값은 null 반환 (clear), 그 외는 trim. 외부 path 는 IllegalArgumentException.
+     */
+    private static String sanitizeContainerPath(String raw, String fieldName) {
+        if (raw == null || raw.isBlank()) return null;
+        String trimmed = raw.trim();
+        // /workspace/ 하위만 허용 — host 절대경로나 path traversal 차단
+        if (!trimmed.startsWith("/workspace/")) {
+            throw new IllegalArgumentException(
+                fieldName + " 는 /workspace/ 하위 컨테이너 경로여야 합니다 (받은 값: " + trimmed + ")");
+        }
+        // path traversal (.. / .) 정규화 후 다시 확인
+        java.nio.file.Path normalized = java.nio.file.Paths.get(trimmed).normalize();
+        if (!normalized.toString().startsWith("/workspace/")) {
+            throw new IllegalArgumentException(
+                fieldName + " path traversal 시도 차단: " + trimmed);
+        }
+        return normalized.toString();
     }
 
     /**

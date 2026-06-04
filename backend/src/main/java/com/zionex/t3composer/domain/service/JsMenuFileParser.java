@@ -43,12 +43,30 @@ public class JsMenuFileParser {
             "^\\s*import\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+from\\s+[\"']\\.{1,2}/([^\"']+)[\"']\\s*;?",
             Pattern.MULTILINE);
 
+    private static final Pattern LV1_BLOCK_PATTERN = Pattern.compile(
+            "const\\s+lv1MenuList\\s*=\\s*\\{",
+            Pattern.MULTILINE);
+
+    private static final Pattern LV2_BLOCK_PATTERN = Pattern.compile(
+            "const\\s+lv2MenuList\\s*=\\s*\\{",
+            Pattern.MULTILINE);
+
     private static final Pattern LV3_BLOCK_PATTERN = Pattern.compile(
             "const\\s+lv3MenuList\\s*=\\s*\\{",
             Pattern.MULTILINE);
 
     /** lv3MenuList 안의 group key: `KEY: [` */
     private static final Pattern GROUP_KEY_PATTERN = Pattern.compile(
+            "(?:^|\\n)\\s*([A-Z][A-Z0-9_]*)\\s*:\\s*\\[",
+            Pattern.MULTILINE);
+
+    /** lv1 객체 entry: `KEY: { title: "...", ... }` 의 title 캡처용 */
+    private static final Pattern LV1_ENTRY_PATTERN = Pattern.compile(
+            "(?:^|\\n)\\s*([A-Z][A-Z0-9_]*)\\s*:\\s*\\{",
+            Pattern.MULTILINE);
+
+    /** lv2 array entry: `KEY: [{ menuCd|reduxKey: "...", menuTitle: "..." }, ...]` */
+    private static final Pattern LV2_GROUP_PATTERN = Pattern.compile(
             "(?:^|\\n)\\s*([A-Z][A-Z0-9_]*)\\s*:\\s*\\[",
             Pattern.MULTILINE);
 
@@ -88,6 +106,10 @@ public class JsMenuFileParser {
         String lv3Body = extractLv3Body(content);
         Map<String, String> i18n = translations == null ? Collections.emptyMap() : translations;
 
+        // 그룹 displayName lookup 용 — lv1 의 title 과 lv2 의 menuTitle 을 group key 별로 모음.
+        // 예: { "AI": "menuAiPlanningIntelligence", "SUBMENU_DP_SETTINGS": "menuSettings" }
+        Map<String, String> groupTitleKeys = extractGroupTitleKeys(content);
+
         List<Map<String, Object>> roots = new ArrayList<>();
         if (lv3Body == null) {
             log.warn("JsMenuFileParser: lv3MenuList 블록을 찾지 못함");
@@ -104,6 +126,36 @@ public class JsMenuFileParser {
                 List<Map<String, Object>> leafs = extractLeafs(arrayBody, importMap, i18n);
                 if (leafs.isEmpty()) continue;
 
+                // displayName lookup 4단계:
+                //   1) lv1/lv2 group title key (예: "menuSettings") → i18n translation
+                //   2) group key 자체를 i18n 으로 (예: "DASHBOARD" → 직접 lookup)
+                //   3) group key 의 camelCase 변환 (예: "DATA_MGMT" → "dataMgmt") → i18n
+                //   4) fallback — group key 그대로
+                String groupTitleKey = groupTitleKeys.get(groupKey);
+                String displayName = groupKey;
+                String i18nKeyUsed = null;
+                boolean hasLangPack = false;
+                if (groupTitleKey != null && i18n.containsKey(groupTitleKey)) {
+                    displayName = i18n.get(groupTitleKey);
+                    i18nKeyUsed = groupTitleKey;
+                    hasLangPack = true;
+                } else if (i18n.containsKey(groupKey)) {
+                    displayName = i18n.get(groupKey);
+                    i18nKeyUsed = groupKey;
+                    hasLangPack = true;
+                } else {
+                    String camel = toCamelCase(groupKey);
+                    if (i18n.containsKey(camel)) {
+                        displayName = i18n.get(camel);
+                        i18nKeyUsed = camel;
+                        hasLangPack = true;
+                    } else if (groupTitleKey != null) {
+                        // lv1/lv2 의 title 은 있는데 translation 매칭 안 됨 — title 그대로
+                        displayName = groupTitleKey;
+                        i18nKeyUsed = groupTitleKey;
+                    }
+                }
+
                 Map<String, Object> rootNode = new LinkedHashMap<>();
                 rootNode.put("id", groupKey);
                 rootNode.put("dbId", "GROUP_" + groupKey);
@@ -111,8 +163,9 @@ public class JsMenuFileParser {
                 rootNode.put("path", null);
                 rootNode.put("filePath", null);
                 rootNode.put("seq", roots.size() + 1);
-                rootNode.put("displayName", groupKey);
-                rootNode.put("hasLangPack", false);
+                rootNode.put("displayName", displayName);
+                rootNode.put("i18nKey", i18nKeyUsed);
+                rootNode.put("hasLangPack", hasLangPack);
                 rootNode.put("items", leafs);
                 roots.add(rootNode);
             }
@@ -121,6 +174,82 @@ public class JsMenuFileParser {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("items", roots);
         return result;
+    }
+
+    /**
+     * lv1MenuList 와 lv2MenuList 에서 group key 별 i18n title 키를 수집.
+     *
+     * lv1: `KEY: { title: "menuXxx", ... }` 형식 — group key = lv1 entry key
+     * lv2: `KEY: [{ reduxKey: "SUBMENU_X", menuCd: "SUBMENU_X", menuTitle: "menuXxx", ... }]`
+     *      — 배열 안 각 entry 의 reduxKey/menuCd 가 lv3 group key 와 매칭됨
+     *
+     * lv2 의 entry 가 가진 menuTitle 이 lv3 의 group key 와 더 자주 매칭되므로
+     * 같은 key 가 두 곳에 있으면 lv2 우선.
+     */
+    private Map<String, String> extractGroupTitleKeys(String content) {
+        Map<String, String> map = new LinkedHashMap<>();
+
+        // 1) lv1 — 각 entry 의 title 추출
+        String lv1Body = extractBlockBody(content, LV1_BLOCK_PATTERN);
+        if (lv1Body != null) {
+            Matcher m = LV1_ENTRY_PATTERN.matcher(lv1Body);
+            while (m.find()) {
+                String key = m.group(1);
+                int objOpen = m.end() - 1; // `{` 위치
+                int objClose = findMatchingBracket(lv1Body, objOpen);
+                if (objClose <= objOpen) continue;
+                String objBody = lv1Body.substring(objOpen + 1, objClose);
+                String title = firstGroup(TITLE, objBody);
+                if (title != null) map.put(key, title);
+            }
+        }
+
+        // 2) lv2 — 각 그룹 배열 안 entry 의 menuTitle 추출 (lv1 보다 우선)
+        String lv2Body = extractBlockBody(content, LV2_BLOCK_PATTERN);
+        if (lv2Body != null) {
+            Matcher m = LV2_GROUP_PATTERN.matcher(lv2Body);
+            while (m.find()) {
+                int arrOpen = m.end() - 1; // `[` 위치
+                int arrClose = findMatchingBracket(lv2Body, arrOpen);
+                if (arrClose <= arrOpen) continue;
+                String arrBody = lv2Body.substring(arrOpen + 1, arrClose);
+                // 각 sub-entry 객체에서 reduxKey/menuCd → menuTitle 매핑
+                for (String obj : sliceTopLevelObjects(arrBody)) {
+                    String reduxKey = firstGroup(REDUX_KEY, obj);
+                    String menuCd = firstGroup(MENU_CD, obj);
+                    String title = firstGroup(TITLE, obj);
+                    String entryKey = (menuCd != null) ? menuCd : reduxKey;
+                    if (entryKey != null && title != null) {
+                        map.put(entryKey, title);   // lv2 가 lv1 덮어씀
+                    }
+                }
+            }
+        }
+
+        return map;
+    }
+
+    /** 공용 블록 body 추출 — `const X = { ... };` 형태의 `{` 다음 ~ matching `}` 직전. */
+    private String extractBlockBody(String content, Pattern blockPattern) {
+        Matcher m = blockPattern.matcher(content);
+        if (!m.find()) return null;
+        int openIdx = m.end() - 1;
+        int closeIdx = findMatchingBracket(content, openIdx);
+        if (closeIdx <= openIdx) return null;
+        return content.substring(openIdx + 1, closeIdx);
+    }
+
+    /** UPPER_SNAKE_CASE → camelCase. 예: "DATA_MGMT" → "dataMgmt", "AI" → "ai". */
+    private static String toCamelCase(String key) {
+        if (key == null || key.isEmpty()) return key;
+        String[] parts = key.toLowerCase().split("_");
+        StringBuilder sb = new StringBuilder(parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+            if (parts[i].isEmpty()) continue;
+            sb.append(Character.toUpperCase(parts[i].charAt(0)));
+            if (parts[i].length() > 1) sb.append(parts[i].substring(1));
+        }
+        return sb.toString();
     }
 
     private Map<String, String> extractImports(String content) {

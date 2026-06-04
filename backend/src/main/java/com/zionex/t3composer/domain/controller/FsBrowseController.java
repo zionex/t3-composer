@@ -23,20 +23,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Workspace 내 폴더 한 단계 탐색 API.
+ * 컨테이너 내 폴더 한 단계 탐색 API.
  *
- * UI 의 FolderPickerDialog (Project Repo 등록 다이얼로그) 가 호출하는 백엔드.
+ * UI 의 FolderPickerDialog (Target settings 다이얼로그) 가 호출하는 백엔드.
  * docker-compose 가 호스트 {@code COMPOSER_WORKSPACE_ROOT} 를
- * {@code /workspace/projects} 로 마운트하므로, 그 안쪽 디렉토리만 탐색 허용.
+ * {@code /workspace/projects} 로 마운트 (initial_cwd 로 사용).
+ *
+ * Navigation 은 컨테이너 filesystem 전체에 자유 (Insight-Neo FolderPicker 와 동일 UX).
+ * Parent 는 filesystem root({@code /}) 에서만 null — workspace 위로도 자유롭게 올라감.
+ *
+ * 보안 boundary 는 {@link TargetSystemController#updateRefPaths} 에서 따로 강제 —
+ * 등록 가능한 path 는 컨테이너 {@code /workspace/} 마운트 안만 허용한다 (실제로 마운트된
+ * 폴더 외엔 backend 가 read/write 할 의미가 없음).
  *
  * 응답 contract — Insight-Neo 의 {@code GET /ontology-v2/data/fs-tree} 와 동일:
  * <pre>
- *   { ok, path, parent (null=root), initial_cwd, is_root,
+ *   { ok, path, parent (null=filesystem root), initial_cwd, is_root,
  *     items: [ {name, type:'dir', child_count} ],
  *     message? }
  * </pre>
- *
- * 보안 boundary — workspace root 밖 path 는 거부 (path traversal 차단).
  */
 @Slf4j
 @RestController
@@ -78,24 +83,11 @@ public class FsBrowseController {
             }
         }
 
-        // 2) workspace boundary 검증 — symlink 우회 차단 위해 realPath 비교
-        Path realRoot;
-        try {
-            realRoot = WORKSPACE_ROOT.toRealPath();
-        } catch (IOException e) {
-            log.error("workspace root resolve 실패 — {}", WORKSPACE_ROOT, e);
-            resp.put("ok", false);
-            resp.put("path", target.toString());
-            resp.put("parent", null);
-            resp.put("is_root", true);
-            resp.put("items", Collections.emptyList());
-            resp.put("message", "workspace root 가 마운트되지 않았습니다 (COMPOSER_WORKSPACE_ROOT 확인)");
-            return ResponseEntity.ok(resp);
-        }
-
+        // 2) 컨테이너 안 path resolve — symlink 따라가서 정규화.
+        //    Navigation 은 컨테이너 filesystem 전체에 자유 (Insight-Neo FolderPicker 와 동일 UX).
+        //    workspace 안만 등록 가능한지의 검증은 PUT /ref-paths (TargetSystemController) 가 담당.
         Path realTarget;
         try {
-            // target 이 존재하지 않을 수 있음 — 그 땐 toRealPath 가 실패하므로 normalize 만으로 검증
             realTarget = Files.exists(target) ? target.toRealPath() : target;
         } catch (IOException e) {
             resp.put("ok", false);
@@ -107,19 +99,10 @@ public class FsBrowseController {
             return ResponseEntity.ok(resp);
         }
 
-        if (!realTarget.startsWith(realRoot)) {
-            resp.put("ok", false);
-            resp.put("path", target.toString());
-            resp.put("parent", null);
-            resp.put("is_root", false);
-            resp.put("items", Collections.emptyList());
-            resp.put("message", "workspace 밖 경로 — " + realRoot + " 하위만 탐색 가능");
-            return ResponseEntity.ok(resp);
-        }
-
-        // 3) parent — root 이면 null (위로 못 올라감)
-        boolean isRoot = realTarget.equals(realRoot);
-        String parent = isRoot ? null : realTarget.getParent().toString();
+        // 3) parent — filesystem root (`/`) 이면 null. 그 외엔 모두 위로 올라갈 수 있음.
+        Path parentPath = realTarget.getParent();
+        boolean isRoot = parentPath == null;
+        String parent = isRoot ? null : parentPath.toString();
 
         // 4) 존재 여부 및 디렉토리 여부
         if (!Files.exists(realTarget)) {

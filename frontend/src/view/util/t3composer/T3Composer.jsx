@@ -30,6 +30,8 @@ import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
 import PlaylistAddCheckIcon  from '@mui/icons-material/PlaylistAddCheck';
 import ViewQuiltIcon         from '@mui/icons-material/ViewQuilt';
+import CloudOutlinedIcon     from '@mui/icons-material/CloudOutlined';
+import TerminalIcon          from '@mui/icons-material/Terminal';
 
 import { useLocation, useHistory } from 'react-router-dom';
 
@@ -100,7 +102,7 @@ function embossedPaper(accent, hovered = false) {
 //   상위 2 카테고리(신규 개발 / 기존 화면 수정) 를 클릭하면
 //   하위 모드 카드가 펼쳐지고, 하위 카드를 누르면 해당 모드로 진입.
 // =====================================================================
-function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered }) {
+function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend }) {
   const [hovered, setHovered] = useState(null);
 
   return (
@@ -173,6 +175,30 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered }) {
                 : <WarningAmberIcon sx={{ fontSize: 16, color: '#C49C53' }} />}
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {apiKeyRegistered ? 'API Key 등록' : 'API Key 필요'}
+              </Typography>
+            </Box>
+          </Tooltip>
+
+          {/* LLM Backend 모드 칩 — .env 의 LLM_BACKEND 값. cli=구독 OAuth, api=HTTP API */}
+          <Tooltip title={
+            llmBackend === 'cli'
+              ? 'CLI 모드 — 호스트 ~/.claude OAuth 로그인 사용 (Claude 구독)'
+              : 'API 모드 — Anthropic HTTP API + ANTHROPIC_API_KEY 사용'
+          }>
+            <Box
+              sx={{
+                display: 'inline-flex', alignItems: 'center', gap: 0.6,
+                px: 1.5, py: 0.7, borderRadius: 5,
+                bgcolor: llmBackend === 'cli' ? 'rgba(157,143,212,0.28)' : 'rgba(143,196,212,0.28)',
+                border: `1px solid ${llmBackend === 'cli' ? 'rgba(157,143,212,0.55)' : 'rgba(143,196,212,0.55)'}`,
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {llmBackend === 'cli'
+                ? <TerminalIcon sx={{ fontSize: 16, color: '#7766B5' }} />
+                : <CloudOutlinedIcon sx={{ fontSize: 16, color: '#5F94A8' }} />}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                {llmBackend === 'cli' ? 'CLI' : 'API'}
               </Typography>
             </Box>
           </Tooltip>
@@ -347,6 +373,7 @@ function T3Composer() {
   const [mode, setMode] = useState(null);                   // 선택된 실행 모드
   const [modifyStartWith, setModifyStartWith] = useState(null);  // 기존 화면 수정 서브모드 ('NL'|'STEP')
   const [apiKeyRegistered, setApiKeyReg]    = useState(null);
+  const [llmBackend, setLlmBackend]         = useState('api');
   const [apiKeyDialogOpen, setApiKeyDialog] = useState(false);
   const [confirmHomeOpen, setConfirmHomeOpen] = useState(false);
 
@@ -440,6 +467,7 @@ function T3Composer() {
     try {
       const res = await getApiKeyStatus();
       setApiKeyReg(!!res?.data?.registered);
+      setLlmBackend(res?.data?.llmBackend === 'cli' ? 'cli' : 'api');
     } catch {
       setApiKeyReg(false);
     }
@@ -619,6 +647,7 @@ function T3Composer() {
             onPickMode={onPickMode}
             onOpenSettings={() => setApiKeyDialog(true)}
             apiKeyRegistered={apiKeyRegistered}
+            llmBackend={llmBackend}
           />
         )}
 

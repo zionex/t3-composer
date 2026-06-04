@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -84,15 +85,20 @@ public class ComposerController {
     private final ArtifactPreviewService artifactPreviewService;
     private final PreviewModuleResolver previewModuleResolver;
 
+    /** 현재 활성 LLM 백엔드 모드 — "api" (기본) | "cli". UI 칩 표시에 사용. */
+    @Value("${llm.backend:api}")
+    private String llmBackend;
+
     // ---- API Key ----
 
     @GetMapping("/apikey/status")
     public Map<String, Object> apiKeyStatus() {
         String userId = currentUserId();
-        return Map.of(
-                "registered", apiKeyService.hasApiKey(userId),
-                "provider",   AnthropicApiKeyService.PROVIDER
-        );
+        Map<String, Object> r = new HashMap<>();
+        r.put("registered", apiKeyService.hasApiKey(userId));
+        r.put("provider",   AnthropicApiKeyService.PROVIDER);
+        r.put("llmBackend", llmBackend == null ? "api" : llmBackend.trim().toLowerCase());
+        return r;
     }
 
     @GetMapping("/apikey/diag")

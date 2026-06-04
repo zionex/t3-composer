@@ -66,9 +66,9 @@
 
 `COMPOSER_APPLY_MODE` 환경변수:
 - `staging` (기본): `./staging/output/<session_id>/` 에 산출
-- `direct`: `COMPOSER_WINGUI_REF_PATH` 폴더에 직접 쓰기
+- (2026-05-28) `direct` 모드 폐기 — Per-Target source 경로 (`TARGET_<CD>_PATH`) 를 `TargetPathResolver` 가 자동 채택. 명시한 경우 staging fallback 으로 전환.
 
-DB 등록(TB_AD_MENU 등)은 두 모드 모두 composer-db 에만 INSERT. wingui DB 적용은 sync 스크립트.
+DB 등록(TB_AD_MENU 등)은 composer-db 에만 INSERT. Target DB 적용은 sync 스크립트.
 
 ### 1.4 인증
 
@@ -222,7 +222,7 @@ CLI 모드 전용 옵션:
 ## 3. 부모 폴더와의 관계 (sync 시점 외)
 
 - 단독 dev 시에는 부모 `t3series` 폴더 의존 없이 동작 가능
-- NEW_FROM_COPY 모드만 부모 wingui 의 jsx/java 파일 read-only 마운트 필요 (`COMPOSER_WINGUI_REF_PATH`)
+- NEW_FROM_COPY 모드만 Target source repo 의 jsx/java 파일 read-only 마운트 필요 (`TARGET_<CD>_PATH`)
 - `.claude/rules/*` 가 부모 변경되면 다음 명령으로 갱신:
   ```bash
   cp -r /c/Project/t3series/.claude/rules/* ./.claude/rules/

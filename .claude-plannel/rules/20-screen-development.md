@@ -3,7 +3,7 @@
 > 본 문서 = **파일 배치 · 라우팅 · 메뉴 등록 · i18n 키 등록** 만.
 > 컴포넌트 코드 표면(AG-Grid · MUI · Redux · 서비스 호출)은 `21-components.md` 가 단일 진실.
 
-★ 본 문서의 모든 파일 경로(Frontend)는 **`TARGET_PLANNEL_WINGUI_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_WINGUI_PATH/src/pages/...` 가 실제 host 경로 (41 §3.0).
+★ 본 문서의 모든 파일 경로(Frontend)는 **`TARGET_PLANNEL_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_PATH/src/pages/...` 가 실제 host 경로 (41 §3.0).
 
 ---
 

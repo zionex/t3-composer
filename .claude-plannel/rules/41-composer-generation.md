@@ -19,7 +19,7 @@
 
 Composer NEW_GENERAL 으로 PlanNEL 화면 생성 시:
 
-1. 가장 비슷한 기존 `src/pages/<domain-kebab>/<Feature>.js` 페이지 1-3개를 **반드시 Read** 한다 (경로는 `TARGET_PLANNEL_WINGUI_PATH` 기준 — §3.0).
+1. 가장 비슷한 기존 `src/pages/<domain-kebab>/<Feature>.js` 페이지 1-3개를 **반드시 Read** 한다 (경로는 `TARGET_PLANNEL_PATH` 기준 — §3.0).
 2. 유사 서비스 파일 (`src/services/<domain>/<Name>.js`) 도 함께 Read.
 3. 산출물 맨 앞에 4줄 선언 필수:
 
@@ -117,7 +117,7 @@ lv3MenuList["SUBMENU_IP_SETTINGS"] = [
 
 > ★ **T3SERIES vs PlanNEL 구조 차이** — 혼동 주의:
 >
-> - **T3SERIES (wingui)** — backend + frontend 가 **한 프로젝트** (단일 repo, Maven 다중 모듈). 경로 루트 하나(`TARGET_T3SERIES_WINGUI_PATH`)에서 `src/main/java/...` (backend) 와 `packages/wingui/src/view/...` (frontend) 모두 해결됨.
+> - **T3SERIES (wingui)** — backend + frontend 가 **한 프로젝트** (단일 repo, Maven 다중 모듈). 경로 루트 하나(`TARGET_T3SERIES_PATH`)에서 `src/main/java/...` (backend) 와 `packages/wingui/src/view/...` (frontend) 모두 해결됨.
 > - **PlanNEL** — backend 와 frontend 가 **별개 모듈** (`saas-plannel/` 모노레포의 sibling 디렉토리). `saas-application/` (Spring Boot 2.4.13 backend) 과 `saas-web/` (React CRA/craco frontend, `.js` 확장자) 가 각자의 경로 변수를 가짐 (아래 표 참조).
 >
 > 산출물 파일을 작성할 때 backend 파일(`saas-application/...`)과 frontend 파일(`saas-web/...`)의 경로 접두어를 반드시 구분해야 한다 — 같은 루트에 넣으면 오적용됨.
@@ -127,18 +127,18 @@ Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉�
 | Rule 표기 | `.env` 변수 | host 경로 (`.env` 값) | composer-backend 컨테이너 마운트 |
 |---|---|---|---|
 | `saas-application/...` | `TARGET_PLANNEL_BACKEND_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application` | `/workspace/targets/PLANNEL/backend/...` |
-| `saas-web/...` | `TARGET_PLANNEL_WINGUI_PATH` ※ | 예: `/Users/<user>/work/projects/saas-plannel/saas-web` | `/workspace/targets/PLANNEL/wingui/...` |
+| `saas-web/...` | `TARGET_PLANNEL_PATH` ※ | 예: `/Users/<user>/work/projects/saas-plannel/saas-web` | `/workspace/targets/PLANNEL/wingui/...` |
 | (DDL/migration) | `TARGET_PLANNEL_DATABASE_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application/src/main/resources/db/changelog` (혹은 별도) | `/workspace/targets/PLANNEL/database/...` |
 
-※ `TARGET_PLANNEL_WINGUI_PATH` 의 이름은 T3SERIES wingui 컨벤션의 잔재 — PlanNEL 에서는 React 프런트엔드 (`saas-web/`) 를 가리킨다.
+※ `TARGET_PLANNEL_PATH` 는 PlanNEL 의 **frontend 루트** (`saas-web/`) 를 가리킨다 — Target 별 frontend 소스 루트를 의미하는 통일된 변수명. 컨테이너 내부 마운트 path 의 `wingui` 토큰은 `TargetPathResolver` contract 잔재.
 
 산출물 생성 시 LLM 은 가독성을 위해 `saas-application/...` · `saas-web/...` 접두어를 그대로 사용한다. Composer 의 apply 단계가 위 매핑으로 자동 변환해 실제 파일을 쓴다.
 
 > ★ **`@plannel` craco alias**: `saas-web/craco.config.js` 에서 `@plannel` = `src/` 로 설정. 따라서 페이지의 `import x from "@plannel/services/<area>/<x>-service"` = 파일 시스템상 `src/services/<area>/<x>-service.js`. 산출물 경로(`saas-web/src/services/<area>/<x>-service.js`)와 import 경로(`@plannel/services/<area>/<x>-service`)가 일치해야 webpack 이 resolve 한다 — service 파일명 오타 또는 파일 미산출 시 `Module not found`.
 
-### §3.1 Frontend (saas-web/ = TARGET_PLANNEL_WINGUI_PATH — §3.0 참조)
+### §3.1 Frontend (saas-web/ = TARGET_PLANNEL_PATH — §3.0 참조)
 
-★ 본 표의 경로는 모두 **`TARGET_PLANNEL_WINGUI_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_WINGUI_PATH/src/pages/...` 가 실제 host 경로 (§3.0).
+★ 본 표의 경로는 모두 **`TARGET_PLANNEL_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_PATH/src/pages/...` 가 실제 host 경로 (§3.0).
 
 | 파일 | 필수 | 설명 |
 |---|---|---|

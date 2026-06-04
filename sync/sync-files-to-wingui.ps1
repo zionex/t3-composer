@@ -7,8 +7,9 @@
 [CmdletBinding()]
 param(
     [string]$Manifest = "./sync/manifest.json",
-    [string]$WinguiPath = $env:COMPOSER_WINGUI_REF_PATH,
-    [string]$DatabasePath = $env:COMPOSER_DATABASE_REF_PATH,
+    # TARGET_T3SERIES_PATH 우선, 폐기된 COMPOSER_WINGUI_REF_PATH 는 호환 fallback (2026-06-04).
+    [string]$WinguiPath = $(if ($env:TARGET_T3SERIES_PATH) { $env:TARGET_T3SERIES_PATH } else { $env:COMPOSER_WINGUI_REF_PATH }),
+    [string]$DatabasePath = $(if ($env:TARGET_T3SERIES_DATABASE_PATH) { $env:TARGET_T3SERIES_DATABASE_PATH } else { $env:COMPOSER_DATABASE_REF_PATH }),
     [string]$UpgradeVersion = $env:COMPOSER_UPGRADE_VERSION,
     [switch]$DryRun
 )

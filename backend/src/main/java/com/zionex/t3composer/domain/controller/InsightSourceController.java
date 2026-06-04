@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
  *   3) JSX 안에서 zAxios.* URL / callService(...) 서비스 ID / SP_UI_* 식별자 grep
  *   4) URL 로 매칭되는 Controller .java 위치 후 같은 디렉토리의 Service/Repository/Entity 동봉
  *
- * Target 의 wingui repo 가 마운트되어 있어야 한다 (.env 의 TARGET_&lt;CD&gt;_WINGUI_PATH).
+ * Target 의 source repo 가 마운트되어 있어야 한다 (.env 의 TARGET_&lt;CD&gt;_PATH).
  */
 @Slf4j
 @RestController
@@ -583,8 +583,8 @@ public class InsightSourceController {
         if (sourceRoot == null) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "error", "Target " + targetCd + " 의 wingui 경로를 찾을 수 없음 "
-                    + "(.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)"
+                "error", "Target " + targetCd + " 의 source 경로를 찾을 수 없음 "
+                    + "(.env 의 TARGET_" + targetCd + "_PATH 확인)"
             ));
         }
         Path[] menuFileCandidates = new Path[]{

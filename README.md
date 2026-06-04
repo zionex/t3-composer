@@ -83,7 +83,7 @@ t3-composer/
    → RealGrid2 (sky-blue) + wingui 룩 InputField/SearchArea — 부모 t3series 와 동일
 6. 검증 OK 후 [메뉴 등록] + [아티팩트 실행]
    - staging mode: ./staging/output/<session> 에 산출물 + composer-db 에 메뉴/SP 등록
-   - direct mode : COMPOSER_WINGUI_REF_PATH 폴더에 직접 + composer-db 에도 등록
+   - Per-Target 직접 적용: TARGET_<CD>_PATH 가 설정된 Target 은 자동으로 host 폴더에 직접 쓰기 + composer-db 에도 등록 (2026-05-28)
 7. wingui 동기화 (검증 통과 후)
    ./sync/manifest-from-staging.ps1
    ./sync/sync-files-to-wingui.ps1 -DryRun   # 미리보기
@@ -103,7 +103,7 @@ t3-composer/
 ## 부모 프로젝트와의 관계
 
 - 모든 화면 규약(MENU_CD · BaseGrid · zAxios · Pop\* · CommonCodeSelect · SP_UI_\* 네이밍 등)은 **부모 `t3series` 의 `.claude/rules/*` 를 그대로 따릅니다**. CLAUDE.md 참조.
-- `COMPOSER_WINGUI_REF_PATH` 가 가리키는 `t3series-wingui` 폴더가 NEW_FROM_COPY 모드의 sourceBundle 수집 대상입니다.
+- `TARGET_T3SERIES_PATH` 가 가리키는 `t3series-wingui` 폴더가 NEW_FROM_COPY 모드의 sourceBundle 수집 대상입니다.
 - DB 스키마 (`TB_AD_MENU`/`TB_AD_LANG_PACK`/`TB_UT_USER_INFO` 등) 는 wingui 와 동일한 v26.0.0 최신 DDL 기준으로 시드됩니다.
 
 ## 라이선스

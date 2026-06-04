@@ -162,7 +162,7 @@ composer-backend:
     - composer-maven-repo:/root/.m2
     - ./staging:/workspace/staging
     - ./frontend/src/view/_preview:/workspace/preview/frontend
-    - ${COMPOSER_WINGUI_REF_PATH}:/workspace/wingui:ro
+    - ${TARGET_T3SERIES_PATH}:/workspace/wingui:ro
     - ~/.claude:/root/.claude:rw                                # ★ NEW
   environment:
     - LLM_BACKEND=${LLM_BACKEND:-api}                            # ★ NEW

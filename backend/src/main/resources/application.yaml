@@ -73,7 +73,7 @@ app:
     auto-apply-enabled: true
     apply-mode: ${COMPOSER_APPLY_MODE:staging}
     project-root: ${COMPOSER_PROJECT_ROOT:/workspace/staging}
-    # (2026-05-28) 글로벌 wingui-ref-path / database-ref-path 폐기 — Per-Target (TARGET_<CD>_WINGUI_PATH) 만 사용.
+    # (2026-05-28) 글로벌 source-ref-path / database-ref-path 폐기 — Per-Target (TARGET_<CD>_PATH) 만 사용.
     # TargetPathResolver 가 /workspace/targets/<CD>/{wingui|database} 채택, 없으면 staging fallback.
     upgrade-version: ${COMPOSER_UPGRADE_VERSION:v26.0.0-20260507}
     preview-frontend-root: ${COMPOSER_PREVIEW_FRONTEND_ROOT:/workspace/preview/frontend}
@@ -88,7 +88,7 @@ app:
       - "**/mssql/upgrade/**"
       - "**/oracle/procedures/**"
       - "**/oracle/upgrade/**"
-      # PlanNEL — saas-web/ (TARGET_PLANNEL_WINGUI_PATH)
+      # PlanNEL — saas-web/ (TARGET_PLANNEL_PATH)
       - "**/src/pages/**"
       - "src/pages/**"
       - "**/src/services/**"

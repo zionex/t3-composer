@@ -70,7 +70,7 @@ public class ComposerProperties {
         "**/mssql/upgrade/**",
         "**/oracle/procedures/**",
         "**/oracle/upgrade/**",
-        // PlanNEL — saas-web/ (TARGET_PLANNEL_WINGUI_PATH)
+        // PlanNEL — saas-web/ (TARGET_PLANNEL_PATH)
         // Both **/src/.../** and src/.../** are needed: Java PathMatcher with leading **/ does
         // not reliably match paths where the mount-point prefix was already stripped, leaving
         // the path starting directly with src/ (no leading segment for ** to absorb).
@@ -114,7 +114,7 @@ public class ComposerProperties {
     @PostConstruct
     void resolveEffectiveProjectRoot() {
         if (isDirectMode()) {
-            log.warn("Composer apply-mode=direct 는 폐기됨 — Per-Target wingui (TARGET_<CD>_WINGUI_PATH) "
+            log.warn("Composer apply-mode=direct 는 폐기됨 — Per-Target source 경로 (TARGET_<CD>_PATH) "
                   + "가 자동으로 사용됨. staging fallback 으로 전환.");
             this.applyMode = "staging";
         }

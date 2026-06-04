@@ -215,28 +215,50 @@ public class ArtifactApplyService {
         //   못 찾으면 글로벌 staging fallback.
         String sessTargetCd = sessionRepo.findById(sessionId)
                 .map(ComposerSession::getTargetCd).orElse(null);
-        String root = null;
+        // ★ 2026-06-01: 단일 root → 3개 root (frontend / backend / database) 로 분리.
+        //   PlanNEL 같은 target 은 frontend(saas-web/) 와 backend(saas-application/) 가
+        //   별개 디렉토리이므로 Java 아티팩트를 frontend root 기준으로 경로를 쌓으면
+        //   "saas-web/saas-application/..." 같은 잘못된 경로가 생성된다.
+        //   T3SERIES 처럼 monorepo 인 경우 resolveBackendPath 가 동일 root 를 반환하므로 호환.
+        String frontendRoot = null;
+        String backendRoot  = null;
+        String databaseRoot = null;
         boolean directWingui = false;
         if (targetPathResolver != null) {
-            String resolved = targetPathResolver.resolveSourcePath(sessTargetCd);
-            if (resolved != null && !resolved.isBlank()) {
-                // resolveSourcePath 가 marker (packages/wingui/src 등) 검증을 거쳐 반환 — 채택된 모든 경로는 wingui 트리.
-                root = resolved;
+            String resolvedFront = targetPathResolver.resolveSourcePath(sessTargetCd);
+            if (resolvedFront != null && !resolvedFront.isBlank()) {
+                frontendRoot = resolvedFront;
                 directWingui = true;
-                log.info("Artifact apply routing: sessionId={} targetCd={} direct→wingui root={}",
-                        sessionId, sessTargetCd, root);
             }
+            String resolvedBack = targetPathResolver.resolveBackendPath(sessTargetCd);
+            if (resolvedBack != null && !resolvedBack.isBlank()) {
+                backendRoot = resolvedBack;
+            } else {
+                backendRoot = frontendRoot;   // monorepo fallback
+            }
+            try {
+                String resolvedDb = targetPathResolver.resolveDatabasePath(sessTargetCd);
+                if (resolvedDb != null && !resolvedDb.isBlank()) {
+                    databaseRoot = resolvedDb;
+                }
+            } catch (Throwable ignored) { /* resolveDatabasePath 는 선택적 — 없어도 진행 */ }
+            if (databaseRoot == null || databaseRoot.isBlank()) databaseRoot = frontendRoot;
+            log.info("Artifact apply routing: sessionId={} targetCd={} frontend={} backend={} database={}",
+                    sessionId, sessTargetCd, frontendRoot, backendRoot, databaseRoot);
         }
-        if (root == null || root.isBlank()) {
-            root = props.getComposer().getProjectRoot();   // fallback (staging)
-            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", root);
+        if (frontendRoot == null || frontendRoot.isBlank()) {
+            frontendRoot = props.getComposer().getProjectRoot();   // fallback (staging)
+            if (backendRoot  == null || backendRoot.isBlank())  backendRoot  = frontendRoot;
+            if (databaseRoot == null || databaseRoot.isBlank()) databaseRoot = frontendRoot;
+            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", frontendRoot);
         }
-        if (root == null || root.isBlank()) {
+        if (frontendRoot == null || frontendRoot.isBlank()) {
             return failure("산출물 출력 루트 결정 실패 — TargetPathResolver 도 fallback 도 빈 값.");
         }
+        // rootPath 는 frontendRoot 기반 유지 — triggerControlPlane(npm build) 이 이 경로를 사용.
         Path rootPath;
         try {
-            rootPath = Paths.get(root).toAbsolutePath().normalize();
+            rootPath = Paths.get(frontendRoot).toAbsolutePath().normalize();
         } catch (Exception e) {
             return failure("project-root 경로 오류: " + e.getMessage());
         }
@@ -245,6 +267,10 @@ public class ArtifactApplyService {
         }
         // directWingui 분기는 file write 시점에서 Java rewrite 호출 여부 결정에 사용
         final boolean isDirectWinguiWrite = directWingui;
+        // 람다 내부에서 사용하기 위한 effectively-final 복사
+        final String fFrontendRoot = frontendRoot;
+        final String fBackendRoot  = backendRoot;
+        final String fDatabaseRoot = databaseRoot;
 
         // Supersede 된 이전 버전(STATUS_DISCARDED) 은 apply 대상에서 제외 — 항상 최신만 적용
         List<ComposerArtifact> artifacts =
@@ -361,9 +387,13 @@ public class ArtifactApplyService {
                                 "저장 경로를 확정할 수 없음 (fileName 으로 auto-route 실패): "
                                 + a.getFilePath());
                     }
-                    Path abs = rootPath.resolve(targetPath).normalize();
-                    ensureUnderRoot(rootPath, abs);
-                    ensureMatchesAllowList(rootPath, abs);
+                    // ★ 아티팩트 타입 별 root 선택 — Java 는 backendRoot, SQL 은 databaseRoot, 그 외 frontendRoot
+                    Path pickedRootPath = Paths.get(
+                            pickRootForArtifact(a, targetPath, fFrontendRoot, fBackendRoot, fDatabaseRoot)
+                    ).toAbsolutePath().normalize();
+                    Path abs = pickedRootPath.resolve(targetPath).normalize();
+                    ensureUnderRoot(pickedRootPath, abs);
+                    ensureMatchesAllowList(pickedRootPath, abs);
                     if (!opts.overwrite && Files.exists(abs)) {
                         record.put("fileOk", false);
                         record.put("fileErr", "이미 존재 (overwrite=false)");
@@ -372,13 +402,37 @@ public class ArtifactApplyService {
                         // ★ Java 산출물 + Target wingui 직접 쓰기 → 패키지 자동 rename
                         //   (com.zionex.t3composer.* → com.zionex.t3series.web.*) — sync 스크립트 로직 내장.
                         //   staging fallback 의 경우는 rewrite 안 함 (기존 흐름과 호환 — sync 스크립트가 처리).
+                        //   ★ 2026-06-01: T3SERIES 전용 rewriter — PlanNEL (t3series.saas.*) 등 다른 Target 에는 실행 금지.
+                        //   wingui 패키지 구조가 다른 Target 에서 rewriteToWinguiPackages 를 실행하면
+                        //   정상적인 패키지명이 손상된다.
                         String contentToWrite = content;
                         if (isDirectWinguiWrite && javaArtifactRewriter != null
-                                && isJavaSourceType(type)) {
+                                && isJavaSourceType(type)
+                                && "T3SERIES".equals(sessTargetCd)) {
                             String rewritten = javaArtifactRewriter.rewriteToWinguiPackages(content);
                             if (rewritten != null && !rewritten.equals(content)) {
                                 contentToWrite = rewritten;
                                 record.put("javaRenamed", true);
+                            }
+                        }
+                        // ★ PlanNEL 방어: Spring Boot 2.4.13 는 jakarta.* classpath 없음.
+                        //   LLM 이 규칙(41b §5.4)을 어기고 jakarta.* 를 쓰면 즉시 컴파일 실패.
+                        //   import 라인 + 인라인 타입 참조 양쪽을 javax.* 로 자동 교정한다.
+                        if (isJavaSourceType(type) && "PLANNEL".equals(sessTargetCd)) {
+                            String fixed = contentToWrite
+                                    // import 라인 (import jakarta. / import static jakarta.)
+                                    .replaceAll("(?m)^(\\s*import\\s+(?:static\\s+)?)jakarta\\.", "$1javax.")
+                                    // 인라인 타입 참조 — 앞에 식별자 문자가 없는 경우만 치환
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.persistence\\.", "javax.persistence.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.validation\\.", "javax.validation.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.servlet\\.", "javax.servlet.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.annotation\\.", "javax.annotation.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.transaction\\.", "javax.transaction.")
+                                    .replaceAll("(?<![A-Za-z0-9_.])jakarta\\.inject\\.", "javax.inject.");
+                            if (!fixed.equals(contentToWrite)) {
+                                log.info("PLANNEL Java artifact: rewrote jakarta.* → javax.* in {}", a.getFileName());
+                                contentToWrite = fixed;
+                                record.put("jakartaFixed", true);
                             }
                         }
                         Files.createDirectories(abs.getParent());
@@ -388,6 +442,39 @@ public class ArtifactApplyService {
                                 StandardOpenOption.WRITE);
                         record.put("fileOk", true);
                         fileOk++;
+
+                        // PlanNEL Liquibase auto-include — new SQL_DDL changelog file must be
+                        // referenced from db.changelog-tenant.yaml master, otherwise Liquibase
+                        // won't pick it up on saas-application startup.
+                        if (isDdl && "PLANNEL".equals(sessTargetCd)) {
+                            try {
+                                Path masterPath = pickedRootPath.resolve(
+                                        "src/main/resources/db/changelog/db.changelog-tenant.yaml");
+                                String relNorm = targetPath.replace('\\', '/');
+                                int chIdx = relNorm.indexOf("db/changelog/");
+                                if (Files.isRegularFile(masterPath) && chIdx >= 0) {
+                                    String includeRel = relNorm.substring(chIdx);
+                                    String masterContent = Files.readString(masterPath, StandardCharsets.UTF_8);
+                                    if (!masterContent.contains(includeRel)) {
+                                        String includeBlock = "  - include:\n      file: " + includeRel + "\n";
+                                        String newMaster = masterContent.endsWith("\n")
+                                                ? masterContent + includeBlock
+                                                : masterContent + "\n" + includeBlock;
+                                        Files.writeString(masterPath, newMaster, StandardCharsets.UTF_8);
+                                        log.info("PLANNEL Liquibase master 갱신 — {} 에 include 추가 ({})",
+                                                masterPath, includeRel);
+                                        record.put("masterChangelogUpdated", true);
+                                        record.put("masterIncludeAdded", includeRel);
+                                    } else {
+                                        log.info("PLANNEL Liquibase master 이미 {} include 보유 — 변경 없음",
+                                                includeRel);
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                log.warn("PLANNEL Liquibase master 갱신 실패 ({}): {}",
+                                        a.getFileName(), ex.getMessage());
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     record.put("fileOk", false);
@@ -600,14 +687,55 @@ public class ArtifactApplyService {
     // File helpers
     // --------------------------------------------------------
 
+    /**
+     * 아티팩트 타입(+ 상대 경로)을 보고 실제 파일을 쓸 root 를 선택한다.
+     *
+     * <ul>
+     *   <li>Java 소스 (JAVA_*) → backendRoot</li>
+     *   <li>SQL DDL / SP     → databaseRoot</li>
+     *   <li>그 외 (JSX / MENU_SQL 등) → frontendRoot</li>
+     * </ul>
+     *
+     * T3SERIES(monorepo)는 세 root 가 모두 동일하므로 기존 동작과 호환.
+     * PlanNEL 처럼 frontend(saas-web/) 와 backend(saas-application/) 가 분리된 경우
+     * Java 파일이 saas-web/saas-application/... 으로 잘못 배치되는 문제를 방지.
+     */
+    private String pickRootForArtifact(ComposerArtifact a, String relPath,
+                                       String frontendRoot, String backendRoot, String databaseRoot) {
+        String type = a.getArtifactType();
+        String lower = (relPath == null) ? "" : relPath.toLowerCase().replace('\\', '/');
+
+        if (isJavaSourceType(type)) {
+            return backendRoot != null ? backendRoot : frontendRoot;
+        }
+        if (ComposerArtifact.TYPE_MYBATIS_MAPPER_XML.equals(type)) {
+            // MyBatis Mapper XML lives inside saas-application/src/main/resources/mapper/
+            return backendRoot != null ? backendRoot : frontendRoot;
+        }
+        if (ComposerArtifact.TYPE_SQL_DDL.equals(type) || ComposerArtifact.TYPE_SQL_SP.equals(type)) {
+            // PlanNEL Liquibase changelogs live inside saas-application/src/main/resources/db/changelog/
+            // → route to backendRoot, not databaseRoot
+            if (lower.contains("db/changelog/")
+                    || lower.contains("src/main/resources/")
+                    || lower.endsWith(".yaml") || lower.endsWith(".yml")) {
+                return backendRoot != null ? backendRoot : frontendRoot;
+            }
+            return databaseRoot != null ? databaseRoot : frontendRoot;
+        }
+        return frontendRoot;
+    }
+
     private boolean isFileArtifactType(String type) {
         if (type == null) return false;
         return type.equals(ComposerArtifact.TYPE_SCREEN_JSX)
+            || type.equals(ComposerArtifact.TYPE_FRONTEND_JS_MODULE)
+            || type.equals(ComposerArtifact.TYPE_MENU_JS)
             || type.equals(ComposerArtifact.TYPE_JAVA_CONTROLLER)
             || type.equals(ComposerArtifact.TYPE_JAVA_SERVICE)
             || type.equals(ComposerArtifact.TYPE_JAVA_REPOSITORY)
             || type.equals(ComposerArtifact.TYPE_JAVA_ENTITY)
-            || type.equals(ComposerArtifact.TYPE_MENUS_JS_PATCH);
+            || type.equals(ComposerArtifact.TYPE_MENUS_JS_PATCH)
+            || type.equals(ComposerArtifact.TYPE_MYBATIS_MAPPER_XML);
     }
 
     /** Java 소스 타입 여부 — Target wingui 에 직접 쓰기 시 패키지 rename 대상 판정용 */
@@ -636,11 +764,22 @@ public class ArtifactApplyService {
         // 1) 원본 filePath 사용 시도
         if (fp != null && !fp.isBlank() && !isAbsoluteLike(fp)) {
             String norm = fp.replace('\\', '/').replaceFirst("^/+", "");
+            // ★ 방어 (2026-06-01): LLM 이 절대경로 prefix (saas-application/ · saas-web/) 를
+            //   경로 앞에 붙이는 경우 제거한다. pickRootForArtifact 가 올바른 root 를 선택하므로
+            //   이 prefix 를 그대로 두면 root/saas-application/saas-application/... 같은 이중 경로가 만들어진다.
+            norm = norm.replaceFirst("^saas-application/", "")
+                       .replaceFirst("^saas-web/", "");
             if (matchesAllowList(norm)) {
                 // SCREEN_JSX 추가 정규화 — contentStore 라우팅 규약 (`view/.../<lowercase>/<Pascal>.jsx`)
                 // 의 자동 폴더가 누락되면 lazy import 실패하므로 자동 보강 (2026-05-27).
                 if (ComposerArtifact.TYPE_SCREEN_JSX.equals(type)) {
                     norm = ensureJsxLowercaseFolder(norm);
+                }
+                // 방어 — LLM 이 .js 파일에 SCREEN_JSX 분류된 경우 .js.jsx / .js.tsx 이중 확장자 제거
+                if (norm.toLowerCase().endsWith(".js.jsx") || norm.toLowerCase().endsWith(".js.tsx")) {
+                    String fixed = norm.replaceAll("(?i)\\.js\\.(jsx|tsx)$", ".js");
+                    log.warn("이중 확장자 제거: '{}' → '{}'", norm, fixed);
+                    norm = fixed;
                 }
                 return norm;
             }
@@ -665,6 +804,8 @@ public class ArtifactApplyService {
      */
     private String ensureJsxLowercaseFolder(String relPath) {
         if (relPath == null || relPath.isBlank()) return relPath;
+        // PlanNEL saas-web/ 은 src/pages/ 하위 구조를 사용 — wingui contentStore 라우팅 규약 (view/<lowercase>/<Pascal>) 미적용
+        if (!relPath.contains("/view/")) return relPath;
         int slash = relPath.lastIndexOf('/');
         if (slash < 0) return relPath;                          // 파일명만 — 자동 폴더 무의미
         String filename = relPath.substring(slash + 1);
@@ -737,7 +878,8 @@ public class ArtifactApplyService {
                 // UserInfoMgmt.jsx → t3series-wingui/packages/wingui/src/view/util/userinfomgmt/UserInfoMgmt.jsx
                 // (Composer 생성물은 보통 UT 모듈; 실제로는 도메인 접두어가 fileName 에 들어가 있지 않아
                 //  기본값으로 util/<lowercase-name>/ 아래 배치. 필요 시 사용자가 이동)
-                String base = safeName.replaceAll("\\.jsx$|\\.tsx$", "");
+                // 확장자 제거: .jsx / .tsx / .js (PlanNEL saas-web/ 은 .js 확장자 사용 — 미제거 시 .js.jsx 이중 확장자 발생)
+                String base = safeName.replaceAll("(?i)\\.(jsx|tsx|js)$", "");
                 String module = guessModuleFromName(base); // 예: UserInfoMgmt → util
                 String folder = base.toLowerCase();
                 return "t3series-wingui/packages/wingui/src/view/" + module + "/" + folder + "/" + base + ".jsx";
@@ -759,6 +901,23 @@ public class ArtifactApplyService {
                 };
                 return "t3series-wingui/src/main/java/com/zionex/t3series/web/domain/generated/"
                      + subdir + "/" + base + ".java";
+            }
+            case "FRONTEND_JS_MODULE": {
+                // filePath 없이 여기까지 도달한 경우(드묾) — 파일명 패턴으로 폴더 추정
+                String base = safeName.replaceAll("(?i)\\.(js|ts)$", "");
+                String area = base.contains("-service") || base.endsWith("Service") ? "services"
+                            : base.contains("-slice")  || base.endsWith("Slice")   ? "redux/slices"
+                            : base.contains("Hook")    || base.contains("-hook")    ? "hooks"
+                            : "utils";
+                return "src/" + area + "/" + safeName;
+            }
+            case "MENU_JS":
+                // TabMenuList 편집 — filePath 없이 도달한 경우 기본 경로 반환
+                return "src/pages/TabMenuList.js";
+            case "MYBATIS_MAPPER_XML": {
+                // MyBatis Mapper XML — filePath 없이 도달한 경우 mapper/<name> 으로 배치
+                String base = safeName.replaceAll("(?i)\\.xml$", "");
+                return "src/main/resources/mapper/" + base + ".xml";
             }
             default:
                 return null;
@@ -1336,6 +1495,16 @@ public class ArtifactApplyService {
 
         // 수정 모드는 기존 파일 스타일 유지를 위해 정책 검증을 생략 (너무 제한적)
         if (!isNewMode) {
+            return violations;
+        }
+
+        // PlanNEL 은 구조가 다름 — JPA + QueryDSL + MyBatis 기반이라 SP_UI_* 개념이 없고,
+        // 패키지/경로 규약(`/ut/`, `mp/dp/bf/fpserver/config/*_service.xml`, `com.zionex.t3series.web.domain.ut`)도
+        // 적용되지 않는다. wingui 네이티브 규약 전체를 스킵하고 PlanNEL 전용 룰셋 (.claude-plannel/rules/) 을 따른다.
+        String targetCd = session != null ? session.getTargetCd() : null;
+        if ("PLANNEL".equalsIgnoreCase(targetCd)) {
+            log.info("Composer wingui 네이티브 정책 검증 스킵: targetCd=PLANNEL sessionId={}",
+                    session != null ? session.getId() : "-");
             return violations;
         }
 

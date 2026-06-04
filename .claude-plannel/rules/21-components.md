@@ -37,6 +37,7 @@ const MyView = ({ t }) => {
       <AgGridReact
         ref={gridRef}
         rowData={rowData}
+        columnDefs={columnDefs}
         {...defaultGridMemo}
         onGridReady={(e) => onGridReady(e, "myGrid")}
         onCellValueChanged={onCellValueChanged}
@@ -51,6 +52,7 @@ const MyView = ({ t }) => {
 - 컨테이너 `Box` 에 `className="ag-theme-balham"` **필수** (없으면 스타일 없는 흰 화면)
 - 컨테이너에 명시적 `height` 또는 `flex:1 + minHeight:0` 필수 (AG-Grid 는 부모 높이 100% 채움)
 - `ref={gridRef}` 는 `DataState.getAllStateData(gridRef.current?.api)` 등 유틸에 필요
+- ★ **`columnDefs={columnDefs}` prop 필수** — `DefaultGridSetting` 의 반환 객체에 `columnDefs` 가 포함되지 않으므로 spread 만으로는 컬럼이 그려지지 않음. 정적 컬럼 화면은 이 prop 을 반드시 명시. (동적 컬럼: 컴포넌트 안 `const columnDefs = useRef()` + useEffect 에서 `GridUtils.setColumnDefs({ ...gridRef.current, columnDefs: columnDefs.current, viewName, initState: true })` 호출 패턴 — `CustomerMaster.js` / `ItemMaster.js` 참조)
 
 ### §1.2 DefaultGridSetting — 팩토리 함수 (컴포넌트 아님)
 
@@ -64,8 +66,8 @@ const defaultGridMemo = useMemo(
   []  // 빈 deps — columnDefs 변경 시에만 deps 추가
 );
 
-// spread 로 AgGridReact 에 적용
-<AgGridReact ref={gridRef} rowData={rowData} {...defaultGridMemo} />
+// spread 로 AgGridReact 에 적용 — ★ columnDefs 는 별도 prop 으로 전달 (defaultGridMemo 에 포함 안 됨)
+<AgGridReact ref={gridRef} rowData={rowData} columnDefs={columnDefs} {...defaultGridMemo} />
 ```
 
 **반환 객체 포함 내용**:
@@ -121,30 +123,56 @@ const columnDefs = [
 ];
 ```
 
-**headerName 규칙**: i18n 키 문자열 그대로 작성 — `GridUtils.gridValueL10N(t)` 가 `onGridReady` 시점에 변환.
+**headerName 규칙**: i18n 키 문자열 그대로 작성 — `GridUtils.setColumnDefs` 내부의 `getColumnDefs(columnDefs)` 가 `onGridReady` 시점에 헤더를 자동 번역.
 
 ### §1.4 GridUtils
 
 ```js
 import GridUtils from "@plannel/components/aggrid/GridUtils";
 
-// ① 컬럼 정의 교체 (동적 컬럼 변경)
-GridUtils.setColumnDefs(gridApi, newColDefs);
-
-// ② headerName i18n 일괄 적용 — onGridReady 또는 컬럼 변경 후 호출
-//    columnDefs 의 headerName 을 t(headerName) 으로 변환
+// ① 컬럼 정의 적용 + 헤더 i18n 자동 처리 + 개인화 상태 복원
+//    setColumnDefs 는 단일 객체 인자 (positional 인자 X)
+//    ★ 주의: AgGridReact 에 columnDefs prop 도 별도로 전달해야 함 (§1.1 참조).
+//    이 호출은 헤더 i18n 변환과 p13n 상태 복원 용도이며, 초기 렌더의 컬럼 표시는 prop 으로 보장.
 const onGridReady = (e) => {
-  GridUtils.setColumnDefs(e.api, GridUtils.gridValueL10N(t)(columnDefs));
+  DataState.initialize(e.api);
+  GridUtils.setColumnDefs({ ...e, columnDefs, viewName: VIEW_NAME, initState: true });
 };
 
-// ③ 선택 행으로 스크롤
+// ② 동적 컬럼 변경 (개인화 복원 불필요한 경우)
+GridUtils.setColumnDefs({ ...gridRef.current, columnDefs: newColDefs });
+
+// ③ 셀 값 1개 번역 — valueFormatter 안에서만 사용
+//    (헤더는 setColumnDefs 가 자동 처리하므로 별도 호출 불필요)
+{
+  headerName: "salesTrend",
+  field: "trendDemandCd",
+  valueFormatter: (params) => GridUtils.gridValueL10N(params.value?.toLowerCase()),
+}
+
+// ④ 선택 행으로 스크롤
 GridUtils.focusOnSelectedRow(gridRef);
 
-// ④ 개인화 컬럼 숨김 키 (AG-Grid Column State 에서 제외할 컬럼)
+// ⑤ 개인화 컬럼 숨김 키 (AG-Grid Column State 에서 제외할 컬럼)
 GridUtils.IGNORE_P13N_COLLID  // string[]
 ```
 
-`GridUtils.gridValueL10N(t)` 는 `useTranslation()` 의 `t` 를 받아 curried 함수 반환.
+**`setColumnDefs(params)` 인자 객체**:
+
+| 키 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `api` | `GridApi` | ✅ | `onGridReady` 의 `e.api` (또는 `gridRef.current.api`) |
+| `columnApi` | `ColumnApi` | — | `e.columnApi` — 컬럼 상태 저장에 사용 |
+| `columnDefs` | `ColDef[]` | ✅ | i18n 키 형태의 `headerName` 포함 |
+| `viewName` | `string` | — | 지정 시 p13n(개인화) 컬럼 상태 적용 |
+| `gridId` | `string` | — | 기본값 `"grid"` — 한 화면에 그리드 여러 개일 때 키 분리 |
+| `initState` | `boolean` | — | 기본값 `false` — `true` 면 p13n 상태 적용 |
+
+**`gridValueL10N(value, options = {})` — 셀 단일 값 번역**:
+- `value` : 번역할 키(코드값)
+- `options.headerName` : 컬럼별 grid 사전 노드 사용 시 지정
+- 반환: `grid[headerName][value] ?? grid[value] ?? translation[value] ?? value`
+- **셀 값 formatter 전용**. ★ 절대 `gridValueL10N(t)(...)` 처럼 커링 호출 금지 — 그런 API 는 존재하지 않으며 i18next `t` 함수가 그대로 반환되어 후속 호출에서 `key.indexOf is not a function` TypeError 발생.
 
 ### §1.5 DataState — 더티 행 추적
 
@@ -571,7 +599,7 @@ export default withTranslation()(MyPage);
 | 필드 라벨 | `t("menu.scenario")`, `t("menu.activeFlg")` |
 | 버튼/액션 | `t("save")`, `t("delete")`, `t("search")` |
 | 메시지 | `t("MSG_SaveSuccess")`, `t("MSG_DeleteConfirm")` |
-| AG-Grid headerName | 컬럼 정의에 i18n 키 문자열 그대로 — `GridUtils.gridValueL10N(t)` 로 변환 |
+| AG-Grid headerName | 컬럼 정의에 i18n 키 문자열 그대로 — `GridUtils.setColumnDefs` 가 내부 `getColumnDefs(columnDefs)` 로 자동 변환 |
 
 ### §5.4 AG-Grid headerName i18n 적용
 
@@ -582,9 +610,10 @@ const columnDefs = [
   { headerName: "menu.status",   field: "statusCd" },
 ];
 
-// onGridReady 에서 번역 적용
+// onGridReady 에서 setColumnDefs 호출 — 헤더 i18n 은 내부에서 자동 적용
 const onGridReady = (e) => {
-  GridUtils.setColumnDefs(e.api, GridUtils.gridValueL10N(t)(columnDefs));
+  DataState.initialize(e.api);
+  GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true });
 };
 ```
 
@@ -792,7 +821,8 @@ const MyPage = ({ t }) => {
   };
 
   const onGridReady = (e) => {
-    GridUtils.setColumnDefs(e.api, GridUtils.gridValueL10N(t)(columnDefs));
+    DataState.initialize(e.api);
+    GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true });
   };
 
   return (
@@ -820,6 +850,7 @@ const MyPage = ({ t }) => {
         <AgGridReact
           ref={gridRef}
           rowData={rowData}
+          columnDefs={columnDefs}
           {...defaultGridMemo}
           onGridReady={onGridReady}
         />
@@ -1153,7 +1184,10 @@ sx={{
 | AP-16 | `className` 없이 `<AgGridReact />` 렌더 | 부모 `Box` 에 `className="ag-theme-balham"` 필수 | 스타일 없음 |
 | AP-17 | `DefaultGridSetting(...)` 을 `useMemo` 없이 호출 | `useMemo(() => DefaultGridSetting({...}), [])` | 매 렌더마다 재생성 방지 |
 | AP-18 | 데이터 로드 후 `DataState.initialize` 생략 | `.finally(() => DataState.initialize(gridRef.current?.api))` | 더티 상태 누적 방지 |
-| AP-19 | `headerName` 에 한글 하드코딩 | i18n 키 문자열 + `GridUtils.gridValueL10N(t)` | 다국어 지원 |
+| AP-19 | `headerName` 에 한글 하드코딩 | i18n 키 문자열 + `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` (헤더 i18n 자동 처리) | 다국어 지원 |
+| AP-22 | `GridUtils.gridValueL10N(t)(columnDefs)` 커링 호출 | `setColumnDefs` 가 내부에서 자동 변환 — 호출 자체 불필요 | 커링 API 없음 — `t` 함수가 그대로 반환되어 `t(columnDefs)` 실행 → `key.indexOf is not a function` TypeError |
+| AP-23 | `GridUtils.setColumnDefs(e.api, columnDefs)` 위치인자 | `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` 단일 객체 | 시그니처가 `(params)` 단일 객체. `api`/`columnApi`/`viewName`/`initState` 모두 객체 필드로 전달 |
+| AP-24 | `<AgGridReact rowData={...} {...defaultGridMemo} />` (columnDefs prop 누락) | `<AgGridReact rowData={...} columnDefs={columnDefs} {...defaultGridMemo} />` | `DefaultGridSetting` 반환 객체에 `columnDefs` 미포함 — spread 만으로는 컬럼이 그려지지 않아 빈 그리드 (헤더/데이터 모두 없음) 표시됨. `onGridReady` 의 `setColumnDefs` 호출은 비동기(`await p13nService.get`)이고 신규 viewName 은 p13n 데이터가 없어 타이밍 이슈 발생 가능 — prop 으로 항상 보장 |
 | AP-20 | Redux 에 API 결과(목록 데이터) 저장 | `useState` 로 컴포넌트 로컬 상태 관리 | `30-data-access.md §11` |
 | AP-21 | `withTranslation()` HOC 누락 | `export default withTranslation()(MyPage)` | t prop 미주입 시 번역 불가 |
 

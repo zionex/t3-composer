@@ -19,7 +19,7 @@
 
 Composer NEW_GENERAL 으로 PlanNEL 화면 생성 시:
 
-1. 가장 비슷한 기존 `saas-web/src/pages/<domain-kebab>/<Feature>.js` 페이지 1-3개를 **반드시 Read** 한다.
+1. 가장 비슷한 기존 `src/pages/<domain-kebab>/<Feature>.js` 페이지 1-3개를 **반드시 Read** 한다 (경로는 `TARGET_PLANNEL_PATH` 기준 — §3.0).
 2. 유사 서비스 파일 (`src/services/<domain>/<Name>.js`) 도 함께 Read.
 3. 산출물 맨 앞에 4줄 선언 필수:
 
@@ -85,7 +85,7 @@ PlanNEL 은 wingui 의 `MENU_CD` / `MENU_FILE_PATH` 같은 DB 등록 ID 가 없�
 | 식별자 | 위치 | 예시 |
 |---|---|---|
 | `reduxKey` | `TabMenuList.js` lv3 항목 | `"IP_SETTINGS"` |
-| 파일 경로 | `saas-web/src/pages/<domain-kebab>/<PascalName>.js` | `pages/inventory-plan/IpSettings.js` |
+| 파일 경로 | `src/pages/<domain-kebab>/<PascalName>.js` | `pages/inventory-plan/IpSettings.js` |
 | i18n 키 | `translation.*.json` `"menu"` 섹션 | `"menuIpSettings"` |
 
 Composer 산출물은 이 **3종을 모두 함께 생성**해야 한다.
@@ -113,15 +113,42 @@ lv3MenuList["SUBMENU_IP_SETTINGS"] = [
 
 ## §3. 산출물 세트 — Composer 의무 생성 목록
 
-### §3.1 Frontend (saas-web/)
+### §3.0 경로 매핑 — `.env` 변수 ↔ 산출물 경로
+
+> ★ **T3SERIES vs PlanNEL 구조 차이** — 혼동 주의:
+>
+> - **T3SERIES (wingui)** — backend + frontend 가 **한 프로젝트** (단일 repo, Maven 다중 모듈). 경로 루트 하나(`TARGET_T3SERIES_PATH`)에서 `src/main/java/...` (backend) 와 `packages/wingui/src/view/...` (frontend) 모두 해결됨.
+> - **PlanNEL** — backend 와 frontend 가 **별개 모듈** (`saas-plannel/` 모노레포의 sibling 디렉토리). `saas-application/` (Spring Boot 2.4.13 backend) 과 `saas-web/` (React CRA/craco frontend, `.js` 확장자) 가 각자의 경로 변수를 가짐 (아래 표 참조).
+>
+> 산출물 파일을 작성할 때 backend 파일(`saas-application/...`)과 frontend 파일(`saas-web/...`)의 경로 접두어를 반드시 구분해야 한다 — 같은 루트에 넣으면 오적용됨.
+
+Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉토리이고, 컨테이너 내부에서는 마운트된 경로로 보인다. 본 rule 의 `saas-application/...` · `saas-web/...` 접두어는 다음 매핑을 가진다:
+
+| Rule 표기 | `.env` 변수 | host 경로 (`.env` 값) | composer-backend 컨테이너 마운트 |
+|---|---|---|---|
+| `saas-application/...` | `TARGET_PLANNEL_BACKEND_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application` | `/workspace/targets/PLANNEL/backend/...` |
+| `saas-web/...` | `TARGET_PLANNEL_PATH` ※ | 예: `/Users/<user>/work/projects/saas-plannel/saas-web` | `/workspace/targets/PLANNEL/wingui/...` |
+| (DDL/migration) | `TARGET_PLANNEL_DATABASE_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application/src/main/resources/db/changelog` (혹은 별도) | `/workspace/targets/PLANNEL/database/...` |
+
+※ `TARGET_PLANNEL_PATH` 는 PlanNEL 의 **frontend 루트** (`saas-web/`) 를 가리킨다 — Target 별 frontend 소스 루트를 의미하는 통일된 변수명. 컨테이너 내부 마운트 path 의 `wingui` 토큰은 `TargetPathResolver` contract 잔재.
+
+산출물 생성 시 LLM 은 가독성을 위해 `saas-application/...` · `saas-web/...` 접두어를 그대로 사용한다. Composer 의 apply 단계가 위 매핑으로 자동 변환해 실제 파일을 쓴다.
+
+> ★ **`@plannel` craco alias**: `saas-web/craco.config.js` 에서 `@plannel` = `src/` 로 설정. 따라서 페이지의 `import x from "@plannel/services/<area>/<x>-service"` = 파일 시스템상 `src/services/<area>/<x>-service.js`. 산출물 경로(`saas-web/src/services/<area>/<x>-service.js`)와 import 경로(`@plannel/services/<area>/<x>-service`)가 일치해야 webpack 이 resolve 한다 — service 파일명 오타 또는 파일 미산출 시 `Module not found`.
+
+### §3.1 Frontend (saas-web/ = TARGET_PLANNEL_PATH — §3.0 참조)
+
+★ 본 표의 경로는 모두 **`TARGET_PLANNEL_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_PATH/src/pages/...` 가 실제 host 경로 (§3.0).
 
 | 파일 | 필수 | 설명 |
 |---|---|---|
+| `src/pages/TabMenuList.js` (모디파이) | ✅ | **2가지 변경 모두 필수**: ① 파일 상단에 `import <Feature> from "./<domain-kebab>/<Feature>";` static import 추가 ② 소속 lv2 의 `lv3MenuList` 배열에 새 항목 추가. 자세히는 20 §4.5 |
 | `src/pages/<domain-kebab>/<Feature>.js` | ✅ | React 컴포넌트 — `withTranslation()` HOC 권장 (21 §5) |
-| `src/services/<domain>/<feature>Service.js` | ✅ | axios wrapper — 도메인별 인스턴스 사용 (30 §2.1) |
+| `src/services/<area>/<feature>-service.js` ★ | ✅ **페이지와 1:1 페어** | **kebab-case `<feature>-service.js`** (NOT camelCase `<feature>Service.js`!) — axios wrapper, 도메인별 인스턴스 (`restApi` / `restApiDP` / `restApiIP` / `restApiRP` / `restApiMP`) 사용. 30 §1 · §2.1 참조. ★ 페이지 생성 시 이 파일도 반드시 함께 산출 — 화면이 `@plannel/services/<area>/<feature>-service` 를 import 하므로 파일 없으면 webpack `Module not found`. |
 | `src/redux/slices/<feature>Slice.js` | 조건부 | UI 상태만 (필터/탭/페이지). API 결과는 useState |
-| **TabMenuList.js 항목 추가** | ✅ | lv3 entry — 20 §4.4-4.5 |
-| **`translation.<locale>.json` 6개 언어** | ✅ | en-us / ja-jp / ko-kr / vi-vn / zh-cn / zh-tw — 20 §5 |
+| **`src/assets/data/l10n/translation.<locale>.json` 6개 언어** | ✅ | en-us / ja-jp / ko-kr / vi-vn / zh-cn / zh-tw — 20 §5 |
+
+> ★ **페이지 + service 파일은 반드시 페어로 산출**. 페이지가 `import featureService from "@plannel/services/<area>/<feature>-service"` 처럼 import 하면, 같은 산출물 세트에 `src/services/<area>/<feature>-service.js` 가 반드시 포함되어야 한다. import 만 하고 service 파일을 산출 안 하면 webpack 빌드 실패 (`Module not found: Can't resolve '@plannel/services/<area>/<feature>-service'`).
 
 #### 도메인별 axios 인스턴스 선택
 
@@ -141,12 +168,12 @@ restApi.post("/api/customers", body);
 #### React 컴포넌트 기본 골격
 
 ```js
-// saas-web/src/pages/<domain-kebab>/<Feature>.js
+// src/pages/<domain-kebab>/<Feature>.js
 import React, { Component } from "react";
 import { withTranslation } from "react-i18next";
 import { Box, Button } from "@mui/material";
 import { AgGridReact } from "@ag-grid-community/react";
-import featureService from "../../services/<domain>/featureService";
+import featureService from "@plannel/services/<area>/<feature>-service";
 
 class Feature extends Component {
   constructor(props) {
@@ -191,17 +218,22 @@ class Feature extends Component {
 export default withTranslation()(Feature);
 ```
 
-### §3.2 Backend (saas-application/)
+### §3.2 Backend (saas-application/ = TARGET_PLANNEL_BACKEND_PATH — §3.0 참조)
 
-| 파일 | 필수 | 설명 |
+★ 본 표의 경로는 모두 **`TARGET_PLANNEL_BACKEND_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_BACKEND_PATH/src/main/java/...` 가 실제 host 경로 (§3.0).
+
+> 위 표 경로 = `src/main/java/<package as path>/<File>.java` 형식으로 표기.
+
+| 파일 경로 | 필수 | 설명 |
 |---|---|---|
-| `<Feature>.java` | ✅ | Entity — `@Table(name="z_<feature>")`, BaseEntity 상속 |
-| `<Feature>Dto.java` | ✅ | 컨트롤러 ↔ 서비스 DTO (Entity 직접 노출 금지) |
-| `<Feature>Service.java` | ✅ | `@Service` + 트랜잭션 |
-| `<Feature>Controller.java` | ✅ | `@RestController` + `@RequestMapping("/api")` |
-| `<Feature>Repository.java` | 선택 | `JpaRepository` — 단순 PK 조회/저장 |
-| `<Feature>QueryRepository.java` | 선택 | `JPAQueryFactory` — 조건부 단일 조회 |
-| `<Feature>Mapper.java` + `.xml` | 선택 | MyBatis — 페이지네이션 / 벌크 처리 |
+| `src/main/java/t3series/saas/model/<Feature>.java` | ✅ | Entity — `@Table(name="z_<feature>")`, BaseEntity 상속 |
+| `src/main/java/t3series/saas/dto/<Feature>Dto.java` | ✅ | 컨트롤러 ↔ 서비스 DTO (Entity 직접 노출 금지) |
+| `src/main/java/t3series/saas/service/<Feature>Service.java` | ✅ | `@Service` + 트랜잭션 |
+| `src/main/java/t3series/saas/controller/<Feature>Controller.java` | ✅ | `@RestController` + `@RequestMapping("/api")` |
+| `src/main/java/t3series/saas/repository/<Feature>Repository.java` | 선택 | `JpaRepository` — 단순 PK 조회/저장 |
+| `src/main/java/t3series/saas/repository/<Feature>QueryRepository.java` | 선택 | `JPAQueryFactory` — 조건부 단일 조회 |
+| `src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java` | 선택 | MyBatis Mapper interface (`@Mapper` 어노테이션) — 페이지네이션 / 벌크 처리 |
+| `src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml` | 선택 (Mapper.java 와 쌍) | MyBatis XML SQL — `<subdomain>` 폴더가 java 측과 동일하게 (master/dp/ip/mp/rp/notification 등) |
 
 패키지 배치 (41b §5.5.1):
 ```
@@ -232,7 +264,7 @@ DDL 작성 시 40 §11 신규 테이블 체크리스트 필수 적용.
 ## §4. i18n 키 등록 — 6개 언어 동시 갱신 필수
 
 ```
-saas-web/src/assets/data/l10n/
+src/assets/data/l10n/
 ├── translation.en-us.json
 ├── translation.ja-jp.json
 ├── translation.ko-kr.json
@@ -276,8 +308,9 @@ saas-web/src/assets/data/l10n/
 ### §5.2 Frontend 산출물
 
 - [ ] 페이지 파일 경로: `src/pages/<domain-kebab>/<PascalName>.js`?
-- [ ] 서비스 파일 경로: `src/services/<domain>/<featureName>Service.js`?
-- [ ] TabMenuList.js lv3 항목 추가 (static import + component JSX)?
+- [ ] 서비스 파일 경로: `src/services/<area>/<feature>-service.js`? (kebab-case, NOT `<feature>Service.js`)
+- [ ] 페이지가 `@plannel/services/<area>/<feature>-service` 를 import 하는데 그 service 파일이 산출물 세트에 포함되어 있는가? (페이지-service 파일 1:1 페어 누락 시 webpack `Module not found`)
+- [ ] TabMenuList.js: ① 파일 상단 static import 추가 AND ② lv3 항목 추가 — 둘 다 필수?
 - [ ] i18n 6개 언어 `translation.*.json` 모두 갱신?
 
 ### §5.3 Backend 산출물
@@ -329,6 +362,9 @@ saas-web/src/assets/data/l10n/
 | `PLAN_SCOPE` 컬럼 필터로 테넌트 격리 | schema-per-tenant — `tenant_id` 컬럼 없음 | 40 §1.1 |
 | `@Column(name = "TB_...")`에 schema prefix | `@Table(name = "z_customer")` schema prefix 없음 | 40 §1.1 |
 | `composer-jsx.sh` / wingui hook 참조 | 해당 없음 (PlanNEL Composer 전용 hook 사용) | — |
+| ❌ `CustomReport.jsx` 또는 `CustomReport.js.jsx` (이중 확장자) | ✅ `CustomReport.js` (`.js` 만 — `saas-web/` 은 CRA/craco 기반이며 전체 코드베이스가 `.js` 로 React 컴포넌트 작성) | 20 §2.1 |
+| ❌ 페이지에서 `@plannel/services/<area>/<feature>-service` 를 import 하면서 그 service 파일(`src/services/<area>/<feature>-service.js`)은 산출물 세트에 없음 | ✅ 페이지와 service 파일을 **항상 함께** 산출 (1:1 페어) — import 만 쓰고 파일 미산출 시 webpack `Module not found` | 41 §3.1, 30 §1 |
+| ❌ camelCase service 파일명 (`customerService.js`, `materialService.js`) | ✅ kebab-case (`customer-service.js`, `material-service.js`) — saas-plannel 실제 컨벤션 (30 §1 참조) | 30 §1 |
 
 ---
 

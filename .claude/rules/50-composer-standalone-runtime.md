@@ -22,13 +22,13 @@ composer-backend:
     - composer-maven-repo:/root/.m2                                  # mvn cache (재기동 빠름)
     - ./staging:/workspace/staging                                   # 정식 apply 산출물
     - ./frontend/src/view/_preview:/workspace/preview/frontend       # JSX preview 출력
-    - ${COMPOSER_WINGUI_REF_PATH}:/workspace/wingui:ro               # 부모 wingui (NEW_FROM_COPY 참조)
+    - ${TARGET_T3SERIES_PATH}:/workspace/wingui:ro                   # T3SERIES source (NEW_FROM_COPY 참조)
 
 composer-frontend:
   volumes:
     - ./frontend:/app
     - /app/node_modules                                              # 익명 volume (npm install 결과)
-    - ${COMPOSER_WINGUI_REF_PATH}:/workspace/wingui:ro               # entrypoint 가 realgrid 복사
+    - ${TARGET_T3SERIES_PATH}:/workspace/wingui:ro                   # entrypoint 가 realgrid 복사
 ```
 
 ## 2. Backend hot-reload (Phase 1)

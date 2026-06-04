@@ -3,6 +3,8 @@
 > 본 문서 = **파일 배치 · 라우팅 · 메뉴 등록 · i18n 키 등록** 만.
 > 컴포넌트 코드 표면(AG-Grid · MUI · Redux · 서비스 호출)은 `21-components.md` 가 단일 진실.
 
+★ 본 문서의 모든 파일 경로(Frontend)는 **`TARGET_PLANNEL_PATH` 기준 상대 경로** — 즉 `TARGET_PLANNEL_PATH/src/pages/...` 가 실제 host 경로 (41 §3.0).
+
 ---
 
 ## 1. 결정 플로우
@@ -32,7 +34,7 @@ i18n 키 6개 언어 JSON 에 모두 추가
 ### 2.1 페이지 파일 위치
 
 ```
-saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
+src/pages/<domain-kebab-case>/<PascalCase>.js
 ```
 
 | ✅ 예 | ❌ 금지 |
@@ -43,7 +45,7 @@ saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
 
 규칙:
 - 폴더명: **kebab-case** (소문자 + 하이픈)
-- 파일명: **PascalCase.js** (`.jsx` 금지 — 기존 코드베이스 전체 `.js`)
+- 파일명: **PascalCase.js** ★ (`.jsx` 절대 금지 — `saas-web/` 은 craco/CRA 기반이며 전체 코드베이스가 `.js` 확장자로 React 컴포넌트를 작성한다. 산출물 파일명에 `.jsx` 가 포함되면 Composer apply 단계에서 **`.js.jsx` 이중 확장자** 파일이 생성되는 치명적 버그로 이어짐 — 41-composer-generation §6 anti-pattern 참조)
 - 서브 카테고리가 필요하면 한 단계 더 : `src/pages/<domain>/<category>/<PascalCase>.js`
 
 ### 2.2 관련 파일 위치 규약
@@ -95,7 +97,7 @@ saas-web/src/pages/<domain-kebab-case>/<PascalCase>.js
 
 ## 4. 메뉴 등록 — TabMenuList.js
 
-`saas-web/src/pages/TabMenuList.js` 가 **모든 비즈니스 화면 메뉴의 단일 진실 저장소**.
+`src/pages/TabMenuList.js` 가 **모든 비즈니스 화면 메뉴의 단일 진실 저장소**.
 DB 등록 없이 이 파일만 수정하면 사이드바 · 탭 · 권한 체크가 모두 동작한다.
 
 ### 4.1 3단계 메뉴 계층
@@ -213,7 +215,7 @@ const lv3MenuList = {
 ### 5.1 6개 언어 파일 모두 필수
 
 ```
-saas-web/src/assets/data/l10n/
+src/assets/data/l10n/
 ├── translation.en-us.json
 ├── translation.ja-jp.json
 ├── translation.ko-kr.json

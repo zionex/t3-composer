@@ -128,8 +128,8 @@ public class TargetMenuController {
     private Map<String, Object> loadJsFileMenus(String targetCd, String lang) throws IOException {
         String root = pathResolver.resolveSourcePath(targetCd);
         if (root == null) {
-            throw new IOException("Target " + targetCd + " 의 wingui 경로를 찾을 수 없음 "
-                    + "(.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)");
+            throw new IOException("Target " + targetCd + " 의 source 경로를 찾을 수 없음 "
+                    + "(.env 의 TARGET_" + targetCd + "_PATH 확인)");
         }
         Path[] candidates = new Path[]{
             Path.of(root, "src", "pages", "TabMenuList.js"),
@@ -315,7 +315,7 @@ public class TargetMenuController {
         if (menusJs == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseMessage.of(HttpStatus.NOT_FOUND,
-                    "wingui menus.js 를 찾을 수 없습니다 (.env 의 TARGET_" + targetCd + "_WINGUI_PATH 확인)"));
+                    "menus.js 를 찾을 수 없습니다 (.env 의 TARGET_" + targetCd + "_PATH 확인)"));
         }
 
         // 2) 파일 읽기 + JS 변수 선언 제거 → JSON

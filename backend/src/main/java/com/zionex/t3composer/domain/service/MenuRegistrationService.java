@@ -478,7 +478,7 @@ public class MenuRegistrationService {
         if (tabMenuFile == null) {
             return resultOf(false, 0, 0, List.of(
                     "TabMenuList.js 파일을 찾지 못함. Target=" + targetCd
-                  + " 의 source_ref_path / TARGET_<CD>_WINGUI_PATH (.env) 확인 필요."));
+                  + " 의 source_ref_path / TARGET_<CD>_PATH (.env) 확인 필요."));
         }
 
         // content (JSON) 파싱 — `entries` 배열 또는 단일 entry 객체 모두 허용

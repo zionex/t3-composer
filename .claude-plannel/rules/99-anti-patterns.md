@@ -94,7 +94,10 @@ LLM 은 최신 Spring Boot 3.x (`jakarta.*`) 에 익숙. PlanNEL 은 **2.4.13 (`
 | FE13 | BigInt ID 를 number 로 변환해 정밀도 손실 | `json-bigint` 그대로 사용 (axios-bigint transformer) |
 | FE14 | `useState` 안 객체 mutation (`obj.x = 1; setObj(obj)`) | spread (`setObj({...obj, x: 1})`) — React 가 변경 감지 |
 | FE15 | `useMemo` deps 에 `gridItems` 변수 포함 → 매 렌더 재생성 | 컬럼 정의를 컴포넌트 밖으로 빼거나 useMemo deps 비움 (`[]`) |
-| FE16 | i18n key 와 일반 string 혼용 (`headerName: t("customerCd")`) | i18n key 만 (`headerName: "customerCd"`) — GridUtils.gridValueL10N 이 자동 변환 |
+| FE16 | i18n key 와 일반 string 혼용 (`headerName: t("customerCd")`) | i18n key 만 (`headerName: "customerCd"`) — `GridUtils.setColumnDefs` 내부 `getColumnDefs()` 가 자동 변환 |
+| FE17 | `GridUtils.gridValueL10N(t)(columnDefs)` 커링 호출 — 존재하지 않는 API → 런타임에 `t(columnDefs)` 실행되며 i18next 가 `key.indexOf is not a function` TypeError 발생 | `gridValueL10N(value, options)` 는 셀 값 1개 번역용. 헤더 i18n 은 호출 불필요 — `GridUtils.setColumnDefs({ ...e, columnDefs, viewName, initState: true })` 가 내부에서 자동 처리 |
+| FE18 | `GridUtils.setColumnDefs(e.api, columnDefs)` 위치인자 | 실제 시그니처는 단일 객체 `setColumnDefs({ api, columnApi, columnDefs, viewName, gridId, initState })` — `{ ...e, columnDefs, viewName, initState: true }` 형태로 호출 |
+| FE19 | `<AgGridReact rowData={...} {...defaultGridMemo} />` — `columnDefs` prop 누락 → 빈 그리드 (헤더/데이터 모두 안 보임) | `<AgGridReact rowData={...} columnDefs={columnDefs} {...defaultGridMemo} />` — `DefaultGridSetting` 은 `columnDefs` 를 반환하지 않으므로 prop 으로 명시 필수. 동적 컬럼은 `columnDefs = useRef()` + useEffect 에서 `GridUtils.setColumnDefs` 패턴(CustomerMaster/ItemMaster) |
 
 ---
 

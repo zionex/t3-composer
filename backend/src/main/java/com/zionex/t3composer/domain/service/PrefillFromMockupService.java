@@ -1,7 +1,7 @@
 package com.zionex.t3composer.domain.service;
 
 import com.zionex.t3composer.domain.dto.PrefillFromMockupRequest;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -28,7 +28,7 @@ public class PrefillFromMockupService {
     private static final int MAX_TOKENS = 2048;
     private static final int MAX_META_CHARS = 8000;
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper;
 
@@ -60,7 +60,7 @@ public class PrefillFromMockupService {
                     ))
                     .build();
 
-            MessagesResponse resp = anthropicClient.sendMessages(apiKey, mreq).block();
+            MessagesResponse resp = llmClient.sendMessages(apiKey, mreq).block();
             String rawText = extractText(resp);
             Map<String, Object> spec = parseSpec(rawText);
 

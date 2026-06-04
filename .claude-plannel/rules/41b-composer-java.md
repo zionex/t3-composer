@@ -1,5 +1,7 @@
 # 41b. Composer — Java 백엔드 표준 (PlanNEL / saas-plannel)
 
+> ⚠️ **PlanNEL Spring Boot 2.4.13 — `javax.*` 만 사용**. `jakarta.*` import 가 들어가면 즉시 컴파일 실패 (해당 클래스가 classpath 에 없음). Spring Boot 3 의 jakarta 컨벤션을 기억하고 있다면 즉시 잊을 것.
+
 > **PlanNEL 전용** — wingui(T3SmartSCM) 와 완전히 다른 스택.
 > 이 파일이 생성하는 모든 Java 산출물은 `saas-plannel` 레포의 Spring Boot 2.4.13 / PostgreSQL 환경에서 동작한다.
 > 생성 전 반드시 이 파일을 참조할 것.
@@ -106,6 +108,11 @@ public class FeatureQueryRepository {
 ```
 
 ### MyBatis Mapper 패턴
+
+> **파일 위치 (두 곳 — 반드시 분리)**:
+> - Java interface: `src/main/java/t3series/saas/mapper/<subdomain>/<Feature>Mapper.java`
+> - XML SQL: `src/main/resources/mapper/<subdomain>/<Feature>Mapper.xml`
+> (`<subdomain>` 은 동일하게 — `master` / `dp` / `ip` / `mp` / `rp` / `notification` / `quicksight` / `audittrail`)
 
 ```java
 package t3series.saas.mapper.master;
@@ -263,6 +270,8 @@ import java.util.*;
 
 ### §5.5.1 도출식
 
+> ★ 본 rule 의 `saas-application/...` = `TARGET_PLANNEL_BACKEND_PATH` (`.env`). 컨테이너 내부에서는 `/workspace/targets/PLANNEL/backend/...` 로 마운트. 자세히는 41 §3.0.
+
 ```
 MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
                                             └─ <Feature> = Customer
@@ -277,7 +286,8 @@ MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
   <Feature>Controller.java        → CustomerController.java @RestController
   <Feature>Repository.java        → CustomerRepository.java (선택, JpaRepository)
   <Feature>QueryRepository.java   → CustomerQueryRepository.java (선택, QueryDSL)
-  <Feature>Mapper.java            → CustomerMapper.java (선택, MyBatis)
+  <Feature>Mapper.java            → CustomerMapper.java (선택, MyBatis @Mapper interface)
+  resources/mapper/<subdomain>/<Feature>Mapper.xml → resources/mapper/master/CustomerMapper.xml (선택, MyBatis XML)
 
 패키지:
   entity:     t3series.saas.model
@@ -286,6 +296,7 @@ MENU_FILE_PATH   = /<module>[/<category>]/<PascalName>    예: /master/customer
   controller: t3series.saas.controller
   repository: t3series.saas.repository
   mapper:     t3series.saas.mapper.<subdomain>   예: t3series.saas.mapper.master
+  mapper XML: src/main/resources/mapper/<subdomain>/  (java 측 subdomain 과 동일)
 ```
 
 ### §5.5.2 절대 규칙
@@ -612,6 +623,6 @@ PlanNEL Entity 는 모두 `@Version` 으로 낙관적 락 적용. 충돌 시 `Op
 - `41-composer-generation.md` — 생성 메인 규약
 - `41a-composer-jsx.md` — JSX 표준
 - `30-data-access.md` — PlanNEL DB / ORM 상세
-- `saas-plannel/src/main/java/t3series/saas/controller/CustomerController.java` — 실제 참조 원본
-- `saas-plannel/src/main/java/t3series/saas/service/CustomerService.java` — 실제 참조 원본
-- `saas-plannel/src/main/java/t3series/saas/mapper/master/CustomerMapper.java` — 실제 참조 원본
+- `src/main/java/t3series/saas/controller/CustomerController.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본
+- `src/main/java/t3series/saas/service/CustomerService.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본
+- `src/main/java/t3series/saas/mapper/master/CustomerMapper.java` (host 절대 경로 = `<TARGET_PLANNEL_BACKEND_PATH>/src/main/java/...` — 41 §3.0) — 실제 참조 원본

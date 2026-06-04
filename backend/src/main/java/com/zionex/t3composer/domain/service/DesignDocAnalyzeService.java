@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -47,7 +47,7 @@ public class DesignDocAnalyzeService {
     private static final String MODEL_NAME = "claude-sonnet-4-5";
     private static final int    MAX_TOKENS = 4096;
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -72,7 +72,7 @@ public class DesignDocAnalyzeService {
                 .messages(List.of(Message.builder().role("user").content(userPrompt).build()))
                 .build();
 
-        MessagesResponse resp = anthropicClient.sendMessages(apiKey, mreq).block();
+        MessagesResponse resp = llmClient.sendMessages(apiKey, mreq).block();
         String text = extractText(resp);
         log.debug("Claude raw response (analyze-query): {}", text);
 

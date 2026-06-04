@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -48,7 +48,7 @@ public class PrefillFromSourceService {
     // user 프롬프트 전체 하드 캡 — Anthropic 요청 안전 마진 (~80K chars ≈ 25K tokens)
     private static final int    USER_PROMPT_HARD_CAP_CHARS = 80000;
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,7 +87,7 @@ public class PrefillFromSourceService {
 
         MessagesResponse resp;
         try {
-            resp = anthropicClient.sendMessages(apiKey, mreq).block();
+            resp = llmClient.sendMessages(apiKey, mreq).block();
         } catch (Exception e) {
             // Anthropic 호출 자체가 실패 — 원인을 명확히 로그에 남기고 호출자(컨트롤러)가 500 으로 답하게 한다.
             log.error("prefill-from-source Anthropic 호출 실패: type={} message={} (sourceMenuCd={}, userPromptLen={})",

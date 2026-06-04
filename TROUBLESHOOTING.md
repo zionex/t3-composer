@@ -148,9 +148,9 @@ docker exec composer-db /opt/mssql-tools18/bin/sqlcmd \
 
 ## 7. NEW_FROM_COPY 모드에서 sourceBundle 수집 실패
 
-**원인**: Composer backend 가 wingui 폴더를 read-only 마운트 못함
+**원인**: Composer backend 가 Target source 폴더를 마운트 못함
 
-**대처**: `docker-compose.yml` 의 `composer-backend.volumes` 에 `${COMPOSER_WINGUI_REF_PATH}:/workspace/wingui:ro` 가 있는지, `.env` 의 `COMPOSER_WINGUI_REF_PATH` 가 절대경로(Windows: `C:/Project/t3series/t3series-wingui`) 인지 확인.
+**대처**: `docker-compose.yml` 의 `composer-backend.volumes` 에 `${TARGET_T3SERIES_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:rw` 가 있는지, `.env` 의 `TARGET_T3SERIES_PATH` (다른 Target 이면 `TARGET_<CD>_PATH`) 가 절대경로(Windows: `C:/Project/t3series/t3series-wingui`) 인지 확인.
 
 ## 8. sync-files-to-wingui.ps1 가 잘못된 위치에 파일 복사
 

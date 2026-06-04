@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -59,7 +59,7 @@ public class MockupTransformService {
     // 원본 jsx 가 너무 크면 Anthropic input 토큰 폭증. 일반 화면은 30~80KB. 100KB 캡.
     private static final int    INPUT_HARD_CAP_CHARS = 100_000;
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final PreviewMockupRepository mockupRepo;
 
@@ -126,7 +126,7 @@ public class MockupTransformService {
         Instant t0 = Instant.now();
         MessagesResponse resp;
         try {
-            resp = anthropicClient.sendMessages(apiKey, mreq).block();
+            resp = llmClient.sendMessages(apiKey, mreq).block();
         } catch (Exception e) {
             log.error("mockup transform Anthropic 호출 실패 — target={} path={} type={} msg={}",
                     targetCd, originalPath, e.getClass().getSimpleName(), e.getMessage(), e);

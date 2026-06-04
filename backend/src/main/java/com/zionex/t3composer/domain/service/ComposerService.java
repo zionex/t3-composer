@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.dto.Attachment;
@@ -59,7 +59,7 @@ public class ComposerService {
     /**
      * 기본 max_tokens — 화면 + Java + SQL 번들 한 턴에 끝내기 위해 100K.
      * Sonnet 4.6 출력 속도 ~50 tok/s 기준 최대 약 33분 소요 가능.
-     * 반드시 AnthropicClient.responseTimeout / axios timeout 과 같이 올려야 함.
+     * 반드시 ApiLlmClient.responseTimeout / axios timeout 과 같이 올려야 함.
      */
     public static final int DEFAULT_MAX_TOKENS = 100_000;
 
@@ -99,7 +99,7 @@ public class ComposerService {
     private final ComposerMessageRepository  messageRepo;
     private final ComposerArtifactRepository artifactRepo;
 
-    private final AnthropicClient           anthropicClient;
+    private final LlmClient                 llmClient;
     private final AnthropicApiKeyService    apiKeyService;
     private final ComposerPromptBuilder     promptBuilder;
     private final ArtifactExtractor         artifactExtractor;
@@ -258,7 +258,7 @@ public class ComposerService {
             ComposerSession session, String userId, String apiKey, int remaining,
             List<Attachment> attachmentsForLastUserMsg) {
         MessagesRequest req = buildRequest(session, attachmentsForLastUserMsg);
-        return anthropicClient.sendMessages(apiKey, req)
+        return llmClient.sendMessages(apiKey, req)
                 .flatMap(resp -> Mono.fromCallable(
                                 () -> persistAssistantResponse(session, userId, resp))
                         .flatMap(saved -> {

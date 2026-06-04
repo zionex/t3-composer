@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
@@ -45,7 +45,7 @@ public class PrefillFromDesignService {
     // 사용자 프롬프트 전체 하드 캡 — Anthropic 요청 안전 마진 (~80K chars ≈ 25K tokens)
     private static final int    USER_PROMPT_HARD_CAP_CHARS = 80000;
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -83,7 +83,7 @@ public class PrefillFromDesignService {
 
         MessagesResponse resp;
         try {
-            resp = anthropicClient.sendMessages(apiKey, mreq).block();
+            resp = llmClient.sendMessages(apiKey, mreq).block();
         } catch (Exception e) {
             log.error("prefill-from-design Anthropic 호출 실패: type={} message={} (fileName={}, userPromptLen={})",
                     e.getClass().getSimpleName(), e.getMessage(),

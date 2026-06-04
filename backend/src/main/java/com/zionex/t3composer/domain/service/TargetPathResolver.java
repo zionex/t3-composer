@@ -17,8 +17,8 @@ import lombok.RequiredArgsConstructor;
  * 우선순위:
  *  1. Target.sourceRefPath / databaseRefPath (Target 별 명시 설정)
  *  2. Per-Target 마운트 convention — /workspace/targets/&lt;CD&gt;/{wingui|database}
- *     (docker-compose 에서 TARGET_&lt;CD&gt;_WINGUI_PATH 가 .env 에 설정된 경우 활성 —
- *     mount path 의 'wingui' 토큰은 호환을 위한 내부 이름이며 의미는 'source')
+ *     (docker-compose 에서 TARGET_&lt;CD&gt;_PATH 가 .env 에 설정된 경우 활성 —
+ *     mount path 의 'wingui' 토큰은 TargetPathResolver contract 잔재이며 의미는 'source')
  *
  * (2026-05-28) 글로벌 wingui-ref-path / database-ref-path fallback 폐기.
  *   사용자 의도 (Target 별 유연한 소스 생성 · 하드코딩 제거) 에 따라 Per-Target 만 사용.
@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TargetPathResolver {
 
-    // (2026-05-28) DEFAULT_WINGUI_PATH / DEFAULT_DATABASE_PATH 폐기 —
+    // (2026-05-28) 글로벌 DEFAULT_SOURCE_PATH / DEFAULT_DATABASE_PATH 폐기 —
     //   Per-Target slot 만 사용. 못 찾으면 null 반환 (호출자 staging fallback 또는 에러).
     private static final String TARGETS_BASE = "/workspace/targets";
 

@@ -206,6 +206,12 @@ services:
       # 스냅샷 시크릿(.env 의 API키·비밀번호, db_password) 암호화 마스터키.
       # 비어있으면 .env 캡처/복원 시 명확한 오류. 분실 시 기존 스냅샷 시크릿 복호화 불가 — 별도 백업 필수.
       COMPOSER_SNAPSHOT_SECRET_KEY: ${COMPOSER_SNAPSHOT_SECRET_KEY:-}
+      # LLM 백엔드 토글 (2026-06-02 추가)
+      # api (기본): Anthropic HTTP API · cli: 호스트 ~/.claude 로그인 + claude CLI subprocess
+      LLM_BACKEND: ${LLM_BACKEND:-api}
+      LLM_CLI_BINARY: ${LLM_CLI_BINARY:-/usr/bin/claude}
+      LLM_CLI_TIMEOUT_MIN: ${LLM_CLI_TIMEOUT_MIN:-40}
+      LLM_CLI_MAX_CONCURRENT: ${LLM_CLI_MAX_CONCURRENT:-4}
     ports:
       - "${COMPOSER_BACKEND_PORT:-8090}:8090"
     volumes:
@@ -222,18 +228,18 @@ services:
       # 비어있으면 fallback 으로 /workspace/targets/<CD>/{wingui|database} 사용.
       # (2026-05-27) wingui 마운트는 RW — ArtifactApplyService 가 staging 우회하고
       #   Target wingui 에 산출물 직접 쓰기 (Java 는 패키지 자동 rename).
-      - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:rw
+      - ${TARGET_T3SERIES_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:rw
       - ${TARGET_T3SERIES_DATABASE_PATH:-./empty}:/workspace/targets/T3SERIES/database:ro
-      # PLANEL 의 wingui 마운트는 RW — 메뉴 등록 시 backend 가 src/pages/TabMenuList.js 를
+      # PLANEL 의 source 마운트는 RW — 메뉴 등록 시 backend 가 src/pages/TabMenuList.js 를
       # 직접 갱신해야 함 (PLANEL 의 메뉴 진실 소스가 JS 파일, menu_source='JS_FILE').
-      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:rw
+      - ${TARGET_PLANNEL_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:rw
       - ${TARGET_PLANNEL_DATABASE_PATH:-./empty}:/workspace/targets/PLANNEL/database:ro
       # PLANEL 은 frontend(saas-web) 와 backend(saas-application) 가 별도 디렉토리.
       # EXISTING_MODIFY 모드의 InsightSourceController 가 Controller/Service/Repository .java 를
       # 찾으려면 backend root 가 별도 마운트로 컨테이너에 보여야 함.
       # tb_cmp_target_system.backend_ref_path = '/workspace/targets/PLANNEL/backend' 매칭.
-      - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:ro
-      - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:rw
+      - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:rw
+      - ${TARGET_LGES_NEXTSCM_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:rw
       - ${TARGET_LGES_NEXTSCM_DATABASE_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/database:ro
       # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.
       # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
@@ -244,6 +250,10 @@ services:
       # 직접 read/write. repo 루트 통째 마운트 — .env 단일파일 마운트의 inode 끊김 회피.
       # 노출만 될 뿐 backend/·frontend/·staging/·.git/ 등은 excludeGlobs 가 절대 touch 안 함.
       - ./:/workspace/repo:rw
+      # LLM CLI 모드용 — 호스트 ~/.claude 로그인 정보 (OAuth 토큰) 컨테이너에 노출.
+      # rw 인 이유: claude CLI 가 토큰 refresh 결과를 호스트에 다시 써 동기화.
+      # 호스트에 ~/.claude 가 없으면 docker 가 빈 디렉토리 자동 생성 — LLM_BACKEND=api 시 무해.
+      - ${HOME}/.claude:/root/.claude:rw
     networks:
       - composer-net
     healthcheck:
@@ -273,14 +283,14 @@ services:
       - ./frontend:/app
       - /app/node_modules
       # frontend 빌드용 wingui-core / RealGrid2 alias 원본 — entrypoint.sh 가 realgrid 자동 복사.
-      # (2026-05-28) COMPOSER_WINGUI_REF_PATH 폐기 — TARGET_T3SERIES_WINGUI_PATH 재사용 (T3SERIES 가
+      # (2026-05-28) COMPOSER_WINGUI_REF_PATH 폐기 — TARGET_T3SERIES_PATH 재사용 (T3SERIES 가
       # 표준 wingui 모노레포 = packages/wingui/realgrid 보유). PLANNEL/기타 Target 만 쓰는 사용자는
-      # TARGET_T3SERIES_WINGUI_PATH 에 wingui 모노레포 경로 1개만 설정하면 됨.
-      - ${TARGET_T3SERIES_WINGUI_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
-      # Target System 별 wingui 폴더 슬롯 (backend 와 동일 패턴) — frontend 도 source bundle 조회 등에 사용
-      - ${TARGET_T3SERIES_WINGUI_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
-      - ${TARGET_PLANNEL_WINGUI_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
-      - ${TARGET_LGES_NEXTSCM_WINGUI_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
+      # TARGET_T3SERIES_PATH 에 wingui 모노레포 경로 1개만 설정하면 됨.
+      - ${TARGET_T3SERIES_PATH:-../t3series/t3series-wingui}:/workspace/wingui:ro
+      # Target System 별 source 폴더 슬롯 (backend 와 동일 패턴) — frontend 도 source bundle 조회 등에 사용
+      - ${TARGET_T3SERIES_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
+      - ${TARGET_PLANNEL_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
+      - ${TARGET_LGES_NEXTSCM_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
     networks:
       - composer-net
     restart: unless-stopped

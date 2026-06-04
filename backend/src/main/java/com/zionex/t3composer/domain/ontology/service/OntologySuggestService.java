@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zionex.t3composer.domain.client.AnthropicClient;
+import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.Message;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OntologySuggestService {
 
-    private final AnthropicClient anthropicClient;
+    private final LlmClient llmClient;
     private final AnthropicApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -52,7 +52,7 @@ public class OntologySuggestService {
                 .build();
 
         try {
-            MessagesResponse resp = anthropicClient.sendMessages(apiKey, mr).block();
+            MessagesResponse resp = llmClient.sendMessages(apiKey, mr).block();
             String text = extractText(resp).trim();
             log.info("OntologySuggest: field={} chars={}", req.getField(), text.length());
             Object value = postProcess(req.getField(), text);

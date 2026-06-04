@@ -53,31 +53,33 @@ public class OntologyService {
         JdbcTemplate t = jdbc(targetCd);
         List<TreeNodeDto> roots = new ArrayList<>();
 
+        // 검색은 LOWER() 적용해 case-insensitive 보장 — MSSQL collation 이 CS 인 환경 대응.
+        // 파라미터도 buildCategory 에서 toLowerCase() 적용.
         roots.add(buildCategory(t, "QA", q,
             "SELECT id, business_domain, question AS label_text FROM TB_IS_QAPATTERN WITH (NOLOCK)"
           + " WHERE use_yn='Y'"
-          + (q != null && !q.isBlank() ? " AND (question LIKE :q OR business_domain LIKE :q)" : "")
+          + (q != null && !q.isBlank() ? " AND (LOWER(question) LIKE :q OR LOWER(business_domain) LIKE :q)" : "")
           + " ORDER BY business_domain ASC, id ASC", q,
             "id", "business_domain", "label_text", false));
 
         roots.add(buildCategory(t, "ENTITY", q,
-            "SELECT id, COALESCE(entity_type, '?') AS dom, COALESCE(name, id) AS label_text FROM tb_is_ontlgy_entity WITH (NOLOCK)"
+            "SELECT id, COALESCE(entity_type, '(none)') AS dom, COALESCE(name, id) AS label_text FROM tb_is_ontlgy_entity WITH (NOLOCK)"
           + " WHERE ISNULL(use_yn,'Y')='Y'"
-          + (q != null && !q.isBlank() ? " AND (name LIKE :q OR entity_type LIKE :q OR terms LIKE :q)" : "")
+          + (q != null && !q.isBlank() ? " AND (LOWER(name) LIKE :q OR LOWER(entity_type) LIKE :q OR LOWER(terms) LIKE :q)" : "")
           + " ORDER BY entity_type ASC, name ASC", q,
             "id", "dom", "label_text", false));
 
         roots.add(buildCategory(t, "VIEW", q,
-            "SELECT COALESCE(menu_cd,'?') AS id, COALESCE(menu_cd,'?') AS dom, COALESCE(menu_cd,'?') AS label_text FROM tb_is_vwbusnss_ontlgy WITH (NOLOCK)"
+            "SELECT COALESCE(menu_cd, '(none)') AS id, COALESCE(menu_cd, '(none)') AS dom, COALESCE(menu_cd, '(none)') AS label_text FROM tb_is_vwbusnss_ontlgy WITH (NOLOCK)"
           + " WHERE use_yn='Y'"
-          + (q != null && !q.isBlank() ? " AND menu_cd LIKE :q" : "")
+          + (q != null && !q.isBlank() ? " AND LOWER(menu_cd) LIKE :q" : "")
           + " ORDER BY menu_cd ASC", q,
             "id", "dom", "label_text", true));
 
         roots.add(buildCategory(t, "PROCESS", q,
-            "SELECT COALESCE(process_cd,'?') AS id, COALESCE(module,'?') AS dom, COALESCE(process_name, process_cd) AS label_text FROM tb_is_prcss_ontlgy WITH (NOLOCK)"
+            "SELECT COALESCE(process_cd, '(none)') AS id, COALESCE(module, '(none)') AS dom, COALESCE(process_name, process_cd) AS label_text FROM tb_is_prcss_ontlgy WITH (NOLOCK)"
           + " WHERE ISNULL(use_yn,'Y')='Y'"
-          + (q != null && !q.isBlank() ? " AND (process_cd LIKE :q OR process_name LIKE :q OR module LIKE :q)" : "")
+          + (q != null && !q.isBlank() ? " AND (LOWER(process_cd) LIKE :q OR LOWER(process_name) LIKE :q OR LOWER(module) LIKE :q)" : "")
           + " ORDER BY module ASC, process_cd ASC", q,
             "id", "dom", "label_text", true));
 
@@ -97,9 +99,19 @@ public class OntologyService {
         List<TreeNodeDto> domainNodes = new ArrayList<>();
         try {
             String resolved = sql.replace(":q", "?");
-            List<Map<String, Object>> rows = (qParam != null && !qParam.isBlank())
-                ? t.queryForList(resolved, "%" + qParam + "%")
-                : t.queryForList(resolved);
+            List<Map<String, Object>> rows;
+            if (qParam != null && !qParam.isBlank()) {
+                String like = "%" + qParam.toLowerCase() + "%";
+                // 해당 카테고리의 WHERE 절에 ? 가 N개 (예: QA 2 · Entity 3 · View 1 · Process 3) —
+                // 같은 검색어를 모두에 적용. placeholders 수를 세서 같은 값 N개 전달.
+                int placeholders = 0;
+                for (int i = 0; i < resolved.length(); i++) if (resolved.charAt(i) == '?') placeholders++;
+                Object[] params = new Object[placeholders];
+                java.util.Arrays.fill(params, like);
+                rows = t.queryForList(resolved, params);
+            } else {
+                rows = t.queryForList(resolved);
+            }
 
             java.util.Map<String, List<TreeNodeDto>> byDom = new java.util.LinkedHashMap<>();
             for (Map<String, Object> r : rows) {

@@ -107,7 +107,7 @@ function QaEditor({ id, targetCd, onSaved, onDeleted, onCancelNew }) {
   return (
     <Box>
       <Typography sx={{ fontSize: 14, fontWeight: 700, mb: 1 }}>
-        {isNew ? '✚ 새 Q&A' : `Q&A · ${dto.id}`}
+        {isNew ? '✚ 새 Q&A' : 'Q&A 편집'}
       </Typography>
       {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
       {info && <Alert severity="success" sx={{ mb: 1 }}>{info}</Alert>}

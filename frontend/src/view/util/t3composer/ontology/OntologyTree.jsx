@@ -23,8 +23,9 @@ const CAT_COLOR = {
  *  - onSelect(node)
  *  - onSearch(q)
  *  - onNewClick(kind)  // 'QA' | 'ENTITY'
+ *  - width            // 부모가 제어하는 좌 트리 너비 (px). 미지정 시 240
  */
-function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick }) {
+function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick, width = 240 }) {
   const [q, setQ] = useState('');
   const [expanded, setExpanded] = useState(() => new Set(['QA', 'ENTITY']));
 
@@ -43,8 +44,8 @@ function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick }) {
   const roots = useMemo(() => tree || [], [tree]);
 
   return (
-    <Box sx={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column',
-               borderRight: '1px solid rgba(124,167,224,0.30)', minHeight: 0 }}>
+    <Box sx={{ width, flexShrink: 0, display: 'flex', flexDirection: 'column',
+               minHeight: 0 }}>
       <Box sx={{ p: 1.5 }}>
         <TextField
           size="small" fullWidth placeholder="검색 (Enter)"

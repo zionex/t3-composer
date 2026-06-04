@@ -128,7 +128,7 @@ Composer 가 생성한 파일이 실제로 쓰이는 위치는 host 의 디렉�
 |---|---|---|---|
 | `saas-application/...` | `TARGET_PLANNEL_BACKEND_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application` | `/workspace/targets/PLANNEL/backend/...` |
 | `saas-web/...` | `TARGET_PLANNEL_PATH` ※ | 예: `/Users/<user>/work/projects/saas-plannel/saas-web` | `/workspace/targets/PLANNEL/wingui/...` |
-| (DDL/migration) | `TARGET_PLANNEL_DATABASE_PATH` | 예: `/Users/<user>/work/projects/saas-plannel/saas-application/src/main/resources/db/changelog` (혹은 별도) | `/workspace/targets/PLANNEL/database/...` |
+| (DDL/migration YAML) | `TARGET_PLANNEL_BACKEND_PATH` | (saas-application 안의 `src/main/resources/db/changelog/` 로 떨어짐) | `/workspace/targets/PLANNEL/backend/...` |
 
 ※ `TARGET_PLANNEL_PATH` 는 PlanNEL 의 **frontend 루트** (`saas-web/`) 를 가리킨다 — Target 별 frontend 소스 루트를 의미하는 통일된 변수명. 컨테이너 내부 마운트 path 의 `wingui` 토큰은 `TargetPathResolver` contract 잔재.
 

@@ -9,7 +9,9 @@ param(
     [string]$Manifest = "./sync/manifest.json",
     # TARGET_T3SERIES_PATH 우선, 폐기된 COMPOSER_WINGUI_REF_PATH 는 호환 fallback (2026-06-04).
     [string]$WinguiPath = $(if ($env:TARGET_T3SERIES_PATH) { $env:TARGET_T3SERIES_PATH } else { $env:COMPOSER_WINGUI_REF_PATH }),
-    [string]$DatabasePath = $(if ($env:TARGET_T3SERIES_DATABASE_PATH) { $env:TARGET_T3SERIES_DATABASE_PATH } else { $env:COMPOSER_DATABASE_REF_PATH }),
+    # database path 는 sync 스크립트 전용 — t3-composer backend 의 .env 와는 분리됨.
+    # 명시 입력 또는 폐기된 COMPOSER_DATABASE_REF_PATH 환경변수, 둘 다 없으면 default 사용.
+    [string]$DatabasePath = $env:COMPOSER_DATABASE_REF_PATH,
     [string]$UpgradeVersion = $env:COMPOSER_UPGRADE_VERSION,
     [switch]$DryRun
 )

@@ -1,13 +1,15 @@
 -- Phase 3+ — Target System 별 ref path 명시 컬럼.
--- 기존엔 .env 의 단일 글로벌 source / database 마운트가 모든 Target 에 공유됐다.
--- 이제는 Target 별로 다른 source / database 폴더를 가리킬 수 있다 (TARGET_<CD>_PATH).
+-- Target 별로 source 폴더 (호스트 path) 를 가리킬 수 있다 (TARGET_<CD>_PATH).
 --
--- 마운트 모델 (옵션 A — 공통 상위 폴더):
---   docker-compose 의 WORKSPACE_HOST_ROOT 가 /workspace/projects 로 마운트.
---   각 Target 의 wingui_ref_path / database_ref_path 는 컨테이너 안 절대경로
---   (예: /workspace/projects/t3series/t3series-wingui).
+-- 마운트 모델:
+--   docker-compose 가 호스트 폴더를 컨테이너 안 /workspace/targets/<CD>/wingui 로 마운트.
+--   wingui_ref_path 는 그 컨테이너 안 절대경로 (예: /workspace/targets/T3SERIES/wingui).
 --   (컬럼명 'wingui_ref_path' 는 호환을 위한 잔재 — 의미는 'source 폴더' — 2026-06-04.)
---   값이 비어있으면 app.composer.source-ref-path / database-ref-path (글로벌 fallback) 사용.
+--   값이 비어있으면 TargetPathResolver 가 마운트 convention 으로 자동 해석.
+--
+-- (2026-06-04) database_ref_path 는 미사용 컬럼으로 잔존 — TARGET_<CD>_DATABASE_PATH
+--   env var 와 wingui sync 엔드포인트 제거됨. SQL 산출물은 ArtifactApplyService 가
+--   source root (frontend) 안의 mssql/upgrade 또는 staging 으로 fallback.
 
 ALTER TABLE dbo.tb_cmp_target_system
     ADD COLUMN IF NOT EXISTS wingui_ref_path   varchar(500),

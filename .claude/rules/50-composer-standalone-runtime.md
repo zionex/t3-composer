@@ -259,8 +259,6 @@ ALTER TABLE dbo.TB_CMP_TARGET_SYSTEM
 | `PUT  /composer/targets/{cd}/db-connection` | dbUrl/user/pass/driverClass 저장. JPA save() 가 jsonb 컬럼(artifact_naming 등) 충돌 일으키므로 `composerJdbcTemplate.update(...)` 직접 SQL 사용. 저장 후 `registry.invalidate(cd)` 자동 호출 |
 | `POST /composer/targets/{cd}/db-connection/test` | DriverManager.getConnection 실시간 시도 + 결과를 db_connected_at / db_last_error 에 기록 |
 | `GET  /composer/target/menus?lang=ko&target=T3SERIES` | 활성 Target 의 운영 DB 에서 메뉴 트리 — `source: "target:T3SERIES"` 또는 `"local"` 응답 필드로 routing 결과 확인 |
-| `POST /composer/target/menus/sync-from-wingui` | 부모 wingui 의 menus.js 를 target-mssql(폴백 DB) 의 TB_AD_MENU 에 동기화 (멱등) |
-| `POST /composer/target/menus/langpack/sync-from-wingui` | upgrade SQL 파일들의 INSERT 추출 → target-mssql 의 TB_AD_LANG_PACK 에 sync |
 
 ### 6.5 환경변수 기반 시드 (`TargetDbConnectionEnvLoader`)
 
@@ -1119,7 +1117,7 @@ sample 데이터로 렌더되고 실제 SP 를 호출하지 않으므로, SP/DDL
 - `InferredSqlPanel.jsx` — Repository queryMethods collapsible 표시
 - `ModeNewFromCopy.jsx` / `ModeExistingModify.jsx` — 위 컴포넌트 import
 - `steps/Step4DataBinding.jsx` — JPA_ENTITY 모드일 때 InferredSqlPanel 표시 (sourceBundle prop)
-- `api.js` — `loadTargetMenuTree(lang, targetCd)` · `collectSourceForLlm(menuCd, targetCd)` · `updateTargetDbConnection` · `testTargetDbConnection` · `syncTargetMenusFromWingui` · `syncTargetLangpackFromWingui`
+- `api.js` — `loadTargetMenuTree(lang, targetCd)` · `collectSourceForLlm(menuCd, targetCd)` · `updateTargetDbConnection` · `testTargetDbConnection`
 
 ### 인프라 / 설정
 - `docker-compose.yml` — `TARGET_T3SERIES_DB_*` 환경변수 전달

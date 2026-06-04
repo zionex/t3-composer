@@ -30,7 +30,7 @@ Composer 단독 환경(`t3-composer`) 에서 만든 화면 산출물 (JSX / Java
 | 변수 | 용도 | 기본값 |
 |---|---|---|
 | `TARGET_T3SERIES_PATH` | t3series-wingui 절대경로 (구 `COMPOSER_WINGUI_REF_PATH` — 폐기된 이름도 호환 fallback) | `C:/Project/t3series/t3series-wingui` |
-| `TARGET_T3SERIES_DATABASE_PATH` | t3series-database 절대경로 (구 `COMPOSER_DATABASE_REF_PATH` — 폐기된 이름도 호환 fallback) | `C:/Project/t3series/t3series-database` |
+| `COMPOSER_DATABASE_REF_PATH` | t3series-database 절대경로 (sync 스크립트 전용 — t3-composer backend 와 분리) | `C:/Project/t3series/t3series-database` |
 | `COMPOSER_UPGRADE_VERSION` | 업그레이드 폴더명 | `v26.0.0-20260507` |
 | `WINGUI_DB_HOST` | wingui DB 호스트 | `localhost` |
 | `WINGUI_DB_PORT` | wingui DB 포트 | `1433` |

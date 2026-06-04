@@ -24,20 +24,6 @@ export const loadTargetMenuTree = (lang, targetCd) =>
     params: { lang: lang || 'ko', ...(targetCd ? { target: targetCd } : {}) }
   }));
 
-/**
- * 부모 wingui 의 menus.js 를 파싱해 target-mssql 의 TB_AD_MENU 에 멱등 sync.
- * 응답: { inserted, updated, total, source, errors }
- */
-export const syncTargetMenusFromWingui = () =>
-  zAxios.post('composer/target/menus/sync-from-wingui', null, composerReq());
-
-/**
- * 부모 wingui 의 db_update_script.sql 들에서 TB_AD_LANG_PACK INSERT 를 추출해
- * target-mssql 에 멱등 sync. 메뉴 ID 와 매칭되는 LANG_KEY 만 import.
- */
-export const syncTargetLangpackFromWingui = () =>
-  zAxios.post('composer/target/menus/langpack/sync-from-wingui', null, composerReq());
-
 /** 활성 Target 목록 조회 */
 export const listTargets = () =>
   zAxios.get('composer/targets', composerReq());

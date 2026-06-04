@@ -21,11 +21,10 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { transLangKey } from '@zionex/wingui-core/lang/i18n-func';
-import { loadTargetMenuTree, syncTargetMenusFromWingui, syncTargetLangpackFromWingui } from './api';
+import { loadTargetMenuTree } from './api';
 
 /**
  * 메뉴 트리 브라우저 — EXISTING_MODIFY / NEW_FROM_COPY 모드에서 대상 화면 선택용.
@@ -59,34 +58,6 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [query, setQuery]     = useState('');
   const [expanded, setExpanded] = useState({});
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState(null);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    setSyncMsg(null);
-    try {
-      const menuRes = await syncTargetMenusFromWingui();
-      const m = menuRes?.data || {};
-      const langRes = await syncTargetLangpackFromWingui();
-      const lp = langRes?.data || {};
-      const allErr = [...(m.errors || []), ...(lp.errors || [])];
-      setSyncMsg({
-        kind: allErr.length > 0 ? 'warning' : 'success',
-        text: `wingui sync — 메뉴 ${m.inserted || 0}/${m.updated || 0}/${m.total || 0}, ` +
-              `라벨 ${lp.inserted || 0}/${lp.updated || 0}/${lp.total || 0}` +
-              (allErr.length > 0 ? ` (오류 ${allErr.length}건)` : ''),
-      });
-      setReloadKey((k) => k + 1);
-    } catch (e) {
-      setSyncMsg({
-        kind: 'error',
-        text: 'wingui sync 실패: ' + (e?.response?.data?.message || e?.message || ''),
-      });
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -193,21 +164,10 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
             )}
           </Stack>
           <Stack direction="row" spacing={0.2}>
-            <Tooltip title="부모 wingui 의 menus.js 를 Target DB 의 TB_AD_MENU 에 동기화">
-              <span>
-                <IconButton
-                  size="small" onClick={handleSync} disabled={loading || syncing}
-                  sx={{ color: C.textSub, '&:hover': { color: C.primaryDk,
-                        bgcolor: 'rgba(124,167,224,0.14)' } }}
-                >
-                  {syncing ? <CircularProgress size={14} /> : <CloudSyncIcon sx={{ fontSize: 17 }} />}
-                </IconButton>
-              </span>
-            </Tooltip>
             <Tooltip title="메뉴 트리 새로고침">
               <span>
                 <IconButton
-                  size="small" onClick={() => setReloadKey((k) => k + 1)} disabled={loading || syncing}
+                  size="small" onClick={() => setReloadKey((k) => k + 1)} disabled={loading}
                   sx={{ color: C.textSub, '&:hover': { color: C.primaryDk,
                         bgcolor: 'rgba(124,167,224,0.14)' } }}
                 >
@@ -217,13 +177,6 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
             </Tooltip>
           </Stack>
         </Stack>
-
-        {syncMsg && (
-          <Alert severity={syncMsg.kind} sx={{ mb: 1, py: 0.2, fontSize: 11, borderRadius: 1.5 }}
-                 onClose={() => setSyncMsg(null)}>
-            {syncMsg.text}
-          </Alert>
-        )}
 
         <TextField
           fullWidth

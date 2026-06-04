@@ -37,7 +37,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import HubIcon from '@mui/icons-material/Hub';
 
-import { createSession, extractAndLookupTables } from './api';
+import { createSession, extractAndLookupTables, fetchQaBulk, fetchEntityBulk } from './api';
 import { getModule } from './constants';
 import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
@@ -259,6 +259,11 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const [dataSources,    setDataSources]    = useState([]);  // [{ kind, key, label, meta }]
   const [dataSrcDlgOpen, setDataSrcDlgOpen] = useState(false);
 
+  // 선택된 ONTOLOGY_QA 의 Answer 본문 + Paraphrases + 연관 Entity desc 를 prompt 본문에 주입하기 위해
+  // bulk fetch 결과를 상태로 보관. dataSources 의 ONTOLOGY_QA id 가 바뀌면 자동으로 다시 로드.
+  // { qaList: [...full QaDto], entityById: { id: EntityDto } }
+  const [ontologyDetails, setOntologyDetails] = useState({ qaList: [], entityById: {} });
+
   // 하단 전용 D&D 영역 — 클릭 시 파일 탐색기, drop 시 첨부
   const fileInputRef = useRef(null);
   const [bottomDragOver, setBottomDragOver] = useState(false);
@@ -311,6 +316,50 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       setSelectedUiPatternSource('');
     }
   };
+
+  // 선택된 ONTOLOGY_QA 의 본문 + 연관 Entity desc 를 bulk 로 미리 로드
+  // — 진입 함수(`startNlSession`) 가 render path 안에서 systemContext 를 동기 조립하므로
+  //   여기서 미리 fetch 해 두고 render 에서는 ontologyDetails 를 동기적으로 사용.
+  useEffect(() => {
+    const qaIds = dataSources
+      .filter((d) => d.kind === 'ONTOLOGY_QA')
+      .map((d) => d.key);
+    if (qaIds.length === 0) {
+      setOntologyDetails({ qaList: [], entityById: {} });
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const rb = await fetchQaBulk(qaIds, currentTargetCd);
+        if (cancelled) return;
+        const fullList = Array.isArray(rb.data) ? rb.data : [];
+        const entIds = Array.from(new Set(
+          fullList.flatMap((qa) => qa.relatedEntityIds || []).filter(Boolean)
+        ));
+        let entById = {};
+        if (entIds.length > 0) {
+          try {
+            const re = await fetchEntityBulk(entIds, currentTargetCd);
+            if (cancelled) return;
+            (Array.isArray(re.data) ? re.data : []).forEach((e) => { entById[e.id] = e; });
+          } catch { /* desc 없어도 prompt 만들 수 있음 */ }
+        }
+        if (!cancelled) setOntologyDetails({ qaList: fullList, entityById: entById });
+      } catch (err) {
+        if (!cancelled) {
+          console.warn('[ModeNewGeneral] ontology bulk fetch 실패, shallow 형식 사용:', err?.message);
+          setOntologyDetails({ qaList: [], entityById: {} });
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+    // dataSources 의 ONTOLOGY_QA id 셋이 바뀌면 재실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    dataSources.filter((d) => d.kind === 'ONTOLOGY_QA').map((d) => d.key).join(','),
+    currentTargetCd,
+  ]);
 
   // prompt 변경 시 600ms 디바운스 후 자동 테이블 lookup (NEW_NL 모드 진입 단계)
   useEffect(() => {
@@ -575,11 +624,43 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
       const qas = byKind('ONTOLOGY_QA');
       if (qas.length > 0) {
-        systemContext += '[온톨로지 — Q&A]\n';
-        qas.forEach((q) => {
-          systemContext += `· ${q.label}`
-            + (q.meta?.subtitle ? ` — ${q.meta.subtitle}` : '') + '\n';
-        });
+        systemContext += '[온톨로지 — Q&A · 권위 있는 지정]\n';
+        // bulk fetch 결과(ontologyDetails) 가 채워져 있으면 Answer 본문 + Paraphrases
+        // + 연관 Entity desc 까지 동봉. 아직 로드 전이거나 실패면 shallow 폴백.
+        const fullList = (ontologyDetails.qaList || []).filter(
+          (qa) => qas.some((q) => q.key === qa.id)
+        );
+        const entById = ontologyDetails.entityById || {};
+        if (fullList.length > 0) {
+          fullList.forEach((qa) => {
+            systemContext += `── ${qa.id} ${qa.question || ''} ─────\n`;
+            if (qa.question) systemContext += `Q: ${qa.question}\n`;
+            if (qa.answer)   systemContext += `A: ${qa.answer}\n`;
+            if ((qa.paraphrases || []).length > 0)
+              systemContext += `Paraphrases: ${qa.paraphrases.join(' · ')}\n`;
+            if (qa.domain || qa.dbType)
+              systemContext += `Domain: ${qa.domain || '-'} · DB: ${qa.dbType || '-'}\n`;
+            const relIds = qa.relatedEntityIds || [];
+            if (relIds.length > 0) {
+              systemContext += `연관 Entity:\n`;
+              relIds.forEach((eid) => {
+                const e = entById[eid];
+                if (e) {
+                  systemContext += `  · ${e.name || eid}` + (e.description ? ` — ${e.description}` : '') + '\n';
+                } else {
+                  systemContext += `  · ${eid}\n`;
+                }
+              });
+            }
+            systemContext += '────────────────────────\n';
+          });
+        } else {
+          // shallow 폴백 — bulk fetch 미완료 시
+          qas.forEach((q) => {
+            systemContext += `· ${q.label}`
+              + (q.meta?.subtitle ? ` — ${q.meta.subtitle}` : '') + '\n';
+          });
+        }
       }
 
       const intents = byKind('ONTOLOGY_INTENT');

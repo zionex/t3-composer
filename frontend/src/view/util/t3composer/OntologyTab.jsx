@@ -2,14 +2,14 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 
 import {
   Box, Stack, TextField, InputAdornment, Typography,
-  ToggleButton, ToggleButtonGroup,
+  ToggleButton, ToggleButtonGroup, Divider, CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import FunctionsIcon from '@mui/icons-material/Functions';
 
-import { listOntologyQa, listOntologyView, listSchemaProcedures } from './api';
+import { listOntologyQa, listOntologyView, listSchemaProcedures, fetchQa } from './api';
 import OntologyList from './OntologyList';
 
 const HOLO = '#38bdf8';
@@ -105,57 +105,135 @@ function OntologyTab({ targetCd, basket, addToBasket, removeFromBasket }) {
     }
   }, [section, isIn, addToBasket, removeFromBasket]);
 
+  // ── 우측 미리보기 패널 ─────────────────────────────────────────────
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewData,    setPreviewData]    = useState(null);
+
+  useEffect(() => {
+    // tab 변경 시 미리보기 초기화
+    setPreviewData(null);
+  }, [tab]);
+
+  const loadPreview = useCallback(async (item) => {
+    if (!item) return;
+    if (section.id === 'QA') {
+      setPreviewLoading(true);
+      try {
+        const r = await fetchQa(item.key, targetCd);
+        setPreviewData({ type: 'QA', dto: r.data });
+      } catch {
+        setPreviewData(null);
+      } finally {
+        setPreviewLoading(false);
+      }
+    } else if (section.id === 'INTENT') {
+      setPreviewData({ type: 'INTENT', label: item.title, subtitle: item.subtitle });
+    } else {
+      setPreviewData({ type: 'SP', label: item.title, subtitle: item.subtitle });
+    }
+  }, [section, targetCd]);
+
   return (
-    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', p: 1.5 }}>
-      <ToggleButtonGroup
-        size="small" exclusive value={tab} fullWidth
-        onChange={(_, v) => v && setTab(v)}
-        sx={{ mb: 1 }}
-      >
-        {SECTIONS.map((s) => {
-          const Icon = s.icon;
-          const cnt = (basket || []).filter((b) => b.kind === s.basketKind).length;
-          return (
-            <ToggleButton key={s.id} value={s.id}
-                          sx={{ color: '#9fc7d8', textTransform: 'none',
-                                borderColor: 'rgba(56,189,248,0.3)',
-                                '&.Mui-selected': { color: HOLO, bgcolor: 'rgba(56,189,248,0.18)' } }}>
-              <Icon fontSize="small" sx={{ mr: 0.6 }} />
-              {s.label}{cnt > 0 ? ` (${cnt})` : ''}
-            </ToggleButton>
-          );
-        })}
-      </ToggleButtonGroup>
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', p: 1.5, gap: 1 }}>
+      {/* 좌측 — 기존 toolbar + tabs + 검색 + 리스트 */}
+      <Box sx={{ flex: '0 0 56%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <ToggleButtonGroup
+          size="small" exclusive value={tab} fullWidth
+          onChange={(_, v) => v && setTab(v)}
+          sx={{ mb: 1 }}
+        >
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            const cnt = (basket || []).filter((b) => b.kind === s.basketKind).length;
+            return (
+              <ToggleButton key={s.id} value={s.id}
+                            sx={{ color: '#9fc7d8', textTransform: 'none',
+                                  borderColor: 'rgba(56,189,248,0.3)',
+                                  '&.Mui-selected': { color: HOLO, bgcolor: 'rgba(56,189,248,0.18)' } }}>
+                <Icon fontSize="small" sx={{ mr: 0.6 }} />
+                {s.label}{cnt > 0 ? ` (${cnt})` : ''}
+              </ToggleButton>
+            );
+          })}
+        </ToggleButtonGroup>
 
-      <Typography sx={{ fontSize: 11, color: '#5b7a92', mb: 1 }}>{section.desc}</Typography>
+        <Typography sx={{ fontSize: 11, color: '#5b7a92', mb: 1 }}>{section.desc}</Typography>
 
-      <TextField
-        size="small" placeholder={`${section.label} 검색`}
-        value={search} onChange={(e) => setSearch(e.target.value)}
-        sx={{
-          mb: 1,
-          '& .MuiInputBase-root': { color: '#dffaff', bgcolor: 'rgba(9,20,38,0.7)' },
-          '& fieldset': { borderColor: 'rgba(56,189,248,0.3)' },
-        }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" sx={{ color: HOLO }} />
-            </InputAdornment>
-          ),
-        }}
-      />
+        <TextField
+          size="small" placeholder={`${section.label} 검색`}
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          sx={{
+            mb: 1,
+            '& .MuiInputBase-root': { color: '#dffaff', bgcolor: 'rgba(9,20,38,0.7)' },
+            '& fieldset': { borderColor: 'rgba(56,189,248,0.3)' },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: HOLO }} />
+              </InputAdornment>
+            ),
+          }}
+        />
 
-      <OntologyList
-        dark
-        items={filtered}
-        totalCount={items.length}
-        loading={!!loading[tab]}
-        error={error[tab]}
-        isSelected={(it) => isIn(section.basketKind, it.key)}
-        onToggle={toggle}
-        emptyText={section.emptyText}
-      />
+        <OntologyList
+          dark
+          items={filtered}
+          totalCount={items.length}
+          loading={!!loading[tab]}
+          error={error[tab]}
+          isSelected={(it) => isIn(section.basketKind, it.key)}
+          onToggle={toggle}
+          onHover={loadPreview}
+          emptyText={section.emptyText}
+        />
+      </Box>
+
+      <Divider orientation="vertical" flexItem sx={{ bgcolor: 'rgba(56,189,248,0.2)' }} />
+
+      {/* 우측 — 미리보기 패널 (hover/click 시 본문 표시) */}
+      <Box sx={{ flex: 1, minWidth: 0, overflow: 'auto', p: 1 }}>
+        <Typography sx={{ fontSize: 11, color: '#5b7a92', mb: 1 }}>
+          우측 미리보기 (hover/click)
+        </Typography>
+        {previewLoading && <CircularProgress size={18} sx={{ color: HOLO }} />}
+        {!previewLoading && !previewData && (
+          <Typography sx={{ fontSize: 12, color: '#5b7a92' }}>
+            항목을 hover/클릭 하면 본문이 표시됩니다.
+          </Typography>
+        )}
+        {!previewLoading && previewData?.type === 'QA' && previewData.dto && (
+          <Box sx={{ fontSize: 12, color: '#dffaff' }}>
+            <Typography sx={{ fontWeight: 700, color: HOLO, mb: 0.5 }}>
+              {previewData.dto.question}
+            </Typography>
+            <Box sx={{
+              whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: 11,
+              p: 1, bgcolor: 'rgba(9,20,38,0.7)', borderRadius: 1, mb: 1,
+            }}>
+              {previewData.dto.answer}
+            </Box>
+            {(previewData.dto.paraphrases || []).length > 0 && (
+              <Typography sx={{ fontSize: 11 }}>
+                Paraphrases: {previewData.dto.paraphrases.join(' · ')}
+              </Typography>
+            )}
+            {(previewData.dto.relatedEntityIds || []).length > 0 && (
+              <Typography sx={{ fontSize: 11, mt: 0.5 }}>
+                연관 Entity: {previewData.dto.relatedEntityIds.join(' · ')}
+              </Typography>
+            )}
+          </Box>
+        )}
+        {!previewLoading && (previewData?.type === 'INTENT' || previewData?.type === 'SP') && (
+          <Box sx={{ fontSize: 12 }}>
+            <Typography sx={{ fontWeight: 700, color: HOLO }}>{previewData.label}</Typography>
+            <Typography sx={{ fontSize: 11, mt: 0.5, color: '#dffaff' }}>
+              {previewData.subtitle}
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

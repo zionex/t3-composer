@@ -81,9 +81,11 @@ CREATE INDEX IF NOT EXISTS ix_ontology_ext_lookup
 
 Run:
 ```bash
-docker compose exec -T composer-db psql -U composer -d T3SMARTSCM -v ON_ERROR_STOP=1 \
+docker compose exec -T composer-db psql -U composer -d t3composer -v ON_ERROR_STOP=1 \
   < docker/db/init-pg/33_ontology_extension.sql
 ```
+
+(★ 실제 composer-db PG 의 DB 이름은 `t3composer` — `COMPOSER_DB_NAME` env 기본값. `T3SMARTSCM` 은 별도의 target-mssql 명이며 무관.)
 
 Expected output:
 ```
@@ -97,7 +99,7 @@ CREATE INDEX
 
 Run:
 ```bash
-docker compose exec -T composer-db psql -U composer -d T3SMARTSCM -c "\d dbo.tb_cmp_ontology_ext"
+docker compose exec -T composer-db psql -U composer -d t3composer -c "\d dbo.tb_cmp_ontology_ext"
 ```
 
 Expected: `id` (uuid PK), `target_cd`, `kind`, `ref_id`, `extension` (jsonb), audit 4개 컬럼 표시. UNIQUE 제약 + ix index 표시.
@@ -2879,7 +2881,7 @@ Expected: `──` 형식 + `A: SELECT 1` + Paraphrases · 연관 Entity 모두 
 
 composer-db 확인 (선택):
 ```bash
-docker compose exec -T composer-db psql -U composer -d T3SMARTSCM \
+docker compose exec -T composer-db psql -U composer -d t3composer \
   -c "SELECT id, kind, ref_id, extension FROM dbo.tb_cmp_ontology_ext WHERE kind='QA' ORDER BY modify_dttm DESC LIMIT 5;"
 ```
 

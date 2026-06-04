@@ -21,6 +21,7 @@ import {
  *   loading, error
  *   isSelected(item) → boolean
  *   onToggle(item)
+ *   onHover(item)  — 행 hover 시 호출 (우측 미리보기 패널 미리 로드용)
  *   emptyText    — 전체가 비었을 때 문구
  *   itemKey(item) → string (React key) — 기본 `${category}_${key}`
  *   dark         — JARVIS 다크 테마 (기본 false = 라이트)
@@ -32,6 +33,7 @@ function OntologyList({
   error = null,
   isSelected,
   onToggle,
+  onHover,
   emptyText = '항목이 없습니다.',
   itemKey,
   dark = false,
@@ -73,6 +75,7 @@ function OntologyList({
             <ListItemButton
               key={keyOf(it)}
               onClick={() => onToggle && onToggle(it)}
+              onMouseEnter={() => onHover && onHover(it)}
               sx={{
                 py: 0.5,
                 ...(dark && { '&:hover': { bgcolor: 'rgba(56,189,248,0.10)' } }),

@@ -430,6 +430,85 @@ export const listOntologyProcess = (q, limit = 500) =>
 export const listOntologyEntity = (q, limit = 500) =>
   zAxios.get('composer/meta/ontology/entity', composerReq({ params: { q, limit } }));
 
+// ──────────────── Ontology Tab (CRUD + suggest) ────────────────
+
+export const fetchOntologyTree = (targetCd, q) =>
+  zAxios.get('composer/ontology/tree', composerReq({
+    params: { ...(targetCd ? { targetCd } : {}), ...(q ? { q } : {}) }
+  }));
+
+export const fetchQa = (id, targetCd) =>
+  zAxios.get(`composer/ontology/qa/${encodeURIComponent(id)}`, composerReq({
+    params: targetCd ? { targetCd } : {}
+  }));
+
+export const fetchQaBulk = (ids, targetCd) =>
+  zAxios.get('composer/ontology/qa/bulk', composerReq({
+    params: { ids: (ids || []).join(','), ...(targetCd ? { targetCd } : {}) }
+  }));
+
+export const createQa = (dto, targetCd) =>
+  zAxios.post('composer/ontology/qa', dto, composerReq({
+    params: targetCd ? { targetCd } : {},
+    headers: { 'Content-Type': 'application/json' },
+  }));
+
+export const updateQa = (id, dto, modifyDttm, targetCd) =>
+  zAxios.put(`composer/ontology/qa/${encodeURIComponent(id)}`, dto, composerReq({
+    params: targetCd ? { targetCd } : {},
+    headers: {
+      'Content-Type': 'application/json',
+      ...(modifyDttm ? { 'If-Match': modifyDttm } : {}),
+    },
+  }));
+
+export const deleteQa = (id, targetCd) =>
+  zAxios.delete(`composer/ontology/qa/${encodeURIComponent(id)}`, composerReq({
+    params: targetCd ? { targetCd } : {},
+  }));
+
+export const fetchEntity = (id, targetCd) =>
+  zAxios.get(`composer/ontology/entity/${encodeURIComponent(id)}`, composerReq({
+    params: targetCd ? { targetCd } : {}
+  }));
+
+export const fetchEntityBulk = (ids, targetCd) =>
+  zAxios.get('composer/ontology/entity/bulk', composerReq({
+    params: { ids: (ids || []).join(','), ...(targetCd ? { targetCd } : {}) }
+  }));
+
+export const createEntity = (dto, targetCd) =>
+  zAxios.post('composer/ontology/entity', dto, composerReq({
+    params: targetCd ? { targetCd } : {},
+    headers: { 'Content-Type': 'application/json' },
+  }));
+
+export const updateEntity = (id, dto, targetCd) =>
+  zAxios.put(`composer/ontology/entity/${encodeURIComponent(id)}`, dto, composerReq({
+    params: targetCd ? { targetCd } : {},
+    headers: { 'Content-Type': 'application/json' },
+  }));
+
+export const deleteEntity = (id, targetCd) =>
+  zAxios.delete(`composer/ontology/entity/${encodeURIComponent(id)}`, composerReq({
+    params: targetCd ? { targetCd } : {},
+  }));
+
+export const fetchViewMeta = (menuCd, targetCd) =>
+  zAxios.get(`composer/ontology/view/${encodeURIComponent(menuCd)}`, composerReq({
+    params: targetCd ? { targetCd } : {}
+  }));
+
+export const fetchProcessMeta = (processCd, targetCd) =>
+  zAxios.get(`composer/ontology/process/${encodeURIComponent(processCd)}`, composerReq({
+    params: targetCd ? { targetCd } : {}
+  }));
+
+export const ontologySuggest = (req) =>
+  zAxios.post('composer/ontology/suggest', req, composerReq({
+    headers: { 'Content-Type': 'application/json' },
+  }));
+
 // ---- Patterns (화면 구성 카탈로그) ----
 
 export const listPatterns = (activeOnly = false) =>

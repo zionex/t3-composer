@@ -70,7 +70,7 @@ export default function OronMpMasterMockup() {
       patternCode="oron_mp_master"
       patternLabel="ORON — MP 기준정보 마스터 (완제품/반제품/자재/자원/그룹)"
       layoutCategory="LAYOUT_SINGLE"
-      description="공급 계획 기준정보 마스터. 5개 탭 (완제품·반제품·원부자재·생산라인·제품그룹) 통합 CRUD. UI_MP_ITEM, UI_MP_ORN_HALB_ITEM, UI_MP_ORN_MRP_ITEM, UI_MP_ORN_RESOURCE, UI_MP_ORN_ITEM_GRP."
+      description="공급 계획 기준정보 마스터. 5개 탭 (완제품·반제품·원부자재·생산라인·제품그룹) 통합 CRUD."
     >
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>

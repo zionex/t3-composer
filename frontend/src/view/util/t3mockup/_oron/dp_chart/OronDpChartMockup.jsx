@@ -126,7 +126,7 @@ export default function OronDpChartMockup() {
       patternCode="oron_dp_chart"
       patternLabel="ORON — 판매계획 입력/보고서 (Chart)"
       layoutCategory="LAYOUT_V2"
-      description="라인 차트 (V2026-05 vs V2026-04 vs 실적 vs BF) + 채널별 Stacked Bar. UI_DP_95_CHART, UI_DP_96_CHART, UI_DP_96."
+      description="라인 차트 (V2026-05 vs V2026-04 vs 실적 vs BF) + 채널별 Stacked Bar."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

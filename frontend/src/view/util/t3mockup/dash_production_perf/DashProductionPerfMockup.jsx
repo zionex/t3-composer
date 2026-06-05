@@ -55,7 +55,7 @@ export default function DashProductionPerfMockup() {
       patternCode="dash_production_perf"
       patternLabel="Production Perf — 생산 실적 분석"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="일생산실적/제품별/공장재고/재고상태 차트 4개 (UI_FP_PRODUCTION_PERFORMANCE)"
+      description="일생산실적/제품별/공장재고/재고상태 차트 4개"
     >
       <Box sx={{ p: 2 }}>
         {/* Scope */}

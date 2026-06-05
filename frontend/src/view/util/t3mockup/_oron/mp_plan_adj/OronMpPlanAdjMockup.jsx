@@ -87,7 +87,7 @@ export default function OronMpPlanAdjMockup() {
       patternCode="oron_mp_plan_adj"
       patternLabel="ORON — 완제품/반제품 생산계획 편성·수정"
       layoutCategory="LAYOUT_SINGLE"
-      description="라인×품목 주별 크로스탭. 수요 vs 계획 비교 — 차이 음수(빨강)/양수(파랑) 시각화 + 편성 저장. UI_MP_ORN_PLAN_RST_ADJ/HALB_RST_ADJ/PROD_AVAIL/SIMUL_COMPARE."
+      description="라인×품목 주별 크로스탭. 수요 vs 계획 비교 — 차이 음수(빨강)/양수(파랑) 시각화 + 편성 저장."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

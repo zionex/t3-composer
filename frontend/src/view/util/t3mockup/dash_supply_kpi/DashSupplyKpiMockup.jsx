@@ -27,7 +27,7 @@ export default function DashSupplyKpiMockup() {
       patternCode="dash_supply_kpi"
       patternLabel="Supply Plan KPI — 공급계획"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="MP 변경율 · MP/FP 일치율 등 KPI 카드 6개 (UI_SA_SUPPLY_PLAN_KPI)"
+      description="MP 변경율 · MP/FP 일치율 등 KPI 카드 6개"
     >
       <Box sx={{ p: 2 }}>
         {/* Scope 표시 */}

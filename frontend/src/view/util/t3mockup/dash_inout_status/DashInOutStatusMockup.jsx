@@ -33,7 +33,7 @@ export default function DashInOutStatusMockup() {
       patternCode="dash_inout_status"
       patternLabel="In/Out Status — 입출하 현황"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="경로 필터 + 입출하/WIP/출하상태 4데이터셋 (UI_FP_IN_OUT_STATUS_DASHBOARD)"
+      description="경로 필터 + 입출하/WIP/출하상태 4데이터셋"
     >
       <Box sx={{ p: 2 }}>
         {/* Filter Bar */}

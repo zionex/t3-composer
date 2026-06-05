@@ -44,7 +44,7 @@ export default function OronDpEntryMockup() {
       patternCode="oron_dp_entry"
       patternLabel="ORON — 판매계획 입력 (PSI 크로스탭)"
       layoutCategory="LAYOUT_SINGLE"
-      description="좌측 고정 5컬럼 (브랜드·채널·Lvl3·품목·MEASURE) + 우측 동적 월 버킷 (7개월). 판매계획 vs 실적 vs 재고계획 — 실적은 locked (회색). UI_DP_95, UI_DP_93, UI_DP_94."
+      description="좌측 고정 5컬럼 (브랜드·채널·Lvl3·품목·MEASURE) + 우측 동적 월 버킷 (7개월). 판매계획 vs 실적 vs 재고계획 — 실적은 잠금(회색)."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

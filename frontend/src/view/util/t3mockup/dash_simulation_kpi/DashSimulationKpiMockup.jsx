@@ -62,7 +62,7 @@ export default function DashSimulationKpiMockup() {
       patternCode="dash_simulation_kpi"
       patternLabel="Simulation KPI — 시뮬 결과"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="충족율/납기율/배송/리드타임 + 비교 차트 (UI_FP_SIMUL_KPI)"
+      description="충족율/납기율/배송/리드타임 + 비교 차트"
     >
       <Box sx={{ p: 2 }}>
         {/* 헤더 — 선택된 버전 */}

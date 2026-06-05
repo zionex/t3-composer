@@ -40,7 +40,7 @@ export default function DashWipEohMockup() {
       patternCode="dash_wip_eoh"
       patternLabel="WIP / EOH — 재공 투입 생산"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="공장별 라우팅 필터 + WIP/EOH 출하 차트 (UI_FP_WIP_EOH_OUT_DASHBOARD)"
+      description="공장별 라우팅 필터 + WIP/EOH 출하 차트"
     >
       <Box sx={{ p: 2 }}>
         <Card variant="outlined" sx={{ mb: 2 }}>

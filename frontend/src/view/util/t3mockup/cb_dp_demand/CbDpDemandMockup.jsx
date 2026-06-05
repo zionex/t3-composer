@@ -39,7 +39,7 @@ export default function CbDpDemandMockup() {
       patternCode="cb_dp_demand"
       patternLabel="CB — DP 수요계획 엔진"
       layoutCategory="LAYOUT_CONTROLBOARD"
-      description="버전 + Stepper + 승인/릴리즈 + 결과 그리드(편집) (UI_DP_93)"
+      description="버전 + Stepper + 승인/릴리즈 + 결과 그리드(편집)"
     >
       <Box sx={{ p: 2 }}>
         {/* 헤더 */}

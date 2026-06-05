@@ -48,7 +48,7 @@ export default function OronRpRequestMockup() {
       patternCode="oron_rp_request"
       patternLabel="ORON — 분배요청/주문 입력·조회·확정"
       layoutCategory="LAYOUT_SINGLE"
-      description="물류센터·영업소 주문 입력 → 조회 → 특정 분배 요청/확정 → 추가의뢰 → 거점 기준정보. 6개 탭 통합. UI_RP_ORN_01, 05, 06, 07, 08, 09, 10, 11."
+      description="물류센터·영업소 주문 입력 → 조회 → 특정 분배 요청/확정 → 추가의뢰 → 거점 기준정보. 6개 탭 통합."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

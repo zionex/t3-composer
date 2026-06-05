@@ -42,7 +42,7 @@ export default function OronMpBundleMockup() {
       patternCode="oron_mp_bundle"
       patternLabel="ORON — 번들작업 + OEM 요청 + 생산실적 대비"
       layoutCategory="LAYOUT_V2"
-      description="상단: 번들 작업 헤더 + 상세 (구성 품목별 재고/부족) — 하단: 라인×품목 계획 대비 실적 (GAP/REASON). UI_MP_ORN_BUNDLE_REQ, BUNDLE_PLAN, OEM_PROD_REQ, PLAN_ACT_INQ."
+      description="상단: 번들 작업 헤더 + 상세 (구성 품목별 재고/부족) — 하단: 라인×품목 계획 대비 실적 (GAP/REASON)."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

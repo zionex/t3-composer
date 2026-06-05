@@ -45,7 +45,7 @@ export default function OronRpAvailabilityMockup() {
       patternCode="oron_rp_availability"
       patternLabel="ORON — 분배 가용량 + 시뮬레이션 + 결과"
       layoutCategory="LAYOUT_CONTROLBOARD"
-      description="분배 5단계 엔진 (주문→재고→가용량→분배엔진→확정) + 가용량 산정표 + 주문별 할당 결과. UI_RP_ORN_02/03/22/21/PLAN_ADJ/04."
+      description="분배 5단계 엔진 (주문→재고→가용량→분배엔진→확정) + 가용량 산정표 + 주문별 할당 결과."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

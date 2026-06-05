@@ -45,7 +45,7 @@ export default function DashSalesGrowthMockup() {
       patternCode="dash_sales_growth"
       patternLabel="Sales Growth — 매출 성장률"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="전년 대비 매출 성장률 + 바 차트 (UI_SA_SALES_GROWTH_RATE)"
+      description="전년 대비 매출 성장률 + 바 차트"
     >
       <Box sx={{ p: 2 }}>
         <Grid container spacing={1.5} sx={{ mb: 1.5 }}>

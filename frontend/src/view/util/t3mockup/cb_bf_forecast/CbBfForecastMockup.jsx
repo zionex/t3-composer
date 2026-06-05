@@ -50,7 +50,7 @@ export default function CbBfForecastMockup() {
       patternCode="cb_bf_forecast"
       patternLabel="CB — BF 예측 엔진"
       layoutCategory="LAYOUT_CONTROLBOARD"
-      description="버전 + 5단계 Stepper + KPI + 로그 + 결과 그리드 (UI_BF_16)"
+      description="버전 + 5단계 Stepper + KPI + 로그 + 결과 그리드"
     >
       <Box sx={{ p: 2 }}>
         {/* 헤더 */}

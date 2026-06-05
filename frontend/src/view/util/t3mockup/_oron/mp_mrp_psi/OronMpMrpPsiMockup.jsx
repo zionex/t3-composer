@@ -141,7 +141,7 @@ export default function OronMpMrpPsiMockup() {
       patternCode="oron_mp_mrp_psi"
       patternLabel="ORON — 원부자재 발주요청 + PSI"
       layoutCategory="LAYOUT_SINGLE"
-      description="원부자재 PSI 크로스탭(주별) + 발주요청 (내자/외자/통합) + 자재별 재고. UI_MP_ORN_MRP_TOT/MRP_LOC/MRP_TOT_VN/MAT_PSI/FERT_PSI/STOCK_MGMT."
+      description="원부자재 PSI 크로스탭(주별) + 발주요청 (내자/외자/통합) + 자재별 재고."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

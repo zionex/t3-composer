@@ -50,7 +50,7 @@ export default function OronMpSimulationMockup() {
       patternCode="oron_mp_simulation"
       patternLabel="ORON — 공급계획 시뮬레이션 컨트롤보드"
       layoutCategory="LAYOUT_CONTROLBOARD"
-      description="공급계획 엔진 6단계 진행 + 실시간 로그 + 기준정보 점검 결과. UI_MP_ORN_PLAN_DMND, UI_MP_ORN_DATA_VALID, UI_MP_ORN_DATA_VALID_INQ."
+      description="공급계획 엔진 6단계 진행 + 실시간 로그 + 기준정보 점검 결과."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

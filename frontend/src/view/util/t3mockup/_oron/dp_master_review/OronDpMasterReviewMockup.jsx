@@ -42,7 +42,7 @@ export default function OronDpMasterReviewMockup() {
       patternCode="oron_dp_master_review"
       patternLabel="ORON — 판매계획 기준정보 + 검토 + 적중률"
       layoutCategory="LAYOUT_SINGLE"
-      description="입력 담당자 관리 · 전략 브랜드 · 출고가 · 거래처-품목 매핑 · 계획 검토 · 적중률 보고서 통합. UI_DP_ORN_USER_DP_ACC_MAP, SHPP_PRICE, STRAT_BRAND_MGMT, DMND_ACC_ITEM_MAP_PFRSTLT, DP_ENTRY_SUMMARY, SALES_PLAN_REPORT_01."
+      description="입력 담당자 관리 · 전략 브랜드 · 출고가 · 거래처-품목 매핑 · 계획 검토 · 적중률 보고서 통합."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

@@ -38,7 +38,7 @@ export default function OronRpActualMockup() {
       patternCode="oron_rp_actual"
       patternLabel="ORON — 분배 계획/실적 + 출하 + OSLS 수신"
       layoutCategory="LAYOUT_V2"
-      description="상단: 거점별 분배 계획 vs 실적 주별 크로스탭, 하단: OSLS 인터페이스 수신 이력. UI_RP_ORN_PLAN_ACTUAL, 77(출하실적), 91(OSLS)."
+      description="상단: 거점별 분배 계획 vs 실적 주별 크로스탭, 하단: OSLS 인터페이스 수신 이력."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

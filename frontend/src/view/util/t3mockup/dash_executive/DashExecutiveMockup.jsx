@@ -99,7 +99,7 @@ export default function DashExecutiveMockup() {
       patternCode="dash_executive"
       patternLabel="Executive — 경영 종합 대시보드"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="매출목표/AOP-DP/제품군 수익 + KPI 종합. 경영진용 한눈에 보는 전사 스냅샷 (UI_SA_EXECUTIVE_DASHBOARD)"
+      description="매출목표/AOP-DP/제품군 수익 + KPI 종합. 경영진용 한눈에 보는 전사 스냅샷."
     >
       <Box sx={{ p: 2 }}>
         {/* Executive KPI 4종 */}

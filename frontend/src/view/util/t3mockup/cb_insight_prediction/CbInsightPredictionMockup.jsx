@@ -32,7 +32,7 @@ export default function CbInsightPredictionMockup() {
       patternCode="cb_insight_prediction"
       patternLabel="CB — Insight 예측 (Job 폴링)"
       layoutCategory="LAYOUT_CONTROLBOARD"
-      description="PlanScope + 엔진 실행 + Job progress + 결과 그리드 (UI_BF_IS_CONTROLBOARD)"
+      description="PlanScope + 엔진 실행 + Job progress + 결과 그리드"
     >
       <Box sx={{ p: 2 }}>
         {/* PlanScope 입력 */}

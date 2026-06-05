@@ -36,7 +36,7 @@ export default function OronMpMaterialMoveMockup() {
       patternCode="oron_mp_material_move"
       patternLabel="ORON — 공장이동 요청·확정 (반제품/자재/외자)"
       layoutCategory="LAYOUT_SINGLE"
-      description="공장간 자재 이동 요청 → 본사 확정 → 운송 → 도착 워크플로우. 외자(VN/CN) 통관 포함. UI_MP_ORN_HALB_MOVE, MAT_MOVE, MAT_MOVE_VN, MAT_MOVE_HQ."
+      description="공장간 자재 이동 요청 → 본사 확정 → 운송 → 도착 워크플로우. 외자(VN/CN) 통관 포함."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

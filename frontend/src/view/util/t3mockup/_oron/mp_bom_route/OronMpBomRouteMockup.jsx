@@ -128,7 +128,7 @@ export default function OronMpBomRouteMockup() {
       patternCode="oron_mp_bom_route"
       patternLabel="ORON — BOM + 생산순서 정의"
       layoutCategory="LAYOUT_H2"
-      description="좌측 BOM 트리 (FERT → HALB → ROH/PACK 다단 전개) + 우측 생산순서 정의 (라인별 공정 SEQ + SETUP_HR + RUN_RATE). UI_MP_ORN_BOM, UI_MP_ORN_PROD_SEQ."
+      description="좌측 BOM 트리 (FERT → HALB → ROH/PACK 다단 전개) + 우측 생산순서 정의 (라인별 공정 SEQ + SETUP_HR + RUN_RATE)."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

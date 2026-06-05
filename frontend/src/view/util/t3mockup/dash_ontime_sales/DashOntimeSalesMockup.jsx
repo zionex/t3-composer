@@ -75,7 +75,7 @@ export default function DashOntimeSalesMockup() {
       patternCode="dash_ontime_sales"
       patternLabel="On-Time Sales — 정시 출하"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="정시 출하율 trend + 지연 사유 도넛 (UI_SA_ONTIME_SALES)"
+      description="정시 출하율 trend + 지연 사유 도넛"
     >
       <Box sx={{ p: 2 }}>
         <Grid container spacing={1.5} sx={{ mb: 1.5 }}>

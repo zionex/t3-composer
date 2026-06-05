@@ -37,7 +37,7 @@ export default function DashPlanProblemMockup() {
       patternCode="dash_plan_problem"
       patternLabel="Plan Problem — 문제 현황"
       layoutCategory="LAYOUT_DASHBOARD"
-      description="KPI + 문제유형(지연/부족/기타) + 상세표 3계층 (UI_FP_PLAN_PROBLEM_DASHBOARD)"
+      description="KPI + 문제유형(지연/부족/기타) + 상세표 3계층"
     >
       <Box sx={{ p: 2 }}>
         {/* L1. KPI 4종 */}

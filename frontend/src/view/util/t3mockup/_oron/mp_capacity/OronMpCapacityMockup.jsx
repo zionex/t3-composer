@@ -57,7 +57,7 @@ export default function OronMpCapacityMockup() {
       patternCode="oron_mp_capacity"
       patternLabel="ORON — 생산능력 + 캘린더 + 작업교체시간"
       layoutCategory="LAYOUT_SINGLE"
-      description="생산능력(BOR) + 라인별 캘린더 + JC_TIME 매트릭스 + 동시생산제약. UI_MP_ORN_BOR, UI_MP_ORN_BOR_SET, UI_MP_ORN_CALENDAR, UI_MP_JC_TIME, UI_MP_ORN_BY_PRODUCT."
+      description="생산능력(BOR) + 라인별 캘린더 + JC_TIME 매트릭스 + 동시생산제약."
     >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>

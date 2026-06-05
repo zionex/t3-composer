@@ -1,321 +1,144 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Tabs, Tab, Chip, Avatar,
+  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SettingsIcon from '@mui/icons-material/Settings';
 import MockShell from '../../_shared/MockShell';
-import { cellSx, percentStatus } from '../../_shared/styleCallback';
 
-// CJBO — 수요계획 정확도 / 계획대비 실적 / RTF 리포트
-// UI_DP_PLAN_ACCURACY — M_1/M_2/M_3 × ACT_QTY/PLAN_QTY/ACCURACY (그룹 헤더)
-// UI_DP_PLAN_REPORT   — 동적 시간 버킷 (월별 PLAN 만)
-// UI_DP_RTF_REPORT    — RTF 충족률 + rtfQryGbn (ALL/D 차이/A 대체) + qtyamtOption
+// CJBO — 수요계획 정확도 (DpPlanAccuracy.jsx)
+// 소스 기반 재작성.
+// path: view/demandplan/service/dpplanaccuracy/DpPlanAccuracy.jsx
+// POST demandplan/dpplanaccuracy/q1 — body{ACCURACY_CD:'M', PLAN_CD, TERM, SALES_GRP_CD, ITEM_FILTER, ...}
+// 차트 / 탭 없음. 단일 BaseGrid id="grid1DpPlanAccuracy".
+//
+// 그룹 헤더 STATIC (4개):
+//   M_1_ACT (UI_DP_REPORT_M_1) → M_1_ACT_QTY (UI_DP_PLAN_ACCURACY_ACT_QTY, #,##0.###)
+//   M_3 (UI_DP_REPORT_M_3) → M_3_PLAN_QTY (UI_DP_PLAN_ACCURACY_PLAN_QTY) + M_3_ACCURACY (UI_DP_PLAN_ACCURACY_ACCURACY, #,##0.#)
+//   M_2 (UI_DP_REPORT_M_2) → M_2_PLAN_QTY + M_2_ACCURACY
+//   M_1 (UI_DP_REPORT_M_1) → M_1_PLAN_QTY + M_1_ACCURACY
+//
+// setPref (line 423-434): 런타임에 group header text 를 YYYY.MM (term 기준 -0/-1/-2) 으로 교체.
+// styleCallback (setRowStyleCallback): BG_COLOR/FG_COLOR 데이터-기반 → Back_<color>/Font_<color>.
 
-const KPIS_ACC = [
-  { label: 'OP 정확도',    value: '94.2%', delta: '+2.1%p', color: 'success', icon: TrendingUpIcon },
-  { label: 'TP 정확도',    value: '88.5%', delta: '-1.3%p', color: 'warning', icon: TrendingDownIcon },
-  { label: 'RTF 충족률',   value: '91.8%', delta: '+0.5%p', color: 'info',    icon: AssessmentIcon },
-  { label: '평균 편차',    value: '4.7%',  delta: '-0.8%p', color: 'success', icon: ShowChartIcon },
-];
-const KPIS_PLAN = [
-  { label: '계획 합계',    value: '188.0K', delta: '7월 ~ 12월', color: 'primary', icon: AssessmentIcon },
-  { label: '실적 누계',    value: '142.3K', delta: '~6월 마감',  color: 'info',    icon: TrendingUpIcon },
-  { label: '진척률',       value: '75.7%',  delta: '+1.2%p',     color: 'success', icon: TrendingUpIcon },
-  { label: '남은 분',      value: '45.7K',  delta: '6개월',      color: 'warning', icon: AssessmentIcon },
-];
-const KPIS_RTF = [
-  { label: 'RTF (전체)',   value: '91.8%', delta: '+0.5%p',  color: 'info',     icon: AssessmentIcon },
-  { label: 'RTF (수출)',   value: '88.3%', delta: '-1.2%p',  color: 'warning',  icon: TrendingDownIcon },
-  { label: 'Short 거래',   value: '12건',  delta: '+3 vs 전월', color: 'error',  icon: TrendingDownIcon },
-  { label: '대체 발생',    value: '8건',   delta: 'A 옵션',  color: 'highlight',icon: TrendingUpIcon },
-];
-
-const TREND_ACC = [85, 88, 91, 89, 92, 94, 93, 95, 94, 92, 94, 95];
-const TREND_PLAN = [125, 132, 138, 142, 145, 148, 152, 158, 162, 168, 172, 175];
-const TREND_RTF = [82, 85, 88, 87, 90, 91, 89, 92, 91, 88, 90, 92];
-
-// 정확도 — M-1/M-2/M-3 × ACT/PLAN/ACCURACY 그룹 헤더
-const ROWS_ACC = [
-  { CUST: '롯데마트',    ITEM: 'illuvia 비건마스크 5매', EMP: '김민수', m1: { act: 4900, plan: 5050, acc:  97.0 }, m2: { act: 4700, plan: 4900, acc:  95.9 }, m3: { act: 5100, plan: 5200, acc:  98.1 } },
-  { CUST: '쿠팡',        ITEM: 'illuvia 비건마스크 5매', EMP: '이정훈', m1: { act: 4050, plan: 4150, acc:  97.6 }, m2: { act: 3900, plan: 4100, acc:  95.1 }, m3: { act: 4150, plan: 4200, acc:  98.8 } },
-  { CUST: '올리브영',    ITEM: 'illuvia 토너 200ml',     EMP: '박서연', m1: { act: 2620, plan: 2600, acc: 100.8 }, m2: { act: 2580, plan: 2650, acc:  97.4 }, m3: { act: 2750, plan: 2700, acc: 101.9 } },
-  { CUST: '베트남 KGS',  ITEM: 'CJ Brand Korea KING-RED',EMP: '박글로벌',m1: { act: 5400, plan: 5950, acc:  90.8 }, m2: { act: 5100, plan: 5900, acc:  86.4 }, m3: { act: 5500, plan: 5950, acc:  92.4 } },
-  { CUST: '인니 INDOMA', ITEM: 'illuvia MASK',           EMP: '박글로벌',m1: { act: 4950, plan: 5100, acc:  97.1 }, m2: { act: 4700, plan: 5000, acc:  94.0 }, m3: { act: 5090, plan: 5100, acc:  99.8 } },
-  { CUST: '말레이 SCH',  ITEM: 'NGP Device #01',          EMP: '정재현', m1: { act: 1450, plan: 1750, acc:  82.9 }, m2: { act: 1280, plan: 1700, acc:  75.3 }, m3: { act: 1370, plan: 1750, acc:  78.3 } },
-  { CUST: 'GS25',        ITEM: 'illuvia 크림 50g',         EMP: '송하늘', m1: { act: 2400, plan: 2200, acc: 109.1 }, m2: { act: 2350, plan: 2100, acc: 111.9 }, m3: { act: 2530, plan: 2200, acc: 115.0 } },
+const ROWS = [
+  { BIG_AREA_NM: 'Animal Nutrition', SALES_AREA_NM: '베트남',    TRADE_TYPE_NM: '수출', LOCATION_CD: 'VN-HCM', CUST_NM: 'Jakarta Corp.',   SALES_GRP_CD: 'AN',  BIG_GRP_NM: 'Lysine',     MID_GRP_NM: '78% 액상',  SML_GRP_NM: 'L-Lysine 78%',     bgColor: '',                          fgColor: '',
+    M_1_ACT_QTY: 1450,  M_3_PLAN_QTY: 1500, M_3_ACCURACY: 96.7, M_2_PLAN_QTY: 1520, M_2_ACCURACY: 95.4, M_1_PLAN_QTY: 1480, M_1_ACCURACY: 98.0 },
+  { BIG_AREA_NM: 'Animal Nutrition', SALES_AREA_NM: '인도네시아',TRADE_TYPE_NM: '수출', LOCATION_CD: 'ID-JKT', CUST_NM: 'Sao Paulo Corp.', SALES_GRP_CD: 'AN',  BIG_GRP_NM: 'Tryptophan', MID_GRP_NM: '98% 분말',  SML_GRP_NM: 'L-Tryptophan 98%',  bgColor: '',                          fgColor: '',
+    M_1_ACT_QTY:  820,  M_3_PLAN_QTY:  800, M_3_ACCURACY:102.5, M_2_PLAN_QTY:  850, M_2_ACCURACY: 96.5, M_1_PLAN_QTY:  830, M_1_ACCURACY: 98.8 },
+  { BIG_AREA_NM: 'Animal Nutrition', SALES_AREA_NM: '미국',      TRADE_TYPE_NM: '수출', LOCATION_CD: 'US-LAX', CUST_NM: 'New York Corp.',  SALES_GRP_CD: 'AN',  BIG_GRP_NM: 'Methionine', MID_GRP_NM: '99% 분말',  SML_GRP_NM: 'L-Methionine 99%',  bgColor: 'rgba(244,67,54,0.08)',      fgColor: 'red',
+    M_1_ACT_QTY: 1800,  M_3_PLAN_QTY: 2200, M_3_ACCURACY: 81.8, M_2_PLAN_QTY: 2100, M_2_ACCURACY: 85.7, M_1_PLAN_QTY: 2150, M_1_ACCURACY: 83.7 },
+  { BIG_AREA_NM: 'BMS',              SALES_AREA_NM: '브라질',    TRADE_TYPE_NM: '수출', LOCATION_CD: 'BR-SSA', CUST_NM: 'Vancouver Corp.', SALES_GRP_CD: 'BMS', BIG_GRP_NM: 'Threonine',  MID_GRP_NM: '98.5% 분말',SML_GRP_NM: 'L-Threonine 98.5%', bgColor: '',                          fgColor: '',
+    M_1_ACT_QTY:  520,  M_3_PLAN_QTY:  480, M_3_ACCURACY:108.3, M_2_PLAN_QTY:  500, M_2_ACCURACY:104.0, M_1_PLAN_QTY:  510, M_1_ACCURACY:102.0 },
+  { BIG_AREA_NM: 'Animal Nutrition', SALES_AREA_NM: '중국',      TRADE_TYPE_NM: '수출', LOCATION_CD: 'CN-SH',  CUST_NM: 'Mexico City Corp.',SALES_GRP_CD: 'AN', BIG_GRP_NM: 'Valine',     MID_GRP_NM: '96.5% 분말',SML_GRP_NM: 'L-Valine 96.5%',     bgColor: 'rgba(76,175,80,0.08)',      fgColor: '',
+    M_1_ACT_QTY:  340,  M_3_PLAN_QTY:  250, M_3_ACCURACY:136.0, M_2_PLAN_QTY:  280, M_2_ACCURACY:121.4, M_1_PLAN_QTY:  290, M_1_ACCURACY:117.2 },
+  { BIG_AREA_NM: 'Animal Nutrition', SALES_AREA_NM: '필리핀',    TRADE_TYPE_NM: '수출', LOCATION_CD: 'PH-MNL', CUST_NM: 'Roma Corp.',      SALES_GRP_CD: 'AN',  BIG_GRP_NM: 'Lysine',     MID_GRP_NM: '78% 액상',  SML_GRP_NM: 'L-Lysine 78%',     bgColor: '',                          fgColor: '',
+    M_1_ACT_QTY:  690,  M_3_PLAN_QTY:  700, M_3_ACCURACY: 98.6, M_2_PLAN_QTY:  720, M_2_ACCURACY: 95.8, M_1_PLAN_QTY:  710, M_1_ACCURACY: 97.2 },
 ];
 
-// 계획 — 동적 시간 버킷 (월별 PLAN 만)
-const PLAN_MONTHS = ['07월','08월','09월','10월','11월','12월'];
-const ROWS_PLAN = [
-  { CUST: '롯데마트',    ITEM: 'illuvia 비건마스크 5매', m: [5100, 5300, 5000, 4900, 5050, 5050] },
-  { CUST: '쿠팡',        ITEM: 'illuvia 비건마스크 5매', m: [4200, 4300, 4100, 4100, 4150, 4150] },
-  { CUST: '올리브영',    ITEM: 'illuvia 토너 200ml',      m: [2700, 2800, 2700, 2600, 2600, 2600] },
-  { CUST: '베트남 KGS',  ITEM: 'CJ Brand Korea KING-RED',m: [6100, 6300, 6000, 5900, 5950, 5950] },
-  { CUST: '인니 INDOMA', ITEM: 'illuvia MASK',            m: [5200, 5400, 5100, 5000, 5100, 5100] },
-  { CUST: '말레이 SCH',  ITEM: 'NGP Device #01',          m: [1900, 1900, 1800, 1700, 1750, 1750] },
-  { CUST: 'GS25',        ITEM: 'illuvia 크림 50g',        m: [2200, 2300, 2200, 2100, 2200, 2200] },
-];
-
-// RTF — RTF 충족률 + 대체 / Short 표시
-const ROWS_RTF = [
-  { CUST: '롯데마트',    ITEM: 'illuvia 비건마스크 5매', DMD: 5300, SUP: 5300, RTF:100.0, SHORT:    0, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'A' },
-  { CUST: '쿠팡',        ITEM: 'illuvia 비건마스크 5매', DMD: 4300, SUP: 4300, RTF:100.0, SHORT:    0, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'A' },
-  { CUST: '올리브영',    ITEM: 'illuvia 토너 200ml',     DMD: 2800, SUP: 2800, RTF:100.0, SHORT:    0, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'A' },
-  { CUST: '베트남 KGS',  ITEM: 'CJ Brand Korea KING-RED',DMD: 6300, SUP: 5500, RTF: 87.3, SHORT:  800, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'D' },
-  { CUST: '인니 INDOMA', ITEM: 'illuvia MASK',           DMD: 5400, SUP: 5090, RTF: 94.3, SHORT:  310, ALT_QTY:  310, ALT_ITEM: 'illuvia 토너 200ml', GBN: 'D' },
-  { CUST: '말레이 SCH',  ITEM: 'NGP Device #01',          DMD: 1900, SUP: 1370, RTF: 72.1, SHORT:  530, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'D' },
-  { CUST: 'GS25',        ITEM: 'illuvia 크림 50g',         DMD: 2300, SUP: 2530, RTF:100.0, SHORT:    0, ALT_QTY:    0, ALT_ITEM: '-', GBN: 'A' },
-];
-
-function KpiCard({ kpi }) {
-  const Icon = kpi.icon;
-  return (
-    <Paper variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-      <Stack direction="row" alignItems="center" spacing={1.5}>
-        <Avatar sx={{ backgroundColor: `${kpi.color}.light`, color: `${kpi.color}.dark`, width: 40, height: 40 }}>
-          <Icon />
-        </Avatar>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="caption" color="text.secondary">{kpi.label}</Typography>
-          <Stack direction="row" alignItems="baseline" spacing={0.5}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: `${kpi.color}.main` }}>{kpi.value}</Typography>
-            <Typography variant="caption" sx={{ color: kpi.delta.startsWith('+') ? 'success.main' : kpi.delta.startsWith('-') ? 'error.main' : 'text.secondary', fontWeight: 600 }}>
-              {kpi.delta}
-            </Typography>
-          </Stack>
-        </Box>
-      </Stack>
-    </Paper>
-  );
-}
-
-function TrendChart({ data, color, label, target }) {
-  const W = 800, H = 200, P = 30;
-  const xStep = (W - P * 2) / (data.length - 1);
-  const yMin = Math.min(...data) - 5;
-  const yMax = Math.max(...data) + 5;
-  const yScale = (v) => H - P - ((v - yMin) / (yMax - yMin)) * (H - P * 2);
-  const d = data.map((v, i) => `${i === 0 ? 'M' : 'L'} ${P + xStep * i} ${yScale(v)}`).join(' ');
-  const targetY = target != null ? yScale(target) : null;
-  return (
-    <Paper variant="outlined" sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <ShowChartIcon fontSize="small" color="primary" />
-        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{label}</Typography>
-      </Stack>
-      <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
-          {[Math.floor(yMin/10)*10, Math.floor((yMin+yMax)/20)*10, Math.ceil(yMax/10)*10].map((y) => (
-            <g key={y}>
-              <line x1={P} y1={yScale(y)} x2={W - P} y2={yScale(y)} stroke="#e5e7eb" strokeWidth="0.5" />
-              <text x={P - 5} y={yScale(y)} fill="#9ca3af" fontSize="10" textAnchor="end" dy="3">{y}</text>
-            </g>
-          ))}
-          {targetY != null && <line x1={P} y1={targetY} x2={W - P} y2={targetY} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 3" />}
-          {data.map((v, i) => (
-            <text key={i} x={P + xStep * i} y={H - 8} fill="#6b7280" fontSize="10" textAnchor="middle">{i + 1}월</text>
-          ))}
-          <path d={d} fill="none" stroke={color} strokeWidth="2.5" />
-          {data.map((v, i) => (
-            <circle key={i} cx={P + xStep * i} cy={yScale(v)} r="4" fill={color} />
-          ))}
-        </svg>
-      </Box>
-    </Paper>
-  );
-}
+// runtime group header text (setPref) — term=2026-05 일 때 M_1=2026.05, M_2=2026.04, M_3=2026.03
+const H = { M_1_ACT: '2026.05 (M-1)', M_3: '2026.03 (M-3)', M_2: '2026.04 (M-2)', M_1: '2026.05 (M-1)' };
 
 export default function CjboDpPlanAccuracyMockup() {
-  const [tab, setTab] = useState(0);
-  // 0=정확도 · 1=계획대비 실적 · 2=RTF
-
   return (
-    <MockShell patternCode="cjbo_dp_plan_accuracy" patternLabel="CJBO — 정확도/실적/RTF (DpPlanAccuracy/Report/RtfReport)"
+    <MockShell patternCode="cjbo_dp_plan_accuracy"
+      patternLabel="CJBO — 수요계획 정확도 (DpPlanAccuracy)"
       layoutCategory="LAYOUT_SINGLE"
-      description="정확도(M_1/2/3 그룹헤더) · 실적(동적 시간 버킷) · RTF(충족률+rtfQryGbn). UI_DP_PLAN_ACCURACY/PLAN_REPORT/RTF_REPORT 3종.">
+      description="UI_DP_PLAN_ACCURACY — 단일 BaseGrid + STATIC 4 그룹 헤더 (M_1_ACT/M_3/M_2/M_1). 런타임에 group header → YYYY.MM 교체. 차트/탭 없음. POST demandplan/dpplanaccuracy/q1.">
+
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="리포트"
-            value={tab === 0 ? '수요계획 정확도' : tab === 1 ? '계획대비 실적' : 'RTF 리포트'} size="small" sx={{ width: 170 }} />
-          <TextField label="계획구분" size="small" select value="OP" sx={{ width: 130 }}>
-            <MenuItem value="OP">OP</MenuItem><MenuItem value="TP">TP</MenuItem>
+          <TextField label="DP_PLAN_GBN (CB_DP_PLAN_GBN)" size="small" select value="M" sx={{ width: 180 }}>
+            <MenuItem value="M">월간(DP_PLAN_MONTHLY)</MenuItem>
+            <MenuItem value="T">목표(DP_PLAN_TARGET)</MenuItem>
           </TextField>
-          <TextField label="버전" size="small" value="V2026-05" sx={{ width: 130 }} />
-          <TextField label="대분류" size="small" select value="ALL" sx={{ width: 130 }}>
+          <TextField label="MONTH (DP_ACCURACY_M)" size="small" select value="2026-05" sx={{ width: 160 }}>
+            <MenuItem value="2026-05">2026-05</MenuItem>
+            <MenuItem value="2026-04">2026-04</MenuItem>
+          </TextField>
+          <TextField label="SALES_GRP_CD (multi)" size="small" select value="ALL" sx={{ width: 150 }}>
             <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="AN">AN</MenuItem><MenuItem value="TN">TN</MenuItem><MenuItem value="BMS">BMS</MenuItem>
           </TextField>
-          <TextField label="조회월" size="small" value="2026-05" sx={{ width: 140 }} />
-          {tab === 2 && (
-            <>
-              <TextField label="RTF 구분" size="small" select value="ALL" sx={{ width: 150 }}>
-                <MenuItem value="ALL">전체</MenuItem>
-                <MenuItem value="D">D 차이 발생분</MenuItem>
-                <MenuItem value="A">A 대체 있음</MenuItem>
-              </TextField>
-              <TextField label="단위" size="small" select value="QTY" sx={{ width: 100 }}>
-                <MenuItem value="ALL">ALL</MenuItem>
-                <MenuItem value="QTY">QTY</MenuItem>
-                <MenuItem value="AMT">AMT</MenuItem>
-              </TextField>
-            </>
-          )}
+          <TextField label="ItemSearchInput (PH1)" size="small" value="전체" sx={{ width: 180 }}
+            InputProps={{ endAdornment: <Box sx={{ width: 24, textAlign: 'center', color: 'text.secondary' }}>🔍</Box> }} />
+          <TextField label="AccountSearchInput" size="small" value="전체" sx={{ width: 160 }}
+            InputProps={{ endAdornment: <Box sx={{ width: 24, textAlign: 'center', color: 'text.secondary' }}>🔍</Box> }} />
+          <TextField label="SOLID_GBN_CD" size="small" select value="ALL" sx={{ width: 110 }}>
+            <MenuItem value="ALL">전체</MenuItem><MenuItem value="L">L 액상</MenuItem><MenuItem value="S">S 분말</MenuItem>
+          </TextField>
+          <TextField label="DP_SUM_YN" size="small" select value="Y" sx={{ width: 90 }}>
+            <MenuItem value="Y">Y</MenuItem><MenuItem value="N">N</MenuItem>
+          </TextField>
           <Box sx={{ flexGrow: 1 }} />
           <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+          <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>새로고침</Button>
         </Stack>
       </Box>
 
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label="정확도 (DpPlanAccuracy)" sx={{ minHeight: 38 }} />
-          <Tab label="계획대비 실적 (DpPlanReport)" sx={{ minHeight: 38 }} />
-          <Tab label="RTF (DpRtfReport)" sx={{ minHeight: 38 }} />
-        </Tabs>
+      {/* ButtonArea */}
+      <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
+        <Box sx={{ flexGrow: 1 }} />
+        <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>SELECT_QTY_SUM: <b>0</b></Typography>
+        <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>MT</Typography>
+        <Button size="small" startIcon={<SettingsIcon />} variant="outlined">개인화 (PopPersonalize)</Button>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        <Stack direction="row" spacing={1.5}>
-          {(tab === 0 ? KPIS_ACC : tab === 1 ? KPIS_PLAN : KPIS_RTF).map((k) => <KpiCard key={k.label} kpi={k} />)}
-        </Stack>
-
-        <TrendChart
-          data={tab === 0 ? TREND_ACC : tab === 1 ? TREND_PLAN : TREND_RTF}
-          color={tab === 0 ? '#1976d2' : tab === 1 ? '#10b981' : '#9c27b0'}
-          label={tab === 0 ? '월별 OP 정확도 (%) — 2026 (목표 90%)' : tab === 1 ? '월별 계획 추이 (단위: K) — 2026' : '월별 RTF 충족률 (%) — 2026 (목표 90%)'}
-          target={tab === 0 || tab === 2 ? 90 : null}
-        />
-
-        {tab === 0 && (
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>정확도 (M_1/M_2/M_3) × ACT/PLAN/ACCURACY — 그룹 헤더</Typography>
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>거래처</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>품목</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>담당</TableCell>
-                    {['M-1 (2026-05)','M-2 (2026-04)','M-3 (2026-03)'].map((m) => (
-                      <TableCell key={m} colSpan={3} sx={{ backgroundColor: '#e3f2fd', fontWeight: 700, textAlign: 'center' }}>{m}</TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    {[0,1,2].flatMap(() => ['ACT','PLAN','정확도'].map((c, i) => (
-                      <TableCell key={`${c}-${i}-${Math.random()}`} sx={{ backgroundColor: '#e3f2fd', fontWeight: 700, textAlign: 'right', fontSize: 11 }}>{c}</TableCell>
-                    )))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ROWS_ACC.map((r, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell>{r.CUST}</TableCell>
-                      <TableCell>{r.ITEM}</TableCell>
-                      <TableCell>{r.EMP}</TableCell>
-                      {['m1','m2','m3'].map((k) => {
-                        const tone = percentStatus(r[k].acc);
-                        return [
-                          <TableCell key={`${k}-act`} sx={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 12 }}>{r[k].act.toLocaleString()}</TableCell>,
-                          <TableCell key={`${k}-plan`} sx={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>{r[k].plan.toLocaleString()}</TableCell>,
-                          <TableCell key={`${k}-acc`} sx={cellSx(tone, { align: 'right', mono: true })}>{r[k].acc.toFixed(1)}</TableCell>,
-                        ];
-                      })}
-                    </TableRow>
+      {/* ResultArea */}
+      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
+        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <TableContainer sx={{ flex: 1 }}>
+            <Table size="small" stickyHeader sx={{ '& th, & td': { whiteSpace: 'nowrap', fontSize: 11, py: 0.5 } }}>
+              <TableHead>
+                <TableRow>
+                  {['대지역','판매지역','거래유형','거점','거래처','사업담당','대분류','중분류','소분류'].map((c) => (
+                    <TableCell key={c} rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>{c}</TableCell>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
-
-        {tab === 1 && (
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>계획 (동적 시간 버킷) — 거래처·품목 × 월별 PLAN</Typography>
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>거래처</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>품목</TableCell>
-                    {PLAN_MONTHS.map((m) => (
-                      <TableCell key={m} sx={{ backgroundColor: '#e3f2fd', fontWeight: 700, textAlign: 'right' }}>{m}</TableCell>
-                    ))}
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: 'right' }}>합계</TableCell>
+                  <TableCell colSpan={1} sx={{ backgroundColor: '#fff9c4', textAlign: 'center', fontWeight: 700 }}>{H.M_1_ACT}<br /><Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 9 }}>M_1_ACT</Typography></TableCell>
+                  <TableCell colSpan={2} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center', fontWeight: 700 }}>{H.M_3}<br /><Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 9 }}>M_3</Typography></TableCell>
+                  <TableCell colSpan={2} sx={{ backgroundColor: '#c8e6c9', textAlign: 'center', fontWeight: 700 }}>{H.M_2}<br /><Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 9 }}>M_2</Typography></TableCell>
+                  <TableCell colSpan={2} sx={{ backgroundColor: '#ffe0b2', textAlign: 'center', fontWeight: 700 }}>{H.M_1}<br /><Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 9 }}>M_1</Typography></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell sx={{ backgroundColor: '#fff9c4', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>ACT_QTY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#e3f2fd', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>PLAN_QTY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#e3f2fd', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>ACCURACY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#c8e6c9', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>PLAN_QTY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#c8e6c9', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>ACCURACY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#ffe0b2', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>PLAN_QTY</TableCell>
+                  <TableCell sx={{ backgroundColor: '#ffe0b2', textAlign: 'right', fontWeight: 600, fontSize: 10 }}>ACCURACY</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {ROWS.map((r, i) => (
+                  <TableRow key={i} hover sx={{ backgroundColor: r.bgColor || undefined }}>
+                    <TableCell sx={{ color: r.fgColor === 'red' ? 'error.main' : undefined }}>{r.BIG_AREA_NM}</TableCell>
+                    <TableCell sx={{ color: r.fgColor === 'red' ? 'error.main' : undefined }}>{r.SALES_AREA_NM}</TableCell>
+                    <TableCell>{r.TRADE_TYPE_NM}</TableCell>
+                    <TableCell sx={{ fontFamily: 'monospace' }}>{r.LOCATION_CD}</TableCell>
+                    <TableCell>{r.CUST_NM}</TableCell>
+                    <TableCell><Chip size="small" label={r.SALES_GRP_CD} variant="outlined" sx={{ height: 16, fontSize: 9 }} /></TableCell>
+                    <TableCell>{r.BIG_GRP_NM}</TableCell>
+                    <TableCell>{r.MID_GRP_NM}</TableCell>
+                    <TableCell>{r.SML_GRP_NM}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', backgroundColor: '#fffde7', fontWeight: 700 }}>{r.M_1_ACT_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.M_3_PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.M_3_ACCURACY.toFixed(1)}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.M_2_PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.M_2_ACCURACY.toFixed(1)}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.M_1_PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.M_1_ACCURACY.toFixed(1)}</TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ROWS_PLAN.map((r, i) => {
-                    const total = r.m.reduce((a, b) => a + b, 0);
-                    return (
-                      <TableRow key={i} hover>
-                        <TableCell>{r.CUST}</TableCell>
-                        <TableCell>{r.ITEM}</TableCell>
-                        {r.m.map((v, j) => (
-                          <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 12 }}>{v.toLocaleString()}</TableCell>
-                        ))}
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{total.toLocaleString()}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
-
-        {tab === 2 && (
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>RTF 충족률 — DMD vs SUP + 대체/Short</Typography>
-              <Chip size="small" label="A: 대체 발생" color="warning" variant="outlined" />
-              <Chip size="small" label="D: 차이 발생" color="error" variant="outlined" />
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {['거래처','품목','DMD','SUP','RTF (%)','Short','대체 수량','대체 품목','구분'].map((c) => (
-                      <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                        textAlign: ['DMD','SUP','RTF (%)','Short','대체 수량','구분'].includes(c) ? 'right' : 'left' }}>{c}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ROWS_RTF.map((r, i) => {
-                    const tone = percentStatus(r.RTF, { danger: 80, warning: 95, success: 100 });
-                    return (
-                      <TableRow key={i} hover>
-                        <TableCell>{r.CUST}</TableCell>
-                        <TableCell>{r.ITEM}</TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.DMD.toLocaleString()}</TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.SUP.toLocaleString()}</TableCell>
-                        <TableCell sx={cellSx(tone, { align: 'right', mono: true })}>{r.RTF.toFixed(1)}</TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.SHORT > 0 ? 'error.main' : 'text.secondary', fontWeight: r.SHORT > 0 ? 700 : undefined }}>
-                          {r.SHORT > 0 ? r.SHORT.toLocaleString() : '-'}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.ALT_QTY > 0 ? 'warning.main' : 'text.secondary', fontWeight: r.ALT_QTY > 0 ? 700 : undefined }}>
-                          {r.ALT_QTY > 0 ? r.ALT_QTY.toLocaleString() : '-'}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.ALT_ITEM}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>
-                          <Chip size="small" label={r.GBN} color={r.GBN === 'D' ? 'error' : 'success'} sx={{ height: 18, fontWeight: 700 }} />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </Box>
     </MockShell>
   );

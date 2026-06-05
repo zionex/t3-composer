@@ -1,320 +1,416 @@
 import React, { useState } from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab,
+  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab, Checkbox,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import SaveIcon from '@mui/icons-material/Save';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import MockShell from '../../_shared/MockShell';
-import { cellSx, percentStatus } from '../../_shared/styleCallback';
 
-// CJBO — MP SCM Demand
-// UI_MP_PN_01 ReworkMtom         — LOCATION 그룹 + MP_DMND_TYPE/_DTL (드롭다운) + RES_CD + REMARK
-// UI_MP_PN_03 InventoryMovement  — ITEM 그룹 + LOCAT_DIV_CD (P_S_DIV) + FROM_LOCAT/TO_LOCAT 그룹
-// UI_MP_PN_04 StuffingFile        — STATUS_FLAG/STUFFING_ID/ITEM/SEQ + PROD_CORP/PLANT/LOCAT × SALES_CORP/PLANT
-// UI_MP_PN_04_VIEW                — StuffingFile read-only
-// UI_MP_PN_05 VersionStuffingFile — CHK_STUFFING + SIMUL_VER_ID + SALES_ORD_GRP (ODR_INVOICE_NO 시뮬-버전 스냅샷)
+// CJBO — MP SCM Demand 5종
+// 소스 기반 재작성.
+// path: view/masterplan/master/{reworkmtom,inventorymovement,stuffingfile,stuffingfileview,versionstuffingfile}/*.jsx
+//
+//  ① UI_MP_PN_01 ReworkMtom         — Rework/MtoM 계획 (CJBO 전용 URL prefix cjbo/mp/master/reworkmtom)
+//  ② UI_MP_PN_03 InventoryMovement  — 거점간 재고이동
+//  ③ UI_MP_PN_04 StuffingFile       — Stuffing 마스터 (2780줄, PROD_CORP + GENERAL_INFO 15개 CHK_* 세로헤더)
+//  ④ UI_MP_PN_04_VIEW StuffingFileView — StuffingFile read-only
+//  ⑤ UI_MP_PN_05 VersionStuffingFile — 시뮬레이션 버전 스냅샷 (CHK_STUFFING + SIMUL_VER_ID + ORDER linkage)
 
-const REWORK = [
-  { LOCAT_TP: '제조', LOCAT_CD: 'L01-A', LOCAT_NM: '경기 광주 1라인', MP_DMND_TYPE: 'REWORK',   MP_DMND_TYPE_DTL: 'RWK-PKG',  RES_CD: 'L01-A',  FROM_ITEM: 'illuvia 토너 200ml (구)',  TO_ITEM: 'illuvia 토너 200ml (신)',  QTY: 5400, REMARK: '용량 200ml → 250ml 변경', STATUS: 'planned' },
-  { LOCAT_TP: '제조', LOCAT_CD: 'L02-A', LOCAT_NM: '경기 광주 2라인', MP_DMND_TYPE: 'MTOM',     MP_DMND_TYPE_DTL: 'MTM-MIX',  RES_CD: 'L02-A',  FROM_ITEM: 'illuvia 크림 50g (구)',     TO_ITEM: 'illuvia 크림 50g (신)',     QTY: 2800, REMARK: '향료 라인 교체',         STATUS: 'in_progress' },
-  { LOCAT_TP: '제조', LOCAT_CD: 'L99-A', LOCAT_NM: '대전 NGP 라인',   MP_DMND_TYPE: 'REWORK',   MP_DMND_TYPE_DTL: 'RWK-VER',  RES_CD: 'L99-A',  FROM_ITEM: 'illuvia 클렌저 150ml',    TO_ITEM: 'illuvia 클렌저 200ml',     QTY: 1500, REMARK: '리뉴얼 패키지',         STATUS: 'planned' },
+// ────────── ReworkMtom ──────────
+const REWORK_ROWS = [
+  { LOCAT_TP_NM: '제조', LOCAT_CD: 'KR-PLT1', LOCAT_NM: '한국 사업장1',  MP_DMND_TYPE: 'REWORK', MP_DMND_TYPE_DTL: 'REPACK', RES_CD: 'P-DRUM-01', RES_DESCRIP: 'Drum 1000L',     REMARK: '용기 변경', FROM_PH3: '78L', FROM_ITEM_CD: 'L-LYS-78L',   FROM_ITEM_NM: 'L-Lysine 78% (액상)',  TO_PH3: '78D',  TO_ITEM_CD: 'L-LYS-78D',  TO_ITEM_NM: 'L-Lysine 78% (Drum)',     QTY: 5.400, TOT_QTY: 162.0, STRT_DATE: '2026-07-01', END_DATE: '2026-07-31', ACTV_YN: true  },
+  { LOCAT_TP_NM: '제조', LOCAT_CD: 'KR-PLT1', LOCAT_NM: '한국 사업장1',  MP_DMND_TYPE: 'MTOM',   MP_DMND_TYPE_DTL: 'MIX',    RES_CD: 'R-CRY-01',  RES_DESCRIP: 'Crystallizer #1',REMARK: '결정화 처리', FROM_PH3: '99P', FROM_ITEM_CD: 'L-MET-99B',   FROM_ITEM_NM: 'L-Methionine 99% (벌크)',TO_PH3: '99R',  TO_ITEM_CD: 'L-MET-99R',  TO_ITEM_NM: 'L-Methionine 99% (Retail)',QTY: 2.800, TOT_QTY:  84.0, STRT_DATE: '2026-07-15', END_DATE: '2026-08-31', ACTV_YN: true  },
+  { LOCAT_TP_NM: '제조', LOCAT_CD: 'VN-PLT1', LOCAT_NM: 'Bio-VN',         MP_DMND_TYPE: 'REWORK', MP_DMND_TYPE_DTL: 'QC',     RES_CD: 'R-CRY-02',  RES_DESCRIP: 'Crystallizer #2',REMARK: '품질 재처리',FROM_PH3: '98P', FROM_ITEM_CD: 'L-TRP-98',    FROM_ITEM_NM: 'L-Tryptophan 98% (분말)',TO_PH3: '99P',  TO_ITEM_CD: 'L-TRP-99',   TO_ITEM_NM: 'L-Tryptophan 99% (분말)',  QTY: 1.500, TOT_QTY:  30.0, STRT_DATE: '2026-08-01', END_DATE: '2026-09-30', ACTV_YN: true  },
 ];
 
-const MOVE = [
-  { PH1: 'illuvia',  PH2: 'MASK',     PH3: '5매',     ITEM_CD: 'F01001', ITEM_NM: 'illuvia 비건마스크 5매', LOCAT_DIV: 'INTERNAL', FROM_LOCAT_TP: '제조', FROM_LOCAT: '경기 광주 1물류', TO_LOCAT_TP: '물류', TO_LOCAT: '경기 이천 2물류',  QTY: 4500, ETD: '2026-06-10', ETA: '2026-06-11', STATUS: 'in_transit' },
-  { PH1: 'illuvia',  PH2: 'TONER',    PH3: '200ml',   ITEM_CD: 'F01002', ITEM_NM: 'illuvia 토너 200ml',      LOCAT_DIV: 'INTERNAL', FROM_LOCAT_TP: '물류', FROM_LOCAT: '경기 이천 2물류', TO_LOCAT_TP: '물류', TO_LOCAT: '인천 GLC',          QTY: 2800, ETD: '2026-06-12', ETA: '2026-06-13', STATUS: 'planned' },
-  { PH1: 'CJ Brand', PH2: 'KING-RED', PH3: '60s',     ITEM_CD: 'F02001', ITEM_NM: 'CJ Brand Korea KING-RED', LOCAT_DIV: 'EXTERNAL', FROM_LOCAT_TP: '항만', FROM_LOCAT: '부산항 BPA',       TO_LOCAT_TP: '해외', TO_LOCAT: '베트남 호치민',     QTY:12000, ETD: '2026-06-15', ETA: '2026-06-22', STATUS: 'planned' },
-  { PH1: 'illuvia',  PH2: 'MASK',     PH3: 'EXPORT',  ITEM_CD: 'F01003', ITEM_NM: 'illuvia MASK',            LOCAT_DIV: 'EXTERNAL', FROM_LOCAT_TP: '항만', FROM_LOCAT: '광양항 GPA',        TO_LOCAT_TP: '해외', TO_LOCAT: '인니 자카르타',     QTY: 8500, ETD: '2026-06-18', ETA: '2026-06-28', STATUS: 'planned' },
+// ────────── InventoryMovement ──────────
+const MOVE_ROWS = [
+  { PH1_CD: 'AN', PH1_NM: 'Animal Nutrition',  PH2_CD: 'LYS', PH2_NM: 'Lysine',     PH3_CD: '78L', PH3_NM: '78% 액상',  ITEM_CD: 'L-LYS-78L',   ITEM_NM: 'L-Lysine 78% (액상)',     LOCAT_DIV_CD: 'P',  FROM_LOCAT_CD: 'KR-PLT1', FROM_LOCAT_NM: '한국 사업장1', TO_LOCAT_CD: 'KR-DC1',  TO_LOCAT_NM: '한국 DC1',     QTY:  45.0, STRT_DATE: '2026-06-10', END_DATE: '2026-06-11', ACTV_YN: true,  REMARK: '내수 이송' },
+  { PH1_CD: 'AN', PH1_NM: 'Animal Nutrition',  PH2_CD: 'LYS', PH2_NM: 'Lysine',     PH3_CD: '78L', PH3_NM: '78% 액상',  ITEM_CD: 'L-LYS-78L',   ITEM_NM: 'L-Lysine 78% (액상)',     LOCAT_DIV_CD: 'S',  FROM_LOCAT_CD: 'KR-PLT1', FROM_LOCAT_NM: '한국 사업장1', TO_LOCAT_CD: 'VN-HCM',  TO_LOCAT_NM: '베트남 호치민',QTY: 120.0, STRT_DATE: '2026-06-15', END_DATE: '2026-06-22', ACTV_YN: true,  REMARK: '베트남 수출' },
+  { PH1_CD: 'AN', PH1_NM: 'Animal Nutrition',  PH2_CD: 'MET', PH2_NM: 'Methionine', PH3_CD: '99P', PH3_NM: '99% 분말',  ITEM_CD: 'L-MET-99',    ITEM_NM: 'L-Methionine 99% (분말)',  LOCAT_DIV_CD: 'S',  FROM_LOCAT_CD: 'KR-PLT1', FROM_LOCAT_NM: '한국 사업장1', TO_LOCAT_CD: 'US-LAX',  TO_LOCAT_NM: '미국 LA',      QTY:  85.0, STRT_DATE: '2026-06-18', END_DATE: '2026-06-28', ACTV_YN: true,  REMARK: '미국 수출' },
 ];
 
-const STUFFING = [
-  { STATUS_FLAG: 'N', STUFFING_ID: 'STF-2026062501', SEQ: 1, PROD_CORP: 'CJBO',  PROD_PLANT_CD: 'P01', PROD_PLANT_NM: '경기 광주 공장',   PROD_LOCAT: '부산항 BPA',  SALES_CORP: 'CJBO-VN', SALES_PLANT: '호치민', DEST: '베트남 호치민',  ETD: '2026-06-15', CNTR: 8,  CTN: 1840, CBM: 142.5, FILL: 89.2 },
-  { STATUS_FLAG: 'Y', STUFFING_ID: 'STF-2026062502', SEQ: 2, PROD_CORP: 'CJBO',  PROD_PLANT_CD: 'P02', PROD_PLANT_NM: '경기 이천 공장',   PROD_LOCAT: '광양항 GPA',  SALES_CORP: 'CJBO-ID', SALES_PLANT: '자카르타', DEST: '인니 자카르타',  ETD: '2026-06-18', CNTR: 5,  CTN: 1150, CBM:  88.4, FILL: 94.8 },
-  { STATUS_FLAG: 'Y', STUFFING_ID: 'STF-2026062603', SEQ: 1, PROD_CORP: 'CJBO',  PROD_PLANT_CD: 'P01', PROD_PLANT_NM: '경기 광주 공장',   PROD_LOCAT: '부산항 BPA',  SALES_CORP: 'CJBO-MY', SALES_PLANT: 'KL',       DEST: '말레이 KL',      ETD: '2026-06-22', CNTR: 3,  CTN:  680, CBM:  52.1, FILL: 78.5 },
-  { STATUS_FLAG: 'N', STUFFING_ID: 'STF-2026062604', SEQ: 1, PROD_CORP: 'CJBO',  PROD_PLANT_CD: 'P03', PROD_PLANT_NM: '대전 NGP 공장',    PROD_LOCAT: '인천항 ICT',  SALES_CORP: 'CJBO-PH', SALES_PLANT: '마닐라',   DEST: '필리핀 마닐라',  ETD: '2026-06-25', CNTR: 2,  CTN:  450, CBM:  34.8, FILL: 86.3 },
-  { STATUS_FLAG: 'Y', STUFFING_ID: 'STF-2026070205', SEQ: 1, PROD_CORP: 'CJBO',  PROD_PLANT_CD: 'P01', PROD_PLANT_NM: '경기 광주 공장',   PROD_LOCAT: '부산항 BPA',  SALES_CORP: 'CJBO-JP', SALES_PLANT: '도쿄',     DEST: '일본 도쿄',      ETD: '2026-07-02', CNTR: 4,  CTN:  920, CBM:  71.5, FILL: 92.1 },
+// ────────── StuffingFile ──────────
+const CHK_COLS = ['CHK_STATUS','CHK_BOOKING','CHK_BOOKING_CONFI','CHK_INSPECTION','CHK_CNTR','CHK_STUFFING','CHK_DO','CHK_SHIPMENT','CHK_BILLING','CHK_CONDITION','CHK_HOLD','CHK_NF_ISSUE','CHK_REV','CHK_COMBINED','CHK_PRIORTY','CHK_NOTE'];
+const STUFFING_ROWS = [
+  { STATUS_FLAG: 'OPEN',     STUFFING_ID: 'STF-2026062501', STUFFING_ITEM: 1, STUFFING_SEQ: 1, PROD_PLANT_CD: 'KR-PLT1', PROD_PLANT_NM: '한국 사업장1', PROD_LOCAT_CD: 'KR-BSN', PROD_LOCAT_NM: '부산항',   SALES_CORP_CD: 'CJBO-VN', SALES_PLANT_CD: 'VN-HCM',   ODR_SALES_MONTH: '2026-06', ODR_STUFFING_DATE: '06-15-2026', ODR_ORDER_TYPE: 'STD',     ODR_BILLING_DOC: 'B-2026-0042',
+    chk: { CHK_STATUS: true,  CHK_BOOKING: true,  CHK_BOOKING_CONFI: true,  CHK_INSPECTION: true,  CHK_CNTR: true,  CHK_STUFFING: true,  CHK_DO: false, CHK_SHIPMENT: false, CHK_BILLING: false, CHK_CONDITION: false, CHK_HOLD: false, CHK_NF_ISSUE: false, CHK_REV: false, CHK_COMBINED: false, CHK_PRIORTY: false, CHK_NOTE: false } },
+  { STATUS_FLAG: 'PENDING',  STUFFING_ID: 'STF-2026062502', STUFFING_ITEM: 1, STUFFING_SEQ: 1, PROD_PLANT_CD: 'KR-PLT1', PROD_PLANT_NM: '한국 사업장1', PROD_LOCAT_CD: 'KR-GY',  PROD_LOCAT_NM: '광양항',   SALES_CORP_CD: 'CJBO-ID', SALES_PLANT_CD: 'ID-JKT',   ODR_SALES_MONTH: '2026-06', ODR_STUFFING_DATE: '06-18-2026', ODR_ORDER_TYPE: 'PROMO',   ODR_BILLING_DOC: 'B-2026-0028',
+    chk: { CHK_STATUS: true,  CHK_BOOKING: true,  CHK_BOOKING_CONFI: false, CHK_INSPECTION: false, CHK_CNTR: false, CHK_STUFFING: false, CHK_DO: false, CHK_SHIPMENT: false, CHK_BILLING: false, CHK_CONDITION: false, CHK_HOLD: false, CHK_NF_ISSUE: false, CHK_REV: false, CHK_COMBINED: false, CHK_PRIORTY: true,  CHK_NOTE: false } },
+  { STATUS_FLAG: 'COMPLETE', STUFFING_ID: 'STF-2026060103', STUFFING_ITEM: 2, STUFFING_SEQ: 1, PROD_PLANT_CD: 'VN-PLT1', PROD_PLANT_NM: 'Bio-VN',       PROD_LOCAT_CD: 'VN-HPH', PROD_LOCAT_NM: '하이퐁항', SALES_CORP_CD: 'CJBO-US', SALES_PLANT_CD: 'US-LAX',   ODR_SALES_MONTH: '2026-06', ODR_STUFFING_DATE: '06-01-2026', ODR_ORDER_TYPE: 'STD',     ODR_BILLING_DOC: 'B-2026-0015',
+    chk: { CHK_STATUS: true,  CHK_BOOKING: true,  CHK_BOOKING_CONFI: true,  CHK_INSPECTION: true,  CHK_CNTR: true,  CHK_STUFFING: true,  CHK_DO: true,  CHK_SHIPMENT: true,  CHK_BILLING: true,  CHK_CONDITION: false, CHK_HOLD: false, CHK_NF_ISSUE: false, CHK_REV: false, CHK_COMBINED: false, CHK_PRIORTY: false, CHK_NOTE: false } },
 ];
 
-// PN_05 — VersionStuffingFile (Sales Order 연계)
-const VER_STUFFING = [
-  { CHK_STUFFING: true,  SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062501', PROD_LOCAT: '경기 광주 공장', SALES_LOCAT: '베트남 호치민', ODR_INVOICE_NO: 'INV-2026-VN-0042', ORDER_TYPE: 'STD', QTY: 1840, FILL: 89.2 },
-  { CHK_STUFFING: false, SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062501', PROD_LOCAT: '경기 광주 공장', SALES_LOCAT: '베트남 호치민', ODR_INVOICE_NO: 'INV-2026-VN-0043', ORDER_TYPE: 'PROMO', QTY:  450, FILL: 0 },
-  { CHK_STUFFING: true,  SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062502', PROD_LOCAT: '경기 이천 공장', SALES_LOCAT: '인니 자카르타', ODR_INVOICE_NO: 'INV-2026-ID-0028', ORDER_TYPE: 'STD', QTY: 1150, FILL: 94.8 },
-  { CHK_STUFFING: true,  SIMUL_VER_ID: 'SIMUL_V2026-06-B', STUFFING_ID: 'STF-2026062603', PROD_LOCAT: '경기 광주 공장', SALES_LOCAT: '말레이 KL',     ODR_INVOICE_NO: 'INV-2026-MY-0015', ORDER_TYPE: 'STD', QTY:  680, FILL: 78.5 },
+// ────────── VersionStuffingFile ──────────
+const VERSTUF_ROWS = [
+  { CHK_STUFFING: true,  SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062501', PROD_LOCAT_CD: 'KR-PLT1', PROD_LOCAT_NM: '한국 사업장1', SALES_LOCAT_CD: 'VN-HCM', SALES_LOCAT_NM: '베트남 호치민',   ODR_INVOICE_NO: 'INV-2026-VN-0042', ODR_INVOICE_SEQ: 1, ODR_ORDER_TYPE: 'STD',   ODR_PH1_CD: 'AN', ODR_PH1_NM: 'Animal Nutrition', ODR_ITEM_MATERIAL_CD: 'L-LYS-78L', ODR_ITEM_PACK_UNIT: 'DRUM-1000L', ODR_QTY: 120000, ODR_PROD_QTY: 120000, ODR_PROD_QTY_PD: 110000, PROD_INBN_PNDG_QTY_MT: 110.0, ODR_STUFFING_DATE: '06-15-2026' },
+  { CHK_STUFFING: false, SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062501', PROD_LOCAT_CD: 'KR-PLT1', PROD_LOCAT_NM: '한국 사업장1', SALES_LOCAT_CD: 'VN-HCM', SALES_LOCAT_NM: '베트남 호치민',   ODR_INVOICE_NO: 'INV-2026-VN-0043', ODR_INVOICE_SEQ: 2, ODR_ORDER_TYPE: 'PROMO', ODR_PH1_CD: 'AN', ODR_PH1_NM: 'Animal Nutrition', ODR_ITEM_MATERIAL_CD: 'L-LYS-78L', ODR_ITEM_PACK_UNIT: 'DRUM-1000L', ODR_QTY:  45000, ODR_PROD_QTY:  45000, ODR_PROD_QTY_PD:      0, PROD_INBN_PNDG_QTY_MT:   0.0, ODR_STUFFING_DATE: '06-22-2026' },
+  { CHK_STUFFING: true,  SIMUL_VER_ID: 'SIMUL_V2026-06-A', STUFFING_ID: 'STF-2026062502', PROD_LOCAT_CD: 'KR-PLT1', PROD_LOCAT_NM: '한국 사업장1', SALES_LOCAT_CD: 'ID-JKT', SALES_LOCAT_NM: '인니 자카르타', ODR_INVOICE_NO: 'INV-2026-ID-0028', ODR_INVOICE_SEQ: 1, ODR_ORDER_TYPE: 'STD',   ODR_PH1_CD: 'AN', ODR_PH1_NM: 'Animal Nutrition', ODR_ITEM_MATERIAL_CD: 'L-MET-99',  ODR_ITEM_PACK_UNIT: 'BAG-25KG',   ODR_QTY:  85000, ODR_PROD_QTY:  85000, ODR_PROD_QTY_PD:  85000, PROD_INBN_PNDG_QTY_MT:  85.0, ODR_STUFFING_DATE: '06-18-2026' },
 ];
 
-const STATUS_INFO = {
-  planned:     { label: '계획',   color: 'info' },
-  in_progress: { label: '진행중', color: 'warning' },
-  in_transit:  { label: '운송중', color: 'info' },
-};
+const STATUS_INFO = { OPEN: { color: 'info' }, PENDING: { color: 'warning' }, COMPLETE: { color: 'success' } };
 
 export default function CjboMpScmDemandMockup() {
   const [tab, setTab] = useState(0);
-  const [subTab, setSubTab] = useState(0); // Stuffing: master(PN_04) / version(PN_05)
 
   return (
-    <MockShell patternCode="cjbo_mp_scm_demand" patternLabel="CJBO — MP SCM Demand (재처리/거점이동/Stuffing)"
+    <MockShell patternCode="cjbo_mp_scm_demand"
+      patternLabel="CJBO — MP SCM Demand 5종 (PN_01/03/04/04_VIEW/05)"
       layoutCategory="LAYOUT_SINGLE"
-      description="PN_01 재처리·MtoM (MP_DMND_TYPE) · PN_03 거점이동 (LOCAT_DIV) · PN_04/05 Stuffing 마스터+버전. UI_MP_PN_01/03/04/04_VIEW/05.">
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="버전" size="small" value="V2026-06" sx={{ width: 130 }} />
-          <TextField label="범위" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="DOM">국내</MenuItem><MenuItem value="EXP">해외</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-06 ~ 09" sx={{ width: 180 }} />
-          {tab === 0 && (
-            <TextField label="MP_DMND_TYPE" size="small" select value="ALL" sx={{ width: 150 }}>
-              <MenuItem value="ALL">전체</MenuItem>
-              <MenuItem value="REWORK">REWORK</MenuItem>
-              <MenuItem value="MTOM">MTOM</MenuItem>
-            </TextField>
-          )}
-          {tab === 1 && (
-            <TextField label="LOCAT_DIV" size="small" select value="ALL" sx={{ width: 140 }}>
-              <MenuItem value="ALL">전체</MenuItem>
-              <MenuItem value="INTERNAL">INTERNAL (내부)</MenuItem>
-              <MenuItem value="EXTERNAL">EXTERNAL (외부)</MenuItem>
-            </TextField>
-          )}
-          {tab === 2 && subTab === 1 && (
-            <TextField label="SIMUL_VER_ID" size="small" value="SIMUL_V2026-06-A" sx={{ width: 200 }} />
-          )}
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-        </Stack>
-      </Box>
+      description="ReworkMtom (cjbo/mp/master/reworkmtom — CJBO 전용) · InventoryMovement · StuffingFile (2780줄, 15 CHK_* boolean) · StuffingFileView (read-only) · VersionStuffingFile (시뮬-스냅샷 + ORDER linkage).">
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label="재처리·MtoM (PN_01 ReworkMtom)" icon={<AssignmentIcon sx={{ fontSize: 16 }} />} iconPosition="start" sx={{ minHeight: 38 }} />
-          <Tab label="거점간 재고이동 (PN_03 InventoryMovement)" icon={<SwapHorizIcon sx={{ fontSize: 16 }} />} iconPosition="start" sx={{ minHeight: 38 }} />
-          <Tab label="Stuffing (PN_04/05)" icon={<LocalShippingIcon sx={{ fontSize: 16 }} />} iconPosition="start" sx={{ minHeight: 38 }} />
+          <Tab label="① UI_MP_PN_01 ReworkMtom" sx={{ minHeight: 38 }} />
+          <Tab label="② UI_MP_PN_03 InventoryMovement" sx={{ minHeight: 38 }} />
+          <Tab label="③ UI_MP_PN_04 StuffingFile" sx={{ minHeight: 38 }} />
+          <Tab label="④ UI_MP_PN_04_VIEW StuffingFileView (read-only)" sx={{ minHeight: 38 }} />
+          <Tab label="⑤ UI_MP_PN_05 VersionStuffingFile" sx={{ minHeight: 38 }} />
         </Tabs>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        {tab === 0 && (
-          <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', minHeight: 280 }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AssignmentIcon fontSize="small" color="primary" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>재처리·MtoM 계획 — MP_DMND_TYPE + MP_DMND_TYPE_DTL (드롭다운: MP_DMND_TP_GRP)</Typography>
-              <Chip size="small" label={`${REWORK.length}건`} variant="outlined" />
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {['LOCAT_TP','LOCAT_CD','LOCAT_NM','MP_DMND_TYPE','TYPE_DTL','RES_CD','원 품목 → 신 품목','수량','REMARK','상태'].map((c) => (
-                      <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 11,
-                        textAlign: ['수량','상태'].includes(c) ? (c === '수량' ? 'right' : 'center') : 'left' }}>{c}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {REWORK.map((r, i) => {
-                    const s = STATUS_INFO[r.STATUS];
-                    return (
+      {/* ───── ① ReworkMtom ───── */}
+      {tab === 0 && (
+        <>
+          <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+              <TextField label="verCd" size="small" select value="V2026-06" sx={{ width: 130 }}>
+                <MenuItem value="V2026-06">V2026-06</MenuItem>
+              </TextField>
+              <TextField label="searchDt (FROM ~ END)" size="small" value="2026-06-01 ~ 2026-09-30" sx={{ width: 230 }} />
+              <TextField label="resCd (multi)" size="small" select value="ALL" sx={{ width: 130 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <TextField label="PH1 (multi)" size="small" select value="ALL" sx={{ width: 130 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+            </Stack>
+          </Box>
+          <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>REST: cjbo/mp/master/reworkmtom/&#123;q1,s1,d1,pop1&#125; (CJBO 전용 prefix)</Typography>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button size="small" startIcon={<AddIcon />} variant="outlined">행 추가</Button>
+            <Button size="small" startIcon={<SaveIcon />} variant="contained">저장</Button>
+          </Box>
+          <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
+            <Paper variant="outlined" sx={{ height: '100%' }}>
+              <TableContainer sx={{ height: '100%' }}>
+                <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 11, py: 0.5 } }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell colSpan={4} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center', fontWeight: 700 }}>LOCATION</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#fff9c4', textAlign: 'center', fontWeight: 700 }}>MP_DMND_TYPE (cascade)</TableCell>
+                      <TableCell colSpan={3} sx={{ backgroundColor: '#dcedc8', textAlign: 'center', fontWeight: 700 }}>RES</TableCell>
+                      <TableCell colSpan={3} sx={{ backgroundColor: '#ffe0b2', textAlign: 'center', fontWeight: 700 }}>TARGET_ITEM (FROM)</TableCell>
+                      <TableCell colSpan={3} sx={{ backgroundColor: '#fce4ec', textAlign: 'center', fontWeight: 700 }}>CHANGE_ITEM (TO)</TableCell>
+                      <TableCell colSpan={5} sx={{ backgroundColor: 'grey.200', textAlign: 'center', fontWeight: 700 }}>QTY / 일정 / CONFIRM</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {['LOCAT_TP_NM (DIVISION)','LOCAT_CD (button)','LOCAT_NM','-','MP_DMND_TYPE','MP_DMND_TYPE_DTL','RES_CD','RES_DESCRIP','REMARK','FROM_PH3','FROM_ITEM_CD','FROM_ITEM_NM','TO_PH3','TO_ITEM_CD','TO_ITEM_NM','QTY (QTY_TON_DAY)','TOT_QTY (QTY_TON)','STRT_DATE','END_DATE','ACTV_YN (CONFIRM)'].map((c, i) => (
+                        <TableCell key={`${c}-${i}`} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 10, py: 0.5,
+                          textAlign: ['QTY (QTY_TON_DAY)','TOT_QTY (QTY_TON)','STRT_DATE','END_DATE','ACTV_YN (CONFIRM)'].includes(c) ? 'center' : 'left' }}>{c}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {REWORK_ROWS.map((r, i) => (
                       <TableRow key={i} hover>
-                        <TableCell sx={{ fontSize: 12 }}>{r.LOCAT_TP}</TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.LOCAT_CD}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.LOCAT_NM}</TableCell>
-                        <TableCell>
-                          <Chip size="small" label={r.MP_DMND_TYPE} color={r.MP_DMND_TYPE === 'REWORK' ? 'warning' : 'info'} variant="outlined" />
-                        </TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 11, color: 'text.secondary' }}>{r.MP_DMND_TYPE_DTL}</TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 600 }}>{r.RES_CD}</TableCell>
-                        <TableCell>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <Typography variant="caption">{r.FROM_ITEM}</Typography>
-                            <Inventory2Icon sx={{ fontSize: 14, color: 'primary.main' }} />
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'success.main' }}>{r.TO_ITEM}</Typography>
-                          </Stack>
-                        </TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.QTY.toLocaleString()}</TableCell>
-                        <TableCell sx={{ fontSize: 11, color: 'text.secondary' }}>{r.REMARK}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>
-                          <Chip size="small" label={s.label} color={s.color} />
-                        </TableCell>
+                        <TableCell>{r.LOCAT_TP_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.LOCAT_CD}</TableCell>
+                        <TableCell>{r.LOCAT_NM}</TableCell>
+                        <TableCell sx={{ color: 'text.disabled' }}>-</TableCell>
+                        <TableCell><Chip size="small" label={r.MP_DMND_TYPE} variant="outlined" color={r.MP_DMND_TYPE === 'REWORK' ? 'warning' : 'info'} /></TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 10 }}>{r.MP_DMND_TYPE_DTL}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.RES_CD}</TableCell>
+                        <TableCell>{r.RES_DESCRIP}</TableCell>
+                        <TableCell>{r.REMARK}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.FROM_PH3}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.FROM_ITEM_CD}</TableCell>
+                        <TableCell>{r.FROM_ITEM_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.TO_PH3}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', color: 'success.main', fontWeight: 600 }}>{r.TO_ITEM_CD}</TableCell>
+                        <TableCell sx={{ color: 'success.main' }}>{r.TO_ITEM_NM}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.QTY.toFixed(3)}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{r.TOT_QTY.toFixed(1)}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.STRT_DATE}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.END_DATE}</TableCell>
+                        <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.ACTV_YN} disabled sx={{ p: 0 }} /></TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        </>
+      )}
 
-        {tab === 1 && (
-          <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', minHeight: 280 }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <SwapHorizIcon fontSize="small" color="primary" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>거점간 재고이동 — ITEM 그룹 (PH1/2/3) + LOCAT_DIV (P_S_DIV) + FROM/TO LOCAT 그룹</Typography>
-              <Chip size="small" label={`${MOVE.length}건`} variant="outlined" />
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={5} sx={{ backgroundColor: '#fce4ec', fontWeight: 700, textAlign: 'center' }}>ITEM 그룹</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>LOCAT_DIV</TableCell>
-                    <TableCell colSpan={2} sx={{ backgroundColor: '#e3f2fd', fontWeight: 700, textAlign: 'center' }}>FROM LOCAT</TableCell>
-                    <TableCell colSpan={2} sx={{ backgroundColor: '#e8f5e9', fontWeight: 700, textAlign: 'center' }}>TO LOCAT</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: 'right' }}>수량</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: 'center' }}>ETD/ETA</TableCell>
-                    <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: 'center' }}>상태</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    {['PH1','PH2','PH3','ITEM_CD','품목명'].map((c) => (
-                      <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 11 }}>{c}</TableCell>
-                    ))}
-                    {['LOCAT_TP','거점','LOCAT_TP ','거점 '].map((c, i) => (
-                      <TableCell key={i} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 11 }}>{c.trim()}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {MOVE.map((r, i) => {
-                    const s = STATUS_INFO[r.STATUS];
-                    return (
+      {/* ───── ② InventoryMovement ───── */}
+      {tab === 1 && (
+        <>
+          <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+              <TextField label="verCd" size="small" select value="V2026-06" sx={{ width: 130 }}><MenuItem value="V2026-06">V2026-06</MenuItem></TextField>
+              <TextField label="locatDivCd (P_S_DIV)" size="small" select value="ALL" sx={{ width: 160 }}>
+                <MenuItem value="ALL">전체</MenuItem><MenuItem value="P">P 내수</MenuItem><MenuItem value="S">S 수출</MenuItem>
+              </TextField>
+              <TextField label="fromLocatCd (action+popup)" size="small" value="전체" sx={{ width: 180 }}
+                InputProps={{ endAdornment: <Box sx={{ width: 24, textAlign: 'center', color: 'text.secondary' }}>🔍</Box> }} />
+              <TextField label="toLocatCd (action+popup)" size="small" value="전체" sx={{ width: 180 }}
+                InputProps={{ endAdornment: <Box sx={{ width: 24, textAlign: 'center', color: 'text.secondary' }}>🔍</Box> }} />
+              <TextField label="PH1/2/3 (multi)" size="small" select value="ALL" sx={{ width: 130 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <Checkbox size="small" /><Typography variant="caption">actvChk</Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+            </Stack>
+          </Box>
+          <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
+            <Paper variant="outlined" sx={{ height: '100%' }}>
+              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>REST: mp/master/inventorymovement/&#123;q1,s1,d1,user1&#125;</Typography>
+              </Box>
+              <TableContainer sx={{ height: 'calc(100% - 36px)' }}>
+                <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 11, py: 0.5 } }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell colSpan={8} sx={{ backgroundColor: '#fce4ec', textAlign: 'center', fontWeight: 700 }}>ITEM_GRP</TableCell>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>LOCAT_DIV_CD (P_S_DIV)</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center', fontWeight: 700 }}>FROM_LOCAT</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#e8f5e9', textAlign: 'center', fontWeight: 700 }}>TO_LOCAT</TableCell>
+                      <TableCell colSpan={5} sx={{ backgroundColor: 'grey.200', textAlign: 'center', fontWeight: 700 }}>QTY · DATE · ACTV · REMARK</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {['PH1_CD','PH1_NM','PH2_CD','PH2_NM','PH3_CD','PH3_NM','ITEM_CD (button)','ITEM_NM','FROM_LOCAT_CD','FROM_LOCAT_NM','TO_LOCAT_CD','TO_LOCAT_NM','QTY (QTY_TON)','STRT_DATE (DEPARTURE)','END_DATE (ARRIVAL)','ACTV_YN','REMARKS'].map((c, i) => (
+                        <TableCell key={`${c}-${i}`} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 10, py: 0.5 }}>{c}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {MOVE_ROWS.map((r, i) => (
                       <TableRow key={i} hover>
-                        <TableCell sx={{ fontSize: 12 }}>{r.PH1}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.PH2}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.PH3}</TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.ITEM_CD}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.PH1_CD}</TableCell>
+                        <TableCell>{r.PH1_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.PH2_CD}</TableCell>
+                        <TableCell>{r.PH2_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.PH3_CD}</TableCell>
+                        <TableCell>{r.PH3_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.ITEM_CD}</TableCell>
                         <TableCell>{r.ITEM_NM}</TableCell>
-                        <TableCell>
-                          <Chip size="small" label={r.LOCAT_DIV} color={r.LOCAT_DIV === 'EXTERNAL' ? 'warning' : 'info'} variant="outlined" />
-                        </TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.FROM_LOCAT_TP}</TableCell>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600 }}>{r.FROM_LOCAT}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{r.TO_LOCAT_TP}</TableCell>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600, color: 'success.main' }}>{r.TO_LOCAT}</TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.QTY.toLocaleString()}</TableCell>
-                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>
-                          {r.ETD}<br />{r.ETA}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>
-                          <Chip size="small" label={s.label} color={s.color} />
-                        </TableCell>
+                        <TableCell><Chip size="small" label={r.LOCAT_DIV_CD} variant="outlined" color={r.LOCAT_DIV_CD === 'S' ? 'warning' : 'info'} /></TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.FROM_LOCAT_CD}</TableCell>
+                        <TableCell>{r.FROM_LOCAT_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', color: 'success.main' }}>{r.TO_LOCAT_CD}</TableCell>
+                        <TableCell sx={{ color: 'success.main' }}>{r.TO_LOCAT_NM}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{r.QTY.toFixed(1)}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.STRT_DATE}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.END_DATE}</TableCell>
+                        <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.ACTV_YN} disabled sx={{ p: 0 }} /></TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>{r.REMARK}</TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        </>
+      )}
 
-        {tab === 2 && (
-          <>
-            <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
-              <Tabs value={subTab} onChange={(_, v) => setSubTab(v)} variant="scrollable" sx={{ minHeight: 32 }}>
-                <Tab label="Stuffing 마스터 (PN_04)" sx={{ minHeight: 32, fontSize: 12 }} />
-                <Tab label="버전별 Stuffing (PN_05) — Sales Order 연계" sx={{ minHeight: 32, fontSize: 12 }} />
-              </Tabs>
-            </Box>
-            {subTab === 0 && (
-              <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', minHeight: 280 }}>
-                <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocalShippingIcon fontSize="small" color="primary" />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Stuffing 컨테이너 마스터 — STATUS_FLAG/STUFFING_ID/PROD_CORP × SALES_CORP</Typography>
-                  <Chip size="small" label={`평균 Fill ${(STUFFING.reduce((a,b)=>a+b.FILL,0)/STUFFING.length).toFixed(1)}%`} color="info" variant="outlined" />
-                </Box>
-                <TableContainer sx={{ flex: 1 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        {['STATUS_FLAG','STUFFING_ID','SEQ','PROD_CORP','PROD_PLANT','PROD_LOCAT','SALES_CORP','SALES_PLANT','DEST','ETD','CNTR','CTN','CBM','Fill (%)'].map((c) => (
-                          <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 11,
-                            textAlign: ['STATUS_FLAG','SEQ','ETD','CNTR','CTN','CBM','Fill (%)'].includes(c) ? (['CNTR','CTN','CBM','Fill (%)'].includes(c) ? 'right' : 'center') : 'left' }}>{c}</TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {STUFFING.map((r, i) => {
-                        const tone = percentStatus(r.FILL, { danger: 70, warning: 80, success: 90 });
-                        return (
-                          <TableRow key={i} hover>
-                            <TableCell sx={{ textAlign: 'center' }}>
-                              <Chip size="small" label={r.STATUS_FLAG} color={r.STATUS_FLAG === 'Y' ? 'success' : 'default'}
-                                variant={r.STATUS_FLAG === 'Y' ? 'filled' : 'outlined'} sx={{ height: 18, fontWeight: 700 }} />
-                            </TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 11 }}>{r.STUFFING_ID}</TableCell>
-                            <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.SEQ}</TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace' }}>{r.PROD_CORP}</TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>{r.PROD_PLANT_CD} {r.PROD_PLANT_NM}</TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>{r.PROD_LOCAT}</TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace' }}>{r.SALES_CORP}</TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>{r.SALES_PLANT}</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{r.DEST}</TableCell>
-                            <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>{r.ETD}</TableCell>
-                            <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CNTR}</TableCell>
-                            <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CTN.toLocaleString()}</TableCell>
-                            <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CBM.toFixed(1)}</TableCell>
-                            <TableCell sx={cellSx(tone, { align: 'right', mono: true })}>{r.FILL.toFixed(1)}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
+      {/* ───── ③④ StuffingFile (편집/읽기 공통 구조) ───── */}
+      {(tab === 2 || tab === 3) && (
+        <>
+          <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+              <TextField label="interface (text disabled)" size="small" disabled value="STF-2026-06" sx={{ width: 160 }} />
+              <TextField label="corporCd (CORP/PROD_CORP)" size="small" select value="CJBO" sx={{ width: 150 }}>
+                <MenuItem value="CJBO">CJBO</MenuItem>
+              </TextField>
+              <TextField label="dstbCh (DSTB_CH)" size="small" select value="EXP" sx={{ width: 120 }}>
+                <MenuItem value="EXP">수출</MenuItem><MenuItem value="DOM">내수</MenuItem>
+              </TextField>
+              <TextField label="invoiceNo" size="small" sx={{ width: 150 }} />
+              <TextField label="stuffingSalesMonth (multi)" size="small" select value="2026-06" sx={{ width: 150 }}>
+                <MenuItem value="2026-06">2026-06</MenuItem>
+              </TextField>
+              <TextField label="dateDiv (DMND_DATE_DIV)" size="small" select value="STUFFING" sx={{ width: 140 }}>
+                <MenuItem value="STUFFING">STUFFING_DT</MenuItem>
+              </TextField>
+              <TextField label="stuffDt (MM-dd-yyyy)" size="small" value="06-01-2026 ~ 06-30-2026" sx={{ width: 230 }} />
+              <TextField label="region (multi SHIP_TO_REGION)" size="small" select value="ALL" sx={{ width: 160 }}>
+                <MenuItem value="ALL">전체</MenuItem>
+              </TextField>
+              <TextField label="countryVal (multi SHIP_TO_COUNTRY)" size="small" select value="ALL" sx={{ width: 170 }}>
+                <MenuItem value="ALL">전체</MenuItem>
+              </TextField>
+              <TextField label="ph1Cd (multi)" size="small" select value="ALL" sx={{ width: 110 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <TextField label="orderingStatus (multi)" size="small" select value="ALL" sx={{ width: 150 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <Checkbox size="small" /><Typography variant="caption">Dummy</Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+            </Stack>
+          </Box>
+          <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
+            {tab === 2 && <Button size="small" startIcon={<FileUploadIcon />} variant="outlined">엑셀 업로드</Button>}
+            <Button size="small" variant="outlined">전체 펼침/접기</Button>
+            <Button size="small" variant="outlined">VESSEL_POP</Button>
+            <Button size="small" variant="outlined">PERSON_IN_CHARGE_POP</Button>
+            <Button size="small" variant="outlined">UI_MP_PN_04_POP</Button>
+            <Button size="small" variant="outlined">DATA_VALIDATION</Button>
+            <Box sx={{ flexGrow: 1 }} />
+            {tab === 2 && (
+              <>
+                <Button size="small" startIcon={<AddIcon />} variant="outlined">DUMMY_ADD</Button>
+                <Button size="small" startIcon={<AddIcon />} variant="outlined">PROD_ADD</Button>
+                <Button size="small" startIcon={<DeleteIcon />} variant="outlined" color="error">삭제</Button>
+                <Button size="small" startIcon={<SaveIcon />} variant="contained">저장</Button>
+              </>
             )}
-            {subTab === 1 && (
-              <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', minHeight: 280 }}>
-                <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocalShippingIcon fontSize="small" color="primary" />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>버전별 Stuffing 현황 — CHK_STUFFING + SIMUL_VER_ID + Sales Order (ODR_INVOICE_NO)</Typography>
-                  <Chip size="small" label="시뮬레이션-버전 스냅샷" color="highlight" variant="outlined" sx={{ backgroundColor: '#f3e5f5', color: '#6a1b9a', fontWeight: 700 }} />
-                </Box>
-                <TableContainer sx={{ flex: 1 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        {['CHK','SIMUL_VER_ID','STUFFING_ID','PROD_LOCAT','SALES_LOCAT','ODR_INVOICE_NO','ORDER_TYPE','수량','Fill (%)'].map((c) => (
-                          <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 11,
-                            textAlign: ['CHK','ORDER_TYPE','수량','Fill (%)'].includes(c) ? (['수량','Fill (%)'].includes(c) ? 'right' : 'center') : 'left' }}>{c}</TableCell>
-                        ))}
+            {tab === 3 && <Chip size="small" label="StuffingFileView — READ-ONLY (s1/d1 commented out)" color="info" />}
+          </Box>
+          <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
+            <Paper variant="outlined" sx={{ height: '100%' }}>
+              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                  BaseGrid — PROD_CORP grp + GENERAL_INFO grp ({CHK_COLS.length} CHK_* boolean, vertical-rotated headers) + DATE_INFO + ORDER_INFO + PO_SALES_GRP
+                </Typography>
+              </Box>
+              <TableContainer sx={{ height: 'calc(100% - 36px)' }}>
+                <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 10, py: 0.5, whiteSpace: 'nowrap' } }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>STATUS_FLAG</TableCell>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>STUFFING_ID / ITEM / SEQ</TableCell>
+                      <TableCell colSpan={5} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center', fontWeight: 700 }}>PROD_CORP (생산법인)</TableCell>
+                      <TableCell colSpan={CHK_COLS.length} sx={{ backgroundColor: '#fff9c4', textAlign: 'center', fontWeight: 700 }}>GENERAL_INFO (vertical-rotated headers)</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#dcedc8', textAlign: 'center', fontWeight: 700 }}>DATE_INFO</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#ffe0b2', textAlign: 'center', fontWeight: 700 }}>ORDER_INFO</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {['PROD_PLANT_CD','PROD_PLANT_NM','PROD_LOCAT_CD','PROD_LOCAT_NM','SALES_CORP_CD'].map((c) => (
+                        <TableCell key={c} sx={{ backgroundColor: '#e3f2fd', fontWeight: 700, fontSize: 9 }}>{c}</TableCell>
+                      ))}
+                      {CHK_COLS.map((c) => (
+                        <TableCell key={c} sx={{ backgroundColor: '#fff9c4', fontWeight: 700, fontSize: 8,
+                          writingMode: 'vertical-rl', textOrientation: 'mixed', minWidth: 24, maxWidth: 26, p: 0.5, textAlign: 'center' }}>{c.replace('CHK_', '')}</TableCell>
+                      ))}
+                      <TableCell sx={{ backgroundColor: '#dcedc8', fontWeight: 700, fontSize: 9 }}>SALES_MONTH</TableCell>
+                      <TableCell sx={{ backgroundColor: '#dcedc8', fontWeight: 700, fontSize: 9 }}>STUFFING_DATE (MM-dd-yyyy)</TableCell>
+                      <TableCell sx={{ backgroundColor: '#ffe0b2', fontWeight: 700, fontSize: 9 }}>ORDER_TYPE</TableCell>
+                      <TableCell sx={{ backgroundColor: '#ffe0b2', fontWeight: 700, fontSize: 9 }}>BILLING_DOC</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {STUFFING_ROWS.map((r, i) => {
+                      const sInfo = STATUS_INFO[r.STATUS_FLAG] || { color: 'default' };
+                      return (
+                        <TableRow key={i} hover>
+                          <TableCell><Chip size="small" label={r.STATUS_FLAG} color={sInfo.color} sx={{ height: 18, fontSize: 9 }} /></TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace' }}>{r.STUFFING_ID} / {r.STUFFING_ITEM} / {r.STUFFING_SEQ}</TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace' }}>{r.PROD_PLANT_CD}</TableCell>
+                          <TableCell>{r.PROD_PLANT_NM}</TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace' }}>{r.PROD_LOCAT_CD}</TableCell>
+                          <TableCell>{r.PROD_LOCAT_NM}</TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace' }}>{r.SALES_CORP_CD}</TableCell>
+                          {CHK_COLS.map((c) => (
+                            <TableCell key={c} sx={{ textAlign: 'center', p: 0.25 }}>
+                              <Checkbox size="small" checked={r.chk[c]} disabled={tab === 3} sx={{ p: 0 }} />
+                            </TableCell>
+                          ))}
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: 10 }}>{r.ODR_SALES_MONTH}</TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: 10 }}>{r.ODR_STUFFING_DATE}</TableCell>
+                          <TableCell><Chip size="small" label={r.ODR_ORDER_TYPE} variant="outlined" sx={{ height: 16, fontSize: 9 }} /></TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace' }}>{r.ODR_BILLING_DOC}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        </>
+      )}
+
+      {/* ───── ⑤ VersionStuffingFile ───── */}
+      {tab === 4 && (
+        <>
+          <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+              <TextField label="simulationVersion (action+popup, required)" size="small" value="SIMUL_V2026-06-A" sx={{ width: 240 }}
+                InputProps={{ endAdornment: <Box sx={{ width: 24, textAlign: 'center', color: 'text.secondary' }}>🔍</Box> }} />
+              <TextField label="invoiceNo" size="small" sx={{ width: 180 }} />
+              <TextField label="orderTp (multi ORDER_TYPE)" size="small" select value="ALL" sx={{ width: 160 }}>
+                <MenuItem value="ALL">전체</MenuItem><MenuItem value="STD">STD</MenuItem><MenuItem value="PROMO">PROMO</MenuItem>
+              </TextField>
+              <TextField label="ph1Cd (multi PH1)" size="small" select value="ALL" sx={{ width: 130 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+              <Checkbox size="small" /><Typography variant="caption">EXPECTED_RECEIPT_DATE</Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+              <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>새로고침</Button>
+            </Stack>
+          </Box>
+          <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
+            <Paper variant="outlined" sx={{ height: '100%' }}>
+              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>REST: mp/master/versionstuffingfile/q1 (READ-ONLY, 시뮬-스냅샷)</Typography>
+              </Box>
+              <TableContainer sx={{ height: 'calc(100% - 36px)' }}>
+                <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 10, py: 0.5, whiteSpace: 'nowrap' } }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', textAlign: 'center', fontWeight: 700 }}>CHK_STUFFING</TableCell>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>SIMUL_VER_ID</TableCell>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>STUFFING_ID</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center', fontWeight: 700 }}>PROD_LOCAT_GRP</TableCell>
+                      <TableCell colSpan={2} sx={{ backgroundColor: '#e8f5e9', textAlign: 'center', fontWeight: 700 }}>SALES_LOCAT_GRP</TableCell>
+                      <TableCell colSpan={3} sx={{ backgroundColor: '#fce4ec', textAlign: 'center', fontWeight: 700 }}>SALES_ORD_GRP (Sales Order)</TableCell>
+                      <TableCell colSpan={4} sx={{ backgroundColor: '#fff9c4', textAlign: 'center', fontWeight: 700 }}>ITEM_GRP</TableCell>
+                      <TableCell colSpan={3} sx={{ backgroundColor: '#ffe0b2', textAlign: 'center', fontWeight: 700 }}>FACTORY_SO_GRP (#,###)</TableCell>
+                      <TableCell colSpan={1} sx={{ backgroundColor: '#dcedc8', textAlign: 'center', fontWeight: 700 }}>FACTORY_GR (IV-GR)</TableCell>
+                      <TableCell rowSpan={2} sx={{ backgroundColor: '#dcedc8', fontWeight: 700 }}>STUFFING_DATE</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {['PROD_LOCAT_CD','PROD_LOCAT_NM','SALES_LOCAT_CD','SALES_LOCAT_NM','ODR_INVOICE_NO','SEQ','ORDER_TYPE','PH1_CD','PH1_NM','ITEM_MATERIAL_CD','ITEM_PACK_UNIT','ODR_QTY','ODR_PROD_QTY','ODR_PROD_QTY_PD','PROD_INBN_PNDG_QTY_MT'].map((c, i) => (
+                        <TableCell key={`${c}-${i}`} sx={{ backgroundColor: 'grey.100', fontWeight: 700, fontSize: 9 }}>{c}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {VERSTUF_ROWS.map((r, i) => (
+                      <TableRow key={i} hover sx={{ backgroundColor: r.CHK_STUFFING ? undefined : 'rgba(244,67,54,0.04)' }}>
+                        <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.CHK_STUFFING} disabled sx={{ p: 0 }} /></TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.SIMUL_VER_ID}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.STUFFING_ID}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.PROD_LOCAT_CD}</TableCell>
+                        <TableCell>{r.PROD_LOCAT_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.SALES_LOCAT_CD}</TableCell>
+                        <TableCell>{r.SALES_LOCAT_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ODR_INVOICE_NO}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.ODR_INVOICE_SEQ}</TableCell>
+                        <TableCell><Chip size="small" label={r.ODR_ORDER_TYPE} variant="outlined" sx={{ height: 16, fontSize: 9 }} /></TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.ODR_PH1_CD}</TableCell>
+                        <TableCell>{r.ODR_PH1_NM}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>{r.ODR_ITEM_MATERIAL_CD}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 10 }}>{r.ODR_ITEM_PACK_UNIT}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.ODR_QTY.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.ODR_PROD_QTY.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.ODR_PROD_QTY_PD.toLocaleString()}</TableCell>
+                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', backgroundColor: '#dcedc8' }}>{r.PROD_INBN_PNDG_QTY_MT.toFixed(1)} MT</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 10 }}>{r.ODR_STUFFING_DATE}</TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {VER_STUFFING.map((r, i) => {
-                        const tone = r.FILL > 0 ? percentStatus(r.FILL, { danger: 70, warning: 80, success: 90 }) : 'normal';
-                        return (
-                          <TableRow key={i} hover sx={{ backgroundColor: r.CHK_STUFFING ? undefined : 'rgba(244,67,54,0.04)' }}>
-                            <TableCell sx={{ textAlign: 'center' }}>
-                              <Chip size="small" label={r.CHK_STUFFING ? '✓' : '✗'} color={r.CHK_STUFFING ? 'success' : 'error'}
-                                sx={{ height: 18, fontWeight: 700, minWidth: 28 }} />
-                            </TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace', fontSize: 11 }}>{r.SIMUL_VER_ID}</TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 11 }}>{r.STUFFING_ID}</TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>{r.PROD_LOCAT}</TableCell>
-                            <TableCell sx={{ fontSize: 12, fontWeight: 600 }}>{r.SALES_LOCAT}</TableCell>
-                            <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.ODR_INVOICE_NO}</TableCell>
-                            <TableCell sx={{ textAlign: 'center' }}>
-                              <Chip size="small" label={r.ORDER_TYPE} color={r.ORDER_TYPE === 'STD' ? 'default' : 'warning'} variant="outlined" />
-                            </TableCell>
-                            <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.QTY.toLocaleString()}</TableCell>
-                            <TableCell sx={r.FILL > 0 ? cellSx(tone, { align: 'right', mono: true }) : { textAlign: 'right', fontFamily: 'monospace', color: 'text.disabled' }}>
-                              {r.FILL > 0 ? r.FILL.toFixed(1) : '-'}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            )}
-          </>
-        )}
-      </Box>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        </>
+      )}
     </MockShell>
   );
 }

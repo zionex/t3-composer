@@ -1,202 +1,312 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Avatar, LinearProgress,
+  Box, Stack, Typography, Paper, Chip, LinearProgress, Slider, Stepper, Step, StepLabel, Avatar,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import GroupsIcon from '@mui/icons-material/Groups';
+import ErrorIcon from '@mui/icons-material/Error';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import ReportIcon from '@mui/icons-material/Report';
+import CheckIcon from '@mui/icons-material/Check';
 import MockShell from '../../_shared/MockShell';
 
-// CJBO — 연간 계획/실적 위젯 대시보드
-// DpPlanStatusY, DpYearActualSales, DpYearTargetSales, ForecastPlan, PlanProgress,
-// PlanStatus, SalesAlerts, SalesPlanDistribution, SalesProgress, SupplySufRate, TeamSalesPlan
+// CJBO — DP 연간/계획 위젯 12종 (대시보드 합본)
+// 소스 기반 재작성.
+// path: view/demandplan/widgets/{dpplanstatusy,dpyearactualsales,dpyeartargetsales,forecastplan,planprogress,planstatus,salesalerts,salesplandistribution,salesprogress,supplysufrate,teamsalesplan,accuracy}/*.jsx
+// 모두 common/data POST { PROCEDURE_NAME:'SP_UI_SA_SALES_DP', P_VIEW1:'WI_DP_*' } (PlanProgress 만 engine/dp/GetApprovalSteps)
+//
+// 각 widget 의 정확한 render 타입 (Agent 5 분석):
+//   - DpPlanStatusY:     ChartComponent mixed bar+line — 5 datasets (MENU_05_03 line, SALES_PLAN line, ACTUAL_SALES bar, YOY bar, GROWTH_RATE % line on y2)
+//   - DpYearActualSales: KPI tile ($ + 24px bold + colored % chip vs last year + WI_DP_OVER_LAST_YEAR)
+//   - DpYearTargetSales: KPI tile + thumbless MUI Slider as progress bar
+//   - ForecastPlan:      ChartComponent line — BF_MEAS_QTY + DEMAND_PLAN
+//   - PlanProgress:      MUI Stepper alternativeLabel + SelfMadeStepIcon (engine/dp/GetApprovalSteps)
+//   - PlanStatus:        ChartComponent mixed bar+line — SALES_PLAN line + ACTUAL_SALES bar
+//   - SalesAlerts:       Vertical list (ErrorSharp red / ReportProblem warning / Report normal) + count
+//   - SalesPlanDistribution: TWO side-by-side doughnut charts (WI_DIST_ITEM_GRP + WI_DIST_SALES_GRP)
+//   - SalesProgress:     ChartComponent mixed — TOT_PREDICT_REVENUE bar + SUM_REVENUE bar + PROGRESS_RATE line
+//   - SupplySufRate:     ChartComponent mixed — Request line + On Time/Late/Short bars
+//   - TeamSalesPlan:     Scrolling list — thumbless MUI Slider (VALUE1 vs UPLEVEL_VALUE) per team
+//   - Accuracy:          TWO horizontal Sliders (bfAccuracy MENU_07 + dpAccuracy MENU_05)
 
-const KPIS = [
-  { label: '연 계획',     value: '2,650억', sub: '2026 OP V06',     color: 'primary',   Icon: AssessmentIcon },
-  { label: '연 누계 실적', value: '821.3억',  sub: '6월말 / 31.0%',  color: 'info',      Icon: TrendingUpIcon },
-  { label: '연 진척률',   value: '94.2%',   sub: '월할 대비',       color: 'success',   Icon: AssessmentIcon },
-  { label: '팀 알림',     value: '12',      sub: '오늘',            color: 'warning',   Icon: NotificationsActiveIcon },
-];
-
-const TEAM = [
-  { team: '영업1팀',  plan: 320, actual: 312, progress: 97.5 },
-  { team: '영업2팀',  plan: 285, actual: 268, progress: 94.0 },
-  { team: '영업3팀',  plan: 215, actual: 198, progress: 92.1 },
-  { team: 'NGP팀',    plan: 180, actual: 168, progress: 93.3 },
-  { team: '동남아',   plan: 425, actual: 360, progress: 84.7 },
-  { team: '동북아',   plan: 285, actual: 282, progress: 99.0 },
-  { team: '미주',     plan: 195, actual: 138, progress: 70.8 },
-];
-
-const ALERTS = [
-  { level: 'error',   team: '미주',    msg: '진척률 70.8% (목표 95% 미달)' },
-  { level: 'error',   team: '동남아',  msg: 'NGP Device 30% 감소 트렌드' },
-  { level: 'warning', team: '영업3팀', msg: 'illuvia 토너 2개월 연속 감소' },
-  { level: 'warning', team: '동북아',  msg: '환율 변동 (-3.2%) 영향 모니터' },
-  { level: 'info',    team: 'NGP팀',   msg: '신제품 illuvia 토너 200ml 런칭' },
-];
-
-function DonutChart({ percent, color, size = 84 }) {
-  const r = size / 2 - 8;
-  const c = 2 * Math.PI * r;
-  const offset = c * (1 - percent / 100);
+// ───── 더미 차트 SVG helpers ─────
+function MiniMixedBarLine({ months, bars, lines, height = 100 }) {
+  const W = 240, H = height, P = 12;
+  const xStep = (W - P * 2) / months.length;
+  const allMax = Math.max(...bars.flatMap((b) => b.data), ...lines.flatMap((l) => l.data));
+  const yMax = Math.ceil(allMax / 100) * 100;
+  const yScale = (v) => H - P - (v / yMax) * (H - P * 2);
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={8} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={8}
-        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`} />
-      <text x={size / 2} y={size / 2 + 4} fill="#1e293b" fontSize={16} fontWeight={700} textAnchor="middle">
-        {percent.toFixed(0)}%
-      </text>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
+      {bars.map((b, bi) => (
+        b.data.map((v, i) => (
+          <rect key={`${b.name}-${i}`} x={P + xStep * i + xStep / 2 - 6} y={yScale(v)} width={10}
+            height={Math.max(0, yScale(0) - yScale(v))} fill={b.color} fillOpacity={0.8} />
+        ))
+      ))}
+      {lines.map((l) => {
+        const pts = l.data.map((v, i) => `${P + xStep * i + xStep / 2} ${yScale(v)}`).join(' L ');
+        return <path key={l.name} d={`M ${pts}`} fill="none" stroke={l.color} strokeWidth={2}
+          strokeDasharray={l.dash ? '4 2' : undefined} />;
+      })}
     </svg>
   );
 }
 
-function MiniLine({ data, color }) {
-  const W = 200, H = 60;
-  const max = Math.max(...data), min = Math.min(...data);
-  const xStep = W / (data.length - 1);
-  const yScale = (v) => H - 4 - ((v - min) / (max - min)) * (H - 8);
-  const d = data.map((v, i) => `${i === 0 ? 'M' : 'L'} ${i * xStep} ${yScale(v)}`).join(' ');
+function MiniLine({ data, color, height = 80 }) {
+  const W = 240, H = height, P = 8;
+  const xStep = (W - P * 2) / (data.length - 1);
+  const yMax = Math.max(...data) * 1.1;
+  const yScale = (v) => H - P - (v / yMax) * (H - P * 2);
+  const pts = data.map((v, i) => `${P + xStep * i} ${yScale(v)}`).join(' L ');
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 60 }}>
-      <path d={d} fill="none" stroke={color} strokeWidth={2} />
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
+      <path d={`M ${pts}`} fill="none" stroke={color} strokeWidth={2} />
       {data.map((v, i) => (
-        <circle key={i} cx={i * xStep} cy={yScale(v)} r={2} fill={color} />
+        <circle key={i} cx={P + xStep * i} cy={yScale(v)} r={2.5} fill={color} />
       ))}
     </svg>
   );
 }
 
-const ALERT_COLOR = { error: 'error', warning: 'warning', info: 'info' };
+function Donut({ segments, size = 100 }) {
+  const r = (size - 12) / 2;
+  const total = segments.reduce((s, x) => s + x.v, 0);
+  let cum = 0;
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} style={{ width: size, height: size }}>
+      {segments.map((seg) => {
+        const startA = (cum / total) * 2 * Math.PI - Math.PI / 2;
+        const endA = ((cum + seg.v) / total) * 2 * Math.PI - Math.PI / 2;
+        cum += seg.v;
+        const x1 = size / 2 + r * Math.cos(startA), y1 = size / 2 + r * Math.sin(startA);
+        const x2 = size / 2 + r * Math.cos(endA), y2 = size / 2 + r * Math.sin(endA);
+        const largeArc = seg.v / total > 0.5 ? 1 : 0;
+        return <path key={seg.label} d={`M ${size / 2} ${size / 2} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`}
+          fill={seg.color} stroke="white" strokeWidth={1} />;
+      })}
+      <circle cx={size / 2} cy={size / 2} r={r * 0.55} fill="white" />
+    </svg>
+  );
+}
+
+const PLAN_PROGRESS_STEPS = ['담당자 입력(5/5)', '팀장 검토(3/3)', '본부장 승인(1/2)', '버전 종료(0/1)'];
+const SALES_ALERTS = [
+  { level: 'error',   icon: ErrorIcon,         CATEGORY1: 'AMT_PLAN_LOW',         VALUE1: 3, color: '#d32f2f' },
+  { level: 'warning', icon: ReportProblemIcon, CATEGORY1: 'ITEM_PRC_CHANGED',     VALUE1: 5, color: '#f57c00' },
+  { level: 'warning', icon: ReportProblemIcon, CATEGORY1: 'ACCOUNT_INACTIVE',     VALUE1: 2, color: '#f57c00' },
+  { level: 'info',    icon: ReportIcon,        CATEGORY1: 'BF_DEMAND_NEW',         VALUE1: 8, color: '#ed6c02' },
+];
+
+const TEAMS = [
+  { LABEL: 'AN 한국 내수',  VALUE1: 12500, UPLEVEL_VALUE: 14000 },
+  { LABEL: 'AN 한국 수출',  VALUE1: 18200, UPLEVEL_VALUE: 18000 },
+  { LABEL: 'AN 베트남',      VALUE1: 15800, UPLEVEL_VALUE: 16500 },
+  { LABEL: 'AN 미국',         VALUE1: 28400, UPLEVEL_VALUE: 25000 },
+  { LABEL: 'AN 브라질',       VALUE1:  9800, UPLEVEL_VALUE: 12000 },
+  { LABEL: 'TN 전체',         VALUE1: 22500, UPLEVEL_VALUE: 24000 },
+  { LABEL: 'BMS 전체',        VALUE1:  8200, UPLEVEL_VALUE:  9500 },
+];
+
+function W({ title, children, height }) {
+  return (
+    <Paper variant="outlined" sx={{ p: 1, height: height || 'auto', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5 }}>{title}</Typography>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>{children}</Box>
+    </Paper>
+  );
+}
 
 export default function CjboWidgetDashboardYMockup() {
   return (
-    <MockShell patternCode="cjbo_widget_dashboard_y" patternLabel="CJBO — 연간 계획·실적 위젯 대시보드 (DpPlanStatusY 등 14종)"
+    <MockShell patternCode="cjbo_widget_dashboard_y"
+      patternLabel="CJBO — DP 연간 위젯 12종 대시보드"
       layoutCategory="LAYOUT_SINGLE"
-      description="연간 계획 대비 실적 + 팀별 진척 + 알림 + 시계열 위젯 통합. DpPlanStatusY / DpYearActualSales / DpYearTargetSales / 진척 위젯 14종.">
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <TextField label="연도" size="small" value="2026" sx={{ width: 100 }} />
-          <TextField label="범위" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전사</MenuItem><MenuItem value="DOM">국내</MenuItem><MenuItem value="EXP">해외</MenuItem>
-          </TextField>
-          <TextField label="조회월" size="small" value="2026-06" sx={{ width: 130 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-        </Stack>
-      </Box>
+      description="소스: view/demandplan/widgets/* — 12 위젯 각각의 정확한 render 타입 (KPI / Chart.js / Slider / Stepper / 도넛). 공통 SP common/data + SP_UI_SA_SALES_DP + P_VIEW1='WI_DP_*'.">
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        <Stack direction="row" spacing={1.5}>
-          {KPIS.map((k) => {
-            const Icon = k.Icon;
-            return (
-              <Paper key={k.label} variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Avatar sx={{ backgroundColor: `${k.color}.light`, color: `${k.color}.dark`, width: 44, height: 44 }}>
-                    <Icon />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">{k.label}</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: `${k.color}.main` }}>{k.value}</Typography>
-                    <Typography variant="caption" color="text.secondary">{k.sub}</Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            );
-          })}
-        </Stack>
-
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>연 진척률 (DpPlanStatusY)</Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Chip size="small" label="목표 95%" variant="outlined" />
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={3} sx={{ flex: 1 }}>
-              <DonutChart percent={94.2} color="#10b981" size={130} />
-              <Box>
-                <Typography variant="caption" color="text.secondary">월할 계획 대비 진척</Typography>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>94.2%</Typography>
-                <Typography variant="caption">실적 821.3억 / 월할 871.3억</Typography>
-              </Box>
-            </Stack>
-          </Paper>
-
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>월별 실적 추이 (DpYearActualSales)</Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Chip size="small" label="VS 전년" variant="outlined" />
-            </Stack>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <MiniLine data={[125, 132, 138, 142, 145, 148, 152, 158, 162, 168, 172, 175]} color="#1976d2" />
-              <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">1월</Typography>
-                <Typography variant="caption" color="text.secondary">12월</Typography>
-              </Stack>
-            </Box>
-            <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
-              <Box><Typography variant="caption" color="text.secondary">1월</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>125억</Typography></Box>
-              <Box><Typography variant="caption" color="text.secondary">6월</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>148억</Typography></Box>
-              <Box><Typography variant="caption" color="text.secondary">12월 예상</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>175억</Typography></Box>
-            </Stack>
-          </Paper>
-
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <NotificationsActiveIcon fontSize="small" color="warning" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>알림 (SalesAlerts)</Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Chip size="small" label={`${ALERTS.length}건`} color="warning" />
-            </Stack>
-            <Box sx={{ flex: 1, overflow: 'auto' }}>
-              {ALERTS.map((a, i) => (
-                <Box key={i} sx={{ py: 0.5, borderBottom: '1px dashed', borderColor: 'divider' }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Chip size="small" label={a.team} color={ALERT_COLOR[a.level]} variant="outlined" sx={{ height: 18, fontSize: 10 }} />
-                    <Typography variant="caption" sx={{ flex: 1, fontSize: 12 }}>{a.msg}</Typography>
+      <Box sx={{ p: 1.5, flex: 1, overflow: 'auto', backgroundColor: '#f5f5f7' }}>
+        {/* Row 1: KPI 위젯 3개 (Year sales) */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mb: 1.5 }}>
+          <W title="① DpYearActualSales (P_VIEW1=WI_DP_YEAR_ACTUAL_SALES) — KPI tile">
+            <Typography variant="caption" color="text.secondary">2026 누계 매출 ($)</Typography>
+            <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>$ 142,580K</Typography>
+            <Chip size="small" label="+12.5% WI_DP_OVER_LAST_YEAR" color="success" sx={{ height: 18, fontSize: 10, fontWeight: 700 }} />
+          </W>
+          <W title="② DpYearTargetSales (P_VIEW1=WI_DP_YEAR_TARGET_SALES) — KPI tile + Slider">
+            <Typography variant="caption" color="text.secondary">2026 목표 달성률</Typography>
+            <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#10b981' }}>$ 142,580K / $180,000K</Typography>
+            <Slider value={79} disabled sx={{ '& .MuiSlider-thumb': { display: 'none' }, color: '#10b981' }} />
+            <Typography variant="caption" sx={{ fontFamily: 'monospace', textAlign: 'right' }}>79.2%</Typography>
+          </W>
+          <W title="③ Accuracy (P_VIEW1=WI_DP_SALES_TOTAL_ACCURACY) — TWO horizontal Sliders">
+            <Typography variant="caption">MENU_07 (BF Accuracy)</Typography>
+            <Slider value={86} disabled marks valueLabelDisplay="on" sx={{ color: '#10b981' }} />
+            <Typography variant="caption" sx={{ mt: 1 }}>MENU_05 (DP Accuracy)</Typography>
+            <Slider value={92} disabled marks valueLabelDisplay="on" sx={{ color: '#1976d2' }} />
+          </W>
+          <W title="④ SalesAlerts (P_VIEW1=WI_DP_SALES_ALERT) — 알림 리스트">
+            <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5 }}>WI_TOTAL_ALERT : <b>18</b> CASE</Typography>
+            <Stack spacing={0.25} sx={{ overflow: 'auto', flex: 1 }}>
+              {SALES_ALERTS.map((a) => {
+                const Icon = a.icon;
+                return (
+                  <Stack key={a.CATEGORY1} direction="row" alignItems="center" spacing={0.5}>
+                    <Icon fontSize="small" sx={{ color: a.color }} />
+                    <Typography variant="caption" sx={{ flex: 1, fontSize: 11 }}>{a.CATEGORY1}</Typography>
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>{a.VALUE1} CASE</Typography>
                   </Stack>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
+                );
+              })}
+            </Stack>
+          </W>
         </Box>
 
-        <Paper variant="outlined" sx={{ p: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-            <GroupsIcon fontSize="small" color="primary" />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>팀별 계획-실적 진척 (TeamSalesPlan / SalesProgress)</Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            <Typography variant="caption" color="text.secondary">단위: 억 KRW</Typography>
-          </Stack>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 1 }}>
-            {TEAM.map((t) => {
-              const color = t.progress >= 95 ? 'success' : t.progress >= 85 ? 'info' : t.progress >= 75 ? 'warning' : 'error';
-              return (
-                <Box key={t.team} sx={{ p: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, flex: 1 }}>{t.team}</Typography>
-                    <Chip size="small" label={`${t.progress.toFixed(1)}%`} color={color} sx={{ height: 18, fontSize: 10, fontWeight: 700 }} />
-                  </Stack>
-                  <LinearProgress variant="determinate" value={t.progress} color={color} sx={{ height: 6, borderRadius: 1, mb: 0.5 }} />
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>{t.actual}억</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>/ {t.plan}억</Typography>
-                  </Stack>
-                </Box>
-              );
-            })}
-          </Box>
-        </Paper>
+        {/* Row 2: Charts (status, forecast, plan-status, supply-suf) */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mb: 1.5 }}>
+          <W title="⑤ DpPlanStatusY (WI_DP_PLAN_STATUS_Y) — 5 datasets" height={160}>
+            <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
+              <Chip size="small" label="MENU_05_03" sx={{ height: 14, fontSize: 9, backgroundColor: '#ef4444', color: 'white' }} />
+              <Chip size="small" label="SALES_PLAN" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
+              <Chip size="small" label="ACTUAL_SALES" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
+              <Chip size="small" label="YOY" sx={{ height: 14, fontSize: 9, backgroundColor: '#10b981', color: 'white' }} />
+              <Chip size="small" label="%" sx={{ height: 14, fontSize: 9, backgroundColor: '#9ca3af', color: 'white' }} />
+            </Stack>
+            <Box sx={{ flex: 1 }}>
+              <MiniMixedBarLine
+                months={['1','2','3','4','5','6']}
+                bars={[
+                  { name: 'ACTUAL', color: '#fbbf24', data: [80, 90, 100, 110, 105, 120] },
+                  { name: 'YOY',    color: '#10b981', data: [70, 80,  90, 100,  95, 110] },
+                ]}
+                lines={[
+                  { name: 'PLAN',   color: '#1976d2', data: [90, 95, 105, 115, 110, 125] },
+                  { name: 'TARGET', color: '#ef4444', data: [85, 95, 100, 110, 105, 120] },
+                  { name: 'GROWTH', color: '#9ca3af', data: [50, 60,  65,  75,  72,  80], dash: true },
+                ]}
+                height={110}
+              />
+            </Box>
+          </W>
+          <W title="⑥ ForecastPlan (WI_DP_FORECASTPLAN) — line" height={160}>
+            <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
+              <Chip size="small" label="BF_MEAS_QTY" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
+              <Chip size="small" label="DEMAND_PLAN" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
+            </Stack>
+            <Box sx={{ flex: 1 }}>
+              <MiniLine data={[1200, 1280, 1350, 1420, 1500, 1580]} color="#1976d2" height={110} />
+            </Box>
+          </W>
+          <W title="⑦ PlanStatus (WI_DP_PLAN_STATUS) — bar+line" height={160}>
+            <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
+              <Chip size="small" label="SALES_PLAN (line)" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
+              <Chip size="small" label="ACTUAL_SALES (bar)" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
+            </Stack>
+            <Box sx={{ flex: 1 }}>
+              <MiniMixedBarLine
+                months={['1','2','3','4','5','6']}
+                bars={[{ name: 'ACT', color: '#fbbf24', data: [85, 92, 100, 108, 115, 120] }]}
+                lines={[{ name: 'PLAN', color: '#1976d2', data: [90, 95, 102, 110, 118, 125] }]}
+                height={110}
+              />
+            </Box>
+          </W>
+          <W title="⑧ SupplySufRate (WI_MP_DEMANDSUPPLYFULFILL) — bar+line" height={160}>
+            <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
+              <Chip size="small" label="Request (line)" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
+              <Chip size="small" label="On Time" sx={{ height: 14, fontSize: 9, backgroundColor: '#10b981', color: 'white' }} />
+              <Chip size="small" label="Late" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
+              <Chip size="small" label="Short" sx={{ height: 14, fontSize: 9, backgroundColor: '#ef4444', color: 'white' }} />
+            </Stack>
+            <Box sx={{ flex: 1 }}>
+              <MiniMixedBarLine
+                months={['1','2','3','4','5','6']}
+                bars={[
+                  { name: 'OT',    color: '#10b981', data: [85, 88, 90, 92, 95, 93] },
+                  { name: 'Late',  color: '#fbbf24', data: [10, 8,  6,  5,  3,  4] },
+                  { name: 'Short', color: '#ef4444', data: [5,  4,  4,  3,  2,  3] },
+                ]}
+                lines={[{ name: 'Req', color: '#1976d2', data: [100, 100, 100, 100, 100, 100] }]}
+                height={110}
+              />
+            </Box>
+          </W>
+        </Box>
+
+        {/* Row 3: Distribution doughnuts + Progress (Stepper + Sales Progress) */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 2fr 3fr', gap: 1.5, mb: 1.5 }}>
+          <W title="⑨ SalesPlanDistribution (WI_DP_GRP_DIST) — 2 doughnuts" height={180}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
+              <Box sx={{ textAlign: 'center', flex: 1 }}>
+                <Typography variant="caption">WI_DIST_ITEM_GRP</Typography>
+                <Donut size={100} segments={[
+                  { label: 'Lysine',     v: 42, color: '#1976d2' },
+                  { label: 'Methionine', v: 28, color: '#10b981' },
+                  { label: 'Tryptophan', v: 18, color: '#fbbf24' },
+                  { label: '기타',        v: 12, color: '#9ca3af' },
+                ]} />
+              </Box>
+              <Box sx={{ textAlign: 'center', flex: 1 }}>
+                <Typography variant="caption">WI_DIST_SALES_GRP</Typography>
+                <Donut size={100} segments={[
+                  { label: 'AN',  v: 68, color: '#1976d2' },
+                  { label: 'TN',  v: 22, color: '#10b981' },
+                  { label: 'BMS', v: 10, color: '#fbbf24' },
+                ]} />
+              </Box>
+            </Stack>
+          </W>
+
+          <W title="⑩ PlanProgress (engine/dp/GetApprovalSteps) — Stepper alternativeLabel" height={180}>
+            <Stepper activeStep={2} alternativeLabel sx={{ '& .MuiStepLabel-iconContainer': { '& .MuiStepIcon-root': { color: '#1976d2' } } }}>
+              {PLAN_PROGRESS_STEPS.map((label, i) => (
+                <Step key={label} completed={i < 2}>
+                  <StepLabel icon={i < 2 ? <Avatar sx={{ width: 22, height: 22, backgroundColor: '#1976d2' }}><CheckIcon sx={{ fontSize: 14 }} /></Avatar>
+                    : <Avatar sx={{ width: 22, height: 22, backgroundColor: 'grey.300' }}>·</Avatar>}>
+                    <Typography variant="caption">{label}</Typography>
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </W>
+
+          <W title="⑪ SalesProgress (WI_DP_PLAN_MONTH_PROGRESS) — TOT/SUM/RATE" height={180}>
+            <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
+              <Chip size="small" label="TOT_PREDICT_REVENUE" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
+              <Chip size="small" label="SUM_REVENUE" sx={{ height: 14, fontSize: 9, backgroundColor: '#10b981', color: 'white' }} />
+              <Chip size="small" label="PROGRESS_RATE" sx={{ height: 14, fontSize: 9, backgroundColor: '#ef4444', color: 'white' }} />
+            </Stack>
+            <Box sx={{ flex: 1 }}>
+              <MiniMixedBarLine
+                months={['Jan','Feb','Mar','Apr','May','Jun']}
+                bars={[
+                  { name: 'PRED', color: '#1976d2', data: [100, 100, 100, 100, 100, 100] },
+                  { name: 'SUM',  color: '#10b981', data: [ 25,  45,  60,  75,  85,  92] },
+                ]}
+                lines={[{ name: 'RATE', color: '#ef4444', data: [25, 45, 60, 75, 85, 92] }]}
+                height={130}
+              />
+            </Box>
+          </W>
+        </Box>
+
+        {/* Row 4: TeamSalesPlan list */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.5 }}>
+          <W title="⑫ TeamSalesPlan (WI_DP_PLAN_ACCURACY) — Scrolling list with thumbless Slider" height={240}>
+            <Stack spacing={0.5} sx={{ overflow: 'auto', flex: 1, pr: 1 }}>
+              {TEAMS.map((t) => {
+                const pct = (t.VALUE1 / t.UPLEVEL_VALUE) * 100;
+                return (
+                  <Box key={t.LABEL} sx={{ display: 'grid', gridTemplateColumns: '160px 1fr 100px', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>{t.LABEL}</Typography>
+                    <Slider value={Math.min(pct, 100)} disabled disableSwap
+                      sx={{ '& .MuiSlider-thumb': { display: 'none' }, color: pct >= 100 ? '#10b981' : '#1976d2' }} />
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', textAlign: 'right' }}>
+                      ${t.VALUE1.toLocaleString()} / {t.UPLEVEL_VALUE.toLocaleString()}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Stack>
+          </W>
+        </Box>
       </Box>
     </MockShell>
   );

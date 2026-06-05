@@ -80,7 +80,7 @@ export default function CjboCmTariffMgmtMockup() {
     <MockShell patternCode="cjbo_cm_tariff_mgmt"
       patternLabel="CJBO — Tariff 관리 등록 (CmTariffMgmt)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_CM_TARIFF_MGMT — 판매지역 × 품목 LV × HS코드 × 관세구분(국제/국가/FTA/수량기준) 기간별 관세 마스터. 28컬럼(13 hidden) + 금액기준/수량기준 group header. POST demandplan/cmtariffmgmt/q1,s1,d1.">
+      description="관세 마스터 — 판매지역 × 품목 LV × HS코드 × 관세구분(국제/국가/FTA/수량기준) 기간별 관세.">
       {/* ─── SearchArea (소스 그대로) ─────────────────────────────────── */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
@@ -137,11 +137,9 @@ export default function CjboCmTariffMgmtMockup() {
                   <HeaderCell rowSpan={2} sx={{ textAlign: 'center' }}>{L.TO_DT.ko}</HeaderCell>
                   <HeaderCell colSpan={2} sx={{ backgroundColor: '#e3f2fd', textAlign: 'center' }}>
                     {L.AMT_TITLE.ko}
-                    <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', color: 'text.secondary', fontSize: 9, lineHeight: 1 }}>group: QTY_TITLE</Typography>
                   </HeaderCell>
                   <HeaderCell colSpan={4} sx={{ backgroundColor: '#fff3e0', textAlign: 'center' }}>
                     {L.QTY_TITLE.ko}
-                    <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', color: 'text.secondary', fontSize: 9, lineHeight: 1 }}>group: QTY_TITLE</Typography>
                   </HeaderCell>
                   <HeaderCell rowSpan={2}>CREATE_BY</HeaderCell>
                   <HeaderCell rowSpan={2}>MODIFY_BY</HeaderCell>

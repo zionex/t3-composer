@@ -64,7 +64,8 @@ export default function CjboDpPmAccountMockup() {
     <MockShell patternCode="cjbo_dp_pm_account"
       patternLabel="CJBO — PM 거래처-품목 등록 (DpPmAccount)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_PM_ACCOUNT — 사용자(PM)가 담당하는 판매지역×거래유형×품목 매핑 관리. PM_ADD_YN='Y' 행만 cell 편집 가능 (소스 styleCallback). 20컬럼(11 hidden). POST demandplan/dppmaccount/q1,s1,d1.">
+      description="PM 거래처 — 사용자(PM)가 담당하는 판매지역×거래유형×품목 매핑 관리.">
+
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
           <TextField label={`${L.SALES_AREA_CD.ko} (multiSelect)`} size="small" select value="ALL" sx={{ width: 170 }}>
@@ -99,7 +100,6 @@ export default function CjboDpPmAccountMockup() {
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;grid1&quot; / dpPmAccountGrid1Items (20 cols, 11 hidden)</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`PM 추가 ${ROWS.filter(r => r.PM_ADD_YN === 'Y').length}건`} sx={{ backgroundColor: '#fff9c4', height: 18, fontSize: 10 }} />
             <Chip size="small" label={`기본 ${ROWS.filter(r => r.PM_ADD_YN === 'N').length}건`} variant="outlined" sx={{ height: 18, fontSize: 10 }} />

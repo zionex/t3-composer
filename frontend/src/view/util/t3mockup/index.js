@@ -1566,12 +1566,30 @@ const CJBO_ENTRIES = [
       { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
     ],
     component: lazy(() => import('./_cjbo/mp_sku_management/CjboMpSkuManagementMockup')) },
-  { patternCode: 'cjbo_mp_scm_demand',      patternLabel: 'CJBO — MP SCM Demand 5종 (PN_01/03/04/04_VIEW/05)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
-    usage: 5, description: 'ReworkMtom (cjbo/ prefix CJBO 전용) · InventoryMovement (LOCAT_DIV) · StuffingFile (2780줄, 15 CHK_* boolean vertical) · StuffingFileView (read-only) · VersionStuffingFile (시뮬-스냅샷 + SALES_ORD_GRP).',
+  { patternCode: 'cjbo_mp_rework_mtom',     patternLabel: 'CJBO — 재처리, M to M 계획',                       layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'REWORK/MTOM 유형 × 거점 × 자원 × FROM 품목 → TO 품목 변환 계획. 기간별 QTY/TOT_QTY + 활성 여부.',
     layers: [
       { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
     ],
-    component: lazy(() => import('./_cjbo/mp_scm_demand/CjboMpScmDemandMockup')) },
+    component: lazy(() => import('./_cjbo/mp_rework_mtom/CjboMpReworkMtomMockup')) },
+  { patternCode: 'cjbo_mp_inventory_movement', patternLabel: 'CJBO — 거점 간 재고이동 계획',                  layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '내수(P)/수출(S) 구분 × 품목 × FROM 거점 → TO 거점 이동 계획. 출발일/도착일 + 수량.',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/mp_inventory_movement/CjboMpInventoryMovementMockup')) },
+  { patternCode: 'cjbo_mp_stuffing_file',   patternLabel: 'CJBO — Stuffing File',                              layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '생산법인 + 일반정보(16개 CHK_* boolean 세로 헤더) + 일자정보 + 주문정보. 행 추가/수정/저장.',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/mp_stuffing_file/CjboMpStuffingFileMockup')) },
+  { patternCode: 'cjbo_mp_version_stuffing_file', patternLabel: 'CJBO — 버전별 Stuffing File 현황',           layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '시뮬레이션 버전 스냅샷 + Sales Order 연동. 생산지점 × 판매지점 × 인보이스 × 품목 × 수량/생산수량/지연수량.',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/mp_version_stuffing_file/CjboMpVersionStuffingFileMockup')) },
 ];
 
 // ─────────────────────────────────────────

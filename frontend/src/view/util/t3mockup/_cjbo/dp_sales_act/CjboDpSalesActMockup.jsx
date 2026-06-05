@@ -63,7 +63,8 @@ export default function CjboDpSalesActMockup() {
     <MockShell patternCode="cjbo_dp_sales_act"
       patternLabel="CJBO — 판매 실적 (DpSalesAct)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_SALES_ACT — 일자 범위 × 거래처 × 품목 동적 크로스탭. 기간별 [ACT · OSO · TOT] × [QTY/AMT]. totalOnlyYn(BILL/OPEN) 필터. PopPersonalize. POST demandplan/dpsalesact/q2 → /q1.">
+      description="판매 실적 — 일자 범위 × 거래처 × 품목 동적 크로스탭. 기간별 [실적 · 미출 · 합계] × [수량/금액].">
+
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
@@ -109,10 +110,10 @@ export default function CjboDpSalesActMockup() {
 
       {/* ButtonArea */}
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드 (headerDepth=3)</Button>
+        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
         <Box sx={{ flexGrow: 1 }} />
         <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>단위: USD · 천</Typography>
-        <Button size="small" startIcon={<SettingsIcon />} variant="outlined">컬럼 개인화 (PopPersonalize)</Button>
+        <Button size="small" startIcon={<SettingsIcon />} variant="outlined">컬럼 개인화</Button>
       </Box>
 
       {/* ResultArea */}

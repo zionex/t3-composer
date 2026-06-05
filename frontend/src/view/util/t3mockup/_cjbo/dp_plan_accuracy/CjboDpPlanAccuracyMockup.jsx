@@ -47,7 +47,8 @@ export default function CjboDpPlanAccuracyMockup() {
     <MockShell patternCode="cjbo_dp_plan_accuracy"
       patternLabel="CJBO — 수요계획 정확도 (DpPlanAccuracy)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_PLAN_ACCURACY — 단일 BaseGrid + STATIC 4 그룹 헤더 (M_1_ACT/M_3/M_2/M_1). 런타임에 group header → YYYY.MM 교체. 차트/탭 없음. POST demandplan/dpplanaccuracy/q1.">
+      description="수요계획 정확도 — 4 그룹 헤더 (실적/M-3/M-2/M-1). 런타임에 그룹 헤더가 YYYY.MM 으로 교체.">
+
 
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>

@@ -60,14 +60,14 @@ export default function CjboDpOrgManagementMockup() {
     <MockShell patternCode="cjbo_dp_org_management"
       patternLabel="CJBO — 조직 관리 3종 (DpOrgMap / DpOrgChg / DpEntryTpOrg)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_ORG_MAP (매핑+17 popups+ATTR_01~20) · UI_DP_ORG_CHG (PRE/CUR 변경) · UI_DP_ENTRY_TP_ORG (TreeGrid 계층). 3개 완전 다른 화면. POST demandplan/dporg{map,chg}/q1,s1,d1 · engine/dp/SRV_GET_SP_UI_DP_ENTRY_TP_ORG_Q1.">
+      description="조직 매핑(ATTR_01~20) · 조직 변경 이력(PRE/CUR) · 영업조직 계층 3개 화면.">
       {/* View selector */}
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: '#fffde7', display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="caption" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>3개 화면 (사용자가 선택해서 미리보기):</Typography>
+        <Typography variant="caption" sx={{ fontWeight: 700 }}>3개 화면 (사용자가 선택해서 미리보기):</Typography>
         <ToggleButtonGroup value={view} exclusive onChange={(_, v) => v && setView(v)} size="small">
-          <ToggleButton value="MAP">UI_DP_ORG_MAP (조직-법인 매핑)</ToggleButton>
-          <ToggleButton value="CHG">UI_DP_ORG_CHG (조직 변경 이력)</ToggleButton>
-          <ToggleButton value="TPORG">UI_DP_ENTRY_TP_ORG (TreeGrid)</ToggleButton>
+          <ToggleButton value="MAP">조직-법인 매핑</ToggleButton>
+          <ToggleButton value="CHG">조직 변경 이력</ToggleButton>
+          <ToggleButton value="TPORG">영업조직 계층</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
@@ -82,7 +82,7 @@ export default function CjboDpOrgManagementMockup() {
               <TextField label="SALES_AREA_CD (multi)" size="small" select value="ALL" sx={{ width: 170 }}>
                 <MenuItem value="ALL">전체</MenuItem>
               </TextField>
-              <TextField label="UI_DP_ORG_MAP_APS_LEVEL_CD" size="small" select value="ALL" sx={{ width: 200 }}>
+              <TextField label="조직 레벨" size="small" select value="ALL" sx={{ width: 200 }}>
                 <MenuItem value="ALL">전체</MenuItem>
                 <MenuItem value="L1">L1</MenuItem><MenuItem value="L2">L2</MenuItem>
               </TextField>
@@ -162,9 +162,6 @@ export default function CjboDpOrgManagementMockup() {
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;gridDpOrgChg&quot; — 4 visible cols + ACTV_YN + audit</Typography>
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -201,11 +198,9 @@ export default function CjboDpOrgManagementMockup() {
       {/* ──── DpEntryTpOrg — TreeGrid ──── */}
       {view === 'TPORG' && (
         <>
-          {/* No SearchArea per source */}
           <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>SearchArea 없음 / engine/dp/SRV_GET_SP_UI_DP_ENTRY_TP_ORG_Q1</Typography>
             <Box sx={{ flexGrow: 1 }} />
-            <Button size="small" startIcon={<AddCircleIcon />} variant="outlined" disabled>Add Child Row (셀 클릭 시)</Button>
+            <Button size="small" startIcon={<AddCircleIcon />} variant="outlined" disabled>하위 행 추가</Button>
             <Button size="small" startIcon={<DeleteIcon />} variant="outlined" color="error">행 삭제</Button>
             <Button size="small" startIcon={<SaveIcon />} variant="contained">저장</Button>
           </Box>
@@ -213,7 +208,7 @@ export default function CjboDpOrgManagementMockup() {
             <Paper variant="outlined" sx={{ height: '100%' }}>
               <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AccountTreeIcon fontSize="small" color="primary" />
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>TreeGrid id=&quot;gridDpEntryTpOrg&quot; — 영업조직 계층 (TidyTreeUtil 다이어그램)</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>영업조직 계층</Typography>
               </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader>

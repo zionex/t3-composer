@@ -74,7 +74,8 @@ export default function CjboDpVerDiffMockup() {
     <MockShell patternCode="cjbo_dp_ver_diff"
       patternLabel="CJBO — 버전 비교 (DpVerDiff)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_VER_DIFF — 두 DP 버전의 동적 크로스탭 비교. 기간별 [VER_1 · VER_2 · DIFF · CONT(%)] × [QTY/AMT]. setRowStyleCallback (BG/FG_COLOR). PopPersonalize 컬럼 개인화. POST demandplan/dpverdiff/q2 → /q1.">
+      description="버전 비교 — 두 DP 버전의 동적 크로스탭 비교. 기간별 [VER_1 · VER_2 · DIFF · CONT(%)] × [QTY/AMT].">
+
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
@@ -123,11 +124,11 @@ export default function CjboDpVerDiffMockup() {
 
       {/* ButtonArea */}
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드 (headerDepth=3)</Button>
+        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
         <Box sx={{ flexGrow: 1 }} />
         <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>SELECT_QTY_SUM: <b>0</b></Typography>
         <Typography variant="caption" sx={{ fontFamily: 'monospace', ml: 1 }}>단위: USD · 천</Typography>
-        <Button size="small" startIcon={<SettingsIcon />} variant="outlined">컬럼 개인화 (PopPersonalize)</Button>
+        <Button size="small" startIcon={<SettingsIcon />} variant="outlined">컬럼 개인화</Button>
       </Box>
 
       {/* ResultArea */}

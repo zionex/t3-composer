@@ -69,7 +69,6 @@ export default function CjboDpEntryReportMockup() {
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <Chip size="small" label={`PLAN_TP (hidden, '${v.p_attr1}')`} variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
           {v.hasUser && (
             <TextField label="UserInputField" size="small" value="admin / 김민수" sx={{ width: 180 }}
               InputProps={{ startAdornment: <PersonIcon fontSize="small" sx={{ mr: 0.5, color: 'action.active' }} /> }} />
@@ -114,14 +113,13 @@ export default function CjboDpEntryReportMockup() {
 
       {/* ButtonArea */}
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드 (headerDepth=3)</Button>
+        <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>SELECT_QTY_SUM: <b>0</b></Typography>
-        <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>USD · 천</Typography>
-        <Chip size="small" label="STATUS: OPEN" color="info" sx={{ height: 20, fontSize: 10, fontFamily: 'monospace' }} />
+        <Typography variant="caption">선택 합계: <b>0</b></Typography>
+        <Typography variant="caption">USD · 천</Typography>
+        <Chip size="small" label="진행중" color="info" sx={{ height: 20, fontSize: 10 }} />
         {v.hasApprove && (
           <>
-            <Chip size="small" label={v.approveWrap ? 'salesmanFlag wrap' : '항상 표시'} variant="outlined" sx={{ height: 18, fontSize: 9 }} />
             <Button size="small" startIcon={<CheckIcon />} variant="contained" color="success">APPROVE</Button>
             <Button size="small" startIcon={<CloseIcon />} variant="outlined" color="warning">CANCELAPPROVE</Button>
           </>
@@ -132,10 +130,9 @@ export default function CjboDpEntryReportMockup() {
       {/* ResultArea */}
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;grid1{v.name}&quot;</Typography>
-            {v.hasEmp ? <Chip size="small" label="EMP_NO + EMP_NM 컬럼 표시" color="info" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
-              : <Chip size="small" label="EMP 컬럼 숨김 (TP 변형)" variant="outlined" sx={{ height: 18, fontSize: 10 }} />}
+          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+            {v.hasEmp ? <Chip size="small" label="담당자 컬럼 표시" color="info" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
+              : <Chip size="small" label="담당자 컬럼 숨김" variant="outlined" sx={{ height: 18, fontSize: 10 }} />}
           </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader sx={{ '& th, & td': { whiteSpace: 'nowrap', fontSize: 11, py: 0.5 } }}>

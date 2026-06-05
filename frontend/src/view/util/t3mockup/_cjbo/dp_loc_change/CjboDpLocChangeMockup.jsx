@@ -54,7 +54,8 @@ export default function CjboDpLocChangeMockup() {
     <MockShell patternCode="cjbo_dp_loc_change"
       patternLabel="CJBO — 거점 변경 관리 (DpLocChange)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_LOC_CHANGE — 변경구분(R/N) × 판매지역 × 변경년월 × FROM/TO 거점. 기존 행(P_ID 있음)은 잠금. DP_BTN_LOC_CHANGE 배치 버튼으로 일괄 적용. POST demandplan/dplocchange/q1,s1,d1,locchange.">
+      description="거점 변경 — 변경구분(R/N) × 판매지역 × 변경년월 × FROM/TO 거점. 기존 행은 잠금. 거점 변경 버튼으로 일괄 적용.">
+
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
           <TextField label={`${L.SALES_AREA_CD.ko} (multiSelect)`} size="small" select value="ALL" sx={{ width: 170 }}>
@@ -74,7 +75,7 @@ export default function CjboDpLocChangeMockup() {
         <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
         <Button size="small" startIcon={<FileUploadIcon />} variant="outlined">엑셀 업로드</Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Button size="small" startIcon={<SwapHorizIcon />} variant="contained" color="warning">DP_BTN_LOC_CHANGE (거점변경 일괄적용)</Button>
+        <Button size="small" startIcon={<SwapHorizIcon />} variant="contained" color="warning">거점변경 일괄적용</Button>
         <Button size="small" startIcon={<AddIcon />} variant="outlined">행 추가</Button>
         <Button size="small" startIcon={<SaveIcon />} variant="contained" color="primary">저장</Button>
       </Box>
@@ -82,7 +83,6 @@ export default function CjboDpLocChangeMockup() {
       <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;grid1&quot; / dpLocChangeGrid1Items (18 cols, 8 hidden)</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Chip size="small" label={`기존 ${ROWS.filter(r => r.P_ID).length}건 (잠금)`} sx={{ height: 18, fontSize: 10, backgroundColor: '#f5f5f5' }} />
             <Chip size="small" label={`신규 ${ROWS.filter(r => !r.P_ID).length}건`} color="primary" variant="outlined" sx={{ height: 18, fontSize: 10 }} />

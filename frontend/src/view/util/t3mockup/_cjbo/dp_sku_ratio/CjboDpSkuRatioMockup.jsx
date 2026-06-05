@@ -65,7 +65,8 @@ export default function CjboDpSkuRatioMockup() {
     <MockShell patternCode="cjbo_dp_sku_ratio"
       patternLabel={`CJBO — SKU 비율 관리 (${isOP ? 'DpItemRatioOP / gplanCd=O' : 'DpItemRatio / gplanCd=T'})`}
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_DP_ITEM_RATIO (TP, 2-tab) · UI_DP_ITEM_RATIO_OP (OP, 3-tab, +1M/3M/6M/12M 실적반영). *_MON 변형은 소스에 없음. POST demandplan/dpitemratio[op]/{q1,s1,d1,actualAllUpdate,actualUpdate,measureUpdate}.">
+      description="품목별 비율 — TP 2-tab · OP 3-tab (+1M/3M/6M/12M 실적반영).">
+
       {/* Mode toggle */}
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: '#fffde7', display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography variant="caption" sx={{ fontWeight: 700, fontFamily: 'monospace' }}>화면 변형 선택:</Typography>
@@ -140,12 +141,6 @@ export default function CjboDpSkuRatioMockup() {
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
-                  BaseGrid id=&quot;grid1&quot; / {isOP ? 'DpItemRatioOPGrid1Items' : 'DpItemRatioGrid1Items'}
-                </Typography>
-                <Chip size="small" label={`PopupItemRatio${isOP ? '' : ''}`} variant="outlined" sx={{ height: 16, fontSize: 9 }} />
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -201,7 +196,7 @@ export default function CjboDpSkuRatioMockup() {
           <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
             <Box sx={{ flexGrow: 1 }} />
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;gridDet&quot; / DpItemRatioDetGridItems (read-only)</Typography>
+            <Chip size="small" label="읽기 전용" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>
@@ -249,7 +244,7 @@ export default function CjboDpSkuRatioMockup() {
           <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button size="small" startIcon={<FileDownloadIcon />} variant="outlined">엑셀 다운로드</Button>
             <Box sx={{ flexGrow: 1 }} />
-            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid / DpItemRatioDetCustGridItems (read-only, OP 전용)</Typography>
+            <Chip size="small" label="읽기 전용 (OP 전용)" variant="outlined" sx={{ height: 18, fontSize: 10 }} />
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>

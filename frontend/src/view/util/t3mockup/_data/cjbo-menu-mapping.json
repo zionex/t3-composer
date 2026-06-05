@@ -114,12 +114,20 @@
       { "menuId": "UI_MP_ST_04",             "menuNm": "SubSkuProportion (ESNT_SALE_RATE % editable)",           "filePath": "/masterplan/master/subskuproportion/SubSkuProportion" }
     ],
 
-    "cjbo_mp_scm_demand": [
-      { "menuId": "UI_MP_PN_01",             "menuNm": "ReworkMtom (CJBO 전용 prefix cjbo/mp/master/reworkmtom)", "filePath": "/masterplan/master/reworkmtom/ReworkMtom" },
-      { "menuId": "UI_MP_PN_03",             "menuNm": "InventoryMovement (LOCAT_DIV + FROM/TO LOCAT)",          "filePath": "/masterplan/master/inventorymovement/InventoryMovement" },
-      { "menuId": "UI_MP_PN_04",             "menuNm": "StuffingFile (2780줄, PROD_CORP + 15 CHK_* vertical)",   "filePath": "/masterplan/master/stuffingfile/StuffingFile" },
-      { "menuId": "UI_MP_PN_04_VIEW",        "menuNm": "StuffingFileView (read-only)",                          "filePath": "/masterplan/master/stuffingfileview/StuffingFileView" },
-      { "menuId": "UI_MP_PN_05",             "menuNm": "VersionStuffingFile (시뮬-스냅샷 + Sales Order linkage)", "filePath": "/masterplan/master/versionstuffingfile/VersionStuffingFile" }
+    "cjbo_mp_rework_mtom": [
+      { "menuId": "UI_MP_PN_01",             "menuNm": "재처리, M to M 계획",                                   "filePath": "/masterplan/master/reworkmtom/ReworkMtom" }
+    ],
+
+    "cjbo_mp_inventory_movement": [
+      { "menuId": "UI_MP_PN_03",             "menuNm": "거점 간 재고이동 계획",                                 "filePath": "/masterplan/master/inventorymovement/InventoryMovement" }
+    ],
+
+    "cjbo_mp_stuffing_file": [
+      { "menuId": "UI_MP_PN_04",             "menuNm": "Stuffing File",                                         "filePath": "/masterplan/master/stuffingfile/StuffingFile" }
+    ],
+
+    "cjbo_mp_version_stuffing_file": [
+      { "menuId": "UI_MP_PN_05",             "menuNm": "버전별 Stuffing File 현황",                             "filePath": "/masterplan/master/versionstuffingfile/VersionStuffingFile" }
     ]
   }
 }

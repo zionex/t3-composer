@@ -3,7 +3,6 @@ import {
   Box, Stack, Typography, Paper, Tabs, Tab, Chip, Button, ToggleButton, ToggleButtonGroup,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
-import PlaceIcon from '@mui/icons-material/Place';
 import MockShell from '../../_shared/MockShell';
 
 // CJBO — Top Sales 위젯 3종 (DpTopSalesAccount/Item/ItemGrp)
@@ -57,13 +56,18 @@ const ITEMGRP_DATA = [
 ];
 
 function FakeGoogleMap() {
+  // 경위도 → viewBox 좌표 (안전 클램프)
+  const W = 800, H = 250;
+  const project = (lng, lat) => ({
+    x: Math.max(20, Math.min(W - 20, 80 + (lng + 130) * 2.6)),
+    y: Math.max(20, Math.min(H - 30, 50 + (60 - lat) * 1.5)),
+  });
   return (
     <Box sx={{ position: 'relative', height: '100%',
       backgroundImage: 'linear-gradient(135deg, #d3e6f3 0%, #c5d1d3 100%)', overflow: 'hidden' }}>
-      <Box sx={{ position: 'absolute', top: 8, left: 8, zIndex: 2 }}>
-        <Chip size="small" label="@react-google-maps/api · disableDefaultUI" sx={{ height: 18, fontSize: 9, fontFamily: 'monospace', backgroundColor: 'rgba(255,255,255,0.9)' }} />
-      </Box>
-      <svg viewBox="0 0 800 250" style={{ width: '100%', height: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet"
+           style={{ width: '100%', height: '100%', display: 'block' }}>
+        {/* 대륙 실루엣 (단순화) */}
         <path d="M 80 100 L 140 80 L 200 100 L 240 140 L 200 180 L 120 180 L 80 140 Z"
               fill="rgba(255,255,255,0.5)" stroke="rgba(0,0,0,0.1)" strokeWidth="0.5" />
         <path d="M 300 130 L 380 110 L 460 140 L 480 200 L 380 220 L 320 200 Z"
@@ -72,21 +76,16 @@ function FakeGoogleMap() {
               fill="rgba(255,255,255,0.5)" stroke="rgba(0,0,0,0.1)" strokeWidth="0.5" />
 
         {ACCOUNT_DATA.map((d) => {
-          const x = 80 + (d.lng + 130) * 2.6;
-          const y = 50 + (60 - d.lat) * 1.5;
+          const { x, y } = project(d.lng, d.lat);
           return (
             <g key={d.rank}>
-              <PlaceIcon />
-              <circle cx={x} cy={y} r="14" fill="#d32f2f" opacity="0.85" stroke="white" strokeWidth="2" />
-              <text x={x} y={y + 4} fill="white" fontSize="11" fontWeight="700" textAnchor="middle">{d.rank}</text>
-              <text x={x} y={y + 26} fill="#222" fontSize="9" fontWeight="600" textAnchor="middle">{d.CATEGORY2}</text>
+              <circle cx={x} cy={y} r="11" fill="#d32f2f" opacity="0.9" stroke="white" strokeWidth="2" />
+              <text x={x} y={y + 3.5} fill="white" fontSize="10" fontWeight="700" textAnchor="middle">{d.rank}</text>
+              <text x={x} y={y + 22} fill="#222" fontSize="8.5" fontWeight="600" textAnchor="middle">{d.CATEGORY2}</text>
             </g>
           );
         })}
       </svg>
-      <Box sx={{ position: 'absolute', bottom: 4, right: 8, backgroundColor: 'rgba(255,255,255,0.9)', px: 0.75, py: 0.25, borderRadius: 0.5, fontSize: 9, fontFamily: 'monospace' }}>
-        Google Maps
-      </Box>
     </Box>
   );
 }
@@ -140,13 +139,13 @@ export default function CjboWidgetTopSalesMapMockup() {
     <MockShell patternCode="cjbo_widget_top_sales_map"
       patternLabel="CJBO — Top Sales 위젯 3종 (DpTopSalesAccount/Item/ItemGrp)"
       layoutCategory="LAYOUT_SINGLE"
-      description="공통 SP: common/data { PROCEDURE_NAME:'SP_UI_SA_SALES_DP', P_VIEW1:... }. Account=Google Maps + 리스트 · Item=pill 리스트 · ItemGrp=Chart.js stacked line.">
+      description="Top Sales 위젯 3종 — 거래처(지도+리스트) · 품목(리스트) · 품목군(누적 라인 차트).">
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label="DpTopSalesAccount (P_VIEW1=WI_DP_TOP_SALES_ACCOUNT)" sx={{ minHeight: 38 }} />
-          <Tab label="DpTopSalesItem (P_VIEW1=WI_DP_TOP_SALES_ITEM)" sx={{ minHeight: 38 }} />
-          <Tab label="DpTopSalesItemgrp (P_VIEW1=WI_DP_TOP_SALES_ITEMGRP)" sx={{ minHeight: 38 }} />
+          <Tab label="Top Sales — 거래처" sx={{ minHeight: 38 }} />
+          <Tab label="Top Sales — 품목" sx={{ minHeight: 38 }} />
+          <Tab label="Top Sales — 품목군" sx={{ minHeight: 38 }} />
         </Tabs>
       </Box>
 
@@ -157,7 +156,7 @@ export default function CjboWidgetTopSalesMapMockup() {
           <Box sx={{ flex: '0 0 45%' }}><FakeGoogleMap /></Box>
           {/* 55% List */}
           <Box sx={{ flex: 1, p: 1.5, overflow: 'auto', backgroundColor: '#f5f5f5' }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>Top 8 Accounts (Currency: $)</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>Top 8 거래처 (단위: $)</Typography>
             <Stack spacing={0.5}>
               {ACCOUNT_DATA.map((d) => (
                 <Paper key={d.rank} variant="outlined" sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -178,11 +177,11 @@ export default function CjboWidgetTopSalesMapMockup() {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* WidgetButton AMT/QTY */}
           <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>WidgetContent — Top Items</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700 }}>Top 품목</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <ToggleButtonGroup value={unit} exclusive onChange={(_, v) => v && setUnit(v)} size="small">
-              <ToggleButton value="AMT">AMT</ToggleButton>
-              <ToggleButton value="QTY">QTY</ToggleButton>
+              <ToggleButton value="AMT">금액</ToggleButton>
+              <ToggleButton value="QTY">수량</ToggleButton>
             </ToggleButtonGroup>
           </Box>
           <Box sx={{ flex: 1, p: 2, overflow: 'auto' }}>
@@ -210,7 +209,7 @@ export default function CjboWidgetTopSalesMapMockup() {
       {tab === 2 && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>ChartComponent (stacked line, fill:true)</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700 }}>월별 누적 추이</Typography>
             <Box sx={{ flexGrow: 1 }} />
             {ITEMGRP_DATA.map((d) => (
               <Stack key={d.CATEGORY2} direction="row" alignItems="center" spacing={0.3}>
@@ -221,13 +220,13 @@ export default function CjboWidgetTopSalesMapMockup() {
           </Box>
           <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
             <ToggleButtonGroup value={unit} exclusive onChange={(_, v) => v && setUnit(v)} size="small">
-              <ToggleButton value="AMT">AMT</ToggleButton>
-              <ToggleButton value="QTY">QTY</ToggleButton>
+              <ToggleButton value="AMT">금액</ToggleButton>
+              <ToggleButton value="QTY">수량</ToggleButton>
             </ToggleButtonGroup>
             <Box sx={{ flexGrow: 1 }} />
             <ToggleButtonGroup value={period} exclusive onChange={(_, v) => v && setPeriod(v)} size="small">
-              <ToggleButton value="W">W (DATE4)</ToggleButton>
-              <ToggleButton value="M">M (DATE3)</ToggleButton>
+              <ToggleButton value="W">주별</ToggleButton>
+              <ToggleButton value="M">월별</ToggleButton>
             </ToggleButtonGroup>
           </Box>
           <Box sx={{ flex: 1, p: 2 }}><StackedLineChart /></Box>

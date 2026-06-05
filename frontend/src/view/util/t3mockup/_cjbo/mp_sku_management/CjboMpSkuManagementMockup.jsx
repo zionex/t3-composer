@@ -66,14 +66,14 @@ export default function CjboMpSkuManagementMockup() {
     <MockShell patternCode="cjbo_mp_sku_management"
       patternLabel="CJBO — MP SKU/Capa 관리 4종 (ST_01~04)"
       layoutCategory="LAYOUT_SINGLE"
-      description="UI_MP_ST_01 SubSkuPriority · UI_MP_ST_02 ItemRes (CJBO 커스텀) · UI_MP_ST_03 PeriodCap (LineItemCapa/LineCapa sub-tabs) · UI_MP_ST_04 SubSkuProportion (ESNT_SALE_RATE %). 모두 SP_CUSTOM_SRH_COMBO_LIST_Q + REST mp/master/...">
+      description="대체 SKU 우선순위 관리 · 품목-라인별 생산 관리 · 기간별 Capa · 대체 SKU 비율 4개 화면.">
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label="① UI_MP_ST_01 SubSkuPriority" sx={{ minHeight: 38 }} />
-          <Tab label="② UI_MP_ST_02 ItemRes (CJBO 커스텀)" sx={{ minHeight: 38 }} />
-          <Tab label="③ UI_MP_ST_03 PeriodCap" sx={{ minHeight: 38 }} />
-          <Tab label="④ UI_MP_ST_04 SubSkuProportion" sx={{ minHeight: 38 }} />
+          <Tab label="① 대체 SKU 우선순위 관리" sx={{ minHeight: 38 }} />
+          <Tab label="② 품목-라인별 생산 관리" sx={{ minHeight: 38 }} />
+          <Tab label="③ 기간별 Capa" sx={{ minHeight: 38 }} />
+          <Tab label="④ 대체 SKU 비율" sx={{ minHeight: 38 }} />
         </Tabs>
       </Box>
 
@@ -102,10 +102,7 @@ export default function CjboMpSkuManagementMockup() {
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;subskupriorityGrid&quot;</Typography>
-              </Box>
-              <TableContainer sx={{ height: 'calc(100% - 36px)' }}>
+              <TableContainer sx={{ height: '100%' }}>
                 <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 11, py: 0.5 } }}>
                   <TableHead>
                     <TableRow>
@@ -184,11 +181,7 @@ export default function CjboMpSkuManagementMockup() {
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid grid1Columns — CJBO_RES_* 헤더 + RES_GRP_CD='PACK' 조건부 편집</Typography>
-                <Chip size="small" label="REST: mp/master/itemres/q1,s1,s3" variant="outlined" sx={{ height: 16, fontSize: 9 }} />
-              </Box>
-              <TableContainer sx={{ height: 'calc(100% - 36px)' }}>
+              <TableContainer sx={{ height: '100%' }}>
                 <Table size="small" stickyHeader sx={{ '& th, & td': { fontSize: 11, py: 0.5 } }}>
                   <TableHead>
                     <TableRow>
@@ -310,7 +303,7 @@ export default function CjboMpSkuManagementMockup() {
             <Button size="small" startIcon={<FileUploadIcon />} variant="outlined">엑셀 업로드</Button>
             <Box sx={{ flexGrow: 1 }} />
             <Button size="small" startIcon={<AddIcon />} variant="outlined">행 추가</Button>
-            <Button size="small" startIcon={<SaveIcon />} variant="contained">저장 (REST: mp/master/subskuproportion/q1,s1,d1)</Button>
+            <Button size="small" startIcon={<SaveIcon />} variant="contained">저장</Button>
           </Box>
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>

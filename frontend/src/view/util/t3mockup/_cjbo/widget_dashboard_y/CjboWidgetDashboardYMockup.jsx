@@ -120,29 +120,29 @@ export default function CjboWidgetDashboardYMockup() {
     <MockShell patternCode="cjbo_widget_dashboard_y"
       patternLabel="CJBO — DP 연간 위젯 12종 대시보드"
       layoutCategory="LAYOUT_SINGLE"
-      description="소스: view/demandplan/widgets/* — 12 위젯 각각의 정확한 render 타입 (KPI / Chart.js / Slider / Stepper / 도넛). 공통 SP common/data + SP_UI_SA_SALES_DP + P_VIEW1='WI_DP_*'.">
+      description="DP 연간 계획 대시보드 — KPI · 차트 · 슬라이더 · 스텝퍼 · 도넛 12개 위젯 구성.">
 
       <Box sx={{ p: 1.5, flex: 1, overflow: 'auto', backgroundColor: '#f5f5f7' }}>
         {/* Row 1: KPI 위젯 3개 (Year sales) */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mb: 1.5 }}>
-          <W title="① DpYearActualSales (P_VIEW1=WI_DP_YEAR_ACTUAL_SALES) — KPI tile">
+          <W title="① 연간 누계 매출">
             <Typography variant="caption" color="text.secondary">2026 누계 매출 ($)</Typography>
             <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>$ 142,580K</Typography>
             <Chip size="small" label="+12.5% WI_DP_OVER_LAST_YEAR" color="success" sx={{ height: 18, fontSize: 10, fontWeight: 700 }} />
           </W>
-          <W title="② DpYearTargetSales (P_VIEW1=WI_DP_YEAR_TARGET_SALES) — KPI tile + Slider">
+          <W title="② 연간 목표 매출 달성률">
             <Typography variant="caption" color="text.secondary">2026 목표 달성률</Typography>
             <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#10b981' }}>$ 142,580K / $180,000K</Typography>
             <Slider value={79} disabled sx={{ '& .MuiSlider-thumb': { display: 'none' }, color: '#10b981' }} />
             <Typography variant="caption" sx={{ fontFamily: 'monospace', textAlign: 'right' }}>79.2%</Typography>
           </W>
-          <W title="③ Accuracy (P_VIEW1=WI_DP_SALES_TOTAL_ACCURACY) — TWO horizontal Sliders">
+          <W title="③ 정확도">
             <Typography variant="caption">MENU_07 (BF Accuracy)</Typography>
             <Slider value={86} disabled marks valueLabelDisplay="on" sx={{ color: '#10b981' }} />
             <Typography variant="caption" sx={{ mt: 1 }}>MENU_05 (DP Accuracy)</Typography>
             <Slider value={92} disabled marks valueLabelDisplay="on" sx={{ color: '#1976d2' }} />
           </W>
-          <W title="④ SalesAlerts (P_VIEW1=WI_DP_SALES_ALERT) — 알림 리스트">
+          <W title="④ 매출 알림">
             <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.5 }}>WI_TOTAL_ALERT : <b>18</b> CASE</Typography>
             <Stack spacing={0.25} sx={{ overflow: 'auto', flex: 1 }}>
               {SALES_ALERTS.map((a) => {
@@ -161,7 +161,7 @@ export default function CjboWidgetDashboardYMockup() {
 
         {/* Row 2: Charts (status, forecast, plan-status, supply-suf) */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mb: 1.5 }}>
-          <W title="⑤ DpPlanStatusY (WI_DP_PLAN_STATUS_Y) — 5 datasets" height={160}>
+          <W title="⑤ 연간 계획 현황" height={160}>
             <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
               <Chip size="small" label="MENU_05_03" sx={{ height: 14, fontSize: 9, backgroundColor: '#ef4444', color: 'white' }} />
               <Chip size="small" label="SALES_PLAN" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
@@ -185,7 +185,7 @@ export default function CjboWidgetDashboardYMockup() {
               />
             </Box>
           </W>
-          <W title="⑥ ForecastPlan (WI_DP_FORECASTPLAN) — line" height={160}>
+          <W title="⑥ 예측·수요계획" height={160}>
             <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
               <Chip size="small" label="BF_MEAS_QTY" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
               <Chip size="small" label="DEMAND_PLAN" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
@@ -194,7 +194,7 @@ export default function CjboWidgetDashboardYMockup() {
               <MiniLine data={[1200, 1280, 1350, 1420, 1500, 1580]} color="#1976d2" height={110} />
             </Box>
           </W>
-          <W title="⑦ PlanStatus (WI_DP_PLAN_STATUS) — bar+line" height={160}>
+          <W title="⑦ 계획 현황" height={160}>
             <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
               <Chip size="small" label="SALES_PLAN (line)" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
               <Chip size="small" label="ACTUAL_SALES (bar)" sx={{ height: 14, fontSize: 9, backgroundColor: '#fbbf24' }} />
@@ -208,7 +208,7 @@ export default function CjboWidgetDashboardYMockup() {
               />
             </Box>
           </W>
-          <W title="⑧ SupplySufRate (WI_MP_DEMANDSUPPLYFULFILL) — bar+line" height={160}>
+          <W title="⑧ 공급 충족률" height={160}>
             <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
               <Chip size="small" label="Request (line)" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
               <Chip size="small" label="On Time" sx={{ height: 14, fontSize: 9, backgroundColor: '#10b981', color: 'white' }} />
@@ -232,7 +232,7 @@ export default function CjboWidgetDashboardYMockup() {
 
         {/* Row 3: Distribution doughnuts + Progress (Stepper + Sales Progress) */}
         <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 2fr 3fr', gap: 1.5, mb: 1.5 }}>
-          <W title="⑨ SalesPlanDistribution (WI_DP_GRP_DIST) — 2 doughnuts" height={180}>
+          <W title="⑨ 매출 계획 분포" height={180}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
               <Box sx={{ textAlign: 'center', flex: 1 }}>
                 <Typography variant="caption">WI_DIST_ITEM_GRP</Typography>
@@ -254,7 +254,7 @@ export default function CjboWidgetDashboardYMockup() {
             </Stack>
           </W>
 
-          <W title="⑩ PlanProgress (engine/dp/GetApprovalSteps) — Stepper alternativeLabel" height={180}>
+          <W title="⑩ 계획 진척도" height={180}>
             <Stepper activeStep={2} alternativeLabel sx={{ '& .MuiStepLabel-iconContainer': { '& .MuiStepIcon-root': { color: '#1976d2' } } }}>
               {PLAN_PROGRESS_STEPS.map((label, i) => (
                 <Step key={label} completed={i < 2}>
@@ -267,7 +267,7 @@ export default function CjboWidgetDashboardYMockup() {
             </Stepper>
           </W>
 
-          <W title="⑪ SalesProgress (WI_DP_PLAN_MONTH_PROGRESS) — TOT/SUM/RATE" height={180}>
+          <W title="⑪ 월간 매출 진척" height={180}>
             <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
               <Chip size="small" label="TOT_PREDICT_REVENUE" sx={{ height: 14, fontSize: 9, backgroundColor: '#1976d2', color: 'white' }} />
               <Chip size="small" label="SUM_REVENUE" sx={{ height: 14, fontSize: 9, backgroundColor: '#10b981', color: 'white' }} />
@@ -289,7 +289,7 @@ export default function CjboWidgetDashboardYMockup() {
 
         {/* Row 4: TeamSalesPlan list */}
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.5 }}>
-          <W title="⑫ TeamSalesPlan (WI_DP_PLAN_ACCURACY) — Scrolling list with thumbless Slider" height={240}>
+          <W title="⑫ 팀별 매출 계획" height={240}>
             <Stack spacing={0.5} sx={{ overflow: 'auto', flex: 1, pr: 1 }}>
               {TEAMS.map((t) => {
                 const pct = (t.VALUE1 / t.UPLEVEL_VALUE) * 100;

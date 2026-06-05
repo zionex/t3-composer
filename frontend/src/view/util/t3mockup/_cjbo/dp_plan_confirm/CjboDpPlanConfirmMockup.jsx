@@ -121,8 +121,8 @@ export default function CjboDpPlanConfirmMockup() {
 
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label="EntryNotify (UI_DP_ENTRY_NOTIFY)" sx={{ minHeight: 38 }} />
-          <Tab label="EntryLog (UI_DP_ENTRY_LOG)" sx={{ minHeight: 38 }} />
+          <Tab label="입력 알림" sx={{ minHeight: 38 }} />
+          <Tab label="입력 이력" sx={{ minHeight: 38 }} />
         </Tabs>
       </Box>
 
@@ -131,13 +131,12 @@ export default function CjboDpPlanConfirmMockup() {
         <>
           <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-              <TextField label="VER_ID (IconSelectInput, GetEntryVersions)" size="small" select value="V2026-06" sx={{ width: 250 }}>
+              <TextField label="버전" size="small" select value="V2026-06" sx={{ width: 250 }}>
                 <MenuItem value="V2026-06">V2026-06</MenuItem>
               </TextField>
-              <Chip size="small" label="BUCKET (hidden, SRV_GET_DP_BUKT)" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
               <RadioGroup row defaultValue="QTY">
-                <FormControlLabel value="QTY" control={<Radio size="small" />} label={<Typography variant="caption">VAL_TYPE: QTY</Typography>} />
-                <FormControlLabel value="AMT" control={<Radio size="small" />} label={<Typography variant="caption">AMT</Typography>} />
+                <FormControlLabel value="QTY" control={<Radio size="small" />} label={<Typography variant="caption">수량</Typography>} />
+                <FormControlLabel value="AMT" control={<Radio size="small" />} label={<Typography variant="caption">금액</Typography>} />
               </RadioGroup>
               <Box sx={{ flexGrow: 1 }} />
               <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>새로고침</Button>
@@ -147,8 +146,8 @@ export default function CjboDpPlanConfirmMockup() {
 
           <Box sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, overflow: 'hidden' }}>
             {/* Upper: NotifyTable + Chart */}
-            <Box sx={{ display: 'flex', gap: 1.5, height: 280 }}>
-              <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', gap: 1.5, height: 280, minWidth: 0 }}>
+              <Paper variant="outlined" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="caption" sx={{ fontWeight: 700 }}>NotifyTable (MUI Table, sorted by ACHIEV_RATE_QTY)</Typography>
                 </Box>
@@ -184,27 +183,24 @@ export default function CjboDpPlanConfirmMockup() {
                 </TableContainer>
               </Paper>
 
-              <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>Chart (react-chartjs-2 type=&quot;bar&quot;) — GetEntryNotifyChart</Typography>
+              <Paper variant="outlined" sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>차트</Typography>
                   <Box sx={{ flexGrow: 1 }} />
                   {CHART_DATASETS.map((d) => (
                     <Stack key={d.name} direction="row" alignItems="center" spacing={0.3}>
-                      <Box sx={{ width: 12, height: d.type === 'line' ? 2 : 8, backgroundColor: d.color, borderRadius: 0.5 }} />
-                      <Typography variant="caption" sx={{ fontSize: 10 }}>{d.name}</Typography>
+                      <Box sx={{ width: 12, height: d.type === 'line' ? 2 : 8, backgroundColor: d.color, borderRadius: 0.5, flexShrink: 0 }} />
+                      <Typography variant="caption" sx={{ fontSize: 10, whiteSpace: 'nowrap' }}>{d.name}</Typography>
                     </Stack>
                   ))}
-                  <Button size="small" startIcon={<SaveIcon />} variant="outlined" sx={{ ml: 1 }}>SaveOption</Button>
+                  <Button size="small" startIcon={<SaveIcon />} variant="outlined" sx={{ ml: 1, flexShrink: 0 }}>SaveOption</Button>
                 </Box>
-                <Box sx={{ flex: 1, p: 1 }}><NotifyChart /></Box>
+                <Box sx={{ flex: 1, p: 1, minWidth: 0, minHeight: 0, overflow: 'hidden' }}><NotifyChart /></Box>
               </Paper>
             </Box>
 
             {/* Lower: BaseGrid */}
             <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700 }}>BaseGrid id=&quot;grid1&quot; — Measure × DATE_&lt;bucket&gt; 동적 컬럼 (편집)</Typography>
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -257,9 +253,6 @@ export default function CjboDpPlanConfirmMockup() {
 
           <Box sx={{ p: 1.5, flex: 1, overflow: 'hidden' }}>
             <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>BaseGrid id=&quot;grid1&quot; — engine/dp/GetEntryLog (read-only, URLSearchParams)</Typography>
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader sx={{ '& th, & td': { whiteSpace: 'nowrap', fontSize: 11, py: 0.5 } }}>
                   <TableHead>

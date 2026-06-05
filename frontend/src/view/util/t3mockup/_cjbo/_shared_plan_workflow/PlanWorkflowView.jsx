@@ -177,9 +177,9 @@ export default function PlanWorkflowView({
       {/* Tab — 3 화면 */}
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper' }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ minHeight: 38 }}>
-          <Tab label={`ControlBoard (${menuCdControlBoard}) — BaseControlBoard.jsx`} sx={{ minHeight: 38 }} />
-          <Tab label={`ProcessStatus (${menuCdProcessStatus}) — BaseProcessStatus.jsx`} sx={{ minHeight: 38 }} />
-          <Tab label={`Entry (${menuCdEntry}) — BaseEntry.jsx ${hasChart ? '+ Chart' : ''}`} sx={{ minHeight: 38 }} />
+          <Tab label="ControlBoard" sx={{ minHeight: 38 }} />
+          <Tab label="ProcessStatus" sx={{ minHeight: 38 }} />
+          <Tab label={`Entry${hasChart ? ' + Chart' : ''}`} sx={{ minHeight: 38 }} />
         </Tabs>
       </Box>
 
@@ -407,13 +407,12 @@ export default function PlanWorkflowView({
         <>
           <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <TextField label="UserInputField" size="small" value="admin / 김민수" sx={{ width: 200 }}
+              <TextField label="담당자" size="small" value="admin / 김민수" sx={{ width: 200 }}
                 InputProps={{ startAdornment: <PersonIcon fontSize="small" sx={{ mr: 0.5 }} /> }} />
-              <Chip size="small" label={`planType (hidden) = ${planTypeCode}`} variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
-              <TextField label="VERSION_ID (IconSelectInput)" size="small" select value="V2026-06" sx={{ width: 200 }}>
+              <TextField label="버전" size="small" select value="V2026-06" sx={{ width: 200 }}>
                 <MenuItem value="V2026-06">V2026-06</MenuItem>
               </TextField>
-              <TextField label="AUTH_TP_NM" size="small" select value="ALL" sx={{ width: 130 }}>
+              <TextField label="권한" size="small" select value="ALL" sx={{ width: 130 }}>
                 <MenuItem value="ALL">전체</MenuItem>
               </TextField>
               <Box sx={{ flexGrow: 1 }} />
@@ -435,9 +434,6 @@ export default function PlanWorkflowView({
 
             {/* Body 90%: TreeGrid */}
             <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>TreeGrid id=&quot;processGrid&quot; — engine/dp/GetStatus (TREE_PARENT_ID/TREE_KEY_ID)</Typography>
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
@@ -506,15 +502,6 @@ export default function PlanWorkflowView({
               <Box sx={{ flexGrow: 1 }} />
               <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
             </Stack>
-            {/* Additional SearchRow (toggled) — getUserIdInputField + AUTH_TP + PLAN_TP + VER_ID + EXCHANGE_RATE_TP_NM */}
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1, opacity: 0.7 }}>
-              <Chip size="small" label="Additional row (toggled)" variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-              <Chip size="small" label="getUserIdInputField()" variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-              <Chip size="small" label="AUTH_TP (AUTH_TP_ID)" variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-              <Chip size="small" label={`PLAN_TP (hidden, ${planTypeCode})`} variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-              <Chip size="small" label="VER_ID (IconSelectInput)" variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-              <Chip size="small" label="EXCHANGE_RATE_TP_NM (readonly)" variant="outlined" sx={{ height: 18, fontSize: 9 }} />
-            </Stack>
           </Box>
 
           {/* ResultArea sizes=[30,70] (hasChart) or [100] */}
@@ -550,12 +537,6 @@ export default function PlanWorkflowView({
                 <Button size="small" startIcon={<EventNoteIcon />} variant="outlined">DP_MEMO</Button>
               </Box>
 
-              {/* BaseGrid id="grid1" — DIMENSION_NN + CATEGORY + iteration DATE_ */}
-              <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
-                  BaseGrid id=&quot;grid1&quot; — grid1Items = [...40 DIMENSION_NN(hidden)] + BUCK_TP/DTF_DATE/ITEM/ACCOUNT/SALES(hidden) + CATEGORY(Measure) + DATE iteration prefix=&quot;DATE_&quot; + COMMENT(iteration parallel)
-                </Typography>
-              </Box>
               <TableContainer sx={{ flex: 1 }}>
                 <Table size="small" stickyHeader sx={{ '& th, & td': { whiteSpace: 'nowrap', fontSize: 11, py: 0.5 } }}>
                   <TableHead>

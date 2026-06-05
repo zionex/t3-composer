@@ -25,6 +25,8 @@ import ktngMenuMappingJson from './_data/ktng-menu-mapping.json';
 import plannelMenuMappingJson from './_data/plannel-menu-mapping.json';
 // ORON 운영 메뉴 ↔ mockup 매핑 (수동 작성, 사용자 제공 메뉴 목록 기반)
 import oronMenuMappingJson from './_data/oron-menu-mapping.json';
+// CJBO 운영 메뉴 ↔ mockup 매핑 (수동 작성, C:\vs_project\CJBO 메뉴 목록 기반)
+import cjboMenuMappingJson from './_data/cjbo-menu-mapping.json';
 
 // ─────────────────────────────────────────
 // T3SmartSCM — Phase 1~4a 산출물 (54개 mockup)
@@ -1422,12 +1424,177 @@ const ORON_ENTRIES = [
 ];
 
 // ─────────────────────────────────────────
+// CJBO — C:/vs_project/CJBO 의 CJBO 명시 화면 (demandplan/service · cjbo/* · widgets/* · masterplan/*)
+// 270+ 운영 메뉴 중 CJBO-unique 화면들을 17개 mockup 패턴으로 그룹화. 표준 t3series 와
+// 중복되는 화면 (마스터 CRUD/계획 컨트롤보드 등) 은 mockup 대상 외.
+//
+// 카테고리: DP Service 7 · Plan Workflow 3 (OP/TP/BP) · DP Operations 2 · Widget 2 · MP Extensions 2 · CM 1
+// ─────────────────────────────────────────
+const CJBO_ENTRIES = [
+  // ── DP Service — CJBO 핵심 서비스 (7 mockups) ───────────────────────
+  { patternCode: 'cjbo_cm_tariff_mgmt',     patternLabel: 'CJBO — 관세기준 관리 (CmTariffMgmt)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '판매지역 × 품목 LV × HS코드 × 관세구분(국제/국가/FTA) 기간별 관세율',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/cm_tariff_mgmt/CjboCmTariffMgmtMockup')) },
+  { patternCode: 'cjbo_dp_sku_ratio',       patternLabel: 'CJBO — TP/OP SKU 비율 관리 (DpItemRatio*)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 4, description: '브랜드 × 품목 × 월별 판매비율(%) 입력 — TP/OP × 평균/월별 4종 통합',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_CROSSTAB', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_sku_ratio/CjboDpSkuRatioMockup')) },
+  { patternCode: 'cjbo_dp_pm_account',      patternLabel: 'CJBO — 품목-거래처 관계 PM (DpPmAccount)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 1, description: '상단 품목 마스터 + 하단 매핑 거래처 (채널·비율·기간)',
+    layers: [
+      { key: 'masterGrid', title: '마스터 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 6 } },
+      { key: 'detailGrid', title: '디테일 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_pm_account/CjboDpPmAccountMockup')) },
+  { patternCode: 'cjbo_dp_org_management',  patternLabel: 'CJBO — 조직 매핑/변경/TP 조직 (DpOrgMap/Chg/TpOrg)', layoutCategory: 'LAYOUT_H2', category: 'domain',
+    usage: 3, description: '좌측 조직 트리 (본부→팀→하위팀) + 우측 팀원·담당 영역·품목 매핑',
+    layers: [
+      { key: 'tree',   title: '마스터 그리드', type: 'GRID', subtype: 'GRID_TREE', position: { x: 0, y: 0, w: 4, h: 12 } },
+      { key: 'detail', title: '디테일 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 4, y: 0, w: 8, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_org_management/CjboDpOrgManagementMockup')) },
+  { patternCode: 'cjbo_dp_entry_report',    patternLabel: 'CJBO — OP/TP 계획 조회 통합 (DpEntryReport*)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 4, description: 'OP/TP 계획 4종 — 대분류/거래처/품목/담당자 × 월별 + 달성률',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_CROSSTAB', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_entry_report/CjboDpEntryReportMockup')) },
+  { patternCode: 'cjbo_dp_plan_accuracy',   patternLabel: 'CJBO — 수요계획 정확도/실적/RTF (DpPlanAccuracy/Report/RtfReport)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 3, description: 'KPI + 월별 정확도 추이 + 거래처-품목별 정확도/RTF/편차',
+    layers: [
+      { key: 'kpi1',  title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 0, y: 0, w: 3, h: 3 } },
+      { key: 'kpi2',  title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 3, y: 0, w: 3, h: 3 } },
+      { key: 'kpi3',  title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 6, y: 0, w: 3, h: 3 } },
+      { key: 'kpi4',  title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 9, y: 0, w: 3, h: 3 } },
+      { key: 'chart', title: '차트',   type: 'CHART', subtype: 'CHART_LINE', position: { x: 0, y: 3, w: 12, h: 4 } },
+      { key: 'grid',  title: '그리드', type: 'GRID',  subtype: 'GRID_BASE',  position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_plan_accuracy/CjboDpPlanAccuracyMockup')) },
+  { patternCode: 'cjbo_dp_ver_diff',        patternLabel: 'CJBO — DP 버전 비교 (DpVerDiff)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: 'V2026-04 / V2026-05 / V2026-06 다중 버전 × 월별 비교 + 증감률',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_CROSSTAB', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_ver_diff/CjboDpVerDiffMockup')) },
+
+  // ── DP Operations — 판매실적 / 창고변경 (2 mockups) ─────────────────
+  { patternCode: 'cjbo_dp_sales_act',       patternLabel: 'CJBO — 판매 실적 (DpSalesAct)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '채널 × 거래처 × 품목별 판매 실적 + 전년동기 (YoY) 비교 + 일별 추이',
+    layers: [
+      { key: 'kpi1',  title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 0, y: 0, w: 3, h: 3 } },
+      { key: 'kpi2',  title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 3, y: 0, w: 3, h: 3 } },
+      { key: 'kpi3',  title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 6, y: 0, w: 3, h: 3 } },
+      { key: 'kpi4',  title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',  position: { x: 9, y: 0, w: 3, h: 3 } },
+      { key: 'chart', title: '차트',   type: 'CHART', subtype: 'CHART_BAR', position: { x: 0, y: 3, w: 12, h: 4 } },
+      { key: 'grid',  title: '그리드', type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_sales_act/CjboDpSalesActMockup')) },
+  { patternCode: 'cjbo_dp_loc_change',      patternLabel: 'CJBO — 창고 변경 관리 (DpLocChange)', layoutCategory: 'LAYOUT_SINGLE', category: 'domain',
+    usage: 1, description: '품목-거래처별 출고 창고 변경 (현재→신규) + 적용 기간 + 사유 + 승인 단계',
+    layers: [
+      { key: 'mainGrid', title: '그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_loc_change/CjboDpLocChangeMockup')) },
+
+  // ── Plan Workflow — OP/TP/BP 계획 워크플로 (3 mockups) ──────────────
+  { patternCode: 'cjbo_op_workflow',        patternLabel: 'CJBO — OP 계획 워크플로 (UI_DP_93/94/95)', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 3, description: 'OP (Operation Plan) — 컨트롤보드 6단계 + 담당자 진행상태 + 입력 마감',
+    layers: [
+      { key: 'stepper',    title: '패널 1', type: 'CHART', subtype: 'STEPPER',  position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',       title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',       title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',       title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',       title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'progress',   title: '패널 2', type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 5, w: 8,  h: 7 } },
+      { key: 'logPanel',   title: '로그',   type: 'GRID',  subtype: 'GRID_BASE', position: { x: 8, y: 5, w: 4,  h: 7 } },
+    ],
+    component: lazy(() => import('./_cjbo/op_workflow/CjboOpWorkflowMockup')) },
+  { patternCode: 'cjbo_tp_workflow',        patternLabel: 'CJBO — TP 계획 워크플로 (UI_DT_93/94/95)', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 3, description: 'TP (Target Plan) — 7단계 + KPI + 본부/팀별 검토 진척 + 월별 추이',
+    layers: [
+      { key: 'stepper',    title: '패널 1', type: 'CHART', subtype: 'STEPPER',  position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',       title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',       title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',       title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',       title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'chart',      title: '차트',   type: 'CHART', subtype: 'CHART_LINE', position: { x: 0, y: 5, w: 12, h: 3 } },
+      { key: 'progress',   title: '그리드', type: 'GRID',  subtype: 'GRID_BASE',  position: { x: 0, y: 8, w: 12, h: 4 } },
+    ],
+    component: lazy(() => import('./_cjbo/tp_workflow/CjboTpWorkflowMockup')) },
+  { patternCode: 'cjbo_bp_workflow',        patternLabel: 'CJBO — 경영계획 BP 워크플로 (UI_BP_93/94/95)', layoutCategory: 'LAYOUT_CONTROLBOARD', category: 'controlboard',
+    usage: 3, description: 'BP (Business Plan / 경영계획) — 6단계 + 본부별 매출/이익 계획 + 전년대비 성장률',
+    layers: [
+      { key: 'stepper',    title: '패널 1', type: 'CHART', subtype: 'STEPPER',  position: { x: 0, y: 0, w: 12, h: 3 } },
+      { key: 'kpi1',       title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 0, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi2',       title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 3, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi3',       title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 6, y: 3, w: 3,  h: 2 } },
+      { key: 'kpi4',       title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD', position: { x: 9, y: 3, w: 3,  h: 2 } },
+      { key: 'segments',   title: '그리드', type: 'GRID',  subtype: 'GRID_BASE', position: { x: 0, y: 5, w: 12, h: 7 } },
+    ],
+    component: lazy(() => import('./_cjbo/bp_workflow/CjboBpWorkflowMockup')) },
+
+  // ── DP Plan Confirm (계획확인+점검+로그) (1 mockup) ─────────────────
+  { patternCode: 'cjbo_dp_plan_confirm',    patternLabel: 'CJBO — 계획 확인/점검/로그 (EntryConf/Notify/Log)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 4, description: '상단: 계획점검 알림 (오류/경고/정보) · 하단: 입력 변경 로그',
+    layers: [
+      { key: 'notifyGrid', title: '마스터 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 6 } },
+      { key: 'logGrid',    title: '디테일 그리드', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 6, w: 12, h: 6 } },
+    ],
+    component: lazy(() => import('./_cjbo/dp_plan_confirm/CjboDpPlanConfirmMockup')) },
+
+  // ── Dashboard Widgets (2 mockups) ───────────────────────────────────
+  { patternCode: 'cjbo_widget_top_sales_map', patternLabel: 'CJBO — Top 판매 거래처/품목 지도 위젯 (DpTopSales*)', layoutCategory: 'LAYOUT_H2', category: 'dashboard',
+    usage: 3, description: 'Google Maps 위에 거점·거래처별 판매 실적 마커 + Top 8 거래처 랭킹',
+    layers: [
+      { key: 'map',     title: '위젯 1', type: 'CHART', subtype: 'DIAGRAM_FLO', position: { x: 0, y: 0, w: 8, h: 12 } },
+      { key: 'topGrid', title: '그리드', type: 'GRID',  subtype: 'GRID_BASE',   position: { x: 8, y: 0, w: 4, h: 12 } },
+    ],
+    component: lazy(() => import('./_cjbo/widget_top_sales_map/CjboWidgetTopSalesMapMockup')) },
+  { patternCode: 'cjbo_widget_dashboard_y',  patternLabel: 'CJBO — 연간 계획·실적 위젯 대시보드 (DpPlanStatusY 외 14종)', layoutCategory: 'LAYOUT_SINGLE', category: 'dashboard',
+    usage: 14, description: '연간 계획 대비 실적 + 팀별 진척 + 알림 + 시계열 위젯 통합',
+    layers: [
+      { key: 'kpi1',     title: 'KPI 1',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 0,  y: 0, w: 3,  h: 3 } },
+      { key: 'kpi2',     title: 'KPI 2',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 3,  y: 0, w: 3,  h: 3 } },
+      { key: 'kpi3',     title: 'KPI 3',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 6,  y: 0, w: 3,  h: 3 } },
+      { key: 'kpi4',     title: 'KPI 4',  type: 'CHART', subtype: 'KPI_CARD',   position: { x: 9,  y: 0, w: 3,  h: 3 } },
+      { key: 'donut',    title: '위젯 1', type: 'CHART', subtype: 'CHART_DONUT', position: { x: 0,  y: 3, w: 4,  h: 4 } },
+      { key: 'trend',    title: '위젯 2', type: 'CHART', subtype: 'CHART_LINE',  position: { x: 4,  y: 3, w: 4,  h: 4 } },
+      { key: 'alerts',   title: '위젯 3', type: 'GRID',  subtype: 'GRID_BASE',   position: { x: 8,  y: 3, w: 4,  h: 4 } },
+      { key: 'teamProgress', title: '위젯 4', type: 'CHART', subtype: 'CHART_BAR', position: { x: 0, y: 7, w: 12, h: 5 } },
+    ],
+    component: lazy(() => import('./_cjbo/widget_dashboard_y/CjboWidgetDashboardYMockup')) },
+
+  // ── MP Extensions (2 mockups) ───────────────────────────────────────
+  { patternCode: 'cjbo_mp_sku_management',  patternLabel: 'CJBO — MP SKU 우선순위/비율/Capa 관리 (MP_ST_01~04)', layoutCategory: 'LAYOUT_V2', category: 'domain',
+    usage: 4, description: '상단: 품목-라인 우선순위·할당 비율 · 하단: 라인별 기간 Capa vs 사용량',
+    layers: [
+      { key: 'priorityGrid', title: '마스터 그리드', type: 'GRID', subtype: 'GRID_BASE',     position: { x: 0, y: 0, w: 12, h: 6 } },
+      { key: 'capaGrid',     title: '디테일 그리드', type: 'GRID', subtype: 'GRID_CROSSTAB', position: { x: 0, y: 6, w: 12, h: 6 } },
+    ],
+    component: lazy(() => import('./_cjbo/mp_sku_management/CjboMpSkuManagementMockup')) },
+  { patternCode: 'cjbo_mp_scm_demand',      patternLabel: 'CJBO — MP SCM Demand (재처리/거점이동/Stuffing) (MP_PN_01/03/04/05)', layoutCategory: 'LAYOUT_V3', category: 'domain',
+    usage: 5, description: '재처리·M to M · 거점간 재고이동 · Stuffing 컨테이너 적재 계획 3종 통합',
+    layers: [
+      { key: 'reworkGrid',   title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 0, w: 12, h: 4 } },
+      { key: 'moveGrid',     title: '그리드 2', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 4, w: 12, h: 4 } },
+      { key: 'stuffingGrid', title: '그리드 3', type: 'GRID', subtype: 'GRID_BASE', position: { x: 0, y: 8, w: 12, h: 4 } },
+    ],
+    component: lazy(() => import('./_cjbo/mp_scm_demand/CjboMpScmDemandMockup')) },
+];
+
+// ─────────────────────────────────────────
 // 최종 export — 각 entry 에 productLine + menus (운영 매핑) 자동 부여
 // ─────────────────────────────────────────
 const T3SMART_SCM_MOCKUP_TO_MENUS = menuMappingJson?.mockupToMenus || {};
 const KTNG_MOCKUP_TO_MENUS        = ktngMenuMappingJson?.mockupToMenus || {};
 const PLANEL_MOCKUP_TO_MENUS      = plannelMenuMappingJson?.mockupToMenus || {};
 const ORON_MOCKUP_TO_MENUS        = oronMenuMappingJson?.mockupToMenus || {};
+const CJBO_MOCKUP_TO_MENUS        = cjboMenuMappingJson?.mockupToMenus || {};
 export const MOCKUP_ENTRIES = [
   ...T3SMART_SCM_ENTRIES.map((e) => ({
     productLine: 'T3SmartSCM',
@@ -1449,6 +1616,11 @@ export const MOCKUP_ENTRIES = [
     menus: ORON_MOCKUP_TO_MENUS[e.patternCode] || [],
     ...e,
   })),
+  ...CJBO_ENTRIES.map((e) => ({
+    productLine: 'CJBO',
+    menus: CJBO_MOCKUP_TO_MENUS[e.patternCode] || [],
+    ...e,
+  })),
 ];
 
 // 운영 메뉴ID → mockup patternCode 역방향 lookup
@@ -1459,6 +1631,7 @@ export const PRODUCT_LINE_LABEL = {
   PlaNEL:     'PlanNEL',  // ★ 표시 라벨 — code key 는 'PlaNEL' 유지 (spec.productLine 호환)
   KTNG:       'KT&G',
   ORON:       'Orion',
+  CJBO:       'CJ Bio',
 };
 
 export const CATEGORY_LABEL = {

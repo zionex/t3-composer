@@ -1,0 +1,117 @@
+{
+  "_comment": "CJBO (CJ Bio / CJ제일제당 바이오) 운영 화면 — C:/vs_project/CJBO 의 CJBO-unique 화면들을 17개 mockup 패턴으로 그룹화. MENU_CD 는 사용자가 제공한 메뉴 CSV 기준. 표준 T3SmartSCM 화면은 t3smartscm-menu-mapping.json 의 기존 mockup 재사용.",
+  "stats": {
+    "cjboMenus": 49,
+    "mockupPatterns": 17
+  },
+
+  "mockupToMenus": {
+
+    "cjbo_cm_tariff_mgmt": [
+      { "menuId": "UI_CM_TARIFF_MGMT",       "menuNm": "관세기준 관리",          "filePath": "/demandplan/service/cmtariffmgmt/CmTariffMgmt" }
+    ],
+
+    "cjbo_dp_sku_ratio": [
+      { "menuId": "UI_DP_ITEM_RATIO",        "menuNm": "TP SKU 비율 관리",        "filePath": "/demandplan/service/dpitemratio/DpItemRatio" },
+      { "menuId": "UI_DP_ITEM_RATIO_OP",     "menuNm": "OP SKU 비율 관리",        "filePath": "/demandplan/service/dpitemratioop/DpItemRatioOP" },
+      { "menuId": "UI_DP_ITEM_RATIO_MON",    "menuNm": "TP SKU 비율 관리(월별)", "filePath": "/demandplan/service/dpitemratiomon/DpItemRatioMon" },
+      { "menuId": "UI_DP_ITEM_RATIO_OP_MON", "menuNm": "OP SKU 비율 관리(월별)", "filePath": "/demandplan/service/dpitemratioopmon/DpItemRatioOPMon" }
+    ],
+
+    "cjbo_dp_pm_account": [
+      { "menuId": "UI_DP_PM_ACCOUNT",        "menuNm": "품목-거래처 관계(PM)",   "filePath": "/demandplan/service/dppmaccount/DpPmAccount" }
+    ],
+
+    "cjbo_dp_org_management": [
+      { "menuId": "UI_DP_ORG_MAP",           "menuNm": "조직매핑 관리",          "filePath": "/demandplan/service/dporgmap/DpOrgMap" },
+      { "menuId": "UI_DP_ORG_CHG",           "menuNm": "조직변경 관리",          "filePath": "/demandplan/service/dporgchg/DpOrgChg" },
+      { "menuId": "UI_DP_ENTRY_TP_ORG",      "menuNm": "TP 조직관리",            "filePath": "/demandplan/service/dpentrytporg/DpEntryTpOrg" }
+    ],
+
+    "cjbo_dp_entry_report": [
+      { "menuId": "UI_DP_ENTRY_REPORT",      "menuNm": "OP 계획 조회",           "filePath": "/demandplan/service/dpentryreport/DpEntryReport" },
+      { "menuId": "UI_DP_ENTRY_SCM_REPORT",  "menuNm": "OP 계획 관리자 조회",    "filePath": "/demandplan/service/dpentryscmreport/DpEntryScmReport" },
+      { "menuId": "UI_DP_ENTRY_TP_REPORT",   "menuNm": "TP 계획 조회",           "filePath": "/demandplan/service/dpentrytpreport/DpEntryTPReport" },
+      { "menuId": "UI_DP_ENTRY_SCM_TP_REPORT","menuNm": "TP 계획 관리자 조회",   "filePath": "/demandplan/service/dpentryscmtpreport/DpEntryScmTPReport" }
+    ],
+
+    "cjbo_dp_plan_accuracy": [
+      { "menuId": "UI_DP_PLAN_ACCURACY",     "menuNm": "수요계획 정확도",        "filePath": "/demandplan/service/dpplanaccuracy/DpPlanAccuracy" },
+      { "menuId": "UI_DP_PLAN_REPORT",       "menuNm": "계획대비 실적 Report",  "filePath": "/demandplan/service/dpplanreport/DpPlanReport" },
+      { "menuId": "UI_DP_RTF_REPORT",        "menuNm": "RTF 리포트",             "filePath": "/demandplan/service/dprtfreport/DpRtfReport" }
+    ],
+
+    "cjbo_dp_ver_diff": [
+      { "menuId": "UI_DP_VER_DIFF",          "menuNm": "DP 버전 비교",           "filePath": "/demandplan/service/dpverdiff/DpVerDiff" }
+    ],
+
+    "cjbo_dp_sales_act": [
+      { "menuId": "UI_DP_SALES_ACT",         "menuNm": "판매 실적",              "filePath": "/demandplan/service/dpsalesact/DpSalesAct" }
+    ],
+
+    "cjbo_dp_loc_change": [
+      { "menuId": "UI_DP_LOC_CHANGE",        "menuNm": "창고 변경 관리",         "filePath": "/demandplan/service/dplocchange/DpLocChange" }
+    ],
+
+    "cjbo_op_workflow": [
+      { "menuId": "UI_DP_93",                "menuNm": "OP Control Board",       "filePath": "/demandplan/entry/controlboard/ControlBoard" },
+      { "menuId": "UI_DP_94",                "menuNm": "OP 진행상태",            "filePath": "/demandplan/entry/processstatus/ProcessStatus" },
+      { "menuId": "UI_DP_95",                "menuNm": "OP 계획입력",            "filePath": "/demandplan/entry/entry/Entry" }
+    ],
+
+    "cjbo_tp_workflow": [
+      { "menuId": "UI_DT_93",                "menuNm": "TP Control Board",       "filePath": "/demandplan/targetplan/controlboard/ControlBoard" },
+      { "menuId": "UI_DT_94",                "menuNm": "TP 진행상태",            "filePath": "/demandplan/targetplan/processstatus/ProcessStatus" },
+      { "menuId": "UI_DT_95",                "menuNm": "TP 계획입력",            "filePath": "/demandplan/targetplan/entry/Entry" }
+    ],
+
+    "cjbo_bp_workflow": [
+      { "menuId": "UI_BP_93",                "menuNm": "경영계획 Control Board", "filePath": "/demandplan/yearlyplan/controlboard/ControlBoard" },
+      { "menuId": "UI_BP_94",                "menuNm": "경영계획 진행상태",      "filePath": "/demandplan/yearlyplan/processstatus/ProcessStatus" },
+      { "menuId": "UI_BP_95",                "menuNm": "경영계획 입력",          "filePath": "/demandplan/yearlyplan/entry/Entry" }
+    ],
+
+    "cjbo_dp_plan_confirm": [
+      { "menuId": "UI_DP_ENTRY_CONF",        "menuNm": "OP 계획 확인",           "filePath": "/demandplan/service/dpentryconf/DpEntryConf" },
+      { "menuId": "UI_DP_ENTRY_TP_CONF",     "menuNm": "TP 계획 확인",           "filePath": "/demandplan/service/dpentrytpconf/DpEntryTPConf" },
+      { "menuId": "UI_DP_ENTRY_NOTIFY",      "menuNm": "계획 점검",              "filePath": "/demandplan/entry/entrynotify/EntryNotify" },
+      { "menuId": "UI_DP_ENTRY_LOG",         "menuNm": "수요계획 입력 로그",     "filePath": "/demandplan/version/entrylog/EntryLog" }
+    ],
+
+    "cjbo_widget_top_sales_map": [
+      { "menuId": "DP_TOP_SALES_ACCOUNT",    "menuNm": "Top 판매 거래처 (위젯)", "filePath": "/demandplan/widgets/dptopsalesaccount/DpTopSalesAccount" },
+      { "menuId": "DP_TOP_SALES_ITEM",       "menuNm": "Top 판매 품목 (위젯)",   "filePath": "/demandplan/widgets/dptopsalesitem/DpTopSalesItem" },
+      { "menuId": "DP_TOP_SALES_ITEM_GRP",   "menuNm": "Top 판매 품목군 (위젯)", "filePath": "/demandplan/widgets/dptopsalesitemgrp/DpTopSalesItemGrp" }
+    ],
+
+    "cjbo_widget_dashboard_y": [
+      { "menuId": "DP_PLAN_STATUS_Y",        "menuNm": "연간 진척 상태 (위젯)",  "filePath": "/demandplan/widgets/dpplanstatusy/DpPlanStatusY" },
+      { "menuId": "DP_YEAR_ACTUAL_SALES",    "menuNm": "연간 실적 판매 (위젯)",  "filePath": "/demandplan/widgets/dpyearactualsales/DpYearActualSales" },
+      { "menuId": "DP_YEAR_TARGET_SALES",    "menuNm": "연간 목표 판매 (위젯)",  "filePath": "/demandplan/widgets/dpyeartargetsales/DpYearTargetSales" },
+      { "menuId": "DP_FORECAST_PLAN",        "menuNm": "예측 계획 (위젯)",       "filePath": "/demandplan/widgets/forecastplan/ForecastPlan" },
+      { "menuId": "DP_PLAN_PROGRESS",        "menuNm": "계획 진척 (위젯)",       "filePath": "/demandplan/widgets/planprogress/PlanProgress" },
+      { "menuId": "DP_PLAN_STATUS",          "menuNm": "계획 상태 (위젯)",       "filePath": "/demandplan/widgets/planstatus/PlanStatus" },
+      { "menuId": "DP_SALES_ALERTS",         "menuNm": "판매 알림 (위젯)",       "filePath": "/demandplan/widgets/salesalerts/SalesAlerts" },
+      { "menuId": "DP_SALES_PLAN_DIST",      "menuNm": "판매계획 분포 (위젯)",   "filePath": "/demandplan/widgets/salesplandistribution/SalesPlanDistribution" },
+      { "menuId": "DP_SALES_PROGRESS",       "menuNm": "판매 진척 (위젯)",       "filePath": "/demandplan/widgets/salesprogress/SalesProgress" },
+      { "menuId": "DP_SUPPLY_SUF_RATE",      "menuNm": "공급 충족률 (위젯)",     "filePath": "/demandplan/widgets/supplysufrate/SupplySufRate" },
+      { "menuId": "DP_TEAM_SALES_PLAN",      "menuNm": "팀 판매계획 (위젯)",     "filePath": "/demandplan/widgets/teamsalesplan/TeamSalesPlan" },
+      { "menuId": "DP_ACCURACY",             "menuNm": "정확도 (위젯)",          "filePath": "/demandplan/widgets/accuracy/Accuracy" }
+    ],
+
+    "cjbo_mp_sku_management": [
+      { "menuId": "UI_MP_ST_01",             "menuNm": "대체 SKU 우선순위 관리", "filePath": "/masterplan/master/subskupriority/SubSkuPriority" },
+      { "menuId": "UI_MP_ST_02",             "menuNm": "품목-라인별 생산 관리",  "filePath": "/cjbo/masterplan/master/itemres/ItemRes" },
+      { "menuId": "UI_MP_ST_03",             "menuNm": "기간별 Capa",            "filePath": "/masterplan/master/periodcap/PeriodCap" },
+      { "menuId": "UI_MP_ST_04",             "menuNm": "대체 SKU 비율 관리",     "filePath": "/masterplan/master/subskuproportion/Subskuproportion" }
+    ],
+
+    "cjbo_mp_scm_demand": [
+      { "menuId": "UI_MP_PN_01",             "menuNm": "재처리·M to M 계획",     "filePath": "/masterplan/scmdemand/reworkmtom/ReworkMtom" },
+      { "menuId": "UI_MP_PN_03",             "menuNm": "거점간 재고이동 계획",   "filePath": "/masterplan/scmdemand/inventorymovement/InventoryMovement" },
+      { "menuId": "UI_MP_PN_04",             "menuNm": "Stuffing File",          "filePath": "/masterplan/scmdemand/stuffingFile/StuffingFile" },
+      { "menuId": "UI_MP_PN_04_VIEW",        "menuNm": "Stuffing File (조회)",   "filePath": "/masterplan/scmdemand/stuffingFileView/StuffingFileView" },
+      { "menuId": "UI_MP_PN_05",             "menuNm": "버전별 Stuffing 현황",   "filePath": "/masterplan/scmdemand/versionstuffingfile/VersionStuffingFile" }
+    ]
+  }
+}

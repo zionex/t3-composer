@@ -129,7 +129,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
         <Box sx={{ position: 'absolute', bottom: -40, left: 140, width: 120, height: 120,
                    borderRadius: '50%', bgcolor: 'rgba(124,167,224,0.12)' }} />
 
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'relative' }}>
+        <Stack direction="row" alignItems="center" spacing={0.8} sx={{ position: 'relative' }}>
           <Avatar sx={{
             bgcolor: 'rgba(255,255,255,0.60)', color: '#5683C0',
             width: 50, height: 50, border: '2px solid rgba(255,255,255,0.75)',
@@ -161,19 +161,22 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
             <Box
               onClick={onOpenSettings}
               sx={{
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.6,
-                px: 1.5, py: 0.7, borderRadius: 5,
-                bgcolor: apiKeyRegistered ? 'rgba(134,199,168,0.30)' : 'rgba(230,192,121,0.32)',
-                border: `1px solid ${apiKeyRegistered ? 'rgba(134,199,168,0.6)' : 'rgba(230,192,121,0.65)'}`,
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                px: 1.2, py: 0.6, borderRadius: 5,
+                bgcolor: apiKeyRegistered ? 'rgba(110,200,160,0.55)' : 'rgba(245,180,90,0.62)',
+                border: `1px solid ${apiKeyRegistered ? 'rgba(80,170,130,0.85)' : 'rgba(220,150,55,0.85)'}`,
+                boxShadow: apiKeyRegistered
+                  ? '0 2px 6px -2px rgba(80,170,130,0.45), 0 1px 0 rgba(255,255,255,0.55) inset'
+                  : '0 2px 6px -2px rgba(220,150,55,0.50), 0 1px 0 rgba(255,255,255,0.55) inset',
                 backdropFilter: 'blur(8px)',
                 transition: 'all 0.2s',
                 '&:hover': { transform: 'scale(1.03)' },
               }}
             >
               {apiKeyRegistered
-                ? <CheckCircleIcon sx={{ fontSize: 16, color: '#5E9E81' }} />
-                : <WarningAmberIcon sx={{ fontSize: 16, color: '#C49C53' }} />}
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                ? <CheckCircleIcon sx={{ fontSize: 16, color: '#1F6B49' }} />
+                : <WarningAmberIcon sx={{ fontSize: 16, color: '#8A5410' }} />}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: apiKeyRegistered ? '#1F6B49' : '#7A4A0E' }}>
                 {apiKeyRegistered ? 'API Key 등록' : 'API Key 필요'}
               </Typography>
             </Box>
@@ -187,17 +190,20 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
           }>
             <Box
               sx={{
-                display: 'inline-flex', alignItems: 'center', gap: 0.6,
-                px: 1.5, py: 0.7, borderRadius: 5,
-                bgcolor: llmBackend === 'cli' ? 'rgba(157,143,212,0.28)' : 'rgba(143,196,212,0.28)',
-                border: `1px solid ${llmBackend === 'cli' ? 'rgba(157,143,212,0.55)' : 'rgba(143,196,212,0.55)'}`,
+                display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                px: 1.2, py: 0.6, borderRadius: 5,
+                bgcolor: llmBackend === 'cli' ? 'rgba(150,125,225,0.55)' : 'rgba(100,175,215,0.55)',
+                border: `1px solid ${llmBackend === 'cli' ? 'rgba(120,95,200,0.85)' : 'rgba(70,150,195,0.85)'}`,
+                boxShadow: llmBackend === 'cli'
+                  ? '0 2px 6px -2px rgba(120,95,200,0.45), 0 1px 0 rgba(255,255,255,0.55) inset'
+                  : '0 2px 6px -2px rgba(70,150,195,0.45), 0 1px 0 rgba(255,255,255,0.55) inset',
                 backdropFilter: 'blur(8px)',
               }}
             >
               {llmBackend === 'cli'
-                ? <TerminalIcon sx={{ fontSize: 16, color: '#7766B5' }} />
-                : <CloudOutlinedIcon sx={{ fontSize: 16, color: '#5F94A8' }} />}
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                ? <TerminalIcon sx={{ fontSize: 16, color: '#4A3580' }} />
+                : <CloudOutlinedIcon sx={{ fontSize: 16, color: '#1F5A78' }} />}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: llmBackend === 'cli' ? '#4A3580' : '#1F5A78' }}>
                 {llmBackend === 'cli' ? 'CLI' : 'API'}
               </Typography>
             </Box>

@@ -1,163 +1,162 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Chip,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, Button, ButtonGroup, IconButton,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
 import DownloadIcon from '@mui/icons-material/Download';
+import PersonIcon from '@mui/icons-material/Person';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// KTNG PSI 크로스탭 — 판매계획 PSI / 공급계획 PSI / 보충계획 PSI 공통 패턴
-// 좌측 고정 컬럼 (거점·품목·MEASURE) + 우측 시간 버킷 (월/주 단위)
-// 운영 원본 styleCallback: ITEM_LV3_CD (DpKtng05/06), CURRENCY (DpKtng07/09) — 식별자 셀만 info 톤.
+// KTNG — DP 판매계획 PSI (4 segment)
+//  Tab 1: UI_DP_KTNG_05 직수출 유통 O → DpKtng05.jsx
+//  Tab 2: UI_DP_KTNG_06 직수출 유통 X → DpKtng06.jsx
+//  Tab 3: UI_DP_KTNG_07 판매법인       → DpKtng07.jsx
+//  Tab 4: UI_DP_KTNG_09 CC/NGP 내수    → DpKtng09.jsx
+//
+// 동일 BaseEntry-style PSI 크로스탭: dimensionItems(60 풀) + CATEGORY(Measure) + DATE iteration
 
-const FIXED_COLS = [
-  { name: 'SALES_ORG',   label: '판매조직',    width: 110 },
-  { name: 'ACCOUNT',     label: '거래처',       width: 130 },
-  { name: 'ITEM_LV3_CD', label: 'ITEM_LV3',    width: 100 },
-  { name: 'ITEM_NM',     label: '품목명',       width: 170 },
-  { name: 'MEASURE',     label: 'MEASURE',     width: 130, sticky: true },
-];
+const DATE_COLS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12'];
 
-const MONTHS = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12'];
+const TAB_DATA = {
+  EXP_DIST_O: { // 직수출 유통 O
+    menu: 'UI_DP_KTNG_05', label: '직수출 유통 O',
+    dims: ['SALES_ORG', 'CNTRY', 'DIST_CHN', 'ITEM_NM'],
+    rows: [
+      { dims: ['수출본부', '대만',   'TKK Global',  'ESSE Asian'],     cat: 'SI_QTY',  vals: [4500, 4800, 5000, 5200, 5300, 5400, 5500] },
+      { dims: ['수출본부', '대만',   'TKK Global',  'ESSE Asian'],     cat: 'SO_QTY',  vals: [4200, 4500, 4700, 4900, null, null, null], locked: true },
+      { dims: ['수출본부', '일본',   'Nippon Dist.', 'THIS'],          cat: 'SI_QTY',  vals: [2800, 2900, 3000, 3100, 3200, 3300, 3400] },
+      { dims: ['수출본부', '유럽',   'Heinemann',   'THE ONE'],        cat: 'SI_QTY',  vals: [1800, 1900, 2000, 2100, 2200, 2300, 2400] },
+    ],
+  },
+  EXP_DIST_X: { // 직수출 유통 X (Duty Free 등)
+    menu: 'UI_DP_KTNG_06', label: '직수출 유통 X',
+    dims: ['SALES_ORG', 'CNTRY', 'CHANNEL', 'ITEM_NM'],
+    rows: [
+      { dims: ['수출본부', '미국',     'Duty Free', 'ESSE Asian'],      cat: 'SI_QTY',  vals: [3500, 3700, 4000, 4200, 4500, 4800, 5000] },
+      { dims: ['수출본부', '미국',     'Duty Free', 'ESSE Asian'],      cat: 'SO_QTY',  vals: [3300, 3550, 3850, null, null, null, null], locked: true },
+      { dims: ['수출본부', '독일',     'Heinemann EU','THE ONE'],       cat: 'SI_QTY',  vals: [1500, 1600, 1700, 1800, 1900, 2000, 2100] },
+    ],
+  },
+  SALES_CORP: { // 판매법인
+    menu: 'UI_DP_KTNG_07', label: '판매법인',
+    dims: ['CORP', 'CNTRY', 'ACCOUNT', 'ITEM_NM'],
+    rows: [
+      { dims: ['KT&G USA',     '미국',     'USA Retail',     'ESSE Asian'], cat: 'SI_QTY',  vals: [2500, 2700, 2900, 3100, 3300, 3500, 3700] },
+      { dims: ['KT&G USA',     '미국',     'USA Retail',     'ESSE Asian'], cat: 'SO_QTY',  vals: [2400, 2600, 2750, null, null, null, null], locked: true },
+      { dims: ['KT&G RUSSIA',  '러시아',   'Moscow Dist.',   'TIME'],       cat: 'SI_QTY',  vals: [5500, 5800, 6000, 6200, 6500, 6800, 7000] },
+      { dims: ['KT&G INDONESIA','인도네시아','Jakarta Dist.', 'LAISON'],     cat: 'SI_QTY',  vals: [3800, 4000, 4200, 4500, 4800, 5000, 5200] },
+    ],
+  },
+  CC_NGP_DOM: { // CC/NGP 내수
+    menu: 'UI_DP_KTNG_09', label: 'CC/NGP 내수',
+    dims: ['CC_NGP', 'CHANNEL', 'BUYER', 'ITEM_NM'],
+    rows: [
+      { dims: ['CC',  '편의점', 'BGF리테일',  '에쎄 스페셜 골드 1mg'], cat: 'SI_QTY',  vals: [125000, 128000, 132000, 130000, 128000, 130000, 135000] },
+      { dims: ['CC',  '편의점', 'BGF리테일',  '에쎄 스페셜 골드 1mg'], cat: 'SO_QTY',  vals: [118200, 121000, 125500, null,   null,   null,   null], locked: true },
+      { dims: ['CC',  '편의점', 'GS리테일',   '에쎄 스페셜 골드 1mg'], cat: 'SI_QTY',  vals: [96800,  98000,  100000, 99000,  98000,  100000, 102000] },
+      { dims: ['CC',  '슈퍼',   '이마트',     '디스 플러스'],          cat: 'SI_QTY',  vals: [32500,  33000,  34000,  33500,  33000,  34000,  35000] },
+      { dims: ['NGP', '편의점', 'BGF리테일',  '릴 에이스 (스틱)'],     cat: 'SI_QTY',  vals: [85000,  90000,  95000,  100000, 105000, 110000, 115000] },
+    ],
+  },
+};
 
-const ROWS = [
-  // 거점 1
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'CU',          ITEM_LV3_CD: 'KING-RED', ITEM_NM: '레드 클래식',  MEASURE: 'P(생산)', vals: [12000, 11800, 12500, 13000, 12800, 13200, 13500, 13700, 14000] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'CU',          ITEM_LV3_CD: 'KING-RED', ITEM_NM: '레드 클래식',  MEASURE: 'S(판매)', vals: [11500, 11900, 12200, 12800, 12700, 13000, 13300, 13500, 13800] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'CU',          ITEM_LV3_CD: 'KING-RED', ITEM_NM: '레드 클래식',  MEASURE: 'I(재고)', vals: [ 2500,  2400,  2700,  2900,  3000,  3200,  3400,  3600,  3800] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'GS25',        ITEM_LV3_CD: 'KING-BLU', ITEM_NM: '블루 멘솔',     MEASURE: 'P(생산)', vals: [ 8000,  8200,  8400,  8500,  8700,  8900,  9000,  9100,  9200] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'GS25',        ITEM_LV3_CD: 'KING-BLU', ITEM_NM: '블루 멘솔',     MEASURE: 'S(판매)', vals: [ 7800,  8100,  8300,  8500,  8700,  8800,  8900,  9000,  9100] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: 'GS25',        ITEM_LV3_CD: 'KING-BLU', ITEM_NM: '블루 멘솔',     MEASURE: 'I(재고)', vals: [ 1800,  1900,  2000,  2000,  2000,  2100,  2200,  2300,  2400] },
-  // illuvia
-  { SALES_ORG: 'KT&G',  ACCOUNT: '편의점 전체', ITEM_LV3_CD: 'NGP-DEV',  ITEM_NM: 'illuvia DEV',   MEASURE: 'P(생산)', vals: [ 5000,  5300,  5500,  5800,  6100,  6300,  6500,  6700,  7000] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: '편의점 전체', ITEM_LV3_CD: 'NGP-DEV',  ITEM_NM: 'illuvia DEV',   MEASURE: 'S(판매)', vals: [ 4800,  5200,  5600,  5800,  6000,  6200,  6400,  6600,  6800] },
-  { SALES_ORG: 'KT&G',  ACCOUNT: '편의점 전체', ITEM_LV3_CD: 'NGP-DEV',  ITEM_NM: 'illuvia DEV',   MEASURE: 'I(재고)', vals: [ 1200,  1300,  1200,  1200,  1300,  1400,  1500,  1600,  1800] },
-  // 해외
-  { SALES_ORG: 'KT&G GLOBAL', ACCOUNT: '인도',  ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',     MEASURE: 'P(생산)', vals: [15000, 15500, 16000, 16300, 16500, 17000, 17200, 17500, 18000] },
-  { SALES_ORG: 'KT&G GLOBAL', ACCOUNT: '인도',  ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',     MEASURE: 'S(판매)', vals: [14500, 15300, 15800, 16100, 16400, 16700, 17000, 17300, 17800] },
-  { SALES_ORG: 'KT&G GLOBAL', ACCOUNT: '인도',  ITEM_LV3_CD: 'EXPORT-K', ITEM_NM: '수출 KING',     MEASURE: 'I(재고)', vals: [ 3500,  3700,  3900,  4100,  4200,  4500,  4700,  4900,  5100] },
-];
+const TAB_KEYS = ['EXP_DIST_O', 'EXP_DIST_X', 'SALES_CORP', 'CC_NGP_DOM'];
 
-const fmtN = (n) => n.toLocaleString();
+const fmtN = (n) => (n == null ? '-' : n.toLocaleString());
 
-export default function PsiCrosstabMockup() {
+export default function KtngDpPsiCrosstabMockup() {
+  const [tab, setTab] = React.useState(0);
+  const data = TAB_DATA[TAB_KEYS[tab]];
   return (
     <MockShell
-      patternCode="ktng_psi_crosstab"
-      patternLabel="KTNG — PSI 크로스탭 피벗"
+      patternCode="ktng_dp_psi_crosstab"
+      patternLabel="KTNG — DP 판매계획 PSI (4 segment)"
       layoutCategory="LAYOUT_SINGLE"
-      description="판매계획 PSI / 공급계획 PSI / 보충계획 PSI. 좌측 고정 컬럼(조직·거래처·품목·MEASURE) + 우측 동적 시간 버킷 (월/주). DpKtng05~09 / MpResult / RpResult 등 11+개 화면 공유."
+      description="동일 BaseEntry PSI 크로스탭의 4 segment variant. 직수출 유통 O/X · 판매법인 · CC/NGP 내수. 그리드 컬럼: dimensionItems(60 풀 — segment 별 visible) + CATEGORY(Sell-In Qty/Sell-Out Qty) + DATE(iteration prefix=DATE_, 7개월). 셀 데이터는 KTNG 도메인 (CU/GS25/이마트 + 대만/미국/유럽/일본 수출 + KT&G USA/RUSSIA/INDONESIA 법인 + 릴 NGP)."
     >
-      {/* SearchArea */}
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
+          {TAB_KEYS.map((k) => (
+            <Tab key={k} label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <span>{TAB_DATA[k].label}</span>
+                <Chip label={TAB_DATA[k].menu} size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
+              </Stack>
+            } />
+          ))}
+        </Tabs>
+      </Box>
+
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="PLAN_SCOPE" size="small" select value="DP_MASTER" sx={{ width: 160 }}>
-            <MenuItem value="DP_MASTER">DP_MASTER</MenuItem>
-            <MenuItem value="MP_MASTER">MP_MASTER</MenuItem>
+          <TextField label="USER_ID" size="small" value="kim.youngsu" sx={{ width: 160 }}
+            InputProps={{ startAdornment: <PersonIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} /> }} />
+          <TextField label="AUTH_TP_ID" size="small" select value="SALES" sx={{ width: 140, '& .MuiOutlinedInput-root': { backgroundColor: '#f7ffff' } }}>
+            <MenuItem value="SALES">영업</MenuItem>
           </TextField>
-          <TextField label="MAIN_VER"   size="small" select value="V2026-05" sx={{ width: 150 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem>
-            <MenuItem value="V2026-04">V2026-04</MenuItem>
+          <TextField label="VERSION_ID" size="small" select value="V2026-06_SIM" sx={{ width: 170 }}>
+            <MenuItem value="V2026-06_SIM">V2026-06_SIM</MenuItem>
           </TextField>
-          <TextField label="SIMUL_VER"  size="small" select value="MAIN" sx={{ width: 140 }}>
-            <MenuItem value="MAIN">MAIN</MenuItem>
-            <MenuItem value="SIM_001">SIM_001</MenuItem>
-          </TextField>
-          <TextField label="SALES_ORG"  size="small" select value="ALL" sx={{ width: 150 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="KT&G">KT&G 국내</MenuItem>
-            <MenuItem value="GLOBAL">KT&G GLOBAL</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-04 ~ 2026-12" sx={{ width: 170 }} />
-          <TextField label="BUCKET" size="small" select value="MONTH" sx={{ width: 110 }}>
-            <MenuItem value="WEEK">WEEK</MenuItem>
+          <TextField label="ITEM" size="small" value="" placeholder="(level + attr + name)"
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }}
+            sx={{ width: 200 }} />
+          <TextField label="ACCOUNT" size="small" value="" placeholder="(level + attr + name)"
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }}
+            sx={{ width: 200 }} />
+          <TextField label="BUCKET" size="small" select value="MONTH" sx={{ width: 100 }}>
             <MenuItem value="MONTH">MONTH</MenuItem>
           </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
         </Stack>
       </Box>
 
-      {/* ButtonArea */}
-      <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>{ROWS.length} cases</Typography>
-          <Chip size="small" label="P = 생산" color="primary" variant="outlined" />
-          <Chip size="small" label="S = 판매" color="success" variant="outlined" />
-          <Chip size="small" label="I = 재고 (편집 가능)" color="warning" variant="outlined" />
-        </Stack>
-        <Box sx={{ flexGrow: 1 }} />
-        <Stack direction="row" spacing={0.75}>
-          <Button variant="outlined" size="small" startIcon={<SaveIcon />}>저장</Button>
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>Excel 다운로드</Button>
-        </Stack>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        <ButtonGroup variant="outlined" size="small">
+          <IconButton size="small" color="primary"><SaveIcon fontSize="small" /></IconButton>
+        </ButtonGroup>
       </Box>
 
-      {/* Cross-tab Grid */}
-      <Box sx={{ flexGrow: 1, overflow: 'auto', p: 1 }}>
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: '100%' }}>
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                {FIXED_COLS.map((c) => (
-                  <TableCell key={c.name}
-                    sx={{ backgroundColor: 'grey.200', width: c.width, fontWeight: 700, textAlign: 'center',
-                          position: c.sticky ? 'sticky' : undefined,
-                          left: c.sticky ? 0 : undefined, zIndex: c.sticky ? 3 : 2 }}>
-                    {c.label}
-                  </TableCell>
-                ))}
-                {MONTHS.map((m) => (
-                  <TableCell key={m} sx={{ backgroundColor: 'grey.100', minWidth: 90, fontWeight: 700, textAlign: 'right', fontFamily: 'monospace' }}>
-                    {m}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {ROWS.map((r, i) => {
-                const measureColor =
-                  r.MEASURE.startsWith('P') ? 'primary.main' :
-                  r.MEASURE.startsWith('S') ? 'success.main' :
-                  'warning.main';
-                // zebra striping 만 유지 (운영 styleCallback 은 식별자 컬럼만 강조)
-                const zebraBg = (i % 6 >= 3) ? 'grey.50' : undefined;
-                return (
-                  <TableRow key={i} hover sx={zebraBg ? { backgroundColor: zebraBg } : undefined}>
-                    {FIXED_COLS.map((c) => {
-                      // 운영 원본 styleCallback 대상: ITEM_LV3_CD 셀만 info 톤
-                      const isStyleCol = c.name === 'ITEM_LV3_CD';
-                      const baseSx = {
-                        textAlign: 'left',
-                        fontFamily: c.name.endsWith('_CD') ? 'monospace' : 'inherit',
-                        fontWeight: c.name === 'MEASURE' ? 700 : 400,
-                        color: c.name === 'MEASURE' ? measureColor : 'inherit',
-                        position: c.sticky ? 'sticky' : undefined,
-                        left: c.sticky ? 0 : undefined,
-                        backgroundColor: c.sticky ? '#fff' : undefined,
-                        zIndex: c.sticky ? 1 : undefined,
-                      };
-                      return (
-                        <TableCell key={c.name}
-                          sx={isStyleCol ? { ...baseSx, ...cellSx('info', { mono: true }) } : baseSx}>
-                          {r[c.name]}
-                        </TableCell>
-                      );
-                    })}
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <TableContainer sx={{ flex: 1 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {data.dims.map((d, j) => (
+                    <TableCell key={d} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 11, textAlign: 'center', width: j === 3 ? 200 : 130 }}>
+                      {d}
+                      <Typography component="span" sx={{ ml: 0.5, fontSize: 9, color: 'text.disabled', fontFamily: 'monospace' }}>(DIMENSION_0{j + 1})</Typography>
+                    </TableCell>
+                  ))}
+                  <TableCell sx={{ bgcolor: '#fffbe6', fontWeight: 700, fontSize: 11, width: 100, textAlign: 'center' }}>CATEGORY</TableCell>
+                  {DATE_COLS.map((d) => (
+                    <TableCell key={d} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 11, width: 85, textAlign: 'right', fontFamily: 'monospace' }}>{d.slice(2)}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.rows.map((r, i) => (
+                  <TableRow key={i} hover sx={{ bgcolor: r.locked ? '#fafafa' : 'transparent' }}>
+                    {r.dims.map((v, j) => (
+                      <TableCell key={j} sx={{ fontSize: 11, textAlign: j === 3 ? 'left' : 'center' }}>{v}</TableCell>
+                    ))}
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, textAlign: 'center', color: r.cat === 'SI_QTY' ? '#1565c0' : '#6b7280' }}>{r.cat}</TableCell>
                     {r.vals.map((v, j) => (
-                      <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
-                        {fmtN(v)}
-                      </TableCell>
+                      <TableCell key={j} sx={{
+                        fontSize: 11, fontFamily: 'monospace', textAlign: 'right',
+                        color: v == null ? '#d1d5db' : r.locked ? '#6b7280' : '#374151',
+                        fontWeight: r.cat === 'SI_QTY' ? 600 : 400,
+                        bgcolor: r.locked ? '#f3f4f6' : 'transparent',
+                      }}>{fmtN(v)}</TableCell>
                     ))}
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </Box>
     </MockShell>
   );

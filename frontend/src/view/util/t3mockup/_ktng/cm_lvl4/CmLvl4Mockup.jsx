@@ -1,227 +1,160 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Chip,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Tabs, Tab, Checkbox,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, Button, ButtonGroup, IconButton,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import DownloadIcon from '@mui/icons-material/Download';
+import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
 
-// CmKtng09 (Lvl4 코드&속성 관리), CmKtng10 (Lvl4 생산지별 공헌이익), CmKtng11 (Lvl4 Unmapping 리스트)
-// 3개 화면을 좌측 트리(Lvl4 생산지 코드) + 우측 탭 (속성/공헌이익/Unmapping) 으로 통합
+// KTNG — CM Lvl4 (3 메뉴)
+//  Tab 1: UI_CM_KTNG_09 Lvl 4 코드 & 속성 관리 → CmKtng09.jsx
+//  Tab 2: UI_CM_KTNG_10 Lvl 4 생산지별 공헌이익 → CmKtng10.jsx
+//  Tab 3: UI_CM_KTNG_11 Lvl 4 Unmapping 리스트 → CmKtng11.jsx
 
-const LVL4_TREE = [
-  { code: 'L4-KR-SH', name: '신탄진 공장',     cnt: 28, status: 'normal' },
-  { code: 'L4-KR-DJ', name: '대전 공장',        cnt: 22, status: 'normal' },
-  { code: 'L4-KR-GJ', name: '광주 공장',        cnt: 18, status: 'normal' },
-  { code: 'L4-GL-ID', name: '인도네시아',       cnt: 14, status: 'normal' },
-  { code: 'L4-GL-MN', name: '몽골',             cnt: 8,  status: 'warning' },
-  { code: 'L4-GL-IN', name: '인도',             cnt: 12, status: 'normal' },
-  { code: 'L4-??-??', name: '미매핑 (UNMAPPED)', cnt: 5,  status: 'error' },
+const TAB1_ROWS = [
+  { LV4_CD: 'L4-ESSE-001', LV4_NM: '에쎄 스페셜 골드',     ATTR_CTG: 'TASTE',  ATTR_VAL: '저타르 1mg', ITEM_GRP: '잎담배', SHAPE: 'KS', USE_YN: 'Y' },
+  { LV4_CD: 'L4-ESSE-002', LV4_NM: '에쎄 라이트',         ATTR_CTG: 'TASTE',  ATTR_VAL: '저타르 3mg', ITEM_GRP: '잎담배', SHAPE: 'KS', USE_YN: 'Y' },
+  { LV4_CD: 'L4-DIS-001',  LV4_NM: '디스 플러스',         ATTR_CTG: 'TASTE',  ATTR_VAL: '6mg',         ITEM_GRP: '잎담배', SHAPE: 'KS', USE_YN: 'Y' },
+  { LV4_CD: 'L4-1MG-001',  LV4_NM: '더원 오렌지 1mg',     ATTR_CTG: 'TASTE',  ATTR_VAL: '1mg 캡슐',     ITEM_GRP: '잎담배', SHAPE: 'PREMIUM', USE_YN: 'Y' },
+  { LV4_CD: 'L4-TIME-001', LV4_NM: 'TIME Original',       ATTR_CTG: 'EXPORT', ATTR_VAL: '러시아 향',    ITEM_GRP: '잎담배', SHAPE: 'KS', USE_YN: 'Y' },
+  { LV4_CD: 'L4-LIL-001',  LV4_NM: '릴 에이스 (LIL Aces)', ATTR_CTG: 'NGP',    ATTR_VAL: 'HEET 스틱',     ITEM_GRP: 'HEET 스틱', SHAPE: 'NGP', USE_YN: 'Y' },
 ];
 
-// 우측 탭 1 — 코드&속성
-const ATTR_COLS = [
-  { name: 'attr',  label: '속성',        width: 160, align: 'left' },
-  { name: 'value', label: '값',          width: 200, align: 'left' },
-  { name: 'editable', label: '편집 가능', width: 100, align: 'center' },
-];
-const ATTRS = [
-  { attr: 'Lvl 4 코드',         value: 'L4-KR-SH',         editable: 'N' },
-  { attr: '생산지 명',           value: '신탄진 공장',       editable: 'N' },
-  { attr: '국가',                value: '대한민국 (KR)',     editable: 'N' },
-  { attr: '법인',                value: 'KT&G 국내',         editable: 'Y' },
-  { attr: '통화',                value: 'KRW',              editable: 'Y' },
-  { attr: '재료비 표준 단가',    value: '3.21원/본',         editable: 'Y' },
-  { attr: '마킹비 표준 단가',    value: '0.68원/본',         editable: 'Y' },
-  { attr: '관세 적용 여부',      value: 'N',                editable: 'Y' },
-  { attr: '하이퍼 인플레이션',   value: 'N',                editable: 'Y' },
-  { attr: '활성 여부',           value: 'Y',                editable: 'Y' },
+const TAB2_ROWS = [
+  { LV4_CD: 'L4-ESSE-001', LV4_NM: '에쎄 스페셜 골드',  PROD_CNTRY: '한국',      MAT_COST: 950,  CM_AMT: 1850, CM_RATE: 66.1 },
+  { LV4_CD: 'L4-ESSE-001', LV4_NM: '에쎄 스페셜 골드',  PROD_CNTRY: '카자흐스탄', MAT_COST: 780,  CM_AMT: 1380, CM_RATE: 63.9 },
+  { LV4_CD: 'L4-DIS-001',  LV4_NM: '디스 플러스',      PROD_CNTRY: '한국',      MAT_COST: 880,  CM_AMT: 1925, CM_RATE: 68.6 },
+  { LV4_CD: 'L4-1MG-001',  LV4_NM: '더원 오렌지 1mg',  PROD_CNTRY: '한국',      MAT_COST: 1020, CM_AMT: 2180, CM_RATE: 68.1 },
+  { LV4_CD: 'L4-TIME-001', LV4_NM: 'TIME Original',    PROD_CNTRY: '카자흐스탄', MAT_COST: 620,  CM_AMT: 808,  CM_RATE: 43.7 },
+  { LV4_CD: 'L4-LIL-001',  LV4_NM: '릴 에이스 NGP',    PROD_CNTRY: '한국',      MAT_COST: 1180, CM_AMT: 2450, CM_RATE: 67.5 },
 ];
 
-// 우측 탭 2 — Unmapping 리스트
-const UNMAPPED_COLS = [
-  { name: 'ITEM_CD',    label: 'ITEM_CD',    width: 130, align: 'center' },
-  { name: 'ITEM_NM',    label: 'ITEM_NM',    width: 200, align: 'left' },
-  { name: 'PROD_SITE',  label: '발견 생산지',width: 130, align: 'left' },
-  { name: 'PROD_QTY',   label: '생산수량',   width: 110, align: 'right' },
-  { name: 'PROD_AMT',   label: '추정 금액',   width: 110, align: 'right' },
-  { name: 'DAYS_OPEN',  label: '미매핑일수', width: 100, align: 'right' },
-  { name: 'SUGG_LVL4',  label: '추천 Lvl4',  width: 120, align: 'left' },
+const TAB3_ROWS = [
+  { ITEM_CD: 'ITM-NEW-X101', ITEM_NM: '에쎄 신제품 X101',   ITEM_GRP: '잎담배',  REASON: 'Lvl4 미할당',        REG_DT: '2026-06-05' },
+  { ITEM_CD: 'ITM-NEW-Y202', ITEM_NM: '디스 한정판',         ITEM_GRP: '잎담배',  REASON: 'Lvl4 미할당',        REG_DT: '2026-06-07' },
+  { ITEM_CD: 'ITM-HEET-NEW', ITEM_NM: '릴 신제품 (NGP)',    ITEM_GRP: 'HEET',    REASON: '속성 매핑 누락',     REG_DT: '2026-06-01' },
+  { ITEM_CD: 'ITM-EXPT-001', ITEM_NM: 'TIME 해외향 (시제품)', ITEM_GRP: '잎담배', REASON: '생산지 매핑 누락',   REG_DT: '2026-06-03' },
 ];
-// UNMAPPED row status — DAYS_OPEN/추천 가용 여부 기준
-//   DAYS_OPEN > 30 OR SUGG_LVL4 == '?' → danger · > 14 → warning · 그 외 normal
-function unmappedRowStatus(r) {
-  if (r.DAYS_OPEN > 30 || r.SUGG_LVL4 === '?') return 'danger';
-  if (r.DAYS_OPEN > 14) return 'warning';
-  return 'normal';
-}
 
-const UNMAPPED_RAW = [
-  { ITEM_CD: 'TL-RD-077', ITEM_NM: '레드 한정판 골드 20pcs', PROD_SITE: '신탄진 공장',   PROD_QTY:  85000, PROD_AMT: 272.9, DAYS_OPEN: 12, SUGG_LVL4: 'L4-KR-SH' },
-  { ITEM_CD: 'EQ-IL-208', ITEM_NM: 'illuvia 디바이스 V4 한정', PROD_SITE: '대전 공장',     PROD_QTY:  42000, PROD_AMT: 168.0, DAYS_OPEN:  8, SUGG_LVL4: 'L4-KR-DJ' },
-  { ITEM_CD: 'TL-EX-512', ITEM_NM: '수출 KING-SIZE 100mm 신규', PROD_SITE: '인도네시아', PROD_QTY: 320000, PROD_AMT: 944.0, DAYS_OPEN: 25, SUGG_LVL4: 'L4-GL-ID' },
-  { ITEM_CD: 'TL-MN-901', ITEM_NM: '몽골 한정 라이트',         PROD_SITE: '몽골',          PROD_QTY:  18500, PROD_AMT:  44.4, DAYS_OPEN: 35, SUGG_LVL4: 'L4-GL-MN' },
-  { ITEM_CD: 'NEW-001',   ITEM_NM: '신제품 코드 미정',         PROD_SITE: '미확인',         PROD_QTY:   5200, PROD_AMT:  18.7, DAYS_OPEN: 45, SUGG_LVL4: '?'        },
-];
-const UNMAPPED = UNMAPPED_RAW.map((r) => ({ ...r, status: unmappedRowStatus(r) }));
-
-const LVL4_TAB_LABELS = ['속성 관리 (CmKtng09)', '생산지별 공헌이익 (CmKtng10)', 'Unmapping 리스트 (CmKtng11)'];
-
-export default function CmLvl4Mockup() {
-  const [tab, setTab] = useState(2);
-  const [selectedNode, setSelectedNode] = useState('L4-KR-SH');
+export default function KtngCmLvl4Mockup() {
+  const [tab, setTab] = React.useState(0);
   return (
     <MockShell
       patternCode="ktng_cm_lvl4"
-      patternLabel="KTNG — Lvl 4 코드 / 공헌이익 / Unmapping (CmKtng09/10/11)"
-      layoutCategory="LAYOUT_H2"
-      description="좌측 Lvl 4 생산지 트리 + 우측 탭 (속성 관리 · 생산지별 공헌이익 · Unmapping 리스트). 3개 KTNG CM 화면을 트리 + 탭 패턴으로 통합."
+      patternLabel="KTNG — CM Lvl 4 관리 (코드/생산지별 CM/Unmapping)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="3개 Lvl4 관리 화면 묶음 (UI_CM_KTNG_09/10/11). Tab 1: 코드 & 속성 마스터 CRUD, Tab 2: 생산지별 공헌이익 조회, Tab 3: Unmapping 리스트 (속성/생산지 미할당 신제품 점검)."
     >
-      {/* SearchArea */}
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>Lvl4 코드 & 속성</span><Chip label="UI_CM_KTNG_09" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>생산지별 공헌이익</span><Chip label="UI_CM_KTNG_10" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>Unmapping 리스트</span><Chip label="UI_CM_KTNG_11" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+        </Tabs>
+      </Box>
+
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="회계 연월" size="small" value="2026-05" sx={{ width: 130 }} />
-          <TextField label="활성 여부" size="small" select value="Y" sx={{ width: 100 }}>
-            <MenuItem value="">전체</MenuItem>
-            <MenuItem value="Y">Y</MenuItem>
-            <MenuItem value="N">N</MenuItem>
-          </TextField>
-          <TextField label="국가" size="small" select value="ALL" sx={{ width: 110 }}>
+          <TextField label="ITEM_GRP" size="small" select value="ALL" sx={{ width: 140 }}>
             <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="KR">대한민국</MenuItem>
-            <MenuItem value="GLOBAL">해외</MenuItem>
+            <MenuItem value="TOBACCO">잎담배</MenuItem>
+            <MenuItem value="HEET">HEET (NGP)</MenuItem>
           </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+          <TextField label="ATTR_CTG" size="small" select value="ALL" sx={{ width: 130 }}>
+            <MenuItem value="ALL">전체</MenuItem>
+          </TextField>
+          <TextField label="검색" size="small" value="" placeholder="LV4_CD / LV4_NM"
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }}
+            sx={{ width: 220 }} />
         </Stack>
       </Box>
 
-      {/* H2 split */}
-      <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left tree */}
-        <Paper variant="outlined" sx={{ width: 240, m: 1.5, mr: 0.75, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Lvl 4 생산지</Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{LVL4_TREE.length}개</Typography>
-          </Box>
-          <Box sx={{ flexGrow: 1, overflow: 'auto', p: 0.5 }}>
-            {LVL4_TREE.map((n) => {
-              const sel = n.code === selectedNode;
-              return (
-                <Box key={n.code}
-                  onClick={() => setSelectedNode(n.code)}
-                  sx={{
-                    p: 1, mb: 0.5, borderRadius: 1,
-                    backgroundColor: sel ? 'primary.light' : 'transparent',
-                    color: sel ? 'primary.contrastText' : 'inherit',
-                    cursor: 'pointer',
-                    border: '1px solid',
-                    borderColor: sel ? 'primary.main' : 'transparent',
-                    '&:hover': { backgroundColor: sel ? 'primary.light' : 'action.hover' },
-                  }}>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    {n.status === 'warning' && <WarningAmberIcon fontSize="small" color="warning" />}
-                    {n.status === 'error' && <WarningAmberIcon fontSize="small" color="error" />}
-                    <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 11 }}>{n.code}</Typography>
-                    <Box sx={{ flexGrow: 1 }} />
-                    <Chip size="small" label={n.cnt} sx={{ height: 18, fontSize: 10 }} />
-                  </Stack>
-                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13, mt: 0.3 }}>{n.name}</Typography>
-                </Box>
-              );
-            })}
-          </Box>
-        </Paper>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        {tab === 0 && (
+          <ButtonGroup variant="outlined" size="small">
+            <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+            <IconButton size="small" color="primary"><SaveIcon fontSize="small" /></IconButton>
+          </ButtonGroup>
+        )}
+      </Box>
 
-        {/* Right content with tabs */}
-        <Box sx={{ flexGrow: 1, m: 1.5, ml: 0.75, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="standard">
-              {LVL4_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
-            </Tabs>
-            <Box sx={{ flexGrow: 1 }} />
-            <Stack direction="row" spacing={0.5} sx={{ pr: 1 }}>
-              <Button size="small" startIcon={<SaveIcon />}>저장</Button>
-              <Button size="small" startIcon={<DownloadIcon />}>Excel</Button>
-            </Stack>
-          </Box>
-
-          {/* Active tab — Unmapping list */}
-          <Box sx={{ flexGrow: 1, overflow: 'auto', mt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <WarningAmberIcon color="error" fontSize="small" />
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>현재 탭: {LVL4_TAB_LABELS[tab]} · 미매핑 품목 — {UNMAPPED.length}건 / 추정 금액 합계 1,447.0K원</Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Button size="small" variant="outlined" color="warning">추천 Lvl4 일괄 적용</Button>
-            </Stack>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small" stickyHeader>
-                <TableHead>
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <TableContainer sx={{ flex: 1 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                {tab === 0 && (
                   <TableRow>
-                    <TableCell padding="checkbox" sx={{ backgroundColor: 'grey.100' }}><Checkbox size="small" disabled /></TableCell>
-                    {UNMAPPED_COLS.map((c) => (
-                      <TableCell key={c.name} sx={{ backgroundColor: 'grey.100', width: c.width, fontWeight: 700, textAlign: c.align }}>
-                        {c.label}
-                      </TableCell>
-                    ))}
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>LV4_CD</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>LV4_NM</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ATTR_CTG</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ATTR_VAL</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_GRP</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>SHAPE</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>USE_YN</TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {UNMAPPED.map((r, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell padding="checkbox"><Checkbox size="small" disabled /></TableCell>
-                      {UNMAPPED_COLS.map((c) => {
-                        const v = r[c.name];
-                        const isMono = ['ITEM_CD', 'PROD_QTY', 'PROD_AMT', 'DAYS_OPEN', 'SUGG_LVL4'].includes(c.name);
-                        let display = v;
-                        if (c.name === 'PROD_QTY') display = v.toLocaleString() + ' 본';
-                        else if (c.name === 'PROD_AMT') display = v.toFixed(1) + 'K원';
-                        else if (c.name === 'DAYS_OPEN') display = v + ' 일';
-                        const sx = {
-                          textAlign: c.align,
-                          fontFamily: isMono ? 'monospace' : 'inherit',
-                        };
-                        return <TableCell key={c.name} sx={sx}>{display}</TableCell>;
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* 속성 관리 미리보기 (작게) */}
-            <Box sx={{ mt: 1.5 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>참고 — 속성 관리 탭 (CmKtng09):</Typography>
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 0.5 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {ATTR_COLS.map((c) => (
-                        <TableCell key={c.name} sx={{ backgroundColor: 'grey.100', width: c.width, fontWeight: 700, textAlign: c.align, fontSize: 12 }}>
-                          {c.label}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {ATTRS.slice(0, 5).map((r) => (
-                      <TableRow key={r.attr} hover>
-                        {ATTR_COLS.map((c) => (
-                          <TableCell key={c.name} sx={{ textAlign: c.align, fontSize: 12, fontFamily: c.name === 'value' && r.attr.includes('코드') ? 'monospace' : 'inherit' }}>
-                            {r[c.name]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </Box>
-        </Box>
+                )}
+                {tab === 1 && (
+                  <TableRow>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>LV4_CD</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>LV4_NM</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>PROD_CNTRY</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>MAT_COST</TableCell>
+                    <TableCell sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>CM_AMT</TableCell>
+                    <TableCell sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>CM_RATE</TableCell>
+                  </TableRow>
+                )}
+                {tab === 2 && (
+                  <TableRow>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>ITEM_CD</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_NM</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_GRP</TableCell>
+                    <TableCell sx={{ bgcolor: '#fee2e2', fontWeight: 700, fontSize: 12 }}>UNMAP_REASON</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>REG_DT</TableCell>
+                  </TableRow>
+                )}
+              </TableHead>
+              <TableBody>
+                {tab === 0 && TAB1_ROWS.map((r, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{r.LV4_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.LV4_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}>
+                      <Chip label={r.ATTR_CTG} size="small" variant="outlined" sx={{ height: 18, fontSize: 10, color: r.ATTR_CTG === 'NGP' ? '#8b5cf6' : r.ATTR_CTG === 'EXPORT' ? '#ff7043' : '#1565c0' }} />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ATTR_VAL}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_GRP}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{r.SHAPE}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center', color: r.USE_YN === 'Y' ? '#10b981' : '#9ca3af' }}>{r.USE_YN}</TableCell>
+                  </TableRow>
+                ))}
+                {tab === 1 && TAB2_ROWS.map((r, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{r.LV4_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.LV4_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}>{r.PROD_CNTRY}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.MAT_COST.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, bgcolor: '#f0fdf4' }}>{r.CM_AMT.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, bgcolor: '#f0fdf4', color: r.CM_RATE >= 50 ? '#10b981' : '#f59e0b' }}>{r.CM_RATE.toFixed(1)}%</TableCell>
+                  </TableRow>
+                ))}
+                {tab === 2 && TAB3_ROWS.map((r, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{r.ITEM_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_GRP}</TableCell>
+                    <TableCell sx={{ fontSize: 11, color: '#ef4444', fontWeight: 600 }}>{r.REASON}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center' }}>{r.REG_DT}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </Box>
     </MockShell>
   );

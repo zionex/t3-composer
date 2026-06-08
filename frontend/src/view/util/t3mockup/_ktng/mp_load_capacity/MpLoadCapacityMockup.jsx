@@ -1,130 +1,101 @@
-import React, { useState } from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, LinearProgress } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import SaveIcon from '@mui/icons-material/Save';
+import React from 'react';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, Button, LinearProgress,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
 
-// MpKtng05 (공장 부하/가동조건), MpKtng07 (설비 부하/가동조건)
-// 공장/설비 단위 부하율 + 가동조건 (휴무일/교대/유효시간)
+// KTNG — MP 공장/설비 부하 (가동조건)
+//  Tab 1: UI_MP_KTNG_05 공장 부하/가동조건 → MpKtng05.jsx
+//  Tab 2: UI_MP_KTNG_07 설비 부하/가동조건 → MpKtng07.jsx
+
+const DATE_COLS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
 
 const PLANT_ROWS = [
-  { PLANT: '신탄진 공장', LINE_CNT: 8,  CAPA_DAY: 850000,  PLAN_DAY: 720000,  LOAD: 84.7, SHIFTS: '3교대', OPER_HR: 22, HOLIDAY: 0 },
-  { PLANT: '대전 공장',   LINE_CNT: 6,  CAPA_DAY: 580000,  PLAN_DAY: 520000,  LOAD: 89.7, SHIFTS: '3교대', OPER_HR: 22, HOLIDAY: 0 },
-  { PLANT: '광주 공장',   LINE_CNT: 5,  CAPA_DAY: 420000,  PLAN_DAY: 340000,  LOAD: 81.0, SHIFTS: '2교대', OPER_HR: 16, HOLIDAY: 1 },
-  { PLANT: '인도네시아',  LINE_CNT: 10, CAPA_DAY: 720000,  PLAN_DAY: 680000,  LOAD: 94.4, SHIFTS: '3교대', OPER_HR: 22, HOLIDAY: 0 },
+  { PLANT: '신탄진공장',  CAPACITY: 800000, loads: [620000, 680000, 720000, 750000, 740000, 720000] },
+  { PLANT: '청주공장',    CAPACITY: 600000, loads: [480000, 510000, 540000, 560000, 550000, 540000] },
+  { PLANT: '광주공장',    CAPACITY: 500000, loads: [380000, 420000, 450000, 470000, 460000, 450000] },
+  { PLANT: 'Almaty공장',  CAPACITY: 350000, loads: [280000, 295000, 310000, 320000, 315000, 310000] },
+  { PLANT: 'Jakarta공장', CAPACITY: 280000, loads: [220000, 235000, 250000, 260000, 255000, 250000] },
 ];
 
-const RES_ROWS = [
-  { PLANT: '신탄진', RES_CD: 'L01-MK', RES_NM: 'M/K Line 01', CAPA_H: 35000, PLAN_H: 31500, LOAD: 90.0, JC_TIME: 30 },
-  { PLANT: '신탄진', RES_CD: 'L02-MK', RES_NM: 'M/K Line 02', CAPA_H: 35000, PLAN_H: 28000, LOAD: 80.0, JC_TIME: 30 },
-  { PLANT: '신탄진', RES_CD: 'L03-PK', RES_NM: 'PACK Line 03',CAPA_H: 40000, PLAN_H: 36000, LOAD: 90.0, JC_TIME: 20 },
-  { PLANT: '대전',   RES_CD: 'L11-MK', RES_NM: 'M/K Line 11', CAPA_H: 30000, PLAN_H: 28500, LOAD: 95.0, JC_TIME: 35 },
-  { PLANT: '대전',   RES_CD: 'L12-MK', RES_NM: 'M/K Line 12', CAPA_H: 30000, PLAN_H: 27000, LOAD: 90.0, JC_TIME: 35 },
-  { PLANT: '광주',   RES_CD: 'L21-MK', RES_NM: 'M/K Line 21', CAPA_H: 28000, PLAN_H: 22400, LOAD: 80.0, JC_TIME: 40 },
-  { PLANT: '광주',   RES_CD: 'L22-NGP',RES_NM: 'NGP Line 22', CAPA_H: 18000, PLAN_H: 14400, LOAD: 80.0, JC_TIME: 50 },
+const RESOURCE_ROWS = [
+  { RESOURCE: 'MAKER-01 (신탄진)',  TYPE: '제조기', CAPACITY: 250000, loads: [195000, 215000, 230000, 240000, 235000, 230000] },
+  { RESOURCE: 'MAKER-02 (신탄진)',  TYPE: '제조기', CAPACITY: 250000, loads: [205000, 220000, 235000, 245000, 240000, 235000] },
+  { RESOURCE: 'PACKER-01 (신탄진)', TYPE: '포장기', CAPACITY: 300000, loads: [220000, 245000, 260000, 275000, 270000, 260000] },
+  { RESOURCE: 'PACKER-02 (신탄진)', TYPE: '포장기', CAPACITY: 300000, loads: [240000, 260000, 275000, 290000, 285000, 275000] },
+  { RESOURCE: 'OVEN-01 (청주)',     TYPE: '오븐',   CAPACITY: 180000, loads: [145000, 158000, 165000, 172000, 168000, 165000] },
 ];
 
-const loadColor = (l) => l >= 95 ? 'error' : l >= 85 ? 'warning' : 'success';
-
-export default function MpLoadCapacityMockup() {
-  const [tab, setTab] = useState(0);
+function LoadCell({ load, cap }) {
+  const pct = (load / cap) * 100;
   return (
-    <MockShell patternCode="ktng_mp_load_capacity" patternLabel="KTNG — 공장 / 설비 부하 · 가동조건 (MpKtng05/07)"
-      layoutCategory="LAYOUT_SINGLE" description="공장 / 설비별 일평균 부하율 + 교대·가동시간 가동조건. 95% 초과는 위험.">
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="버전" size="small" select value="V2026-05" sx={{ width: 140 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem>
-          </TextField>
-          <TextField label="PLANT" size="small" select value="ALL" sx={{ width: 140 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="신탄진">신탄진</MenuItem><MenuItem value="대전">대전</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-06 ~ 2026-08" sx={{ width: 180 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<SaveIcon />}>가동조건 저장</Button>
-        </Stack>
-      </Box>
+    <Stack direction="row" spacing={1} alignItems="center">
+      <LinearProgress variant="determinate" value={Math.min(pct, 100)} sx={{ flex: 1, height: 6, borderRadius: 1, bgcolor: '#e5e7eb', '& .MuiLinearProgress-bar': { bgcolor: pct >= 90 ? '#ef4444' : pct >= 75 ? '#f59e0b' : '#10b981' } }} />
+      <Typography sx={{ fontSize: 10, fontFamily: 'monospace', fontWeight: 700, color: pct >= 90 ? '#ef4444' : pct >= 75 ? '#f59e0b' : '#10b981', width: 35, textAlign: 'right' }}>{pct.toFixed(0)}%</Typography>
+    </Stack>
+  );
+}
 
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab label="공장 단위 (MpKtng05)" />
-          <Tab label="설비 단위 (MpKtng07)" />
+export default function KtngMpLoadCapacityMockup() {
+  const [tab, setTab] = React.useState(0);
+  const rows = tab === 0 ? PLANT_ROWS : RESOURCE_ROWS;
+  return (
+    <MockShell
+      patternCode="ktng_mp_load_capacity"
+      patternLabel="KTNG — MP 공장/설비 부하 (가동조건)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="UI_MP_KTNG_05 공장 부하 + UI_MP_KTNG_07 설비 부하. 월별 가동 부하율 (LOAD / CAPACITY) 시각화 — 녹색 &lt;75%, 주황 75-90%, 빨강 ≥90%."
+    >
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>공장 부하</span><Chip label="UI_MP_KTNG_05" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>설비 부하</span><Chip label="UI_MP_KTNG_07" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
         </Tabs>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        {tab === 0 && (
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>공장별 부하 — {PLANT_ROWS.length}개</Typography>
-          </Box>
+      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}><MenuItem value="V2026-06">V2026-06</MenuItem></TextField>
+          <TextField label={tab === 0 ? 'PLANT' : 'RESOURCE'} size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="기간" size="small" value="2026-06 ~ 11" sx={{ width: 160 }} />
+        </Stack>
+      </Box>
+
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end' }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+      </Box>
+
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['공장','라인 수','일 CAPA','일 PLAN','부하율','시각화','교대','가동시간 (h)','휴무일'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: ['라인 수','일 CAPA','일 PLAN','부하율','가동시간 (h)','휴무일'].includes(c) ? 'right' : (c === '교대' ? 'center' : 'left') }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+              <TableHead><TableRow>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, width: 180 }}>{tab === 0 ? 'PLANT' : 'RESOURCE'}</TableCell>
+                {tab === 1 && <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, width: 100 }}>TYPE</TableCell>}
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right', width: 110 }}>CAPACITY</TableCell>
+                {DATE_COLS.map((d) => (
+                  <TableCell key={d} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'center', width: 130 }}>{d.slice(2)}</TableCell>
+                ))}
+              </TableRow></TableHead>
               <TableBody>
-                {PLANT_ROWS.map((r, i) => (
+                {rows.map((r, i) => (
                   <TableRow key={i} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{r.PLANT}</TableCell>
-                    <TableCell sx={{ textAlign: 'right' }}>{r.LINE_CNT}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA_DAY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN_DAY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOAD.toFixed(1)}%</TableCell>
-                    <TableCell sx={{ minWidth: 130 }}>
-                      <LinearProgress variant="determinate" value={Math.min(r.LOAD, 100)} color={loadColor(r.LOAD)} sx={{ height: 8, borderRadius: 1 }} />
-                    </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.SHIFTS} variant="outlined" /></TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.OPER_HR}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.HOLIDAY}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{tab === 0 ? r.PLANT : r.RESOURCE}</TableCell>
+                    {tab === 1 && <TableCell sx={{ fontSize: 11 }}><Chip label={r.TYPE} size="small" variant="outlined" sx={{ height: 18, fontSize: 10 }} /></TableCell>}
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 600 }}>{r.CAPACITY.toLocaleString()}</TableCell>
+                    {r.loads.map((v, j) => (
+                      <TableCell key={j} sx={{ p: 0.5 }}>
+                        <LoadCell load={v} cap={r.CAPACITY} />
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
-
-        )}
-
-        {tab === 1 && (
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>설비별 부하 — {RES_ROWS.length}개 라인</Typography>
-          </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['공장','RES_CD','설비명','시간당 CAPA','시간당 PLAN','부하율','교체시간 (분)'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: c.includes('CAPA') || c.includes('PLAN') || c === '부하율' || c.includes('시간') ? 'right' : 'left' }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {RES_ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell>{r.PLANT}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.RES_CD}</TableCell>
-                    <TableCell>{r.RES_NM}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.CAPA_H.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN_H.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LOAD.toFixed(1)}%</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.JC_TIME}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-        )}
       </Box>
     </MockShell>
   );

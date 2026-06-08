@@ -1,128 +1,100 @@
-import React, { useState } from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper, Tabs, Tab,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import React from 'react';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, Button,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
 
-// RptKtng16 (생산 PSI), 17 (생산계획 대비 실적), 18~20 (Global PSI 판매법인/직수출O/X),
-// 21 (판매계획 대비 실적), 22 (Global PSI CC/NGP 내수)
-// Working Report — 6 채널별 PSI + 계획 vs 실적 비교 통합
+// KTNG — RPT PSI 작업 리포트 (7 메뉴)
+//  16 생산 PSI / 17 생산계획 대비 실적 / 18~20 Global PSI (판매법인/직수출 O/X) / 21 판매계획 대비 실적 / 22 Global PSI CC/NGP
 
-const CHANNELS = [
-  { key: 'PROD',   label: '생산 PSI (16)', active: true },
-  { key: 'P_VS_A', label: '생산 vs 실적 (17)', active: false },
-  { key: 'GLOB_L', label: 'Global PSI 판매법인 (18)', active: false },
-  { key: 'GLOB_O', label: 'Global PSI 직수출 O (19)', active: false },
-  { key: 'GLOB_X', label: 'Global PSI 직수출 X (20)', active: false },
-  { key: 'S_VS_A', label: '판매 vs 실적 (21)', active: false },
-  { key: 'GLOB_C', label: 'Global PSI CC/NGP (22)', active: false },
+const TABS = [
+  { code: '16', label: '생산 PSI',                   menu: 'UI_RPT_KTNG_16' },
+  { code: '17', label: '생산계획 대비 실적',          menu: 'UI_RPT_KTNG_17' },
+  { code: '18', label: 'Global PSI (판매법인)',       menu: 'UI_RPT_KTNG_18' },
+  { code: '19', label: 'Global PSI (직수출 유통 O)',  menu: 'UI_RPT_KTNG_19' },
+  { code: '20', label: 'Global PSI (직수출 유통 X)',  menu: 'UI_RPT_KTNG_20' },
+  { code: '21', label: '판매계획 대비 실적',          menu: 'UI_RPT_KTNG_21' },
+  { code: '22', label: 'Global PSI (CC/NGP 내수)',    menu: 'UI_RPT_KTNG_22' },
 ];
 
-const FIXED = [
-  { name: 'PLANT',   label: '거점',     width: 100 },
-  { name: 'ITEM_LV2',label: '품목군',   width: 110 },
-  { name: 'MEASURE', label: 'MEASURE',  width: 100, sticky: true },
-];
-
-const WEEKS = ['W18','W19','W20','W21','W22','W23','W24','W25'];
+const DATE_COLS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12'];
 
 const ROWS = [
-  { PLANT: '신탄진',  ITEM_LV2: '레드',   MEASURE: 'PLAN',   vals: [28000, 28500, 29000, 28800, 29200, 29500, 30000, 30500] },
-  { PLANT: '신탄진',  ITEM_LV2: '레드',   MEASURE: 'ACTUAL', vals: [27200, 28100, 28800, 28500, 29000,  null,  null,  null] },
-  { PLANT: '신탄진',  ITEM_LV2: '레드',   MEASURE: 'INV',    vals: [ 8200,  8400,  8500,  8400,  8500,  8600,  8700,  8800] },
-  { PLANT: '대전',    ITEM_LV2: '블루',   MEASURE: 'PLAN',   vals: [18500, 19000, 19500, 19200, 19500, 19800, 20000, 20500] },
-  { PLANT: '대전',    ITEM_LV2: '블루',   MEASURE: 'ACTUAL', vals: [18200, 18800, 19000, 19000, 19200,  null,  null,  null] },
-  { PLANT: '대전',    ITEM_LV2: '블루',   MEASURE: 'INV',    vals: [ 5500,  5600,  5700,  5700,  5800,  5900,  6000,  6100] },
-  { PLANT: '광주',    ITEM_LV2: 'NGP',    MEASURE: 'PLAN',   vals: [ 5500,  5800,  6000,  5800,  5900,  6100,  6300,  6500] },
-  { PLANT: '광주',    ITEM_LV2: 'NGP',    MEASURE: 'ACTUAL', vals: [ 4800,  5200,  5600,  5500,  5700,  null,  null,  null] },
-  { PLANT: '인도네시아',ITEM_LV2: '수출',  MEASURE: 'PLAN',   vals: [42000, 42500, 43000, 42800, 43500, 44000, 44500, 45000] },
-  { PLANT: '인도네시아',ITEM_LV2: '수출',  MEASURE: 'ACTUAL', vals: [41500, 42000, 42500, 42500, 43000,  null,  null,  null] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '에쎄 스페셜 골드',  cat: 'P (생산)',     vals: [380000, 390000, 400000, 395000, 390000, 395000, 405000] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '에쎄 스페셜 골드',  cat: 'S (출하)',     vals: [375000, 388000, 398000, 392000, 388000, 392000, 402000] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '에쎄 스페셜 골드',  cat: 'I (재고)',     vals: [320000, 322000, 324000, 327000, 329000, 332000, 335000] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '디스 플러스',       cat: 'P (생산)',     vals: [125000, 130000, 132000, 130000, 128000, 130000, 135000] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '디스 플러스',       cat: 'S (출하)',     vals: [122000, 128500, 130500, 128500, 126500, 128500, 133500] },
+  { CATEGORY: '신탄진공장', ITEM_NM: '디스 플러스',       cat: 'I (재고)',     vals: [185000, 186500, 188000, 189500, 191000, 192500, 194000] },
+  { CATEGORY: 'Almaty공장', ITEM_NM: 'TIME',              cat: 'P (생산)',     vals: [42000,  45000,  48000,  50000,  52000,  55000,  58000] },
+  { CATEGORY: 'Almaty공장', ITEM_NM: 'TIME',              cat: 'S (출하)',     vals: [38000,  43000,  47000,  49500,  51500,  54500,  57500] },
+  { CATEGORY: 'Almaty공장', ITEM_NM: 'TIME',              cat: 'I (재고)',     vals: [75000,  77000,  78000,  78500,  79000,  79500,  80000] },
 ];
 
-const MEASURE_COLOR = { PLAN: 'primary', ACTUAL: 'success', INV: 'warning' };
-const fmtN = (n) => n == null ? '-' : n.toLocaleString();
+const CAT_COLOR = { 'P (생산)': '#1565c0', 'S (출하)': '#10b981', 'I (재고)': '#f59e0b' };
 
-export default function RptPsiWorkingMockup() {
-  const [tab, setTab] = useState(0);
+export default function KtngRptPsiWorkingMockup() {
+  const [tab, setTab] = React.useState(0);
   return (
-    <MockShell patternCode="ktng_rpt_psi_working" patternLabel="KTNG — Working Report PSI (RptKtng16~22)"
-      layoutCategory="LAYOUT_SINGLE" description="7개 채널 PSI / 계획 vs 실적 — 거점 × 품목군 × 주차별 PLAN/ACTUAL/INV. 미래 주차는 ACTUAL 비어있음.">
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="버전" size="small" select value="V2026-05" sx={{ width: 140 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-W18 ~ W25" sx={{ width: 170 }} />
-          <TextField label="거점" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-          </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>Excel</Button>
-        </Stack>
-      </Box>
-
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
-          {CHANNELS.map((c) => <Tab key={c.key} label={c.label} />)}
+    <MockShell
+      patternCode="ktng_rpt_psi_working"
+      patternLabel="KTNG — RPT PSI 작업 리포트 (7 메뉴)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="7개 PSI 작업 리포트 묶음 (생산 PSI / 생산-실적 / Global PSI 4종 / 판매-실적). CATEGORY × ITEM × MEASURE(P=생산/S=출하/I=재고) × 월별 7개."
+    >
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
+          {TABS.map((t) => (
+            <Tab key={t.code} label={<Stack direction="row" spacing={1} alignItems="center"><span>{t.label}</span><Chip label={t.menu} size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+          ))}
         </Tabs>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1, overflow: 'auto' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Chip size="small" label="PLAN" color="primary" variant="outlined" />
-          <Chip size="small" label="ACTUAL" color="success" variant="outlined" />
-          <Chip size="small" label="INV" color="warning" variant="outlined" />
-          <Box sx={{ flexGrow: 1 }} />
-          <Chip size="small" label={`채널: ${CHANNELS[tab].label}`} color="info" variant="outlined" />
-          <Typography variant="caption" color="text.secondary">현재 주차: W21 (실적 미래 주차는 미입력)</Typography>
+      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="VERSION_ID" size="small" select value="V2026-06" sx={{ width: 170 }}><MenuItem value="V2026-06">V2026-06</MenuItem></TextField>
+          <TextField label="CATEGORY" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="ITEM" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="기간" size="small" value="2026-06 ~ 12" sx={{ width: 160 }} />
         </Stack>
+      </Box>
 
-        <Paper variant="outlined" sx={{ flex: 1, overflow: 'auto' }}>
-          <TableContainer>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end' }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+      </Box>
+
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {FIXED.map((c) => (
-                    <TableCell key={c.name} sx={{ backgroundColor: 'grey.200', width: c.width, fontWeight: 700, position: c.sticky ? 'sticky' : undefined, left: c.sticky ? 0 : undefined, zIndex: c.sticky ? 3 : 2 }}>
-                      {c.label}
-                    </TableCell>
-                  ))}
-                  {WEEKS.map((w, j) => (
-                    <TableCell key={w} sx={{ backgroundColor: j < 4 ? 'grey.100' : '#e3f2fd', fontWeight: 700, textAlign: 'right', fontFamily: 'monospace', minWidth: 80 }}>
-                      {w}{j < 4 ? '' : ' *'}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ROWS.map((r, i) => (
-                  <TableRow key={i} hover sx={{ backgroundColor: i % 3 === 2 ? 'grey.50' : 'transparent' }}>
-                    {FIXED.map((c) => (
-                      <TableCell key={c.name} sx={{
-                        position: c.sticky ? 'sticky' : undefined,
-                        left: c.sticky ? 0 : undefined,
-                        backgroundColor: c.sticky ? (i % 3 === 2 ? '#fafafa' : '#fff') : undefined,
-                        zIndex: c.sticky ? 1 : undefined,
-                        fontWeight: c.name === 'MEASURE' ? 700 : 400,
-                        color: c.name === 'MEASURE' ? `${MEASURE_COLOR[r.MEASURE]}.main` : 'inherit',
-                      }}>
-                        {r[c.name]}
-                      </TableCell>
-                    ))}
-                    {r.vals.map((v, j) => (
-                      <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
-                        {fmtN(v)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+              <TableHead><TableRow>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>CATEGORY</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_NM</TableCell>
+                <TableCell sx={{ bgcolor: '#fffbe6', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>MEASURE</TableCell>
+                {DATE_COLS.map((d) => (
+                  <TableCell key={d} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>{d.slice(2)}</TableCell>
                 ))}
+              </TableRow></TableHead>
+              <TableBody>
+                {ROWS.map((r, i) => {
+                  const isFirstOfBlock = i % 3 === 0;
+                  return (
+                    <TableRow key={i} hover sx={{ borderTop: isFirstOfBlock ? '2px solid #e5e7eb' : undefined }}>
+                      <TableCell sx={{ fontSize: 11 }}>{isFirstOfBlock ? r.CATEGORY : ''}</TableCell>
+                      <TableCell sx={{ fontSize: 11 }}>{isFirstOfBlock ? r.ITEM_NM : ''}</TableCell>
+                      <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, textAlign: 'center', color: CAT_COLOR[r.cat] }}>{r.cat}</TableCell>
+                      {r.vals.map((v, j) => (
+                        <TableCell key={j} sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{v.toLocaleString()}</TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
-        <Typography variant="caption" color="text.secondary">* 미래 주차 (현재 W21 기준)</Typography>
       </Box>
     </MockShell>
   );

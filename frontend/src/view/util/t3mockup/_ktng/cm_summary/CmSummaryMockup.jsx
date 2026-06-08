@@ -1,186 +1,129 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, Checkbox, FormControlLabel,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import DownloadIcon from '@mui/icons-material/Download';
+import CalculateIcon from '@mui/icons-material/Calculate';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// KTNG 공헌이익 — CmKtng01~11. Summary + 비용 항목 breakdown (재료비/마킹비/하이퍼/물류비/관세/원화가 등)
+// KTNG — CM 공헌이익 Summary
+// UI_CM_KTNG_01 → CmKtng01.jsx
+//   SearchArea: FROM/TO MONTH, PROD_CNTRY(multi), SALES_CNTRY(multi), ITEM, 5 체크박스
+//   ButtonArea Right: UNIT_PAC_KRW 라벨 + [CALC_CM] 버튼
+//   Grid: 27 컬럼 (BASE_YM/품목/생산국/판매국/단가/원가/마진/하이퍼인플레/물류비(SEA/TRUCK)/관세(AMT/PCT)/CM_AMT/CM_RATE + 점검대상)
 
-const KPI_TOP = [
-  { label: '매출 (Revenue)',       value: '482.5M', delta: '+5.2%', color: 'primary' },
-  { label: '공헌이익 (CM)',         value: '156.3M', delta: '+3.1%', color: 'success' },
-  { label: '공헌이익율 (CM%)',     value: '32.4%',  delta: '-0.6pp', color: 'info'    },
-  { label: '재료비율 (Material%)', value: '41.2%',  delta: '+1.2pp', color: 'warning' },
+const ROWS = [
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-ESSE-INTL',  ITEM_NM: 'ESSE Asian',     ITEM_SHAPE: 'KS',     PROD_CNTRY: '한국',      SALES_CNTRY: '대만',    RTS_ACT: '2026-06-15', INCOTERMS: 'FOB', NET_UTPIC: 2850, MAT_COST: 850,  MARKUP: 15.0, HYPER: 0,    FINAL_MAT_COST: 977.5,  SEA: 12, TRUCK: 8,  TARIFF_AMT: 285,  TARIFF_PCT: 10.0, CM_AMT: 1567.5, CM_RATE: 55.0, CHECK: true,  DP_YN: true,  EOD: false },
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-ESSE-INTL',  ITEM_NM: 'ESSE Asian',     ITEM_SHAPE: 'KS',     PROD_CNTRY: '한국',      SALES_CNTRY: '미국',    RTS_ACT: '2026-06-20', INCOTERMS: 'CIF', NET_UTPIC: 3200, MAT_COST: 850,  MARKUP: 12.0, HYPER: 0,    FINAL_MAT_COST: 952.0,  SEA: 45, TRUCK: 15, TARIFF_AMT: 0,    TARIFF_PCT: 0,    CM_AMT: 2188.0, CM_RATE: 68.4, CHECK: true,  DP_YN: true,  EOD: false },
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-1MG-INTL',   ITEM_NM: 'THE ONE',        ITEM_SHAPE: 'PREMIUM', PROD_CNTRY: '한국',      SALES_CNTRY: '유럽',    RTS_ACT: '2026-07-01', INCOTERMS: 'CIF', NET_UTPIC: 3850, MAT_COST: 1020, MARKUP: 14.0, HYPER: 0,    FINAL_MAT_COST: 1162.8, SEA: 58, TRUCK: 22, TARIFF_AMT: 770,  TARIFF_PCT: 20.0, CM_AMT: 1837.2, CM_RATE: 47.7, CHECK: true,  DP_YN: true,  EOD: false },
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-DIS-INTL',   ITEM_NM: 'THIS',           ITEM_SHAPE: 'KS',     PROD_CNTRY: '한국',      SALES_CNTRY: '일본',    RTS_ACT: '2026-06-25', INCOTERMS: 'FOB', NET_UTPIC: 2950, MAT_COST: 880,  MARKUP: 15.0, HYPER: 0,    FINAL_MAT_COST: 1012.0, SEA: 8,  TRUCK: 5,  TARIFF_AMT: 0,    TARIFF_PCT: 0,    CM_AMT: 1925.0, CM_RATE: 65.3, CHECK: true,  DP_YN: true,  EOD: false },
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-TIME-INTL', ITEM_NM: 'TIME',           ITEM_SHAPE: 'KS',     PROD_CNTRY: '카자흐스탄', SALES_CNTRY: '러시아',  RTS_ACT: '2026-06-18', INCOTERMS: 'DAP', NET_UTPIC: 1850, MAT_COST: 620,  MARKUP: 18.0, HYPER: 25.0, FINAL_MAT_COST: 914.5,  SEA: 0,  TRUCK: 35, TARIFF_AMT: 92.5, TARIFF_PCT: 5.0,  CM_AMT: 808.0,  CM_RATE: 43.7, CHECK: true,  DP_YN: true,  EOD: false },
+  { BASE_YM: '2026-06', ITEM_CD: 'ITM-LSN-INTL',  ITEM_NM: 'LAISON',         ITEM_SHAPE: 'PREMIUM', PROD_CNTRY: '인도네시아', SALES_CNTRY: '베트남',  RTS_ACT: '2026-07-05', INCOTERMS: 'FOB', NET_UTPIC: 2100, MAT_COST: 720,  MARKUP: 14.0, HYPER: 0,    FINAL_MAT_COST: 820.8,  SEA: 18, TRUCK: 10, TARIFF_AMT: 210,  TARIFF_PCT: 10.0, CM_AMT: 1041.2, CM_RATE: 49.6, CHECK: false, DP_YN: true,  EOD: true  },
 ];
 
-// 생산지별 공헌이익 (Lvl 4)
-const PRODUCTION_SITES = [
-  { site: '신탄진 공장',  revenue: 180.5, cm: 65.2, cmPct: 36.1, material: 70.5, marking: 12.5, logistics: 8.2, tariff: 2.5, normalMat: 10.5, fx: 11.1 },
-  { site: '대전 공장',    revenue: 145.2, cm: 48.8, cmPct: 33.6, material: 62.8, marking: 11.2, logistics: 7.1, tariff: 2.1, normalMat:  8.8, fx:  4.4 },
-  { site: '광주 공장',    revenue:  98.4, cm: 28.7, cmPct: 29.2, material: 44.8, marking:  8.2, logistics: 6.8, tariff: 1.8, normalMat:  5.9, fx:  2.2 },
-  { site: '글로벌 인도네시아', revenue: 58.4,  cm: 13.6, cmPct: 23.3, material: 28.1, marking:  4.8, logistics: 8.5, tariff: 1.8, normalMat:  1.0, fx:  0.6 },
-];
-
-const SITE_COLUMNS = [
-  { name: 'site',       label: '생산지',         width: 150, align: 'left' },
-  { name: 'revenue',    label: '매출',            width: 90,  align: 'right', fmt: 'm' },
-  { name: 'material',   label: '재료비',           width: 90,  align: 'right', fmt: 'm' },
-  { name: 'marking',    label: '마킹비',           width: 80,  align: 'right', fmt: 'm' },
-  { name: 'logistics',  label: '물류비',           width: 80,  align: 'right', fmt: 'm' },
-  { name: 'tariff',     label: '관세',             width: 70,  align: 'right', fmt: 'm' },
-  { name: 'normalMat',  label: '정상자재',         width: 80,  align: 'right', fmt: 'm' },
-  { name: 'fx',         label: '환산 (FX)',        width: 90,  align: 'right', fmt: 'm' },
-  { name: 'cm',         label: '공헌이익 (CM)',   width: 110, align: 'right', fmt: 'm', emphasize: true },
-  { name: 'cmPct',      label: 'CM%',             width: 80,  align: 'right', fmt: 'pct', emphasize: true },
-];
-
-const fmt = (v, type) => {
-  if (type === 'm') return v.toFixed(1) + 'M';
-  if (type === 'pct') return v.toFixed(1) + '%';
-  return v;
-};
-
-// 부문별 CM 차지
-const CM_BREAKDOWN = [
-  { cat: '재료비',     amt: 206.2, color: '#f59e0b' },
-  { cat: '마킹비',     amt:  36.7, color: '#8b5cf6' },
-  { cat: '물류비',     amt:  30.6, color: '#ef4444' },
-  { cat: '관세',       amt:   8.2, color: '#06b6d4' },
-  { cat: '정상자재',   amt:  26.2, color: '#10b981' },
-  { cat: 'FX',         amt:  18.3, color: '#3b82f6' },
-];
-const totalCost = CM_BREAKDOWN.reduce((s, x) => s + x.amt, 0);
-
-function KpiCard({ label, value, delta, color }) {
-  return (
-    <Paper variant="outlined" sx={{ p: 1.5, flex: 1, minWidth: 0 }}>
-      <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: `${color}.main`, mt: 0.5 }}>{value}</Typography>
-      <Typography variant="caption" sx={{ color: delta.startsWith('-') ? 'error.main' : 'success.main', fontWeight: 600 }}>
-        {delta} vs 전월
-      </Typography>
-    </Paper>
-  );
-}
-
-function CostBreakdownChart() {
-  return (
-    <Paper variant="outlined" sx={{ p: 1.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>비용 항목별 비중 (전체 매출 대비)</Typography>
-      {/* Horizontal stacked bar */}
-      <Box sx={{ display: 'flex', height: 36, borderRadius: 1, overflow: 'hidden', border: '1px solid', borderColor: 'divider', mb: 1.5 }}>
-        {CM_BREAKDOWN.map((c) => {
-          const pct = (c.amt / totalCost) * 100;
-          return (
-            <Box key={c.cat} sx={{ width: `${pct}%`, backgroundColor: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700, fontFamily: 'monospace', fontSize: 11 }}>
-                {pct.toFixed(0)}%
-              </Typography>
-            </Box>
-          );
-        })}
-      </Box>
-      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ rowGap: 0.5 }}>
-        {CM_BREAKDOWN.map((c) => (
-          <Stack key={c.cat} direction="row" alignItems="center" spacing={0.5}>
-            <Box sx={{ width: 10, height: 10, backgroundColor: c.color, borderRadius: 0.5 }} />
-            <Typography variant="caption">{c.cat}</Typography>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>{c.amt.toFixed(1)}M</Typography>
-          </Stack>
-        ))}
-      </Stack>
-    </Paper>
-  );
-}
-
-export default function ContributionMarginMockup() {
+export default function KtngCmSummaryMockup() {
   return (
     <MockShell
-      patternCode="ktng_contribution_margin"
-      patternLabel="KTNG — 공헌이익 (Contribution Margin)"
+      patternCode="ktng_cm_summary"
+      patternLabel="KTNG — CM 공헌이익 Summary"
       layoutCategory="LAYOUT_SINGLE"
-      description="KTNG 공헌이익 화면 CmKtng01~11 공통 패턴. Summary KPI + 비용 항목별 breakdown(재료비/마킹비/물류비/관세/정상자재/FX) + 생산지별 Lvl 4 그리드."
+      description="UI_CM_KTNG_01 → CmKtng01.jsx. SearchArea (FROM/TO MONTH · PROD_CNTRY multi · SALES_CNTRY multi · ITEM · 5 체크박스) + 우측 [CALC_CM] 버튼. Grid 27 컬럼 (BASE_YM/품목/생산국/판매국/INCOTERMS/단가/원가/마진/하이퍼인플레/물류비(SEA/TRUCK)/관세(AMT/PCT)/CM_AMT/CM_RATE + 점검대상 체크박스). 셀 데이터는 KTNG 도메인 (에쎄/디스/타임/레종 × 한국/카자흐/인니 생산 × 대만/미국/유럽/일본/러시아 판매)."
     >
       {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="회계 연월" size="small" value="2026-05" sx={{ width: 130 }} />
-          <TextField label="법인" size="small" select value="KR" sx={{ width: 130 }}>
-            <MenuItem value="KR">KT&G 국내</MenuItem>
-            <MenuItem value="GLOBAL">KT&G GLOBAL</MenuItem>
-            <MenuItem value="ALL">전체</MenuItem>
+          <TextField label="FROM_MONTH" size="small" select value="2026-04" sx={{ width: 130 }}>
+            <MenuItem value="2026-04">2026-04</MenuItem>
           </TextField>
-          <TextField label="생산지 (Lvl 4)" size="small" select value="ALL" sx={{ width: 160 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="SH">신탄진 공장</MenuItem>
-            <MenuItem value="DJ">대전 공장</MenuItem>
-            <MenuItem value="GJ">광주 공장</MenuItem>
+          <TextField label="TO_MONTH" size="small" select value="2026-06" sx={{ width: 130 }}>
+            <MenuItem value="2026-06">2026-06</MenuItem>
           </TextField>
-          <TextField label="품목 그룹" size="small" select value="ALL" sx={{ width: 140 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="TC">담배</MenuItem>
-            <MenuItem value="NGP">NGP</MenuItem>
-          </TextField>
-          <TextField label="통화" size="small" select value="KRW" sx={{ width: 100 }}>
-            <MenuItem value="KRW">KRW</MenuItem>
-            <MenuItem value="USD">USD</MenuItem>
-          </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+          <TextField label="PROD_CNTRY" size="small" value="한국, 카자흐스탄, 인도네시아" sx={{ width: 220 }} />
+          <TextField label="SALES_CNTRY" size="small" value="ALL" sx={{ width: 160 }} />
+          <TextField label="ITEM" size="small" value="" placeholder="브랜드 검색"
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }}
+            sx={{ width: 200 }} />
+          <FormControlLabel control={<Checkbox size="small" />} label={<Typography sx={{ fontSize: 11 }}>EXCEPT_EOD</Typography>} />
+          <FormControlLabel control={<Checkbox size="small" defaultChecked />} label={<Typography sx={{ fontSize: 11 }}>DATA_CHECK</Typography>} />
+          <FormControlLabel control={<Checkbox size="small" defaultChecked />} label={<Typography sx={{ fontSize: 11 }}>CM_CHECK</Typography>} />
+          <FormControlLabel control={<Checkbox size="small" />} label={<Typography sx={{ fontSize: 11 }}>DP_CHECK</Typography>} />
+          <FormControlLabel control={<Checkbox size="small" />} label={<Typography sx={{ fontSize: 11 }}>NEW_ITEM</Typography>} />
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'auto' }}>
-        {/* Top KPI */}
-        <Stack direction="row" spacing={1.5}>
-          {KPI_TOP.map((k) => <KpiCard key={k.label} {...k} />)}
-        </Stack>
+      {/* ButtonArea */}
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ flexGrow: 1 }} />
+        <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>단위: KRW (PAC)</Typography>
+        <Button size="small" variant="contained" color="primary" startIcon={<CalculateIcon />}>CALC_CM</Button>
+      </Box>
 
-        {/* Cost breakdown chart */}
-        <Box sx={{ height: 150 }}>
-          <CostBreakdownChart />
-        </Box>
-
-        {/* 생산지별 Lvl 4 그리드 */}
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-          <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>생산지별 (Lvl 4) 공헌이익</Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            <Chip size="small" label={`${PRODUCTION_SITES.length} sites`} />
-            <Button size="small" startIcon={<DownloadIcon />} sx={{ ml: 1 }}>Excel</Button>
-          </Box>
-          <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
+      {/* Grid */}
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
               <TableHead>
+                {/* 그룹 헤더 */}
                 <TableRow>
-                  {SITE_COLUMNS.map((c) => (
-                    <TableCell key={c.name}
-                      sx={{ backgroundColor: c.emphasize ? 'success.light' : 'grey.100', width: c.width, fontWeight: 700, textAlign: c.align }}>
-                      {c.label}
-                    </TableCell>
+                  <TableCell colSpan={6} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>기준 정보</TableCell>
+                  <TableCell colSpan={2} sx={{ bgcolor: '#dbeafe', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>출하 / INCOTERMS</TableCell>
+                  <TableCell colSpan={3} sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>단가 / 원가</TableCell>
+                  <TableCell colSpan={1} sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>HYPER</TableCell>
+                  <TableCell colSpan={1} sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>최종</TableCell>
+                  <TableCell colSpan={2} sx={{ bgcolor: '#fce7f3', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>LOGI_COST</TableCell>
+                  <TableCell colSpan={2} sx={{ bgcolor: '#fce7f3', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>TARIFF</TableCell>
+                  <TableCell colSpan={2} sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>CM</TableCell>
+                  <TableCell colSpan={3} sx={{ bgcolor: '#f3e8ff', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>CHECK_TARGET</TableCell>
+                </TableRow>
+                <TableRow>
+                  {['BASE_YM', 'ITEM_CD', 'ITEM_NM', 'SHAPE', 'PROD_CNTRY', 'SALES_CNTRY'].map((h) => (
+                    <TableCell key={h} sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'center' }}>{h}</TableCell>
+                  ))}
+                  {['RTS_ACT_DD', 'INCOTERMS'].map((h) => (
+                    <TableCell key={h} sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'center' }}>{h}</TableCell>
+                  ))}
+                  {['NET_UTPIC', 'MAT_COST', 'MARKUP%'].map((h) => (
+                    <TableCell key={h} sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>{h}</TableCell>
+                  ))}
+                  <TableCell sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>HYPER%</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>FINAL_MAT</TableCell>
+                  {['SEA', 'TRUCK', 'TRF_AMT', 'TRF_PCT'].map((h) => (
+                    <TableCell key={h} sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>{h}</TableCell>
+                  ))}
+                  <TableCell sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>CM_AMT</TableCell>
+                  <TableCell sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 10, textAlign: 'right', fontFamily: 'monospace' }}>CM_RATE</TableCell>
+                  {['CM_CHK', 'DP_YN', 'EOD_YN'].map((h) => (
+                    <TableCell key={h} sx={{ bgcolor: 'grey.50', fontWeight: 700, fontSize: 10, textAlign: 'center' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PRODUCTION_SITES.map((row) => (
-                  <TableRow key={row.site} hover>
-                    {SITE_COLUMNS.map((c) => {
-                      const v = row[c.name];
-                      const display = c.fmt ? fmt(v, c.fmt) : v;
-                      // 운영 CmKtng01 styleCallback 식별자 컬럼 (BASE_YM) 대응:
-                      //   mockup 의 식별자 컬럼인 'site' (생산지) 에만 cellSx('info') 유지
-                      const sx = c.name === 'site'
-                        ? cellSx('info', { align: c.align })
-                        : {
-                            textAlign: c.align,
-                            fontFamily: c.fmt ? 'monospace' : 'inherit',
-                          };
-                      return <TableCell key={c.name} sx={sx}>{display}</TableCell>;
-                    })}
+                {ROWS.map((r, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center', fontFamily: 'monospace' }}>{r.BASE_YM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', color: '#1565c0', textDecoration: 'underline' }}>{r.ITEM_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_SHAPE}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}>{r.PROD_CNTRY}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}>{r.SALES_CNTRY}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center' }}>{r.RTS_ACT}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}>{r.INCOTERMS}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.NET_UTPIC.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.MAT_COST.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.MARKUP.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', color: r.HYPER > 0 ? '#ef4444' : '#d1d5db' }}>{r.HYPER > 0 ? `${r.HYPER.toFixed(1)}%` : '-'}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.FINAL_MAT_COST.toFixed(1)}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.SEA}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.TRUCK}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.TARIFF_AMT > 0 ? r.TARIFF_AMT.toLocaleString() : '-'}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.TARIFF_PCT > 0 ? `${r.TARIFF_PCT.toFixed(1)}%` : '-'}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, bgcolor: '#f0fdf4' }}>{r.CM_AMT.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, bgcolor: '#f0fdf4', color: r.CM_RATE >= 50 ? '#10b981' : '#f59e0b' }}>{r.CM_RATE.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.CHECK} disabled sx={{ p: 0.25 }} /></TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.DP_YN} disabled sx={{ p: 0.25 }} /></TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}><Checkbox size="small" checked={r.EOD} disabled sx={{ p: 0.25 }} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

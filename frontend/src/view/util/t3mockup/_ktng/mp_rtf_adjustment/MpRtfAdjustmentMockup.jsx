@@ -1,103 +1,74 @@
 import React from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, ButtonGroup, IconButton,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// MpKtng04 — RTF 조정. 공급 부족 발생 시 우선순위/할당량 수동 조정.
-// 운영 원본 styleCallback: LOCAT_CD, PROD_TYPE, PROD_SKU_NM, REQUEST_BY, PLAN_QTY,
-//                          RTF_QTY_FOOTER, PROD_INV_QTY_FOOTER, SAFE_INV_QTY (입력 가능 셀).
-//                          mockup 매칭 셀: ITEM_LV3 / ACCOUNT / REQUEST_QTY / ALLOC_QTY / NEW_ALLOC — info 톤.
+// KTNG — MP RTF (Ready To Fulfill) 조정
+// UI_MP_KTNG_04 → MpKtng04.jsx
+//   수요-공급 차이 조정 — 어떤 거래처/제품의 RTF 를 얼마나 조정할지
 
 const ROWS = [
-  { ITEM_LV3: 'KING-RED', ACCOUNT: 'CU',          REQUEST_QTY: 12500, ALLOC_QTY: 10500, GAP: -2000, NEW_ALLOC: 11000, PRIORITY: 'A' },
-  { ITEM_LV3: 'KING-RED', ACCOUNT: 'GS25',        REQUEST_QTY: 11800, ALLOC_QTY: 10000, GAP: -1800, NEW_ALLOC: 10500, PRIORITY: 'A' },
-  { ITEM_LV3: 'KING-RED', ACCOUNT: 'SEVEN',       REQUEST_QTY:  8200, ALLOC_QTY:  6500, GAP: -1700, NEW_ALLOC:  7000, PRIORITY: 'B' },
-  { ITEM_LV3: 'KING-BLU', ACCOUNT: 'CU',          REQUEST_QTY:  8800, ALLOC_QTY:  8800, GAP:     0, NEW_ALLOC:  8800, PRIORITY: 'A' },
-  { ITEM_LV3: 'NGP-DEV',  ACCOUNT: 'COUPANG',     REQUEST_QTY:  5500, ALLOC_QTY:  3200, GAP: -2300, NEW_ALLOC:  4500, PRIORITY: 'A' },
-  { ITEM_LV3: 'NGP-DEV',  ACCOUNT: 'SEVEN',       REQUEST_QTY:  4200, ALLOC_QTY:  2800, GAP: -1400, NEW_ALLOC:  3500, PRIORITY: 'A' },
-  { ITEM_LV3: 'EXPORT-K', ACCOUNT: '인도',        REQUEST_QTY: 16000, ALLOC_QTY: 16000, GAP:     0, NEW_ALLOC: 16000, PRIORITY: 'A' },
-  { ITEM_LV3: 'EXPORT-K', ACCOUNT: '인도네시아',   REQUEST_QTY: 12500, ALLOC_QTY: 11200, GAP: -1300, NEW_ALLOC: 11800, PRIORITY: 'B' },
+  { SALES_ORG: '국내영업본부', ACCOUNT: 'CU',         ITEM: '에쎄 스페셜 골드', WK: '2026-W24', DEMAND: 32500, SUPPLY: 30000, RTF_PCT: 92.3, ADJ_QTY: -2500, AFTER_RTF: 92.3 },
+  { SALES_ORG: '국내영업본부', ACCOUNT: 'GS25',       ITEM: '에쎄 스페셜 골드', WK: '2026-W24', DEMAND: 24000, SUPPLY: 24000, RTF_PCT: 100.0, ADJ_QTY: 0,     AFTER_RTF: 100.0 },
+  { SALES_ORG: '국내영업본부', ACCOUNT: '이마트',     ITEM: '디스 플러스',       WK: '2026-W24', DEMAND: 8200,  SUPPLY: 7500,  RTF_PCT: 91.5,  ADJ_QTY: -700,  AFTER_RTF: 91.5 },
+  { SALES_ORG: '수출본부',     ACCOUNT: 'TKK Global', ITEM: 'ESSE Asian',       WK: '2026-W24', DEMAND: 5500,  SUPPLY: 4800,  RTF_PCT: 87.3,  ADJ_QTY: -700,  AFTER_RTF: 87.3 },
+  { SALES_ORG: '수출본부',     ACCOUNT: 'Heinemann',  ITEM: 'THE ONE',          WK: '2026-W24', DEMAND: 2100,  SUPPLY: 1800,  RTF_PCT: 85.7,  ADJ_QTY: -300,  AFTER_RTF: 85.7 },
+  { SALES_ORG: '국내영업본부', ACCOUNT: 'CU',         ITEM: '릴 에이스 NGP',    WK: '2026-W24', DEMAND: 12500, SUPPLY: 10000, RTF_PCT: 80.0,  ADJ_QTY: -2500, AFTER_RTF: 80.0 },
 ];
 
-const SHORTAGE_COUNT = ROWS.filter((r) => r.GAP < 0).length;
-const TOTAL_GAP = ROWS.reduce((s, r) => s + r.GAP, 0);
-
-export default function MpRtfAdjustmentMockup() {
+export default function KtngMpRtfAdjustmentMockup() {
   return (
-    <MockShell patternCode="ktng_mp_rtf_adjustment" patternLabel="KTNG — RTF 조정 (MpKtng04)"
-      layoutCategory="LAYOUT_SINGLE" description="RTF 부족 발생 시 거래처 우선순위 기반 할당량 수동 조정. 입력 가능 셀에 info 톤.">
+    <MockShell
+      patternCode="ktng_mp_rtf_adjustment"
+      patternLabel="KTNG — MP RTF 조정"
+      layoutCategory="LAYOUT_SINGLE"
+      description="UI_MP_KTNG_04 → MpKtng04.jsx. 주차별 거래처-품목 RTF (Ready To Fulfill) — 수요 대비 공급 가용 비율. ADJ_QTY 로 분배 조정 가능. RTF &lt; 85% = 경고."
+    >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="버전" size="small" select value="V2026-05" sx={{ width: 140 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem>
-          </TextField>
-          <TextField label="ITEM_LV3" size="small" value="" placeholder="품목 검색" sx={{ width: 160 }} />
-          <TextField label="부족 필터" size="small" select value="short" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="short">부족만</MenuItem>
-            <MenuItem value="normal">정상만</MenuItem>
-          </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<AutoFixHighIcon />} color="warning">우선순위 자동 재할당</Button>
-          <Button variant="contained" size="small" startIcon={<SaveIcon />} color="primary">조정 저장</Button>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="WK" size="small" select value="2026-W24" sx={{ width: 130 }}><MenuItem value="2026-W24">2026-W24</MenuItem></TextField>
+          <TextField label="SALES_ORG" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="ACCOUNT" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="RTF 임계치" size="small" select value="85" sx={{ width: 130 }}><MenuItem value="85">≥ 85%</MenuItem></TextField>
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        <Stack direction="row" spacing={1.5}>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, backgroundColor: 'error.50' }}>
-            <Typography variant="caption">부족 항목</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'error.main' }}>{SHORTAGE_COUNT} 건</Typography>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, backgroundColor: 'warning.50' }}>
-            <Typography variant="caption">총 부족량</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'warning.main' }}>{TOTAL_GAP.toLocaleString()}</Typography>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, backgroundColor: 'info.50' }}>
-            <Typography variant="caption">조정 후 충족율</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'info.main' }}>91.2%</Typography>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-            <Typography variant="caption">미저장 변경</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>6 셀</Typography>
-          </Paper>
-        </Stack>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        <ButtonGroup variant="outlined" size="small"><IconButton size="small" color="primary"><SaveIcon fontSize="small" /></IconButton></ButtonGroup>
+      </Box>
 
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>RTF 조정 상세</Typography>
-          </Box>
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['ITEM_LV3','ACCOUNT','요청량','현 할당','GAP','조정 할당 (편집)','우선순위'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: ['요청량','현 할당','GAP','조정 할당 (편집)'].includes(c) ? 'right' : (c === '우선순위' ? 'center' : 'left') }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+              <TableHead><TableRow>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>SALES_ORG</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ACCOUNT</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>WEEK</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>DEMAND</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>SUPPLY</TableCell>
+                <TableCell sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>RTF_%</TableCell>
+                <TableCell sx={{ bgcolor: '#fee2e2', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>ADJ_QTY</TableCell>
+                <TableCell sx={{ bgcolor: '#dcfce7', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>AFTER_RTF%</TableCell>
+              </TableRow></TableHead>
               <TableBody>
                 {ROWS.map((r, i) => (
-                  // 운영 MpKtng04 styleCallback: 입력 가능 셀 (LOCAT_CD/PROD_SKU_NM/REQUEST_BY/PLAN_QTY/RTF_QTY 등)
-                  //   → mockup 매칭: ITEM_LV3 / ACCOUNT / REQUEST_QTY / ALLOC_QTY / NEW_ALLOC
-                  <TableRow key={i} hover>
-                    <TableCell sx={cellSx('info', { mono: true })}>{r.ITEM_LV3}</TableCell>
-                    <TableCell sx={cellSx('info')}>{r.ACCOUNT}</TableCell>
-                    <TableCell sx={cellSx('info', { mono: true, align: 'right' })}>{r.REQUEST_QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={cellSx('info', { mono: true, align: 'right' })}>{r.ALLOC_QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>
-                      {r.GAP > 0 ? '+' : ''}{r.GAP.toLocaleString()}
-                    </TableCell>
-                    <TableCell sx={cellSx('info', { mono: true, align: 'right' })}>
-                      {r.NEW_ALLOC.toLocaleString()}
-                    </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.PRIORITY} color={r.PRIORITY === 'A' ? 'error' : r.PRIORITY === 'B' ? 'warning' : 'default'} variant="outlined" /></TableCell>
+                  <TableRow key={i} hover sx={{ bgcolor: r.RTF_PCT < 85 ? '#fef2f2' : 'transparent' }}>
+                    <TableCell sx={{ fontSize: 11 }}>{r.SALES_ORG}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ACCOUNT}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center' }}>{r.WK}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.DEMAND.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.SUPPLY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, color: r.RTF_PCT >= 95 ? '#10b981' : r.RTF_PCT >= 85 ? '#f59e0b' : '#ef4444' }}>{r.RTF_PCT.toFixed(1)}%</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', color: r.ADJ_QTY < 0 ? '#ef4444' : r.ADJ_QTY > 0 ? '#3b82f6' : '#9ca3af' }}>{r.ADJ_QTY > 0 ? '+' : ''}{r.ADJ_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, bgcolor: '#f0fdf4', color: r.AFTER_RTF >= 95 ? '#10b981' : '#f59e0b' }}>{r.AFTER_RTF.toFixed(1)}%</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

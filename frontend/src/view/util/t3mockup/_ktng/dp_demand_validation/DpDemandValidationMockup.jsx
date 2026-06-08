@@ -1,131 +1,105 @@
-import React, { useState } from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Tabs, Tab, Typography, Paper,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
+import React from 'react';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, Button,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import DownloadIcon from '@mui/icons-material/Download';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MockShell from '../../_shared/MockShell';
-import { cellSx, percentStatus, deltaStatus } from '../../_shared/styleCallback';
 
-// DpKtng15 (수출 수요 적정성 점검), DpKtng17 (내수 수요 적정성 점검)
-// 적정성 룰별 점검 결과 + 위반 항목 그리드
+// KTNG — DP 수요 적정성 점검
+//  Tab 1: UI_DP_KTNG_15 수출 수요 적정성 점검 → DpKtng15.jsx
+//  Tab 2: UI_DP_KTNG_17 내수 수요 적정성 점검 → DpKtng17.jsx
 
-const RULES = [
-  { rule: '전년 동월 대비 ±30% 초과', pass: 142, fail: 8,  pct: 94.7 },
-  { rule: '전월 대비 ±50% 초과',      pass: 138, fail: 12, pct: 92.0 },
-  { rule: '안전재고 미달 예상',        pass: 135, fail: 15, pct: 90.0 },
-  { rule: 'PSI 음수 발생',             pass: 148, fail: 2,  pct: 98.7 },
-  { rule: 'EOP 후 입력값 존재',        pass: 150, fail: 0,  pct: 100  },
+const EXP_ROWS = [
+  { SALES_CNTRY: '대만',     ITEM_NM: 'ESSE Asian',  HIST_AVG_3M: 14800, PLAN_QTY: 16500, DIFF_PCT: 11.5,  ZONE: 'WARN',   REMARK: '계획 +11.5% (HIST 대비)' },
+  { SALES_CNTRY: '미국',     ITEM_NM: 'ESSE Asian',  HIST_AVG_3M: 41500, PLAN_QTY: 42500, DIFF_PCT: 2.4,   ZONE: 'NORMAL', REMARK: '' },
+  { SALES_CNTRY: '러시아',   ITEM_NM: 'TIME',        HIST_AVG_3M: 28000, PLAN_QTY: 38500, DIFF_PCT: 37.5,  ZONE: 'ALERT',  REMARK: '계획 급증 — 검토 필요' },
+  { SALES_CNTRY: '인도네시아', ITEM_NM: 'LAISON',    HIST_AVG_3M: 18500, PLAN_QTY: 17800, DIFF_PCT: -3.8,  ZONE: 'NORMAL', REMARK: '' },
+  { SALES_CNTRY: '독일',     ITEM_NM: 'THE ONE',     HIST_AVG_3M: 8200,  PLAN_QTY: 5500,  DIFF_PCT: -32.9, ZONE: 'ALERT',  REMARK: '계획 급감 — 마케팅 사유 확인' },
+  { SALES_CNTRY: '베트남',   ITEM_NM: 'ESSE',        HIST_AVG_3M: 22000, PLAN_QTY: 22500, DIFF_PCT: 2.3,   ZONE: 'NORMAL', REMARK: '' },
 ];
 
-const VIOLATIONS = [
-  { ITEM_CD: 'TL-RD-001', ACCOUNT: 'CU',      PERIOD: '2026-06', PLAN: 12500000, REF: 18500000, DIFF: -32.4, RULE: '전년 ±30%',   SEVERITY: 'high' },
-  { ITEM_CD: 'TL-BL-005', ACCOUNT: 'GS25',    PERIOD: '2026-06', PLAN:  8800000, REF: 14000000, DIFF: -37.1, RULE: '전년 ±30%',   SEVERITY: 'high' },
-  { ITEM_CD: 'NGP-DEV',   ACCOUNT: 'SEVEN',   PERIOD: '2026-07', PLAN:  9500000, REF:  5800000, DIFF: +63.8, RULE: '전월 ±50%',   SEVERITY: 'high' },
-  { ITEM_CD: 'TL-RD-002', ACCOUNT: 'EMART',   PERIOD: '2026-08', PLAN:  4200000, REF:  3500000, DIFF: -8.5,  RULE: '안전재고',     SEVERITY: 'mid' },
-  { ITEM_CD: 'TL-EX-512', ACCOUNT: '인도네시아', PERIOD: '2026-09', PLAN: 18000000, REF: 22000000, DIFF: -18.2, RULE: '안전재고',     SEVERITY: 'mid' },
-  { ITEM_CD: 'TL-MN-901', ACCOUNT: '몽골',     PERIOD: '2026-07', PLAN:        0, REF:  2500000, DIFF: -100, RULE: 'PSI 음수',     SEVERITY: 'low' },
+const DOM_ROWS = [
+  { CHANNEL: '편의점', BUYER: 'BGF리테일', ITEM_NM: '에쎄 스페셜 골드',  HIST_AVG_3M: 122000, PLAN_QTY: 125000, DIFF_PCT: 2.5,   ZONE: 'NORMAL', REMARK: '' },
+  { CHANNEL: '편의점', BUYER: 'GS리테일',  ITEM_NM: '에쎄 스페셜 골드',  HIST_AVG_3M: 95000,  PLAN_QTY: 96800,  DIFF_PCT: 1.9,   ZONE: 'NORMAL', REMARK: '' },
+  { CHANNEL: '슈퍼',   BUYER: '이마트',    ITEM_NM: '디스 플러스',       HIST_AVG_3M: 30200,  PLAN_QTY: 32500,  DIFF_PCT: 7.6,   ZONE: 'WARN',   REMARK: '여름 캠페인 반영' },
+  { CHANNEL: '편의점', BUYER: 'BGF리테일', ITEM_NM: '릴 에이스 NGP',    HIST_AVG_3M: 65000,  PLAN_QTY: 85000,  DIFF_PCT: 30.8,  ZONE: 'ALERT',  REMARK: 'NGP 신제품 런칭' },
+  { CHANNEL: '슈퍼',   BUYER: '롯데마트',  ITEM_NM: '더원 오렌지',       HIST_AVG_3M: 27500,  PLAN_QTY: 28000,  DIFF_PCT: 1.8,   ZONE: 'NORMAL', REMARK: '' },
+  { CHANNEL: '편의점', BUYER: '코리아세븐', ITEM_NM: '레종 (구형)',      HIST_AVG_3M: 18000,  PLAN_QTY: 0,      DIFF_PCT: -100,  ZONE: 'EOL',    REMARK: '단종 — 2026-03-31 EOP' },
 ];
 
-const SEV_COLOR = { high: 'error', mid: 'warning', low: 'info' };
-const SEV_TONE  = { high: 'danger', mid: 'warning', low: 'info' };
+const ZONE_COLOR = { NORMAL: '#10b981', WARN: '#f59e0b', ALERT: '#ef4444', EOL: '#6b7280' };
 
-const VAL_TAB_LABELS = ['수출 (DpKtng15)', '내수 (DpKtng17)'];
-
-export default function DpDemandValidationMockup() {
-  const [tab, setTab] = useState(0);
+export default function KtngDpDemandValidationMockup() {
+  const [tab, setTab] = React.useState(0);
+  const rows = tab === 0 ? EXP_ROWS : DOM_ROWS;
+  const alerts = rows.filter((r) => r.ZONE === 'ALERT' || r.ZONE === 'WARN').length;
   return (
-    <MockShell patternCode="ktng_dp_demand_validation" patternLabel="KTNG — 수요 적정성 점검 (DpKtng15/17)"
-      layoutCategory="LAYOUT_SINGLE" description="수출/내수 수요 계획의 적정성 룰별 통과/실패 + 위반 품목 상세 리스트.">
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="버전" size="small" select value="V2026-05" sx={{ width: 140 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem><MenuItem value="V2026-04">V2026-04</MenuItem>
-          </TextField>
-          <TextField label="SALES_ORG" size="small" select value="KT&G" sx={{ width: 140 }}>
-            <MenuItem value="KT&G">국내</MenuItem><MenuItem value="GLOBAL">GLOBAL</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-06 ~ 2026-12" sx={{ width: 180 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>점검 실행</Button>
-        </Stack>
-      </Box>
-
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          {VAL_TAB_LABELS.map((l) => <Tab key={l} label={l} />)}
+    <MockShell
+      patternCode="ktng_dp_demand_validation"
+      patternLabel="KTNG — DP 수요 적정성 점검 (수출/내수)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="UI_DP_KTNG_15 수출 + UI_DP_KTNG_17 내수 수요 적정성 점검. HIST 평균(3M) vs PLAN_QTY 차이율(DIFF_PCT) + ZONE 분류 (NORMAL / WARN / ALERT / EOL). 셀 데이터는 KTNG 도메인 (수출: 대만/미국/러시아/독일/베트남, 내수: 편의점/슈퍼 × 에쎄/디스/더원/NGP/단종)."
+    >
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>수출 수요 적정성</span><Chip label="UI_DP_KTNG_15" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
+          <Tab label={<Stack direction="row" spacing={1} alignItems="center"><span>내수 수요 적정성</span><Chip label="UI_DP_KTNG_17" size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} /></Stack>} />
         </Tabs>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        {/* Summary */}
-        <Stack direction="row" spacing={1.5}>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, textAlign: 'center', backgroundColor: 'success.50' }}>
-            <CheckCircleIcon color="success" sx={{ fontSize: 36 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'success.main' }}>713</Typography>
-            <Typography variant="caption">통과 (95.1%)</Typography>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 1, textAlign: 'center', backgroundColor: 'error.50' }}>
-            <WarningAmberIcon color="error" sx={{ fontSize: 36 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'error.main' }}>37</Typography>
-            <Typography variant="caption">실패 (4.9%)</Typography>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 1.5, flex: 2 }}>
-            <Typography variant="caption" color="text.secondary">룰별 통과율</Typography>
-            {RULES.map((r) => {
-              const pctTone = percentStatus(r.pct);
-              return (
-                <Stack key={r.rule} direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
-                  <Typography variant="caption" sx={{ minWidth: 180 }}>{r.rule}</Typography>
-                  <Box sx={{ flex: 1, height: 8, backgroundColor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
-                    <Box sx={{ width: `${r.pct}%`, height: '100%', backgroundColor: r.pct >= 95 ? '#10b981' : r.pct >= 90 ? '#f59e0b' : '#ef4444' }} />
-                  </Box>
-                  <Box component="span" sx={{ ...cellSx(pctTone, { mono: true, align: 'right' }), display: 'inline-block', minWidth: 50, px: 0.5, borderRadius: 0.5, fontSize: 12 }}>{r.pct}%</Box>
-                </Stack>
-              );
-            })}
-          </Paper>
+      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="BASE_YM" size="small" select value="2026-06" sx={{ width: 130 }}><MenuItem value="2026-06">2026-06</MenuItem></TextField>
+          <TextField label="VERSION_ID" size="small" select value="V2026-06_SIM" sx={{ width: 170 }}><MenuItem value="V2026-06_SIM">V2026-06_SIM</MenuItem></TextField>
+          {tab === 0 ? <TextField label="SALES_CNTRY" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+                     : <TextField label="CHANNEL" size="small" select value="ALL" sx={{ width: 140 }}><MenuItem value="ALL">전체</MenuItem></TextField>}
+          <TextField label="ZONE" size="small" select value="ALL" sx={{ width: 130 }}>
+            <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="ALERT">ALERT</MenuItem>
+            <MenuItem value="WARN">WARN</MenuItem>
+          </TextField>
         </Stack>
+      </Box>
 
-        {/* Violations */}
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 220 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>위반 항목 상세 ({VIOLATIONS.length}건) — {VAL_TAB_LABELS[tab]}</Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            <Stack direction="row" spacing={0.5}>
-              <Chip size="small" label={`HIGH ${VIOLATIONS.filter(v=>v.SEVERITY==='high').length}`} color="error" />
-              <Chip size="small" label={`MID ${VIOLATIONS.filter(v=>v.SEVERITY==='mid').length}`} color="warning" />
-              <Chip size="small" label={`LOW ${VIOLATIONS.filter(v=>v.SEVERITY==='low').length}`} color="info" />
-            </Stack>
-          </Box>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Chip icon={<WarningAmberIcon sx={{ fontSize: 14 }} />} label={`Alert ${alerts}건`} size="small" color="warning" variant="outlined" />
+        <Chip label={`Total ${rows.length}건`} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+      </Box>
+
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['ITEM_CD','ACCOUNT','PERIOD','PLAN 수량','참조값','차이 (%)','위반 룰','심각도'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: c.includes('수량') || c.includes('참조') || c.includes('차이') ? 'right' : (c === '심각도' ? 'center' : 'left') }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+              <TableHead><TableRow>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>{tab === 0 ? 'SALES_CNTRY' : 'CHANNEL'}</TableCell>
+                {tab === 1 && <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>BUYER</TableCell>}
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_NM</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>HIST_AVG_3M</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>PLAN_QTY</TableCell>
+                <TableCell sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>DIFF_PCT</TableCell>
+                <TableCell sx={{ bgcolor: '#fef3c7', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>ZONE</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>REMARK</TableCell>
+              </TableRow></TableHead>
               <TableBody>
-                {VIOLATIONS.map((v, i) => {
-                  const tone = SEV_TONE[v.SEVERITY];
-                  const diffTone = deltaStatus(v.DIFF);
-                  return (
-                    <TableRow key={i} hover>
-                      <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{v.ITEM_CD}</TableCell>
-                      <TableCell>{v.ACCOUNT}</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace' }}>{v.PERIOD}</TableCell>
-                      <TableCell sx={cellSx(tone, { mono: true, align: 'right' })}>{v.PLAN.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: 'text.secondary' }}>{v.REF.toLocaleString()}</TableCell>
-                      <TableCell sx={cellSx(diffTone, { mono: true, align: 'right' })}>
-                        {v.DIFF > 0 ? '+' : ''}{v.DIFF.toFixed(1)}%
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 12 }}><Chip size="small" label={v.RULE} variant="outlined" /></TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={v.SEVERITY.toUpperCase()} color={SEV_COLOR[v.SEVERITY]} /></TableCell>
-                    </TableRow>
-                  );
-                })}
+                {rows.map((r, i) => (
+                  <TableRow key={i} hover sx={{ bgcolor: r.ZONE === 'ALERT' ? '#fef2f2' : r.ZONE === 'WARN' ? '#fffbeb' : 'transparent' }}>
+                    <TableCell sx={{ fontSize: 11 }}>{tab === 0 ? r.SALES_CNTRY : r.CHANNEL}</TableCell>
+                    {tab === 1 && <TableCell sx={{ fontSize: 11 }}>{r.BUYER}</TableCell>}
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.HIST_AVG_3M.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 600 }}>{r.PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right', fontWeight: 700, color: r.DIFF_PCT > 10 || r.DIFF_PCT < -10 ? '#ef4444' : r.DIFF_PCT > 5 ? '#f59e0b' : '#10b981' }}>
+                      {r.DIFF_PCT > 0 ? '+' : ''}{r.DIFF_PCT.toFixed(1)}%
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center', fontWeight: 600, color: ZONE_COLOR[r.ZONE] }}>{r.ZONE}</TableCell>
+                    <TableCell sx={{ fontSize: 11, color: 'text.secondary' }}>{r.REMARK}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>

@@ -1,104 +1,91 @@
 import React from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Avatar } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, ButtonGroup, IconButton, Checkbox,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import DownloadIcon from '@mui/icons-material/Download';
 import StarIcon from '@mui/icons-material/Star';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import PersonIcon from '@mui/icons-material/Person';
 import MockShell from '../../_shared/MockShell';
 
-// RptKtng00 — 개인화 버전 관리 (사용자별 저장된 리포트 버전 관리)
+// KTNG — RPT 개인화 버전 관리
+// UI_RPT_KTNG_00 → RptKtng00.jsx
+//   사용자별 개인화 리포트 버전 (필터/컬럼 선호 설정 저장)
 
 const ROWS = [
-  { CODE: 'V_BFM_001', NAME: '전사 정확도 (월간)',     USER: '김민수', SHARED: 'Y', FAV: true,  TARGET: 'RptKtng05',  PARAMS: '전사 / 2026-05 / 전월대비', CREATED: '2026-04-15', LAST_USED: '2026-05-22 09:14' },
-  { CODE: 'V_INV_002', NAME: 'NGP 재고일수 추적',       USER: '정재현', SHARED: 'N', FAV: false, TARGET: 'RptKtng15',  PARAMS: 'NGP / 일별 / 60일+',         CREATED: '2026-04-22', LAST_USED: '2026-05-21 16:42' },
-  { CODE: 'V_RTF_003', NAME: 'RTF 100% 미만 거래처',    USER: '박글로벌',SHARED: 'Y', FAV: true,  TARGET: 'RptKtng08',  PARAMS: 'GLOBAL / <100% / 주차별',     CREATED: '2026-03-10', LAST_USED: '2026-05-22 08:30' },
-  { CODE: 'V_PSI_004', NAME: '공장별 PSI 주차 추이',     USER: '김민수', SHARED: 'Y', FAV: false, TARGET: 'RptKtng16',  PARAMS: '전체 공장 / W18~W25',         CREATED: '2026-02-08', LAST_USED: '2026-05-20 11:08' },
-  { CODE: 'V_KPI_005', NAME: '경영 KPI 요약',           USER: 'admin',   SHARED: 'Y', FAV: true,  TARGET: 'RptKtng07',  PARAMS: '전사 / 월간 / 최근 6개월',    CREATED: '2026-01-05', LAST_USED: '2026-05-22 07:00' },
-  { CODE: 'V_DAILY_06',NAME: '신탄진 일별 실적',         USER: '이정훈', SHARED: 'N', FAV: false, TARGET: 'RptKtng25',  PARAMS: '신탄진 / 최근 30일',          CREATED: '2026-04-30', LAST_USED: '2026-05-22 09:00' },
+  { VER_NM: '나의 기본 (Sell-In 전체)', USER_ID: 'kim.youngsu', USER_NM: '김영수', SCOPE: '편의점 전체', LV1: '담배', SAVED_DT: '2026-05-15 14:22', IS_DEFAULT: true, SHARE: false, COLS: 18 },
+  { VER_NM: '에쎄 집중 모니터링',        USER_ID: 'kim.youngsu', USER_NM: '김영수', SCOPE: 'BGF리테일',  LV1: '담배', SAVED_DT: '2026-06-01 09:30', IS_DEFAULT: false, SHARE: true,  COLS: 14 },
+  { VER_NM: 'CU 주간 점검',              USER_ID: 'lee.jihoon',  USER_NM: '이지훈', SCOPE: 'CU',         LV1: '담배', SAVED_DT: '2026-05-28 16:45', IS_DEFAULT: true, SHARE: false, COLS: 12 },
+  { VER_NM: '해외 수출 dashboard',       USER_ID: 'choi.minji',  USER_NM: '최민지', SCOPE: '수출본부',   LV1: 'CIGAR', SAVED_DT: '2026-05-20 11:15', IS_DEFAULT: true, SHARE: true,  COLS: 22 },
+  { VER_NM: 'NGP 신제품 추적',           USER_ID: 'park.sumin',  USER_NM: '박수민', SCOPE: '편의점 NGP', LV1: 'HEET',  SAVED_DT: '2026-06-05 10:00', IS_DEFAULT: false, SHARE: true,  COLS: 16 },
+  { VER_NM: 'PM 종합 검토',              USER_ID: 'kim.dahye',   USER_NM: '김다혜', SCOPE: '전사',       LV1: 'ALL',   SAVED_DT: '2026-06-08 08:30', IS_DEFAULT: true, SHARE: true,  COLS: 24 },
 ];
 
-const STATS = [
-  { label: '내 버전',     value: 12, color: 'primary' },
-  { label: '공유 버전',   value: 28, color: 'success' },
-  { label: '즐겨찾기',     value:  8, color: 'warning' },
-  { label: '오늘 사용',   value: 24, color: 'info' },
-];
-
-export default function RptPersonalizationMockup() {
+export default function KtngRptPersonalizationMockup() {
   return (
-    <MockShell patternCode="ktng_rpt_personalization" patternLabel="KTNG — 개인화 버전 관리 (RptKtng00)"
-      layoutCategory="LAYOUT_SINGLE" description="리포트별 저장된 개인화 버전(필터·파라미터 묶음). 공유/즐겨찾기/사본 만들기 지원.">
+    <MockShell
+      patternCode="ktng_rpt_personalization"
+      patternLabel="KTNG — RPT 개인화 버전 관리"
+      layoutCategory="LAYOUT_SINGLE"
+      description="UI_RPT_KTNG_00 → RptKtng00.jsx. 사용자별 리포트 개인화 설정 (필터/컬럼/Scope) 저장 및 공유 관리. 기본 버전 설정 + 공유 가능."
+    >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-          <TextField label="대상 리포트" size="small" select value="ALL" sx={{ width: 160 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="USER" size="small" value="kim.youngsu (김영수)" sx={{ width: 240 }}
+            InputProps={{ startAdornment: <PersonIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} /> }} />
+          <TextField label="SHARE" size="small" select value="ALL" sx={{ width: 120 }}>
             <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="RptKtng05">예측 정확도 (05)</MenuItem>
-            <MenuItem value="RptKtng07">MP 실행율 (07)</MenuItem>
-            <MenuItem value="RptKtng15">장기재고 (15)</MenuItem>
-            <MenuItem value="RptKtng16">생산 PSI (16)</MenuItem>
+            <MenuItem value="MINE">내것만</MenuItem>
+            <MenuItem value="SHARED">공유받은것</MenuItem>
           </TextField>
-          <TextField label="작성자" size="small" value="" placeholder="USER_ID" sx={{ width: 140 }} />
-          <TextField label="공유" size="small" select value="ALL" sx={{ width: 110 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="Y">공유</MenuItem><MenuItem value="N">개인</MenuItem>
-          </TextField>
-          <TextField label="즐겨찾기만" size="small" select value="N" sx={{ width: 120 }}>
-            <MenuItem value="Y">Y</MenuItem><MenuItem value="N">전체</MenuItem>
-          </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<AddIcon />}>새 버전</Button>
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        <Stack direction="row" spacing={1.5}>
-          {STATS.map((s) => (
-            <Paper key={s.label} variant="outlined" sx={{ p: 1.5, flex: 1, textAlign: 'center' }}>
-              <Typography variant="caption" color="text.secondary">{s.label}</Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: `${s.color}.main` }}>{s.value}</Typography>
-            </Paper>
-          ))}
-        </Stack>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        <ButtonGroup variant="outlined" size="small">
+          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
+          <IconButton size="small" color="primary"><SaveIcon fontSize="small" /></IconButton>
+        </ButtonGroup>
+      </Box>
 
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 280 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>저장된 개인화 버전 ({ROWS.length})</Typography>
-          </Box>
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['','코드','버전명','대상 리포트','파라미터','작성자','공유','생성일','최근 사용','액션'].map((c, i) => (
-                    <TableCell key={c + i} sx={{ backgroundColor: 'grey.100', fontWeight: 700, textAlign: ['공유',''].includes(c) ? 'center' : 'left' }}>{c}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+              <TableHead><TableRow>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, width: 40 }}></TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>VER_NM</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>USER_ID</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>USER_NM</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>SCOPE</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>ITEM_LV1</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>COLS</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>공유</TableCell>
+                <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>SAVED_DT</TableCell>
+              </TableRow></TableHead>
               <TableBody>
                 {ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
+                  <TableRow key={i} hover sx={{ bgcolor: r.IS_DEFAULT ? '#fffbeb' : 'transparent' }}>
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <StarIcon fontSize="small" sx={{ color: r.FAV ? '#f59e0b' : 'action.disabled', verticalAlign: 'middle' }} />
+                      {r.IS_DEFAULT && <StarIcon sx={{ fontSize: 16, color: '#f59e0b' }} />}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{r.CODE}</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>{r.NAME}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}><Chip size="small" label={r.TARGET} variant="outlined" /></TableCell>
-                    <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>{r.PARAMS}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <Avatar sx={{ width: 22, height: 22, fontSize: 11 }}>{r.USER.charAt(0).toUpperCase()}</Avatar>
-                        <Typography variant="body2" sx={{ fontSize: 12 }}>{r.USER}</Typography>
-                      </Stack>
+                    <TableCell sx={{ fontSize: 11, fontWeight: r.IS_DEFAULT ? 700 : 400 }}>{r.VER_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace' }}>{r.USER_ID}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.USER_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.SCOPE}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>
+                      <Chip label={r.LV1} size="small" variant="outlined" sx={{ height: 18, fontSize: 10, color: r.LV1 === 'HEET' ? '#8b5cf6' : r.LV1 === 'CIGAR' ? '#ff7043' : '#1565c0' }} />
                     </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>{r.SHARED === 'Y' ? <Chip size="small" label="공유" color="success" /> : <Chip size="small" label="개인" />}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 11 }}>{r.CREATED}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 11 }}>{r.LAST_USED}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={0.3}>
-                        <Button size="small" variant="outlined">열기</Button>
-                        <Button size="small" variant="text" startIcon={<ContentCopyIcon fontSize="inherit" />}>복제</Button>
-                      </Stack>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'right' }}>{r.COLS}</TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Checkbox size="small" checked={r.SHARE} disabled sx={{ p: 0.25 }} />
                     </TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center', color: 'text.secondary' }}>{r.SAVED_DT}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

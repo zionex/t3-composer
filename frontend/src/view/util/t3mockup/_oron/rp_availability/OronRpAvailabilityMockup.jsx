@@ -122,11 +122,6 @@ export default function OronRpAvailabilityMockup() {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
-              <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
-                GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010 · NET_AVAIL &lt; 300 = 경고(빨강)
-              </Typography>
-            </Box>
           </Paper>
         </Box>
       </Box>

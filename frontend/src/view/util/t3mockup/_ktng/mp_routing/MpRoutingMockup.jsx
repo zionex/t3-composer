@@ -1,134 +1,85 @@
 import React from 'react';
-import { Box, Stack, TextField, MenuItem, Button, Chip, Typography, Paper,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer } from '@mui/material';
+import {
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, ButtonGroup, IconButton,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// MpKtng03 — 공급망 라우팅. From → To 거점 간 운송 경로 + L/T + 비용.
-// 운영 원본 styleCallback: LOCAT_01_NM~05_NM, ITEM_CD, ITEM_LV_04_NM, STD_ROUTE_NO, CREATE_BY (편집 가능 셀)
-//                          mockup 의 의미 매칭 셀: FROM, TO (거점단계) — info 톤.
+// KTNG — MP 공급망 라우팅
+// UI_MP_KTNG_03 → MpKtng03.jsx
+//   생산지/판매지/제품 단위 라우팅 (운송 모드/LT/Priority/Cost)
 
-const ROUTES = [
-  { FROM: '신탄진 공장', TO: '서울 DC',     MODE: 'TRUCK', LT_DAYS: 1,  COST: 850000,  PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '신탄진 공장', TO: '부산 DC',     MODE: 'TRUCK', LT_DAYS: 1,  COST: 1200000, PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '대전 공장',   TO: '서울 DC',     MODE: 'TRUCK', LT_DAYS: 1,  COST: 950000,  PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '대전 공장',   TO: '광주 DC',     MODE: 'TRUCK', LT_DAYS: 1,  COST: 700000,  PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '광주 공장',   TO: '인천항',       MODE: 'TRUCK', LT_DAYS: 1,  COST: 1100000, PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '인천항',       TO: '인도 뭄바이', MODE: 'SHIP',  LT_DAYS: 28, COST: 4500000, PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '인천항',       TO: '인도네시아',  MODE: 'SHIP',  LT_DAYS: 18, COST: 3800000, PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '부산항',       TO: '몽골',        MODE: 'TRUCK+RAIL', LT_DAYS: 21, COST: 3200000, PRIORITY: 1, USE_YN: 'Y' },
-  { FROM: '서울 DC',      TO: '몽골',        MODE: 'AIR',   LT_DAYS:  3, COST: 8500000, PRIORITY: 2, USE_YN: 'Y' },
+const ROWS = [
+  { ITEM_LV3: '에쎄', FROM_PLANT: '신탄진공장',  TO_LOCAT: '국내 DC (서울)',  MODE: 'TRUCK', LT_DAYS: 1, PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: '에쎄', FROM_PLANT: '신탄진공장',  TO_LOCAT: '국내 DC (부산)',  MODE: 'TRUCK', LT_DAYS: 1, PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: 'ESSE Asian', FROM_PLANT: '신탄진공장',  TO_LOCAT: '대만 (KAO)',     MODE: 'SEA',   LT_DAYS: 7,  PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: 'ESSE Asian', FROM_PLANT: '신탄진공장',  TO_LOCAT: '미국 (LAX)',     MODE: 'SEA',   LT_DAYS: 18, PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: 'ESSE Asian', FROM_PLANT: '신탄진공장',  TO_LOCAT: '미국 (LAX)',     MODE: 'AIR',   LT_DAYS: 3,  PRIORITY: 2, COST_RATIO: 380, USE_YN: true },
+  { ITEM_LV3: 'TIME',       FROM_PLANT: 'Almaty공장',  TO_LOCAT: '러시아 (모스크바)', MODE: 'TRUCK', LT_DAYS: 5,  PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: 'LAISON',     FROM_PLANT: 'Jakarta공장', TO_LOCAT: '베트남 (호치민)',   MODE: 'SEA',   LT_DAYS: 4,  PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
+  { ITEM_LV3: '릴 NGP',     FROM_PLANT: '신탄진공장',  TO_LOCAT: '국내 DC (서울)',  MODE: 'TRUCK', LT_DAYS: 1, PRIORITY: 1, COST_RATIO: 100, USE_YN: true },
 ];
 
-const MODE_COLOR = { TRUCK: 'primary', SHIP: 'info', AIR: 'warning', 'TRUCK+RAIL': 'success' };
+const MODE_COLOR = { TRUCK: '#3b82f6', SEA: '#10b981', AIR: '#f59e0b', RAIL: '#8b5cf6' };
 
-// Network diagram nodes
-const NODES = [
-  { name: '신탄진 공장', x: 80,  y: 80,  type: 'plant' },
-  { name: '대전 공장',   x: 80,  y: 160, type: 'plant' },
-  { name: '광주 공장',   x: 80,  y: 240, type: 'plant' },
-  { name: '서울 DC',     x: 280, y: 80,  type: 'dc' },
-  { name: '부산 DC',     x: 280, y: 200, type: 'dc' },
-  { name: '광주 DC',     x: 280, y: 290, type: 'dc' },
-  { name: '인천항',       x: 480, y: 120, type: 'port' },
-  { name: '부산항',       x: 480, y: 220, type: 'port' },
-  { name: '인도',         x: 660, y: 60,  type: 'dest' },
-  { name: '인도네시아',   x: 660, y: 140, type: 'dest' },
-  { name: '몽골',         x: 660, y: 240, type: 'dest' },
-];
-const TYPE_FILL = { plant: '#3b82f6', dc: '#10b981', port: '#f59e0b', dest: '#ef4444' };
-
-const EDGES = [
-  ['신탄진 공장', '서울 DC'], ['신탄진 공장', '부산 DC'],
-  ['대전 공장', '서울 DC'], ['대전 공장', '광주 DC'],
-  ['광주 공장', '인천항'],
-  ['서울 DC', '인천항'], ['부산 DC', '부산항'],
-  ['인천항', '인도'], ['인천항', '인도네시아'], ['부산항', '몽골'],
-];
-
-const nodeMap = Object.fromEntries(NODES.map((n) => [n.name, n]));
-
-export default function MpRoutingMockup() {
+export default function KtngMpRoutingMockup() {
   return (
-    <MockShell patternCode="ktng_mp_routing" patternLabel="KTNG — 공급망 라우팅 (MpKtng03)"
-      layoutCategory="LAYOUT_ROUTELAYOUT" description="공장→DC→항구→해외 거점 운송 경로 다이어그램 + 경로별 L/T·비용·우선순위.">
+    <MockShell
+      patternCode="ktng_mp_routing"
+      patternLabel="KTNG — MP 공급망 라우팅"
+      layoutCategory="LAYOUT_SINGLE"
+      description="UI_MP_KTNG_03 → MpKtng03.jsx. 생산공장 → 판매거점 경로 마스터 (TRUCK/SEA/AIR/RAIL × LT_DAYS × Priority × Cost Ratio)."
+    >
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <TextField label="FROM" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="신탄진">신탄진</MenuItem><MenuItem value="대전">대전</MenuItem>
-          </TextField>
-          <TextField label="TO" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="인도">인도</MenuItem><MenuItem value="몽골">몽골</MenuItem>
-          </TextField>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="ITEM_LV3" size="small" value="" placeholder="브랜드"
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }}
+            sx={{ width: 180 }} />
+          <TextField label="FROM_PLANT" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
+          <TextField label="TO_LOCAT" size="small" select value="ALL" sx={{ width: 160 }}><MenuItem value="ALL">전체</MenuItem></TextField>
           <TextField label="MODE" size="small" select value="ALL" sx={{ width: 110 }}>
-            <MenuItem value="ALL">전체</MenuItem><MenuItem value="TRUCK">TRUCK</MenuItem><MenuItem value="SHIP">SHIP</MenuItem><MenuItem value="AIR">AIR</MenuItem>
+            <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="TRUCK">TRUCK</MenuItem>
+            <MenuItem value="SEA">SEA</MenuItem>
+            <MenuItem value="AIR">AIR</MenuItem>
           </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<SaveIcon />}>저장</Button>
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflow: 'auto' }}>
-        {/* Network diagram */}
-        <Paper variant="outlined" sx={{ p: 1.5, height: 360 }}>
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>공급망 네트워크 다이어그램</Typography>
-            <Chip size="small" label="공장" sx={{ backgroundColor: TYPE_FILL.plant, color: '#fff' }} />
-            <Chip size="small" label="DC"   sx={{ backgroundColor: TYPE_FILL.dc,    color: '#fff' }} />
-            <Chip size="small" label="항구" sx={{ backgroundColor: TYPE_FILL.port,  color: '#fff' }} />
-            <Chip size="small" label="해외 거점" sx={{ backgroundColor: TYPE_FILL.dest, color: '#fff' }} />
-          </Stack>
-          <Box sx={{ position: 'relative', width: '100%', height: 290 }}>
-            <svg viewBox="0 0 740 320" style={{ width: '100%', height: '100%' }}>
-              {/* Edges */}
-              {EDGES.map(([a, b], i) => {
-                const A = nodeMap[a], B = nodeMap[b];
-                return <line key={i} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#9ca3af" strokeWidth="1.5" />;
-              })}
-              {/* Nodes */}
-              {NODES.map((n) => (
-                <g key={n.name}>
-                  <circle cx={n.x} cy={n.y} r="20" fill={TYPE_FILL[n.type]} stroke="#fff" strokeWidth="2" />
-                  <text x={n.x} y={n.y + 38} textAnchor="middle" fontSize="11" fill="#374151" fontWeight="600">{n.name}</text>
-                </g>
-              ))}
-            </svg>
-          </Box>
-        </Paper>
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        <ButtonGroup variant="outlined" size="small">
+          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small"><DeleteIcon fontSize="small" /></IconButton>
+          <IconButton size="small" color="primary"><SaveIcon fontSize="small" /></IconButton>
+        </ButtonGroup>
+      </Box>
 
-        {/* Route grid */}
-        <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 200 }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>경로 상세 — {ROUTES.length}개</Typography>
-          </Box>
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {['FROM','','TO','운송수단','L/T (일)','비용 (KRW)','우선순위','USE'].map((c) => (
-                    <TableCell key={c} sx={{ backgroundColor: 'grey.100', fontWeight: 700,
-                      textAlign: ['L/T (일)','비용 (KRW)'].includes(c) ? 'right' : (['운송수단','우선순위','USE',''].includes(c) ? 'center' : 'left') }}>
-                      {c}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+              <TableHead><TableRow>
+                {['ITEM_LV3', 'FROM_PLANT', 'TO_LOCAT', 'MODE', 'LT_DAYS', 'PRIORITY', 'COST_RATIO', 'USE_YN'].map((h) => (
+                  <TableCell key={h} sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: ['MODE', 'LT_DAYS', 'PRIORITY', 'COST_RATIO', 'USE_YN'].includes(h) ? 'center' : 'inherit' }}>{h}</TableCell>
+                ))}
+              </TableRow></TableHead>
               <TableBody>
-                {ROUTES.map((r, i) => (
-                  // 운영 MpKtng03 styleCallback: 거점단계 셀 (LOCAT_01~05_NM) → mockup 의 FROM, TO 만 info 톤
+                {ROWS.map((r, i) => (
                   <TableRow key={i} hover>
-                    <TableCell sx={cellSx('info')}>{r.FROM}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', color: 'text.secondary' }}><ArrowForwardIcon fontSize="small" /></TableCell>
-                    <TableCell sx={cellSx('info')}>{r.TO}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.MODE} color={MODE_COLOR[r.MODE]} /></TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LT_DAYS}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.COST.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.PRIORITY} variant="outlined" color={r.PRIORITY === 1 ? 'primary' : 'default'} /></TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip size="small" label={r.USE_YN} color="success" /></TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.ITEM_LV3}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.FROM_PLANT}</TableCell>
+                    <TableCell sx={{ fontSize: 11 }}>{r.TO_LOCAT}</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center' }}><Chip label={r.MODE} size="small" sx={{ height: 18, fontSize: 10, bgcolor: MODE_COLOR[r.MODE], color: 'white', fontWeight: 600 }} /></TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center' }}>{r.LT_DAYS}일</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center', fontWeight: r.PRIORITY === 1 ? 700 : 400, color: r.PRIORITY === 1 ? '#1565c0' : '#9ca3af' }}>{r.PRIORITY}</TableCell>
+                    <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', textAlign: 'center', color: r.COST_RATIO > 200 ? '#ef4444' : '#374151' }}>{r.COST_RATIO}%</TableCell>
+                    <TableCell sx={{ fontSize: 11, textAlign: 'center', color: '#10b981', fontWeight: 600 }}>{r.USE_YN ? 'Y' : 'N'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

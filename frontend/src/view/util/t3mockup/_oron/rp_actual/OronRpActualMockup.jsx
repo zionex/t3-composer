@@ -132,11 +132,6 @@ export default function OronRpActualMockup() {
               </TableBody>
             </Table>
           </TableContainer>
-          <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
-            <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
-              GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010
-            </Typography>
-          </Box>
         </Paper>
       </Box>
     </MockShell>

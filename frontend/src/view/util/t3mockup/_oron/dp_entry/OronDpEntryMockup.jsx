@@ -141,11 +141,6 @@ function EntryTab() {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
-              <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
-                GridCnt grid="grid1" — {ENTRY_ROWS.length} CASES MSG_0010
-              </Typography>
-            </Box>
           </Paper>
           <Typography sx={{ mt: 0.7, fontSize: 10, color: 'text.disabled' }}>
             BaseEntry grid1Items = ...dimensionItems(60 풀) + BUCK_TP/DTF_DATE/ITEM/ACCOUNT/SALES(hidden) + CATEGORY + DATE(iteration prefix=DATE_) + COMMENT. visible DIMENSION 은 사용자 personalize — 예시는 4개.
@@ -353,11 +348,6 @@ function ProcessStatusTab() {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
-              <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
-                GridCnt grid="processGrid" — {PS_ROWS.length} CASES MSG_0010
-              </Typography>
-            </Box>
           </Paper>
         </Box>
       </Box>

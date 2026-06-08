@@ -1,123 +1,151 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, LinearProgress,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, LinearProgress,
+  Card, CardContent, CardHeader,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import AddIcon from '@mui/icons-material/Add';
+import StopIcon from '@mui/icons-material/Stop';
 import HistoryIcon from '@mui/icons-material/History';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import MockShell from '../../_shared/MockShell';
-import CbStepper from '../../_shared/CbStepper';
-import CbLogPane from '../../_shared/CbLogPane';
 
-// OronPk02 — 포장재 생산계획 생성 + 시나리오 관리
-// UI_PK_ORN_PACK_SIMUL, PACK_SNRIO
+// ORON — PK 생산계획 시뮬레이션
+// 대표 화면: UI_PK_ORN_PACK_SIMUL "생산계획 생성" (PKSimulation)
+//   상단: 시뮬레이션 파라미터 (Version / Scenario / 기간 / 우선순위)
+//   중단: 실행 버튼 + 진행률 + 상태 단계
+//   하단: 시나리오 목록 (이전 실행 history)
+// 같이 묶인 메뉴: UI_PK_ORN_PACK_SNRIO 계획 시나리오 관리 (PlanScenario)
 
-const STEPS = [
-  { label: '시나리오 입력',  status: 'done',    detail: 'SCN_0023' },
-  { label: '수요 로드',      status: 'done',    detail: '2,485 건' },
-  { label: '재고 검사',      status: 'done',    detail: '완료' },
-  { label: '인쇄 계획',      status: 'running', detail: '78%' },
-  { label: '가공/분단',      status: 'pending', detail: '대기' },
-  { label: '결과 확정',      status: 'pending', detail: '대기' },
+const RUN_STEPS = [
+  { name: '데이터 수집', status: 'done',     elapsed: '00:12' },
+  { name: '기준정보 검증', status: 'done',     elapsed: '00:08' },
+  { name: '제약조건 로드', status: 'done',     elapsed: '00:05' },
+  { name: '엔진 실행',    status: 'running', elapsed: '01:23' },
+  { name: '결과 저장',    status: 'pending',  elapsed: '-' },
 ];
 
-const SCENARIOS = [
-  { CD: 'SCN_0023', NM: '5월 5주차 정기',    BASE_VER: 'MAIN_V2026_05', CREATE_DT: '2026-05-26', BY: '김지영', STATUS: 'RUNNING' },
-  { CD: 'SCN_0022', NM: '5월 4주차 정기',    BASE_VER: 'MAIN_V2026_05', CREATE_DT: '2026-05-19', BY: '김지영', STATUS: 'CONFIRMED' },
-  { CD: 'SCN_0021', NM: 'BD-0037 OEM긴급반영', BASE_VER: 'MAIN_V2026_05', CREATE_DT: '2026-05-15', BY: '박철수', STATUS: 'CONFIRMED' },
-  { CD: 'SCN_0020', NM: '5월 3주차 정기',    BASE_VER: 'MAIN_V2026_05', CREATE_DT: '2026-05-12', BY: '김지영', STATUS: 'ARCHIVED' },
-  { CD: 'SCN_0019', NM: '신제품 마스크 시뮬', BASE_VER: 'MAIN_V2026_04', CREATE_DT: '2026-05-08', BY: '이수민', STATUS: 'DROPPED' },
+const HISTORY = [
+  { snrio: 'SC-2026-0612-A', desc: '익산공장 정상 가동',         start: '2026-06-12 09:15', elapsed: '02:18', status: 'SUCCESS', plans: 1245 },
+  { snrio: 'SC-2026-0611-B', desc: 'OEM 라인 추가 시뮬',          start: '2026-06-11 14:30', elapsed: '02:42', status: 'SUCCESS', plans: 1356 },
+  { snrio: 'SC-2026-0611-A', desc: '6월 베이스라인',               start: '2026-06-11 09:10', elapsed: '02:15', status: 'SUCCESS', plans: 1180 },
+  { snrio: 'SC-2026-0610-C', desc: '인쇄1 라인 정비 반영',         start: '2026-06-10 16:45', elapsed: '01:45', status: 'FAILED',  plans: 0 },
+  { snrio: 'SC-2026-0610-A', desc: '5월 마감 기준 1차',            start: '2026-06-10 08:00', elapsed: '02:33', status: 'SUCCESS', plans: 1120 },
 ];
 
-const LOG_LINES = [
-  { time: '11:02:14', level: 'INFO', message: 'Pre-Setting: TB_RT_PK_PLAN initialized' },
-  { time: '11:02:20', level: 'INFO', message: 'Demand: 2,485 packaging demands from MP plan' },
-  { time: '11:02:34', level: 'INFO', message: 'Inventory check: 312 demands fulfilled by stock' },
-  { time: '11:02:48', level: 'INFO', message: 'Print plan engine: started — t3pk-print.exe' },
-  { time: '11:03:12', level: 'INFO', message: 'Print progress 30% — 750/2,485 demands sequenced' },
-  { time: '11:03:48', level: 'WARN', message: 'Resource L-PRINT-02 overload @ W24 — overtime applied' },
-  { time: '11:04:25', level: 'INFO', message: 'Print progress 78% — 1,935/2,485 demands sequenced' },
-];
+const STATUS_COLOR = { SUCCESS: '#10b981', FAILED: '#ef4444', RUNNING: '#3b82f6' };
 
-const STATUS_COLOR = { RUNNING: 'primary', CONFIRMED: 'success', ARCHIVED: 'default', DROPPED: 'error' };
+function StepStatus({ status }) {
+  if (status === 'done')    return <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981' }} />;
+  if (status === 'running') return <HourglassEmptyIcon sx={{ fontSize: 18, color: '#3b82f6' }} />;
+  return <Box sx={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #d1d5db', display: 'inline-block' }} />;
+}
 
 export default function OronPkSimulationMockup() {
   return (
     <MockShell
       patternCode="oron_pk_simulation"
-      patternLabel="ORON — 포장재 계획 생성 + 시나리오 관리"
-      layoutCategory="LAYOUT_CONTROLBOARD"
-      description="포장재 6단계 엔진 (수요→재고→인쇄→가공→분단→확정) 진행 + 시나리오 카탈로그 + 라이브 로그. UI_PK_ORN_PACK_SIMUL, PACK_SNRIO."
+      patternLabel="ORON — PK 생산계획 시뮬레이션 + 시나리오 관리"
+      layoutCategory="LAYOUT_SINGLE"
+      description="대표 화면 = 생산계획 생성 (UI_PK_ORN_PACK_SIMUL). 시뮬레이션 파라미터 + 엔진 실행 + 진행 단계 표시 + 이전 실행 history. 같이 묶인 메뉴 = UI_PK_ORN_PACK_SNRIO 계획 시나리오 관리 (PlanScenario)."
     >
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="시나리오" size="small" value="SCN_0023 — 5월 5주차 정기" sx={{ width: 280 }} />
-          <TextField label="기반 버전" size="small" value="MAIN_V2026_05" sx={{ width: 150 }} />
-          <TextField label="포장 공장" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="JC">제천</MenuItem>
-            <MenuItem value="IS">익산</MenuItem>
-          </TextField>
-          <Box sx={{ flexGrow: 1 }} />
-          <Chip icon={<PlayArrowIcon />} label="RUNNING" color="primary" />
-          <Button variant="outlined" size="small" startIcon={<AddIcon />}>새 시나리오</Button>
-        </Stack>
-      </Box>
-
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        <Paper variant="outlined" sx={{ p: 1.5 }}>
-          <CbStepper steps={STEPS} />
-          <Box sx={{ mt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="caption" sx={{ minWidth: 80 }}>인쇄 계획</Typography>
-              <Box sx={{ flexGrow: 1 }}>
-                <LinearProgress variant="determinate" value={78} sx={{ height: 8, borderRadius: 1 }} color="primary" />
-              </Box>
-              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, minWidth: 50 }}>78%</Typography>
-              <Typography variant="caption" color="text.secondary">잔여 5분</Typography>
+      <Box sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'auto' }}>
+        {/* 상단: 파라미터 카드 */}
+        <Card variant="outlined">
+          <CardHeader sx={{ pb: 0.5 }} title={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>시뮬레이션 파라미터</Typography>} />
+          <CardContent sx={{ pt: 1 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1.5 }}>
+              <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 150 }}>
+                <MenuItem value="V2026-06">V2026-06</MenuItem>
+              </TextField>
+              <TextField label="시나리오명" size="small" value="SC-2026-0612-B" sx={{ width: 200 }} />
+              <TextField label="시나리오 설명" size="small" value="6월 OEM 라인 100% 가동" sx={{ width: 280 }} />
+              <TextField label="기간" size="small" value="2026-06-08 ~ 06-30" sx={{ width: 200 }} />
+              <TextField label="우선순위" size="small" select value="DUE_DATE" sx={{ width: 150 }}>
+                <MenuItem value="DUE_DATE">납기일</MenuItem>
+                <MenuItem value="PRIORITY">우선순위</MenuItem>
+                <MenuItem value="MIN_CHANGE">생산변경 최소화</MenuItem>
+              </TextField>
             </Stack>
-          </Box>
-        </Paper>
+          </CardContent>
+        </Card>
 
-        <Stack direction="row" spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <HistoryIcon fontSize="small" color="primary" />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>시나리오 카탈로그</Typography>
-                <Chip label="총 19건" size="small" variant="outlined" />
+        {/* 중단: 실행 컨트롤 + 진행 단계 */}
+        <Card variant="outlined">
+          <CardHeader
+            sx={{ pb: 0.5 }}
+            title={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>실행 상태</Typography>}
+            action={
+              <Stack direction="row" spacing={1}>
+                <Button size="small" variant="contained" color="success" startIcon={<PlayArrowIcon />}>실행</Button>
+                <Button size="small" variant="outlined" color="error" startIcon={<StopIcon />} disabled>중지</Button>
               </Stack>
+            }
+          />
+          <CardContent sx={{ pt: 1 }}>
+            <Box sx={{ mb: 1.5 }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>진행률 (4/5 단계 완료)</Typography>
+                <Typography sx={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: '#3b82f6' }}>72%</Typography>
+              </Stack>
+              <LinearProgress variant="determinate" value={72} sx={{ height: 8, borderRadius: 1 }} />
             </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
+            <Table size="small">
+              <TableBody>
+                {RUN_STEPS.map((s, i) => (
+                  <TableRow key={s.name}>
+                    <TableCell sx={{ width: 30 }}><StepStatus status={s.status} /></TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>{i + 1}. {s.name}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right', color: 'text.secondary' }}>{s.elapsed}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* 하단: 시나리오 history */}
+        <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column' }}>
+          <CardHeader
+            sx={{ pb: 0.5 }}
+            title={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>이전 시나리오 실행 이력</Typography>}
+            action={<Chip icon={<HistoryIcon sx={{ fontSize: 12 }} />} label={`${HISTORY.length}건`} size="small" variant="outlined" />}
+          />
+          <CardContent sx={{ pt: 0 }}>
+            <TableContainer>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>코드</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>시나리오</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>생성일</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>담당</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>상태</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>SNRIO_CD</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>DESCRIP</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>START_DTTM</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>ELAPSED</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>STATUS</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'right' }}>계획 건수</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {SCENARIOS.map((r, i) => (
-                    <TableRow key={i} hover selected={r.STATUS === 'RUNNING'}>
-                      <TableCell sx={{ fontFamily: 'monospace', textAlign: 'center', fontWeight: r.STATUS === 'RUNNING' ? 700 : 400 }}>{r.CD}</TableCell>
-                      <TableCell>{r.NM}</TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.CREATE_DT}</TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.BY}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip label={r.STATUS} size="small" color={STATUS_COLOR[r.STATUS] || 'default'} /></TableCell>
+                  {HISTORY.map((h, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{h.snrio}</TableCell>
+                      <TableCell sx={{ fontSize: 12 }}>{h.desc}</TableCell>
+                      <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{h.start}</TableCell>
+                      <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>{h.elapsed}</TableCell>
+                      <TableCell sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: STATUS_COLOR[h.status] }}>
+                        {h.status === 'FAILED' && <ErrorIcon sx={{ fontSize: 12, mr: 0.3, verticalAlign: 'middle' }} />}
+                        {h.status === 'SUCCESS' && <CheckCircleIcon sx={{ fontSize: 12, mr: 0.3, verticalAlign: 'middle' }} />}
+                        {h.status}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>{h.plans.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
-          </Paper>
-          <Box sx={{ flex: 1.2 }}>
-            <CbLogPane lines={LOG_LINES} title="포장재 엔진 실행 로그" height="100%" />
-          </Box>
-        </Stack>
+          </CardContent>
+        </Card>
       </Box>
     </MockShell>
   );

@@ -1,171 +1,134 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, LinearProgress,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, ButtonGroup, IconButton, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SearchIcon from '@mui/icons-material/Search';
-import CalculateIcon from '@mui/icons-material/Calculate';
+import SaveIcon from '@mui/icons-material/Save';
+import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import MockShell from '../../_shared/MockShell';
-import CbStepper from '../../_shared/CbStepper';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronRp02 — 분배 가용량 생성/입력/보정 + 시뮬레이션 + 결과
-// UI_RP_ORN_02, 03, 22, 21, PLAN_ADJ, 04
+// ORON — RP 분배 가용량
+// 대표 화면: UI_RP_ORN_02 "분배 가용량 생성" (OrnAvailAdj)
+//   SearchArea: PlanScope, Version, 거점, 품목, 기간
+//   Grid: 거점 × 품목 × DATE(동적) — 가용량/안전재고/분배가능량 (또는 measure 행)
+//
+// 묶인 메뉴: UI_RP_ORN_03 가용량 입력, UI_RP_ORN_22 검사중재고 보정, UI_RP_ORN_21 공장재고검토,
+//          UI_RP_ORN_PLAN_ADJ 분배계획 시뮬레이션, UI_RP_ORN_04 분배결과 조회
 
-const STEPS = [
-  { label: '주문 수집', status: 'done',    detail: '주문 24건' },
-  { label: '재고 검토', status: 'done',    detail: '공장 5건' },
-  { label: '가용량 산정', status: 'done',  detail: '품목별' },
-  { label: '분배 엔진', status: 'running', detail: '67%' },
-  { label: '결과 확정', status: 'pending', detail: '대기' },
+const DATE_COLS = ['06-08', '06-09', '06-10', '06-11', '06-12', '06-13', '06-14'];
+
+const ROWS = [
+  { LOCAT: 'DC-SEL', LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'AVAIL_QTY',  vals: [3200, 3500, 3800, 4000, 4200, 4500, 4800] },
+  { LOCAT: 'DC-SEL', LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'SAFETY_QTY', vals: [2000, 2000, 2000, 2000, 2000, 2000, 2000] },
+  { LOCAT: 'DC-SEL', LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'NET_AVAIL',  vals: [1200, 1500, 1800, 2000, 2200, 2500, 2800], highlight: true },
+  { LOCAT: 'DC-BSN', LOCAT_NM: '부산 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'AVAIL_QTY',  vals: [1800, 1900, 2100, 2200, 2300, 2400, 2500] },
+  { LOCAT: 'DC-BSN', LOCAT_NM: '부산 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'SAFETY_QTY', vals: [1200, 1200, 1200, 1200, 1200, 1200, 1200] },
+  { LOCAT: 'DC-BSN', LOCAT_NM: '부산 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'NET_AVAIL',  vals: [600,  700,  900,  1000, 1100, 1200, 1300], highlight: true },
+  { LOCAT: 'DC-JJU', LOCAT_NM: '제주 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'AVAIL_QTY',  vals: [800,  850,  900,  950,  1000, 1100, 1200] },
+  { LOCAT: 'DC-JJU', LOCAT_NM: '제주 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'SAFETY_QTY', vals: [600,  600,  600,  600,  600,  600,  600] },
+  { LOCAT: 'DC-JJU', LOCAT_NM: '제주 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', cat: 'NET_AVAIL',  vals: [200,  250,  300,  350,  400,  500,  600], highlight: true, warning: true },
 ];
 
-const AVAIL_ROWS = [
-  { ITEM_CD: 'F01001', ITEM_NM: '오론 비건마스크 5매',  WH_STOCK: 8500,  INSPECT: 1200, AVAIL: 7300,  REQ: 5500, ALLOC: 5500,  REMAIN: 1800 },
-  { ITEM_CD: 'F01002', ITEM_NM: '오론 세럼 30ml',       WH_STOCK: 3200,  INSPECT:  400, AVAIL: 2800,  REQ: 2500, ALLOC: 2500,  REMAIN:  300 },
-  { ITEM_CD: 'F01003', ITEM_NM: '오론 토너 200ml',      WH_STOCK: 2100,  INSPECT:    0, AVAIL: 2100,  REQ: 1800, ALLOC: 1800,  REMAIN:  300 },
-  { ITEM_CD: 'F02001', ITEM_NM: '오론 클렌징폼 150g',   WH_STOCK: 1500,  INSPECT:  200, AVAIL: 1300,  REQ: 1700, ALLOC: 1300,  REMAIN:    0, SHORT: 400 },
-  { ITEM_CD: 'F03001', ITEM_NM: 'OEM 선크림 SPF50+',    WH_STOCK: 6500,  INSPECT:  500, AVAIL: 6000,  REQ: 8000, ALLOC: 6000,  REMAIN:    0, SHORT: 2000 },
-  { ITEM_CD: 'F04002', ITEM_NM: '오론 슬리핑팩 50ml',   WH_STOCK: 1200,  INSPECT:    0, AVAIL: 1200,  REQ:  600, ALLOC:  600,  REMAIN:  600 },
-];
-
-const ALLOC_ROWS = [
-  { ORD_NO: 'OR-2026-1024', CENTER: '대전물류센터', ITEM_CD: 'F01001', REQ: 2500, ALLOC: 2500, RATE: 100, ETA: '2026-06-04' },
-  { ORD_NO: 'OR-2026-1025', CENTER: '광주영업소',   ITEM_CD: 'F01002', REQ:  800, ALLOC:  800, RATE: 100, ETA: '2026-06-04' },
-  { ORD_NO: 'OR-2026-1026', CENTER: '부산영업소',   ITEM_CD: 'F01001', REQ: 1500, ALLOC: 1500, RATE: 100, ETA: '2026-06-05' },
-  { ORD_NO: 'OR-2026-1027', CENTER: '제주영업소',   ITEM_CD: 'F02001', REQ:  500, ALLOC:  500, RATE: 100, ETA: '2026-06-06' },
-  { ORD_NO: 'OR-2026-1028', CENTER: '익산물류',     ITEM_CD: 'F03001', REQ: 3000, ALLOC: 2250, RATE:  75, ETA: '2026-06-05' },
-  { ORD_NO: 'OR-2026-1029', CENTER: '대전물류센터', ITEM_CD: 'F01003', REQ: 1200, ALLOC: 1200, RATE: 100, ETA: '2026-06-07' },
-];
+const CAT_COLOR = {
+  AVAIL_QTY:  '#1565c0',
+  SAFETY_QTY: '#6b7280',
+  NET_AVAIL:  '#10b981',
+};
 
 export default function OronRpAvailabilityMockup() {
   return (
     <MockShell
       patternCode="oron_rp_availability"
-      patternLabel="ORON — 분배 가용량 + 시뮬레이션 + 결과"
-      layoutCategory="LAYOUT_CONTROLBOARD"
-      description="분배 5단계 엔진 (주문→재고→가용량→분배엔진→확정) + 가용량 산정표 + 주문별 할당 결과."
+      patternLabel="ORON — RP 분배 가용량 (생성/입력/검토/시뮬레이션)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="대표 화면 = 분배 가용량 생성 (UI_RP_ORN_02). 거점 × 품목 × 기간(동적) 크로스탭 — measure 행: AVAIL_QTY(총 가용량) / SAFETY_QTY(안전재고) / NET_AVAIL(분배가능량 = 가용량 - 안전재고). 같이 묶인 메뉴 5개 (가용량 입력/검사중재고 보정/공장재고검토/분배계획 시뮬레이션/분배결과 조회) 도 같은 패턴."
     >
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="VERSION" size="small" value="RP_V2026_05_28" sx={{ width: 180 }} />
-          <TextField label="대상 공장" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
+          <TextField label="PLAN_SCOPE" size="small" select value="ORN_RP" sx={{ width: 130 }}>
+            <MenuItem value="ORN_RP">ORN_RP</MenuItem>
           </TextField>
-          <TextField label="기준일" size="small" value="2026-06-03" sx={{ width: 140 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Chip icon={<PlayArrowIcon />} label="RUNNING" color="primary" />
-          <Button variant="outlined" size="small" startIcon={<CalculateIcon />}>가용량 재계산</Button>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}>
+            <MenuItem value="V2026-06">V2026-06</MenuItem>
+          </TextField>
+          <TextField label="LOCAT" size="small" value="전체 (DC)" sx={{ width: 180 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="ITEM" size="small" value="MASK / 비건마스크 5매" sx={{ width: 220 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="기간" size="small" value="2026-06-08 ~ 06-14" sx={{ width: 200 }} />
+          <TextField label="BUCKET" size="small" select value="DAY" sx={{ width: 100 }}>
+            <MenuItem value="DAY">DAY</MenuItem>
+            <MenuItem value="WEEK">WEEK</MenuItem>
+          </TextField>
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        <Paper variant="outlined" sx={{ p: 1.5 }}>
-          <CbStepper steps={STEPS} />
-          <Box sx={{ mt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="caption" sx={{ minWidth: 80 }}>분배 엔진</Typography>
-              <Box sx={{ flexGrow: 1 }}>
-                <LinearProgress variant="determinate" value={67} sx={{ height: 8, borderRadius: 1 }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, minWidth: 50 }}>67%</Typography>
-            </Stack>
-          </Box>
-        </Paper>
+      {/* ButtonArea + Grid */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+          <Button size="small" variant="outlined" startIcon={<RefreshIcon />}>가용량 재생성</Button>
+          <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+          <ButtonGroup variant="outlined" size="small">
+            <IconButton size="small" title="GridSaveButton" color="primary"><SaveIcon fontSize="small" /></IconButton>
+          </ButtonGroup>
+        </Box>
 
-        <Stack direction="row" spacing={1.5}>
-          {[
-            { label: '주문 합계', value: '24건',  detail: '20,100 EA', color: 'primary' },
-            { label: '가용량',   value: '20,700', detail: 'WH - 검사중', color: 'info' },
-            { label: '할당 완료', value: '18,150', detail: '90.3%',     color: 'success' },
-            { label: '부족 수량', value: '2,400',  detail: '2개 품목 결품 위험', color: 'error' },
-          ].map((k) => (
-            <Paper key={k.label} variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.label}</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: `${k.color}.main`, mt: 0.5 }}>{k.value}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.detail}</Typography>
-            </Paper>
-          ))}
-        </Stack>
-
-        <Stack direction="row" spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-          {/* 가용량 산정 */}
-          <Paper variant="outlined" sx={{ flex: 1.1, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>품목별 가용량 산정 (창고재고 - 검사중)</Typography>
-            </Box>
+        <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <TableContainer sx={{ flex: 1 }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'center' }}>품목</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>품목명</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right' }}>창고재고</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'right' }}>검사중</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right' }}>가용량</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right' }}>요청</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right' }}>할당</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right' }}>잔여/부족</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>LOCAT</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 140, textAlign: 'left', fontSize: 12 }}>LOCAT_NM</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>ITEM_CD</TableCell>
+                    <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 200, textAlign: 'left', fontSize: 12 }}>ITEM_NM</TableCell>
+                    <TableCell sx={{ bgcolor: '#fffbe6', fontWeight: 700, width: 110, textAlign: 'center', fontSize: 12 }}>Measure</TableCell>
+                    {DATE_COLS.map((d) => (
+                      <TableCell key={d} sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'right', fontSize: 12, fontFamily: 'monospace' }}>{d}</TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {AVAIL_ROWS.map((r, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                      <TableCell sx={{ fontSize: 12 }}>{r.ITEM_NM}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.WH_STOCK.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>{r.INSPECT.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.AVAIL.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REQ.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', color: '#1565c0' }}>{r.ALLOC.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: r.SHORT ? '#c62828' : '#10b981', bgcolor: r.SHORT ? '#ffebee' : 'transparent' }}>
-                        {r.SHORT ? `▲${r.SHORT.toLocaleString()}` : `+${r.REMAIN.toLocaleString()}`}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {ROWS.map((r, i) => {
+                    const isFirstOfBlock = i % 3 === 0;
+                    return (
+                      <TableRow key={i} hover sx={{
+                        bgcolor: r.highlight ? '#f0fdf4' : 'transparent',
+                        borderTop: isFirstOfBlock ? '2px solid #d1d5db' : undefined,
+                      }}>
+                        <TableCell sx={{ fontSize: 12, textAlign: 'center', fontFamily: 'monospace' }}>{isFirstOfBlock ? r.LOCAT : ''}</TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{isFirstOfBlock ? r.LOCAT_NM : ''}</TableCell>
+                        <TableCell sx={{ fontSize: 12, textAlign: 'center', fontFamily: 'monospace' }}>{isFirstOfBlock ? r.ITEM_CD : ''}</TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{isFirstOfBlock ? r.ITEM_NM : ''}</TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontWeight: 600, fontFamily: 'monospace', fontSize: 12, color: CAT_COLOR[r.cat] }}>
+                          {r.cat}
+                        </TableCell>
+                        {r.vals.map((v, j) => (
+                          <TableCell key={j} sx={{
+                            textAlign: 'right', fontFamily: 'monospace', fontSize: 12,
+                            fontWeight: r.cat === 'NET_AVAIL' ? 700 : 400,
+                            color: r.cat === 'NET_AVAIL'
+                              ? (r.warning && v < 300 ? '#ef4444' : '#10b981')
+                              : '#374151',
+                          }}>{v.toLocaleString()}</TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
-          </Paper>
-
-          {/* 할당 결과 */}
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>주문별 할당 결과</Typography>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
+              <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
+                GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010 · NET_AVAIL &lt; 300 = 경고(빨강)
+              </Typography>
             </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center' }}>주문</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>거점</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>품목</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'right' }}>요청</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'right' }}>할당</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>충족률</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>도착예정</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ALLOC_ROWS.map((r, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 11, textAlign: 'center' }}>{r.ORD_NO}</TableCell>
-                      <TableCell sx={{ fontSize: 11 }}>{r.CENTER}</TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.ITEM_CD}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.REQ.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.ALLOC.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: r.RATE === 100 ? '#10b981' : r.RATE >= 80 ? '#1565c0' : '#c62828' }}>
-                        {r.RATE}%
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.ETA}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
           </Paper>
-        </Stack>
+        </Box>
       </Box>
     </MockShell>
   );

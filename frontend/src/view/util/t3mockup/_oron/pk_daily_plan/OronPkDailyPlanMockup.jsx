@@ -1,141 +1,177 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button, ButtonGroup, IconButton,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import PrintIcon from '@mui/icons-material/Print';
+import SaveIcon from '@mui/icons-material/Save';
 import DownloadIcon from '@mui/icons-material/Download';
+import PrintIcon from '@mui/icons-material/Print';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronPk04 — 일일/주간 생산계획 + 배송계획
-// UI_PK_ORN_PACK_DAILY_PLAN, PACK_WKLY_PRT, PACK_DELIVY_PLAN, PACK_OTHER_PLAN, PACK_DAILY_REQ_DTL
+// ORON — PK 일일/주간 생산계획
+// 대표 화면: UI_PK_ORN_PACK_DAILY_PLAN "일일 생산계획 관리" (OrnPackDailyPlan)
+//   SearchArea: 일자, 라인, 포장재 타입
+//   Grid: LINE × 시간(8h-shift 단위) — 어떤 PACK 이 어떤 시간대에 가동되는지 (Gantt-like 형태)
+//
+// 같이 묶인 메뉴: 주간 의뢰서/배송 계획/타공장 배송/일별 자재 소요량 명세
 
-const DAYS = ['06-03(화)','06-04(수)','06-05(목)','06-06(금)','06-07(토)','06-09(월)','06-10(화)'];
+// 일일 생산 라인별 가동 셀 — 시간(0~24h) × 라인
+const HOURS = ['00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22'];
 
-const DAILY_ROWS = [
-  { LINE_CD: 'L-PRINT-01', ITEM_CD: 'PK10001', ITEM_NM: '오론 마스크 단상자',     vals: [25000,18000, 0,   22000, 0,    24000, 26000] },
-  { LINE_CD: 'L-PRINT-02', ITEM_CD: 'PK20001', ITEM_NM: '알루미늄 파우치 5매용',  vals: [50000, 0,    48000, 0,    0,    52000, 0    ] },
-  { LINE_CD: 'L-PROC-01',  ITEM_CD: 'PK20001', ITEM_NM: '파우치 가공',            vals: [0,    48000, 0,    50000, 25000,0,    52000] },
-  { LINE_CD: 'L-PROC-02',  ITEM_CD: 'PK30001', ITEM_NM: '튜브 50ml 압출',         vals: [12000,12500, 13000,12800, 0,    13500, 14000] },
-  { LINE_CD: 'L-CUT-01',   ITEM_CD: 'PK10001', ITEM_NM: '단상자 분단',            vals: [0,    24500, 17800,21500, 0,    23000, 25500] },
-  { LINE_CD: 'L-CUT-02',   ITEM_CD: 'PK40001', ITEM_NM: 'BOX 분단',               vals: [4500, 4200,  4800, 5000,  0,    5200,  5500 ] },
+const LINES = [
+  {
+    code: 'LN-PRT-01', name: '인쇄1 라인',
+    blocks: [
+      { startH: 8,  endH: 16, pack: 'PK-MK-001-T', label: '비건마스크5매 (T)', color: '#3b82f6', qty: 8000 },
+      { startH: 16, endH: 24, pack: 'PK-MK-010-T', label: '비건마스크10매 (T)', color: '#3b82f6', qty: 3500 },
+    ],
+  },
+  {
+    code: 'LN-PRT-02', name: '인쇄2 라인',
+    blocks: [
+      { startH: 8,  endH: 24, pack: 'PK-SR-30', label: '오론 세럼 30ml', color: '#10b981', qty: 4500 },
+    ],
+  },
+  {
+    code: 'LN-OEM-01', name: 'OEM 라인',
+    blocks: [
+      { startH: 9,  endH: 24, pack: 'PK-OEM-SUN', label: 'OEM 선크림', color: '#f59e0b', qty: 8500 },
+    ],
+  },
+  {
+    code: 'LN-PRC-01', name: '가공1 라인',
+    blocks: [
+      { startH: 0, endH: 8, pack: 'PK-MK-001-T', label: '비건마스크5매 (T)', color: '#3b82f6', qty: 8000 },
+    ],
+  },
+  {
+    code: 'LN-CUT-01', name: '분단1 라인',
+    blocks: [],
+  },
 ];
 
-const DELIVERY_ROWS = [
-  { DELIVY_NO: 'DL-2026-0521', FROM: '제천공장', TO: '익산공장',  ITEM_CD: 'PK10001', QTY: 24500, UOM: 'PCS', DT: '2026-06-05', VEHICLE: '11톤 #21', STATUS: 'PLANNED' },
-  { DELIVY_NO: 'DL-2026-0522', FROM: '익산공장', TO: '제천공장',  ITEM_CD: 'PK20001', QTY: 48000, UOM: 'PCS', DT: '2026-06-04', VEHICLE: '5톤 #08',  STATUS: 'IN_TRANSIT' },
-  { DELIVY_NO: 'DL-2026-0523', FROM: '제천공장', TO: '대전물류',  ITEM_CD: 'PK30001', QTY: 12000, UOM: 'PCS', DT: '2026-06-06', VEHICLE: '5톤 #12',  STATUS: 'PLANNED' },
-  { DELIVY_NO: 'DL-2026-0524', FROM: 'OEM-A',    TO: '익산공장',  ITEM_CD: 'PK10002', QTY: 18000, UOM: 'PCS', DT: '2026-06-05', VEHICLE: '11톤 #34', STATUS: 'CONFIRMED' },
-  { DELIVY_NO: 'DL-2026-0525', FROM: '익산공장', TO: '경기 물류', ITEM_CD: 'PK40001', QTY: 5000,  UOM: 'PCS', DT: '2026-06-04', VEHICLE: '5톤 #18',  STATUS: 'COMPLETED' },
+const DAILY_SUMMARY = [
+  { PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  PLAN_QTY: 8000, ACT_QTY: 0,    LINE: 'LN-PRT-01 + LN-PRC-01', STATUS: 'PLANNED' },
+  { PACK_CD: 'PK-MK-010-T', PACK_NM: '오론 비건마스크 10매 - TUBE', PLAN_QTY: 3500, ACT_QTY: 0,    LINE: 'LN-PRT-01',             STATUS: 'PLANNED' },
+  { PACK_CD: 'PK-SR-30',    PACK_NM: '오론 세럼 30ml',              PLAN_QTY: 4500, ACT_QTY: 0,    LINE: 'LN-PRT-02',             STATUS: 'PLANNED' },
+  { PACK_CD: 'PK-OEM-SUN',  PACK_NM: 'OEM 선크림 SPF50+ - PUMP',    PLAN_QTY: 8500, ACT_QTY: 0,    LINE: 'LN-OEM-01',             STATUS: 'PLANNED' },
 ];
-
-const STATUS_COLOR = { PLANNED: 'default', CONFIRMED: 'primary', IN_TRANSIT: 'info', COMPLETED: 'success' };
 
 export default function OronPkDailyPlanMockup() {
   return (
     <MockShell
       patternCode="oron_pk_daily_plan"
-      patternLabel="ORON — 일일/주간 생산계획 + 배송계획"
+      patternLabel="ORON — PK 일일 생산계획 (간트 + 요약)"
       layoutCategory="LAYOUT_SINGLE"
-      description="일별 라인×품목 생산 크로스탭 + 공장간/외부 배송계획. 주간 의뢰서 인쇄 + 일별 원/부재료 소요량 명세. UI_PK_ORN_PACK_DAILY_PLAN, WKLY_PRT, DELIVY_PLAN, OTHER_PLAN, DAILY_REQ_DTL."
+      description="대표 화면 = 일일 생산계획 관리 (UI_PK_ORN_PACK_DAILY_PLAN). 상단 = 라인별 시간 간트 (24시간 × 5라인 — 인쇄/가공/분단/OEM), 하단 = 일자 요약 그리드 (포장재별 계획수량/실적/라인). 같이 묶인 메뉴: 주간 의뢰서/배송 계획(자공장+타공장)/일별 자재 소요량 명세."
     >
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="공장" size="small" select value="ALL" sx={{ width: 110 }}>
+          <TextField label="기준일" size="small" value="2026-06-08" sx={{ width: 150 }} />
+          <TextField label="LINE_TYPE" size="small" select value="ALL" sx={{ width: 130 }}>
             <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="JC">제천</MenuItem>
-            <MenuItem value="IS">익산</MenuItem>
+            <MenuItem value="PRT">인쇄</MenuItem>
+            <MenuItem value="PRC">가공</MenuItem>
+            <MenuItem value="CUT">분단</MenuItem>
+            <MenuItem value="OEM">OEM</MenuItem>
           </TextField>
-          <TextField label="시나리오" size="small" value="SCN_0023" sx={{ width: 150 }} />
-          <TextField label="시작일" size="small" value="2026-06-03" sx={{ width: 140 }} />
-          <TextField label="조회 일수" size="small" select value="7" sx={{ width: 100 }}>
-            <MenuItem value="7">7일</MenuItem>
-            <MenuItem value="14">14일</MenuItem>
+          <TextField label="PACK_TP" size="small" select value="ALL" sx={{ width: 130 }}>
+            <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="TUBE">TUBE</MenuItem>
+            <MenuItem value="BOTTLE">BOTTLE</MenuItem>
+          </TextField>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}>
+            <MenuItem value="V2026-06">V2026-06</MenuItem>
           </TextField>
           <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<PrintIcon />}>주간 의뢰서 인쇄</Button>
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>Excel</Button>
+          <Button size="small" variant="outlined" startIcon={<PrintIcon />}>인쇄</Button>
+          <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+          <ButtonGroup variant="outlined" size="small">
+            <IconButton size="small" title="GridSaveButton" color="primary"><SaveIcon fontSize="small" /></IconButton>
+          </ButtonGroup>
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        {/* 일별 생산 계획 (크로스탭) */}
-        <Paper variant="outlined" sx={{ flex: 1.4, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>일별 생산계획 (라인×품목 × 7일)</Typography>
-          </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 120, textAlign: 'center' }}>라인</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 200 }}>품목명</TableCell>
-                  {DAYS.map((d) => (
-                    <TableCell key={d} sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 95, textAlign: 'right' }}>{d}</TableCell>
+      <Box sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'auto' }}>
+        {/* 상단 — 간트 차트 */}
+        <Paper variant="outlined" sx={{ p: 1.5 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>일일 가동 간트 — 2026-06-08</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 0.5 }}>
+            {/* 시간 축 헤더 */}
+            <Box />
+            <Box sx={{ position: 'relative', height: 18, borderBottom: '1px solid', borderColor: 'divider' }}>
+              {HOURS.map((h, i) => (
+                <Typography key={h} sx={{ position: 'absolute', left: `${(i / HOURS.length) * 100}%`, fontSize: 10, color: 'text.secondary', fontFamily: 'monospace' }}>
+                  {h}:00
+                </Typography>
+              ))}
+            </Box>
+            {/* 라인 행 */}
+            {LINES.map((ln) => (
+              <React.Fragment key={ln.code}>
+                <Box sx={{ pr: 1, display: 'flex', alignItems: 'center' }}>
+                  <Stack>
+                    <Typography sx={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700 }}>{ln.code}</Typography>
+                    <Typography sx={{ fontSize: 10, color: 'text.secondary' }}>{ln.name}</Typography>
+                  </Stack>
+                </Box>
+                <Box sx={{ position: 'relative', height: 28, bgcolor: '#f9fafb', borderRadius: 0.5, border: '1px solid #e5e7eb' }}>
+                  {/* 2시간 grid 라인 */}
+                  {HOURS.map((_h, i) => (
+                    <Box key={i} sx={{ position: 'absolute', left: `${(i / 12) * 100}%`, top: 0, bottom: 0, borderLeft: i === 0 ? 'none' : '1px solid #f3f4f6' }} />
                   ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {DAILY_ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontWeight: 600 }}>{r.LINE_CD}</TableCell>
-                    <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>{r.ITEM_NM}</TableCell>
-                    {r.vals.map((v, j) => (
-                      <TableCell key={j} sx={{
-                        textAlign: 'right', fontFamily: 'monospace',
-                        color: v === 0 ? '#d1d5db' : '#374151', fontWeight: v > 0 ? 600 : 400,
-                        bgcolor: v === 0 ? '#fafafa' : 'transparent',
+                  {/* 블록 */}
+                  {ln.blocks.map((b, i) => {
+                    const left = (b.startH / 24) * 100;
+                    const width = ((b.endH - b.startH) / 24) * 100;
+                    return (
+                      <Box key={i} sx={{
+                        position: 'absolute', left: `${left}%`, width: `${width}%`,
+                        top: 3, bottom: 3,
+                        bgcolor: b.color, opacity: 0.85, borderRadius: 0.5,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', px: 0.5,
+                        overflow: 'hidden', whiteSpace: 'nowrap',
                       }}>
-                        {v === 0 ? '-' : v.toLocaleString()}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        <Typography sx={{ fontSize: 10, color: 'white', fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+                          {b.label} · {b.qty.toLocaleString()}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </React.Fragment>
+            ))}
+          </Box>
         </Paper>
 
-        {/* 배송 계획 */}
-        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <LocalShippingIcon fontSize="small" color="primary" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>배송계획 (공장간 + 외부)</Typography>
-              <Chip label="5건" size="small" variant="outlined" />
-            </Stack>
+        {/* 하단 — 요약 그리드 */}
+        <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700 }}>일일 생산 요약</Typography>
           </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
+          <TableContainer>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center' }}>배송번호</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>FROM</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>TO</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>수량</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>배송일</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>차량</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>상태</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace' }}>PACK_CD</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>PACK_NM</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12 }}>LINE</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>PLAN_QTY</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>ACT_QTY</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, fontSize: 12, textAlign: 'center' }}>STATUS</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {DELIVERY_ROWS.map((r, i) => (
+                {DAILY_SUMMARY.map((r, i) => (
                   <TableRow key={i} hover>
-                    <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.DELIVY_NO}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.FROM}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.TO}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.ITEM_CD}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.VEHICLE}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={r.STATUS} size="small" color={STATUS_COLOR[r.STATUS]} /></TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{r.PACK_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>{r.PACK_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>{r.LINE}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>{r.PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right', color: '#d1d5db' }}>{r.ACT_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: '#9ca3af' }}>{r.STATUS}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

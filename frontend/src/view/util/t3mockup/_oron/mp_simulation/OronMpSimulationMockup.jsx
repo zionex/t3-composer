@@ -1,150 +1,115 @@
 import React from 'react';
-import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, LinearProgress,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
-} from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SearchIcon from '@mui/icons-material/Search';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MockShell from '../../_shared/MockShell';
-import CbStepper from '../../_shared/CbStepper';
-import CbLogPane from '../../_shared/CbLogPane';
-import { cellSx } from '../../_shared/styleCallback';
+import MockGridScaffold from '../_shared/MockGridScaffold';
 
-// OronMp04 — 공급계획 시뮬레이션 + 컨트롤보드 + 기준정보 점검
-// UI_MP_ORN_PLAN_DMND, UI_MP_ORN_DATA_VALID, UI_MP_ORN_DATA_VALID_INQ
+// ORON — MP 시뮬레이션 (공급계획 시뮬레이션 + 기준정보 점검 + 점검 결과)
+//  - UI_MP_ORN_PLAN_DMND      view/oron/masterplan/planningsimulation/ornmpplandmnd/OrnMpPlanDmnd
+//                             (CATEGORY×BRAND×ITEM PSI 크로스탭 — BOH + 동적 DATE 컬럼)
+//  - UI_MP_ORN_DATA_VALID     view/oron/factoryplan/planningsimulation/ornmpdatavalid/OrnMpDataValid
+//                             (VALID_TP_CD × VALID_CD × ERR_TP_CD × ERR_CNT + 링크 메뉴)
+//  - UI_MP_ORN_DATA_VALID_INQ view/oron/factoryplan/planningsimulation/ornmpdatavalidinq/OrnMpDataValidInq
+//                             (품목별 BOM_CHECK/BOR_CHECK/PRIORITY_CHECK O/X 매트릭스)
 
-const STEPS = [
-  { label: '입력 수요', status: 'done',    detail: '12,484 건' },
-  { label: '기준정보 점검', status: 'done', detail: 'PASS' },
-  { label: '재고 Netting', status: 'done', detail: '완료' },
-  { label: '엔진 실행', status: 'running', detail: '54% (12분)' },
-  { label: '결과 후처리', status: 'pending', detail: '대기' },
-  { label: '확정', status: 'pending', detail: '대기' },
+const DATE_COLS = ['2026-W23','2026-W24','2026-W25','2026-W26','2026-W27'];
+
+const TABS = [
+  {
+    key: 'planDmnd', label: '공급계획 시뮬레이션 (PSI 크로스탭)', menu: 'UI_MP_ORN_PLAN_DMND', cnt: 1284,
+    src: 'view/oron/masterplan/planningsimulation/ornmpplandmnd/OrnMpPlanDmnd.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE',     type: 'select', width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',        type: 'select', width: 150, options: ['MAIN_V0006', 'SIM_2026Q3'] },
+      { key: 'bucket',    label: 'BUCKET',         type: 'select', width: 100, options: ['W','M','D'] },
+      { key: 'fromDt',    label: 'FROM_DT',        type: 'date',   width: 140 },
+      { key: 'toDt',      label: 'TO_DT',          type: 'date',   width: 140 },
+    ],
+    buttons: ['save', 'excel'],
+    cols: [
+      { name: 'CATEGORY_NM', h: 'CATEGORY_NM', w: 90,  a: 'center' },
+      { name: 'BRAND_NM',    h: 'BRAND_NM',    w: 80,  a: 'center' },
+      { name: 'ITEM_NM',     h: 'ITEM_NM',     w: 220, a: 'left'   },
+      { name: 'MEASURE',     h: 'MEASURE',     w: 100, a: 'center' },
+      { name: 'UOM',         h: 'UOM',         w:  60, a: 'center' },
+      { name: 'BOH',         h: 'BOH',         w:  80, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right', edit: true })),
+    ],
+    rows: [
+      { CATEGORY_NM:'음료', BRAND_NM:'ORN_A', ITEM_NM:'완제품-FERT 샘플 1', MEASURE:'DEMAND',  UOM:'EA', BOH: 12000, '2026-W23': 4800, '2026-W24': 4800, '2026-W25': 5200, '2026-W26': 5200, '2026-W27': 5500 },
+      { CATEGORY_NM:'음료', BRAND_NM:'ORN_A', ITEM_NM:'완제품-FERT 샘플 1', MEASURE:'SUPPLY',  UOM:'EA', BOH: 12000, '2026-W23': 5000, '2026-W24': 5000, '2026-W25': 5000, '2026-W26': 5500, '2026-W27': 5500 },
+      { CATEGORY_NM:'음료', BRAND_NM:'ORN_A', ITEM_NM:'완제품-FERT 샘플 1', MEASURE:'INV(EOH)',UOM:'EA', BOH: 12000, '2026-W23':12200, '2026-W24':12400, '2026-W25':12200, '2026-W26':12500, '2026-W27':12500 },
+      { CATEGORY_NM:'음료', BRAND_NM:'ORN_A', ITEM_NM:'완제품-FERT 샘플 2', MEASURE:'DEMAND',  UOM:'EA', BOH:  8000, '2026-W23': 3200, '2026-W24': 3200, '2026-W25': 3500, '2026-W26': 3500, '2026-W27': 3800 },
+      { CATEGORY_NM:'음료', BRAND_NM:'ORN_A', ITEM_NM:'완제품-FERT 샘플 2', MEASURE:'SUPPLY',  UOM:'EA', BOH:  8000, '2026-W23': 3300, '2026-W24': 3300, '2026-W25': 3300, '2026-W26': 3800, '2026-W27': 3800 },
+      { CATEGORY_NM:'과자', BRAND_NM:'ORN_C', ITEM_NM:'완제품-FERT 샘플 4', MEASURE:'DEMAND',  UOM:'EA', BOH:  4500, '2026-W23': 1800, '2026-W24': 1800, '2026-W25': 2000, '2026-W26': 2000, '2026-W27': 2200 },
+      { CATEGORY_NM:'과자', BRAND_NM:'ORN_C', ITEM_NM:'완제품-FERT 샘플 4', MEASURE:'SUPPLY',  UOM:'EA', BOH:  4500, '2026-W23': 1900, '2026-W24': 1900, '2026-W25': 1900, '2026-W26': 2200, '2026-W27': 2200 },
+    ],
+  },
+  {
+    key: 'dataValid', label: '기준정보 점검', menu: 'UI_MP_ORN_DATA_VALID', cnt: 17,
+    src: 'view/oron/factoryplan/planningsimulation/ornmpdatavalid/OrnMpDataValid.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select', width: 130, options: ['ORN_MP'] },
+    ],
+    buttons: ['excel'],
+    cols: [
+      { name: 'VALID_TP_CD', h: 'VALID_TP_CD', w: 120, a: 'center' },
+      { name: 'VALID_CD',    h: 'VALID_CD',    w: 260, a: 'left'   },
+      { name: 'ERR_TP_CD',   h: 'ERR_TP_CD',   w: 100, a: 'center', status: true },
+      { name: 'ERR_CNT',     h: 'ERR_CNT',     w:  80, a: 'right'  },
+      { name: 'MENU_NM',     h: 'LINK_MENU_CD',w: 200, a: 'center', action: true },
+    ],
+    rows: [
+      { VALID_TP_CD:'ITEM',     VALID_CD:'완제품 LIFE_CYCLE 미지정',           ERR_TP_CD:'FAIL', ERR_CNT:12,  MENU_NM:'UI_MP_ITEM' },
+      { VALID_TP_CD:'ITEM',     VALID_CD:'반제품 PROD_LT 음수',               ERR_TP_CD:'FAIL', ERR_CNT: 2,  MENU_NM:'UI_MP_ORN_HALB_ITEM' },
+      { VALID_TP_CD:'BOM',      VALID_CD:'BOM 미존재 완제품',                 ERR_TP_CD:'FAIL', ERR_CNT: 4,  MENU_NM:'UI_MP_ORN_BOM' },
+      { VALID_TP_CD:'BOM',      VALID_CD:'BOM 합 ≠ 100%',                    ERR_TP_CD:'FAIL', ERR_CNT: 1,  MENU_NM:'UI_MP_ORN_BOM' },
+      { VALID_TP_CD:'BOR',      VALID_CD:'생산능력 미정의 (Line×Item)',       ERR_TP_CD:'FAIL', ERR_CNT: 8,  MENU_NM:'UI_MP_ORN_BOR' },
+      { VALID_TP_CD:'BOR',      VALID_CD:'BOX_CAPA 0',                         ERR_TP_CD:'FAIL', ERR_CNT: 3,  MENU_NM:'UI_MP_ORN_BOR' },
+      { VALID_TP_CD:'CALENDAR', VALID_CD:'미래 4주 캘린더 미정의 라인',         ERR_TP_CD:'FAIL', ERR_CNT: 1,  MENU_NM:'UI_MP_ORN_CALENDAR' },
+      { VALID_TP_CD:'PRIORITY', VALID_CD:'PRIORITY 중복 (동일 LINE×ITEM)',     ERR_TP_CD:'FAIL', ERR_CNT: 6,  MENU_NM:'UI_MP_ORN_BOR' },
+    ],
+  },
+  {
+    key: 'dataValidInq', label: '점검결과 조회 (품목별)', menu: 'UI_MP_ORN_DATA_VALID_INQ', cnt: 1284,
+    src: 'view/oron/factoryplan/planningsimulation/ornmpdatavalidinq/OrnMpDataValidInq.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'itemVal',   label: 'ITEM_VAL',   type: 'text',        width: 170, ph: 'F01001 / 품목명' },
+    ],
+    buttons: ['excel'],
+    cols: [
+      { name: 'ITEM_CD',        h: 'ITEM_CD',        w: 100, a: 'center' },
+      { name: 'ITEM_NM',        h: 'ITEM_NM',        w: 220, a: 'left'   },
+      { name: 'ITEM_TP_NM',     h: 'ITEM_TP_NM',     w:  70, a: 'center' },
+      { name: 'FERT_LINE_USE',  h: 'FERT_LINE_USE',  w: 120, a: 'center' },
+      { name: 'ITEM_UOM',       h: 'ITEM_UOM',       w:  80, a: 'center' },
+      { name: 'MDM_DT',         h: 'MDM_DT',         w: 100, a: 'center' },
+      { name: 'SALES_DUE_DT',   h: 'SALES_DUE_DT',   w: 100, a: 'center' },
+      { name: 'PROD_DUE_DT',    h: 'PROD_DUE_DT',    w: 100, a: 'center' },
+      { name: 'PROD_UOM',       h: 'PROD_UOM',       w:  80, a: 'center' },
+      { name: 'BOM_CHECK',      h: 'BOM_CHECK',      w:  90, a: 'center', status: true },
+      { name: 'BOR_CHECK',      h: 'BOR_CHECK',      w:  90, a: 'center', status: true },
+      { name: 'PRIORITY_CHECK', h: 'PRIORITY_CHECK', w: 110, a: 'center', status: true },
+    ],
+    rows: [
+      { ITEM_CD:'F01001', ITEM_NM:'완제품-FERT 샘플 1', ITEM_TP_NM:'FERT', FERT_LINE_USE:'L01/L02',   ITEM_UOM:'EA', MDM_DT:'2024-01-01', SALES_DUE_DT:'9999-12-31', PROD_DUE_DT:'9999-12-31', PROD_UOM:'EA', BOM_CHECK:'ACTV', BOR_CHECK:'ACTV', PRIORITY_CHECK:'ACTV' },
+      { ITEM_CD:'F01002', ITEM_NM:'완제품-FERT 샘플 2', ITEM_TP_NM:'FERT', FERT_LINE_USE:'L01',       ITEM_UOM:'EA', MDM_DT:'2024-01-01', SALES_DUE_DT:'9999-12-31', PROD_DUE_DT:'9999-12-31', PROD_UOM:'EA', BOM_CHECK:'ACTV', BOR_CHECK:'ACTV', PRIORITY_CHECK:'FAIL' },
+      { ITEM_CD:'F01003', ITEM_NM:'완제품-FERT 샘플 3', ITEM_TP_NM:'FERT', FERT_LINE_USE:'L02',       ITEM_UOM:'EA', MDM_DT:'2024-01-01', SALES_DUE_DT:'9999-12-31', PROD_DUE_DT:'9999-12-31', PROD_UOM:'EA', BOM_CHECK:'ACTV', BOR_CHECK:'FAIL', PRIORITY_CHECK:'ACTV' },
+      { ITEM_CD:'F02001', ITEM_NM:'완제품-FERT 샘플 4', ITEM_TP_NM:'FERT', FERT_LINE_USE:'L21',       ITEM_UOM:'EA', MDM_DT:'2024-01-01', SALES_DUE_DT:'9999-12-31', PROD_DUE_DT:'9999-12-31', PROD_UOM:'EA', BOM_CHECK:'FAIL', BOR_CHECK:'ACTV', PRIORITY_CHECK:'ACTV' },
+      { ITEM_CD:'F02002', ITEM_NM:'완제품-FERT 샘플 5', ITEM_TP_NM:'FERT', FERT_LINE_USE:'L31',       ITEM_UOM:'EA', MDM_DT:'2024-01-01', SALES_DUE_DT:'9999-12-31', PROD_DUE_DT:'9999-12-31', PROD_UOM:'EA', BOM_CHECK:'ACTV', BOR_CHECK:'ACTV', PRIORITY_CHECK:'ACTV' },
+    ],
+  },
 ];
-
-const LOG_LINES = [
-  { time: '10:34:21', level: 'INFO', message: 'Pre-Setting: TB_RT_MP_PLAN initialized' },
-  { time: '10:34:25', level: 'INFO', message: 'Demand input: 12,484 rows loaded from DP_MASTER V2026-05' },
-  { time: '10:34:32', level: 'INFO', message: 'Validation: 0 errors / 3 warnings' },
-  { time: '10:34:34', level: 'WARN', message: 'BOR missing for ITEM F03005 — fallback to default capa' },
-  { time: '10:34:48', level: 'INFO', message: 'Inventory Netting: 2,128 demands fulfilled by stock' },
-  { time: '10:35:02', level: 'INFO', message: 'Engine started — t3fp.exe pid=12848' },
-  { time: '10:35:15', level: 'INFO', message: 'Engine progress 24% — orders sequenced 2,150 / 8,750' },
-  { time: '10:38:42', level: 'INFO', message: 'Engine progress 54% — orders sequenced 4,725 / 8,750' },
-];
-
-const VALIDATION_ROWS = [
-  { CATEGORY: 'BOR',    ITEM: 'F03005', LINE: 'L-005', LEVEL: 'WARN',  MSG: 'BOR 미정의 — 기본 CAPA 적용' },
-  { CATEGORY: 'BOM',    ITEM: 'F01002', LINE: '-',     LEVEL: 'WARN',  MSG: 'PACK BOM 누락' },
-  { CATEGORY: 'CAL',    ITEM: '-',      LINE: 'L-006', LEVEL: 'INFO',  MSG: '신규 라인 캘린더 자동 생성' },
-  { CATEGORY: 'STOCK',  ITEM: 'M20011', LINE: '-',     LEVEL: 'PASS',  MSG: '안전재고 충족' },
-];
-
-const LVL_COLOR = { WARN: 'warning', INFO: 'info', PASS: 'success', FAIL: 'error' };
 
 export default function OronMpSimulationMockup() {
   return (
     <MockShell
       patternCode="oron_mp_simulation"
-      patternLabel="ORON — 공급계획 시뮬레이션 컨트롤보드"
-      layoutCategory="LAYOUT_CONTROLBOARD"
-      description="공급계획 엔진 6단계 진행 + 실시간 로그 + 기준정보 점검 결과."
+      patternLabel="ORON — MP 시뮬레이션 (공급계획 + 기준정보 점검)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="3개 운영 화면 통합. PLAN_DMND 는 CATEGORY×BRAND×ITEM × DEMAND/SUPPLY/INV(EOH) 측정값 × 동적 DATE 버킷 PSI 크로스탭. DATA_VALID 는 17개 유형 점검 (ERR_CNT + LINK_MENU 로 원본 화면 이동). DATA_VALID_INQ 는 품목별 BOM/BOR/PRIORITY O/X 매트릭스."
     >
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="PLAN_SCOPE" size="small" select value="ORN_MP" sx={{ width: 140 }}>
-            <MenuItem value="ORN_MP">ORN_MP</MenuItem>
-          </TextField>
-          <TextField label="MAIN_VER" size="small" select value="V2026-05" sx={{ width: 140 }}>
-            <MenuItem value="V2026-05">V2026-05</MenuItem>
-          </TextField>
-          <TextField label="SIMUL_VER" size="small" value="SIM_2026_05_28_001" sx={{ width: 200 }} />
-          <TextField label="시뮬레이션 사유" size="small" value="신제품 출시 반영 (F04001)" sx={{ width: 220 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Chip icon={<PlayArrowIcon />} label="RUNNING" color="primary" />
-          <Button variant="outlined" size="small" color="warning">중단</Button>
-        </Stack>
-      </Box>
-
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        {/* Stepper */}
-        <Paper variant="outlined" sx={{ p: 1.5 }}>
-          <CbStepper steps={STEPS} />
-          <Box sx={{ mt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="caption" sx={{ minWidth: 80 }}>엔진 진행률</Typography>
-              <Box sx={{ flexGrow: 1 }}>
-                <LinearProgress variant="determinate" value={54} sx={{ height: 8, borderRadius: 1 }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, minWidth: 60 }}>54%</Typography>
-              <Typography variant="caption" color="text.secondary">예상 잔여 12분</Typography>
-            </Stack>
-          </Box>
-        </Paper>
-
-        {/* KPI cards */}
-        <Stack direction="row" spacing={1.5}>
-          {[
-            { label: '입력 수요', value: '12,484', detail: '주문 4,521건', color: 'primary' },
-            { label: '재고 충당', value: '2,128',  detail: '17.1%',         color: 'info' },
-            { label: '생산 오더', value: '8,750',  detail: '계획 발행',     color: 'success' },
-            { label: '미충족 수요', value: '156',  detail: '결품 위험',     color: 'warning' },
-          ].map((k) => (
-            <Paper key={k.label} variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.label}</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: `${k.color}.main`, mt: 0.5 }}>{k.value}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.detail}</Typography>
-            </Paper>
-          ))}
-        </Stack>
-
-        {/* Log + Validation */}
-        <Stack direction="row" spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-          <Box sx={{ flex: 1.4, minWidth: 0 }}>
-            <CbLogPane lines={LOG_LINES} title="시뮬레이션 로그" />
-          </Box>
-          <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <WarningAmberIcon fontSize="small" color="warning" />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>기준정보 점검 결과</Typography>
-                <Chip label="2 WARN" size="small" color="warning" variant="outlined" />
-                <Chip label="1 INFO" size="small" color="info" variant="outlined" />
-                <Box sx={{ flexGrow: 1 }} />
-                <Button size="small" startIcon={<SearchIcon />}>상세</Button>
-              </Stack>
-            </Box>
-            <TableContainer sx={{ flex: 1 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>구분</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>품목</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'center' }}>라인</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'center' }}>레벨</TableCell>
-                    <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>메시지</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {VALIDATION_ROWS.map((r, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.CATEGORY}</TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.ITEM}</TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.LINE}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>
-                        <Chip label={r.LEVEL} size="small" color={LVL_COLOR[r.LEVEL] || 'default'} variant="outlined" />
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 12 }}>{r.MSG}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Stack>
-      </Box>
+      <MockGridScaffold tabs={TABS} footer="MEASURE: DEMAND/SUPPLY/INV(EOH) · LINK_MENU 클릭 → 원본 화면 이동" />
     </MockShell>
   );
 }

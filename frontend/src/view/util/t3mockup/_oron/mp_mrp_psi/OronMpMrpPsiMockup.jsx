@@ -1,180 +1,216 @@
 import React from 'react';
-import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import SendIcon from '@mui/icons-material/Send';
-import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
+import MockGridScaffold from '../_shared/MockGridScaffold';
 
-// OronMp06 — 원부자재 발주요청 + PSI 조회 + 자재별 재고
-// UI_MP_ORN_MRP_TOT, MRP_LOC, MRP_TOT_VN, MAT_PSI, FERT_PSI, STOCK_MGMT
+// ORON — MP MRP/PSI (6개 화면)
+//  - UI_MP_ORN_MRP_TOT     원부자재 발주요청 (통합)        — BOH + 동적 DATE 컬럼
+//  - UI_MP_ORN_MRP_LOC     원부자재 발주요청 (내자)        — VENDOR_NM 노출 + OLD_MAT_CD
+//  - UI_MP_ORN_MRP_TOT_VN  원부자재 발주요청 (외자)        — 베트남 서버 분기
+//  - UI_MP_ORN_MAT_PSI     원부자재 PSI 조회               — PLANT_NM × BOH + 동적 DATE
+//  - UI_MP_ORN_FERT_PSI    완제품 PSI 조회                  — BRAND × BOH_FAC/BOH_ALL × DIM_1_NM/DIM_2 + 동적 DATE
+//  - UI_MP_ORN_STOCK_MGMT  자재별 재고 조회/수정 (MpStockMgmt — wingui-core 폴더, ORON 도 ITEM_CD action 버튼)
 
-const PSI_FIXED = [
-  { name: 'PLANT',   label: '공장',    width: 90 },
-  { name: 'ITEM_CD', label: '품목',    width: 110 },
-  { name: 'ITEM_NM', label: '품목명',  width: 200 },
-  { name: 'MEASURE', label: 'MEASURE', width: 120 },
+const DATE_COLS = ['2026-W23','2026-W24','2026-W25','2026-W26','2026-W27'];
+
+const TABS = [
+  {
+    key: 'mrpTot', label: '원자재 발주요청 (통합)', menu: 'UI_MP_ORN_MRP_TOT', cnt: 2147,
+    src: 'view/oron/factoryplan/matmgmt/ornmpmrptot/OrnMpMrpTot.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',    type: 'select',      width: 150, options: ['MAIN_V0006'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'matLv1',    label: 'MAT_LV_1',   type: 'select',      width: 130, options: ['RAW','PACK'] },
+      { key: 'matLv2',    label: 'MAT_LV_2',   type: 'multiSelect', width: 150 },
+      { key: 'matLv3',    label: 'MAT_LV_3',   type: 'multiSelect', width: 150 },
+      { key: 'matVal',    label: 'MAT_VAL',    type: 'text',        width: 170 },
+    ],
+    buttons: ['save', 'excel'],
+    cols: [
+      { name: 'MAT_LV_03_NM',     h: 'MAT_LV_03_NM', w: 110, a: 'center' },
+      { name: 'MAT_CD',           h: 'PK_MAT_CD',    w:  90, a: 'center' },
+      { name: 'MAT_NM',           h: 'PK_MAT_NM',    w: 250, a: 'left'   },
+      { name: 'PURC_LT',          h: 'PURC_LT',      w:  80, a: 'right'  },
+      { name: 'SAFETY_STOCK_QTY', h: 'SFST_VAL',     w:  90, a: 'right'  },
+      { name: 'MIN_ORD_QTY',      h: 'MIN_ORD_QTY',  w:  90, a: 'right'  },
+      { name: 'BOH',              h: 'ORN_PLANT_BOH',w:  90, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right', edit: true })),
+    ],
+    rows: [
+      { MAT_LV_03_NM:'당류',    MAT_CD:'M00010', MAT_NM:'원자재-RAW 설탕',         PURC_LT: 7, SAFETY_STOCK_QTY:5000.00, MIN_ORD_QTY:1000.00, BOH: 8200, '2026-W23':1000, '2026-W24':1000, '2026-W25':1500, '2026-W26':1500, '2026-W27':2000 },
+      { MAT_LV_03_NM:'첨가제',  MAT_CD:'M00011', MAT_NM:'원자재-RAW 시트레이트',   PURC_LT:10, SAFETY_STOCK_QTY: 800.00, MIN_ORD_QTY: 200.00, BOH: 1200, '2026-W23': 200, '2026-W24': 200, '2026-W25': 200, '2026-W26': 200, '2026-W27': 200 },
+      { MAT_LV_03_NM:'캔',      MAT_CD:'M00020', MAT_NM:'포장재-PACK 캔 355ml',    PURC_LT: 5, SAFETY_STOCK_QTY:20000.00,MIN_ORD_QTY:5000.00, BOH:32000, '2026-W23':5000, '2026-W24':5000, '2026-W25':5500, '2026-W26':5500, '2026-W27':6000 },
+      { MAT_LV_03_NM:'캔',      MAT_CD:'M00021', MAT_NM:'포장재-PACK 캔 500ml',    PURC_LT: 5, SAFETY_STOCK_QTY:12000.00,MIN_ORD_QTY:3000.00, BOH:18000, '2026-W23':3000, '2026-W24':3000, '2026-W25':3300, '2026-W26':3300, '2026-W27':3500 },
+      { MAT_LV_03_NM:'라벨',    MAT_CD:'M00030', MAT_NM:'포장재-PACK 라벨',         PURC_LT:21, SAFETY_STOCK_QTY:100000.00,MIN_ORD_QTY:50000.00,BOH:180000,'2026-W23':50000,'2026-W24':50000,'2026-W25':50000,'2026-W26':50000,'2026-W27':50000 },
+    ],
+  },
+  {
+    key: 'mrpLoc', label: '원자재 발주요청 (내자)', menu: 'UI_MP_ORN_MRP_LOC', cnt: 1532,
+    src: 'view/oron/factoryplan/matmgmt/ornmpmrploc/OrnMpMrpLoc.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',    type: 'select',      width: 150, options: ['MAIN_V0006'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'vendorCd',  label: 'VENDOR',     type: 'multiSelect', width: 150 },
+      { key: 'matLv1',    label: 'MAT_LV_1',   type: 'select',      width: 130, options: ['RAW','PACK'] },
+      { key: 'matLv2',    label: 'MAT_LV_2',   type: 'multiSelect', width: 150 },
+      { key: 'matLv3',    label: 'MAT_LV_3',   type: 'multiSelect', width: 150 },
+      { key: 'matVal',    label: 'MAT_VAL',    type: 'text',        width: 170 },
+    ],
+    buttons: ['save', 'excel'],
+    cols: [
+      { name: 'MAT_LV_03_NM',     h: 'VENDOR_NM',      w: 130, a: 'center' },
+      { name: 'MAT_CD',           h: 'PK_MAT_CD',      w:  90, a: 'center' },
+      { name: 'MAT_NM',           h: 'PK_MAT_NM',      w: 200, a: 'left'   },
+      { name: 'OLD_MAT_CD',       h: 'OLD_MAT_CD',     w:  90, a: 'center' },
+      { name: 'PURC_LT',          h: 'PURC_LT',        w:  70, a: 'right'  },
+      { name: 'SAFETY_STOCK_QTY', h: 'SFST_VAL',       w:  80, a: 'right'  },
+      { name: 'MIN_ORD_QTY',      h: 'MIN_ORD_QTY',    w:  80, a: 'right'  },
+      { name: 'BOH',              h: 'ORN_PLANT_BOH',  w:  90, a: 'right'  },
+      { name: 'TODAY_IN_QTY',     h: 'TODAY_IN_QTY',   w:  90, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right', edit: true })),
+    ],
+    rows: [
+      { MAT_LV_03_NM:'(주)국내A', MAT_CD:'M00010', MAT_NM:'원자재-RAW 설탕',        OLD_MAT_CD:'OLD_010', PURC_LT: 7, SAFETY_STOCK_QTY:5000,  MIN_ORD_QTY:1000, BOH: 8200.0, TODAY_IN_QTY:1000.0, '2026-W23':1000, '2026-W24':1000, '2026-W25':1500, '2026-W26':1500, '2026-W27':2000 },
+      { MAT_LV_03_NM:'(주)국내A', MAT_CD:'M00011', MAT_NM:'원자재-RAW 시트레이트',  OLD_MAT_CD:'OLD_011', PURC_LT:10, SAFETY_STOCK_QTY: 800,  MIN_ORD_QTY: 200, BOH: 1200.0, TODAY_IN_QTY: 200.0, '2026-W23': 200, '2026-W24': 200, '2026-W25': 200, '2026-W26': 200, '2026-W27': 200 },
+      { MAT_LV_03_NM:'(주)국내B', MAT_CD:'M00020', MAT_NM:'포장재-PACK 캔 355ml',   OLD_MAT_CD:'OLD_020', PURC_LT: 5, SAFETY_STOCK_QTY:20000, MIN_ORD_QTY:5000, BOH:32000.0, TODAY_IN_QTY:5000.0, '2026-W23':5000, '2026-W24':5000, '2026-W25':5500, '2026-W26':5500, '2026-W27':6000 },
+    ],
+  },
+  {
+    key: 'mrpTotVn', label: '원자재 발주요청 (외자/VN)', menu: 'UI_MP_ORN_MRP_TOT_VN', cnt: 615,
+    src: 'view/oron/factoryplan/matmgmt/ornmpmrptotvn/OrnMpMrpTotVn.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',    type: 'select',      width: 150, options: ['MAIN_V0006'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'matLv1',    label: 'MAT_LV_1',   type: 'select',      width: 130 },
+      { key: 'matLv2',    label: 'MAT_LV_2',   type: 'multiSelect', width: 150 },
+      { key: 'matLv3',    label: 'MAT_LV_3',   type: 'multiSelect', width: 150 },
+      { key: 'matVal',    label: 'MAT_VAL',    type: 'text',        width: 170 },
+    ],
+    buttons: ['save', 'excel'],
+    cols: [
+      { name: 'MAT_LV_03_NM',     h: 'MAT_LV_03_NM',  w: 120, a: 'center' },
+      { name: 'MAT_CD',           h: 'PK_MAT_CD',     w:  90, a: 'center' },
+      { name: 'MAT_NM',           h: 'PK_MAT_NM',     w: 220, a: 'left'   },
+      { name: 'PURC_LT',          h: 'PURC_LT',       w:  70, a: 'right'  },
+      { name: 'SAFETY_STOCK_QTY', h: 'SFST_VAL',      w:  90, a: 'right'  },
+      { name: 'MIN_ORD_QTY',      h: 'MIN_ORD_QTY',   w:  90, a: 'right'  },
+      { name: 'BOH',              h: 'ORN_PLANT_BOH', w:  90, a: 'right'  },
+      { name: 'TODAY_IN_QTY',     h: 'TODAY_IN_QTY',  w:  90, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right', edit: true })),
+    ],
+    rows: [
+      { MAT_LV_03_NM:'캔',   MAT_CD:'M00030', MAT_NM:'포장재-PACK 라벨', PURC_LT:21, SAFETY_STOCK_QTY:100000.00, MIN_ORD_QTY:50000.00, BOH:180000, TODAY_IN_QTY:50000, '2026-W23':50000, '2026-W24':50000, '2026-W25':50000, '2026-W26':50000, '2026-W27':50000 },
+    ],
+  },
+  {
+    key: 'matPsi', label: '원자재 PSI 조회', menu: 'UI_MP_ORN_MAT_PSI', cnt: 2147,
+    src: 'view/oron/factoryplan/matmgmt/ornmpmatpsi/OrnMpMatPsi.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',    type: 'select',      width: 150, options: ['MAIN_V0006'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'matLv1',    label: 'MAT_LV_1',   type: 'select',      width: 130 },
+      { key: 'matLv2',    label: 'MAT_LV_2',   type: 'multiSelect', width: 150 },
+      { key: 'matLv3',    label: 'MAT_LV_3',   type: 'multiSelect', width: 150 },
+      { key: 'matVal',    label: 'MAT_VAL',    type: 'text',        width: 170 },
+      { key: 'bucket',    label: 'BUCKET',     type: 'select',      width: 100, options: ['W','M'] },
+      { key: 'fromDt',    label: 'FROM_DT',    type: 'date',        width: 140 },
+      { key: 'toDt',      label: 'TO_DT',      type: 'date',        width: 140 },
+    ],
+    buttons: ['excel'],
+    cols: [
+      { name: 'MAT_LV_03_NM', h: 'MAT_LV_03_NM', w: 110, a: 'center' },
+      { name: 'MAT_CD',       h: 'PK_MAT_CD',    w:  90, a: 'center' },
+      { name: 'MAT_NM',       h: 'PK_MAT_NM',    w: 250, a: 'left'   },
+      { name: 'UOM_CD',       h: 'UOM_CD',       w:  60, a: 'center' },
+      { name: 'PLANT_NM',     h: 'PLANT_NM',     w:  90, a: 'center' },
+      { name: 'MEASURE',      h: 'MEASURE',      w:  90, a: 'center' },
+      { name: 'BOH',          h: 'BOH',          w:  90, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right' })),
+    ],
+    rows: [
+      { MAT_LV_03_NM:'당류', MAT_CD:'M00010', MAT_NM:'원자재-RAW 설탕',    UOM_CD:'KG', PLANT_NM:'P1 공장', MEASURE:'IN',  BOH: 8200.00, '2026-W23':1000, '2026-W24':1000, '2026-W25':1500, '2026-W26':1500, '2026-W27':2000 },
+      { MAT_LV_03_NM:'당류', MAT_CD:'M00010', MAT_NM:'원자재-RAW 설탕',    UOM_CD:'KG', PLANT_NM:'P1 공장', MEASURE:'OUT', BOH: 8200.00, '2026-W23': 800, '2026-W24': 800, '2026-W25':1200, '2026-W26':1200, '2026-W27':1600 },
+      { MAT_LV_03_NM:'당류', MAT_CD:'M00010', MAT_NM:'원자재-RAW 설탕',    UOM_CD:'KG', PLANT_NM:'P1 공장', MEASURE:'EOH', BOH: 8200.00, '2026-W23':8400, '2026-W24':8600, '2026-W25':8900, '2026-W26':9200, '2026-W27':9600 },
+      { MAT_LV_03_NM:'캔',   MAT_CD:'M00020', MAT_NM:'포장재-PACK 캔 355ml',UOM_CD:'EA', PLANT_NM:'P1 공장', MEASURE:'IN',  BOH:32000.00, '2026-W23':5000, '2026-W24':5000, '2026-W25':5500, '2026-W26':5500, '2026-W27':6000 },
+      { MAT_LV_03_NM:'캔',   MAT_CD:'M00020', MAT_NM:'포장재-PACK 캔 355ml',UOM_CD:'EA', PLANT_NM:'P1 공장', MEASURE:'OUT', BOH:32000.00, '2026-W23':4200, '2026-W24':4200, '2026-W25':4800, '2026-W26':4800, '2026-W27':5300 },
+    ],
+  },
+  {
+    key: 'fertPsi', label: '완제품 PSI 조회', menu: 'UI_MP_ORN_FERT_PSI', cnt: 1284,
+    src: 'view/oron/factoryplan/planresult/ornmpfertpsi/OrnMpFertPsi.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'verCd',     label: 'VERSION',    type: 'select',      width: 150, options: ['MAIN_V0006'] },
+      { key: 'plantCd',   label: 'FP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'category',  label: 'CATEGORY',   type: 'multiSelect', width: 150, options: ['음료','과자'] },
+      { key: 'brandCd',   label: 'BRAND',      type: 'multiSelect', width: 150 },
+      { key: 'itemVal',   label: 'ITEM_VAL',   type: 'text',        width: 170 },
+      { key: 'bucket',    label: 'BUCKET',     type: 'select',      width: 100, options: ['W','M'] },
+      { key: 'fromDt',    label: 'FROM_DT',    type: 'date',        width: 140 },
+      { key: 'toDt',      label: 'TO_DT',      type: 'date',        width: 140 },
+    ],
+    buttons: ['excel'],
+    cols: [
+      { name: 'ITEM_CD',          h: 'BRAND_CD',  w:  90, a: 'center' },
+      { name: 'ITEM_NM',          h: 'BRAND_NM',  w: 180, a: 'left'   },
+      { name: 'DIM_1_NM',         h: 'DIM_1_NM',  w: 100, a: 'center' },
+      { name: 'DIM_2',            h: 'DIM_2',     w: 110, a: 'center' },
+      { name: 'BOH_FAC_STK_QTY',  h: 'BOH_FAC',   w:  90, a: 'right'  },
+      { name: 'BOH_ALL_STK_QTY',  h: 'BOH_ALL',   w:  90, a: 'right'  },
+      ...DATE_COLS.map((d) => ({ name: d, h: d, w: 90, a: 'right' })),
+    ],
+    rows: [
+      { ITEM_CD:'BR01', ITEM_NM:'ORN_A', DIM_1_NM:'CATEGORY', DIM_2:'음료',    BOH_FAC_STK_QTY:12000, BOH_ALL_STK_QTY:18000, '2026-W23':5000, '2026-W24':5000, '2026-W25':5200, '2026-W26':5500, '2026-W27':5500 },
+      { ITEM_CD:'BR01', ITEM_NM:'ORN_A', DIM_1_NM:'CATEGORY', DIM_2:'음료',    BOH_FAC_STK_QTY:12000, BOH_ALL_STK_QTY:18000, '2026-W23':4800, '2026-W24':4800, '2026-W25':5000, '2026-W26':5200, '2026-W27':5300 },
+      { ITEM_CD:'BR02', ITEM_NM:'ORN_B', DIM_1_NM:'CATEGORY', DIM_2:'음료',    BOH_FAC_STK_QTY: 6500, BOH_ALL_STK_QTY:10000, '2026-W23':2500, '2026-W24':2500, '2026-W25':2700, '2026-W26':2700, '2026-W27':2700 },
+      { ITEM_CD:'BR03', ITEM_NM:'ORN_C', DIM_1_NM:'CATEGORY', DIM_2:'과자',    BOH_FAC_STK_QTY: 4500, BOH_ALL_STK_QTY: 6800, '2026-W23':2000, '2026-W24':2000, '2026-W25':2200, '2026-W26':2200, '2026-W27':2400 },
+    ],
+  },
+  {
+    key: 'stockMgmt', label: '자재별 재고 조회/수정', menu: 'UI_MP_ORN_STOCK_MGMT', cnt: 8472,
+    src: 'view/oron/factoryplan/planningsimulation/mpstockmgmt/MpStockMgmt.jsx',
+    search: [
+      { key: 'planScope', label: 'PLAN_SCOPE', type: 'select',      width: 130, options: ['ORN_MP'] },
+      { key: 'plantCd',   label: 'MP_PLANT',   type: 'multiSelect', width: 150 },
+      { key: 'slCd',      label: 'ORN_RP_SL_CD',type: 'multiSelect',width: 150 },
+      { key: 'itemVal',   label: 'ITEM_VAL',   type: 'text',        width: 170 },
+    ],
+    buttons: ['save', 'excel'],
+    cols: [
+      { name: 'ITEM_CD',     h: 'ITEM_CD',          w:  90, a: 'center', action: true },
+      { name: 'ITEM_NM',     h: 'ITEM_NM',          w: 200, a: 'left'   },
+      { name: 'UOM_CD',      h: 'UOM_CD',           w:  60, a: 'center' },
+      { name: 'PLANT_CD',    h: 'MP_PLANT_CD',      w:  70, a: 'center' },
+      { name: 'PLANT_NM',    h: 'MP_PLANT_NM',      w:  90, a: 'center' },
+      { name: 'SL_CD',       h: 'ORN_RP_SL_CD',     w:  70, a: 'center' },
+      { name: 'SL_NM',       h: 'ORN_RP_SL_NM',     w: 100, a: 'left'   },
+      { name: 'USABLE_DATE', h: 'USABLE_DATE',      w: 100, a: 'center' },
+      { name: 'INV_ID',      h: 'INV_ID',           w: 100, a: 'center' },
+      { name: 'ORG_QTY',     h: 'ORN_USABLE_STK_QTY',w:  90, a: 'right' },
+      { name: 'QI_QTY',      h: 'ORN_QI_STK_QTY',   w:  90, a: 'right'  },
+      { name: 'UNCLEAR_QTY', h: 'ORN_UNCLEAR_STK_QTY',w: 90, a: 'right' },
+    ],
+    rows: [
+      { ITEM_CD:'M00010', ITEM_NM:'원자재-RAW 설탕',         UOM_CD:'KG', PLANT_CD:'P1', PLANT_NM:'P1 공장', SL_CD:'SL01', SL_NM:'자재창고 A', USABLE_DATE:'2026-09-30', INV_ID:'INV-001', ORG_QTY: 7200.00, QI_QTY: 800.00, UNCLEAR_QTY: 200.00 },
+      { ITEM_CD:'M00011', ITEM_NM:'원자재-RAW 시트레이트',   UOM_CD:'KG', PLANT_CD:'P1', PLANT_NM:'P1 공장', SL_CD:'SL01', SL_NM:'자재창고 A', USABLE_DATE:'2026-08-31', INV_ID:'INV-002', ORG_QTY: 1000.00, QI_QTY: 150.00, UNCLEAR_QTY:  50.00 },
+      { ITEM_CD:'M00020', ITEM_NM:'포장재-PACK 캔 355ml',    UOM_CD:'EA', PLANT_CD:'P1', PLANT_NM:'P1 공장', SL_CD:'SL02', SL_NM:'포장창고',    USABLE_DATE:'9999-12-31', INV_ID:'INV-003', ORG_QTY:30000.00, QI_QTY:1500.00, UNCLEAR_QTY: 500.00 },
+      { ITEM_CD:'M00021', ITEM_NM:'포장재-PACK 캔 500ml',    UOM_CD:'EA', PLANT_CD:'P1', PLANT_NM:'P1 공장', SL_CD:'SL02', SL_NM:'포장창고',    USABLE_DATE:'9999-12-31', INV_ID:'INV-004', ORG_QTY:17000.00, QI_QTY: 800.00, UNCLEAR_QTY: 200.00 },
+    ],
+  },
 ];
-const PSI_WEEKS = ['W22','W23','W24','W25','W26','W27','W28','W29'];
-
-const PSI_ROWS = [
-  { PLANT: '제천', ITEM_CD: 'M20001', ITEM_NM: '에센스 베이스액',         MEASURE: '수요(P+S)', vals: [3200, 3400, 3500, 3600, 3700, 3800, 3900, 4000] },
-  { PLANT: '제천', ITEM_CD: 'M20001', ITEM_NM: '에센스 베이스액',         MEASURE: '입고(O)',   vals: [3000, 3500, 3500, 3700, 3700, 3800, 4000, 4000] },
-  { PLANT: '제천', ITEM_CD: 'M20001', ITEM_NM: '에센스 베이스액',         MEASURE: '기말재고',  vals: [1800, 1900, 1900, 2000, 2000, 2000, 2100, 2100] },
-  { PLANT: '제천', ITEM_CD: 'M20002', ITEM_NM: '시트 부직포 100*120',     MEASURE: '수요(P+S)', vals: [22500,23800,24600,25200,26000,26700,27300,28000] },
-  { PLANT: '제천', ITEM_CD: 'M20002', ITEM_NM: '시트 부직포 100*120',     MEASURE: '입고(O)',   vals: [25000,25000,25000,25000,25000,28000,28000,28000] },
-  { PLANT: '제천', ITEM_CD: 'M20002', ITEM_NM: '시트 부직포 100*120',     MEASURE: '기말재고',  vals: [4500, 5700, 6100, 5900, 4900, 6200, 6900, 6900] },
-  { PLANT: '익산', ITEM_CD: 'M20003', ITEM_NM: '하이알루론산 원료',        MEASURE: '수요(P+S)', vals: [55,   58,   60,   62,   64,   66,   68,   70  ] },
-  { PLANT: '익산', ITEM_CD: 'M20003', ITEM_NM: '하이알루론산 원료',        MEASURE: '입고(O)',   vals: [50,   60,   60,   70,   60,   70,   70,   70  ] },
-  { PLANT: '익산', ITEM_CD: 'M20003', ITEM_NM: '하이알루론산 원료',        MEASURE: '기말재고',  vals: [15,   17,   17,   25,   21,   25,   27,   27  ] },
-];
-
-const PO_ROWS = [
-  { PLANT: '제천', ITEM_CD: 'M20001', VENDOR: '대원케미컬',  REQ_DT: '2026-05-30', QTY: 3500,  UOM: 'kg', LEAD_TM: 7,  TYPE: 'LOCAL', STATUS: 'DRAFT' },
-  { PLANT: '제천', ITEM_CD: 'M20002', VENDOR: '한솔부직포',  REQ_DT: '2026-05-29', QTY: 25000, UOM: 'PCS',LEAD_TM: 14, TYPE: 'LOCAL', STATUS: 'SENT' },
-  { PLANT: '제천', ITEM_CD: 'M20003', VENDOR: 'Hyaluron Co', REQ_DT: '2026-06-15', QTY: 100,   UOM: 'kg', LEAD_TM: 30, TYPE: 'IMPORT',STATUS: 'DRAFT' },
-  { PLANT: '익산', ITEM_CD: 'P30001', VENDOR: '동양인쇄',    REQ_DT: '2026-05-28', QTY: 8000,  UOM: 'PCS',LEAD_TM: 5,  TYPE: 'LOCAL', STATUS: 'SENT' },
-  { PLANT: '익산', ITEM_CD: 'P30002', VENDOR: 'INK Global',  REQ_DT: '2026-06-20', QTY: 50,   UOM: 'kg', LEAD_TM: 45, TYPE: 'IMPORT',STATUS: 'PLAN' },
-];
-
-const STATUS_COLOR = { DRAFT: 'default', SENT: 'primary', CONFIRMED: 'success', PLAN: 'info' };
-const TYPE_COLOR = { LOCAL: 'success', IMPORT: 'warning' };
-
-function PsiCrosstab() {
-  return (
-    <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>원부자재 PSI (주별)</Typography>
-          <Chip label="공장×품목×Measure" size="small" variant="outlined" />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button size="small" startIcon={<DownloadIcon />}>Excel</Button>
-        </Stack>
-      </Box>
-      <TableContainer sx={{ flex: 1 }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              {PSI_FIXED.map((c) => (
-                <TableCell key={c.name} sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: c.width, textAlign: c.name === 'ITEM_NM' ? 'left' : 'center' }}>{c.label}</TableCell>
-              ))}
-              {PSI_WEEKS.map((w) => (
-                <TableCell key={w} sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 75, textAlign: 'right' }}>{w}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {PSI_ROWS.map((r, i) => (
-              <TableRow key={i} hover sx={{ bgcolor: r.MEASURE === '기말재고' ? '#f9fafb' : 'transparent' }}>
-                <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.PLANT}</TableCell>
-                <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                <TableCell>{r.ITEM_NM}</TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 600, color: r.MEASURE === '기말재고' ? '#1565c0' : '#374151' }}>{r.MEASURE}</TableCell>
-                {r.vals.map((v, j) => (
-                  <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace', color: r.MEASURE === '기말재고' && v < 1000 && r.ITEM_CD === 'M20003' ? '#c62828' : '#374151', fontWeight: r.MEASURE === '기말재고' ? 700 : 400 }}>
-                    {v.toLocaleString()}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
-  );
-}
-
-function PoGrid() {
-  return (
-    <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>원부자재 발주요청 (통합/내자/외자)</Typography>
-          <Chip label="DRAFT 3 / SENT 2 / PLAN 1" size="small" variant="outlined" />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button size="small" variant="contained" color="primary" startIcon={<SendIcon />}>발주 송신</Button>
-        </Stack>
-      </Box>
-      <TableContainer sx={{ flex: 1 }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>공장</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>품목</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 140 }}>거래처</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>요청일</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>수량</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'center' }}>UOM</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 70, textAlign: 'right' }}>L/T</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>구분</TableCell>
-              <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'center' }}>상태</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {PO_ROWS.map((r, i) => (
-              <TableRow key={i} hover>
-                <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.PLANT}</TableCell>
-                <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                <TableCell>{r.VENDOR}</TableCell>
-                <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.REQ_DT}</TableCell>
-                <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.QTY.toLocaleString()}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{r.UOM}</TableCell>
-                <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.LEAD_TM}d</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}><Chip label={r.TYPE} size="small" color={TYPE_COLOR[r.TYPE]} variant="outlined" /></TableCell>
-                <TableCell sx={{ textAlign: 'center' }}><Chip label={r.STATUS} size="small" color={STATUS_COLOR[r.STATUS] || 'default'} /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
-  );
-}
 
 export default function OronMpMrpPsiMockup() {
-  const [tab, setTab] = React.useState(0);
   return (
     <MockShell
       patternCode="oron_mp_mrp_psi"
-      patternLabel="ORON — 원부자재 발주요청 + PSI"
+      patternLabel="ORON — MP MRP/PSI (발주요청 통합/내자/외자 + PSI 조회 + 재고)"
       layoutCategory="LAYOUT_SINGLE"
-      description="원부자재 PSI 크로스탭(주별) + 발주요청 (내자/외자/통합) + 자재별 재고."
+      description="6개 운영 화면 통합. MRP_TOT/LOC/TOT_VN 3종은 자재 발주요청 (BOH + 동적 DATE × 수량, MRP_LOC 만 VENDOR_NM+OLD_MAT_CD+TODAY_IN_QTY 노출). MAT_PSI / FERT_PSI 는 자재/완제품 PSI 크로스탭 (IN/OUT/EOH × 동적 DATE). STOCK_MGMT 는 자재별 재고 조회 (USABLE_STK / QI_STK / UNCLEAR_STK 3구분 + USABLE_DATE 유효기한)."
     >
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="공장" size="small" select value="ALL" sx={{ width: 110 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="JC">제천</MenuItem>
-            <MenuItem value="IS">익산</MenuItem>
-          </TextField>
-          <TextField label="자재유형" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="ROH">ROH</MenuItem>
-            <MenuItem value="PACK">PACK</MenuItem>
-          </TextField>
-          <TextField label="발주구분" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="LOCAL">내자</MenuItem>
-            <MenuItem value="IMPORT">외자</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-W22 ~ W29" sx={{ width: 170 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-        </Stack>
-      </Box>
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
-        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
-          <Tab label="자재 PSI" />
-          <Tab label="발주요청 (통합)" />
-          <Tab label="자재별 재고" />
-        </Tabs>
-      </Box>
-      <Box sx={{ p: 1.5, height: '100%' }}>
-        {tab === 0 ? <PsiCrosstab /> : <PoGrid />}
-      </Box>
+      <MockGridScaffold tabs={TABS} footer="MEASURE IN/OUT/EOH = 입고/소요/마감재고 · QI = 검수 대기, UNCLEAR = 미정리" />
     </MockShell>
   );
 }

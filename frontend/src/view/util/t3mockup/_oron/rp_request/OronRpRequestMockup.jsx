@@ -1,132 +1,139 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, ButtonGroup, IconButton, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DownloadIcon from '@mui/icons-material/Download';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronRp01 — 분배요청 입력/조회 (물류센터/영업소/추가의뢰)
-// UI_RP_ORN_01, 05, 06, 07, 08, 09, 10, 11
+// ORON — RP 주문 입력/조회
+// 대표 화면: UI_RP_ORN_01 "물류센터/영업소 주문 입력"
+//   소스: replenishmentplan/preanalysis/ornreforderadj/OrnRefOrderAdj.jsx
+//        (ORON repo 동일 경로 미존재 — 같은 RP 마스터 CRUD 패턴으로 1:1)
+//   SearchArea: PlanScope, 출발거점(TP+CD), 도착거점(TP+CD), 품목, 기간
+//   Grid columns: FROM_LOCAT_CD/NM, TO_LOCAT_CD/NM, ITEM_CD/NM, ORD_DT, ETD, ETA, ORD_QTY, STATUS, REMARK
+//   우측 버튼: GridAddRow / GridDeleteRow / GridSave / Excel
+//
+// 같이 묶인 메뉴 (대표 1개만 본문 표시):
+//   - UI_RP_ORN_05  물류센터/영업소 주문조회 (OrnRefOrderView)
+//   - UI_RP_ORN_06  특정 분배 요청 (OrnSalesOrder)
+//   - UI_RP_ORN_07  특정 분배 요청 조회/확정 (OrnSalesOrderCnf)
+//   - UI_RP_ORN_08  추가의뢰 조회/수정 (OrnTransferOrderEdit)
+//   - UI_RP_ORN_09  추가의뢰 요청 (OrnTransferOrderAsk)
+//   - UI_RP_ORN_10  거점 기준정보 설정 (OrnLocatMapping)
+//   - UI_RP_ORN_11  물류센터 분배 입력(익산-제주) (OrnCenterAdj)
 
-const TABS = [
-  { key: 'order',     label: '주문 입력' },
-  { key: 'order_view',label: '주문 조회' },
-  { key: 'special',   label: '특정 분배 요청' },
-  { key: 'special_cnf',label: '특정 요청 확정' },
-  { key: 'transfer',  label: '추가의뢰' },
-  { key: 'master',    label: '거점 기준정보' },
+const GRID_HEADERS = [
+  { name: 'FROM_LOCAT_CD', width: 100, align: 'center', mono: true },
+  { name: 'FROM_LOCAT_NM', width: 140, align: 'left' },
+  { name: 'TO_LOCAT_CD',   width: 100, align: 'center', mono: true },
+  { name: 'TO_LOCAT_NM',   width: 140, align: 'left' },
+  { name: 'ITEM_CD',       width: 130, align: 'center', mono: true },
+  { name: 'ITEM_NM',       width: 200, align: 'left' },
+  { name: 'ORD_DT',        width: 100, align: 'center', mono: true },
+  { name: 'ETD',           width: 100, align: 'center', mono: true },
+  { name: 'ETA',           width: 100, align: 'center', mono: true },
+  { name: 'ORD_QTY',       width: 90,  align: 'right',  mono: true, num: true },
+  { name: 'STATUS',        width: 110, align: 'center' },
+  { name: 'REMARK',        width: 180, align: 'left' },
 ];
 
-const ORDERS = [
-  { ORD_NO: 'OR-2026-1024', CENTER: '대전물류센터',  ITEM_CD: 'F01001', ITEM_NM: '오론 비건마스크 5매',  REQ_QTY: 2500, REQ_DT: '2026-06-03', PRIO: 1, STATUS: 'PENDING',  REQ_BY: '권민호' },
-  { ORD_NO: 'OR-2026-1025', CENTER: '광주영업소',    ITEM_CD: 'F01002', ITEM_NM: '오론 세럼 30ml',       REQ_QTY:  800, REQ_DT: '2026-06-03', PRIO: 2, STATUS: 'APPROVED', REQ_BY: '신해리' },
-  { ORD_NO: 'OR-2026-1026', CENTER: '부산영업소',    ITEM_CD: 'F01001', ITEM_NM: '오론 비건마스크 5매',  REQ_QTY: 1500, REQ_DT: '2026-06-04', PRIO: 1, STATUS: 'APPROVED', REQ_BY: '강성진' },
-  { ORD_NO: 'OR-2026-1027', CENTER: '제주영업소',    ITEM_CD: 'F02001', ITEM_NM: '오론 클렌징폼 150g',   REQ_QTY:  500, REQ_DT: '2026-06-05', PRIO: 3, STATUS: 'PENDING',  REQ_BY: '오지연' },
-  { ORD_NO: 'OR-2026-1028', CENTER: '익산물류',      ITEM_CD: 'F03001', ITEM_NM: 'OEM 선크림 SPF50+',    REQ_QTY: 3000, REQ_DT: '2026-06-04', PRIO: 1, STATUS: 'URGENT',   REQ_BY: '백성호' },
-  { ORD_NO: 'OR-2026-1029', CENTER: '대전물류센터',  ITEM_CD: 'F01003', ITEM_NM: '오론 토너 200ml',      REQ_QTY: 1200, REQ_DT: '2026-06-06', PRIO: 2, STATUS: 'PENDING',  REQ_BY: '권민호' },
-  { ORD_NO: 'OR-2026-1030', CENTER: '부산영업소',    ITEM_CD: 'F04002', ITEM_NM: '오론 슬리핑팩 50ml',   REQ_QTY:  600, REQ_DT: '2026-06-07', PRIO: 4, STATUS: 'PENDING',  REQ_BY: '강성진' },
+const ROWS = [
+  { FROM_LOCAT_CD: 'PL-IKS', FROM_LOCAT_NM: '익산공장',   TO_LOCAT_CD: 'DC-SEL', TO_LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-MK-001',  ITEM_NM: '오론 비건마스크 5매',   ORD_DT: '2026-06-05', ETD: '2026-06-08', ETA: '2026-06-10', ORD_QTY: 12000, STATUS: 'CONFIRMED', REMARK: '온라인 대응 1차 분배' },
+  { FROM_LOCAT_CD: 'PL-IKS', FROM_LOCAT_NM: '익산공장',   TO_LOCAT_CD: 'DC-BSN', TO_LOCAT_NM: '부산 물류센터', ITEM_CD: 'ORN-MK-001',  ITEM_NM: '오론 비건마스크 5매',   ORD_DT: '2026-06-05', ETD: '2026-06-08', ETA: '2026-06-11', ORD_QTY: 6500,  STATUS: 'CONFIRMED', REMARK: '' },
+  { FROM_LOCAT_CD: 'PL-IKS', FROM_LOCAT_NM: '익산공장',   TO_LOCAT_CD: 'DC-JJU', TO_LOCAT_NM: '제주 물류센터', ITEM_CD: 'ORN-MK-001',  ITEM_NM: '오론 비건마스크 5매',   ORD_DT: '2026-06-05', ETD: '2026-06-09', ETA: '2026-06-15', ORD_QTY: 2200,  STATUS: 'PENDING',   REMARK: '제주 추가 의뢰' },
+  { FROM_LOCAT_CD: 'PL-IKS', FROM_LOCAT_NM: '익산공장',   TO_LOCAT_CD: 'DC-SEL', TO_LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-SR-101',  ITEM_NM: '오론 세럼 30ml',         ORD_DT: '2026-06-05', ETD: '2026-06-08', ETA: '2026-06-10', ORD_QTY: 4500,  STATUS: 'CONFIRMED', REMARK: '' },
+  { FROM_LOCAT_CD: 'PL-IKS', FROM_LOCAT_NM: '익산공장',   TO_LOCAT_CD: 'DC-DGU', TO_LOCAT_NM: '대구 영업소',   ITEM_CD: 'ORN-SR-101',  ITEM_NM: '오론 세럼 30ml',         ORD_DT: '2026-06-05', ETD: '2026-06-08', ETA: '2026-06-11', ORD_QTY: 1800,  STATUS: 'DRAFT',     REMARK: '' },
+  { FROM_LOCAT_CD: 'PL-OEM', FROM_LOCAT_NM: 'OEM 공장',   TO_LOCAT_CD: 'DC-OEM', TO_LOCAT_NM: 'OEM 직송',     ITEM_CD: 'OEM-SUN-50',  ITEM_NM: 'OEM 선크림 SPF50+',     ORD_DT: '2026-06-06', ETD: '2026-06-10', ETA: '2026-06-12', ORD_QTY: 8500,  STATUS: 'CONFIRMED', REMARK: 'CLIENT-A 발주' },
 ];
 
 const STATUS_COLOR = {
-  PENDING:  'default',
-  APPROVED: 'primary',
-  URGENT:   'error',
-  REJECTED: 'warning',
+  CONFIRMED: '#10b981',
+  PENDING:   '#f59e0b',
+  DRAFT:     '#9ca3af',
 };
 
-const PRIO_COLOR = (p) => p === 1 ? 'error' : p === 2 ? 'warning' : p === 3 ? 'info' : 'default';
-
 export default function OronRpRequestMockup() {
-  const [tab, setTab] = React.useState(0);
   return (
     <MockShell
       patternCode="oron_rp_request"
-      patternLabel="ORON — 분배요청/주문 입력·조회·확정"
+      patternLabel="ORON — RP 주문 입력/조회 (물류센터/영업소/거점 주문)"
       layoutCategory="LAYOUT_SINGLE"
-      description="물류센터·영업소 주문 입력 → 조회 → 특정 분배 요청/확정 → 추가의뢰 → 거점 기준정보. 6개 탭 통합."
+      description="대표 화면 = 물류센터/영업소 주문 입력 (UI_RP_ORN_01). 표준 RP 마스터 CRUD — SearchArea (PlanScope/출발거점/도착거점/품목/기간) + 우측 ButtonArea (Add/Delete/Save/Excel) + 단일 그리드 + GridCnt. 같이 묶인 메뉴 7개 (주문조회/특정분배/추가의뢰/거점 매핑/익산-제주 분배) 도 같은 패턴."
     >
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="물류센터" size="small" select value="ALL" sx={{ width: 150 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="DJ">대전물류센터</MenuItem>
-            <MenuItem value="IS">익산물류</MenuItem>
+          <TextField label="PLAN_SCOPE" size="small" select value="ORN_RP" sx={{ width: 130 }}>
+            <MenuItem value="ORN_RP">ORN_RP</MenuItem>
           </TextField>
-          <TextField label="품목" size="small" placeholder="F01001" sx={{ width: 130 }} />
-          <TextField label="우선순위" size="small" select value="ALL" sx={{ width: 110 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="1">긴급</MenuItem>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}>
+            <MenuItem value="V2026-06">V2026-06</MenuItem>
           </TextField>
-          <TextField label="상태" size="small" select value="ALL" sx={{ width: 110 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            <MenuItem value="PENDING">대기</MenuItem>
-            <MenuItem value="APPROVED">승인</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-06-03 ~ 06-07" sx={{ width: 200 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="outlined" size="small" startIcon={<AddIcon />}>주문 등록</Button>
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
+          <TextField label="FROM_LOCAT" size="small" value="익산공장 (PL-IKS)" sx={{ width: 200 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="TO_LOCAT" size="small" value="전체" sx={{ width: 160 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="ITEM" size="small" value="" sx={{ width: 200 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="기간" size="small" value="2026-06-01 ~ 06-30" sx={{ width: 200 }} />
         </Stack>
       </Box>
 
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
-        <Tabs value={tab} onChange={(_e, v) => setTab(v)} variant="scrollable">
-          {TABS.map((t) => <Tab key={t.key} label={t.label} />)}
-        </Tabs>
-      </Box>
+      {/* ButtonArea + Grid */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+          <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+          <ButtonGroup variant="outlined" size="small">
+            <IconButton size="small" title="GridAddRowButton"><AddIcon fontSize="small" /></IconButton>
+            <IconButton size="small" title="GridDeleteRowButton"><DeleteIcon fontSize="small" /></IconButton>
+            <IconButton size="small" title="GridSaveButton" color="primary"><SaveIcon fontSize="small" /></IconButton>
+          </ButtonGroup>
+        </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{TABS[tab].label} — 7건</Typography>
-          <Chip label="대기 4" size="small" variant="outlined" />
-          <Chip label="승인 2" size="small" color="primary" variant="outlined" />
-          <Chip label="긴급 1" size="small" color="error" />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" color="success" startIcon={<CheckCircleIcon />}>일괄 승인</Button>
-          <Button variant="contained" size="small" startIcon={<SaveIcon />}>저장</Button>
-        </Stack>
-
-        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox" sx={{ backgroundColor: 'grey.100' }}> </TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 140, textAlign: 'center' }}>주문번호</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 140, textAlign: 'center' }}>요청 거점</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 200 }}>품목명</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right' }}>요청수량</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>요청일</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>우선순위</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>상태</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'center' }}>요청자</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ORDERS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell padding="checkbox"> </TableCell>
-                    <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ORD_NO}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.CENTER}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.ITEM_CD}</TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>{r.ITEM_NM}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.REQ_QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.REQ_DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={`P${r.PRIO}`} size="small" color={PRIO_COLOR(r.PRIO)} variant="outlined" /></TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={r.STATUS} size="small" color={STATUS_COLOR[r.STATUS] || 'default'} /></TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.REQ_BY}</TableCell>
+        <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <TableContainer sx={{ flex: 1 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {GRID_HEADERS.map((c) => (
+                      <TableCell key={c.name} sx={{ bgcolor: 'grey.100', fontWeight: 700, width: c.width, textAlign: c.align, fontSize: 12, fontFamily: c.mono ? 'monospace' : 'inherit' }}>{c.name}</TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {ROWS.map((r, i) => (
+                    <TableRow key={i} hover>
+                      {GRID_HEADERS.map((c) => {
+                        const v = r[c.name];
+                        if (c.name === 'STATUS') {
+                          return (
+                            <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: STATUS_COLOR[v] }}>{v}</TableCell>
+                          );
+                        }
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: c.align, fontFamily: c.mono ? 'monospace' : 'inherit' }}>
+                            {c.num && typeof v === 'number' ? v.toLocaleString() : v}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
+              <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
+                GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010
+              </Typography>
+            </Box>
+          </Paper>
+        </Box>
       </Box>
     </MockShell>
   );

@@ -1,165 +1,149 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
-import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronPk06 — 생산실적 + 이슈 + 전송 + 기간별 발주
-// UI_PK_ORN_PACK_PLAN_ACT, PROD_ACT_OVRL, PACK_RMK_SRC, PACK_TRANS, ORD_RST
+// ORON — PK 생산실적
+// 대표 화면: UI_PK_ORN_PACK_PLAN_ACT "생산계획 대비 실적" (OrnPlanAct)
+//   SearchArea: 기간, 라인, 포장재, 결손원인
+//   Grid: 라인 × 포장재 × PLAN_QTY vs ACT_QTY vs DIFF vs 달성률 vs 결손원인
+// 같이 묶인 메뉴: UI_PK_ORN_PROD_ACT_OVRL 종합조회, UI_PK_ORN_PACK_RMK_SRC 이슈사항, UI_PK_ORN_PACK_TRANS 배송/생산 전송, UI_PK_ORN_ORD_RST 기간별 발주/실적
 
-const PLAN_VS_ACT = [
-  { LINE_CD: 'L-PRINT-01', ITEM_CD: 'PK10001', PLAN: 25000, ACT: 24850, GAP: -150, RATE: 99.4, ISSUE: '-' },
-  { LINE_CD: 'L-PRINT-02', ITEM_CD: 'PK20001', PLAN: 50000, ACT: 47500, GAP: -2500, RATE: 95.0, ISSUE: '잉크 색상 재조정 — 30분 지연' },
-  { LINE_CD: 'L-PROC-01',  ITEM_CD: 'PK20001', PLAN: 48000, ACT: 48200, GAP: 200, RATE: 100.4, ISSUE: '-' },
-  { LINE_CD: 'L-PROC-02',  ITEM_CD: 'PK30001', PLAN: 12000, ACT: 11200, GAP: -800, RATE: 93.3, ISSUE: '튜브 압출기 고장' },
-  { LINE_CD: 'L-CUT-01',   ITEM_CD: 'PK10001', PLAN: 24500, ACT: 24500, GAP: 0,   RATE: 100.0, ISSUE: '-' },
-  { LINE_CD: 'L-CUT-02',   ITEM_CD: 'PK40001', PLAN: 4500,  ACT: 4500,  GAP: 0,   RATE: 100.0, ISSUE: '-' },
+const GRID_HEADERS = [
+  { name: 'PROD_DT',     width: 100, align: 'center', mono: true },
+  { name: 'LINE',        width: 110, align: 'center', mono: true },
+  { name: 'PACK_CD',     width: 130, align: 'center', mono: true },
+  { name: 'PACK_NM',     width: 220, align: 'left' },
+  { name: 'PLAN_QTY',    width: 100, align: 'right',  mono: true, num: true },
+  { name: 'ACT_QTY',     width: 100, align: 'right',  mono: true, num: true },
+  { name: 'DEFECT_QTY',  width: 100, align: 'right',  mono: true, num: true },
+  { name: 'NET_OUT',     width: 100, align: 'right',  mono: true, num: true },
+  { name: 'ACHV_RATE',   width: 100, align: 'right',  mono: true, pct: true },
+  { name: 'DEFECT_RATE', width: 100, align: 'right',  mono: true, pct: true },
+  { name: 'ISSUE_TP',    width: 130, align: 'center' },
+  { name: 'REMARK',      width: 200, align: 'left' },
 ];
 
-const ISSUES = [
-  { DT: '2026-06-04 14:23', LINE_CD: 'L-PROC-02', LEVEL: 'CRITICAL', NM: '튜브 압출기 #2 모터 과열',  ACTION: '점검 후 재가동 — 1시간 지연',     BY: '박철수' },
-  { DT: '2026-06-03 09:45', LINE_CD: 'L-PRINT-02', LEVEL: 'WARN',    NM: '잉크 색상 LAB 차이 발견',   ACTION: '재조색 + 색상 검수',              BY: '김기자' },
-  { DT: '2026-06-04 11:15', LINE_CD: 'L-CUT-01',   LEVEL: 'INFO',    NM: '분단 칼날 교체',           ACTION: '정기 점검에 따른 교체',          BY: '이수민' },
-  { DT: '2026-06-04 16:30', LINE_CD: 'L-PROC-01',  LEVEL: 'WARN',    NM: '컨베이어 벨트 마모',       ACTION: '주말 정비 일정 등록',            BY: '박철수' },
+const ROWS = [
+  { PROD_DT: '2026-06-07', LINE: 'LN-PRT-01', PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  PLAN_QTY: 8000, ACT_QTY: 8200, DEFECT_QTY: 80,  NET_OUT: 8120, ACHV_RATE: 101.5, DEFECT_RATE: 0.98, ISSUE_TP: '-',          REMARK: '' },
+  { PROD_DT: '2026-06-07', LINE: 'LN-PRT-01', PACK_CD: 'PK-MK-010-T', PACK_NM: '오론 비건마스크 10매 - TUBE', PLAN_QTY: 3500, ACT_QTY: 3500, DEFECT_QTY: 0,   NET_OUT: 3500, ACHV_RATE: 100.0, DEFECT_RATE: 0.00, ISSUE_TP: '-',          REMARK: '' },
+  { PROD_DT: '2026-06-07', LINE: 'LN-PRT-02', PACK_CD: 'PK-SR-30',    PACK_NM: '오론 세럼 30ml',              PLAN_QTY: 4500, ACT_QTY: 4480, DEFECT_QTY: 60,  NET_OUT: 4420, ACHV_RATE: 99.6,  DEFECT_RATE: 1.34, ISSUE_TP: 'MAT_DEFECT', REMARK: '잉크 색상 미스 60개' },
+  { PROD_DT: '2026-06-07', LINE: 'LN-OEM-01', PACK_CD: 'PK-OEM-SUN',  PACK_NM: 'OEM 선크림 SPF50+ - PUMP',    PLAN_QTY: 8500, ACT_QTY: 6800, DEFECT_QTY: 120, NET_OUT: 6680, ACHV_RATE: 80.0,  DEFECT_RATE: 1.76, ISSUE_TP: 'LINE_STOP',  REMARK: 'OEM 라인 2시간 정지 (장비 점검)' },
+  { PROD_DT: '2026-06-06', LINE: 'LN-PRT-01', PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  PLAN_QTY: 7500, ACT_QTY: 7600, DEFECT_QTY: 50,  NET_OUT: 7550, ACHV_RATE: 101.3, DEFECT_RATE: 0.66, ISSUE_TP: '-',          REMARK: '' },
+  { PROD_DT: '2026-06-06', LINE: 'LN-PRT-02', PACK_CD: 'PK-SR-30',    PACK_NM: '오론 세럼 30ml',              PLAN_QTY: 4500, ACT_QTY: 4500, DEFECT_QTY: 30,  NET_OUT: 4470, ACHV_RATE: 100.0, DEFECT_RATE: 0.67, ISSUE_TP: '-',          REMARK: '' },
 ];
 
-const LVL_COLOR = { CRITICAL: 'error', WARN: 'warning', INFO: 'info', PASS: 'success' };
+const ISSUE_COLOR = {
+  '-':          '#9ca3af',
+  'MAT_DEFECT': '#f59e0b',
+  'LINE_STOP':  '#ef4444',
+  'STAFF':      '#3b82f6',
+};
+
+const summary = ROWS.reduce(
+  (acc, r) => ({
+    plan: acc.plan + r.PLAN_QTY,
+    act:  acc.act  + r.ACT_QTY,
+    defect: acc.defect + r.DEFECT_QTY,
+  }),
+  { plan: 0, act: 0, defect: 0 }
+);
+const summaryAchv = ((summary.act / summary.plan) * 100).toFixed(1);
+const summaryDefect = ((summary.defect / summary.act) * 100).toFixed(2);
 
 export default function OronPkActualMockup() {
-  const [tab, setTab] = React.useState(0);
   return (
     <MockShell
       patternCode="oron_pk_actual"
-      patternLabel="ORON — 포장재 생산실적 + 이슈 + 전송"
+      patternLabel="ORON — PK 생산실적 조회"
       layoutCategory="LAYOUT_SINGLE"
-      description="생산계획 대비 실적 + 라인별 이슈사항 + 배송/생산 전송 조회 + 기간별 발주/생산실적. UI_PK_ORN_PACK_PLAN_ACT, PROD_ACT_OVRL, PACK_RMK_SRC, PACK_TRANS, ORD_RST."
+      description="대표 화면 = 생산계획 대비 실적 (UI_PK_ORN_PACK_PLAN_ACT). 일자×라인×포장재 단위 PLAN_QTY vs ACT_QTY + 불량량/순출고량 + 달성률/불량률 + 이슈 원인 (MAT_DEFECT/LINE_STOP/STAFF). 같이 묶인 메뉴 4개 (종합 실적/이슈사항/배송 전송/기간별 발주실적) 도 동일 패턴."
     >
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="공장" size="small" select value="ALL" sx={{ width: 110 }}>
+          <TextField label="기간" size="small" value="2026-06-01 ~ 06-07" sx={{ width: 200 }} />
+          <TextField label="LINE" size="small" select value="ALL" sx={{ width: 150 }}>
             <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="LN-PRT-01">LN-PRT-01</MenuItem>
+            <MenuItem value="LN-PRT-02">LN-PRT-02</MenuItem>
+            <MenuItem value="LN-OEM-01">LN-OEM-01</MenuItem>
           </TextField>
-          <TextField label="라인" size="small" select value="ALL" sx={{ width: 130 }}>
+          <TextField label="PACK_CD" size="small" value="" sx={{ width: 180 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="ISSUE_TP" size="small" select value="ALL" sx={{ width: 160 }}>
             <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="MAT_DEFECT">자재 불량</MenuItem>
+            <MenuItem value="LINE_STOP">라인 정지</MenuItem>
+            <MenuItem value="STAFF">인력</MenuItem>
           </TextField>
-          <TextField label="기간" size="small" value="2026-06-03 ~ 06-09" sx={{ width: 200 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>Excel</Button>
         </Stack>
       </Box>
 
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
-        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
-          <Tab label="계획 대비 실적" />
-          <Tab label="생산실적 종합" />
-          <Tab label="이슈사항" />
-          <Tab label="배송/생산 전송" />
-          <Tab label="기간별 발주실적" />
-        </Tabs>
+      {/* Summary chips */}
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Chip label={`PLAN ${summary.plan.toLocaleString()}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`ACT ${summary.act.toLocaleString()}`}   size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`DEFECT ${summary.defect.toLocaleString()}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace', color: '#f59e0b' }} icon={<WarningAmberIcon sx={{ fontSize: 14 }} />} />
+        <Chip label={`달성률 ${summaryAchv}%`}   size="small" color="success" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`불량률 ${summaryDefect}%`} size="small" color="warning" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        {/* KPI summary */}
-        <Stack direction="row" spacing={1.5}>
-          {[
-            { label: '계획 합계', value: '164,000', detail: '단위: PCS', color: 'primary' },
-            { label: '실적 합계', value: '160,750', detail: '+200 / -3,450', color: 'info' },
-            { label: '달성률 (가중)', value: '98.0%', detail: '목표 99% 미달', color: 'warning' },
-            { label: '이슈 건수', value: '4', detail: 'CRITICAL 1 / WARN 2', color: 'error' },
-          ].map((k) => (
-            <Paper key={k.label} variant="outlined" sx={{ p: 1.5, flex: 1 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.label}</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: `${k.color}.main`, mt: 0.5 }}>{k.value}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{k.detail}</Typography>
-            </Paper>
-          ))}
-        </Stack>
-
-        {/* 계획 대비 실적 */}
+      {/* Grid */}
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>생산계획 대비 실적 (6주차)</Typography>
-          </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center' }}>라인</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right' }}>계획</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right' }}>실적</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>GAP</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right' }}>달성률</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>이슈</TableCell>
+                  {GRID_HEADERS.map((c) => (
+                    <TableCell key={c.name} sx={{ bgcolor: 'grey.100', fontWeight: 700, width: c.width, textAlign: c.align, fontSize: 12, fontFamily: c.mono ? 'monospace' : 'inherit' }}>{c.name}</TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PLAN_VS_ACT.map((r, i) => {
-                  const ok = r.RATE >= 98;
-                  return (
-                    <TableRow key={i} hover>
-                      <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontWeight: 600 }}>{r.LINE_CD}</TableCell>
-                      <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace' }}>{r.PLAN.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.ACT.toLocaleString()}</TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: r.GAP < 0 ? '#c62828' : r.GAP > 0 ? '#1565c0' : '#374151' }}>
-                        {r.GAP > 0 ? `+${r.GAP.toLocaleString()}` : r.GAP.toLocaleString()}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: ok ? '#10b981' : '#e65100' }}>
-                        {r.RATE.toFixed(1)}%
-                      </TableCell>
-                      <TableCell sx={{ color: r.ISSUE === '-' ? '#9ca3af' : '#c62828', fontSize: 12 }}>{r.ISSUE}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-
-        {/* 이슈사항 */}
-        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <ReportProblemIcon fontSize="small" color="error" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>생산 이슈사항 조회</Typography>
-              <Chip label="CRITICAL 1" size="small" color="error" />
-              <Chip label="WARN 2" size="small" color="warning" variant="outlined" />
-              <Chip label="INFO 1" size="small" color="info" variant="outlined" />
-            </Stack>
-          </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>발생일시</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center' }}>라인</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>레벨</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 220 }}>제목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>조치 사항</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'center' }}>담당</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ISSUES.map((r, i) => (
+                {ROWS.map((r, i) => (
                   <TableRow key={i} hover>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.LINE_CD}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={r.LEVEL} size="small" color={LVL_COLOR[r.LEVEL] || 'default'} /></TableCell>
-                    <TableCell sx={{ fontSize: 13, fontWeight: 600 }}>{r.NM}</TableCell>
-                    <TableCell sx={{ fontSize: 12, color: '#6b7280' }}>{r.ACTION}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.BY}</TableCell>
+                    {GRID_HEADERS.map((c) => {
+                      const v = r[c.name];
+                      if (c.name === 'ISSUE_TP') {
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: ISSUE_COLOR[v] || '#374151' }}>{v}</TableCell>
+                        );
+                      }
+                      if (c.name === 'ACHV_RATE') {
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: v >= 95 && v <= 105 ? '#10b981' : v < 95 ? '#ef4444' : '#3b82f6' }}>{v.toFixed(1)}%</TableCell>
+                        );
+                      }
+                      if (c.name === 'DEFECT_RATE') {
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'right', fontFamily: 'monospace', color: v > 1.5 ? '#ef4444' : v > 1.0 ? '#f59e0b' : '#10b981' }}>{v.toFixed(2)}%</TableCell>
+                        );
+                      }
+                      return (
+                        <TableCell key={c.name} sx={{ fontSize: 12, textAlign: c.align, fontFamily: c.mono ? 'monospace' : 'inherit' }}>
+                          {c.num && typeof v === 'number' ? v.toLocaleString() : v}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+          <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
+            <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
+              GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     </MockShell>

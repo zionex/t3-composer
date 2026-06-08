@@ -1,148 +1,148 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip, Tabs, Tab,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Tabs, Tab, ButtonGroup, IconButton, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronPk03 — 인쇄/가공/분단 생산계획 관리·점검 (LAYOUT_V2 상하)
-// UI_PK_ORN_PACK_PRINT_MGMT, PROC_MGMT, CUT_MGMT + PRINT_NOTIFY, PROC_NOTIFY, CUT_NOTIFY
+// ORON — PK 공정별 생산계획 (인쇄/가공/분단)
+// 대표 화면: UI_PK_ORN_PACK_PRINT_MGMT "인쇄 생산계획 관리" (OrnPrintMgmt)
+//   동일 패턴: PROC_MGMT, CUT_MGMT, CUT_MGMT_NEW, PRINT_NOTIFY, PROC_NOTIFY, CUT_NOTIFY
+//   3개 공정을 탭으로 (인쇄/가공/분단) — 같은 base 의 variant 라 다탭
 
-const PROCS = [
-  { key: 'print', label: '인쇄', color: '#0ea5e9' },
-  { key: 'proc',  label: '가공', color: '#8b5cf6' },
-  { key: 'cut',   label: '분단', color: '#f59e0b' },
+const TABS = [
+  { code: 'PRINT', label: '인쇄', menu: 'UI_PK_ORN_PACK_PRINT_MGMT' },
+  { code: 'PROC',  label: '가공', menu: 'UI_PK_ORN_PACK_PROC_MGMT' },
+  { code: 'CUT',   label: '분단', menu: 'UI_PK_ORN_PACK_CUT_MGMT' },
 ];
 
-const PLAN_ROWS = [
-  { LINE_CD: 'L-PRINT-01', ITEM_CD: 'PK10001', ITEM_NM: '오론 마스크 단상자',     SETUP_DT: '2026-06-03 08:00', END_DT: '2026-06-03 17:30', QTY: 25000,  ALT: false, COLOR: '#0ea5e9' },
-  { LINE_CD: 'L-PRINT-01', ITEM_CD: 'PK10002', ITEM_NM: '오론 세럼 단상자',       SETUP_DT: '2026-06-03 18:00', END_DT: '2026-06-04 06:00', QTY: 18000,  ALT: false, COLOR: '#0ea5e9' },
-  { LINE_CD: 'L-PRINT-02', ITEM_CD: 'PK20001', ITEM_NM: '알루미늄 파우치 5매용',  SETUP_DT: '2026-06-03 09:00', END_DT: '2026-06-03 21:00', QTY: 50000,  ALT: true,  COLOR: '#0ea5e9' },
-  { LINE_CD: 'L-PROC-01', ITEM_CD: 'PK20001', ITEM_NM: '알루미늄 파우치 가공',    SETUP_DT: '2026-06-04 08:00', END_DT: '2026-06-04 18:00', QTY: 48000,  ALT: false, COLOR: '#8b5cf6' },
-  { LINE_CD: 'L-PROC-02', ITEM_CD: 'PK30001', ITEM_NM: '튜브 50ml 압출',          SETUP_DT: '2026-06-04 09:00', END_DT: '2026-06-05 02:00', QTY: 12000,  ALT: false, COLOR: '#8b5cf6' },
-  { LINE_CD: 'L-CUT-01', ITEM_CD: 'PK10001', ITEM_NM: '오론 마스크 단상자 분단', SETUP_DT: '2026-06-04 08:00', END_DT: '2026-06-04 14:00', QTY: 24500,  ALT: false, COLOR: '#f59e0b' },
-  { LINE_CD: 'L-CUT-01', ITEM_CD: 'PK10002', ITEM_NM: '오론 세럼 단상자 분단',   SETUP_DT: '2026-06-04 14:30', END_DT: '2026-06-04 22:00', QTY: 17800,  ALT: false, COLOR: '#f59e0b' },
-];
+const ROWS_BY_PROC = {
+  PRINT: [
+    { LINE: 'LN-PRT-01', PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  START: '2026-06-08 08:00', END: '2026-06-08 16:00', PLAN_QTY: 8000, ACT_QTY: 8120, STATUS: 'DONE',     LOT: 'LOT-PRT-2026060801' },
+    { LINE: 'LN-PRT-01', PACK_CD: 'PK-MK-010-T', PACK_NM: '오론 비건마스크 10매 - TUBE', START: '2026-06-08 16:00', END: '2026-06-09 00:00', PLAN_QTY: 3500, ACT_QTY: 3500, STATUS: 'DONE',     LOT: 'LOT-PRT-2026060802' },
+    { LINE: 'LN-PRT-02', PACK_CD: 'PK-SR-30',    PACK_NM: '오론 세럼 30ml',              START: '2026-06-08 08:00', END: '2026-06-09 02:00', PLAN_QTY: 4500, ACT_QTY: 4480, STATUS: 'RUNNING',  LOT: 'LOT-PRT-2026060803' },
+    { LINE: 'LN-PRT-02', PACK_CD: 'PK-SR-50',    PACK_NM: '오론 세럼 50ml',              START: '2026-06-09 02:00', END: '2026-06-09 14:00', PLAN_QTY: 2200, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: '-' },
+    { LINE: 'LN-OEM-01', PACK_CD: 'PK-OEM-SUN',  PACK_NM: 'OEM 선크림 SPF50+ - PUMP',    START: '2026-06-08 09:00', END: '2026-06-09 09:00', PLAN_QTY: 8500, ACT_QTY: 5400, STATUS: 'RUNNING',  LOT: 'LOT-PRT-2026060804' },
+  ],
+  PROC: [
+    { LINE: 'LN-PRC-01', PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  START: '2026-06-09 08:00', END: '2026-06-09 18:00', PLAN_QTY: 8120, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: 'LOT-PRC-2026060901' },
+    { LINE: 'LN-PRC-01', PACK_CD: 'PK-MK-010-T', PACK_NM: '오론 비건마스크 10매 - TUBE', START: '2026-06-09 18:00', END: '2026-06-10 04:00', PLAN_QTY: 3500, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: 'LOT-PRC-2026060902' },
+    { LINE: 'LN-PRC-02', PACK_CD: 'PK-SR-30',    PACK_NM: '오론 세럼 30ml',              START: '2026-06-10 08:00', END: '2026-06-10 20:00', PLAN_QTY: 4500, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: '-' },
+  ],
+  CUT: [
+    { LINE: 'LN-CUT-01', PACK_CD: 'PK-MK-001-T', PACK_NM: '오론 비건마스크 5매 - TUBE',  START: '2026-06-10 08:00', END: '2026-06-10 14:00', PLAN_QTY: 8120, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: 'LOT-CUT-2026061001' },
+    { LINE: 'LN-CUT-02', PACK_CD: 'PK-OEM-SUN',  PACK_NM: 'OEM 선크림 SPF50+ - PUMP',    START: '2026-06-09 09:00', END: '2026-06-10 09:00', PLAN_QTY: 8500, ACT_QTY: 0,    STATUS: 'PLANNED',  LOT: '-' },
+  ],
+};
 
-const NOTIFY_ROWS = [
-  { LINE_CD: 'L-PRINT-02', ITEM_CD: 'PK20001', LEVEL: 'WARN',  CHECK: '잉크 보유량 부족 (5월 28일 기준 -15%)', BY: 'AUTO', DT: '2026-05-28 14:35' },
-  { LINE_CD: 'L-PROC-02',  ITEM_CD: 'PK30001', LEVEL: 'WARN',  CHECK: '튜브 압출 라인 능력 초과 (102%)',         BY: 'AUTO', DT: '2026-05-28 14:36' },
-  { LINE_CD: 'L-PRINT-01', ITEM_CD: 'PK10001', LEVEL: 'INFO',  CHECK: '단상자 인쇄 색상 검수 통과',              BY: '김기자', DT: '2026-05-28 14:42' },
-  { LINE_CD: 'L-CUT-01',   ITEM_CD: 'PK10002', LEVEL: 'PASS',  CHECK: '분단 라인 가동률 정상 (78%)',             BY: 'AUTO', DT: '2026-05-28 14:50' },
-];
-
-const LVL_COLOR = { WARN: 'warning', INFO: 'info', PASS: 'success', FAIL: 'error' };
+const STATUS_COLOR = { DONE: '#10b981', RUNNING: '#3b82f6', PLANNED: '#9ca3af', DELAYED: '#ef4444' };
 
 export default function OronPkProcessPlanMockup() {
-  const [proc, setProc] = React.useState(0);
+  const [tab, setTab] = React.useState(0);
+  const proc = TABS[tab].code;
+  const rows = ROWS_BY_PROC[proc] || [];
+  const totalPlan = rows.reduce((s, r) => s + r.PLAN_QTY, 0);
+  const totalAct = rows.reduce((s, r) => s + r.ACT_QTY, 0);
+
   return (
     <MockShell
       patternCode="oron_pk_process_plan"
-      patternLabel="ORON — 인쇄/가공/분단 생산계획 관리·점검"
-      layoutCategory="LAYOUT_V2"
-      description="상단: 공정별 생산계획 (라인×품목, Setup/End 시간), 하단: 자동/수동 점검 결과. 3개 공정 (인쇄→가공→분단). UI_PK_ORN_PACK_PRINT/PROC/CUT_MGMT + _NOTIFY."
+      patternLabel="ORON — PK 공정별 생산계획 (인쇄/가공/분단)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="3개 공정 (인쇄/가공/분단) 의 생산계획 관리 — 같은 base 의 variant 라 다탭. 각 탭: SearchArea (라인/포장재/기간) + 우측 ButtonArea + 단일 그리드 (라인/포장재/계획시간/계획수량/실적수량/상태/LOT). 같이 묶인 메뉴: 각 공정의 NOTIFY (점검) 화면도 동일 패턴."
     >
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="시나리오" size="small" value="SCN_0023" sx={{ width: 160 }} />
-          <TextField label="라인" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-          </TextField>
-          <TextField label="기간" size="small" value="2026-06-03 ~ 06-09" sx={{ width: 180 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="contained" size="small" startIcon={<SaveIcon />}>편성 저장</Button>
-        </Stack>
-      </Box>
-
+      {/* 공정 Tab */}
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1.5 }}>
-        <Tabs value={proc} onChange={(_e, v) => setProc(v)}>
-          {PROCS.map((p) => <Tab key={p.key} label={p.label} />)}
-          <Tab label="통합 조회" />
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)}>
+          {TABS.map((t) => (
+            <Tab key={t.code} label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <span>{t.label} 생산계획</span>
+                <Chip label={t.menu} size="small" variant="outlined" sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
+              </Stack>
+            } />
+          ))}
         </Tabs>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        {/* 상단: 계획 */}
-        <Paper variant="outlined" sx={{ flex: 1.4, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 12, height: 12, bgcolor: PROCS[proc]?.color || '#94a3b8', borderRadius: '50%' }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{(PROCS[proc]?.label || '통합')} 생산계획 — 시간순 편성</Typography>
-              <Chip label="ALT 변경 가능" size="small" color="info" variant="outlined" />
-            </Stack>
-          </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 120, textAlign: 'center' }}>라인</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>품목명</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>시작</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>완료</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right' }}>수량</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>대체</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {PLAN_ROWS.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', borderLeft: `4px solid ${r.COLOR}`, fontWeight: 600 }}>{r.LINE_CD}</TableCell>
-                    <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>{r.ITEM_NM}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.SETUP_DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.END_DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{r.QTY.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>{r.ALT ? <Chip label="ALT" size="small" color="warning" /> : '-'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+      {/* SearchArea */}
+      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}>
+            <MenuItem value="V2026-06">V2026-06</MenuItem>
+          </TextField>
+          <TextField label="LINE" size="small" select value="ALL" sx={{ width: 150 }}>
+            <MenuItem value="ALL">전체</MenuItem>
+          </TextField>
+          <TextField label="PACK_CD" size="small" value="" sx={{ width: 180 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="STATUS" size="small" select value="ALL" sx={{ width: 130 }}>
+            <MenuItem value="ALL">전체</MenuItem>
+            <MenuItem value="DONE">완료</MenuItem>
+            <MenuItem value="RUNNING">진행중</MenuItem>
+            <MenuItem value="PLANNED">계획됨</MenuItem>
+          </TextField>
+          <TextField label="기간" size="small" value="2026-06-08 ~ 06-14" sx={{ width: 200 }} />
+        </Stack>
+      </Box>
 
-        {/* 하단: 점검 결과 */}
+      {/* Summary + Buttons */}
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Chip label={`PLAN ${totalPlan.toLocaleString()}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`ACT ${totalAct.toLocaleString()}`}   size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`${rows.length} 건`} size="small" color="primary" variant="outlined" />
+        <Box sx={{ flexGrow: 1 }} />
+        <Button size="small" variant="outlined" startIcon={<RefreshIcon />}>재계획</Button>
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+        <ButtonGroup variant="outlined" size="small">
+          <IconButton size="small" title="GridSaveButton" color="primary"><SaveIcon fontSize="small" /></IconButton>
+        </ButtonGroup>
+      </Box>
+
+      {/* Grid */}
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <WarningAmberIcon fontSize="small" color="warning" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>계획 점검 결과 (자동/수동)</Typography>
-              <Chip label="WARN 2" size="small" color="warning" variant="outlined" />
-              <Chip label="PASS 1" size="small" color="success" variant="outlined" />
-              <Chip label="INFO 1" size="small" color="info" variant="outlined" />
-            </Stack>
-          </Box>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center' }}>라인</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>품목</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>레벨</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>점검 내용</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>점검자</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>일시</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>LINE</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 130, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>PACK_CD</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 220, textAlign: 'left', fontSize: 12 }}>PACK_NM</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>START</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>END</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right', fontSize: 12, fontFamily: 'monospace' }}>PLAN_QTY</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'right', fontSize: 12, fontFamily: 'monospace' }}>ACT_QTY</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center', fontSize: 12 }}>STATUS</TableCell>
+                  <TableCell sx={{ bgcolor: 'grey.100', fontWeight: 700, width: 180, textAlign: 'center', fontSize: 12, fontFamily: 'monospace' }}>LOT_NO</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {NOTIFY_ROWS.map((r, i) => (
+                {rows.map((r, i) => (
                   <TableRow key={i} hover>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.LINE_CD}</TableCell>
-                    <TableCell sx={cellSx('info', { align: 'center', mono: true })}>{r.ITEM_CD}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={r.LEVEL} size="small" color={LVL_COLOR[r.LEVEL] || 'default'} variant="outlined" /></TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>{r.CHECK}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontSize: 12 }}>{r.BY}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.DT}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>{r.LINE}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>{r.PACK_CD}</TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>{r.PACK_NM}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>{r.START}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'center' }}>{r.END}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right' }}>{r.PLAN_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'right', color: r.ACT_QTY === 0 ? '#d1d5db' : '#374151' }}>{r.ACT_QTY.toLocaleString()}</TableCell>
+                    <TableCell sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: STATUS_COLOR[r.STATUS] }}>{r.STATUS}</TableCell>
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', textAlign: 'center', color: r.LOT === '-' ? 'text.disabled' : 'text.primary' }}>{r.LOT}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+          <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
+            <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
+              GridCnt grid="grid1" — {rows.length} CASES MSG_0010
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     </MockShell>

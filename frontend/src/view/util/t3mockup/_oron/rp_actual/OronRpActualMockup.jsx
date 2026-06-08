@@ -1,146 +1,142 @@
 import React from 'react';
 import {
-  Box, Stack, TextField, MenuItem, Button, Typography, Paper, Chip,
+  Box, Stack, TextField, MenuItem, Typography, Paper, Chip, Button,
+  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
-import SyncIcon from '@mui/icons-material/Sync';
-import {
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
-} from '@mui/material';
 import MockShell from '../../_shared/MockShell';
-import { cellSx } from '../../_shared/styleCallback';
 
-// OronRp03 — 분배 계획/실적 + 출하실적 + OSLS 수신
-// UI_RP_ORN_PLAN_ACTUAL, 77, 91
+// ORON — RP 분배 실적
+// 대표 화면: UI_RP_ORN_PLAN_ACTUAL "분배 계획/실적" (OrnPlanActual)
+//   SearchArea: PlanScope, Version, 출발거점, 도착거점, 품목, 기간
+//   Grid: 거점-품목별 PLAN_QTY vs ACT_QTY vs ACHV_RATE
+// 같이 묶인 메뉴: UI_RP_ORN_77 출하실적 조회, UI_RP_ORN_91 OSLS 수신
 
-const WEEKS = ['W22','W23','W24','W25','W26','W27'];
-const PLAN_ACT = [
-  { CENTER: '대전물류센터', planV: [12500, 13000, 13500, 13000, 12800, 13200], actV: [12200, 12850, 13300, null, null, null] },
-  { CENTER: '부산영업소',   planV: [8500,  8800,  9000,  9200,  9000,  9100], actV: [8300,  8700,  8950,  null, null, null] },
-  { CENTER: '광주영업소',   planV: [5200,  5400,  5600,  5500,  5300,  5400], actV: [5100,  5350,  5550,  null, null, null] },
-  { CENTER: '익산물류',     planV: [9800, 10000, 10200, 10100, 10000, 10300], actV: [9500,  9900, 10100,  null, null, null] },
+const GRID_HEADERS = [
+  { name: 'FROM_LOCAT_NM', width: 130, align: 'left' },
+  { name: 'TO_LOCAT_NM',   width: 130, align: 'left' },
+  { name: 'ITEM_CD',       width: 130, align: 'center', mono: true },
+  { name: 'ITEM_NM',       width: 200, align: 'left' },
+  { name: 'PLAN_QTY',      width: 100, align: 'right',  mono: true, num: true },
+  { name: 'ACT_QTY',       width: 100, align: 'right',  mono: true, num: true },
+  { name: 'DIFF_QTY',      width: 100, align: 'right',  mono: true, num: true },
+  { name: 'ACHV_RATE',     width: 100, align: 'right',  mono: true, pct: true },
+  { name: 'STATUS',        width: 100, align: 'center' },
 ];
 
-const OSLS_LOG = [
-  { DT: '2026-05-28 06:00', TYPE: 'OSLS_IN',  CNT: 1245, STATUS: 'SUCCESS', MSG: '익일 출하 지시 수신 완료' },
-  { DT: '2026-05-28 06:05', TYPE: 'STOCK_IN', CNT: 842,  STATUS: 'SUCCESS', MSG: '센터 재고 동기화' },
-  { DT: '2026-05-27 06:00', TYPE: 'OSLS_IN',  CNT: 1188, STATUS: 'SUCCESS', MSG: '익일 출하 지시 수신 완료' },
-  { DT: '2026-05-27 06:05', TYPE: 'STOCK_IN', CNT: 0,    STATUS: 'WARN',    MSG: '제주 센터 재고 미수신 (재시도 예약)' },
-  { DT: '2026-05-26 06:00', TYPE: 'OSLS_IN',  CNT: 1302, STATUS: 'SUCCESS', MSG: '익일 출하 지시 수신 완료' },
+const ROWS = [
+  { FROM_LOCAT_NM: '익산공장', TO_LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', PLAN_QTY: 12000, ACT_QTY: 11800, DIFF_QTY: -200,  ACHV_RATE: 98.3, STATUS: 'NORMAL' },
+  { FROM_LOCAT_NM: '익산공장', TO_LOCAT_NM: '부산 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', PLAN_QTY: 6500,  ACT_QTY: 6500,  DIFF_QTY: 0,     ACHV_RATE: 100.0, STATUS: 'NORMAL' },
+  { FROM_LOCAT_NM: '익산공장', TO_LOCAT_NM: '제주 물류센터', ITEM_CD: 'ORN-MK-001', ITEM_NM: '오론 비건마스크 5매', PLAN_QTY: 2200,  ACT_QTY: 1800,  DIFF_QTY: -400,  ACHV_RATE: 81.8, STATUS: 'SHORT' },
+  { FROM_LOCAT_NM: '익산공장', TO_LOCAT_NM: '서울 물류센터', ITEM_CD: 'ORN-SR-101', ITEM_NM: '오론 세럼 30ml',       PLAN_QTY: 4500,  ACT_QTY: 4500,  DIFF_QTY: 0,     ACHV_RATE: 100.0, STATUS: 'NORMAL' },
+  { FROM_LOCAT_NM: '익산공장', TO_LOCAT_NM: '대구 영업소',   ITEM_CD: 'ORN-SR-101', ITEM_NM: '오론 세럼 30ml',       PLAN_QTY: 1800,  ACT_QTY: 2000,  DIFF_QTY: 200,   ACHV_RATE: 111.1, STATUS: 'OVER' },
+  { FROM_LOCAT_NM: 'OEM 공장', TO_LOCAT_NM: 'OEM 직송',     ITEM_CD: 'OEM-SUN-50', ITEM_NM: 'OEM 선크림 SPF50+',   PLAN_QTY: 8500,  ACT_QTY: 8200,  DIFF_QTY: -300,  ACHV_RATE: 96.5, STATUS: 'NORMAL' },
 ];
 
-const OSLS_COLOR = { SUCCESS: 'success', WARN: 'warning', FAIL: 'error' };
+const STATUS_COLOR = {
+  NORMAL: '#10b981',
+  OVER:   '#3b82f6',
+  SHORT:  '#ef4444',
+};
+
+const summary = ROWS.reduce(
+  (acc, r) => ({
+    plan: acc.plan + r.PLAN_QTY,
+    act:  acc.act  + r.ACT_QTY,
+  }),
+  { plan: 0, act: 0 }
+);
+const summaryRate = ((summary.act / summary.plan) * 100).toFixed(1);
 
 export default function OronRpActualMockup() {
   return (
     <MockShell
       patternCode="oron_rp_actual"
-      patternLabel="ORON — 분배 계획/실적 + 출하 + OSLS 수신"
-      layoutCategory="LAYOUT_V2"
-      description="상단: 거점별 분배 계획 vs 실적 주별 크로스탭, 하단: OSLS 인터페이스 수신 이력."
+      patternLabel="ORON — RP 분배 계획/실적 (실적 리포트)"
+      layoutCategory="LAYOUT_SINGLE"
+      description="대표 화면 = 분배 계획/실적 (UI_RP_ORN_PLAN_ACTUAL). 거점-품목 단위 PLAN_QTY vs ACT_QTY 비교 + 차이/달성률 + 상태(NORMAL/OVER/SHORT). 같이 묶인 메뉴 = UI_RP_ORN_77 출하실적 조회, UI_RP_ORN_91 OSLS 수신."
     >
+      {/* SearchArea */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <TextField label="물류센터" size="small" select value="ALL" sx={{ width: 150 }}>
-            <MenuItem value="ALL">전체</MenuItem>
+          <TextField label="PLAN_SCOPE" size="small" select value="ORN_RP" sx={{ width: 130 }}>
+            <MenuItem value="ORN_RP">ORN_RP</MenuItem>
           </TextField>
-          <TextField label="품목군" size="small" select value="ALL" sx={{ width: 130 }}>
-            <MenuItem value="ALL">전체</MenuItem>
+          <TextField label="MAIN_VER" size="small" select value="V2026-06" sx={{ width: 140 }}>
+            <MenuItem value="V2026-06">V2026-06</MenuItem>
           </TextField>
-          <TextField label="기간" size="small" value="2026-W22 ~ W27" sx={{ width: 170 }} />
-          <Box sx={{ flexGrow: 1 }} />
-          <Button variant="contained" size="small" startIcon={<SearchIcon />}>조회</Button>
-          <Button variant="outlined" size="small" startIcon={<SyncIcon />}>OSLS 재수신</Button>
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>Excel</Button>
+          <TextField label="FROM_LOCAT" size="small" value="전체" sx={{ width: 150 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="TO_LOCAT" size="small" value="전체" sx={{ width: 150 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="ITEM" size="small" value="" sx={{ width: 200 }}
+            InputProps={{ endAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} /> }} />
+          <TextField label="기간" size="small" value="2026-06-01 ~ 06-07" sx={{ width: 200 }} />
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
-        {/* 분배 계획/실적 */}
-        <Paper variant="outlined" sx={{ flex: 1.3, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>거점별 분배 계획 vs 실적 (주별)</Typography>
-              <Chip label="실적 = 굵게 / 계획 = 회색" size="small" variant="outlined" />
-            </Stack>
-          </Box>
+      {/* Summary chips + Excel button */}
+      <Box sx={{ px: 1.5, py: 0.7, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Chip label={`PLAN ${summary.plan.toLocaleString()}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`ACT ${summary.act.toLocaleString()}`}   size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Chip label={`달성률 ${summaryRate}%`} size="small" color="success" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Button size="small" variant="outlined" startIcon={<DownloadIcon />}>Excel</Button>
+      </Box>
+
+      {/* Grid */}
+      <Box sx={{ p: 1.5, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ flex: 1 }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>거점</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 80, textAlign: 'center' }}>구분</TableCell>
-                  {WEEKS.map((w) => (
-                    <TableCell key={w} sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>{w}</TableCell>
+                  {GRID_HEADERS.map((c) => (
+                    <TableCell key={c.name} sx={{ bgcolor: 'grey.100', fontWeight: 700, width: c.width, textAlign: c.align, fontSize: 12, fontFamily: c.mono ? 'monospace' : 'inherit' }}>{c.name}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PLAN_ACT.map((r, i) => (
-                  <React.Fragment key={i}>
-                    <TableRow hover>
-                      <TableCell sx={cellSx('info', { align: 'center' })} rowSpan={2}>{r.CENTER}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip label="계획" size="small" variant="outlined" /></TableCell>
-                      {r.planV.map((v, j) => (
-                        <TableCell key={j} sx={{ textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>{v.toLocaleString()}</TableCell>
-                      ))}
-                    </TableRow>
-                    <TableRow hover>
-                      <TableCell sx={{ textAlign: 'center' }}><Chip label="실적" size="small" color="success" /></TableCell>
-                      {r.actV.map((v, j) => {
-                        const plan = r.planV[j];
-                        const ratio = v == null ? null : (v / plan) * 100;
+                {ROWS.map((r, i) => (
+                  <TableRow key={i} hover>
+                    {GRID_HEADERS.map((c) => {
+                      const v = r[c.name];
+                      if (c.name === 'STATUS') {
                         return (
-                          <TableCell key={j} sx={{
-                            textAlign: 'right', fontFamily: 'monospace', fontWeight: 700,
-                            color: v == null ? '#d1d5db' : ratio >= 98 ? '#10b981' : ratio >= 95 ? '#374151' : '#c62828',
-                          }}>
-                            {v == null ? '-' : v.toLocaleString()}
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'center', fontWeight: 600, color: STATUS_COLOR[v] }}>{v}</TableCell>
+                        );
+                      }
+                      if (c.name === 'DIFF_QTY') {
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'right', fontFamily: 'monospace', color: v < 0 ? '#ef4444' : v > 0 ? '#3b82f6' : '#374151' }}>
+                            {v > 0 ? '+' : ''}{v.toLocaleString()}
                           </TableCell>
                         );
-                      })}
-                    </TableRow>
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-
-        {/* OSLS 수신 */}
-        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <SyncIcon fontSize="small" color="primary" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>OSLS 인터페이스 수신 이력</Typography>
-              <Chip label="SUCCESS 4 / WARN 1" size="small" variant="outlined" />
-            </Stack>
-          </Box>
-          <TableContainer sx={{ flex: 1 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 150, textAlign: 'center' }}>수신일시</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 110, textAlign: 'center' }}>유형</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 90, textAlign: 'right' }}>건수</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700, width: 100, textAlign: 'center' }}>결과</TableCell>
-                  <TableCell sx={{ backgroundColor: 'grey.100', fontWeight: 700 }}>메시지</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {OSLS_LOG.map((r, i) => (
-                  <TableRow key={i} hover>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>{r.DT}</TableCell>
-                    <TableCell sx={{ textAlign: 'center', fontFamily: 'monospace' }}>{r.TYPE}</TableCell>
-                    <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{r.CNT.toLocaleString()}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}><Chip label={r.STATUS} size="small" color={OSLS_COLOR[r.STATUS] || 'default'} variant={r.STATUS === 'SUCCESS' ? 'outlined' : 'filled'} /></TableCell>
-                    <TableCell sx={{ fontSize: 12, color: r.STATUS === 'WARN' ? '#e65100' : '#6b7280' }}>{r.MSG}</TableCell>
+                      }
+                      if (c.name === 'ACHV_RATE') {
+                        return (
+                          <TableCell key={c.name} sx={{ fontSize: 12, textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: v >= 95 && v <= 105 ? '#10b981' : v < 95 ? '#ef4444' : '#3b82f6' }}>
+                            {v.toFixed(1)}%
+                          </TableCell>
+                        );
+                      }
+                      return (
+                        <TableCell key={c.name} sx={{ fontSize: 12, textAlign: c.align, fontFamily: c.mono ? 'monospace' : 'inherit' }}>
+                          {c.num && typeof v === 'number' ? v.toLocaleString() : v}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+          <Box sx={{ borderTop: '1px solid', borderColor: 'divider', px: 1.5, py: 0.5, bgcolor: 'grey.50' }}>
+            <Typography sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>
+              GridCnt grid="grid1" — {ROWS.length} CASES MSG_0010
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     </MockShell>

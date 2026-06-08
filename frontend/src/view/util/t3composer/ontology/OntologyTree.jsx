@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Box, TextField, InputAdornment, List, ListItemButton, ListItemText, Collapse, Typography, Chip, Button,
+  Box, TextField, InputAdornment, List, ListItemButton, ListItemText, Collapse, Typography, Chip, Button, Tooltip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import AddIcon from '@mui/icons-material/Add';
+import DownloadIcon from '@mui/icons-material/Download';
 
 const CAT_COLOR = {
   QA:      '#7CA7E0',
@@ -25,7 +26,7 @@ const CAT_COLOR = {
  *  - onNewClick(kind)  // 'QA' | 'ENTITY'
  *  - width            // 부모가 제어하는 좌 트리 너비 (px). 미지정 시 240
  */
-function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick, width = 240 }) {
+function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick, onImportClick, width = 240 }) {
   const [q, setQ] = useState('');
   const [expanded, setExpanded] = useState(() => new Set(['QA', 'ENTITY']));
 
@@ -127,6 +128,19 @@ function OntologyTree({ tree, selectedKey, onSelect, onSearch, onNewClick, width
           onClick={() => onNewClick?.('QA')}>새 Q&A</Button>
         <Button size="small" fullWidth startIcon={<AddIcon />}
           onClick={() => onNewClick?.('ENTITY')} sx={{ mt: 0.5 }}>새 Entity</Button>
+        {onImportClick && (
+          <Tooltip title=".insight_code/ontology_v2 의 JSON 파일을 Target DB 로 일괄 적재 (skip-existing)">
+            <Button
+              size="small"
+              fullWidth
+              startIcon={<DownloadIcon />}
+              onClick={onImportClick}
+              sx={{ mt: 0.5 }}
+            >
+              파일에서 불러오기
+            </Button>
+          </Tooltip>
+        )}
       </Box>
     </Box>
   );

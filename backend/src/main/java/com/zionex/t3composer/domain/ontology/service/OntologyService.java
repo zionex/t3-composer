@@ -17,10 +17,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Ontology Tab 의 Target DB 읽기·쓰기 + composer-db extension JOIN.
+ * Ontology Tab — Target DB 가 단일 진실 저장소.
  *
- * Target DB 라우팅: TargetDataSourceRegistry 로 세션 targetCd 의 live JdbcTemplate.
- * Target 미등록/연결 실패 → 정적 targetJdbcTemplate 폴백.
+ * <p>모든 read/write 가 Target DB 의 4개 테이블 (TB_IS_QAPATTERN ·
+ * tb_is_ontlgy_entity · tb_is_vwbusnss_ontlgy · tb_is_prcss_ontlgy) 로 직접 수행된다.
+ * Target DB 라우팅은 {@link TargetDataSourceRegistry} 가 세션 targetCd 의 live JdbcTemplate
+ * 을 반환. 미등록/연결 실패 시 정적 {@code targetJdbcTemplate} 폴백.
+ *
+ * <p>composer-db 의 {@link com.zionex.t3composer.domain.ontology.entity.OntologyExtension}
+ * 은 Target DB schema 에 없는 확장 필드 (paraphrases / relatedEntityIds / notes) 만 보관 —
+ * (target_cd, kind, ref_id) 키로 base row 와 1:1 JOIN.
+ *
+ * <p>새 프로젝트 deploy 시 Target DB 가 비어있다면 {@link OntologyImportService} 의 Import
+ * endpoint 로 {@code .insight_code/ontology_v2/} JSON 파일을 1회 복사해 채울 수 있다.
  */
 @Slf4j
 @Service
@@ -31,6 +40,7 @@ public class OntologyService {
     private final JdbcTemplate fallbackTarget;
     private final TargetDataSourceRegistry registry;
     private final OntologyExtensionRepository extRepo;
+    private final OntologyFilesystemReader reader;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** 세션의 targetCd → live JdbcTemplate. 미등록/실패 시 정적 폴백. */
@@ -45,6 +55,29 @@ public class OntologyService {
         }
     }
 
+    // ─────────────────────────── Filesystem cache (Import 용) ───────────────────────────
+
+    /**
+     * filesystem reader 의 Target 별 in-memory 캐시 폐기 + 즉시 워밍.
+     * .insight_code/ontology_v2 폴더 갱신 또는 Import 직전에 호출하면 신선한 카운트가
+     * 응답에 반영된다. 응답 shape: {@code { targetCd, ontologyRoot, qa, entity, view, process, hasFolder }}.
+     */
+    public java.util.Map<String, Object> refreshCache(String targetCd) {
+        String tc = safeTarget(targetCd);
+        reader.invalidate(tc);
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("targetCd", tc);
+        out.put("ontologyRoot", reader.resolvedRootPath(tc));
+        out.put("hasFolder", reader.hasOntologyFolder(tc));
+        out.put("qa", reader.listAllQa(tc).size());
+        out.put("entity", reader.listAllEntity(tc).size());
+        out.put("view", reader.listAllView(tc).size());
+        out.put("process", reader.listAllProcess(tc).size());
+        return out;
+    }
+
+    // ─────────────────────────── Tree ───────────────────────────
+
     /**
      * 좌 트리 — 카테고리별 카운트 + 도메인 그룹.
      * 검색어 q 가 있으면 모든 카테고리에서 필터링.
@@ -54,7 +87,6 @@ public class OntologyService {
         List<TreeNodeDto> roots = new ArrayList<>();
 
         // 검색은 LOWER() 적용해 case-insensitive 보장 — MSSQL collation 이 CS 인 환경 대응.
-        // 파라미터도 buildCategory 에서 toLowerCase() 적용.
         roots.add(buildCategory(t, "QA", q,
             "SELECT id, business_domain, question AS label_text FROM TB_IS_QAPATTERN WITH (NOLOCK)"
           + " WHERE use_yn='Y'"
@@ -102,8 +134,6 @@ public class OntologyService {
             List<Map<String, Object>> rows;
             if (qParam != null && !qParam.isBlank()) {
                 String like = "%" + qParam.toLowerCase() + "%";
-                // 해당 카테고리의 WHERE 절에 ? 가 N개 (예: QA 2 · Entity 3 · View 1 · Process 3) —
-                // 같은 검색어를 모두에 적용. placeholders 수를 세서 같은 값 N개 전달.
                 int placeholders = 0;
                 for (int i = 0; i < resolved.length(); i++) if (resolved.charAt(i) == '?') placeholders++;
                 Object[] params = new Object[placeholders];
@@ -119,7 +149,6 @@ public class OntologyService {
                 String id = r.get(idCol) == null ? "" : r.get(idCol).toString();
                 String rawLabel = r.get(labelCol) == null ? id : r.get(labelCol).toString();
                 if (rawLabel == null || rawLabel.isBlank()) rawLabel = id;
-                // 트리에 표시할 라벨은 80자로 truncate — 좌 트리 240px 폭 고려
                 String leafLabel = rawLabel.length() > 80 ? rawLabel.substring(0, 80) + "…" : rawLabel;
                 byDom.computeIfAbsent(dom, k -> new ArrayList<>())
                      .add(TreeNodeDto.builder()
@@ -211,7 +240,7 @@ public class OntologyService {
         JdbcTemplate t = jdbc(targetCd);
         String id = java.util.UUID.randomUUID().toString().replace("-", "");
         // description 은 TB_IS_QAPATTERN 의 NOT NULL 컬럼이지만 Ontology Tab v1 에서는 노출하지 않음.
-        // 빈 문자열 '' 로 채워 NOT NULL 만족. 사용자 메모는 composer-db side-table 의 notes (별도) 로 보관.
+        // 빈 문자열 '' 로 채워 NOT NULL 만족. 사용자 메모는 composer-db side-table 의 notes 로 보관.
         t.update(
             "INSERT INTO TB_IS_QAPATTERN (id, question, answer, db_type, business_domain,"
           + " description, use_yn, create_by, create_dttm, modify_by, modify_dttm)"
@@ -240,8 +269,6 @@ public class OntologyService {
             }
         }
 
-        // description 컬럼은 의도적으로 UPDATE 하지 않음 — Ontology Tab v1 미노출 (스코프 밖).
-        // 기존 row 의 description 값 그대로 보존.
         int n = t.update(
             "UPDATE TB_IS_QAPATTERN SET question=?, answer=?, db_type=?, business_domain=?,"
           + " modify_by=?, modify_dttm=GETDATE()"
@@ -379,7 +406,7 @@ public class OntologyService {
         String id = java.util.UUID.randomUUID().toString().replace("-", "");
         String version = dto.getVersion() == null ? "1.0" : dto.getVersion();
         // tb_is_ontlgy_entity 의 audit 컬럼은 created_at/updated_at/created_by/updated_by
-        // (Q&A 의 create_dttm/modify_dttm/create_by/modify_by 와 다름). NOT NULL 컬럼은 id, version 뿐.
+        // (Q&A 의 create_dttm/modify_dttm/create_by/modify_by 와 다름).
         t.update(
             "INSERT INTO tb_is_ontlgy_entity (id, version, name, entity_type, description,"
           + " status, importance_score, terms, use_yn, created_by, created_at, updated_by, updated_at)"
@@ -397,7 +424,6 @@ public class OntologyService {
             com.zionex.t3composer.domain.ontology.dto.EntityDto dto, String userId) {
         JdbcTemplate t = jdbc(targetCd);
         // description 이 null 이면 기존 값 보존 (COALESCE).
-        // audit 컬럼: updated_by/updated_at (Q&A 와 다른 네이밍).
         int n = t.update(
             "UPDATE tb_is_ontlgy_entity SET name=?, entity_type=?,"
           + " description=COALESCE(?, description),"
@@ -413,7 +439,6 @@ public class OntologyService {
 
     @org.springframework.transaction.annotation.Transactional
     public void deleteEntity(String targetCd, String id, String userId) {
-        // audit 컬럼: updated_by/updated_at (Q&A 와 다른 네이밍).
         jdbc(targetCd).update(
             "UPDATE tb_is_ontlgy_entity SET use_yn='N', updated_by=?, updated_at=GETDATE() WHERE id=?",
             userId, id);
@@ -460,7 +485,7 @@ public class OntologyService {
     public com.zionex.t3composer.domain.ontology.dto.ViewMetaDto getView(String targetCd, String menuCd) {
         JdbcTemplate t = jdbc(targetCd);
         // T3SERIES tb_is_vwbusnss_ontlgy 실제 컬럼: id, menu_cd, llm_infrrd, business_ontlgy, version,
-        // use_yn + audit. status/published_version 컬럼은 미존재 — version 으로 대체, status null 노출.
+        // use_yn + audit. status/published_version 컬럼 부재 — version 으로 대체.
         try {
             List<Map<String, Object>> rows = t.queryForList(
                 "SELECT id, menu_cd, version"
@@ -470,7 +495,7 @@ public class OntologyService {
             Map<String, Object> r = rows.get(0);
             return com.zionex.t3composer.domain.ontology.dto.ViewMetaDto.builder()
                 .id(asString(r.get("id"))).menuCd(asString(r.get("menu_cd")))
-                .status(null)  // 컬럼 부재 — 향후 스키마 확장 시 채움
+                .status(null)
                 .publishedVersion(asString(r.get("version")))
                 .build();
         } catch (Exception e) {
@@ -482,7 +507,6 @@ public class OntologyService {
     public com.zionex.t3composer.domain.ontology.dto.ProcessMetaDto getProcess(
             String targetCd, String processCd) {
         JdbcTemplate t = jdbc(targetCd);
-        // T3SERIES tb_is_prcss_ontlgy 부재 케이스 다수 — 테이블/컬럼 오류 시 null 응답.
         try {
             List<Map<String, Object>> rows = t.queryForList(
                 "SELECT id, process_cd, process_name, process_overview, module, status, version"

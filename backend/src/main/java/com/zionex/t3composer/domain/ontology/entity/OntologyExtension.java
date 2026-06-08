@@ -17,7 +17,13 @@ import lombok.NoArgsConstructor;
 
 /**
  * composer-db 의 dbo.tb_cmp_ontology_ext — Target DB 의 tb_is_* 에 없는 확장 필드 보관.
- * extension JSON 구조: { paraphrases:[string], relatedEntityIds:[string], notes:string }
+ *
+ * <p>Target DB schema (TB_IS_QAPATTERN / tb_is_ontlgy_entity) 에 정의되지 않은 사용자 정의
+ * 필드 — paraphrases · relatedEntityIds · notes 등 — 만 보관한다. base 의 question/answer/name
+ * 등은 Target DB 가 보유 — 본 테이블은 그 row 와 (target_cd, kind, ref_id) 키로 1:1 매칭.
+ *
+ * <p>extension JSON 구조:
+ * {@code { paraphrases:[string], relatedEntityIds:[string], relatedTableNames:[string], notes:string }}
  */
 @Data
 @NoArgsConstructor

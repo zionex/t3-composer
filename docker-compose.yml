@@ -238,6 +238,14 @@ services:
       # tb_cmp_target_system.backend_ref_path = '/workspace/targets/PLANNEL/backend' 매칭.
       - ${TARGET_PLANNEL_BACKEND_PATH:-./empty}:/workspace/targets/PLANNEL/backend:rw
       - ${TARGET_LGES_NEXTSCM_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:rw
+      # (2026-06-08) Per-Target 프로젝트 루트 슬롯 (RO) — 소스 디렉토리(wingui) 보다 한 단계 위인
+      # 프로젝트 루트 자산 접근용. 대표 용도: .insight_code/ontology_v2 (Ontology Tab 의 base 데이터).
+      # T3SERIES 처럼 nested monorepo (project_root/t3series-wingui/packages/wingui/src) 에서
+      # wingui 마운트는 source 만 보고, project root 는 별도 마운트로 노출.
+      # 미설정 시 TARGET_<CD>_PATH 에 폴백 (= wingui 와 project root 가 같은 평탄 구조 Target).
+      - ${TARGET_T3SERIES_PROJECT_PATH:-${TARGET_T3SERIES_PATH:-./empty}}:/workspace/targets/T3SERIES/project:ro
+      - ${TARGET_PLANNEL_PROJECT_PATH:-${TARGET_PLANNEL_PATH:-./empty}}:/workspace/targets/PLANNEL/project:ro
+      - ${TARGET_LGES_NEXTSCM_PROJECT_PATH:-${TARGET_LGES_NEXTSCM_PATH:-./empty}}:/workspace/targets/LGES_NEXTSCM/project:ro
       # (2026-06-04) Workspace 부모 폴더 — UI 의 [📁 Source 등록] 다이얼로그가 폴더 탐색 시
       # 이 마운트의 sub-path 만 선택 가능. backend 는 컨테이너 안 경로
       # /workspace/projects/<repo>/... 형태로 Target source_ref_path / backend_ref_path 에 저장.
@@ -294,6 +302,10 @@ services:
       - ${TARGET_T3SERIES_PATH:-./empty}:/workspace/targets/T3SERIES/wingui:ro
       - ${TARGET_PLANNEL_PATH:-./empty}:/workspace/targets/PLANNEL/wingui:ro
       - ${TARGET_LGES_NEXTSCM_PATH:-./empty}:/workspace/targets/LGES_NEXTSCM/wingui:ro
+      # Per-Target 프로젝트 루트 슬롯 (RO) — backend 와 동일 (§composer-backend).
+      - ${TARGET_T3SERIES_PROJECT_PATH:-${TARGET_T3SERIES_PATH:-./empty}}:/workspace/targets/T3SERIES/project:ro
+      - ${TARGET_PLANNEL_PROJECT_PATH:-${TARGET_PLANNEL_PATH:-./empty}}:/workspace/targets/PLANNEL/project:ro
+      - ${TARGET_LGES_NEXTSCM_PROJECT_PATH:-${TARGET_LGES_NEXTSCM_PATH:-./empty}}:/workspace/targets/LGES_NEXTSCM/project:ro
     networks:
       - composer-net
     restart: unless-stopped

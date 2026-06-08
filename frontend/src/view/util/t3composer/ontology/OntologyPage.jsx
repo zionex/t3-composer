@@ -5,6 +5,7 @@ import { ContentInner } from '@wingui/common/imports';
 import { useTargetStore } from '../targetStore';
 import { fetchOntologyTree } from '../api';
 import OntologyTree from './OntologyTree';
+import OntologyImportDialog from './OntologyImportDialog';
 import QaEditor from './editors/QaEditor';
 import EntityEditor from './editors/EntityEditor';
 import ViewReadOnly from './editors/ViewReadOnly';
@@ -26,6 +27,7 @@ function OntologyPage() {
   const [newKind, setNewKind] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const [treeWidth, setTreeWidth] = useState(() => {
     const saved = Number(localStorage.getItem(STORAGE_KEY));
@@ -101,6 +103,13 @@ function OntologyPage() {
           onSelect={(node) => { setNewKind(null); setSelected(node); }}
           onSearch={loadTree}
           onNewClick={handleNewClick}
+          onImportClick={() => setImportOpen(true)}
+        />
+        <OntologyImportDialog
+          open={importOpen}
+          targetCd={targetCd}
+          onClose={() => setImportOpen(false)}
+          onImported={() => { loadTree(''); }}
         />
         {/* Drag splitter — 좌 트리 너비 조절 */}
         <Box

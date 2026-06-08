@@ -21,6 +21,7 @@ public class OntologyController {
 
     private final OntologyService service;
     private final com.zionex.t3composer.domain.ontology.service.OntologySuggestService suggestService;
+    private final com.zionex.t3composer.domain.ontology.service.OntologyImportService importService;
     private final AuthenticationProvider authenticationProvider;
 
     /** 현재 로그인 사용자 id — Anthropic API key 조회/감사용. dev fallback. */
@@ -162,5 +163,30 @@ public class OntologyController {
             @org.springframework.web.bind.annotation.RequestBody
                 com.zionex.t3composer.domain.ontology.dto.SuggestRequest req) {
         return suggestService.suggest(currentUserId(), req);
+    }
+
+    // ─────────────────────────── Cache refresh ───────────────────────────
+
+    /**
+     * Target 의 filesystem 캐시 폐기 + 재스캔.
+     * <code>.insight_code/ontology_v2</code> JSON 파일을 수동으로 갱신했을 때 호출.
+     */
+    @org.springframework.web.bind.annotation.PostMapping("/refresh")
+    public java.util.Map<String, Object> refresh(
+            @RequestParam(value = "targetCd", required = false) String targetCd) {
+        return service.refreshCache(targetCd);
+    }
+
+    // ─────────────────────────── Import from filesystem ───────────────────────────
+
+    /**
+     * {@code .insight_code/ontology_v2/} JSON 파일을 Target DB 로 1회 import.
+     * skip-existing 정책 — DB 에 이미 있는 id 는 건드리지 않음.
+     * 응답: 카테고리별 added/skipped/available 카운트.
+     */
+    @org.springframework.web.bind.annotation.PostMapping("/import-from-fs")
+    public com.zionex.t3composer.domain.ontology.dto.OntologyImportResult importFromFs(
+            @RequestParam(value = "targetCd", required = false) String targetCd) {
+        return importService.importFromFs(targetCd);
     }
 }

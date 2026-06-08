@@ -509,6 +509,26 @@ export const ontologySuggest = (req) =>
     headers: { 'Content-Type': 'application/json' },
   }));
 
+/**
+ * .insight_code/ontology_v2/ JSON 파일을 Target DB 로 일괄 import.
+ * skip-existing 정책 — 이미 있는 id 는 건드리지 않음.
+ * 응답: { targetCd, ontologyRoot, hasFolder, qa, entity, view, process } —
+ *   각 카테고리는 { added, skipped, available, skippedReason }.
+ */
+export const importOntologyFromFs = (targetCd) =>
+  zAxios.post('composer/ontology/import-from-fs', null, composerReq({
+    params: { targetCd },
+  }));
+
+/**
+ * Target 의 filesystem reader 캐시 폐기 + 재스캔.
+ * Import 다이얼로그 진입 시 호출해 최신 카운트 표시.
+ */
+export const refreshOntologyCache = (targetCd) =>
+  zAxios.post('composer/ontology/refresh', null, composerReq({
+    params: { targetCd },
+  }));
+
 // ---- Patterns (화면 구성 카탈로그) ----
 
 export const listPatterns = (activeOnly = false) =>

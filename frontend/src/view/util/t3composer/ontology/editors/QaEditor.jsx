@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { fetchQa, createQa, updateQa, deleteQa } from '../../api';
 import AiSuggestButton from '../AiSuggestButton';
+import SqlRunnerPanel from '../SqlRunnerPanel';
 
 const DB_TYPES = ['mssql', 'oracle', 'postgresql'];
 
@@ -122,13 +123,15 @@ function QaEditor({ id, targetCd, onSaved, onDeleted, onCancelNew }) {
         </Stack>
 
         <Stack direction="row" alignItems="flex-end" spacing={0.5}>
-          <TextField label="Answer" fullWidth size="small" required multiline minRows={16} maxRows={22}
+          <TextField label="Answer" fullWidth size="small" required multiline minRows={14} maxRows={20}
             value={dto.answer || ''} onChange={setField('answer')}
             sx={{ '& textarea': { resize: 'vertical', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: 12 } }} />
           <AiSuggestButton field="answer" kind="QA" targetCd={targetCd}
             currentValue={dto.answer} row={dto}
             onAccept={(v) => setValue('answer', String(v))} />
         </Stack>
+
+        <SqlRunnerPanel sql={dto.answer} targetCd={targetCd} dbType={dto.dbType} />
 
         <Stack direction="row" spacing={2}>
           <Stack direction="row" alignItems="flex-end" spacing={0.5} sx={{ flex: 1 }}>

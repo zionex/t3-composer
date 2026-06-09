@@ -1,11 +1,29 @@
 import React, { useState, useCallback } from 'react';
 import {
   Box, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Typography, CircularProgress, Stack,
+  Button, Typography, CircularProgress, Stack, Snackbar, Alert,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import { ontologySuggest } from '../api';
+
+/** AI 제안값이 현재값과 의미상 동일한가? (whitespace · null/빈배열·String coerce 흡수) */
+function isSameSuggestion(current, suggested) {
+  if (current === suggested) return true;
+  // null/undefined ↔ '' / [] 동일 취급
+  const empty = (v) => v == null || v === '' || (Array.isArray(v) && v.length === 0);
+  if (empty(current) && empty(suggested)) return true;
+  if (Array.isArray(current) && Array.isArray(suggested)) {
+    if (current.length !== suggested.length) return false;
+    for (let i = 0; i < current.length; i++) {
+      if (String(current[i] ?? '').trim() !== String(suggested[i] ?? '').trim()) return false;
+    }
+    return true;
+  }
+  // 한 쪽이 배열이고 다른 쪽이 문자열이면 다름
+  if (Array.isArray(current) !== Array.isArray(suggested)) return false;
+  return String(current ?? '').trim() === String(suggested ?? '').trim();
+}
 
 /**
  * 필드 옆 ✨ 버튼 — Claude 1회 호출 → diff 모달 → 사용자 수락 시 onAccept(value).
@@ -22,6 +40,7 @@ function AiSuggestButton({ field, kind, targetCd, currentValue, row, onAccept, s
   const [open, setOpen] = useState(false);
   const [suggestion, setSuggestion] = useState(null);
   const [error, setError] = useState(null);
+  const [noChange, setNoChange] = useState(false);  // diff 없음 알림 (Snackbar)
 
   const handleClick = useCallback(async () => {
     if (busy) return;
@@ -31,15 +50,22 @@ function AiSuggestButton({ field, kind, targetCd, currentValue, row, onAccept, s
     try {
       const r = await ontologySuggest({ field, kind, targetCd, row });
       if (!r.data?.ok) throw new Error(r.data?.message || 'AI 제안 실패');
-      setSuggestion(r.data.value);
-      setOpen(true);
+      const value = r.data.value;
+      if (isSameSuggestion(currentValue, value)) {
+        // 제안이 현재값과 동일 — 다이얼로그 안 띄움. Snackbar 로만 알림.
+        setSuggestion(value);
+        setNoChange(true);
+      } else {
+        setSuggestion(value);
+        setOpen(true);
+      }
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || 'AI 제안 실패');
       setOpen(true);
     } finally {
       setBusy(false);
     }
-  }, [field, kind, targetCd, row, busy]);
+  }, [field, kind, targetCd, row, currentValue, busy]);
 
   const handleAccept = () => {
     onAccept?.(suggestion);
@@ -100,6 +126,23 @@ function AiSuggestButton({ field, kind, targetCd, currentValue, row, onAccept, s
           )}
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={noChange}
+        autoHideDuration={3000}
+        onClose={() => setNoChange(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setNoChange(false)}
+          severity="info"
+          variant="filled"
+          icon={<AutoAwesomeIcon fontSize="small" />}
+          sx={{ bgcolor: '#9D8FD4', color: '#fff', fontSize: 12 }}
+        >
+          {`'${field}' — 이미 적절한 값입니다 (Claude 가 동일한 결과를 제안)`}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

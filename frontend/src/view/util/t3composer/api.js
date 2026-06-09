@@ -529,6 +529,16 @@ export const refreshOntologyCache = (targetCd) =>
     params: { targetCd },
   }));
 
+/**
+ * Q&A Answer SQL 미리보기 — Target DB 에서 SELECT 만 실행, TOP 100 자동, timeout 10초.
+ * 성공: { columns, sqlTypes, rows, rowCount, elapsedMs, truncated, topInjected, executedSql }
+ * 실패: { error: { code, message, sqlState? } } (HTTP 4xx/5xx)
+ */
+export const previewOntologySql = (sql, targetCd, dbType) =>
+  zAxios.post('composer/ontology/sql/preview', { sql, targetCd, dbType }, composerReq({
+    headers: { 'Content-Type': 'application/json' },
+  }));
+
 // ---- Patterns (화면 구성 카탈로그) ----
 
 export const listPatterns = (activeOnly = false) =>

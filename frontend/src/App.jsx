@@ -6,6 +6,7 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import HistoryIcon from '@mui/icons-material/History';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import WidgetsIcon from '@mui/icons-material/Widgets';
@@ -16,6 +17,7 @@ import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
 import T3ComposerHistory from './view/util/t3composerhistory/T3ComposerHistory';
+import T3Dashboard from './view/util/t3dashboard/T3Dashboard';
 import T3Mockup from './view/util/t3mockup/T3Mockup';
 import OntologyPage from './view/util/t3composer/ontology/OntologyPage';
 import PreviewLoader from './view/util/preview/PreviewLoader';
@@ -39,6 +41,7 @@ const MENU_ITEMS = [
     { key: 'patterns', label: 'UI Pattern',    Icon: ViewQuiltIcon,          hint: 'T3MES UI 패턴 카탈로그 — MES/SCM 도메인별 화면 패턴',         Component: T3mesPatternCatalog },
     { key: 'dict',     label: 'Gallery',       Icon: WidgetsIcon,            hint: 'Composer 갤러리 — Grid·Chart·KPI 사전',                      Component: T3ComposerDict },
     { key: 'ontology', label: 'Ontology',      Icon: SchemaIcon,             hint: 'Ontology 관리 — Q&A · Entity · View · Process',              Component: OntologyPage },
+    { key: 'dashboard',  label: 'Dashboard',      Icon: DashboardIcon,          hint: '대시보드 빌더 — 위젯 기반 사용자 대시보드 조회 및 편집',       Component: T3Dashboard },
 ];
 
 const SIDEBAR_W           = 212;

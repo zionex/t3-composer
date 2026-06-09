@@ -288,6 +288,9 @@ services:
     environment:
       COMPOSER_API_BASE: http://composer-backend:8090
       WDS_PORT: 5173
+      # insight 서버 주소 (webpack.config.js 가 빌드 시 주입).
+      # 기본값(http://localhost:9160) 은 현재 dev 동작 유지. .env 에서 override 가능.
+      INSIGHT_API_BASE: ${INSIGHT_API_BASE:-http://localhost:9160}
     ports:
       - "${COMPOSER_FRONTEND_PORT:-5173}:5173"
     volumes:

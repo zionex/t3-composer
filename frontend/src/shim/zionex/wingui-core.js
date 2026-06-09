@@ -87,3 +87,86 @@ export default {
     TabContainer, Tab,
     PopupDialog, ZEditor, useMenuStore,
 };
+
+// =============================================================================
+// DashboardPanel — @zionex/wingui-core/component/dashboard/DashboardPanel
+// 원본: 1000줄+ 클래스형 컴포넌트 (저장/로드/WebSocket 포함)
+// shim: PGM 모드(읽기 전용)만 구현 — react-grid-layout 기반
+// =============================================================================
+import GridLayout from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+
+/**
+ * DashboardPanel lightweight shim.
+ *
+ * Props (UserDashboardPage에서 사용하는 것만):
+ *   id           {string}   대시보드 ID (key로 사용)
+ *   widgets      {Array}    위젯 배열 — 각 항목에 'data-grid' (x,y,w,h,i), key 포함
+ *   OnGetWidgets {Function} widgets 배열을 받아 onGetWidget 콜백을 추가한 배열 반환
+ *   isDraggable  {boolean}  false (읽기 전용)
+ *   isResizable  {boolean}  false (읽기 전용)
+ *   fitHeight    {boolean}  컨테이너 높이에 맞춤
+ *   option       {object}   { store: 'PGM', ... } — 현재 미사용 (PGM 고정)
+ */
+export function DashboardPanel({
+  id,
+  widgets = [],
+  OnGetWidgets,
+  isDraggable = false,
+  isResizable = false,
+  fitHeight = false,
+  option = {},
+  actionBar,
+  autoSize,
+  menuCd,
+  ...rest
+}) {
+  const containerRef = React.useRef(null);
+  const [containerWidth, setContainerWidth] = React.useState(1200);
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    const obs = new ResizeObserver(([entry]) => {
+      setContainerWidth(entry.contentRect.width || 1200);
+    });
+    obs.observe(containerRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const resolvedWidgets = React.useMemo(
+    () => (OnGetWidgets ? OnGetWidgets(widgets) : widgets),
+    [widgets, OnGetWidgets]
+  );
+
+  const layout = resolvedWidgets
+    .filter(w => w['data-grid'])
+    .map(w => ({ ...w['data-grid'], i: String(w.key ?? w.id ?? w['data-grid'].i) }));
+
+  return (
+    <Box
+      ref={containerRef}
+      sx={{ width: '100%', height: fitHeight ? '100%' : 'auto', overflow: 'auto' }}
+    >
+      <GridLayout
+        layout={layout}
+        cols={12}
+        rowHeight={60}
+        width={containerWidth}
+        isDraggable={isDraggable}
+        isResizable={isResizable}
+        compactType={null}
+        margin={[8, 8]}
+      >
+        {resolvedWidgets.map(w => {
+          const key = String(w.key ?? w.id ?? w['data-grid']?.i ?? Math.random());
+          return (
+            <div key={key}>
+              {w.onGetWidget ? w.onGetWidget(w) : null}
+            </div>
+          );
+        })}
+      </GridLayout>
+    </Box>
+  );
+}

@@ -9,6 +9,7 @@ const noKeepAliveAgent = new http.Agent({ keepAlive: false });
 module.exports = (env, argv) => {
   const isDev = argv.mode !== 'production';
   const apiBase = process.env.COMPOSER_API_BASE || 'http://localhost:8090';
+  const insightApiBase = process.env.INSIGHT_API_BASE || 'http://localhost:9160';
 
   return {
     entry: './src/index.jsx',
@@ -28,7 +29,11 @@ module.exports = (env, argv) => {
         '@wingui': path.resolve(__dirname, 'src/shim/wingui'),
         '@zionex/wingui-core/lang/i18n-func': path.resolve(__dirname, 'src/shim/zionex/i18n-func.js'),
         '@zionex/wingui-core/store/contentStore': path.resolve(__dirname, 'src/shim/zionex/contentStore.js'),
+        '@zionex/wingui-core/component/dashboard/DashboardPanel': path.resolve(__dirname, 'src/shim/zionex/wingui-core.js'),
         '@zionex/wingui-core': path.resolve(__dirname, 'src/shim/zionex/wingui-core.js'),
+        // insight 산출물 shim
+        '@insight/style/AppCommonStyle': path.resolve(__dirname, 'src/shim/insight/style/AppCommonStyle.jsx'),
+        '@insight': path.resolve(__dirname, 'src/shim/insight'),
         // 산출물이 환각하는 차트 라이브러리 — react-chartjs-2 로 wrapping
         '@progress/kendo-react-charts': path.resolve(__dirname, 'src/shim/kendo-react-charts.jsx'),
       },
@@ -65,6 +70,7 @@ module.exports = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         'process.env.COMPOSER_API_BASE': JSON.stringify(apiBase),
+        'process.env.INSIGHT_API_BASE': JSON.stringify(insightApiBase),
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       }),
       // _preview 격리 안전망 — 어떤 형태의 import / require 든 _preview 경로를 가리키면

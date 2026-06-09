@@ -12,6 +12,11 @@ if (typeof window !== 'undefined') {
     window.__COMPOSER_API_BASE__ = apiBase;
 }
 
+const insightApiBase = process.env.INSIGHT_API_BASE || 'http://localhost:9160';
+if (typeof window !== 'undefined') {
+    window.__INSIGHT_API_BASE__ = insightApiBase;
+}
+
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(

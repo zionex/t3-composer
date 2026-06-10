@@ -132,3 +132,9 @@ llm:
     binary: ${LLM_CLI_BINARY:/usr/bin/claude}
     timeout-minutes: ${LLM_CLI_TIMEOUT_MIN:40}
     max-concurrent: ${LLM_CLI_MAX_CONCURRENT:4}
+
+insight:
+  target:
+    base-url: ${INSIGHT_LLM_BASE_URL:http://localhost:9160}
+  connection-timeout: 30000
+  read-timeout: 1800000

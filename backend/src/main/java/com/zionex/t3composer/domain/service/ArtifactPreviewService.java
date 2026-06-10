@@ -190,6 +190,18 @@ public class ArtifactPreviewService {
             previewLinks.add(link);
         }
 
+        // 대시보드처럼 메인 1개 + widgets/ 폴더 안 sub 컴포넌트 N개 구조에서
+        // 프런트가 previewLinks[0] 만 채택해 widget 1개가 단독 마운트되는 사고를 막는다.
+        // widgets/ 폴더 안의 JSX 는 항상 후순위 — 동일 클래스 내 순서는 stable sort 로 보존.
+        previewLinks.sort((a, b) -> {
+            String va = String.valueOf(a.get("viewSub")).toLowerCase();
+            String vb = String.valueOf(b.get("viewSub")).toLowerCase();
+            boolean aw = va.contains("/widgets/") || va.startsWith("widgets/");
+            boolean bw = vb.contains("/widgets/") || vb.startsWith("widgets/");
+            if (aw != bw) return aw ? 1 : -1;
+            return 0;
+        });
+
         out.put("success",      success);
         out.put("sid8",         sid8);
         out.put("previewBase",  sessionPreview.toString());

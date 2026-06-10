@@ -1,7 +1,7 @@
 {
   "source": "target:T3SERIES",
-  "total": 333,
-  "leafs": 263,
+  "total": 336,
+  "leafs": 266,
   "items": [
     {
       "menuId": "UI_SA_EXECUTIVE_DASHBOARD",
@@ -3109,6 +3109,39 @@
       "parents": [
         "설정",
         "작업 일정"
+      ]
+    },
+    {
+      "menuId": "UI_SA_PSI",
+      "menuNm": "PSI 균형 관제",
+      "menuPath": "/snop/psibalance",
+      "filePath": "/snop/PsiBalance",
+      "seq": 1,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SALES_PLAN_STATE_DETAIL",
+      "menuNm": "판매계획 대비 실적 상세",
+      "menuPath": "/snop/salesplanstatedetail",
+      "filePath": "/snop/mdb/SalesPlanStateDetail",
+      "seq": 81,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
+      ]
+    },
+    {
+      "menuId": "UI_SA_SALES_MP_PLAN",
+      "menuNm": "RTF 충족율",
+      "menuPath": "/snop/salesmpplan",
+      "filePath": "/snop/mdb/SalesMPPlan",
+      "seq": 90,
+      "hasLangPack": true,
+      "parents": [
+        "S&OP"
       ]
     }
   ]

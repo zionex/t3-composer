@@ -1,7 +1,7 @@
 {
   "stats": {
-    "totalMenus": 263,
-    "mappedCount": 263,
+    "totalMenus": 266,
+    "mappedCount": 266,
     "mockupCoverage": {
       "search_grid": {
         "category": "core",
@@ -9,7 +9,7 @@
       },
       "widget_dashboard": {
         "category": "core",
-        "count": 17
+        "count": 10
       },
       "grid_chart_stacked": {
         "category": "core",
@@ -41,7 +41,7 @@
       },
       "cb_master_dashboard": {
         "category": "core",
-        "count": 2
+        "count": 0
       },
       "pivot_table": {
         "category": "core",
@@ -113,7 +113,7 @@
       },
       "analysis_report": {
         "category": "core",
-        "count": 18
+        "count": 15
       },
       "fp_simulation_edit": {
         "category": "domain",
@@ -125,15 +125,15 @@
       },
       "dash_executive": {
         "category": "dashboard",
-        "count": 0
+        "count": 1
       },
       "dash_overview": {
         "category": "dashboard",
-        "count": 5
+        "count": 4
       },
       "dash_kpi_board": {
         "category": "dashboard",
-        "count": 0
+        "count": 1
       },
       "dash_supply_kpi": {
         "category": "dashboard",
@@ -173,17 +173,61 @@
       },
       "dash_demand_board": {
         "category": "dashboard",
-        "count": 1
+        "count": 0
       },
       "dash_supply_board": {
         "category": "dashboard",
-        "count": 0
+        "count": 1
       },
       "dash_psi_board": {
         "category": "dashboard",
-        "count": 0
+        "count": 1
       },
       "dash_inven_board": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_psi_balance": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_sales_state": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_inventory_state": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_masterplan_state": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_supply_trend": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_demandplan_state": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_location_inventory_state": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_plan_against_prfm": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_plan_against_prfm_detail": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_salesplan_state_detail": {
+        "category": "dashboard",
+        "count": 1
+      },
+      "dash_sales_mp_plan": {
         "category": "dashboard",
         "count": 1
       },
@@ -197,11 +241,11 @@
       },
       "cb_dp_demand": {
         "category": "controlboard",
-        "count": 0
+        "count": 1
       },
       "cb_bp_yearly": {
         "category": "controlboard",
-        "count": 0
+        "count": 1
       },
       "popup": {
         "category": "meta",
@@ -243,23 +287,19 @@
     "byReasonTop": [
       [
         "inventory.patternCode",
-        206
+        197
+      ],
+      [
+        "mockup.sourceMenuCd 1:1",
+        26
       ],
       [
         "folder: \\/analysis($|\\/)",
-        11
+        10
       ],
       [
         "folder: \\/master($|\\/)",
         8
-      ],
-      [
-        "folder: \\/dashboard($|\\/)",
-        5
-      ],
-      [
-        "folder: \\/analysisreport($|\\/)",
-        4
       ],
       [
         "folder: \\/report($|\\/)",
@@ -270,16 +310,12 @@
         3
       ],
       [
-        "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart",
+        "folder: \\/dashboard($|\\/)",
         3
       ],
       [
-        "keyword: productionperformance",
-        2
-      ],
-      [
-        "keyword: supplyplankpi",
-        2
+        "keyword: adjustmentgantt|adjustmentgrid|simulationadjustment|adjustmentchart",
+        3
       ],
       [
         "folder: \\/snop\\/mdb",
@@ -294,15 +330,15 @@
         2
       ],
       [
-        "keyword: ^\\/dashboard\\/salesboard|salesboard",
+        "folder: \\/analysisreport($|\\/)",
+        2
+      ],
+      [
+        "keyword: productionperformance",
         1
       ],
       [
-        "keyword: ^\\/dashboard\\/demandplanboard|demandplanboard",
-        1
-      ],
-      [
-        "keyword: ^\\/dashboard\\/invenboard|invenboard|inventoryboard",
+        "keyword: supplyplankpi",
         1
       ],
       [
@@ -314,138 +350,26 @@
         1
       ],
       [
-        "keyword: inoutstatusdashboard",
-        1
-      ],
-      [
-        "keyword: wipeohoutdashboard",
-        1
-      ],
-      [
-        "keyword: simulationkpidashboard|simulkpidashboard",
-        1
-      ],
-      [
-        "keyword: planproblemdashboard",
-        1
-      ],
-      [
         "folder: \\/factoryplan\\/simulation($|\\/)",
         1
       ]
     ]
   },
   "mockupToMenus": {
-    "widget_dashboard": [
+    "dash_executive": [
       {
         "menuId": "UI_SA_EXECUTIVE_DASHBOARD",
         "menuNm": "경영 대시보드",
         "filePath": "/snop/dashboard/ExecutiveDashboard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_OVERVIEW",
-        "menuNm": "개요",
-        "filePath": "/dashboard/Overview",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_SUPPLY_BOARD",
-        "menuNm": "공급 대시보드",
-        "filePath": "/dashboard/SupplyBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_SALES_BOARD",
-        "menuNm": "영업 대시보드",
-        "filePath": "/dashboard/SalesBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_PSI_BOARD",
-        "menuNm": "PSI 대시보드",
-        "filePath": "/dashboard/PsiBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_INVENTORY_BOARD",
-        "menuNm": "재고 대시보드",
-        "filePath": "/dashboard/InvenBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DASH_KPI_BOARD",
-        "menuNm": "KPI 대시보드",
-        "filePath": "/dashboard/KpiBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_BF_BASELINE_FORECAST_STATE",
-        "menuNm": "수요 예측 현황",
-        "filePath": "/baselineforecast/report/BaselineForecastBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DP_SALES_STATE",
-        "menuNm": "판매 현황",
-        "filePath": "/demandplan/dashboard/SalesBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_DP_DEMAND_PLAN_STATE",
-        "menuNm": "수요 계획 현황",
-        "filePath": "/demandplan/dashboard/DemandPlanBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_IM_INVENTORY_STATE",
-        "menuNm": "재고 현황",
-        "filePath": "/inventoryplan/analysis/InventoryBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_IM_LOCATION_INVENTORY_STATE",
-        "menuNm": "거점 재고 현황",
-        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_IM_SLOWMOVING_STATE",
-        "menuNm": "부진 재고 현황",
-        "filePath": "/inventoryplan/analysis/SlowMoving",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_IM_OBSOLETE_STATE",
-        "menuNm": "불용 재고 현황",
-        "filePath": "/inventoryplan/analysis/Obsolete",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_MP_MASTER_PLAN_STATE",
-        "menuNm": "공급 계획 현황",
-        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_CM_SUPPLYCHAIN",
-        "menuNm": "공급망 뷰어",
-        "filePath": "/supplychainmodel/SupplyChainViewer",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_UT_DASHBOARD_MGMT",
-        "menuNm": "UI_UT_DASHBOARD_MGMT",
-        "filePath": "/util/DashboardTool",
-        "reason": "inventory.patternCode"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
-    "dash_sales_board": [
+    "dash_sales_state": [
       {
         "menuId": "UI_SA_SALES_STATE",
         "menuNm": "판매 현황",
         "filePath": "/demandplan/dashboard/SalesBoard",
-        "reason": "keyword: ^\\/dashboard\\/salesboard|salesboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "analysis_report": [
@@ -454,18 +378,6 @@
         "menuNm": "수요 예측 현황",
         "filePath": "/baselineforecast/report/BaselineForecastBoard",
         "reason": "folder: \\/report($|\\/)"
-      },
-      {
-        "menuId": "UI_SA_LOCATION_INVENTORY_STATE",
-        "menuNm": "거점 재고 현황",
-        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
-        "reason": "folder: \\/analysis($|\\/)"
-      },
-      {
-        "menuId": "UI_SA_MASTER_PLAN_STATE",
-        "menuNm": "공급 계획 현황",
-        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
-        "reason": "folder: \\/analysisreport($|\\/)"
       },
       {
         "menuId": "UI_BF_56",
@@ -490,12 +402,6 @@
         "menuNm": "반품 재고 현황",
         "filePath": "/inventoryplan/analysis/ReturnInventory",
         "reason": "folder: \\/analysis($|\\/)"
-      },
-      {
-        "menuId": "UI_MP_SUPPLY_TREND",
-        "menuNm": "거점별 공급/출하/재고 추이",
-        "filePath": "/masterplan/analysisreport/SupplyTrend",
-        "reason": "folder: \\/analysisreport($|\\/)"
       },
       {
         "menuId": "UI_MP_RTF",
@@ -558,20 +464,36 @@
         "reason": "folder: \\/analysis($|\\/)"
       }
     ],
-    "dash_demand_board": [
+    "dash_demandplan_state": [
       {
         "menuId": "UI_SA_DEMAND_PLAN_STATE",
         "menuNm": "수요 계획 현황",
         "filePath": "/demandplan/dashboard/DemandPlanBoard",
-        "reason": "keyword: ^\\/dashboard\\/demandplanboard|demandplanboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
-    "dash_inven_board": [
+    "dash_inventory_state": [
       {
         "menuId": "UI_SA_INVENTORY_STATE",
         "menuNm": "재고 현황",
         "filePath": "/inventoryplan/analysis/InventoryBoard",
-        "reason": "keyword: ^\\/dashboard\\/invenboard|invenboard|inventoryboard"
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_location_inventory_state": [
+      {
+        "menuId": "UI_SA_LOCATION_INVENTORY_STATE",
+        "menuNm": "거점 재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_masterplan_state": [
+      {
+        "menuId": "UI_SA_MASTER_PLAN_STATE",
+        "menuNm": "공급 계획 현황",
+        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "dash_production_perf": [
@@ -585,7 +507,7 @@
         "menuId": "UI_FP_PRODUCTION_PERFORMANCE",
         "menuNm": "생산 실적 분석",
         "filePath": "/factoryplan/dashboard/ProductionPerformance",
-        "reason": "keyword: productionperformance"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "mix_split": [
@@ -619,7 +541,7 @@
         "menuId": "UI_SA_SUPPLY_PLAN_KPI",
         "menuNm": "공급계획 KPI",
         "filePath": "/snop/mdb/SupplyPlanKpi",
-        "reason": "keyword: supplyplankpi"
+        "reason": "mockup.sourceMenuCd 1:1"
       },
       {
         "menuId": "UI_SA_SUPPLY_PLAN_KPI_DTL4",
@@ -638,6 +560,134 @@
         "menuNm": "자재 Short 상세 현황",
         "filePath": "/snop/mdb/SupplyMatPsiDetail",
         "reason": "folder: \\/snop\\/mdb"
+      }
+    ],
+    "dash_overview": [
+      {
+        "menuId": "UI_DASH_OVERVIEW",
+        "menuNm": "개요",
+        "filePath": "/dashboard/Overview",
+        "reason": "mockup.sourceMenuCd 1:1"
+      },
+      {
+        "menuId": "UI_FP_PLAN_VS_PERFORMANCE",
+        "menuNm": "실행 성과 분석",
+        "filePath": "/factoryplan/dashboard/FpVersusPerformance",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_INPUT_ORDER_CHECK",
+        "menuNm": "투입 오더 점검",
+        "filePath": "/factoryplan/dashboard/InputOrderBoard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      },
+      {
+        "menuId": "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD",
+        "menuNm": "투입 / 생산 현황 상세",
+        "filePath": "/factoryplan/dashboard/InOutStatusDetailDashboard",
+        "reason": "folder: \\/dashboard($|\\/)"
+      }
+    ],
+    "dash_supply_board": [
+      {
+        "menuId": "UI_DASH_SUPPLY_BOARD",
+        "menuNm": "공급 대시보드",
+        "filePath": "/dashboard/SupplyBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_sales_board": [
+      {
+        "menuId": "UI_DASH_SALES_BOARD",
+        "menuNm": "영업 대시보드",
+        "filePath": "/dashboard/SalesBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_psi_board": [
+      {
+        "menuId": "UI_DASH_PSI_BOARD",
+        "menuNm": "PSI 대시보드",
+        "filePath": "/dashboard/PsiBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_inven_board": [
+      {
+        "menuId": "UI_DASH_INVENTORY_BOARD",
+        "menuNm": "재고 대시보드",
+        "filePath": "/dashboard/InvenBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_kpi_board": [
+      {
+        "menuId": "UI_DASH_KPI_BOARD",
+        "menuNm": "KPI 대시보드",
+        "filePath": "/dashboard/KpiBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "widget_dashboard": [
+      {
+        "menuId": "UI_BF_BASELINE_FORECAST_STATE",
+        "menuNm": "수요 예측 현황",
+        "filePath": "/baselineforecast/report/BaselineForecastBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_SALES_STATE",
+        "menuNm": "판매 현황",
+        "filePath": "/demandplan/dashboard/SalesBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_DP_DEMAND_PLAN_STATE",
+        "menuNm": "수요 계획 현황",
+        "filePath": "/demandplan/dashboard/DemandPlanBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_INVENTORY_STATE",
+        "menuNm": "재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_LOCATION_INVENTORY_STATE",
+        "menuNm": "거점 재고 현황",
+        "filePath": "/inventoryplan/analysis/InventoryLocationBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_SLOWMOVING_STATE",
+        "menuNm": "부진 재고 현황",
+        "filePath": "/inventoryplan/analysis/SlowMoving",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_IM_OBSOLETE_STATE",
+        "menuNm": "불용 재고 현황",
+        "filePath": "/inventoryplan/analysis/Obsolete",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_MP_MASTER_PLAN_STATE",
+        "menuNm": "공급 계획 현황",
+        "filePath": "/masterplan/analysisreport/MasterPlanBoard",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_CM_SUPPLYCHAIN",
+        "menuNm": "공급망 뷰어",
+        "filePath": "/supplychainmodel/SupplyChainViewer",
+        "reason": "inventory.patternCode"
+      },
+      {
+        "menuId": "UI_UT_DASHBOARD_MGMT",
+        "menuNm": "UI_UT_DASHBOARD_MGMT",
+        "filePath": "/util/DashboardTool",
+        "reason": "inventory.patternCode"
       }
     ],
     "search_grid": [
@@ -1258,18 +1308,12 @@
         "reason": "keyword: iscontrolboard"
       }
     ],
-    "cb_master_dashboard": [
+    "cb_dp_demand": [
       {
         "menuId": "UI_DP_93",
         "menuNm": "버전관리",
         "filePath": "/demandplan/version/ControlBoard",
-        "reason": "inventory.patternCode"
-      },
-      {
-        "menuId": "UI_BP_93",
-        "menuNm": "버전관리",
-        "filePath": "/demandplan/yearlyplan/ControlBoard",
-        "reason": "inventory.patternCode"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "free_form": [
@@ -1602,6 +1646,14 @@
         "reason": "inventory.patternCode"
       }
     ],
+    "cb_bp_yearly": [
+      {
+        "menuId": "UI_BP_93",
+        "menuNm": "버전관리",
+        "filePath": "/demandplan/yearlyplan/ControlBoard",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
     "dev_tool": [
       {
         "menuId": "UI_DP_Z_MAKE_DATA",
@@ -1764,6 +1816,14 @@
         "reason": "keyword: imsimulationcompare|simulationcompare|targetinventoryresultperiod"
       }
     ],
+    "dash_supply_trend": [
+      {
+        "menuId": "UI_MP_SUPPLY_TREND",
+        "menuNm": "거점별 공급/출하/재고 추이",
+        "filePath": "/masterplan/analysisreport/SupplyTrend",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
     "gantt_view": [
       {
         "menuId": "UI_MP_GANTT_RESOURCE",
@@ -1816,36 +1876,20 @@
         "reason": "inventory.patternCode"
       }
     ],
-    "dash_overview": [
-      {
-        "menuId": "UI_FP_PLAN_VS_PERFORMANCE",
-        "menuNm": "실행 성과 분석",
-        "filePath": "/factoryplan/dashboard/FpVersusPerformance",
-        "reason": "folder: \\/dashboard($|\\/)"
-      },
-      {
-        "menuId": "UI_FP_INPUT_ORDER_CHECK",
-        "menuNm": "투입 오더 점검",
-        "filePath": "/factoryplan/dashboard/InputOrderBoard",
-        "reason": "folder: \\/dashboard($|\\/)"
-      },
+    "dash_plan_against_prfm": [
       {
         "menuId": "UI_FP_PLAN_AGAINST_PRFM",
         "menuNm": "계획 대비 실적",
         "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDashboard",
-        "reason": "folder: \\/dashboard($|\\/)"
-      },
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_plan_against_prfm_detail": [
       {
         "menuId": "UI_FP_PLAN_AGAINST_PRFM_DETAIL",
         "menuNm": "계획 대비 실적 상세",
         "filePath": "/factoryplan/dashboard/PlanAgainstPrfmDetailDashboard",
-        "reason": "folder: \\/dashboard($|\\/)"
-      },
-      {
-        "menuId": "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD",
-        "menuNm": "투입 / 생산 현황 상세",
-        "filePath": "/factoryplan/dashboard/InOutStatusDetailDashboard",
-        "reason": "folder: \\/dashboard($|\\/)"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "dash_inout_status": [
@@ -1853,7 +1897,7 @@
         "menuId": "UI_FP_IN_OUT_STATUS_DASHBOARD",
         "menuNm": "투입 / 생산 현황",
         "filePath": "/factoryplan/dashboard/InOutStatusDashboard",
-        "reason": "keyword: inoutstatusdashboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "dash_wip_eoh": [
@@ -1861,7 +1905,7 @@
         "menuId": "UI_FP_WIP_EOH_OUT_DASHBOARD",
         "menuNm": "재공 투입 / 생산 현황",
         "filePath": "/factoryplan/dashboard/WipEohOutDashboard",
-        "reason": "keyword: wipeohoutdashboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "dash_simulation_kpi": [
@@ -1869,7 +1913,7 @@
         "menuId": "UI_FP_SIMUL_KPI",
         "menuNm": "계획 결과 요약",
         "filePath": "/factoryplan/dashboard/SimulationKPIDashboard",
-        "reason": "keyword: simulationkpidashboard|simulkpidashboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "dash_plan_problem": [
@@ -1877,7 +1921,7 @@
         "menuId": "UI_FP_PLAN_PROBLEM_DASHBOARD",
         "menuNm": "문제 현황",
         "filePath": "/factoryplan/dashboard/PlanProblemDashboard",
-        "reason": "keyword: planproblemdashboard"
+        "reason": "mockup.sourceMenuCd 1:1"
       }
     ],
     "fp_simulation_edit": [
@@ -1973,28 +2017,52 @@
         "filePath": "/system/permission/TotalPermission",
         "reason": "inventory.patternCode"
       }
+    ],
+    "dash_psi_balance": [
+      {
+        "menuId": "UI_SA_PSI",
+        "menuNm": "PSI 균형 관제",
+        "filePath": "/snop/PsiBalance",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_salesplan_state_detail": [
+      {
+        "menuId": "UI_SA_SALES_PLAN_STATE_DETAIL",
+        "menuNm": "판매계획 대비 실적 상세",
+        "filePath": "/snop/mdb/SalesPlanStateDetail",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
+    ],
+    "dash_sales_mp_plan": [
+      {
+        "menuId": "UI_SA_SALES_MP_PLAN",
+        "menuNm": "RTF 충족율",
+        "filePath": "/snop/mdb/SalesMPPlan",
+        "reason": "mockup.sourceMenuCd 1:1"
+      }
     ]
   },
   "menuToMockup": {
-    "UI_SA_EXECUTIVE_DASHBOARD": "widget_dashboard",
-    "UI_SA_SALES_STATE": "dash_sales_board",
+    "UI_SA_EXECUTIVE_DASHBOARD": "dash_executive",
+    "UI_SA_SALES_STATE": "dash_sales_state",
     "UI_SA_BASELINE_FORECAST_STATE": "analysis_report",
-    "UI_SA_DEMAND_PLAN_STATE": "dash_demand_board",
-    "UI_SA_INVENTORY_STATE": "dash_inven_board",
-    "UI_SA_LOCATION_INVENTORY_STATE": "analysis_report",
-    "UI_SA_MASTER_PLAN_STATE": "analysis_report",
+    "UI_SA_DEMAND_PLAN_STATE": "dash_demandplan_state",
+    "UI_SA_INVENTORY_STATE": "dash_inventory_state",
+    "UI_SA_LOCATION_INVENTORY_STATE": "dash_location_inventory_state",
+    "UI_SA_MASTER_PLAN_STATE": "dash_masterplan_state",
     "UI_SA_PRODUCTION_PERFORMANCE": "dash_production_perf",
     "UI_SA_MEETING": "mix_split",
     "UI_SA_SUPPLY_PLAN_KPI": "dash_supply_kpi",
     "UI_SA_SUPPLY_PLAN_KPI_DTL4": "dash_supply_kpi",
     "UI_SA_SUPPLY_MAT_PSI": "dash_supply_kpi",
     "UI_SA_SUPPLY_MAT_PSI_DETAIL": "dash_supply_kpi",
-    "UI_DASH_OVERVIEW": "widget_dashboard",
-    "UI_DASH_SUPPLY_BOARD": "widget_dashboard",
-    "UI_DASH_SALES_BOARD": "widget_dashboard",
-    "UI_DASH_PSI_BOARD": "widget_dashboard",
-    "UI_DASH_INVENTORY_BOARD": "widget_dashboard",
-    "UI_DASH_KPI_BOARD": "widget_dashboard",
+    "UI_DASH_OVERVIEW": "dash_overview",
+    "UI_DASH_SUPPLY_BOARD": "dash_supply_board",
+    "UI_DASH_SALES_BOARD": "dash_sales_board",
+    "UI_DASH_PSI_BOARD": "dash_psi_board",
+    "UI_DASH_INVENTORY_BOARD": "dash_inven_board",
+    "UI_DASH_KPI_BOARD": "dash_kpi_board",
     "UI_BF_BASELINE_FORECAST_STATE": "widget_dashboard",
     "UI_BF_17": "search_grid",
     "UI_BF_58": "grid_chart_stacked",
@@ -2006,7 +2074,7 @@
     "UI_BF_59": "analysis_report",
     "UI_DP_SALES_STATE": "widget_dashboard",
     "UI_DP_DEMAND_PLAN_STATE": "widget_dashboard",
-    "UI_DP_93": "cb_master_dashboard",
+    "UI_DP_93": "cb_dp_demand",
     "UI_DP_94": "free_form",
     "UI_DP_22": "free_form",
     "UI_DP_36": "free_form",
@@ -2024,7 +2092,7 @@
     "UI_DP_31": "grid_chart_stacked",
     "UI_DP_40": "search_grid",
     "UI_DP_VER_COMP_PROG": "grid_chart_stacked",
-    "UI_BP_93": "cb_master_dashboard",
+    "UI_BP_93": "cb_bp_yearly",
     "UI_BP_94": "free_form",
     "UI_BP_95": "free_form",
     "UI_BP_95_CHART": "free_form",
@@ -2063,7 +2131,7 @@
     "UI_RP_15": "grid_chart_stacked",
     "UI_RP_25": "search_grid",
     "UI_MP_MASTER_PLAN_STATE": "widget_dashboard",
-    "UI_MP_SUPPLY_TREND": "analysis_report",
+    "UI_MP_SUPPLY_TREND": "dash_supply_trend",
     "UI_MP_19": "search_tab",
     "UI_MP_44": "grid_chart_stacked",
     "UI_MP_02": "search_grid",
@@ -2092,8 +2160,8 @@
     "UI_FP_PRODUCTION_PERFORMANCE": "dash_production_perf",
     "UI_FP_PLAN_VS_PERFORMANCE": "dash_overview",
     "UI_FP_INPUT_ORDER_CHECK": "dash_overview",
-    "UI_FP_PLAN_AGAINST_PRFM": "dash_overview",
-    "UI_FP_PLAN_AGAINST_PRFM_DETAIL": "dash_overview",
+    "UI_FP_PLAN_AGAINST_PRFM": "dash_plan_against_prfm",
+    "UI_FP_PLAN_AGAINST_PRFM_DETAIL": "dash_plan_against_prfm_detail",
     "UI_FP_IN_OUT_STATUS_DASHBOARD": "dash_inout_status",
     "UI_FP_IN_OUT_STATUS_DETAIL_DASHBOARD": "dash_overview",
     "UI_FP_WIP_EOH_OUT_DASHBOARD": "dash_wip_eoh",
@@ -2238,6 +2306,9 @@
     "UI_SA_WIDGET": "h2_tree_grid",
     "UI_AD_THEME": "search_grid",
     "UI_AD_SCHEDULER_JOB_MGMT": "P02b_grid_only",
-    "UI_AD_SCHEDULER_JOB_HISTORY": "search_grid"
+    "UI_AD_SCHEDULER_JOB_HISTORY": "search_grid",
+    "UI_SA_PSI": "dash_psi_balance",
+    "UI_SA_SALES_PLAN_STATE_DETAIL": "dash_salesplan_state_detail",
+    "UI_SA_SALES_MP_PLAN": "dash_sales_mp_plan"
   }
 }

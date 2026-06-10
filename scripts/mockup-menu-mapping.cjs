@@ -144,11 +144,22 @@ const FOLDER_RULES = [
   [/\/yearlyplan/i,           'pivot_table'],
 ];
 
+// mockup entry 의 sourceMenuCd → patternCode 역색인 (운영 화면 1:1 정답)
+const mockupBySourceMenu = {};
+for (const mk of mockups) {
+  if (mk.sourceMenuCd) mockupBySourceMenu[mk.sourceMenuCd] = mk.patternCode;
+}
+
 // 운영 메뉴 → mockup
 function mapMenuToMockup(menu) {
   const fp = (menu.filePath || '');
   const fpLower = fp.toLowerCase();
   const fileName = fileNameOf(fp);
+
+  // 0) mockup entry 의 sourceMenuCd 가 이 메뉴와 1:1 매칭 (운영 화면 정답)
+  if (mockupBySourceMenu[menu.menuId]) {
+    return { patternCode: mockupBySourceMenu[menu.menuId], reason: 'mockup.sourceMenuCd 1:1' };
+  }
 
   // 1) ui-inventory 의 분류 결과를 활용
   const invRel = fp.replace(/^\//, '').toLowerCase().replace(/\.jsx$/, '');

@@ -17,11 +17,13 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import DnsIcon from '@mui/icons-material/Dns';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import EditNoteIcon from '@mui/icons-material/EditOutlined';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { zAxios } from '@wingui/common/imports';
 
 import ChatPanel from './ChatPanel';
 import { ArtifactTreeView, ArtifactCodeView } from './ArtifactPanel';
+import InsightChatPanel from './InsightChatPanel';
 import MenuRegistrationDialog from './MenuRegistrationDialog';
 import ArtifactApplyDialog from './ArtifactApplyDialog';
 import SplitPane from './SplitPane';
@@ -855,6 +857,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     label="산출물 소스"
                     value={1}
                   />
+                  <Tab
+                    icon={<SmartToyIcon fontSize="small" />}
+                    iconPosition="start"
+                    label="Insight AI"
+                    value={2}
+                  />
                 </Tabs>
               </Box>
               {/* 새창열기 — 실행 화면 표시일 때만. SHOW_PREVIEW_UI=false 면 숨김. */}
@@ -898,6 +906,14 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />
             </Box>
+            {rightTab === 2 && (
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <InsightChatPanel
+                  menuCd={session.targetMenuCd ?? null}
+                  targetCd={session.targetCd ?? null}
+                />
+              </Box>
+            )}
           </Box>
         }
       />

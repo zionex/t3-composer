@@ -82,6 +82,7 @@ module.exports = (env, argv) => {
     ],
     devServer: {
       historyApiFallback: true,
+      compress: false,   // SSE text/event-stream 버퍼링 방지
       port: 5173,
       host: '0.0.0.0',
       hot: true,

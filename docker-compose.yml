@@ -212,6 +212,9 @@ services:
       LLM_CLI_BINARY: ${LLM_CLI_BINARY:-/usr/bin/claude}
       LLM_CLI_TIMEOUT_MIN: ${LLM_CLI_TIMEOUT_MIN:-40}
       LLM_CLI_MAX_CONCURRENT: ${LLM_CLI_MAX_CONCURRENT:-4}
+      # insight-llm 서버 주소 — InsightWebFluxController 가 /insight/sse/** 를 여기로 프록시.
+      # 컨테이너 안 'localhost' 는 자기 자신을 가리키므로 호스트 9160 을 잡으려면 host.docker.internal 필수.
+      INSIGHT_LLM_BASE_URL: ${INSIGHT_LLM_BASE_URL:-http://host.docker.internal:9160}
     ports:
       - "${COMPOSER_BACKEND_PORT:-8090}:8090"
     volumes:
@@ -267,6 +270,9 @@ services:
       - ${HOME}/.claude:/root/.claude:rw
     networks:
       - composer-net
+    # 호스트(Windows)에서 직접 실행 중인 insight-llm :9160 등에 컨테이너에서 접근 — host.docker.internal 명시.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8090/actuator/health"]
       interval: 15s

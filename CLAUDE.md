@@ -61,6 +61,7 @@
 - **DB**: composer-db (자체 MSSQL 2022, port 11433, DB 이름 `T3SMARTSCM`)
 - **백엔드**: composer-backend (Spring Boot 3.0.13, port 8090)
 - **프론트**: composer-frontend (webpack-dev-server, port 5173)
+- **insight-llm**: 호스트에서 **별도 기동 필요** (port 9160). 미기동 시 Insight 기능 비활성 (UI 에 'upstream error' 표시). 
 
 ### 1.3 ArtifactApply 모드
 

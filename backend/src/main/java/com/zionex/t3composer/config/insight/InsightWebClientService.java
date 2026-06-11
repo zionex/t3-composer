@@ -5,8 +5,10 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,12 +48,27 @@ public class InsightWebClientService {
                 bufferFactory.wrap(("data: {\"error\":\"upstream error\"}\n\n").getBytes())));
     }
 
-    /** 원시 바이트 POST 포워딩 (multipart 포함) */
-    public Mono<String> proxyRawPost(String path, byte[] rawBody, String contentType) {
+    /**
+     * Multipart form POST 포워딩 — Tomcat 이 이미 파싱한 form 필드를 받아
+     * WebClient 가 새 boundary 로 multipart 본문을 재조립해 upstream 으로 보낸다.
+     *
+     * 이전 {@code proxyRawPost} 는 {@code HttpServletRequest.getInputStream()}
+     * 의 raw 바이트를 그대로 전달했으나, Tomcat 의 multipart resolver 가 컨트롤러
+     * 진입 전에 본문을 소비해 {@code bodyLen=0} 으로 흘러가 upstream 이 401 을
+     * 반환하던 문제를 회피한다.
+     */
+    public Mono<String> proxyMultipart(String path, MultiValueMap<String, String> formFields) {
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        formFields.forEach((name, values) -> {
+            if (values == null) return;
+            for (String v : values) {
+                if (v != null) builder.part(name, v);
+            }
+        });
         return restClient.post()
             .uri(path)
-            .header("Content-Type", contentType)
-            .bodyValue(rawBody)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(builder.build()))
             .retrieve()
             .bodyToMono(String.class);
     }

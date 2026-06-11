@@ -62,9 +62,11 @@ export class ComposerSSEManager {
       }, 10_000);
 
       this.eventSource.addEventListener('open', () => {
+        // 'open' 은 TCP/HTTP 연결만 보장 (backend 가 ':\n\n' 을 upstream 호출 전에 흘려보내
+        //  upstream 이 죽어있어도 발화함). 따라서 여기서는 카운터를 리셋하지 않고,
+        //  진짜 upstream 핸드셰이크인 'connect' 이벤트에서만 리셋한다.
         clearTimeout(timeout);
         this.connectionState = 'connected';
-        this.reconnectAttempts = 0;
         settle(resolve);
       });
 
@@ -75,12 +77,20 @@ export class ComposerSSEManager {
         } catch (err) { console.warn('[SSEManager] connect event parse error', err); }
         clearTimeout(timeout);
         this.connectionState = 'connected';
-        this.reconnectAttempts = 0;
+        this.reconnectAttempts = 0;   // ← 진짜 upstream 핸드셰이크 성공 — 여기서만 리셋
         settle(resolve);
       });
 
       this.eventSource.addEventListener('message', (e) => {
-        try { this._route(JSON.parse(e.data)); } catch (err) { console.warn('[SSEManager] message parse error', e.data, err); }
+        try {
+          const parsed = JSON.parse(e.data);
+          // backend 가 upstream 실패 시 보내는 센티넬 — 재연결 즉시 중단하고 모든 클라이언트에 통보.
+          if (parsed && parsed.error === 'upstream error') {
+            this._handleUpstreamDown();
+            return;
+          }
+          this._route(parsed);
+        } catch (err) { console.warn('[SSEManager] message parse error', e.data, err); }
       });
 
       this.eventSource.addEventListener('error', () => {
@@ -121,6 +131,28 @@ export class ComposerSSEManager {
           this.connect().catch(() => {});
         }
       }, delay);
+    } else {
+      // 최대 재시도 도달 — 등록된 모든 클라이언트에 알림.
+      this._notifyAllError('Insight 서버에 연결할 수 없습니다. 서버 상태를 확인하세요.');
+    }
+  }
+
+  /**
+   * backend 가 보낸 'upstream error' 센티넬 수신 시 호출.
+   * upstream(insight-llm) 이 죽어있을 때 backend 가 즉시 응답으로 보내는 신호 — 재연결 무의미.
+   */
+  _handleUpstreamDown() {
+    this.connectionState = 'error';
+    this.eventSource?.close();
+    this.eventSource = null;
+    // 카운터를 max 로 강제 → 추후 _handleError 도 재시도 안 함.
+    this.reconnectAttempts = this.maxReconnectAttempts + 1;
+    this._notifyAllError('Insight 서버가 응답하지 않습니다 (upstream down).');
+  }
+
+  _notifyAllError(message) {
+    for (const h of this.messageHandlers.values()) {
+      try { h.onError?.(message); } catch (_) {}
     }
   }
 

@@ -350,6 +350,7 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             // eslint-disable-next-line no-console
             console.info('[PreviewEmbed] iframe setup 진입 · targetCd=' + (targetCd || '(없음)')
                        + ' · CSS link inject 시작');
+            let cssOutcome = 'unknown';
             try {
                 const url = '/composer/preview/css' + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
                 const linkEl = doc.createElement('link');
@@ -357,14 +358,45 @@ function PreviewIframe({ Component, targetCd, onReport }) {
                 linkEl.rel = 'stylesheet';
                 linkEl.type = 'text/css';
                 linkEl.href = url;
+                const cssStart = performance.now();
                 const cssLoaded = new Promise((resolve) => {
-                    linkEl.onload = resolve;
-                    linkEl.onerror = resolve;   // error 도 진행 (화면은 떠야 함)
-                    setTimeout(resolve, 3000);  // safety timeout
+                    linkEl.onload  = () => resolve('loaded');
+                    linkEl.onerror = () => resolve('error');
+                    setTimeout(() => resolve('timeout'), 3000);
                 });
                 doc.head.appendChild(linkEl);
-                await cssLoaded;                // RealGrid mount 전에 적용 보장
-            } catch (_) { /* CSS 실패는 무시 — 화면 자체는 떠야 함 */ }
+                cssOutcome = await cssLoaded;
+                // CSS link 가 loaded 되었어도 sheet 적용 자체가 실패하면 rules.length=0
+                let rulesCount = -1;
+                try {
+                    rulesCount = linkEl.sheet ? (linkEl.sheet.cssRules ? linkEl.sheet.cssRules.length : -2) : -3;
+                } catch (e) { rulesCount = -4; /* CORS 등 */ }
+                // .rg-root / .rg-header / .realgrid 선택자가 stylesheet 안에 있는지 확인
+                let rgRootRule = false, rgHeaderRule = false, realgridRule = false;
+                try {
+                    if (linkEl.sheet && linkEl.sheet.cssRules) {
+                        for (let i = 0; i < linkEl.sheet.cssRules.length; i++) {
+                            const sel = linkEl.sheet.cssRules[i].selectorText || '';
+                            if (sel.includes('.rg-root'))    rgRootRule = true;
+                            if (sel.includes('.rg-header'))  rgHeaderRule = true;
+                            if (sel === '.realgrid' || sel.startsWith('.realgrid '))
+                                                             realgridRule = true;
+                            if (rgRootRule && rgHeaderRule && realgridRule) break;
+                        }
+                    }
+                } catch (_) {}
+                // eslint-disable-next-line no-console
+                console.info('[PreviewEmbed] CSS link result=' + cssOutcome
+                           + ' · elapsed=' + Math.round(performance.now() - cssStart) + 'ms'
+                           + ' · rules=' + rulesCount
+                           + ' · has(.rg-root)=' + rgRootRule
+                           + ' · has(.rg-header)=' + rgHeaderRule
+                           + ' · has(.realgrid)=' + realgridRule
+                           + ' · href=' + linkEl.href);
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('[PreviewEmbed] CSS link inject 실패', e);
+            }
 
             if (cancelled) return;
 
@@ -374,25 +406,36 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             try {
                 const umdUrl = '/composer/preview/realgrid-umd'
                              + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
+                const umdStart = performance.now();
                 const umdRes = await fetch(umdUrl, { cache: 'force-cache' });
                 if (cancelled) return;
+                // eslint-disable-next-line no-console
+                console.info('[PreviewEmbed] RealGrid UMD fetch status=' + umdRes.status
+                           + ' · elapsed=' + Math.round(performance.now() - umdStart) + 'ms');
                 if (umdRes.ok) {
                     const umdSrc = await umdRes.text();
-                    // (1) license 를 UMD 실행 전 iframe window 에 미리 set
                     try { win.realGrid2Lic = REALGRID_LICENSE_KEY; } catch (_) {}
-                    // (2) UMD inline script — append 즉시 동기 실행. 이 시점에 license auto-detect.
                     const scriptEl = doc.createElement('script');
                     scriptEl.setAttribute('data-preview-realgrid', 'true');
                     scriptEl.textContent = umdSrc;
                     doc.head.appendChild(scriptEl);
-                    // (3) 추가 안전망 — RealGrid.setLicenseKey 명시 호출
                     try {
                         if (win.RealGrid && typeof win.RealGrid.setLicenseKey === 'function') {
                             win.RealGrid.setLicenseKey(REALGRID_LICENSE_KEY);
                         }
-                    } catch (_) { /* no-op */ }
+                    } catch (_) {}
+                    // eslint-disable-next-line no-console
+                    console.info('[PreviewEmbed] RealGrid UMD inject 완료'
+                               + ' · win.RealGrid=' + (typeof win.RealGrid)
+                               + ' · GridView=' + (typeof (win.RealGrid && win.RealGrid.GridView)));
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.warn('[PreviewEmbed] RealGrid UMD 응답 비정상 — grid 가 unstyled 일 수 있음');
                 }
-            } catch (_) { /* RealGrid 실패는 BaseGrid 가 placeholder 표시 */ }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('[PreviewEmbed] RealGrid UMD inject 실패', e);
+            }
 
             if (cancelled) return;
 
@@ -405,11 +448,18 @@ function PreviewIframe({ Component, targetCd, onReport }) {
                 return d;
             })();
 
-            // emotion cache — iframe head 로 redirect
+            // emotion cache — iframe head 로 redirect.
+            // ★ prepend: true — emotion 이 head 의 **시작** 부분에 style 들을 inject.
+            //   그러면 우리가 setup 시점에 append 한 link[data-preview-bundle] 가 head 의
+            //   더 뒤에 위치 → CSS cascade 우선 적용.
+            //   prepend: false 였을 때 — emotion 의 188개 style 태그가 link 뒤에 와서
+            //   같은 specificity 의 .rg-header / .rg-root 룰을 emotion 이 override (
+            //   MUI 자체 룰이 직접 .rg-* 를 건드리진 않지만 reset 류 룰이 background:
+            //   transparent 등을 부수적으로 적용). 결과적으로 grid 헤더가 unstyled 회색.
             const cache = createCache({
                 key: 'preview-css',
                 container: doc.head,
-                prepend: false,
+                prepend: true,
             });
 
             // unmount 이전 root (재 mount 시)
@@ -429,6 +479,35 @@ function PreviewIframe({ Component, targetCd, onReport }) {
                     )
                 )
             );
+
+            // mount 직후 DOM 검증 — RealGrid 가 .rg-root / .rg-header div 를 만들었는지
+            // + .realgrid wrapper className 이 붙었는지 + computed style 의 background.
+            // RealGrid 가 비동기로 그리기 때문에 1초 wait.
+            setTimeout(() => {
+                try {
+                    const realgridDivs = doc.querySelectorAll('.realgrid');
+                    const rgRoots = doc.querySelectorAll('.rg-root');
+                    const rgHeaders = doc.querySelectorAll('.rg-header');
+                    let bgColor = '';
+                    if (rgHeaders.length > 0) {
+                        bgColor = win.getComputedStyle(rgHeaders[0]).backgroundColor;
+                    }
+                    // head 의 link/style 카운트
+                    const links = doc.head.querySelectorAll('link[data-preview-bundle]');
+                    const styles = doc.head.querySelectorAll('style');
+                    // eslint-disable-next-line no-console
+                    console.info('[PreviewEmbed] mount 1s 검증 ·'
+                               + ' .realgrid count=' + realgridDivs.length
+                               + ' · .rg-root count=' + rgRoots.length
+                               + ' · .rg-header count=' + rgHeaders.length
+                               + ' · rg-header bg=' + (bgColor || 'N/A')
+                               + ' · head link[preview-bundle] count=' + links.length
+                               + ' · head style count=' + styles.length);
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.warn('[PreviewEmbed] mount 검증 실패', e);
+                }
+            }, 1000);
 
             cssCleanup = () => {
                 // React 18 — useEffect cleanup 은 commit phase 에서 동기 실행되므로

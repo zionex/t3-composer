@@ -26,9 +26,11 @@ import { Box } from '@mui/material';
 // ★ RealGrid2 license — import 보다 반드시 먼저 (window.realGrid2Lic 등록 + setLicenseKey)
 import './realgrid-license';
 
-// realgrid CSS — 부모 t3series 와 동일한 sky-blue 테마
-import 'realgrid/realgrid-style.css';
-import 'realgrid/realgrid-sky-blue.css';
+// realgrid CSS — 부모 t3series 의 wingui/src/index.js 와 동일한 sky-blue 테마.
+//   ★ dist/ 명시 — package.json exports 의 short form ('realgrid/*.css') 이 일부 환경에서
+//   resolve 실패해 RealGrid 의 .rg-* 룩이 통째로 사라지는 사고 회피.
+import 'realgrid/dist/realgrid-style.css';
+import 'realgrid/dist/realgrid-sky-blue.css';
 
 import { GridView, LocalDataProvider } from 'realgrid';
 
@@ -145,11 +147,15 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
         view.setDataSource(dp);
         view.setColumns(buildColumns(items));
 
-        // wingui 표준 동작
+        // wingui 표준 동작 — Users.jsx 등 운영 화면의 setOptions() 와 매칭.
+        //   · setCheckBar visible — 체크박스 컬럼 (Users.jsx setOptions)
+        //   · setStateBar visible — 상태바 (Users.jsx setOptions)
+        //   · setRowIndicator 는 명시 안 함 — RealGrid 기본값 (No. 컬럼) 사용
+        //     (wingui-core BaseGrid 도 setRowIndicator 호출 X → default 적용)
+        view.setCheckBar({ visible: true });
         view.setStateBar({ visible: true });
         view.setFooters({ visible: false });
         view.setEditOptions({ insertable: true, appendable: true, deletable: true });
-        view.setRowIndicator({ visible: false });
         // fitStyle: 'none' — 각 컬럼의 width 를 그대로 존중 (총합이 뷰포트 초과 시 가로 스크롤).
         //   ❌ 'evenFill' 은 컬럼별 width 를 무시하고 모든 컬럼을 동일 너비(뷰포트÷컬럼수)로
         //      강제 → 컬럼이 많으면 헤더 명칭이 잘린다. wingui-core BaseGrid 도 fitStyle 을
@@ -233,8 +239,11 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
         //   아닐 때 flex:1 만으로는 outer Box height=0 → grid body 0px collapse. height:100% 추가로
         //   부모가 block-level 일 때도 정상 expand. 부모가 flex container 면 flex:1 가 우선 적용됨.
         <Box sx={{ flex: 1, minHeight: 0, height: '100%', position: 'relative' }}>
+            {/* className="realgrid" — wingui App.css 의 .realgrid 룰을 적용받기 위함
+                (wingui-core BaseGrid 와 동일). RealGrid 의 내부 .rg-* 룩은 별도 sky-blue.css. */}
             <Box
                 ref={containerRef}
+                className="realgrid"
                 sx={{
                     position: 'absolute',
                     inset: 0,

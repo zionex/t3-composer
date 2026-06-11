@@ -38,11 +38,18 @@ public class PreviewModuleResolver {
      *    체크박스/체크마크가 'Font Awesome 5 Free' 의 \f0c8/\f14a glyph 를 사용. @font-face
      *    선언이 먼저 있어야 iframe 안에서 글리프가 렌더됨 (없으면 ☐/☒ unicode fallback). */
     private static final List<String> CSS_BUNDLE_PATHS = Arrays.asList(
+            // font-awesome — RealGrid 의 체크박스/체크마크 글리프 (f0c8/f14a) 용.
+            //   없어도 unicode fallback (☐/☒) 으로 동작은 하지만 룩이 어색해 유지.
             "src/main/webapp/js/font-awesome/css/all.min.css",
-            "packages/node_modules/realgrid/dist/realgrid-style.css",
-            "packages/wingui/src/component/grid/realgrid-basic.css",
-            "packages/wingui/src/style/ReactDatePicker.css",
-            "src/main/webapp/css/realgrid-custom.css"
+            // ★ RealGrid sky-blue 테마 (단독) — 헤더 옅은 파랑·zebra·border 톤.
+            //   이전엔 realgrid-style.css (default 회색) + realgrid-basic.css + realgrid-custom.css
+            //   를 함께 bundle 했는데, basic/custom 이 .rg-root / .rg-data-row 의 background 를
+            //   #FFFFFF 로 override 해서 sky-blue 룩을 덮어버리는 사고가 있었다 (2026-06-11).
+            //   sky-blue.css 는 RealGrid 의 self-contained theme — 단독으로 모든 .rg-* 룩 제공.
+            //   wingui 의 custom CSS 는 t3series 본 환경의 추가 보강용이라 preview 에서는 제외.
+            "packages/node_modules/realgrid/dist/realgrid-sky-blue.css",
+            // 날짜 picker — InputField type=date/dateRange 의 캘린더 룩
+            "packages/wingui/src/style/ReactDatePicker.css"
     );
 
     /** font-awesome all.min.css 의 `url(../webfonts/X.woff2)` 참조를 woff2 파일을 base64 로

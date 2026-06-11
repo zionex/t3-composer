@@ -22,7 +22,6 @@ import {
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChatIcon from '@mui/icons-material/Chat';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import StorageIcon from '@mui/icons-material/Storage';
@@ -42,7 +41,6 @@ import { getModule } from './constants';
 import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
-import StepByStepWizard from './StepByStepWizard';
 import MockupPickerDialog    from './MockupPickerDialog';
 import { getMockupSource }   from '../t3mockup/_data/mockup-sources';
 import Mockup3DGallery       from './Mockup3DGallery';
@@ -725,23 +723,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
     );
   }
 
-  // 단계별 Wizard 로 위임
-  if (subMode === 'STEP') {
-    return (
-      <StepByStepWizard
-        initialModuleCode={moduleCode}
-        onBack={() => {
-          if (startWith === 'STEP') {
-            // 고정 진입한 경우 메인 모드 선택으로 복귀
-            onBack?.();
-          } else {
-            setSubMode(null);
-            setModuleCode(null);
-          }
-        }}
-      />
-    );
-  }
+  // 2026-06-11: subMode === 'STEP' 분기 제거 — 9-Step Wizard (StepByStepWizard) 진입점 폐기.
+  //   단계별 생성은 T3Composer landing 의 'NEW_STEP' 카드 → ModeNewStep → ComposerWizard (4-step) 만 사용.
 
   // ----- 공용 헤더 -----
   const Header = (
@@ -793,16 +776,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               cons={['토큰 사용량 많음', '결과 해석 비용', '반복 수정 시 비용 누적']}
               onClick={() => setSubMode('NL')}
             />
-            <SubModeCard
-              title="Step 별 선택 생성"
-              subtitle="Step-by-step Wizard"
-              icon={PlaylistAddCheckIcon}
-              color="#5281b3"
-              description="모듈 → 패턴 → 개요 → Layer별 SP 를 단계별로 구체화한 후 구조화된 스펙으로 Claude 를 호출합니다. 토큰 사용이 크게 절약됩니다."
-              pros={['토큰 절약 (50%+)', '일관된 결과', 'SP 별 미세조정 가능']}
-              cons={['입력 단계 많음', '완전히 새로운 패턴엔 제약']}
-              onClick={() => setSubMode('STEP')}
-            />
+            {/* 2026-06-11: "Step 별 선택 생성" (StepByStepWizard 9-step) 카드 제거.
+                단계별 생성은 T3Composer landing 의 '단계별 생성' 카드 (ComposerWizard 4-step) 만 사용. */}
           </Stack>
         </Box>
       </Box>

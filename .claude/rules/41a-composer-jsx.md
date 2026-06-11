@@ -304,5 +304,5 @@ const payload = changeRowData.map((r) => ({ ...r, useYn: toYN(r.useYnBool) }));
 - `41-composer-generation.md` — 메인 (§0 참조 원본 / §10 MENU_SQL / §14 Anti-patterns)
 - `41b-composer-java.md` — Java 백엔드 표준
 - `41c-composer-widgets.md` — 위젯 카탈로그 + Cascade + POPUP + 공통코드 Dropdown 정책
-- `41d-composer-wizard.md` — 9-Step Wizard
+- `41d-composer-wizard.md` — 4-Step Wizard
 - `21-components.md` — 공용 컴포넌트 인벤토리 전반

@@ -16,7 +16,7 @@
 | 41a-composer-jsx.md | JSX 표준 (Imports / BaseGrid / 컬럼 / zAxios / store) |
 | 41b-composer-java.md | Java 백엔드 (jakarta · BaseEntity · JdbcTemplate SP) |
 | 41c-composer-widgets.md | 위젯 · Cascade · POPUP · 공통코드 |
-| 41d-composer-wizard.md | 9-Step Wizard · 세션 상태 전이 |
+| 41d-composer-wizard.md | 4-Step Wizard · 세션 상태 전이 |
 | 30/31/32 | DB 스키마 · SP · SQL 사전 검증 |
 | 99 / 99a | 안티패턴 (전체 / Composer 한정) |
 

@@ -183,7 +183,7 @@ alwaysApply: true
 
 ## 9-1. Composer 화면 생성 (분리됨)
 
-> Composer 안티패턴 카테고리 7종 (CG-A 참조방식 · CG-B MENU_CD 네이밍 · CG-C JSX 표면 API · CG-D 서버 통신 · CG-E Master/공통코드/Cascade · CG-F 9단계 Wizard · **CG-G 아티팩트 파일경로 환각** — 2026-04-29 추가) 은 **`99a-composer-anti-patterns.md`** 로 분리.
+> Composer 안티패턴 카테고리 7종 (CG-A 참조방식 · CG-B MENU_CD 네이밍 · CG-C JSX 표면 API · CG-D 서버 통신 · CG-E Master/공통코드/Cascade · CG-F Wizard 통합 · **CG-G 아티팩트 파일경로 환각** — 2026-04-29 추가) 은 **`99a-composer-anti-patterns.md`** 로 분리.
 >
 > 전체 규약은 `41-composer-generation.md` (메인) + 4개 sub 파일 (41a/41b/41c/41d) 참조.
 

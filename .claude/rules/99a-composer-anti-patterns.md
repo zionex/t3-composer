@@ -67,16 +67,21 @@
 | CG-E4 | cascade 컬럼인데 `useFieldCascade` / `applyGridCascade` 누락 | form 에 useFieldCascade · grid afterGridCreate 에 applyGridCascade | hook warn |
 | CG-E5 | POPUP confirm 콜백을 단건 객체 가정 | 항상 배열 · `firstOf(sel)` 추출 | LLM |
 
-## F. 9단계 Wizard 통합
+## F. Wizard 통합
+
+> 2026-06-11 정리: 9-Step Wizard 는 deprecated (소스 보존 · 진입점 폐기 — rules/41d §16.7).
+> 활성 Wizard 는 4-Step (`ComposerWizard.jsx`). 모드 (`NEW_STEP` · `NEW_FROM_COPY` ·
+> `EXISTING_MODIFY`) 통합 흐름은 rules/41d §16 참조.
 
 | # | ❌ | ✅ |
 |---|---|---|
-| CG-F1 | `ModeNewFromCopy/Design` 가 직접 `createSession` | `prefilledSpec` + `mode` 로 `StepByStepWizard` 위임 |
-| CG-F2 | 모드별 별도 prompt builder | `newStepGuide(StepGuideMode.{PLAIN,COPY,DESIGN})` 단일 |
-| CG-F3~F4 | 빈 spec | `createInitialSpecFromSource/Design(...)` prefill |
-| CG-F5 | 변경 요청을 진입 화면 텍스트박스 (단일 호출) | Step9 의 `changeReq` 자유 텍스트 |
-| CG-F6 | `parsedDesign` / `sourceBundle` 텍스트 안 보냄 | `format*ForPrompt` 로 첨부 |
-| CG-F7 | spec.sourceMenu / designDoc 메타가 payload 에 누락 | payload 에 포함 |
+| CG-F1 | Mode 진입 화면에서 `createSession` 직접 호출 (단일 LLM 호출) | `initialSpec` prop 으로 `ComposerWizard` 위임 — GenerateStep 이 통합 호출 |
+| CG-F2 | 모드별 별도 prompt builder | 단일 `specToInitialPrompt(spec)` (wizardState.js) |
+| CG-F3 | 빈 spec 진입 | `spec*FromPattern/Mockup/Synthesized/UiPattern()` 또는 `mergeAiPrefillIntoSpec` |
+| CG-F4 | 변경 요청을 진입 화면 텍스트박스 (단일 호출) | GenerateStep 이후 ComposerWorkspace 자유 채팅 |
+| CG-F5 | `sourceBundle` 텍스트 안 보냄 | `formatSourceBundleForPrompt` 로 첨부 |
+| CG-F6 | spec 의 보조 필드 (`sourceMenu` / `_intentNl` / `_prefillMeta`) 임의 제거 | 진입 모드별 동작에 필요 — 보존 |
+| CG-F7 (deprecated) | ~~9-Step `StepByStepWizard` 신규 사용~~ | 4-Step `ComposerWizard` 로 통일 (2026-06-11) |
 
 ## G. 아티팩트 파일경로 환각
 

@@ -16,7 +16,7 @@ alwaysApply: false
 > | JSX 표준 | `.claude/rules/41a-composer-jsx.md` |
 > | Java 백엔드 | `.claude/rules/41b-composer-java.md` |
 > | 위젯 / Cascade / POPUP / 공통코드 | `.claude/rules/41c-composer-widgets.md` |
-> | 9-Step Wizard | `.claude/rules/41d-composer-wizard.md` |
+> | 4-Step Wizard | `.claude/rules/41d-composer-wizard.md` |
 > | SP DDL | `.claude/rules/31-stored-procedures.md` |
 > | DB 스키마 사전 검증 | `.claude/rules/32-sql-schema-verification.md` |
 > | 안티패턴 | `.claude/rules/99-anti-patterns.md` · `99a-composer-anti-patterns.md` |

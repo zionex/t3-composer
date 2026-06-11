@@ -75,12 +75,16 @@ const CATEGORY_MODIFY = {
   hint: '기존 화면의 소스를 불러와 자연어 또는 단계별로 수정합니다',
 };
 
-// ===== 신규 개발 하위 3종 ===== (key = 진입 MODE)
+// ===== 신규 개발 하위 카드 ===== (key = 진입 MODE)
+//
+// 2026-06-11: 9-Step Wizard (StepByStepWizard) 사용 모드는 진입점 숨김.
+//   · NEW_FROM_DESIGN 카드 제외 — 소스는 ModeNewFromDesign 으로 보존 (향후 부활 가능)
+//   · NEW_NL 모드 안의 "Step 별 선택 생성" 서브카드도 별도 제거 (ModeNewGeneral)
+//   현재 활성 진입: NL · 단계별 생성 (4-step) · 기존 화면 복사 (4-step).
 const NEW_MODE_OPTIONS = [
   { key: MODE.NEW_NL,          step: 1, title: '자연어 생성',     sub: 'Natural Lang.', icon: ChatIcon,        color: '#8FC4D4', hint: '요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다' },
-  { key: MODE.NEW_STEP,        step: 2, title: '단계별 생성 (Beta)', sub: 'Pattern + Visual', icon: ViewQuiltIcon, color: '#9D8FD4', hint: '패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다 (Phase 1)' },
-  { key: MODE.NEW_FROM_COPY,   step: 3, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 9단계 마법사로 수정합니다' },
-  { key: MODE.NEW_FROM_DESIGN, step: 4, title: '설계서 기반',   sub: 'From Design',   icon: DescriptionIcon, color: '#7CA7E0', hint: '설계서(Excel)를 업로드해 화면을 생성합니다' },
+  { key: MODE.NEW_STEP,        step: 2, title: '단계별 생성',     sub: 'Pattern + Visual', icon: ViewQuiltIcon, color: '#9D8FD4', hint: '패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다' },
+  { key: MODE.NEW_FROM_COPY,   step: 3, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 단계별 마법사로 수정합니다' },
 ];
 
 // ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)

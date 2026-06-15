@@ -3288,27 +3288,23 @@ export function specToInitialPrompt(spec) {
           lines.push(`   옵션 (common_code): GRP_CD=${gc}`);
           lines.push(`   → 화면 onMount 에 zAxios.get('/system/common/codes',{params:{'group-cd':'${gc}'}}) 로 옵션 fetch (rules/21 §3.3)`);
         } else if (opt.source === 'sp' && opt.sp?.name) {
-          // sp source — 산출 백엔드 Controller 에 옵션 endpoint 자동 생성하도록 LLM 지시.
-          //   ★ 정책: 신규 화면은 wingui 단독 구동 + RestController + JdbcTemplate (rules/41 §1.1).
-          //         별도 callService 사용 안 함.
+          // sp source — 의도(WHAT)만 전달하고 로딩 방식(HOW)은 Target 규약(rules/45)에 위임.
+          //   ★ per-field 옵션 endpoint / zAxios.get(커스텀URL) 를 여기서 지시하면 rules/45 의
+          //     loadCombos 표준을 덮어써 안티패턴이 생성된다 (2026-06-15 사고). 지시하지 말 것.
           const spName = opt.sp.name;
           const params = (opt.sp.paramsJson || '').trim();
           lines.push(`   옵션 (sp): ${spName}${params ? ` · params=${params}` : ''}`);
-          lines.push(`   → 산출 백엔드 Controller 에 옵션 endpoint 추가:`);
-          lines.push(`        GET /<m>/<feat>/options/${it.key.toLowerCase()}`);
-          lines.push(`        → JdbcTemplate.query("EXEC ${spName} ${params ? '?, ?, ...' : ''}", (rs,i) -> Map.of("value", rs.getString(1), "label", rs.getString(2)))`);
-          lines.push(`   → 화면 onMount 에 zAxios.get('<m>/<feat>/options/${it.key.toLowerCase()}').then(r => setOptions(r.data))`);
-          lines.push(`   → 결과 첫 컬럼=value, 두번째=label 가정 (SELECT 절 순서 준수)`);
+          lines.push(`   → 이 필드 옵션은 위 SP 로 로드. 로딩 방식은 Target 규약(rules/45 §2 loadCombos 표준)을 따른다:`);
+          lines.push(`      loadCombos() 안에서 zAxios({method:'post', url: baseURI()+'common/data', data:{PROCEDURE_NAME:'${spName}'${params ? `, /* ${params} */` : ''}}}) 호출`);
+          lines.push(`      → res.data 를 {value,label} 로 매핑 → options state → <InputField type="select" options={...}> → 첫 값 setValue.`);
+          lines.push(`   ⛔ per-field 옵션 endpoint(GET .../options/${it.key.toLowerCase()}) 나 zAxios.get(커스텀URL) 로 흩뿌리지 말 것.`);
         } else if (opt.source === 'sql' && opt.sql?.query) {
-          // sql source — 산출 백엔드 Controller 에 endpoint + JdbcTemplate.query 직접 실행.
+          // sql source — 의도(WHAT)만. 로딩은 rules/45 loadCombos 표준. per-field endpoint 금지.
           const sql = opt.sql.query.trim();
-          lines.push(`   옵션 (sql): 다음 SQL 실행 (MSSQL)`);
+          lines.push(`   옵션 (sql): 다음 SQL 로 옵션 로드 (MSSQL)`);
           sql.split(/\r?\n/).forEach((row) => lines.push(`        ${row}`));
-          lines.push(`   → 산출 백엔드 Controller 에 옵션 endpoint 추가:`);
-          lines.push(`        GET /<m>/<feat>/options/${it.key.toLowerCase()}`);
-          lines.push(`        → JdbcTemplate.query("<위 SQL>", (rs,i) -> Map.of("value", rs.getString(1), "label", rs.getString(2)))`);
-          lines.push(`   → 화면 onMount 에 zAxios.get('<m>/<feat>/options/${it.key.toLowerCase()}').then(r => setOptions(r.data))`);
-          lines.push(`   → 결과 첫 컬럼=value, 두번째=label 가정 (SELECT 절 순서 준수)`);
+          lines.push(`   → 로딩 방식은 Target 규약(rules/45 §2 loadCombos 표준)을 따른다 — loadCombos() 에서 로드 → {value,label} 매핑 → options state → 첫 값 setValue.`);
+          lines.push(`   ⛔ per-field 옵션 endpoint 나 zAxios.get(커스텀URL) 로 흩뿌리지 말 것.`);
         }
       }
     });

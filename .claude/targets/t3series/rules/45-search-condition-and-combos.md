@@ -39,6 +39,54 @@ import UserInputField        from '@wingui/view/demandplan/common/UserInputField
 - 표에 없는 단순 코드/명칭/숫자/일자/Y·N 은 일반 `<InputField>` (rules/21 §3 · 41a).
 - 경로가 의심되면 추측 금지 — 위 표의 경로를 그대로 사용 (이 경로들은 검증된 실측값).
 
+### §1.1 ⛔ 도메인 검색컴포넌트는 **ref 기반 API** — `control`/`name` 아님 (필수)
+
+이 컴포넌트들은 일반 `<InputField>` 와 **API 가 다르다**. `control`/`name` 으로 react-hook-form
+에 묶지 말고, **`ref` + `submit` prop** 으로 쓰고 **`ref.current` 의 메서드로 값을 꺼낸다**.
+(현재 공용 룰 21/41c 가 이들을 InputField 처럼 묘사하는 부분이 있으나, lxma 실측은 ref 방식)
+
+| 컴포넌트 | 실제 props | 값 추출 (onSubmit 에서) |
+|---|---|---|
+| `ItemMultiSearchBox` | `ref={itemSearchBoxRef} submit={onSubmit} fields={['itemCode']}` | `ref.current.inputTextToChip(); ref.current.getItemCode()` |
+| `ItemSearchInput` | `ref submit isLevelUnique authTypeId userId hasAttr isName` | `ref.current.getItemCode()` |
+| `AccountMultiSearchBox` | `ref submit planScope={getPlanScope()}` | `ref.current.inputTextToChip(); ref.current.getAccountCode()/getAccountName()` |
+| `AccountSearchInput` | `ref submit isLevelUnique authTypeId userId hasAttr isName` | `ref.current.getAccountCode()` |
+| `LocationMultiSearchBox` | `ref submit planScope="DEFAULT"` | `ref.current` 의 getter |
+| `PlanScope` | `ref={planScopeRef} onChange={onPlanScopeChange} onInitialized={...}` | `getPlanScope()` 헬퍼 / `planScopeRef.current` |
+| `UserInputField` | `userId={watch('USER_ID')} empNm={watch('EMP_NM')} onClickFunc={...}` | `watch('USER_ID')` |
+
+```jsx
+// 실제 lxma (FpLx4000MgmtUrgent.jsx)
+const itemSearchBoxRef    = useRef();
+const accountSearchBoxRef = useRef();
+
+<SearchRow>
+  <ItemMultiSearchBox    ref={itemSearchBoxRef}    submit={onSubmit} fields={['itemCode']} />
+  <AccountMultiSearchBox ref={accountSearchBoxRef} submit={onSubmit} />
+  <InputField name='fromDate' type='datetime' label={transLangKey('DUE_DATE')+' (From)'} dateformat='yyyy-MM-dd' control={control} />
+</SearchRow>
+
+const onSubmit = () => {
+  itemSearchBoxRef.current.inputTextToChip();          // 입력 중 텍스트를 chip 으로 확정
+  accountSearchBoxRef.current.inputTextToChip();
+  const itemCd    = itemSearchBoxRef.current.getItemCode();
+  const accountCd = accountSearchBoxRef.current.getAccountCode();
+  const params = { PROCEDURE_NAME: 'SP_UI_...', P_ITEM_CD: itemCd, P_ACCOUNT_CD: accountCd };
+  // ... 조회
+};
+```
+
+### §1.2 ⛔ lxma 는 `useFieldCascade`/`applyGridCascade`/`buildPopupFilterProps` 안 씀 (필수)
+
+공용 룰 41c §7 의 `FIELD_CASCADE_REGISTRY` + `useFieldCascade` + `applyGridCascade` +
+`buildPopupFilterProps` 메커니즘은 **lxma 화면에서 사용 빈도 0**. lxma 산출물에는 생성하지 말 것.
+
+종속(주종) 관계는 lxma 방식으로:
+- 상위값을 하위 컴포넌트에 **prop 직접 전달** — 예: `<AccountMultiSearchBox planScope={getPlanScope()} />`,
+  `<LocationMultiSearchBox planScope="DEFAULT" />`
+- 반응형 의존은 `watch('<field>')` 로 상위값 구독 — 예: `<UserInputField userId={watch('USER_ID')} />`
+- `PlanScope` 는 `onChange`/`onInitialized` 콜백으로 변경 전파
+
 ---
 
 ## §2. SP 기반 옵션 로딩 — `loadCombos()` / `loadGridCombos()` 표준 (필수)
@@ -142,6 +190,8 @@ const loadGridCombos = () => {
 ## §4. 자기 검증 (검색조건/콤보 출력 직전)
 
 - [ ] 품목/거래처/거점/자원/플랜스코프/사용자 검색은 §1 도메인 컴포넌트 + 정확한 경로로 import
+- [ ] 도메인 검색컴포넌트는 `ref`+`submit` prop, 값은 `ref.current.get*()` 로 추출 (§1.1) — `control`/`name` 아님
+- [ ] `useFieldCascade`/`applyGridCascade`/`buildPopupFilterProps` 생성 안 함 (§1.2) — 종속은 prop 직접 전달 + `watch()`
 - [ ] 옵션 SP 로딩은 `baseURI()+'common/data'` + `PROCEDURE_NAME` (per-field 커스텀 URL 없음)
 - [ ] 검색조건 콤보는 `loadCombos()` 한 곳에서 로드 → options state → `<InputField options={}>`
 - [ ] 그리드 셀 콤보는 `loadGridCombos()` 에서 로드 (검색조건과 분리)

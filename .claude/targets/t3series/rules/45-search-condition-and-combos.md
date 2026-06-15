@@ -205,12 +205,17 @@ import** 하는 환각이 빈번하다. 실제 lxma 기준 출처:
 
 | 심볼 | 올바른 출처 | ❌ LLM 환각 |
 |---|---|---|
+| `useForm` (+ `Controller`) | `import { useForm } from 'react-hook-form'` (lxma 46개 화면) | `import { useForm } from '@wingui/common/imports'` (shim/wingui 미export — undefined) |
 | `baseURI` | **ambient — import 하지 말 것** (lxma 35개 화면 사용, import 0건) | `import { baseURI } from '@wingui/utils/common'` |
 | `transLangKey` | `import { transLangKey } from '@zionex/wingui-core'` (또는 ambient) | `import { useTranslation } from 'react-i18next'; const { t: transLangKey } = useTranslation();` |
 | `getActiveViewId` | `@zionex/wingui-core` (또는 ambient) | 임의 store 경로 |
 | `onErrorInput` | `import { onErrorInput } from '@zionex/wingui-core/utils/common'` | 자체 구현 |
 | `HTTP_STATUS` | `@zionex/wingui-core` (또는 ambient) | 숫자 200 하드코딩 |
 | `loadComboList` | `@zionex/wingui-core` | — |
+
+> `@wingui/common/imports` 는 **wingui 레이아웃/그리드/스토어 컴포넌트** 전용 (`ContentInner`·
+> `BaseGrid`·`InputField`·`useViewStore`·`zAxios` 등). `useForm` 같은 **3rd-party 훅은 원래
+> 라이브러리에서** import — `@wingui/common/imports` 에 욱여넣지 말 것.
 
 ```jsx
 // ❌ 환각 (lxma 엔 react-i18next 쓰는 화면 0개)
@@ -243,6 +248,7 @@ import { transLangKey } from '@zionex/wingui-core';
 - [ ] `zAxios.get('.../options/field_...')` 같은 흩뿌린 옵션 호출 0건
 - [ ] `baseURI` import 안 함 (ambient), `transLangKey` 는 `@zionex/wingui-core` (§3.5)
 - [ ] `react-i18next`/`useTranslation` 사용 0건 (§3.5)
+- [ ] `useForm` 은 `react-hook-form` 에서 import (§3.5) — `@wingui/common/imports` 아님
 
 ---
 

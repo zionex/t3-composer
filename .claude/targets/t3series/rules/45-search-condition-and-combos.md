@@ -76,6 +76,17 @@ const onSubmit = () => {
 };
 ```
 
+### §1.1.1 ⚠️ `useForm({ defaultValues })` 는 lxma 가 생략해도 **AI 산출물은 유지** (가드레일)
+
+lxma 운영 화면은 `defaultValues` 를 대부분 생략한다(46개 중 7개만 명시). 사람은 어떤 필드가
+`undefined` 로 시작해도 안전한지 암묵지로 알기 때문이다. **그러나 AI 산출물은 생략하지 말 것** —
+가장 흔한 폼 초기화 크래시(`datetime` defaultValue `''` → Invalid Date → 매 keystroke RangeError,
+rules/21 §3.1.0)를 막는 가드레일이다.
+
+→ lxma 패턴을 따르되 **`defaultValues` 만은 rules/21 §3.1.0 의 타입별 초기값**을 유지:
+`datetime→null` · `dateRange→[null,null]` · `number→null` · `check→false` · `multiSelect→[]` · `text→''`.
+("lxma 가 생략하니 나도 생략" 금지 — 이 한 가지는 사람 관습보다 엄격하게.)
+
 ### §1.2 ⛔ lxma 는 `useFieldCascade`/`applyGridCascade`/`buildPopupFilterProps` 안 씀 (필수)
 
 공용 룰 41c §7 의 `FIELD_CASCADE_REGISTRY` + `useFieldCascade` + `applyGridCascade` +
@@ -192,6 +203,7 @@ const loadGridCombos = () => {
 - [ ] 품목/거래처/거점/자원/플랜스코프/사용자 검색은 §1 도메인 컴포넌트 + 정확한 경로로 import
 - [ ] 도메인 검색컴포넌트는 `ref`+`submit` prop, 값은 `ref.current.get*()` 로 추출 (§1.1) — `control`/`name` 아님
 - [ ] `useFieldCascade`/`applyGridCascade`/`buildPopupFilterProps` 생성 안 함 (§1.2) — 종속은 prop 직접 전달 + `watch()`
+- [ ] `useForm({defaultValues})` 타입별 초기값 유지 (§1.1.1) — lxma 가 생략해도 AI 산출물은 datetime→null 등 명시
 - [ ] 옵션 SP 로딩은 `baseURI()+'common/data'` + `PROCEDURE_NAME` (per-field 커스텀 URL 없음)
 - [ ] 검색조건 콤보는 `loadCombos()` 한 곳에서 로드 → options state → `<InputField options={}>`
 - [ ] 그리드 셀 콤보는 `loadGridCombos()` 에서 로드 (검색조건과 분리)

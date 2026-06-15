@@ -223,7 +223,7 @@ const ChatPanel = forwardRef(function ChatPanel(
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CircularProgress size={14} />
                 <Typography variant="body2" color="text.secondary">
-                  Claude 가 응답 중...
+                  응답 중...
                 </Typography>
               </Stack>
             </Paper>

@@ -225,7 +225,23 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
             try { afterGridCreate(grid, gridViewApi, dataProviderApi); } catch (_e) { /* no-op */ }
         }
 
+        // [Sample 데이터] — mount 후 일정 시간 데이터 0건이면 자동 sample 주입.
+        //   화면 실행 LIVE 에서는 산출물이 zAxios 호출을 직접 하지 않기로 한 정책 (mock 흐름).
+        //   따라서 fillJsonData([]) 자체가 안 불려 sample 분기가 안 타고 grid 가 빈 채로 남는 사고.
+        //   onMount auto-load 가 onSearch 콜백 트리거하기까지 600ms 대기 → 그 후에도 데이터
+        //   여전히 0 이면 컬럼 메타 기반 sample 10건 주입.
+        const sampleTimeout = setTimeout(() => {
+            try {
+                if (!isSampleModeEnabled()) return;
+                const rowCount = typeof dp.getRowCount === 'function' ? dp.getRowCount() : 0;
+                if (rowCount > 0) return;
+                const rows = generateSampleRowsFromItems(items, 10);
+                if (rows.length > 0) dp.fillJsonData(rows);
+            } catch (_e) { /* no-op */ }
+        }, 600);
+
         return () => {
+            clearTimeout(sampleTimeout);
             delete REGISTRY[id];
             try { view.destroy && view.destroy(); } catch (_e) { /* no-op */ }
             try { dp.destroy && dp.destroy(); } catch (_e) { /* no-op */ }

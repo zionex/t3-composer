@@ -181,7 +181,10 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
   const autoFixingRef = React.useRef(false);             // 자동보완 진행 중 재진입 가드
   const lastAutoFixErrorRef = React.useRef('');          // 직전 보완 시점의 오류 메시지 (동일오류 반복 감지)
   const chatRef = React.useRef(null);                    // ChatPanel — 프로그램적 채팅 전송용
-  const [chatExpanded, setChatExpanded] = React.useState(!chatCollapsed);
+  // chatCollapsed 는 chatCollapsed UI 변형(접힘/펼침 헤더 + 본문 분기) 만 영향.
+  //   초기 펼침/접힘 자체는 항상 펼친 상태로 시작 — 사용자가 진입 직후 "추가로 고칠 내용"
+  //   을 바로 입력할 수 있도록 (2026-06-11 사용자 요청).
+  const [chatExpanded, setChatExpanded] = React.useState(true);
   const [genStatus, setGenStatus] = React.useState(null); // { phase:'sending'|'done'|'error', message }
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', title: '', message: '' });
 

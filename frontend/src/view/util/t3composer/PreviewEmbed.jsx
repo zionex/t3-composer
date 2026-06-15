@@ -303,6 +303,12 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             // main app (Composer 자체) 의 zAxios 는 영향 없음 (이 flag 는 iframe window 한정).
             // shim/wingui/common/imports.js 의 zAxios 가 이 flag 를 검사.
             try { win.__PREVIEW_MOCK__ = true; } catch (_) {}
+            // [Sample 데이터] — iframe window 에도 sample mode 활성. ComposerWorkspace 는
+            //   부모 window 에만 set 하므로 iframe 안의 isSampleModeEnabled() 가 false 가 되어
+            //   shim BaseGrid 의 빈 응답 sample 주입·zAxios response interceptor 의 sample 변환
+            //   둘 다 OFF → grid 가 빈 row 만 표시되는 사고 회피 (2026-06-11).
+            try { win.__composerSampleData = true; } catch (_) {}
+            try { win.localStorage && win.localStorage.setItem('composer.sampleData', '1'); } catch (_) {}
             // main window 에도 flag 가 새는지 확인 — runtime registry 의 zAxios 는 main bundle 의
             // 객체이므로 main window 가 보는 flag 가 결과를 결정. 따라서 main window 에도 set.
             // PreviewEmbed unmount 시 cleanup 으로 false 처리.

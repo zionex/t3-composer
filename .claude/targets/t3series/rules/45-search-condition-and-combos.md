@@ -198,6 +198,38 @@ const loadGridCombos = () => {
 
 ---
 
+## §3.5 표준 심볼 출처 — 환각 import 금지 (필수)
+
+생성 코드가 자주 쓰는 표준 심볼(`baseURI`·`transLangKey` 등)을 **잘못된 라이브러리에서
+import** 하는 환각이 빈번하다. 실제 lxma 기준 출처:
+
+| 심볼 | 올바른 출처 | ❌ LLM 환각 |
+|---|---|---|
+| `baseURI` | **ambient — import 하지 말 것** (lxma 35개 화면 사용, import 0건) | `import { baseURI } from '@wingui/utils/common'` |
+| `transLangKey` | `import { transLangKey } from '@zionex/wingui-core'` (또는 ambient) | `import { useTranslation } from 'react-i18next'; const { t: transLangKey } = useTranslation();` |
+| `getActiveViewId` | `@zionex/wingui-core` (또는 ambient) | 임의 store 경로 |
+| `onErrorInput` | `import { onErrorInput } from '@zionex/wingui-core/utils/common'` | 자체 구현 |
+| `HTTP_STATUS` | `@zionex/wingui-core` (또는 ambient) | 숫자 200 하드코딩 |
+| `loadComboList` | `@zionex/wingui-core` | — |
+
+```jsx
+// ❌ 환각 (lxma 엔 react-i18next 쓰는 화면 0개)
+import { useTranslation } from 'react-i18next';
+import { baseURI } from '@wingui/utils/common';
+const { t: transLangKey } = useTranslation();
+
+// ✅ 표준 — baseURI 는 import 없이 ambient, transLangKey 는 wingui-core
+import { transLangKey } from '@zionex/wingui-core';
+// baseURI() 는 그냥 사용 (import 불필요)
+```
+
+규칙:
+- **`react-i18next` / `useTranslation` 절대 사용 금지** — i18n 은 `transLangKey()` (wingui-core).
+- **`baseURI` 는 import 하지 말 것** — ambient 전역. `import {baseURI} from '...'` 모두 환각.
+- 위 표의 심볼은 import 가 필요하면 `@zionex/wingui-core` (또는 그 하위) 에서만.
+
+---
+
 ## §4. 자기 검증 (검색조건/콤보 출력 직전)
 
 - [ ] 품목/거래처/거점/자원/플랜스코프/사용자 검색은 §1 도메인 컴포넌트 + 정확한 경로로 import
@@ -209,6 +241,8 @@ const loadGridCombos = () => {
 - [ ] 그리드 셀 콤보는 `loadGridCombos()` 에서 로드 (검색조건과 분리)
 - [ ] 첫 값 `setValue(...)` 로 auto-select
 - [ ] `zAxios.get('.../options/field_...')` 같은 흩뿌린 옵션 호출 0건
+- [ ] `baseURI` import 안 함 (ambient), `transLangKey` 는 `@zionex/wingui-core` (§3.5)
+- [ ] `react-i18next`/`useTranslation` 사용 0건 (§3.5)
 
 ---
 

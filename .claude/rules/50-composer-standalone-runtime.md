@@ -378,13 +378,31 @@ lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Quali
 ```
 이 설정 없이는 생성자 파라미터가 `JdbcTemplate jdbcTemplate` 으로만 생성돼 qualifier 무효화됨.
 
-### 8.3 ResponseMessage 별칭
-LLM 산출물이 자주 환각하는 `ResponseMessage.ofSuccess()` / `ofFail(msg)` 호출을 컴파일 가능하게 alias 추가:
+### 8.3 ResponseMessage 호환 별칭 — ⚠️ 안전망일 뿐, 산출물 표준 아님
+
+단독 환경 `ResponseMessage.java` 에는 `ok()` / `ok(String)` / `error(String)` / `of(HttpStatus[, String])`
++ `ofSuccess()` / `ofFail(String)` 정적 팩토리 별칭이 있다 — **[화면 실행] 미리보기 호환 안전망**:
 ```java
-public static ResponseMessage ofSuccess()      { return ok(); }
+public static ResponseMessage ofSuccess()         { return ok(); }
 public static ResponseMessage ofSuccess(String m) { return ok(m); }
 public static ResponseMessage ofFail(String m)    { return error(m); }
 ```
+
+❌ **그러나 산출물 표준은 이게 아니다.** wingui 본 환경 `ResponseMessage.java` 는
+`(int status, String message)` **생성자 하나**만 가지며 정적 팩토리·builder 모두 없다.
+LLM 산출물이 정적 팩토리를 쓰면 [화면 실행]은 동작해도 **wingui sync 후 컴파일 실패** →
+전체 startup down → 모든 endpoint 500.
+
+✅ **산출물 표준** (rules/41b §5.7 · 99 J8 · 99a §J CG-J3):
+```java
+new ResponseMessage(HttpStatus.OK.value(), "saved")
+new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "changes parameter is missing")
+new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage())
+```
+
+Hook (`java-basic.sh §J11`) 이 산출물의 `ResponseMessage.{ok|error|of|ofSuccess|ofFail}(` 호출을
+Write 시점에 차단. 단독 환경의 별칭은 **legacy 산출물 호환 + 미리보기 graceful-degradation**
+목적으로만 유지.
 
 ### 8.4 RealGrid2 `getAllStateRows()` 전 `commit()` 호출
 shim `GridSaveButton` / `GridDeleteRowButton` 이 호출 시점에 셀 편집 중이면 RealGrid 가 `Client is editing (call grid.commit() or grid.cancel() first)` 오류 throw. 핸들러 진입 직후 `g.commit(true)` 호출로 자동 flush.
@@ -440,7 +458,7 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 | 산출물 java 의 wingui 패키지를 그대로 컴파일 시도 | JavaArtifactRewriter 의 자동 패키지/import 변환 |
 | MENU_CD 충돌 무시하고 정식 INSERT | preview 는 `__PV<sid8>` suffix 로 격리 INSERT |
 | 산출물 Service 가 `private final JdbcTemplate jdbcTemplate;` (qualifier 없음) | JavaArtifactRewriter 자동으로 `@Qualifier("targetJdbcTemplate")` 주입 — Lombok config 의 `copyableAnnotations += @Qualifier` 필요 |
-| `ResponseMessage.builder().message(...).build()` (Lombok @Builder 없음) | `ResponseMessage.ok()` / `ok(msg)` / `error(msg)` / `ofSuccess()` / `ofFail(msg)` 정적 팩토리 |
+| `ResponseMessage.builder().message(...).build()` (Lombok @Builder 없음) · `ResponseMessage.ok()` / `error()` / `of()` / `ofSuccess()` / `ofFail()` 호출 (wingui 본 환경엔 정적 팩토리 없음 — sync 후 컴파일 실패) | `new ResponseMessage(HttpStatus.OK.value(), "saved")` · `new ResponseMessage(HttpStatus.BAD_REQUEST.value(), msg)` · `new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage())` — 직접 생성자 (Hook `java-basic.sh §J11` 차단) |
 | `g.dataProvider.getAllStateRows()` 직전 commit 없음 → `Client is editing` 오류 | shim `GridSaveButton` / `GridDeleteRowButton` 진입 시 `g.commit(true)` 자동 호출 |
 | target=T3SERIES 로 메뉴 조회했는데 응답이 `source: "local"` | tb_cmp_target_system 의 db_url 미설정 또는 연결 실패 — [Storage 다이얼로그 → 연결 테스트] 확인 |
 | `JdbcTemplate` 무지정 인젝션 — Spring 이 어느 DataSource wire 할지 불확정 | `@Qualifier("composerJdbcTemplate")` (메타) 또는 `@Qualifier("targetJdbcTemplate")` (운영) 명시 |

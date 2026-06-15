@@ -7,26 +7,33 @@
 # exit 0 = 허용 · exit 2 = 차단 (Claude stderr) · 기타 = 에러
 # 입력: stdin JSON (tool_name, tool_input.file_path, tool_input.content)
 #
-# ─── 검증 모듈 (validators/ 디렉토리, 순서대로 source) ────────────────
-# 1. jsx-basic.sh        — R1~R9 화면 구조 + 한글 i18n
-# 2. sql-sp.sh           — S1~S8 네이밍·MSSQL/Oracle·DDL upgrade · 온톨로지 O3/O4/O7
-# 3. java-basic.sh       — J2 println · J5 @Autowired · J8 ResponseMessage.builder
-#                           J9 @Value default · CG-J1 JdbcTemplate qualifier · SE1 평문 비번
-# 4. build-config.sh     — §4 pom.xml (T1/J1) + §5 환경변수/시크릿
-# 5. filter-bar.sh       — FilterBar JSON 스키마 (FB1~FB15)
-# 6. composer-patterns.sh — T3Composer Pattern/Dictionary (CP1~CP11)
-# 7. composer-policy.sh  — Composer 산출물 차단 (SP_UI_* / 엔진 service XML)
-# 8. java-imports.sh     — Java import jakarta.* 강제 (Spring Boot 3.x)
-# 9. composer-jsx.sh     — CG-A~E (BaseGrid/grid id/callService/Master/Cascade)
-# 10. menu-sql.sh        — MENU_SQL: MENU_CD / MENU_FILE_PATH / 부모 코드
-# 11. path-convention.sh — `ut/` 사용 금지 → `util/` 강제 (Java 패키지/URL/zAxios/JSX 경로)
-# 12. sql-schema-whitelist.sh — .sql 파일 컬럼 화이트리스트 (TB_UT_USER_INFO/TB_AD_MENU/TB_AD_LANG_PACK)
-# 13. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단 (`_sql`/`_jsx`/`_java`)
-# 14. java-class-naming.sh   — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1 (LLM 축약 환각 차단)
-# 15. t3mockup.sh        — M1~M4 frontend/src/view/util/t3mockup/ 의 mockup 규약 (Phase 4a/b/c)
+# ─── 검증 모듈 ────────────────────────────────────────────────────────
+# 공용 (validators/, 모든 Target 에 적용 — 12개) :
+#   1. jsx-basic.sh             — R1~R9 화면 구조 + 한글 i18n
+#   2. java-basic.sh            — J2 println · J5 @Autowired · J8/J11 ResponseMessage
+#                                  J9 @Value default · CG-J1 JdbcTemplate qualifier · SE1
+#   3. build-config.sh          — §4 pom.xml (T1/J1) + §5 환경변수/시크릿
+#   4. filter-bar.sh            — FilterBar JSON 스키마 (FB1~FB15)
+#   5. composer-patterns.sh     — T3Composer Pattern/Dictionary (CP1~CP11)
+#   6. composer-policy.sh       — Composer 산출물 차단 (SP_UI_* / 엔진 service XML)
+#   7. java-imports.sh          — Java import jakarta.* 강제 (Spring Boot 3.x)
+#   8. composer-jsx.sh          — CG-A~E (BaseGrid/grid id/callService/Master/Cascade)
+#   9. path-convention.sh       — `ut/` 사용 금지 → `util/` 강제
+#   10. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단
+#   11. java-class-naming.sh    — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1
+#   12. t3mockup.sh             — M1~M4 t3mockup 규약 (Phase 4a/b/c)
 #
-# 분리 전 단일 파일: pre-tool-use-validator.sh (937줄, 57KB)
-# 분리 후: 디스패처(이 파일) + validators/*.sh 15개
+# T3SERIES 전용 overlay (.claude/targets/t3series/hooks/validators/, 3개) :
+#   sql-sp.sh                   — S1~S8 SP_UI_ 네이밍 (T3 MSSQL)
+#   menu-sql.sh                 — MENU_SQL: MENU_CD / MENU_FILE_PATH / 부모 코드
+#   sql-schema-whitelist.sh     — .sql 컬럼 화이트리스트 (TB_AD_USER · TB_AD_MENU 등)
+#
+# PLANNEL 전용 overlay (.claude/targets/plannel/hooks/validators/, 9개) :
+#   aggrid-columns · controller-security · entity-conventions · import-convention
+#   jsx-page · package-convention · sql-table-naming · url-convention 등
+#
+# Target overlay 는 Composer 백엔드가 DB import 로 가져와 실행. Claude Code CLI 세션에서는
+# 공용 validators 만 발화 (T3 overlay 가 필요하면 아래 SOURCE 블록 주석 해제).
 # =====================================================================
 
 set -euo pipefail
@@ -66,21 +73,37 @@ VALIDATORS_DIR="$HOOKS_DIR/validators"
 
 # 순차 실행. 각 모듈은 자체 가드(파일 확장자/경로/TOOL_NAME)로 비대상 호출 즉시 패스.
 # 모듈 안에서 block() → exit 2 발동 시 디스패처도 종료됨 (set -e 와 별개로 정상).
-. "$VALIDATORS_DIR/jsx-basic.sh"
-. "$VALIDATORS_DIR/sql-sp.sh"
-. "$VALIDATORS_DIR/java-basic.sh"
+# ── 공용 validators (모든 Target 의 산출물에 적용 — Claude Code CLI 세션에서도 발화) ──
+. "$VALIDATORS_DIR/java-basic.sh"            # J2/J5/J9/CG-J1/SE1
+. "$VALIDATORS_DIR/java-imports.sh"          # javax.* + @Value default (Spring Boot 3.x)
 . "$VALIDATORS_DIR/build-config.sh"
 . "$VALIDATORS_DIR/filter-bar.sh"
 . "$VALIDATORS_DIR/composer-patterns.sh"
 . "$VALIDATORS_DIR/composer-policy.sh"
-. "$VALIDATORS_DIR/java-imports.sh"
-. "$VALIDATORS_DIR/composer-jsx.sh"
-. "$VALIDATORS_DIR/menu-sql.sh"
-. "$VALIDATORS_DIR/path-convention.sh"
-. "$VALIDATORS_DIR/sql-schema-whitelist.sh"
+. "$VALIDATORS_DIR/composer-jsx.sh"          # (TODO: 추후 wingui 한정 검토 — 현재 공용)
 . "$VALIDATORS_DIR/composer-artifact-path.sh"
 . "$VALIDATORS_DIR/java-class-naming.sh"
 . "$VALIDATORS_DIR/t3mockup.sh"
+
+# ── T3SERIES 전용 validators (.claude/targets/t3series/hooks/validators/) ──
+#   sql-sp.sh                 — S1~S8 SP_UI_ 네이밍 (T3 MSSQL)
+#   menu-sql.sh               — TB_AD_MENU INSERT (T3 메뉴 형식)
+#   sql-schema-whitelist.sh   — T3 테이블 컬럼 화이트리스트
+#   path-convention.sh        — com.zionex.t3series.web.domain.util/ut 패키지 (T3 wingui)
+#   jsx-basic.sh              — R1~R9 wingui 화면 구조 + 한글 i18n
+#   java-resp-msg.sh          — wingui ResponseMessage J8/J11 (Lombok @Builder + 정적 팩토리 금지)
+#   java-wingui-imports.sh    — wingui 패키지 환각 차단 (BaseEntity · SpecificationBuilder · Multipart 등)
+# Composer 백엔드는 DB import (target_cd='T3SERIES' overlay) 로 이 hook 들을 사용.
+# Claude Code CLI 세션 자체에는 자동 발화 안 함 (Composer 본체 dev 시 T3 산출물 파일 작성하는
+# 경우만 아래 SOURCE 블록 주석 해제):
+# T3_OVERLAY="$HOOKS_DIR/../targets/t3series/hooks/validators"
+# . "$T3_OVERLAY/sql-sp.sh"
+# . "$T3_OVERLAY/menu-sql.sh"
+# . "$T3_OVERLAY/sql-schema-whitelist.sh"
+# . "$T3_OVERLAY/path-convention.sh"
+# . "$T3_OVERLAY/jsx-basic.sh"
+# . "$T3_OVERLAY/java-resp-msg.sh"
+# . "$T3_OVERLAY/java-wingui-imports.sh"
 
 # =====================================================================
 # 모든 검증 통과

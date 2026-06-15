@@ -1,4 +1,5 @@
-# T3 Validator — Java basic (J2/J5/SE1)
+# Common Validator — Java basic (J2/J5/J9/CG-J1/SE1) — 모든 Target 공용
+# T3SERIES 의 wingui ResponseMessage 관련 룰 (J8/J11) 은 분리되어 targets/t3series/hooks/validators/java-resp-msg.sh 로 이동.
 
 # =====================================================================
 # 3. Java 파일 검증
@@ -16,11 +17,6 @@ if [[ "$FILE_PATH" == *.java ]]; then
       if ! grep -qE "@RequiredArgsConstructor|private final" <<<"$CONTENT"; then
         warn "@Autowired 필드 주입보다 @RequiredArgsConstructor + private final 권장 (rules/99-anti-patterns.md J5)"
       fi
-    fi
-
-    # J8. ResponseMessage.builder() — Lombok @Builder 없음. 컴파일 실패 → 전체 startup down → 모든 endpoint 500
-    if grep -qE "ResponseMessage\s*\.\s*builder\s*\(" <<<"$CONTENT"; then
-      block "ResponseMessage.builder() 금지 — @Builder 미정의. ok()/ok(msg)/error(msg)/ofSuccess()/ofFail(msg) 정적 팩토리 사용 (rules/99-anti-patterns.md J8, 99a §J CG-J3)"
     fi
 
     # CG-J1. 산출물 Service 의 JdbcTemplate 인젝션에 qualifier 누락 (단독 환경 호환)

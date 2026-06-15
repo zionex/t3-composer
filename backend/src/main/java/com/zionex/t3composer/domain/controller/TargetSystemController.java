@@ -40,6 +40,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TargetSystemController {
 
+    /** 공용 Claude assets — 모든 Target 에 먼저 import 후 target overlay 가 덮어쓴다. */
+    private static final String COMMON_CLAUDE_ROOT = "/workspace/common-claude";
+
+    /** Target 별 Claude assets overlay 마운트 경로 — docker-compose.yml 의 마운트와 매칭. */
+    private static final Map<String, String> TARGET_CLAUDE_ROOTS = Map.of(
+            "T3SERIES",     "/workspace/t3series-claude",
+            "PLANNEL",      "/workspace/plannel-claude",
+            "LGES_NEXTSCM", "/workspace/lges_nextscm-claude"
+    );
+
+    /** 미등록 Target 의 fallback (legacy 동작 보존 — 단일 폴더 import). */
     private static final String DEFAULT_CLAUDE_ROOT = "/workspace/t3series-claude";
 
     private final TargetSystemRepository    targetRepo;
@@ -61,14 +72,40 @@ public class TargetSystemController {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown target: " + targetCd));
     }
 
+    /**
+     * Target 의 Claude assets (rules + hooks) 를 DB 로 import.
+     *
+     * 기본 동작 — 2단 import: [공용, Target overlay] 순서.
+     *  1) /workspace/common-claude        (모든 Target 공용 — Composer feature/Java/JSX 등)
+     *  2) /workspace/&lt;target&gt;-claude   (Target 전용 overlay — 같은 ruleCode 면 덮어씀)
+     *
+     * Override:
+     *  · body.claudeRoot         : 단일 폴더만 import (legacy 동작)
+     *  · body.claudeRoots: [...] : 명시한 폴더 리스트 순서대로 import
+     */
     @PostMapping("/{targetCd}/import-claude")
+    @SuppressWarnings("unchecked")
     public Map<String, Object> importClaude(@PathVariable String targetCd,
-                                            @RequestBody(required = false) Map<String, String> body) {
-        String claudeRoot = (body != null && body.get("claudeRoot") != null && !body.get("claudeRoot").isBlank())
-                ? body.get("claudeRoot")
-                : DEFAULT_CLAUDE_ROOT;
-        log.info("import-claude 시작: target={} root={}", targetCd, claudeRoot);
-        return importService.importFromClaudeFolder(targetCd, claudeRoot);
+                                            @RequestBody(required = false) Map<String, Object> body) {
+        // 1) 명시적 단일 폴더 (legacy)
+        if (body != null && body.get("claudeRoot") instanceof String s && !s.isBlank()) {
+            log.info("import-claude (single, legacy): target={} root={}", targetCd, s);
+            return importService.importFromClaudeFolder(targetCd, s);
+        }
+        // 2) 명시적 폴더 리스트
+        if (body != null && body.get("claudeRoots") instanceof List<?> l && !l.isEmpty()) {
+            List<String> roots = ((List<Object>) l).stream()
+                    .filter(o -> o instanceof String)
+                    .map(o -> (String) o)
+                    .toList();
+            log.info("import-claude (multi, explicit): target={} roots={}", targetCd, roots);
+            return importService.importFromClaudeFolders(targetCd, roots);
+        }
+        // 3) 기본 — 공용 + Target overlay 2단
+        String targetRoot = TARGET_CLAUDE_ROOTS.getOrDefault(targetCd, DEFAULT_CLAUDE_ROOT);
+        List<String> defaults = List.of(COMMON_CLAUDE_ROOT, targetRoot);
+        log.info("import-claude (multi, default): target={} roots={}", targetCd, defaults);
+        return importService.importFromClaudeFolders(targetCd, defaults);
     }
 
     /**

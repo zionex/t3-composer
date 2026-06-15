@@ -255,11 +255,19 @@ services:
       # 사용자 호스트의 ~/work/projects 하위 모든 SCM repo 가 한 번에 노출 — 다른 드라이브
       # repo 는 못 등록 (필요 시 COMPOSER_WORKSPACE_ROOT 변경).
       - ${COMPOSER_WORKSPACE_ROOT:-${HOME}/work/projects}:/workspace/projects:rw
-      # T3SERIES_MSSQL Target 의 .claude 규약 폴더 — import-claude 가 여기서 읽음.
-      # 기본은 t3-composer 자체 .claude (= 부모 t3series .claude 의 사본).
-      # 부모 t3series 의 .claude 를 직접 import 하려면 .env 의 COMPOSER_T3SERIES_CLAUDE_PATH 변경.
-      - ${COMPOSER_T3SERIES_CLAUDE_PATH:-./.claude}:/workspace/t3series-claude:ro
-      - ${COMPOSER_PLANNEL_CLAUDE_PATH:-./.claude-plannel}:/workspace/plannel-claude:ro
+      # Claude assets — 공용 + Target overlay 2단 구조 (2026-06 재구조화).
+      #   .claude/                        = 공용 rules + hooks (Composer 본체, 모든 Target)
+      #   .claude/targets/t3series/       = T3SERIES 전용 overlay (TB_AD_MENU·SP_UI_·온톨로지)
+      #   .claude/targets/plannel/        = PLANNEL  전용 overlay (TabMenuList·PostgreSQL·AG-Grid)
+      # ImportService.importFromClaudeFolders(targetCd, [common, target]) 가 2단 import —
+      # common 먼저 → target overlay 가 같은 ruleCode 면 덮어쓰기 (rule_version+1).
+      # 부모 source repo 의 .claude 를 직접 가리키려면 .env 의 OVERLAY 환경변수 변경.
+      # 변수명 주의: 기존 COMPOSER_T3SERIES_CLAUDE_PATH / COMPOSER_PLANNEL_CLAUDE_PATH 는
+      # 2026-06 재구조화로 더 이상 사용 안 함 (옛 평탄 폴더 가리키므로). 새 이름 OVERLAY_PATH 사용.
+      - ./.claude:/workspace/common-claude:ro
+      - ${COMPOSER_T3SERIES_OVERLAY_PATH:-./.claude/targets/t3series}:/workspace/t3series-claude:ro
+      - ${COMPOSER_PLANNEL_OVERLAY_PATH:-./.claude/targets/plannel}:/workspace/plannel-claude:ro
+      - ${COMPOSER_LGES_NEXTSCM_OVERLAY_PATH:-./.claude/targets/lges_nextscm}:/workspace/lges_nextscm-claude:ro
       # 거버넌스 스냅샷/복원 (rw) — 백엔드가 repo 루트의 .claude/·.env·CLAUDE.md·docs/ 를
       # 직접 read/write. repo 루트 통째 마운트 — .env 단일파일 마운트의 inode 끊김 회피.
       # 노출만 될 뿐 backend/·frontend/·staging/·.git/ 등은 excludeGlobs 가 절대 touch 안 함.

@@ -131,7 +131,7 @@
 |---|---|---|
 | CG-J1 | Service 가 `private final JdbcTemplate jdbcTemplate;` (qualifier 없음) | `JavaArtifactRewriter` 가 `@Qualifier("targetJdbcTemplate")` 자동 주입 |
 | CG-J2 | Lombok `@RequiredArgsConstructor` 가 `@Qualifier` 미복사 | `lombok.config` 에 `copyableAnnotations += @Qualifier` |
-| CG-J3 | `ResponseMessage.builder()` 호출 (Lombok @Builder 없음) | `ok()` / `error(msg)` / `ofSuccess()` / `ofFail(msg)` |
+| CG-J3 | `ResponseMessage.builder()` · `ResponseMessage.ok()/error()/of()/ofSuccess()/ofFail()` 호출 | **`new ResponseMessage(HttpStatus.OK.value(), "saved")`** · `new ResponseMessage(HttpStatus.BAD_REQUEST.value(), msg)` 직접 생성자 (wingui 본 환경엔 정적 팩토리 없음 — sync 후 컴파일 실패. 단독 환경 별칭은 안전망일 뿐 의존 금지) |
 | CG-J4 | `JdbcTemplate` qualifier 없이 인젝션 | `@Qualifier("composerJdbcTemplate")` (메타) 또는 `@Qualifier("targetJdbcTemplate")` (운영) |
 | CG-J5 | Grid 버튼이 `getAllStateRows()` 전 commit 없음 | shim 이 `g.commit(true)` 자동 |
 | CG-J6 | AI prefill `source:"SP"` 인데 spName/crudSp 빈 string | `mergeAiSpecIntoBaseSpec` 사후 정합화 |

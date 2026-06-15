@@ -153,6 +153,24 @@ public class Feature extends BaseEntity {
 ```
 
 ### Controller (Save 패턴)
+
+> ⛔ **`ResponseMessage` API — 직접 생성자 (HttpStatus.X.value()) 만 사용**
+> wingui 본 환경 `ResponseMessage.java` 는 `(int status, String message)` 생성자가 유일한 공식 API.
+> `ResponseMessage.builder()` / `ok()` / `error()` / `of()` / `ofSuccess()` / `ofFail()` 모두 **존재하지 않음** —
+> 호출 시 컴파일 실패 → wingui 전체 startup down → 모든 endpoint 500.
+> (단독 환경 `ResponseMessage.java` 의 `ok/error/ofSuccess/ofFail` 별칭은 [화면 실행] 호환 안전망일 뿐
+> 산출물에 의존 금지. sync 후 깨진다.) Hook (`java-basic.sh §J11`) 자동 차단.
+>
+> **표준 패턴** (모든 응답에 적용):
+> ```java
+> // 성공
+> new ResponseMessage(HttpStatus.OK.value(), "saved")
+> // 4xx 클라이언트 오류
+> new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "changes parameter is missing")
+> // 5xx 서버 오류 (try/catch 안에서)
+> new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage())
+> ```
+
 ```java
 @Slf4j @RestController @RequiredArgsConstructor
 public class FeatureController {
@@ -165,19 +183,40 @@ public class FeatureController {
     @Transactional
     @PostMapping("/<m>/<fs>")
     public ResponseEntity<ResponseMessage> save(HttpServletRequest request) {
-        String raw = request.getParameter(ServiceConstants.PARAMETER_KEY_DATA);
-        if (raw == null || raw.isBlank())
-            return new ResponseEntity<>(new ResponseMessage(400, "changes missing"), HttpStatus.BAD_REQUEST);
-        List<Feature> items = objectMapper.readValue(raw, new TypeReference<List<Feature>>() {});
-        service.saveAll(items);
-        return new ResponseEntity<>(new ResponseMessage(200, "saved"), HttpStatus.OK);
+        try {
+            String raw = request.getParameter(ServiceConstants.PARAMETER_KEY_DATA);
+            if (raw == null || raw.isBlank()) {
+                return new ResponseEntity<>(
+                        new ResponseMessage(HttpStatus.BAD_REQUEST.value(), "changes parameter is missing"),
+                        HttpStatus.BAD_REQUEST);
+            }
+            List<Feature> items = objectMapper.readValue(raw, new TypeReference<List<Feature>>() {});
+            service.saveAll(items);
+            return new ResponseEntity<>(
+                    new ResponseMessage(HttpStatus.OK.value(), "saved"),
+                    HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Feature save error", e);
+            return new ResponseEntity<>(
+                    new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Transactional
     @PostMapping("/<m>/<fs>/delete")
     public ResponseEntity<ResponseMessage> delete(@RequestBody List<Feature> items) {
-        service.deleteAll(items);
-        return new ResponseEntity<>(new ResponseMessage(200, "deleted"), HttpStatus.OK);
+        try {
+            service.deleteAll(items);
+            return new ResponseEntity<>(
+                    new ResponseMessage(HttpStatus.OK.value(), "deleted"),
+                    HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Feature delete error", e);
+            return new ResponseEntity<>(
+                    new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 ```
@@ -235,7 +274,7 @@ public class FeatureService {
 - [ ] Entity `@JsonIgnoreProperties(ignoreUnknown = true)`
 - [ ] utility 산출물 grep 0건 `ut/`
 - [ ] Service `JdbcTemplate` 필드 `@Qualifier("targetJdbcTemplate")`
-- [ ] `ResponseMessage.builder()` 없음 (`.ok()/.error()/ofSuccess()/ofFail()`)
+- [ ] `ResponseMessage.builder()` / `.ok()` / `.error()` / `.of()` / `.ofSuccess()` / `.ofFail()` 호출 없음 — 모두 `new ResponseMessage(HttpStatus.X.value(), msg)` 직접 생성자
 
 ---
 

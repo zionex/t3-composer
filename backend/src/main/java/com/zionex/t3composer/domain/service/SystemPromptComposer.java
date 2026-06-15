@@ -39,7 +39,9 @@ public class SystemPromptComposer {
     //   설계: docs/superpowers/specs/2026-05-28-composer-final-step-autogen-token-design.md §3.2
     private static final Set<String> CORE_RULES = Set.of(
             "41-composer-generation", "41a-composer-jsx", "20-screen-development",
-            "99a-composer-anti-patterns", "32-sql-schema-verification");
+            "99a-composer-anti-patterns", "32-sql-schema-verification",
+            // 검색조건/콤보는 거의 모든 화면에 존재 → core. Target overlay 의 45 가 있으면 자동 포함.
+            "45-search-condition-and-combos");
     private static final Set<String> BACKEND_RULES = Set.of(
             "41b-composer-java", "30-database-schema", "31-stored-procedures");
     private static final Set<String> FILTER_RULES = Set.of(

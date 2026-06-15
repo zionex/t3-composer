@@ -8,25 +8,27 @@
 # 입력: stdin JSON (tool_name, tool_input.file_path, tool_input.content)
 #
 # ─── 검증 모듈 ────────────────────────────────────────────────────────
-# 공용 (validators/, 모든 Target 에 적용 — 12개) :
-#   1. jsx-basic.sh             — R1~R9 화면 구조 + 한글 i18n
-#   2. java-basic.sh            — J2 println · J5 @Autowired · J8/J11 ResponseMessage
-#                                  J9 @Value default · CG-J1 JdbcTemplate qualifier · SE1
+# 공용 (validators/, 모든 Target 에 적용 — 10개, _lib.sh 헬퍼 제외) :
+#   1. java-basic.sh            — J2 println · J5 @Autowired · J9 @Value default
+#                                  CG-J1 JdbcTemplate qualifier · SE1 평문 비번
+#   2. java-imports.sh          — javax.* 금지 (jakarta) + @Value default (Spring Boot 3.x)
 #   3. build-config.sh          — §4 pom.xml (T1/J1) + §5 환경변수/시크릿
 #   4. filter-bar.sh            — FilterBar JSON 스키마 (FB1~FB15)
 #   5. composer-patterns.sh     — T3Composer Pattern/Dictionary (CP1~CP11)
 #   6. composer-policy.sh       — Composer 산출물 차단 (SP_UI_* / 엔진 service XML)
-#   7. java-imports.sh          — Java import jakarta.* 강제 (Spring Boot 3.x)
-#   8. composer-jsx.sh          — CG-A~E (BaseGrid/grid id/callService/Master/Cascade)
-#   9. path-convention.sh       — `ut/` 사용 금지 → `util/` 강제
-#   10. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단
-#   11. java-class-naming.sh    — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1
-#   12. t3mockup.sh             — M1~M4 t3mockup 규약 (Phase 4a/b/c)
+#   7. composer-jsx.sh          — CG-A~E (BaseGrid/grid id/callService/Master/Cascade)
+#   8. composer-artifact-path.sh — 파일명 확장자 underscore 환각 차단
+#   9. java-class-naming.sh     — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1
+#   10. t3mockup.sh             — M1~M4 t3mockup 규약 (Phase 4a/b/c)
 #
-# T3SERIES 전용 overlay (.claude/targets/t3series/hooks/validators/, 3개) :
+# T3SERIES 전용 overlay (.claude/targets/t3series/hooks/validators/, 7개) :
 #   sql-sp.sh                   — S1~S8 SP_UI_ 네이밍 (T3 MSSQL)
 #   menu-sql.sh                 — MENU_SQL: MENU_CD / MENU_FILE_PATH / 부모 코드
 #   sql-schema-whitelist.sh     — .sql 컬럼 화이트리스트 (TB_AD_USER · TB_AD_MENU 등)
+#   path-convention.sh          — `ut/` 금지 → `util/` (com.zionex.t3series 패키지)
+#   jsx-basic.sh                — R1~R9 wingui 화면 구조 + 한글 i18n
+#   java-resp-msg.sh            — wingui ResponseMessage J8/J11 (@Builder·정적 팩토리 금지)
+#   java-wingui-imports.sh      — wingui 패키지 환각 차단 (BaseEntity · Specification · Multipart)
 #
 # PLANNEL 전용 overlay (.claude/targets/plannel/hooks/validators/, 9개) :
 #   aggrid-columns · controller-security · entity-conventions · import-convention

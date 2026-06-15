@@ -5,33 +5,54 @@
 
 ## 0. 작업 시 항상 참조할 규칙 (이 레포 내부)
 
-다음 파일들이 권위 있는 단일 진실 저장소입니다 (부모와 동일한 내용 — 이관됨):
+> **★ 2026-06 멀티-Target overlay 구조** — 룰/hook 은 **공용 + Target overlay 2단**으로 분리됨.
+> Composer 백엔드는 두 폴더를 union 해 DB(`tb_cmp_target_rule`/`_hook`)로 import,
+> 같은 ruleCode 면 overlay 가 공용을 덮어쓴다. 구조·import 메커니즘 상세: `.claude/targets/README.md`.
+>
+> ```
+> .claude/rules/*              ← 공용 (모든 Target 공통)
+> .claude/hooks/*              ← 공용 hook + dispatcher
+> .claude/targets/
+>   ├─ t3series/{rules,hooks}/ ← T3SERIES 전용 (MSSQL·TB_AD_*·SP_UI_·wingui)
+>   ├─ plannel/{rules,hooks}/  ← PLANNEL 전용 (PostgreSQL·TabMenuList·AG-Grid)
+>   └─ lges_nextscm/{rules,hooks}/ ← 빈 overlay (향후)
+> ```
+
+**공용 룰** (모든 Target — `./.claude/rules/`):
 
 | 위치 | 다루는 영역 |
 |---|---|
 | `./CLAUDE.md` | 골든룰 (이 문서 — 단독 환경 추가 규칙) |
-| `./.claude/rules/10-ontology-first.md` | 자연어 질의 5-Step |
 | `./.claude/rules/20-screen-development.md` | 화면 골격·라우팅·메뉴 등록 |
-| `./.claude/rules/21-components.md` | 공용 컴포넌트 인벤토리 |
+| `./.claude/rules/21-components.md` | 공용 컴포넌트 인벤토리 (wingui-core 계열) |
 | `./.claude/rules/22-filter-bar.md` | FilterBar JSON |
-| `./.claude/rules/30-database-schema.md` | DB 접두어 사전 + 핵심 뷰 |
-| `./.claude/rules/31-stored-procedures.md` | SP 네이밍 + ORDER BY |
-| `./.claude/rules/32-sql-schema-verification.md` | SQL 스키마 사전 검증 |
 | `./.claude/rules/40-composer-patterns.md` | 패턴/사전/PatternPreview |
 | `./.claude/rules/41-composer-generation.md` | Composer 생성 메인 |
-| `./.claude/rules/41a-composer-jsx.md` | JSX 표준 |
-| `./.claude/rules/41b-composer-java.md` | Java 백엔드 표준 |
-| `./.claude/rules/41c-composer-widgets.md` | 위젯 카탈로그 |
-| `./.claude/rules/41d-composer-wizard.md` | 9-Step Wizard |
+| `./.claude/rules/41a-composer-jsx.md` | JSX 표준 (wingui-core 계열) |
+| `./.claude/rules/41c-composer-widgets.md` | 위젯 카탈로그 (wingui-core 계열) |
+| `./.claude/rules/41d-composer-wizard.md` | 4-Step Wizard |
+| `./.claude/rules/50-composer-standalone-runtime.md` | 단독 dev 인프라·preview·shim |
 | `./.claude/rules/99-anti-patterns.md` | 안티패턴 |
 | `./.claude/rules/99a-composer-anti-patterns.md` | Composer 안티패턴 카탈로그 |
+
+**T3SERIES overlay** (`./.claude/targets/t3series/rules/`):
+
+| 위치 | 다루는 영역 |
+|---|---|
+| `…/t3series/rules/10-ontology-first.md` | 자연어 질의 5-Step (T3 온톨로지) |
+| `…/t3series/rules/30-database-schema.md` | MSSQL DB 접두어 사전 + 핵심 뷰 |
+| `…/t3series/rules/31-stored-procedures.md` | SP 네이밍 + ORDER BY |
+| `…/t3series/rules/32-sql-schema-verification.md` | SQL 스키마 사전 검증 |
+| `…/t3series/rules/41b-composer-java.md` | Java 백엔드 표준 (wingui ResponseMessage) |
+
+**PLANNEL overlay** (`./.claude/targets/plannel/rules/`) — PostgreSQL·Liquibase·AG-Grid·TabMenuList 전용 13종. 목록은 `.claude/targets/README.md` 참조.
 
 ## 0.1 추가 자료
 
 | 위치 | 내용 |
 |---|---|
 | `./.claude/schemas/filter-bar.schema.json` | FilterBar JSON Schema (단일 권위) + `examples/` 샘플 |
-| `./.claude/hooks/` | PreToolUse / PostToolUse / SessionStart / Stop hook 스크립트 (부모와 동일) |
+| `./.claude/hooks/` | 공용 PreToolUse / PostToolUse / SessionStart / Stop hook + dispatcher. Target 전용 hook 은 `./.claude/targets/<cd>/hooks/` |
 | `./.claude/settings.json` | Hook 등록 + permission allow/deny + 환경변수 |
 | `./docs/reference/` | 대용량 카탈로그 (테이블/뷰/SP/모듈별 상세) — grep 기반 조회 |
 | `./docs/UI-ANALYSIS-OVERVIEW.md` | Phase 1~4c — 운영 화면 956개 정적 분석 + 54개 mockup + 메뉴 매핑 |
@@ -115,10 +136,43 @@ CLI 모드 전용 옵션:
 ## 2. 일반 작업 시
 
 - 신규 화면 생성·수정 요청은 `.claude/rules/41-composer-generation.md` 그대로 따름
-- DB 스키마 변경 시 `.claude/rules/32-sql-schema-verification.md §0 진실 우선순위` 절차 필수
-- import 화이트리스트 (`.claude/rules/41b §5.5`) 준수 — `javax.*` 금지, `jakarta.*` 만 사용
-- `ut/` 패키지/URL 절대 금지 (`.claude/rules/99-anti-patterns.md §0`)
+- DB 스키마 변경 시 `.claude/targets/t3series/rules/32-sql-schema-verification.md §0 진실 우선순위` 절차 필수 (T3SERIES)
+- import 화이트리스트 (`.claude/targets/t3series/rules/41b-composer-java.md §5.5`) 준수 — `javax.*` 금지, `jakarta.*` 만 사용 (T3SERIES)
+- `ut/` 패키지/URL 절대 금지 (`.claude/rules/99-anti-patterns.md §0` · **T3SERIES wingui 패키지 한정** · Hook: `.claude/targets/t3series/hooks/validators/path-convention.sh`)
 - **단독 dev 환경 인프라** (Docker DevTools / 화면 실행 / RealGrid2 / shim 구조) — `.claude/rules/50-composer-standalone-runtime.md`
+
+## 2.0 ⛔ 운영 함정 — `.claude/targets/` 구조 변경 후 bind-mount 재바인딩 (2026-06)
+
+> **2026-06-15 실제 사고**: git rebase/checkout 으로 `.claude/targets/<cd>/` 디렉토리가
+> 재생성되자, macOS Docker 의 bind-mount 가 **옛 inode 를 계속 잡고 있어** 컨테이너 안
+> `/workspace/plannel-claude/rules/` 가 빈 폴더로 보였다. 호스트엔 13개 룰이 멀쩡한데
+> import 가 0개를 수집 → PLANNEL overlay 누락 → DB 룰 깨짐.
+
+**규칙**: 다음 작업 후에는 **반드시** backend 컨테이너를 재생성해 마운트를 다시 바인딩한다.
+
+```bash
+docker compose up -d --force-recreate composer-backend
+```
+
+발화 조건 (호스트의 `.claude/` 디렉토리 *구조*가 바뀌는 모든 경우):
+- `git checkout` / `git rebase` / `git merge` / `git pull` 로 `.claude/targets/` 하위
+  디렉토리가 생성·삭제·이동됨
+- `.claude/targets/<cd>/` 폴더를 수동 추가/이동/삭제
+
+검증:
+```bash
+docker compose exec -T composer-backend ls /workspace/plannel-claude/rules/ | wc -l   # 호스트와 일치해야
+```
+
+재생성 후에는 Target import 재실행 (멱등):
+```bash
+for t in T3SERIES PLANNEL LGES_NEXTSCM; do
+  curl -s -X POST http://localhost:8090/composer/targets/$t/import-claude -H 'Content-Type: application/json' -d '{}'
+done
+```
+
+> ⚠️ 단순 파일 *내용* 변경 (rename 아닌 edit) 은 bind-mount 가 정상 반영하므로 재생성 불필요.
+> inode 가 바뀌는 *디렉토리 구조* 변경만 해당.
 
 ## 2.1 단독 환경 핵심 인프라 (2026-05 개편)
 

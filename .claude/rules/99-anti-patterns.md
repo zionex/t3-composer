@@ -11,6 +11,10 @@ alwaysApply: true
 
 ## 0. 경로 컨벤션 — `util/` 표준, `ut/` 절대 금지 ⛔ (가장 빈번한 실수)
 
+> ⚠️ **이 §0 섹션은 T3SERIES wingui 한정** — `com.zionex.t3series.web.domain.util` 패키지 규약.
+> PLANNEL 등 다른 Target 은 패키지 구조가 다르므로 자체 overlay 의 99-anti-patterns.md 가 통째 override.
+> 차단 Hook 은 공용이 아니라 T3 overlay: `.claude/targets/t3series/hooks/validators/path-convention.sh`.
+
 > **2026-04 두 차례 같은 사고 발생** — Composer / LLM 이 utility 도메인을 `ut/` 로 잘못 생성하여
 > 백엔드/프런트 양쪽이 깨짐. 사용자 강력 차단 요청. **모든 utility 관련 산출물은 `util/` 단 하나뿐**.
 
@@ -28,7 +32,7 @@ alwaysApply: true
 
 **예외 (계속 사용)**: MENU_CD prefix 의 **`UI_UT_*`** (예: `UI_UT_USER_INFO_MGMT`) 는 모듈 도메인 코드의 약어로 별도 컨벤션. URL/패키지 path 의 `ut/` 만 금지.
 
-**Hook 자동 차단** (`.claude/hooks/validators/path-convention.sh`):
+**Hook 자동 차단** (`.claude/targets/t3series/hooks/validators/path-convention.sh` — T3 overlay):
 - `package com.zionex.t3series.web.domain.ut.` → block
 - `import com.zionex.t3series.web.domain.ut.` → block
 - `@RequestMapping("/ut/...")` → block

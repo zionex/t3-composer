@@ -118,5 +118,9 @@ curl -X POST http://localhost:8090/composer/targets/T3SERIES/import-claude \
 
 ## 주의
 
+- ⛔ **git 으로 이 `targets/` 하위 디렉토리 구조가 바뀌면 (checkout·rebase·merge·pull) 반드시
+  `docker compose up -d --force-recreate composer-backend` 로 bind-mount 를 재바인딩**할 것.
+  macOS Docker 가 옛 inode 를 잡아 컨테이너가 빈 폴더로 인식하는 사고가 있었음 (2026-06-15).
+  상세: `CLAUDE.md §2.0`.
 - `.claude-project/` 는 UI 템플릿 추출 용도 (현재 마운트/import 안 됨) — **건드리지 말 것**.
 - `.claude/` root 의 `CLAUDE.md` · `settings.json` 은 Claude Code CLI 자체 설정 — 옮기지 말 것.

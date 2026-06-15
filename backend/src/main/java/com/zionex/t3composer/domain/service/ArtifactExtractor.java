@@ -24,6 +24,16 @@ import com.zionex.t3composer.domain.entity.ComposerArtifact;
 @Component
 public class ArtifactExtractor {
 
+    /**
+     * 산출물 JSX 의 결정론적 import 환각 교정 (1a). setter 주입 — bean 미존재(단위 테스트) 환경에서도 동작.
+     */
+    private JsxArtifactRewriter jsxRewriter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setJsxRewriter(JsxArtifactRewriter rewriter) {
+        this.jsxRewriter = rewriter;
+    }
+
     // ===FILE: <path>===  /  ===FILE: <path>  (트레일링 === 없음) 모두 인식.
     //
     // ── 인식 포맷 3종 (LLM 이 비결정적으로 사용 — 2026-05-16 사고: (C) 미인식으로 산출물 0개) ──
@@ -60,6 +70,14 @@ public class ArtifactExtractor {
             String fileName = extractFileName(filePath);
             String language = inferLanguageFromPath(filePath);
             String artifactType = classifyArtifact(filePath, language);
+
+            // 산출물 JSX 의 결정론적 import 환각 교정 (1a — rules/45 §3.5 기계 집행).
+            //   변환은 패턴-특정이라 안티패턴 없는 JSX 엔 no-op. 단일 choke point — 저장본이 교정되어
+            //   preview·apply·소스패널 모두 교정된 코드를 본다.
+            if (jsxRewriter != null && ComposerArtifact.TYPE_SCREEN_JSX.equals(artifactType)) {
+                JsxArtifactRewriter.RewriteResult rr = jsxRewriter.rewriteImports(content);
+                if (rr.changed) content = rr.content;
+            }
 
             artifacts.add(ComposerArtifact.builder()
                     .sessionId(sessionId)

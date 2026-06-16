@@ -117,10 +117,17 @@ public class ArtifactApplyService {
     //   setter injection — bean 없어도 fallback (staging) 동작 보장.
     private TargetPathResolver targetPathResolver;
     private JavaArtifactRewriter javaArtifactRewriter;
+    /** 1b — JSX 비결정론 안티패턴 감지. 위반 시 success=false + error 로 자동보완 트리거. */
+    private JsxArtifactValidator jsxArtifactValidator;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setTargetPathResolver(TargetPathResolver resolver) {
         this.targetPathResolver = resolver;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setJsxArtifactValidator(JsxArtifactValidator validator) {
+        this.jsxArtifactValidator = validator;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -316,6 +323,27 @@ public class ArtifactApplyService {
                     "상세: .claude/rules/41-composer-generation.md · CLAUDE.md §1.-1 (path convention)");
             log.warn("Composer policy 위반 차단 sessionId={} violations={}", sessionId, policyViolations);
             return out;
+        }
+
+        // 1b — JSX 비결정론 안티패턴 감지 → success=false + error 로 자동보완 트리거.
+        //   결정론 교정은 1a(JsxArtifactRewriter, extraction)가 이미 처리. 여기는 맥락 의존 안티패턴만.
+        if (jsxArtifactValidator != null && !opts.overridePolicyCheck) {
+            List<String> jsxViolations = new ArrayList<>();
+            for (ComposerArtifact a : artifacts) {
+                if (ComposerArtifact.TYPE_SCREEN_JSX.equals(a.getArtifactType())) {
+                    jsxViolations.addAll(jsxArtifactValidator.validate(a.getContent()));
+                }
+            }
+            if (!jsxViolations.isEmpty()) {
+                Map<String, Object> out = new LinkedHashMap<>();
+                out.put("success", false);
+                out.put("jsxValidationBlocked", true);
+                out.put("jsxViolations", jsxViolations);
+                // ★ frontend 자동보완은 r.error 를 LLM 에 전달 → 실행가능 메시지를 error 에 담는다.
+                out.put("error", String.join("\n", jsxViolations));
+                log.warn("Composer JSX 검증 위반 차단 sessionId={} violations={}", sessionId, jsxViolations);
+                return out;
+            }
         }
 
         // SP 이름 충돌 검증 — 다른 화면이 사용 중인 SP 를 덮어쓰는 사고 방지 (2026-04-29 사고 후 추가).

@@ -13,7 +13,7 @@ export default function Logo({ size = 28 }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="T3Composer logo"
+      aria-label="T³Composer logo"
     >
       <defs>
         <linearGradient id="t3LogoGrad" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">

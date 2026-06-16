@@ -351,7 +351,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                           <Box
                             component="img"
                             src="/t3composer-concept.png"
-                            alt="T3Composer — ScreenSpec 개념도"
+                            alt="T³Composer — ScreenSpec 개념도"
                             sx={{ maxWidth: '100%', maxHeight: '100%',
                                   objectFit: 'contain', display: 'block',
                                   opacity: 0.4 }}

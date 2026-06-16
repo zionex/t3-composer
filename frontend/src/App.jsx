@@ -143,7 +143,7 @@ function TabbedHome() {
                                     flex: 1, fontSize: '0.92rem', fontWeight: 800,
                                     color: 'primary.dark', letterSpacing: '-0.3px', whiteSpace: 'nowrap',
                                 }}>
-                                    T3Composer
+                                    T³Composer
                                     <Box component="span" sx={{
                                         fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', ml: 0.5,
                                     }}>

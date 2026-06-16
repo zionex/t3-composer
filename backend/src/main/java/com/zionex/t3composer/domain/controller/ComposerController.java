@@ -1,6 +1,7 @@
 package com.zionex.t3composer.domain.controller;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -346,6 +347,22 @@ public class ComposerController {
         return composerService.listArtifacts(sessionId, history).stream()
                 .map(ArtifactDto::summary)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 세션의 LLM 룰 준수 채점 (2-B). raw assistant 메시지(1a rewriter 적용 전)를 채점해
+     * "LLM 이 룰을 따랐나"를 측정. 이미 생성된 화면들을 점수화 / 여러 세션 집계용.
+     */
+    @GetMapping("/sessions/{sessionId}/conformance")
+    public Map<String, Object> scoreConformance(@PathVariable String sessionId) {
+        com.zionex.t3composer.domain.service.JsxConformanceScorer.SessionReport r =
+                composerService.scoreConformance(sessionId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("sessionId", sessionId);
+        out.put("assistantMessages", r.messageCount);
+        out.put("totalViolations", r.totalViolations);
+        out.put("violatedChecks", r.violatedChecks());
+        return out;
     }
 
     @GetMapping("/artifacts/{artifactId}")

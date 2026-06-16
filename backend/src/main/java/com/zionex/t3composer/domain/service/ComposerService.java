@@ -107,6 +107,14 @@ public class ComposerService {
     private final ArtifactPersistService    artifactPersistService;
     // orphan cleanup 시 project-root 기준점 공유용 (cleanupOrphanArtifacts 에서만 사용)
     private final ArtifactApplyService      artifactApplyService;
+
+    /** 2-B 룰 준수 채점기. setter 주입(required=false) — 빈 미존재 환경에서도 동작. */
+    private JsxConformanceScorer jsxConformanceScorer;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setJsxConformanceScorer(JsxConformanceScorer scorer) {
+        this.jsxConformanceScorer = scorer;
+    }
     // 사용자 메시지 진입 시 TB_* 자동 추출 + INFORMATION_SCHEMA 조회로 존재여부 prompt 주입
     private final SchemaInspectionService   schemaInspectionService;
 
@@ -176,6 +184,20 @@ public class ComposerService {
     @Transactional(readOnly = true)
     public List<ComposerMessage> listMessages(String sessionId) {
         return messageRepo.findBySessionIdOrderByTurnSeqAsc(sessionId);
+    }
+
+    /**
+     * 세션의 LLM 룰 준수 채점 (2-B). raw assistant 메시지(1a rewriter 적용 전)를 채점해
+     * "LLM 이 룰을 따랐나"를 측정한다. setter 주입 — scorer 빈 없으면 빈 결과.
+     */
+    @Transactional(readOnly = true)
+    public JsxConformanceScorer.SessionReport scoreConformance(String sessionId) {
+        if (jsxConformanceScorer == null) return new JsxConformanceScorer.SessionReport();
+        List<String> assistantContents = messageRepo.findBySessionIdOrderByTurnSeqAsc(sessionId).stream()
+                .filter(m -> ComposerMessage.ROLE_ASSISTANT.equals(m.getRole()))
+                .map(ComposerMessage::getContent)
+                .collect(java.util.stream.Collectors.toList());
+        return jsxConformanceScorer.scoreMessages(assistantContents);
     }
 
     @Transactional

@@ -138,6 +138,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                             {fileObj.entries.map((e) => {
                               const k = entryKey(e);
                               const isSel = selected === k;
+                              const layerCount = Array.isArray(e.layers) ? e.layers.length : 0;
                               return (
                                 <Box
                                   key={k}
@@ -161,6 +162,14 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                                     title={e.tabLabel || e.fileLabel}>
                                     {e.tabLabel || e.fileLabel}
                                   </Typography>
+                                  {layerCount > 0 && (
+                                    <Chip size="small" label={`${layerCount}L`}
+                                      title={`이 패턴은 ${layerCount}개 layer 로 자동 분할됩니다`}
+                                      sx={{ height: 16, fontSize: 9, fontWeight: 700,
+                                            bgcolor: 'rgba(124,58,237,0.12)', color: '#7c3aed',
+                                            border: '1px solid rgba(124,58,237,0.25)',
+                                            '& .MuiChip-label': { px: 0.5 } }} />
+                                  )}
                                 </Box>
                               );
                             })}

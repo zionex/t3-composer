@@ -101,3 +101,17 @@ pattern-coverage, reference 카탈로그) 와 PPT outline (feature/composer-ppt-
 - 화면 변경 시 매뉴얼 동기화 책임자/타이밍 (별도 협의)
 - 매뉴얼 사이트 호스팅 (현재는 git repo 안 정적 파일)
 - 인쇄 PDF 변환 가이드
+
+## 갱신 (Revision)
+
+### 2026-06-17 v1.1 — 다국어 토글 + 섹션 번호 → 의미 아이콘
+- 섹션 번호 (0~9) 가 순차 실행 느낌이라 — **h2 의 숫자 뱃지를 의미 아이콘으로 교체**.
+  10개 섹션이 각자 다른 색 그라데이션 + SVG icon (setup/play/sparkle/history/mockup/pattern/widgets/schema/dashboard/book).
+  ToC 도 텍스트 옆 아이콘 노출. 사이드바 mock 의 메뉴 아이콘과 일관성.
+- **한국어/영어 이중언어** — 단일 HTML 안에 두 버전 모두 포함, 좌측 ToC 상단 [한국어 / English] 토글.
+  `body[data-lang]` + `.ko` / `.en` span 으로 토글. 선택은 localStorage 저장.
+  초기값은 브라우저 언어 (`navigator.language` 가 `ko-*` 면 한국어, 아니면 영어).
+- inline SVG sprite (`<symbol>` + `<use>`) 로 아이콘 중복 제거.
+
+본문 영문 번역은 자연스럽고 일관된 톤 — 기술 용어 (Composer, ComposerWizard, MENU_CD,
+Anthropic vision, Chart.js 등) 는 원형 유지.

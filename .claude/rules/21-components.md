@@ -261,7 +261,7 @@ const handleConfirm = (selected) => {
 | `zAxios` | wingui REST 클라이언트 (axios wrapper) |
 | `zAxios.get(url, { params })` · `zAxios({method,url,headers,data})` | GET / POST 객체 인자 |
 | `callService(serviceId, paramMap, target)` | 엔진 API (target ∈ `'mp'|'dp'|'bf'|'fp'`). ★ 신규 화면 사용 금지 — BF/DP/MP/FP 계산 수정 전용 |
-| `showMessage(title, message, callback?)` | **첫 인자는 제목 문자열** (★ `'confirm'`/`'error'` 토큰 아님). callback `(answer:boolean) => void` |
+| `showMessage(title, message, callback?)` | **import 하지 않는 free variable** — 번들/부트스트랩 전역 (`@wingui/common/imports` named export 아님). 첫 인자는 제목 문자열 (★ `'confirm'`/`'error'` 토큰 아님). callback `(answer:boolean) => void` |
 | `useFieldCascade({control, setValue, getValues})` | 검색 form cascade hook |
 | `applyGridCascade(grid, items, {onCellPopupRequest})` | 그리드 cascade — afterGridCreate 안에서 호출 |
 | `buildPopupFilterProps('<child>', getValues)` | Pop\* 에 cascade parent 자동 주입 |
@@ -298,8 +298,11 @@ callService('SRV_GET_SP_UI_BF_10_Q1', { planScope: 'PS01' }, 'bf');
 ### 9.3 showMessage
 
 ```jsx
-// ✅
+// ✅ import 없이 free variable 로 호출
 showMessage('확인', '저장하시겠습니까?', (ok) => { if (ok) doSave(); });
+
+// ❌ import — wingui 본 환경에 named export 없음, sync 후 컴파일 실패 (hook block)
+import { showMessage } from '@wingui/common/imports';
 
 // ❌ 타입 토큰 (hook block)
 showMessage('confirm', msg, cb);
@@ -327,6 +330,7 @@ showMessage('confirm', msg, cb);
 | Grid 버튼 `grid={ref}` | `grid="<string-id>"` | hook block |
 | `globalButtons` `{code,onClick}` | `{name,action}` | hook block |
 | `showMessage('confirm',...)` | `showMessage('확인',...)` | hook block |
+| `import { showMessage } from '@wingui/common/imports'` (sync 후 컴파일 실패) | import 라인 없이 free variable 로 호출 | hook block |
 | `<InputField type="action" />` 자기닫힘 | children `<SearchIcon/>` | hook warn |
 | datetime defaultValue `''` | `null` | LLM |
 | 산출물에 `CommonCodeSelect` import | `InputField type="select"` | LLM |

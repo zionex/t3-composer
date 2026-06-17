@@ -350,6 +350,16 @@ if [[ "$FILE_PATH" == *.jsx || "$FILE_PATH" == *.tsx ]] && [ -n "$CONTENT" ]; th
             "rules/41a-composer-jsx.md §4.6, rules/99-anti-patterns.md CG7"
     fi
 
+    # CG-IMPORT-SHOWMSG. showMessage 를 어떤 경로에서든 import 금지 —
+    #   wingui 본 환경에서 showMessage 는 번들/부트스트랩 free variable
+    #   (@wingui/common/imports 의 named export 가 아님). import 시 sync 후 컴파일 실패.
+    #   여러 줄 import 도 매칭하기 위해 줄바꿈을 공백으로 평탄화한 사본 사용.
+    _FLAT_SHOWMSG=$(tr '\n' ' ' <<<"$CONTENT")
+    if grep -qE "import[[:space:]]*\{[^}]*\bshowMessage\b[^}]*\}[[:space:]]*from[[:space:]]*['\"]" <<<"$_FLAT_SHOWMSG"; then
+      block "showMessage 는 import 하지 않습니다. wingui 본 환경에서 @wingui/common/imports (또는 어떤 경로에서든) 의 named export 가 아닌 번들/부트스트랩 전역 (free variable). import 라인을 제거하고 그대로 호출하세요: showMessage('확인', msg, cb)." \
+            "rules/41a-composer-jsx.md §4.1, rules/50-composer-standalone-runtime.md §13.8, rules/99a-composer-anti-patterns.md CG-C8a"
+    fi
+
     # CG8. grid.setData / grid.getChangedData — 존재하지 않는 메서드
     if grep -qE "\bgrid[A-Za-z0-9_]*\.setData\s*\(" <<<"$CONTENT"; then
       block "grid.setData(...) 는 존재하지 않습니다. grid.dataProvider.fillJsonData(data) 사용." \

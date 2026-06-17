@@ -41,6 +41,7 @@
 | CG-C6 | `<GridSaveButton grid={ref}>` (객체) | `grid="userInfoGrid"` (문자열 id) | hook H |
 | CG-C7 | `globalButtons: [{code, onClick}]` | `[{name, action}]` | hook H |
 | CG-C8 | `showMessage('confirm', msg, cb)` | `showMessage('확인', msg, cb)` | hook H |
+| CG-C8a | `import { showMessage } from '@wingui/common/imports'` (또는 어떤 경로에서든 named import) — wingui 본 환경에 named export 없음, sync 후 컴파일 실패 | **import 라인 없이 free variable 로 호출** — 번들/부트스트랩 전역. `rules/41a §4.1` · `rules/50 §13.8` | hook H |
 | CG-C9 | `<InputField type="action" />` 자기닫힘 · `InputProps.endAdornment` | children `<SearchIcon/>` 필수 | hook warn |
 | CG-C10 | 컬럼에 `button:'action'`/`buttonVisibility` 수동 | `applyGridCascade` 자동 주입 | hook warn |
 | CG-C11 | BaseGrid 컬럼 `dataType` 누락 → 화면 즉시 크래시 | 모든 컬럼에 `dataType` | hook H |

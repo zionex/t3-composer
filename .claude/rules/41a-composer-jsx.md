@@ -15,12 +15,14 @@ import {
   InputField, BaseGrid, GridCnt,
   GridAddRowButton, GridDeleteRowButton,
   GridSaveButton, GridExcelExportButton,
-  zAxios, showMessage,
+  zAxios,
   useViewStore, useContentStore,
   useFieldCascade, applyGridCascade, buildPopupFilterProps,
 } from '@wingui/common/imports';
 ```
 ❌ `@wingui/common/store/*` · `@zionex/wingui-core/*` 직접 import 금지.
+
+⛔ **`showMessage` 는 import 하지 않는다** — wingui 본 환경에서 `@wingui/common/imports` 의 named export 가 **아니다** (번들/부트스트랩 수준에서 제공되는 free variable — `rules/50 §13.8`). 산출물에 `import { showMessage } from '@wingui/common/imports'` (또는 어떤 경로에서든) 를 작성하면 wingui sync 후 컴파일 실패. **import 라인 자체를 작성하지 말 것** — free variable 로 호출. 사용 패턴은 §4.6 참조. Hook (`composer-jsx.sh CG-IMPORT-SHOWMSG`) 가 자동 차단.
 
 ### §4.2 BaseGrid 실제 API
 | 잘못된 이름 | 실제 API |
@@ -228,6 +230,8 @@ zAxios.get('util/dept-mgmt-v2', { params: getValues() });  // 404 (Controller �
 const [activeViewId] = useContentStore((s) => [s.activeViewId]);
 const [setViewInfo]  = useViewStore((s) => [s.setViewInfo]);
 
+// ✅ showMessage — import 없이 free variable 로 호출 (§4.1)
+//    첫 인자는 제목 문자열 (★ 'confirm'/'error' 같은 타입 토큰 아님)
 showMessage('확인', '저장하시겠습니까?', (ok) => { if (ok) doSave(); });
 
 useEffect(() => {

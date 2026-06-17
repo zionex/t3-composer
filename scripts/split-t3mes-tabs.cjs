@@ -340,6 +340,7 @@ function main() {
   const out = {};
   let totalTabs = 0, totalFull = 0, totalLite = 0;
   let liteStatic = 0, liteTemplate = 0, liteNone = 0;
+  let totalLayersExtracted = 0, totalLayersNone = 0;
 
   for (const f of files) {
     const full = path.join(HTML_DIR, f);
@@ -370,12 +371,20 @@ function main() {
       else if (liteSource === 'template') liteTemplate++;
       else                                liteNone++;
       const liteRel  = `t3mes-split/lite/${stem}/${fname}`;
-      writeFileEnsured(path.join(SPLIT_DIR, 'lite', stem, fname),
-                       buildLiteHtml(panelHtml, liteSource,
-                                     { label: t.label, index: t.index, stem, srcFile: f }));
+      const liteContent = buildLiteHtml(panelHtml, liteSource,
+                                       { label: t.label, index: t.index, stem, srcFile: f });
+      writeFileEnsured(path.join(SPLIT_DIR, 'lite', stem, fname), liteContent);
       totalLite++;
 
-      tabMetas.push({ index: t.index, label: t.label, full: fullRel, lite: liteRel });
+      // ★ layers 추출 — panel HTML (정적/템플릿) 에서 직접 파싱
+      //   panelHtml 이 null 이면 (liteSource='none') 추출 시도 불가 → layers 미주입
+      const layers = panelHtml ? extractLayers(panelHtml) : [];
+      if (layers.length > 0) totalLayersExtracted++;
+      else                   totalLayersNone++;
+
+      const tabMeta = { index: t.index, label: t.label, full: fullRel, lite: liteRel };
+      if (layers.length > 0) tabMeta.layers = layers;
+      tabMetas.push(tabMeta);
     }
 
     out[f] = tabMetas;
@@ -388,6 +397,8 @@ function main() {
   console.log(`\n파일: ${files.length}  ·  TabPage: ${totalTabs}`);
   console.log(`분리 산출: full ${totalFull}개, lite ${totalLite}개`);
   console.log(`  lite 내역: 정적추출 ${liteStatic}  ·  동적템플릿 ${liteTemplate}  ·  placeholder ${liteNone}`);
+  console.log(`layers   : 추출 ${totalLayersExtracted}  ·  미추출 ${totalLayersNone}` +
+              ` (${Math.round(totalLayersExtracted / totalTabs * 100)}%)`);
   console.log(`tabs json : ${OUT_FILE}`);
   console.log(`split dir : ${SPLIT_DIR}`);
 }
@@ -395,11 +406,17 @@ function main() {
 // ──────────────────────────────────────────────────────────────
 // Layer 추출 — lite HTML → ComposerSpec.layers 12-col RGL 좌표
 //
-// 인식 시그니처 (spec §3.2):
-//   <table class="tbl"> · <div class="tbl-wrap">  → GRID (GRID_BASE)
-//   <canvas> · class="chart" / class="chart-card" → CHART (CHART_LINE)
-//   <div class="kpi-grid"> · <div class="kpi-row"> + 자식 → KPI 영역 1개 (KPI_CARD)
-//   <div class="form-row"> 다수 · <input>/<select> 다수 → CONTAINER (FORM)
+// 인식 시그니처 (spec §3.2 + 2026-06 broaden):
+//   <table class="tbl"> · <div class="tbl-wrap">          → GRID (GRID_BASE)
+//   <canvas> · class="chart" / class="chart-card" · <svg> → CHART (CHART_LINE)
+//   <div class="kpi-grid"> · <div class="kpi-row"> + 자식  → KPI 영역 1개 (KPI_CARD)
+//   <div class="form-row"> 다수 · <input>/<select> 다수    → CONTAINER (FORM)
+//   <div|ul class="org-tree|tree-view|treegrid|tree">     → GRID (GRID_TREE)
+//   <div class="card"> ≥3개 (card-hdr/title 제외)         → CONTAINER (CARD_LIST)
+//   <div|ol|ul class="steps|stepper|step-list">           → CHART (STEPPER)
+//   <div class="kanban">                                  → CONTAINER (CARD_LIST)
+//   <div class="cal-grid">                                → CHART (CALENDAR)
+//   <div class="mobile-frame">                            → CONTAINER (MOBILE_PREVIEW)
 //
 // 좌표 신호:
 //   class="grid2" 또는 grid-template-columns 2-col → 좌우 분할 (w 분배)
@@ -425,27 +442,44 @@ function extractLayers(html) {
     grid:  Math.max(matchCount(/<table[^>]*class="[^"]*\btbl\b/gi),
                     matchCount(/<div[^>]*class="[^"]*\btbl-wrap\b/gi)),
     chart: Math.max(matchCount(/<canvas\b/gi),
-                    matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi)),
+                    matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi),
+                    matchCount(/<svg\b/gi)),  // SVG-only diagrams 도 차트로 분류
     kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
              || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2) ? 1 : 0,
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
              || matchCount(/<input\b/gi) + matchCount(/<select\b/gi) >= 3) ? 1 : 0,
+    tree:  (/<(div|ul)[^>]*class="[^"]*\b(org-tree|tree-view|treegrid|tree)\b/i.test(inner)) ? 1 : 0,
+    cards: (matchCount(/<div[^>]*class="(?:[^"]*\s)?card(?:\s[^"]*)?"/gi) >= 3
+             || /<div[^>]*class="[^"]*\bkanban\b/i.test(inner)) ? 1 : 0,
+    stepper: (/<(div|ol|ul)[^>]*class="[^"]*\b(steps|stepper|step-list)\b/i.test(inner)) ? 1 : 0,
+    calendar: (/<div[^>]*class="[^"]*\bcal-grid\b/i.test(inner)) ? 1 : 0,
+    mobile: (/<div[^>]*class="[^"]*\bmobile-frame\b/i.test(inner)) ? 1 : 0,
   };
 
   // type 메타 빌드 — Mockup 의 type/subtype 관례 따름.
   //   KPI 가 있으면 항상 맨 위 (대시보드 패턴 관례)
   //   순서: [KPI] → grids → charts → [form]
   const META = {
-    GRID:  { type: 'GRID',      subtype: 'GRID_BASE', titlePrefix: '그리드' },
-    CHART: { type: 'CHART',     subtype: 'CHART_LINE', titlePrefix: '차트' },
-    KPI:   { type: 'CHART',     subtype: 'KPI_CARD',   titlePrefix: 'KPI' },
-    FORM:  { type: 'CONTAINER', subtype: 'FORM',       titlePrefix: '입력 폼' },
+    GRID:     { type: 'GRID',      subtype: 'GRID_BASE',       titlePrefix: '그리드' },
+    CHART:    { type: 'CHART',     subtype: 'CHART_LINE',      titlePrefix: '차트' },
+    KPI:      { type: 'CHART',     subtype: 'KPI_CARD',        titlePrefix: 'KPI' },
+    FORM:     { type: 'CONTAINER', subtype: 'FORM',            titlePrefix: '입력 폼' },
+    TREE:     { type: 'GRID',      subtype: 'GRID_TREE',       titlePrefix: '트리' },
+    CARDS:    { type: 'CONTAINER', subtype: 'CARD_LIST',       titlePrefix: '카드 리스트' },
+    STEPPER:  { type: 'CHART',     subtype: 'STEPPER',         titlePrefix: '단계' },
+    CALENDAR: { type: 'CHART',     subtype: 'CALENDAR',        titlePrefix: '달력' },
+    MOBILE:   { type: 'CONTAINER', subtype: 'MOBILE_PREVIEW',  titlePrefix: '모바일' },
   };
   const slots = [];
-  if (counts.kpi) slots.push({ ...META.KPI, slot: 'kpi' });
+  if (counts.stepper)  slots.push({ ...META.STEPPER,  slot: 'stepper' });
+  if (counts.kpi)      slots.push({ ...META.KPI,      slot: 'kpi' });
+  if (counts.tree)     slots.push({ ...META.TREE,     slot: 'tree' });
   for (let i = 0; i < counts.grid;  i++) slots.push({ ...META.GRID,  slot: 'grid' });
   for (let i = 0; i < counts.chart; i++) slots.push({ ...META.CHART, slot: 'chart' });
-  if (counts.form) slots.push({ ...META.FORM, slot: 'form' });
+  if (counts.calendar) slots.push({ ...META.CALENDAR, slot: 'calendar' });
+  if (counts.mobile)   slots.push({ ...META.MOBILE,   slot: 'mobile' });
+  if (counts.cards)    slots.push({ ...META.CARDS,    slot: 'cards' });
+  if (counts.form)     slots.push({ ...META.FORM,     slot: 'form' });
 
   if (slots.length === 0) return [];
 
@@ -481,15 +515,19 @@ function extractLayers(html) {
   }
 
   // key/title 부여 (slot 별 인덱스)
-  const counters = { kpi: 0, grid: 0, chart: 0, form: 0 };
+  const counters = {
+    kpi: 0, grid: 0, chart: 0, form: 0, tree: 0, cards: 0, stepper: 0, calendar: 0, mobile: 0,
+  };
+  const SINGLETON_TITLES = {
+    kpi: 'KPI 영역', form: '입력 폼', tree: '트리', cards: '카드 리스트', stepper: '단계',
+    calendar: '달력', mobile: '모바일',
+  };
   return slots.map((s, i) => {
     counters[s.slot] += 1;
     const n = counters[s.slot];
-    const isSingleton = (s.slot === 'kpi' || s.slot === 'form');
     return {
       key:   `${s.slot}${n}`,
-      title: isSingleton ? (s.slot === 'kpi' ? 'KPI 영역' : '입력 폼')
-                         : `${s.titlePrefix} ${n}`,
+      title: SINGLETON_TITLES[s.slot] || `${s.titlePrefix} ${n}`,
       type: s.type,
       subtype: s.subtype,
       position: positions[i],

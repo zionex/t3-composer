@@ -78,4 +78,37 @@ console.warn = origWarn;
 assert.strictEqual(c6.length, 6, 'C6 6개 cap');
 assert.ok(warnings.some((w) => /6\+/.test(w)), 'C6 warn 발생');
 
-console.log('OK — extract-layers 7 cases passed');
+// ── C7: 트리 시각화 (org-tree) ──
+const c7 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="org-tree"><ul><li>root<ul><li>child</li></ul></li></ul></div>
+</div>`);
+eq(c7, [
+  { key: 'tree1', title: '트리', type: 'GRID', subtype: 'GRID_TREE',
+    position: { x: 0, y: 0, w: 12, h: 12 } },
+], 'C7 tree');
+
+// ── C8: 카드 리스트 (≥3 card) ──
+const c8 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="card">A</div><div class="card">B</div><div class="card">C</div><div class="card">D</div>
+</div>`);
+eq(c8, [
+  { key: 'cards1', title: '카드 리스트', type: 'CONTAINER', subtype: 'CARD_LIST',
+    position: { x: 0, y: 0, w: 12, h: 12 } },
+], 'C8 cards');
+
+// ── C9: 스테퍼 + 그리드 (stepper 위, grid 아래) ──
+const c9 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="stepper"><div class="step">1</div><div class="step">2</div></div>
+  <table class="tbl"></table>
+</div>`);
+eq(c9, [
+  { key: 'stepper1', title: '단계', type: 'CHART', subtype: 'STEPPER',
+    position: { x: 0, y: 0, w: 12, h: 6 } },
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 6, w: 12, h: 6 } },
+], 'C9 stepper + grid');
+
+console.log('OK — extract-layers 10 cases passed');

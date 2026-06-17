@@ -140,11 +140,16 @@ function buildEntries() {
         } else {
           for (const t of tabs) {
             // 분리된 독립 HTML(full) / 경량 조각(lite) 경로 — t3mes-tabs.json 이 제공
-            out.push({
+            // layers — split 스크립트가 lite HTML 파싱으로 추출 (있을 때만 전파)
+            const entry = {
               ...base, tabIndex: t.index, tabLabel: t.label,
               srcUrl:  t.full ? `/${t.full}` : `/t3mes/${item.file}`,
               liteUrl: t.lite ? `/${t.lite}` : null,
-            });
+            };
+            if (Array.isArray(t.layers) && t.layers.length > 0) {
+              entry.layers = t.layers;
+            }
+            out.push(entry);
           }
         }
       }

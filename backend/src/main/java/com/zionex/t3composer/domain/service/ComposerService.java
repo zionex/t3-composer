@@ -703,33 +703,11 @@ public class ComposerService {
 
     /**
      * 마지막 user message 의 텍스트 + binary 첨부 → Anthropic content block 배열.
-     *   image  → { type:"image",    source:{ type:"base64", media_type, data } }
-     *   pdf    → { type:"document", source:{ type:"base64", media_type, data } }
+     * 실제 변환 로직은 {@link com.zionex.t3composer.domain.util.MultimodalContentBuilder} 가 보유 —
+     * AI 추천 흐름의 RecommendMockup/PrefillFromMockup/PrefillFromSynthesized service 와 공유.
      */
     private List<Object> buildMultimodalContent(String text, List<Attachment> attachments) {
-        List<Object> blocks = new ArrayList<>();
-        // text block 먼저 — 사용자 prompt
-        Map<String, Object> textBlock = new LinkedHashMap<>();
-        textBlock.put("type", "text");
-        textBlock.put("text", text == null ? "" : text);
-        blocks.add(textBlock);
-
-        for (Attachment a : attachments) {
-            if (a == null || a.getBase64() == null || a.getBase64().isEmpty()) continue;
-            String mediaType = a.getMediaType() == null ? "application/octet-stream" : a.getMediaType();
-            String blockType = inferBlockType(mediaType);
-
-            Map<String, Object> source = new LinkedHashMap<>();
-            source.put("type", "base64");
-            source.put("media_type", mediaType);
-            source.put("data", a.getBase64());
-
-            Map<String, Object> block = new LinkedHashMap<>();
-            block.put("type", blockType);
-            block.put("source", source);
-            blocks.add(block);
-        }
-        return blocks;
+        return com.zionex.t3composer.domain.util.MultimodalContentBuilder.build(text, attachments);
     }
 
     /**
@@ -764,14 +742,6 @@ public class ComposerService {
             blocks.add(block);
             last.setContent(blocks);
         }
-    }
-
-    private static String inferBlockType(String mediaType) {
-        String mt = mediaType.toLowerCase();
-        if (mt.startsWith("image/")) return "image";
-        if (mt.equals("application/pdf")) return "document";
-        // 그 외 (xlsx/docx/etc) — document block 으로 시도 (Anthropic 가 거부할 수도 있음)
-        return "document";
     }
 
     private int nextTurnSeq(String sessionId) {

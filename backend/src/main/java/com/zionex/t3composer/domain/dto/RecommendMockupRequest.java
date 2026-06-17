@@ -14,4 +14,10 @@ public class RecommendMockupRequest {
      * returns the existing-only response shape (synthesized: []). Used for rollback.
      */
     private Boolean synthesize;
+
+    /** AiRecommendPanel D&D 텍스트 첨부 — user prompt 끝에 inline */
+    private List<TextAttachmentDto> textAttachments;
+
+    /** AiRecommendPanel D&D 바이너리 첨부 — Anthropic multimodal content blocks */
+    private List<Attachment> binaryAttachments;
 }

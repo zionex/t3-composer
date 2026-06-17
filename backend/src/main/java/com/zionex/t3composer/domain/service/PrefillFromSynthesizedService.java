@@ -1,5 +1,6 @@
 package com.zionex.t3composer.domain.service;
 
+import com.zionex.t3composer.domain.dto.Attachment;
 import com.zionex.t3composer.domain.dto.PrefillFromSynthesizedRequest;
 import com.zionex.t3composer.domain.client.LlmClient;
 import com.zionex.t3composer.domain.client.AnthropicModels.CacheControl;
@@ -8,6 +9,8 @@ import com.zionex.t3composer.domain.client.AnthropicModels.MessagesRequest;
 import com.zionex.t3composer.domain.client.AnthropicModels.MessagesResponse;
 import com.zionex.t3composer.domain.client.AnthropicModels.SystemBlock;
 import com.zionex.t3composer.domain.client.AnthropicModels.TextBlock;
+import com.zionex.t3composer.domain.util.MultimodalContentBuilder;
+import com.zionex.t3composer.domain.util.PromptAttachmentInliner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +45,12 @@ public class PrefillFromSynthesizedService {
         try {
             String apiKey = apiKeyOpt.get();
             String systemPrompt = buildSystemPrompt();
-            String userPrompt = buildUserPrompt(req);
+            // AiRecommendPanel D&D 첨부 — 텍스트는 prompt 본문 끝에 inline, 바이너리는 multimodal blocks.
+            String userPrompt = PromptAttachmentInliner.inline(buildUserPrompt(req), req.getTextAttachments());
+            List<Attachment> bin = req.getBinaryAttachments();
+            Object userContent = (bin != null && !bin.isEmpty())
+                    ? MultimodalContentBuilder.build(userPrompt, bin)
+                    : userPrompt;
 
             MessagesRequest mreq = MessagesRequest.builder()
                     .model(MODEL_NAME)
@@ -56,7 +64,7 @@ public class PrefillFromSynthesizedService {
                                     .build()
                     ))
                     .messages(List.of(
-                            Message.builder().role("user").content(userPrompt).build()
+                            Message.builder().role("user").content(userContent).build()
                     ))
                     .build();
 

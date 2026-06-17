@@ -1064,21 +1064,7 @@
       "index": 23,
       "label": "단가 예측 차트",
       "full": "t3mes-split/full/mes_mrp_1_order/24_단가_예측_차트.html",
-      "lite": "t3mes-split/lite/mes_mrp_1_order/24_단가_예측_차트.html",
-      "layers": [
-        {
-          "key": "chart1",
-          "title": "차트 1",
-          "type": "CHART",
-          "subtype": "CHART_LINE",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 12
-          }
-        }
-      ]
+      "lite": "t3mes-split/lite/mes_mrp_1_order/24_단가_예측_차트.html"
     },
     {
       "index": 24,
@@ -1174,7 +1160,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -1184,21 +1170,9 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 3,
+            "x": 4,
             "y": 0,
-            "w": 3,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -1208,9 +1182,9 @@
           "type": "CONTAINER",
           "subtype": "FORM",
           "position": {
-            "x": 9,
+            "x": 8,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         }
@@ -2894,19 +2868,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
+            "w": 12,
             "h": 12
           }
         }
@@ -2984,19 +2946,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
+            "w": 12,
             "h": 12
           }
         }
@@ -4555,7 +4505,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -4565,21 +4515,9 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 3,
+            "x": 4,
             "y": 0,
-            "w": 3,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -4589,9 +4527,9 @@
           "type": "CONTAINER",
           "subtype": "FORM",
           "position": {
-            "x": 9,
+            "x": 8,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         }
@@ -6797,21 +6735,7 @@
       "index": 10,
       "label": "GPS 실시간 물류맵",
       "full": "t3mes-split/full/mes_tracking_1_order/11_GPS_실시간_물류맵.html",
-      "lite": "t3mes-split/lite/mes_tracking_1_order/11_GPS_실시간_물류맵.html",
-      "layers": [
-        {
-          "key": "chart1",
-          "title": "차트 1",
-          "type": "CHART",
-          "subtype": "CHART_LINE",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 12
-          }
-        }
-      ]
+      "lite": "t3mes-split/lite/mes_tracking_1_order/11_GPS_실시간_물류맵.html"
     },
     {
       "index": 11,
@@ -6979,19 +6903,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
+            "w": 12,
             "h": 12
           }
         }
@@ -7027,21 +6939,7 @@
       "index": 23,
       "label": "QR 바코드 직조회",
       "full": "t3mes-split/full/mes_tracking_1_order/24_QR_바코드_직조회.html",
-      "lite": "t3mes-split/lite/mes_tracking_1_order/24_QR_바코드_직조회.html",
-      "layers": [
-        {
-          "key": "chart1",
-          "title": "차트 1",
-          "type": "CHART",
-          "subtype": "CHART_LINE",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 12
-          }
-        }
-      ]
+      "lite": "t3mes-split/lite/mes_tracking_1_order/24_QR_바코드_직조회.html"
     },
     {
       "index": 24,
@@ -7087,21 +6985,7 @@
       "index": 26,
       "label": "온도 로거 콜드체인",
       "full": "t3mes-split/full/mes_tracking_1_order/27_온도_로거_콜드체인.html",
-      "lite": "t3mes-split/lite/mes_tracking_1_order/27_온도_로거_콜드체인.html",
-      "layers": [
-        {
-          "key": "chart1",
-          "title": "차트 1",
-          "type": "CHART",
-          "subtype": "CHART_LINE",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 12
-          }
-        }
-      ]
+      "lite": "t3mes-split/lite/mes_tracking_1_order/27_온도_로거_콜드체인.html"
     },
     {
       "index": 27,
@@ -7641,19 +7525,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
+            "w": 12,
             "h": 12
           }
         }
@@ -7767,7 +7639,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 4,
+            "w": 6,
             "h": 12
           }
         },
@@ -7777,21 +7649,9 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 4,
+            "x": 6,
             "y": 0,
-            "w": 4,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 8,
-            "y": 0,
-            "w": 4,
+            "w": 6,
             "h": 12
           }
         }
@@ -7811,7 +7671,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -7821,9 +7681,9 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 3,
+            "x": 4,
             "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         },
@@ -7833,21 +7693,9 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
+            "x": 8,
             "y": 0,
-            "w": 3,
-            "h": 12
-          }
-        },
-        {
-          "key": "cards1",
-          "title": "카드 리스트",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 9,
-            "y": 0,
-            "w": 3,
+            "w": 4,
             "h": 12
           }
         }

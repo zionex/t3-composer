@@ -178,24 +178,6 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     return p;
   };
 
-  const onPickImageDerived = async () => {
-    if (imageAttachments.length === 0) return;
-    const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : '내 설계';
-    // 1) 캐시 있으면 즉시 사용
-    if (imageDerivedSpec) {
-      onStart(specFromImageDerived(imageDerivedSpec, { title: baseTitle, menuCd: '' }), attachments);
-      return;
-    }
-    // 2) 진행 중이면 그 promise 대기
-    if (imageDerivedPromiseRef.current) {
-      const aiSpec = await imageDerivedPromiseRef.current;
-      onStart(specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' }), attachments);
-      return;
-    }
-    // 3) 아직 시작 안 함 (검색 안 누르고 hero 카드만 직접 클릭한 케이스) → lazy 시작 후 대기
-    const aiSpec = await startImageDerivedAnalysis();
-    onStart(specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' }), attachments);
-  };
 
   const codeToEntry = useMemo(() => {
     const m = new Map();
@@ -242,7 +224,10 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     }
 
     const TARGET_SLOTS       = 6;
-    const TARGET_EXISTING    = 4;
+    const hasImage           = imageAttachments.length > 0;
+    // 이미지 첨부 시: image-derived 1 + existing 3 + synthesized 2 = 6
+    // 미첨부 시:                       existing 4 + synthesized 2 = 6
+    const TARGET_EXISTING    = hasImage ? 3 : 4;
     const TARGET_SYNTHESIZED = 2;
 
     // 1) Front-side keyword score as fallback ordering
@@ -295,6 +280,13 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
       });
     }
 
+    // 이미지 첨부 시 image-derived 카드를 첫 슬롯에 — 백그라운드에서 분석 중이거나 완료된 spec 을
+    // hero 카드처럼 강조하지 않고 grid 의 1개 옵션으로 동등하게 노출. cards 는 위에서 6개로 채워졌으므로
+    // 1개 빼고 prepend → 다시 6개 유지.
+    if (hasImage) {
+      cards = [{ kind: 'imageDerived' }, ...cards.slice(0, TARGET_SLOTS - 1)];
+    }
+
     setMode(resolvedMode);
     setResults(cards);
   };
@@ -304,6 +296,26 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     setFillingIdx(idx);
 
     const attachPayload = buildAttachPayload(attachments);
+
+    if (item.kind === 'imageDerived') {
+      const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : '내 설계';
+      try {
+        // 분석 진행 중이면 promise 대기 — 캐시 있으면 즉시.
+        let aiSpec = imageDerivedSpec;
+        if (!aiSpec && imageDerivedPromiseRef.current) {
+          aiSpec = await imageDerivedPromiseRef.current;
+        }
+        if (!aiSpec) {
+          // 미시작 (드물지만) — 지금 시작 후 대기
+          aiSpec = await startImageDerivedAnalysis();
+        }
+        const spec = specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' });
+        onStart(spec, attachments);
+      } finally {
+        setFillingIdx(null);
+      }
+      return;
+    }
 
     if (item.kind === 'existing') {
       const entry = item.entry;
@@ -355,6 +367,95 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
   };
 
   const renderCard = (item, idx) => {
+    if (item.kind === 'imageDerived') {
+      const layers = Array.isArray(imageDerivedSpec?.layers) ? imageDerivedSpec.layers : [];
+      const layerCount = layers.length;
+      const ready = !imageDerivedLoading && imageDerivedSpec != null;
+      const busy = imageDerivedLoading || fillingIdx === idx;
+      // 작은 preview — 12-col grid 위에 layer 사각형만 (스타일은 단순한 wireframe)
+      const renderLayerPreview = () => {
+        if (!layers || layers.length === 0) return null;
+        // y 최대 + h 로 grid 전체 row 수 결정 (보통 6~12)
+        const maxRow = layers.reduce((m, l) => Math.max(m, (l.position?.y || 0) + (l.position?.h || 1)), 0) || 8;
+        return (
+          <Box sx={{ position: 'absolute', inset: 8, display: 'grid',
+                      gridTemplateColumns: 'repeat(12, 1fr)',
+                      gridTemplateRows: `repeat(${maxRow}, 1fr)`, gap: '2px' }}>
+            {layers.map((l, i) => {
+              const p = l.position || { x: 0, y: i * 2, w: 12, h: 2 };
+              const color = l.type === 'CHART' ? SYNTH_ACCENT
+                : l.type === 'KPI' ? ACCENT
+                : l.type === 'GRID' ? '#86C7A8'
+                : '#94a3b8';
+              return (
+                <Box key={l.key || i} sx={{
+                  gridColumn: `${(p.x || 0) + 1} / span ${p.w || 1}`,
+                  gridRow:    `${(p.y || 0) + 1} / span ${p.h || 1}`,
+                  bgcolor: `${color}33`,
+                  border: `1px solid ${color}`,
+                  borderRadius: 0.5,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 7, color, fontWeight: 700, overflow: 'hidden',
+                  px: 0.3, textAlign: 'center',
+                }}>
+                  {l.title || l.type || ''}
+                </Box>
+              );
+            })}
+          </Box>
+        );
+      };
+      return (
+        <Box key={`img-${idx}`} sx={{
+          display: 'flex', flexDirection: 'column', minWidth: 0,
+          bgcolor: '#fff', borderRadius: 2, overflow: 'hidden',
+          border: `2px solid ${SYNTH_ACCENT}`,
+          boxShadow: '0 2px 8px rgba(139,92,246,0.18)',
+        }}>
+          <Box sx={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden',
+                      borderBottom: '1px solid #f1f5f9',
+                      bgcolor: SYNTH_ACCENT_BG }}>
+            {ready && layerCount > 0
+              ? renderLayerPreview()
+              : (
+                <Box sx={{ position: 'absolute', inset: 0, display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            flexDirection: 'column', gap: 1, color: SYNTH_ACCENT_DARK }}>
+                  {imageDerivedLoading
+                    ? <><CircularProgress size={28} sx={{ color: SYNTH_ACCENT }} />
+                        <Typography sx={{ fontSize: 10.5, fontWeight: 700 }}>AI 분석 중…</Typography></>
+                    : <><PhotoFilterIcon sx={{ fontSize: 36, color: SYNTH_ACCENT_DARK }} />
+                        <Typography sx={{ fontSize: 10, color: SYNTH_ACCENT_TEXT }}>
+                          {ready ? '분석 결과가 비어있습니다' : '대기 중'}
+                        </Typography></>}
+                </Box>
+              )}
+          </Box>
+          <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
+            <Chip label="📷 내 설계" size="small"
+                  sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
+                        bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
+            <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>
+              내 설계 그대로 만들기
+            </Typography>
+            <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>
+              {ready
+                ? (layerCount > 0
+                  ? `이미지에서 ${layerCount}개 layer (KPI·차트·그리드·필터) 위치 추론 완료`
+                  : '구조가 모호합니다 — 시작 후 Layout 단계에서 직접 보강')
+                : 'Claude vision 이 이미지의 layout 을 분석하고 있습니다'}
+            </Typography>
+            <Button variant="contained" size="small" onClick={() => onPick(item, idx)}
+                    disabled={busy}
+                    sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
+                          bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER } }}>
+              {fillingIdx === idx ? '진입 중…' : (imageDerivedLoading ? '분석 중…' : '이 설계로 시작 →')}
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
+
     if (item.kind === 'placeholder') {
       return (
         <Box key={`ph-${idx}`} sx={{
@@ -596,83 +697,6 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
               <Typography variant="body2">자연어로 만들고 싶은 화면을 적고 "추천 템플릿 찾기" 를 누르세요.</Typography>
             </Box>
           )}
-          {/* ── 강조 hero 카드 — 이미지 첨부 시 grid 위에 1개만 노출 ── */}
-          {results && imageAttachments.length > 0 && (() => {
-            const layerCount = Array.isArray(imageDerivedSpec?.layers) ? imageDerivedSpec.layers.length : 0;
-            const ready = !imageDerivedLoading && imageDerivedSpec != null;
-            const summary = layerCount > 0
-              ? `${layerCount}개 layer 인식됨 — KPI·차트·그리드 위치 추론 완료`
-              : (ready
-                  ? '분석 결과가 비어있습니다. 이미지가 흐리거나 구조가 모호할 수 있어요 — 시작 후 직접 보강하세요.'
-                  : '첨부 이미지의 layout (KPI·차트·그리드·필터 위치)을 Claude vision 이 분석 중…');
-            return (
-            <Box
-              onClick={imageDerivedLoading ? undefined : onPickImageDerived}
-              sx={{
-                border: `2px solid ${ready && layerCount > 0 ? SYNTH_ACCENT : SYNTH_ACCENT_SOFT}`,
-                borderRadius: 2,
-                p: 1.5,
-                background: `linear-gradient(135deg, ${SYNTH_ACCENT_BG}, ${ACCENT_BG2})`,
-                cursor: imageDerivedLoading ? 'wait' : 'pointer',
-                boxShadow: '0 2px 12px rgba(139,92,246,0.18)',
-                transition: 'all 0.15s',
-                '&:hover': imageDerivedLoading ? {} : {
-                  borderColor: SYNTH_ACCENT, boxShadow: '0 4px 18px rgba(139,92,246,0.28)',
-                  transform: 'translateY(-1px)',
-                },
-                flexShrink: 0,
-              }}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Box sx={{
-                  width: 44, height: 44, borderRadius: '50%',
-                  bgcolor: SYNTH_ACCENT_CHIP,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  position: 'relative',
-                }}>
-                  <PhotoFilterIcon sx={{ fontSize: 26, color: SYNTH_ACCENT_DARK }} />
-                  {imageDerivedLoading && (
-                    <CircularProgress size={44} thickness={3}
-                      sx={{ position: 'absolute', inset: 0, color: SYNTH_ACCENT }} />
-                  )}
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap">
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: SYNTH_ACCENT_DARK }}>
-                      ✨ 내 설계 그대로 만들기
-                    </Typography>
-                    <Chip label={`이미지 ${imageAttachments.length}개`} size="small"
-                          sx={{ height: 18, fontSize: 9.5, bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
-                    {imageDerivedLoading && (
-                      <Chip label="AI 분석 중…" size="small"
-                            sx={{ height: 18, fontSize: 9.5, bgcolor: '#fef3c7', color: '#92400e' }} />
-                    )}
-                    {ready && layerCount > 0 && (
-                      <Chip label={`✓ ${layerCount} layers`} size="small"
-                            sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
-                                  bgcolor: SYNTH_ACCENT, color: '#fff' }} />
-                    )}
-                  </Stack>
-                  <Typography sx={{ fontSize: 11.5, color: SYNTH_ACCENT_TEXT, mt: 0.2 }}>
-                    {summary}
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained" size="small"
-                  disabled={imageDerivedLoading}
-                  startIcon={imageDerivedLoading ? <CircularProgress size={14} color="inherit" /> : null}
-                  sx={{ bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER },
-                          fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}
-                  onClick={(e) => { e.stopPropagation(); onPickImageDerived(); }}
-                >
-                  {imageDerivedLoading ? '분석 중…' : '이미지로 시작 →'}
-                </Button>
-              </Stack>
-            </Box>
-            );
-          })()}
-
           {results && (
             <Box sx={{
               display: 'grid',

@@ -90,7 +90,7 @@ const NEW_MODE_OPTIONS = [
 // ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)
 const MODIFY_MODE_OPTIONS = [
   { key: 'NL',   step: 1, title: '자연어 수정', sub: 'NL Modify',   icon: ChatIcon,             color: '#8FC4D4', hint: '현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청' },
-  { key: 'STEP', step: 2, title: '단계별 수정', sub: 'Step Modify', icon: PlaylistAddCheckIcon, color: '#86C7A8', hint: '기존 화면을 9단계 Spec 으로 분해해 수정할 부분만 변경' },
+  { key: 'STEP', step: 2, title: '단계별 수정', sub: 'Step Modify', icon: PlaylistAddCheckIcon, color: '#86C7A8', hint: '기존 화면을 Spec 으로 분해해 수정할 부분만 변경' },
 ];
 
 /**

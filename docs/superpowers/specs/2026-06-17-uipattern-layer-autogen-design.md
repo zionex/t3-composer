@@ -205,6 +205,9 @@ panel 루트 (`<div class="panel" id="pN">`) 안의 top-level layer 후보 N개�
 | C4 KPI 그리드 (kpi-grid) | `panel` 안 `<div class="kpi-grid">` + KPI 카드 다수 + `<table class="tbl">` | `[{key:'kpi1',type:'CHART',subtype:'KPI_CARD',h:6}, {key:'grid1',h:6}]` |
 | C5 시그니처 0건 | 텍스트만 또는 빈 panel | `[]` → JSON 미주입 |
 | C6 비정상 8개 | 8개 `<table class="tbl">` | 첫 6개만 + warn 발생 |
+| C7 트리 시각화 | `panel` 안 `<div class="org-tree">` | `[{key:'tree1', type:'GRID', subtype:'GRID_TREE', w:12, h:12}]` |
+| C8 카드 리스트 | `panel` 안 `<div class="card">` ≥3개 | `[{key:'cards1', type:'CONTAINER', subtype:'CARD_LIST', w:12, h:12}]` |
+| C9 스테퍼 + 그리드 | `panel` 안 `<div class="stepper">` + `<table class="tbl">` | `[{key:'stepper1', type:'CHART', subtype:'GRID_BASE', h:6}, {key:'grid1', h:6}]` (subtype 은 COMPONENT_INDEX 와 정합) |
 
 ### 6.2 수동 회귀 — 빌드 후 5개 대표 패턴
 

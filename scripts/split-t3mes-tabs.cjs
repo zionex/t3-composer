@@ -425,6 +425,18 @@ function main() {
 // ──────────────────────────────────────────────────────────────
 const MAX_LAYERS = 6;
 
+// grid4-6 KPI strip 검출 — input/select 가 들어있으면 form 으로 판정 (false positive 차단)
+function hasKpiStrip(html) {
+  // grid4-6 div 의 본문 (다음 형제까지) 안에 input/select 가 있으면 form, 없으면 KPI strip
+  const re = /<div[^>]*class="[^"]*\bgrid[4-6]\b[^"]*"[^>]*>([\s\S]*?)<\/div>(?=\s*(<\/div>|<div))/i;
+  const m = re.exec(html);
+  if (!m) return false;
+  const stripBody = m[1];
+  // 본문 안에 input 또는 select 가 있으면 form 으로 분류 → KPI 아님
+  if (/<(input|select)\b/i.test(stripBody)) return false;
+  return true;
+}
+
 function extractLayers(html) {
   if (!html || typeof html !== 'string') return [];
 
@@ -453,7 +465,7 @@ function extractLayers(html) {
     // grid4/grid5/grid6 = KPI strip (4~6 KPI 카드 가로 배치, 동적 JS 채움 케이스 포함)
     kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
              || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2
-             || /<div[^>]*class="[^"]*\bgrid[4-6]\b/i.test(inner)) ? 1 : 0,
+             || hasKpiStrip(inner)) ? 1 : 0,
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
              || matchCount(/<input\b/gi) + matchCount(/<select\b/gi) >= 3) ? 1 : 0,
     tree:  (/<(div|ul)[^>]*class="[^"]*\b(org-tree|tree-view|treegrid|tree)\b/i.test(inner)) ? 1 : 0,
@@ -527,21 +539,36 @@ function extractLayers(html) {
   // 좌표 분배
   const N = slots.length;
   const positions = [];
-  if (splitCols && N >= 2) {
-    // 좌우 분배 — 나머지는 마지막 layer 가 흡수
-    const w = Math.floor(12 / N);
+
+  // KPI strip 이 첫 slot 이면 상단 h:3 고정 (Mockup ControlBoard 관례)
+  //  나머지 slots 는 (0, 3, 12, 9) 안에서 분배
+  const kpiIsFirstSlot = slots.length > 0 && slots[0].slot === 'kpi';
+  const restCount = kpiIsFirstSlot ? (N - 1) : N;
+  const restY = kpiIsFirstSlot ? 3 : 0;
+  const restH = kpiIsFirstSlot ? 9 : 12;
+
+  if (kpiIsFirstSlot) {
+    positions.push({ x: 0, y: 0, w: 12, h: 3 });  // KPI strip
+  }
+
+  if (restCount === 0) {
+    // KPI 만 → KPI 단독은 전체 (12,12) 로 키움 (덮어쓰기)
+    positions[0] = { x: 0, y: 0, w: 12, h: 12 };
+  } else if (splitCols && restCount >= 2) {
+    // 나머지 좌우 분배
+    const w = Math.floor(12 / restCount);
     let x = 0;
-    for (let i = 0; i < N; i++) {
-      const widthW = (i === N - 1) ? (12 - x) : w;
-      positions.push({ x, y: 0, w: widthW, h: 12 });
+    for (let i = 0; i < restCount; i++) {
+      const widthW = (i === restCount - 1) ? (12 - x) : w;
+      positions.push({ x, y: restY, w: widthW, h: restH });
       x += widthW;
     }
   } else {
-    // 상하 분배 (기본)
-    const h = Math.floor(12 / N);
-    let y = 0;
-    for (let i = 0; i < N; i++) {
-      const heightH = (i === N - 1) ? (12 - y) : h;
+    // 나머지 상하 분배
+    const h = Math.floor(restH / restCount);
+    let y = restY;
+    for (let i = 0; i < restCount; i++) {
+      const heightH = (i === restCount - 1) ? (restY + restH - y) : h;
       positions.push({ x: 0, y, w: 12, h: heightH });
       y += heightH;
     }

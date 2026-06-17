@@ -56,9 +56,9 @@ const c4 = extractLayers(`
 </div>`);
 eq(c4, [
   { key: 'kpi1', title: 'KPI 영역', type: 'CHART', subtype: 'KPI_CARD',
-    position: { x: 0, y: 0, w: 12, h: 6 } },
+    position: { x: 0, y: 0, w: 12, h: 3 } },
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
-    position: { x: 0, y: 6, w: 12, h: 6 } },
+    position: { x: 0, y: 3, w: 12, h: 9 } },
 ], 'C4 KPI + grid');
 
 // ── C5: 시그니처 0건 (텍스트만) ──
@@ -125,12 +125,11 @@ const c10 = extractLayers(`
     <div class="card"><div class="card-title">알림</div><div id="alerts"></div></div>
   </div>
 </div>`);
-assert.strictEqual(c10.length, 3, 'C10 — 3 layers (KPI + chart + card region)');
-assert.strictEqual(c10[0].subtype, 'KPI_CARD', 'C10 layer 0 = KPI');
-const c10ChartIdx = c10.findIndex((l) => l.subtype === 'CHART_LINE');
-const c10CardIdx = c10.findIndex((l) => l.subtype === 'CARD_LIST');
-assert.ok(c10ChartIdx >= 0, 'C10 has chart');
-assert.ok(c10CardIdx >= 0, 'C10 has card region');
+eq(c10, [
+  { key: 'kpi1',   title: 'KPI 영역',   type: 'CHART',     subtype: 'KPI_CARD',   position: { x: 0, y: 0, w: 12, h: 3 } },
+  { key: 'chart1', title: '차트 1',     type: 'CHART',     subtype: 'CHART_LINE', position: { x: 0, y: 3, w: 6,  h: 9 } },
+  { key: 'card1',  title: '카드 영역 1', type: 'CONTAINER', subtype: 'CARD_LIST',  position: { x: 6, y: 3, w: 6,  h: 9 } },
+], 'C10 dashboard layout');
 
 // ── C11: grid4 단독 (KPI strip only) ──
 const c11 = extractLayers(`
@@ -142,4 +141,24 @@ eq(c11, [
     position: { x: 0, y: 0, w: 12, h: 12 } },
 ], 'C11 KPI strip 단독');
 
-console.log('OK — extract-layers 11 cases passed');
+// ── C12: grid4 with inputs = FORM (NOT KPI strip — false positive 차단) ──
+const c12 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="grid4">
+    <div><div class="label">A</div><input class="inp" value=""></div>
+    <div><div class="label">B</div><select><option>x</option></select></div>
+    <div><div class="label">C</div><input class="inp" value=""></div>
+    <div><div class="label">D</div><input class="inp" value=""></div>
+  </div>
+  <table class="tbl"></table>
+</div>`);
+// Expected: 단일 grid + form (KPI 미카운트) — 4 inputs/selects 가 form 카운트 트리거
+// Slots: [grid, form] (no KPI). 분배: 상하 6+6 (splitCols 없음)
+eq(c12, [
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 0, w: 12, h: 6 } },
+  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'GRID_BASE',
+    position: { x: 0, y: 6, w: 12, h: 6 } },
+], 'C12 grid4 with inputs = FORM');
+
+console.log('OK — extract-layers 12 cases passed');

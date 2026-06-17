@@ -40,7 +40,7 @@ const MENU_ITEMS = [
     { key: 'history',  label: 'History',       Icon: HistoryIcon,            hint: '작업 이력 — 진행·완료·보관 세션 조회 및 이어하기',           Component: T3ComposerHistory },
     { key: 'mockup',   label: 'SCM UI Mockup', Icon: DashboardCustomizeIcon, hint: 'SCM UI Mockup 패턴 갤러리 — 화면 목업 카탈로그',             Component: T3Mockup },
     { key: 'patterns', label: 'UI Pattern',    Icon: ViewQuiltIcon,          hint: 'T3MES UI 패턴 카탈로그 — MES/SCM 도메인별 화면 패턴',         Component: T3mesPatternCatalog },
-    { key: 'dict',     label: 'Gallery',       Icon: WidgetsIcon,            hint: 'Composer 갤러리 — Grid·Chart·KPI 사전',                      Component: T3ComposerDict },
+    // { key: 'dict',     label: 'Gallery',       Icon: WidgetsIcon,            hint: 'Composer 갤러리 — Grid·Chart·KPI 사전',                      Component: T3ComposerDict },
     { key: 'ontology', label: 'Ontology',      Icon: SchemaIcon,             hint: 'Ontology 관리 — Q&A · Entity · View · Process',              Component: OntologyPage },
     { key: 'dashboard',  label: 'Dashboard',      Icon: DashboardIcon,          hint: '대시보드 빌더 — 위젯 기반 사용자 대시보드 조회 및 편집',       Component: T3Dashboard },
 ];

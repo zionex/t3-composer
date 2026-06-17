@@ -104,6 +104,19 @@ pattern-coverage, reference 카탈로그) 와 PPT outline (feature/composer-ppt-
 
 ## 갱신 (Revision)
 
+### 2026-06-17 v1.2 — §0 UI 우선 재구조 + 다이얼로그 mock
+- **§0 재정렬** — UI 입력을 1순위로, `.env` 를 선택사항으로 강등.
+  - §0-1 사전 요구사항 / §0-2 4-step 설치 (clone → up → access → UI 첫 설정) /
+    §0-3 첫 설정 (UI) — API 키 + Target DB / §0-4 Insight LLM (선택) /
+    §0-5 `.env` 영구 설정 (선택, 다중 환경/CI 용)
+- **다이얼로그 mock** — Anthropic API 키 dialog + Target DB 연결 dialog
+  실물과 동일하게 CSS 로 재현. floating-label 필드 · primary 저장 버튼 · test
+  버튼 등 표현.
+- §0-2 4번째 step "UI 첫 설정" 으로 변경, .env 작성 라인은 명령어 블록에서
+  제거 (.env 는 §0-5 에서만 설명).
+- 부록 §9-2 API 키는 §0-3 참조로 단순화 (변경/삭제/확인 절차만 남김).
+- §9-1 Target System 전환도 §0-3 참조 추가.
+
 ### 2026-06-17 v1.1 — 다국어 토글 + 섹션 번호 → 의미 아이콘
 - 섹션 번호 (0~9) 가 순차 실행 느낌이라 — **h2 의 숫자 뱃지를 의미 아이콘으로 교체**.
   10개 섹션이 각자 다른 색 그라데이션 + SVG icon (setup/play/sparkle/history/mockup/pattern/widgets/schema/dashboard/book).

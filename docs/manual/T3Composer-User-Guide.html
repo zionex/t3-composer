@@ -319,6 +319,65 @@
   .reco-card.image-derived .body .btn { background: var(--accent); }
   .reco-card.synth         .body .btn { background: var(--accent); }
 
+  /* ── Dialog mock (API key · Target DB) ──────────────────────── */
+  .dialog-mock {
+    background: var(--panel-2); backdrop-filter: blur(14px);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 12px 36px -12px rgba(58,74,99,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+    padding: 16px 18px; margin: 14px 0;
+    max-width: 580px;
+  }
+  .dialog-mock .dlg-head {
+    display: flex; align-items: center; gap: 8px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .dialog-mock .dlg-head svg { width: 18px; height: 18px; color: var(--primary-dark); }
+  .dialog-mock .dlg-title { font-weight: 800; font-size: 14px; color: var(--text); }
+  .dialog-mock .dlg-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 6px;
+    background: rgba(124,167,224,0.18); color: var(--primary-dark);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .dialog-mock .dlg-info {
+    background: rgba(143,196,212,0.10); border: 1px solid rgba(143,196,212,0.3);
+    border-radius: 8px; padding: 8px 12px; font-size: 11.5px; color: var(--text-2);
+    margin-bottom: 12px;
+  }
+  .dialog-mock .field {
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    padding: 4px 12px 8px; margin: 8px 0; background: rgba(255,255,255,0.55);
+    position: relative;
+  }
+  .dialog-mock .field-label {
+    position: absolute; top: -7px; left: 10px; padding: 0 4px;
+    background: linear-gradient(180deg, transparent 0%, transparent 38%, white 38%, white 100%);
+    font-size: 10.5px; color: var(--text-2); font-weight: 600;
+  }
+  .dialog-mock .field-value {
+    font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+    font-size: 12px; color: var(--text); padding-top: 6px;
+    word-break: break-all;
+  }
+  .dialog-mock .field-value.placeholder { color: var(--text-3); font-style: italic; }
+  .dialog-mock .field-row { display: flex; gap: 10px; }
+  .dialog-mock .field-row > .field { flex: 1; }
+  .dialog-mock .dlg-actions {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .dialog-mock .dlg-btn {
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    border: 1px solid var(--border-strong);
+    background: var(--panel-2); color: var(--text-2); cursor: default;
+  }
+  .dialog-mock .dlg-btn.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border: 0;
+    box-shadow: 0 2px 8px -2px rgba(86,131,192,0.45);
+  }
+  .dialog-mock .dlg-btn.test { background: rgba(134,199,168,0.18); color: #065f46; border-color: var(--success); }
+
   /* ── D&D area mock ───────────────────────────────────────────── */
   .dnd {
     border: 2px dashed var(--border-strong);
@@ -417,8 +476,9 @@
         <ol>
           <li><a href="#s0-1"><span class="ko">사전 요구사항</span><span class="en">Prerequisites</span></a></li>
           <li><a href="#s0-2"><span class="ko">4-step 설치</span><span class="en">4-step Setup</span></a></li>
-          <li><a href="#s0-3"><span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></a></li>
-          <li><a href="#s0-4"><span class="ko">Target System 연결</span><span class="en">Target System Connection</span></a></li>
+          <li><a href="#s0-3"><span class="ko">첫 설정 (UI)</span><span class="en">First-time Setup (UI)</span></a></li>
+          <li><a href="#s0-4"><span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></a></li>
+          <li><a href="#s0-5"><span class="ko">.env 영구 설정 (선택)</span><span class="en">.env Permanent Config (optional)</span></a></li>
         </ol>
       </li>
       <li><a href="#s1"><svg><use href="#ic-start"/></svg>
@@ -515,14 +575,6 @@
         <div class="arrow">▶</div>
         <div class="step">
           <div><span class="step-icon"><svg><use href="#ic-step-2"/></svg></span><span class="step-t">
-            <span class="ko">.env 작성</span><span class="en">Write .env</span></span></div>
-          <div class="step-d">
-            <span class="ko"><code>cp .env.example .env</code> → <code>ANTHROPIC_API_KEY</code> 값 채움</span>
-            <span class="en"><code>cp .env.example .env</code> → fill <code>ANTHROPIC_API_KEY</code></span></div>
-        </div>
-        <div class="arrow">▶</div>
-        <div class="step">
-          <div><span class="step-icon"><svg><use href="#ic-step-3"/></svg></span><span class="step-t">
             <span class="ko">컨테이너 기동</span><span class="en">Start containers</span></span></div>
           <div class="step-d">
             <span class="ko"><code>docker compose up -d</code> — 약 1~2분 대기</span>
@@ -530,11 +582,19 @@
         </div>
         <div class="arrow">▶</div>
         <div class="step">
-          <div><span class="step-icon"><svg><use href="#ic-step-4"/></svg></span><span class="step-t">
+          <div><span class="step-icon"><svg><use href="#ic-step-3"/></svg></span><span class="step-t">
             <span class="ko">접속</span><span class="en">Access</span></span></div>
           <div class="step-d">
             <span class="ko">브라우저 <code>http://localhost:5173</code> → 사이드바 Composer 클릭</span>
             <span class="en">Browser to <code>http://localhost:5173</code> → click Composer in sidebar</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-4"/></svg></span><span class="step-t">
+            <span class="ko">UI 첫 설정</span><span class="en">First-time UI setup</span></span></div>
+          <div class="step-d">
+            <span class="ko">상단에서 API 키 + Target DB 입력 (다음 절 §0-3)</span>
+            <span class="en">Enter API key + Target DB at the top bar (next section §0-3)</span></div>
         </div>
       </div>
 
@@ -543,12 +603,7 @@
 git clone &lt;repo-url&gt; t3-composer
 cd t3-composer
 
-<span class="ko"># 2) 환경변수 작성</span><span class="en"># 2) Write env vars</span>
-cp .env.example .env
-<span class="ko"># 편집기로 .env 열고 ANTHROPIC_API_KEY 값을 채웁니다</span><span class="en"># Open .env in an editor and fill ANTHROPIC_API_KEY</span>
-<span class="ko">#   ANTHROPIC_API_KEY=sk-ant-...</span><span class="en">#   ANTHROPIC_API_KEY=sk-ant-...</span>
-
-<span class="ko"># 3) 컨테이너 기동 (백그라운드)</span><span class="en"># 3) Start containers (background)</span>
+<span class="ko"># 2) 컨테이너 기동 (백그라운드)</span><span class="en"># 2) Start containers (background)</span>
 docker compose up -d
 
 <span class="ko"># 상태 확인</span><span class="en"># Check status</span>
@@ -558,9 +613,17 @@ docker compose ps
 <span class="ko">#   composer-frontend   Up</span><span class="en">#   composer-frontend   Up</span>
 <span class="ko">#   target-mssql        Up (healthy)</span><span class="en">#   target-mssql        Up (healthy)</span>
 
-<span class="ko"># 4) 브라우저로 접속</span><span class="en"># 4) Access via browser</span>
+<span class="ko"># 3) 브라우저로 접속 — 이후 API 키·Target DB 는 UI 에서 입력 (§0-3)</span><span class="en"># 3) Access via browser — enter API key + Target DB via UI (§0-3)</span>
 <span class="ko">#   http://localhost:5173</span><span class="en">#   http://localhost:5173</span>
 </code></pre>
+
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">.env 파일은 필수가 아닙니다</span><span class="en">.env file is not required</span></div>
+        <p>
+          <span class="ko">기본 흐름에서 <code>.env</code> 작성은 <strong>건너뛸 수 있습니다</strong>. API 키와 Target DB 정보는 UI 다이얼로그에서 입력하면 composer-db 에 영구 저장됩니다. <code>.env</code> 는 다중 환경(개발/스테이징/운영)·CI·자동화 같은 케이스에서만 선택적으로 사용 (§0-5).</span>
+          <span class="en">You can <strong>skip writing <code>.env</code></strong> in the default flow. API key and Target DB info entered via UI dialogs persist to composer-db. <code>.env</code> is optional and used only for multi-environment (dev/staging/prod), CI, or automation cases (§0-5).</span></p>
+      </div>
 
       <div class="panel tip">
         <div class="panel-title">
@@ -579,6 +642,152 @@ docker compose ps
       </div>
 
       <h3 id="s0-3">
+        <span class="ko">첫 설정 — UI 에서 API 키 + Target DB</span>
+        <span class="en">First-time Setup — API Key + Target DB via UI</span></h3>
+      <p>
+        <span class="ko">컨테이너 기동 후 <code>http://localhost:5173</code> 접속 → 상단 우측의 두 영역에서 입력합니다. <strong>가장 권장되는 방법</strong> — 입력값은 composer-db 에 영구 저장되어 다음 접속에도 유지됩니다.</span>
+        <span class="en">After containers start and you open <code>http://localhost:5173</code>, enter values in the two top-right areas. <strong>This is the recommended approach</strong> — entries are persisted to composer-db and survive across visits.</span></p>
+
+      <h4>
+        <span class="ko">1) Anthropic API 키 등록</span>
+        <span class="en">1) Register Anthropic API key</span></h4>
+      <p>
+        <span class="ko">상단 우측의 색상 뱃지 (녹색 = 등록됨 · 주황 = 미등록) 클릭 → API Key Dialog 가 열립니다.</span>
+        <span class="en">Click the colored badge at the top-right (green = registered · orange = unregistered) → API Key Dialog opens.</span></p>
+
+      <div class="dialog-mock">
+        <div class="dlg-head">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+          <div class="dlg-title">
+            <span class="ko">Anthropic API 키 등록</span>
+            <span class="en">Register Anthropic API Key</span></div>
+        </div>
+        <div class="dlg-info">
+          <span class="ko">T3Composer 는 Claude API 로 화면·SP·테이블을 생성합니다. 개인 Anthropic API 키를 등록해 주세요. 키는 서버에서 암호화되어 저장됩니다.</span>
+          <span class="en">T3Composer uses the Claude API to generate screens, SPs, and tables. Register your personal Anthropic API key. The key is stored encrypted on the server.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">API Key</div>
+          <div class="field-value placeholder">sk-ant-...</div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">설명 (옵션)</span><span class="en">Description (optional)</span></div>
+          <div class="field-value">Personal key</div>
+        </div>
+        <div class="dlg-actions">
+          <div class="dlg-btn"><span class="ko">취소</span><span class="en">Cancel</span></div>
+          <div class="dlg-btn primary"><span class="ko">저장</span><span class="en">Save</span></div>
+        </div>
+      </div>
+
+      <ol>
+        <li><span class="ko"><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> 에서 키 발급</span>
+            <span class="en">Issue a key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></span></li>
+        <li><span class="ko">API Key 입력란에 <code>sk-ant-...</code> 붙여넣기 — <strong>80자 이상</strong> 필수 (짧으면 거부)</span>
+            <span class="en">Paste <code>sk-ant-...</code> into the API Key field — must be <strong>≥80 characters</strong> (shorter is rejected)</span></li>
+        <li><span class="ko">설명에는 식별용 메모 ("Personal key", "Team key" 등)</span>
+            <span class="en">Description: an identifying note ("Personal key", "Team key", etc.)</span></li>
+        <li><span class="ko">[저장] → 자동 검증 후 상단 뱃지가 녹색으로 변경</span>
+            <span class="en">Click [Save] → auto-verified, top badge turns green</span></li>
+      </ol>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ 키 보안</span><span class="en">⚠️ Key security</span></div>
+        <p>
+          <span class="ko">키는 <code>TB_IS_EXTRNLAPIKEY</code> 테이블에 Jasypt PBE 로 암호화되어 저장됩니다. 로그/스냅샷에는 prefix(12자) + suffix(4자) + SHA-256 prefix(8자) 만 노출되며, 키 전체는 다시 표시되지 않으므로 별도 안전한 곳에 백업하세요.</span>
+          <span class="en">The key is stored encrypted with Jasypt PBE in the <code>TB_IS_EXTRNLAPIKEY</code> table. Logs and snapshots only show prefix (12 chars) + suffix (4 chars) + SHA-256 prefix (8 chars). The full key is never re-displayed — back it up safely elsewhere.</span></p>
+      </div>
+
+      <h4>
+        <span class="ko">2) Target DB 연결 (운영 wingui DB)</span>
+        <span class="en">2) Target DB Connection (production wingui DB)</span></h4>
+      <p>
+        <span class="ko">운영 wingui DB (예: T3SmartSCM) 에 연결하면 NEW_FROM_COPY · EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다. <strong>연결 없이도 docker 내장 <code>target-mssql</code> 의 기본 데이터로 작업 가능</strong>합니다.</span>
+        <span class="en">Connecting to the production wingui DB (e.g., T3SmartSCM) lets NEW_FROM_COPY and EXISTING_MODIFY pull live menu / LangPack / SP data. <strong>Without it, you can still work with the bundled <code>target-mssql</code> data.</strong></span></p>
+      <p>
+        <span class="ko">상단 Target Selector dropdown → <strong>💾 Storage</strong> 버튼 클릭 → Target DB 다이얼로그:</span>
+        <span class="en">Top Target Selector dropdown → click <strong>💾 Storage</strong> → Target DB dialog:</span></p>
+
+      <div class="dialog-mock">
+        <div class="dlg-head">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4z"/></svg>
+          <div class="dlg-title">
+            <span class="ko">Target DB 접속 정보 — T3Series</span>
+            <span class="en">Target DB Connection — T3Series</span></div>
+          <span class="dlg-badge">MSSQL</span>
+        </div>
+        <div class="dlg-info">
+          <span class="ko">운영 wingui DB 에 직접 연결하면 NEW_FROM_COPY · EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다. 비워두면 로컬 target-mssql synced 데이터를 폴백 사용합니다.</span>
+          <span class="en">Connecting to the production wingui DB lets NEW_FROM_COPY / EXISTING_MODIFY fetch live menu / LangPack / SP data. Leave blank to fall back to the local target-mssql synced data.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">JDBC URL</div>
+          <div class="field-value">jdbc:sqlserver://&lt;host&gt;:21433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Username</div>
+            <div class="field-value">education1</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Password</div>
+            <div class="field-value">••••••••••••••••</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">Driver Class (선택)</span><span class="en">Driver Class (optional)</span></div>
+          <div class="field-value">com.microsoft.sqlserver.jdbc.SQLServerDriver</div>
+        </div>
+        <div style="margin-top:12px;font-weight:700;font-size:13px;color:var(--text);">
+          <span class="ko">📁 Target source path</span><span class="en">📁 Target source path</span></div>
+        <div class="dlg-info" style="margin-top:6px;">
+          <span class="ko">컨테이너 안 절대경로로 입력. <strong>source</strong> 는 frontend root, <strong>backend</strong> 는 backend root (PLANNEL 처럼 monorepo 가 아닌 경우만 별도 지정 — 비우면 source 와 동일). 비워두면 docker-compose 의 <code>/workspace/targets/T3SERIES/wingui</code> fallback.</span>
+          <span class="en">Use absolute paths inside the container. <strong>source</strong> = frontend root, <strong>backend</strong> = backend root (specify separately only for non-monorepo cases like PLANNEL; leave blank to use source). Leave blank to fall back to <code>/workspace/targets/T3SERIES/wingui</code> from docker-compose.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">source 폴더 경로</span><span class="en">source folder path</span></div>
+          <div class="field-value">/workspace/projects/t3series-lxma/t3series-wingui</div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">backend 폴더 경로 (분리 구조일 때만)</span>
+            <span class="en">backend folder path (split layout only)</span></div>
+          <div class="field-value placeholder">
+            <span class="ko">(비워두면 source 와 동일)</span><span class="en">(blank = same as source)</span></div>
+        </div>
+        <div class="dlg-actions">
+          <div class="dlg-btn"><span class="ko">닫기</span><span class="en">Close</span></div>
+          <div class="dlg-btn test">▶ <span class="ko">연결 테스트</span><span class="en">Test connection</span></div>
+          <div class="dlg-btn primary">💾 <span class="ko">저장</span><span class="en">Save</span></div>
+        </div>
+      </div>
+
+      <ol>
+        <li><span class="ko">JDBC URL 입력 — SSL 옵션 <code>encrypt=true;trustServerCertificate=true</code> 누락 시 MSSQL JDBC 12+ 가 연결 거부하므로 그대로 복사 권장</span>
+            <span class="en">Enter JDBC URL — MSSQL JDBC 12+ rejects connections without <code>encrypt=true;trustServerCertificate=true</code>; copy as shown</span></li>
+        <li><span class="ko">Username / Password — DB 계정 정보</span>
+            <span class="en">Username / Password — DB account</span></li>
+        <li><span class="ko">source 폴더 경로 — 컨테이너 안에 mount 된 wingui 소스 root (예: <code>/workspace/projects/t3series-lxma/t3series-wingui</code>)</span>
+            <span class="en">source folder path — wingui source root mounted inside the container (e.g., <code>/workspace/projects/t3series-lxma/t3series-wingui</code>)</span></li>
+        <li><span class="ko">[▶ 연결 테스트] 클릭 → 성공 시 녹색 메시지, 실패 시 원인 표시</span>
+            <span class="en">Click [▶ Test connection] → green message on success, error reason on failure</span></li>
+        <li><span class="ko">[💾 저장] → composer-db 의 <code>tb_cmp_target_system</code> 에 영구 저장. 다음 startup 에도 유지됨.</span>
+            <span class="en">Click [💾 Save] → persisted in composer-db <code>tb_cmp_target_system</code>. Survives next startup.</span></li>
+      </ol>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">💡 다중 Target</span><span class="en">💡 Multiple Targets</span></div>
+        <p>
+          <span class="ko">T3SERIES 외 PLANNEL · LGES_NEXTSCM 등 다른 Target 도 같은 방식 — Target Selector 에서 다른 Target 선택 후 💾 Storage 입력. localStorage 에 현재 선택만 저장되고 각 Target 별 DB 설정은 composer-db 에 따로 저장.</span>
+          <span class="en">Other Targets like PLANNEL or LGES_NEXTSCM work the same way — switch in the Target Selector, then 💾 Storage to enter that Target's info. Only the current selection lives in localStorage; each Target's DB config is stored separately in composer-db.</span></p>
+      </div>
+
+      <h3 id="s0-4">
         <span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></h3>
       <p>
         <span class="ko">Insight LLM 은 자연어 질의·온톨로지 답변용 별도 서비스로 호스트 포트 9160 에 직접 기동해야 합니다. <strong>미기동 시 Insight 기능만 비활성</strong> (UI 에 'upstream error' 표시) 되고, T3Composer 의 화면 생성 기능은 정상 동작합니다.</span>
@@ -590,30 +799,52 @@ docker compose ps
             <span class="en">Alternative: the basic Composer flow runs fine with just the Anthropic API — Insight is for add-on features like NL SQL queries and ontology answers</span></li>
       </ul>
 
-      <h3 id="s0-4">
-        <span class="ko">Target System 연결 (선택)</span><span class="en">Target System Connection (optional)</span></h3>
+      <h3 id="s0-5">
+        <span class="ko">.env 영구 설정 (선택)</span>
+        <span class="en">.env Permanent Config (optional)</span></h3>
       <p>
-        <span class="ko">운영 wingui DB (T3SmartSCM) 의 메뉴 트리·LangPack·소스 코드를 실시간으로 참조하려면 Target DB 연결이 필요합니다. 연결 없이도 docker 내장 <code>target-mssql</code> 컨테이너로 기본 동작합니다.</span>
-        <span class="en">To reference the production wingui DB (T3SmartSCM) menu tree, LangPack, and source code in real time, a Target DB connection is required. Without it, the bundled <code>target-mssql</code> container provides basic functionality.</span></p>
-      <ol>
-        <li><span class="ko"><code>.env</code> 에 운영 DB 정보 입력:</span>
-            <span class="en">Add production DB info to <code>.env</code>:</span>
-<pre><code>TARGET_T3SERIES_DB_URL=jdbc:sqlserver://&lt;host&gt;:1433;database=T3SMARTSCM;encrypt=true;trustServerCertificate=true
+        <span class="ko">대부분의 사용자는 §0-3 의 UI 입력만으로 충분합니다. <code>.env</code> 사용은 다음 케이스에서만 권장:</span>
+        <span class="en">For most users, the UI entries in §0-3 are sufficient. <code>.env</code> is recommended only for:</span></p>
+      <ul>
+        <li><span class="ko"><strong>다중 환경</strong> — 개발/스테이징/운영을 분리 운영 (각 환경별 별도 <code>.env</code>)</span>
+            <span class="en"><strong>Multi-environment</strong> — separating dev/staging/prod (different <code>.env</code> per environment)</span></li>
+        <li><span class="ko"><strong>CI / 자동화</strong> — 사람이 UI 를 직접 못 만지는 자동화 파이프라인</span>
+            <span class="en"><strong>CI / automation</strong> — pipelines where no human can touch the UI</span></li>
+        <li><span class="ko"><strong>비밀 외부 관리</strong> — DB 가 아닌 secrets manager (Vault 등) 에서 키를 주입</span>
+            <span class="en"><strong>External secrets</strong> — injecting keys from a secrets manager (Vault, etc.) instead of the DB</span></li>
+      </ul>
+
+      <h4>
+        <span class="ko">설정 예시</span><span class="en">Configuration example</span></h4>
+<pre><code><span class="ko"># .env</span><span class="en"># .env</span>
+<span class="ko"># Anthropic API 키 — UI 입력 대신 startup 시 자동 주입</span><span class="en"># Anthropic API key — auto-injected at startup (instead of UI input)</span>
+ANTHROPIC_API_KEY=sk-ant-...
+
+<span class="ko"># Target DB — UI 입력 대신 startup 시 자동 주입</span><span class="en"># Target DB — auto-injected at startup (instead of UI input)</span>
+TARGET_T3SERIES_DB_URL=jdbc:sqlserver://&lt;host&gt;:1433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true
 TARGET_T3SERIES_DB_USERNAME=sa
 TARGET_T3SERIES_DB_PASSWORD=&lt;password&gt;
-TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver</code></pre>
-        </li>
-        <li><span class="ko">backend 컨테이너 재기동: <code>docker compose up -d --force-recreate composer-backend</code></span>
-            <span class="en">Restart backend container: <code>docker compose up -d --force-recreate composer-backend</code></span></li>
-        <li><span class="ko">UI 의 상단 Target Selector → [💾 Storage] → [연결 테스트] 로 검증</span>
-            <span class="en">Verify via UI top Target Selector → [💾 Storage] → [Test connection]</span></li>
-      </ol>
-      <div class="panel note">
+TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
+</code></pre>
+
+      <p>
+        <span class="ko">변경 후 backend 재기동: <code>docker compose up -d --force-recreate composer-backend</code></span>
+        <span class="en">After changes, restart backend: <code>docker compose up -d --force-recreate composer-backend</code></span></p>
+
+      <div class="panel warn">
         <div class="panel-title">
-          <span class="ko">대안: UI 에서 직접 입력</span><span class="en">Alternative: enter directly in UI</span></div>
+          <span class="ko">⚠️ .env 우선순위</span><span class="en">⚠️ .env precedence</span></div>
         <p>
-          <span class="ko">일회성이면 UI 의 Target Selector dropdown → 💾 Storage 버튼 → JDBC URL/계정 입력 후 [연결 테스트] 로 즉시 설정. 입력값은 composer-db 에 영구 저장됩니다 (단, <code>.env</code> 의 <code>TARGET_*_DB_*</code> 가 채워져 있으면 매 startup 마다 덮어쓰므로 영구 설정은 <code>.env</code> 사용).</span>
-          <span class="en">For one-off changes, use the Target Selector dropdown → 💾 Storage button → enter JDBC URL/credentials → [Test connection]. The values persist in composer-db (but if <code>TARGET_*_DB_*</code> in <code>.env</code> is set, it overwrites at every startup — use <code>.env</code> for permanent config).</span></p>
+          <span class="ko"><code>.env</code> 의 <code>TARGET_*_DB_*</code> 값이 채워져 있으면 매 backend 기동 시 그 값이 DB 의 UI 입력값을 <strong>덮어씁니다</strong>. UI 에서 일회성으로 바꿔도 다음 재기동 시 <code>.env</code> 값으로 되돌아갑니다 — 두 곳을 혼용하지 말 것.</span>
+          <span class="en">When <code>TARGET_*_DB_*</code> in <code>.env</code> is set, the backend <strong>overwrites</strong> the DB's UI-entered values at every startup. Even if you change them via UI for a one-off, they revert to the <code>.env</code> values on next restart — don't mix the two.</span></p>
+      </div>
+
+      <div class="panel danger">
+        <div class="panel-title">
+          <span class="ko">🔒 .env 보안</span><span class="en">🔒 .env security</span></div>
+        <p>
+          <span class="ko"><code>.env</code> 는 <code>.gitignore</code> 됩니다 (절대 commit 금지). API 키와 DB 비밀번호가 평문으로 들어가니 파일 권한 (<code>chmod 600</code>) 과 호스트 접근 통제 필요.</span>
+          <span class="en"><code>.env</code> is <code>.gitignore</code>'d (never commit). API keys and DB passwords are stored in plaintext — protect with file permissions (<code>chmod 600</code>) and host-level access control.</span></p>
       </div>
     </section>
 
@@ -1200,8 +1431,8 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver</co
       <h3 id="s9-1">
         <span class="ko">Target System 전환</span><span class="en">Target System Switching</span></h3>
       <p>
-        <span class="ko">여러 운영 시스템 (T3SERIES · PLANNEL · LGES_NEXTSCM 등) 을 다룬다면 상단 Target Selector dropdown 으로 전환. 선택한 Target 에 따라:</span>
-        <span class="en">If you work with multiple production systems (T3SERIES, PLANNEL, LGES_NEXTSCM, etc.), switch via the top Target Selector dropdown. Depending on the selected Target:</span></p>
+        <span class="ko">여러 운영 시스템 (T3SERIES · PLANNEL · LGES_NEXTSCM 등) 을 다룬다면 상단 Target Selector dropdown 으로 전환. 각 Target 의 DB 첫 연결 절차는 <a href="#s0-3">설치 §0-3</a> 참조. 선택한 Target 에 따라:</span>
+        <span class="en">If you work with multiple production systems (T3SERIES, PLANNEL, LGES_NEXTSCM, etc.), switch via the top Target Selector dropdown. For first-time DB connection of each Target see <a href="#s0-3">Install §0-3</a>. Depending on the selected Target:</span></p>
       <ul>
         <li><span class="ko">운영 DB 가 자동 라우팅 (메뉴 트리·LangPack·소스 코드 조회)</span>
             <span class="en">Production DB is auto-routed (menu tree, LangPack, source code lookup)</span></li>
@@ -1215,25 +1446,18 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver</co
         <span class="en">The selection persists in localStorage across visits.</span></p>
 
       <h3 id="s9-2">
-        <span class="ko">API 키 등록</span><span class="en">API Key Setup</span></h3>
+        <span class="ko">API 키 등록 / 변경</span><span class="en">API Key Setup / Change</span></h3>
       <p>
-        <span class="ko">상단 우측의 색상 뱃지 (녹색 = 등록됨 · 주황 = 미등록) 클릭 → API Key Dialog.</span>
-        <span class="en">Click the colored badge in the top-right (green = registered · orange = unregistered) → API Key Dialog.</span></p>
-      <ol>
-        <li><span class="ko"><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> 에서 키 발급</span>
-            <span class="en">Issue a key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></span></li>
-        <li><span class="ko">Dialog 의 입력란에 키 (sk-ant-...) 붙여넣기 — <strong>80자 이상</strong> 필수 (짧으면 거부)</span>
-            <span class="en">Paste the key (sk-ant-...) into the dialog input — must be <strong>at least 80 characters</strong> (shorter is rejected)</span></li>
-        <li><span class="ko">[저장] → 자동 검증 후 뱃지가 녹색으로 변경</span>
-            <span class="en">Click [Save] → auto-verified, badge turns green</span></li>
-      </ol>
-      <div class="panel warn">
-        <div class="panel-title">
-          <span class="ko">⚠️ 키 보안</span><span class="en">⚠️ Key security</span></div>
-        <p>
-          <span class="ko">키는 backend DB 에 암호화되어 저장됩니다. 로그/스냅샷에는 prefix(12자) + suffix(4자) + SHA-256 prefix(8자) 만 노출. 키 전체는 다시 표시되지 않으므로 별도 안전한 곳에 백업.</span>
-          <span class="en">The key is stored encrypted in the backend DB. Logs and snapshots only show prefix (12 chars) + suffix (4 chars) + SHA-256 prefix (8 chars). The full key is never re-displayed, so back it up elsewhere.</span></p>
-      </div>
+        <span class="ko">상단 우측의 색상 뱃지 (녹색 = 등록됨 · 주황 = 미등록) 클릭 → API Key Dialog. 첫 등록 절차는 <a href="#s0-3">설치 §0-3</a> 참조.</span>
+        <span class="en">Click the colored badge in the top-right (green = registered · orange = unregistered) → API Key Dialog. For first-time setup see <a href="#s0-3">Install §0-3</a>.</span></p>
+      <ul>
+        <li><span class="ko"><strong>키 변경</strong> — 같은 dialog 에서 새 키를 입력해 덮어쓰기 (이전 키는 즉시 무효화)</span>
+            <span class="en"><strong>Changing the key</strong> — overwrite with a new key in the same dialog (the old key is immediately invalidated)</span></li>
+        <li><span class="ko"><strong>키 삭제</strong> — 입력란을 비우고 저장하면 등록 해제 (뱃지가 주황으로 복귀)</span>
+            <span class="en"><strong>Removing the key</strong> — leave the field empty and save (badge turns orange)</span></li>
+        <li><span class="ko"><strong>키 확인</strong> — 한번 저장된 키 전체는 다시 표시되지 않음. UI 에는 prefix + suffix 만 노출 (예: <code>sk-ant-xxxx...XXXX</code>)</span>
+            <span class="en"><strong>Verifying the key</strong> — full keys are never re-displayed; only prefix + suffix appear in UI (e.g., <code>sk-ant-xxxx...XXXX</code>)</span></li>
+      </ul>
 
       <h3 id="s9-3">
         <span class="ko">첨부 파일 — 타입별 처리 방식</span>

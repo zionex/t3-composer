@@ -55,40 +55,59 @@ Composer 4-Step Wizard 의 진입 화면 `ModeNewStep` 에서 사용자는 패�
 
 빌드 타임 채택 이유: 기존 `scripts/split-t3mes-tabs.cjs` 가 이미 T3MES HTML 을 일괄 처리해 `t3mes-tabs.json` + lite/full 파일을 생성하고 있다. 같은 스크립트에 layers 추출을 추가하면 워크플로 한 줄도 바뀌지 않는다. Mockup 의 hand-authored `entry.layers` 와 동일한 "deterministic 메타" 철학.
 
-### 3.2 인식 시그니처 — 최소 세트 5종
+### 3.2 인식 시그니처 — 최소 세트
 
-| lite HTML 시그니처 (요소명 또는 className, 대소문자 무시) | 의미 | layers 처리 |
+> ⚠️ **2026-06-17 보정**: lite HTML 은 wingui 컴포넌트 (`<BaseGrid>`/`<SearchArea>` 등) 가 아니라 T3MES 퍼블리싱 산출물의 **raw mockup HTML** 이다. 실제 마크업 샘플 분석 결과 다음 시그니처로 갱신.
+
+| lite HTML 시그니처 (대소문자 무시) | 의미 | layers 처리 |
 |---|---|---|
-| `SearchArea` · `search-area` | 조회 영역 | layers 에 넣지 않음 → `entry.hasSearchArea = true` |
-| `BaseGrid` (id 옵션) | 표준 그리드 | `{type:'GRID', subtype:'BASE'}`, key 는 id 또는 `grid1`/`grid2`/... |
-| `TreeGrid` | 계층 그리드 | `{type:'GRID', subtype:'TREE'}` |
-| `ChartComponent` (또는 `chartjs`/`Chart`) | 차트 | `{type:'CHART', subtype:'CHART'}` |
-| `TabContainer` (+자식 Tab) | 탭 그룹 | top-level layer 1개 (`{type:'TAB'}`), 자식 자세히 안 봄 |
+| `<table class="tbl">` 또는 `<div class="tbl-wrap">` | 그리드 (마스터 데이터 · 리스트) | `{type:'GRID', subtype:'GRID_BASE'}`, key 자동 (`grid1`/`grid2`/...) |
+| `<canvas>` (Chart.js 산출) 또는 `class="chart"` / `class="chart-card"` | 차트 | `{type:'CHART', subtype:'CHART_LINE'}` |
+| `<div class="kpi-card">` · `<div class="stat-card">` · `<div class="kpi-tile">` · `<div class="kpi-grid">` 자식 | KPI 카드 | `{type:'CHART', subtype:'KPI_CARD'}` (Mockup KPI 관례) |
+| `<div class="form-row">` 다수 또는 `<div class="card">` 안의 `<input>`/`<select>` 다수 | 입력 폼 / 디테일 | `{type:'CONTAINER', subtype:'FORM'}` |
+| `class="grid2"` 또는 `class="grid3"` · `style="grid-template-columns:..."` | 좌우 분할 컨테이너 | layer 자체가 되지 않음 — **부모 컨테이너 신호** (자식 layer 들 좌우 배치) |
 
-위 5개 외 마크업은 무시. (rules/41d "Layout step 은 placeholder 만 보여주고, 실제 의도는 자연어 컨텍스트로 Claude 가 참조" 와 일치)
+위 5개 외 마크업 (`<div class="sec-hdr">`, `<button class="btn">`, `<span class="tip">` 등) 은 무시. (rules/41d "Layout step 은 placeholder 만 보여주고, 실제 의도는 자연어 컨텍스트로 Claude 가 참조" 와 일치)
+
+**조회 영역(SearchArea) 인식**: lite HTML 에 wingui 식 SearchArea 마크업이 없음 — T3MES 패턴은 검색 폼 대신 헤더 버튼·필터 칩을 사용. 따라서 **`hasSearchArea` 는 항상 `false`** 로 두고, 사용자가 LayoutStep 에서 필요하면 직접 활성화. (spec 단순화 — 검색바 부재가 기본)
 
 ### 3.3 좌표 매핑 — 12-col × 12-row 보드
 
-work-area 안의 top-level layer 후보 N개를 찾은 뒤 부모 컨테이너 flex 방향 추론:
-- **row** (`flex-direction:row` · `display:flex` 가로 정렬 · MUI `<Grid container>` 가로 자식) → w 균등 분배 (`12/N` 반올림, 나머지는 마지막 layer 에 흡수)
-- **column** (기본) → h 균등 분배 (`12/N`)
+panel 루트 (`<div class="panel" id="pN">`) 안의 top-level layer 후보 N개를 찾은 뒤 부모 컨테이너 신호로 방향 추론:
+- **row 배치** (panel 안에 `class="grid2"` · `class="grid3"` · `style="grid-template-columns:..."` 발견) → w 균등 분배 (`12/N` 반올림, 나머지는 마지막 layer 에 흡수)
+- **column 배치** (기본 — 컨테이너 신호 없음) → h 균등 분배 (`12/N`)
 
-| N | row 배치 | column 배치 |
+| N | row 배치 (grid2/grid3) | column 배치 (기본) |
 |---|---|---|
 | 1 | `{x:0,y:0,w:12,h:12}` | 동일 |
-| 2 | 각 `w:6, h:12` (0,0)·(6,0) | 각 `h:6, w:12` (0,0)·(0,6) |
+| 2 | 각 `w:6, h:12` — (0,0)·(6,0) | 각 `h:6, w:12` — (0,0)·(0,6) |
 | 3 | 각 `w:4, h:12` | 각 `h:4` |
 | 4+ | 균등 분배, 6 초과는 §3.5 폴백 |
 
-중첩 처리는 1레벨만. TabContainer · GroupBox 같은 컨테이너 안의 자식들은 가장 바깥 컨테이너 1개를 layer 로 잡고 자식 자세히 안 봄.
+중첩 처리는 1레벨만. KPI 카드들은 `<div class="kpi-grid">` 또는 `<div class="kpi-row">` 안에 다수 있는 경우 1개의 KPI 영역 layer 로 묶음 (자식 KPI 자세히 안 봄).
+
+**예시 — `mes_master_1/02_품목_상세_폼.html`** (실제 lite 샘플):
+```html
+<div class="panel" id="p1">
+  <div class="sec-hdr">...</div>  <!-- 무시 -->
+  <div class="grid2" style="grid-template-columns:320px 1fr">
+    <div class="card"><table class="tbl">...</table></div>   <!-- 좌: GRID -->
+    <div class="card">...<input>...<select>...</div>          <!-- 우: FORM -->
+  </div>
+</div>
+```
+→ `grid2` 신호 감지 → 2개 layer 좌우 분할:
+```json
+[
+  {"key":"grid1","type":"GRID","subtype":"GRID_BASE","position":{"x":0,"y":0,"w":6,"h":12}},
+  {"key":"form1","type":"CONTAINER","subtype":"FORM","position":{"x":6,"y":0,"w":6,"h":12}}
+]
+```
 
 ### 3.4 key · title 규약
 
-- **key**:
-  - BaseGrid id 가 camelCase 식별자 (`^[a-zA-Z][a-zA-Z0-9_]*$`) 이면 그대로 사용 (`masterGrid`/`detailGrid`/...)
-  - 그 외 (id 누락 · 특수문자 포함) → type 별 인덱스 (`grid1`/`grid2`/`chart1`/`tab1`)
-  - 한 entry 안에서 key 중복 시 뒤에 오는 layer 에 `_2`/`_3` suffix
-- **title**: 항상 generic — `그리드 1`, `차트 1`, `탭 영역` — Mockup 규약과 동일
+- **key**: type 별 인덱스만 사용 — `grid1`/`grid2`/`chart1`/`kpi1`/`form1`. raw mockup HTML 의 `id="tb0"`/`id="p0"` 등은 의미 없는 ID 라 무시.
+- **title**: 항상 generic — `그리드 1`, `차트 1`, `KPI 영역`, `입력 폼` — Mockup 규약과 동일
 
 ### 3.5 폴백 (3중)
 
@@ -98,6 +117,8 @@ work-area 안의 top-level layer 후보 N개를 찾은 뒤 부모 컨테이너 f
 | layer 7건 이상 (비정상 추출) | 스크립트가 첫 6건만 유지 + `console.warn` 으로 파일/탭 ID 출력 |
 | lite 파일 자체 없음 (legacy entry) | 위 1번과 동일 폴백 |
 | `entry.layers` 형식 오류 (key 누락 등) | `specFromUiPattern` 검증 실패 시 단일 mainGrid 폴백 + `console.warn` |
+
+스크립트 결과 0건 비율은 빌드 로그 끝 통계 (`layers: 추출 N · 미추출 M`) 로 확인 가능 — 미추출 비율이 50% 넘으면 파서 룰 보강 검토.
 
 ## 4. 아키텍처 + 데이터 흐름
 
@@ -121,34 +142,47 @@ work-area 안의 top-level layer 후보 N개를 찾은 뒤 부모 컨테이너 f
 
 ### 4.1 t3mes-tabs.json 스키마 확장
 
+**실제 JSON 형식** — 파일명을 key 로 하고 값은 tab 배열:
 ```json
 {
-  "file": "00.html",
-  "tabIndex": 0,
-  "tabLabel": "예시 탭",
-  "srcUrl": "/t3mes/00.html",
-  "liteUrl": "t3mes-split/lite/00/0_example.html",
-  "hasSearchArea": true,
-  "layers": [
-    {"key": "masterGrid", "type": "GRID", "subtype": "BASE",
-     "position": {"x":0,"y":0,"w":6,"h":12}},
-    {"key": "detailGrid", "type": "GRID", "subtype": "BASE",
-     "position": {"x":6,"y":0,"w":6,"h":12}}
+  "mes_mrp_1_order_ui_patterns.html": [
+    {
+      "index": 0,
+      "label": "그리드 일괄",
+      "full": "t3mes-split/full/mes_mrp_1_order/01_그리드_일괄.html",
+      "lite": "t3mes-split/lite/mes_mrp_1_order/01_그리드_일괄.html",
+      "layers": [
+        {"key":"grid1","type":"GRID","subtype":"GRID_BASE",
+         "position":{"x":0,"y":0,"w":12,"h":12}}
+      ]
+    },
+    {
+      "index": 1,
+      "label": "마스터디테일",
+      "full": "...",
+      "lite": "...",
+      "layers": [
+        {"key":"grid1","type":"GRID","subtype":"GRID_BASE",
+         "position":{"x":0,"y":0,"w":6,"h":12}},
+        {"key":"form1","type":"CONTAINER","subtype":"FORM",
+         "position":{"x":6,"y":0,"w":6,"h":12}}
+      ]
+    }
   ]
 }
 ```
 
-예시는 좌우 2분할 마스터-디테일 (§3.3 균등 분배 규칙 결과). `hasSearchArea` · `layers` 둘 다 선택적 필드 (기존 entry 에 없어도 빌드/런타임 안전).
+기존 `{index, label, full, lite}` 에 `layers` 만 추가. 파싱 결과 0건이면 `layers` 필드 자체를 미주입 (필드 부재 = 단일 mainGrid 폴백 신호). 선택적 필드라 기존 코드는 영향 없음.
 
 ## 5. 변경 파일
 
 | # | 파일 | 변경 |
 |---|---|---|
-| 1 | `scripts/split-t3mes-tabs.cjs` | 기존 lite HTML 생성 루프 안에 `extractLayers(liteHtml)` 호출 추가. 결과를 각 tab entry JSON 에 인라인 주입. 파서 함수 (~150줄) 같은 파일 안에 추가. HTML 파싱 의존성은 기존과 동일 (cheerio 또는 정규식 — 구현 시 확인) |
-| 2 | `frontend/src/view/util/t3composerpatterns/_data/t3mes-tabs.json` | 스크립트 출력 — 각 tab entry 에 `layers` · `hasSearchArea` 필드 추가. 수동 편집 금지 |
-| 3 | `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` `buildEntries()` (L119-154 부근) | `t3mes-tabs.json` 의 `layers`·`hasSearchArea` 를 `ALL_ENTRIES` entry 로 전파. catalog UI 자체는 손대지 않음 (필드는 선택적) |
-| 4 | `frontend/src/view/util/t3composer/wizardState.js` `specFromUiPattern()` (L3135-L3143) | `entry.layers` 있으면 `specFromMockup` 동일 패턴으로 `spec.layers` 생성 (createComposerLayer + dataSource NL + columns [] + cascade {}). `entry.hasSearchArea` 면 `spec.filterBar.enabled=true` + affects 매핑. `pattern: UIPATTERN_<id>` 식별자는 보존 |
-| 5 | `frontend/src/view/util/t3composer/UiPatternPickerDialog.jsx` | MockupPickerDialog 처럼 entry 카드 또는 우측 미리보기 헤더에 layer 수 칩 ("2 layers" / "단일") 노출 — 시각적 패리티만, 동작 변경 없음 |
+| 1 | `scripts/split-t3mes-tabs.cjs` | 기존 lite HTML 생성 루프 안에 `extractLayers(liteHtml)` 호출 추가. 결과를 각 tab entry JSON 에 인라인 주입. 파서 함수 (~150줄) 같은 파일 안에 추가. **HTML 파싱은 정규식 기반** (기존 스크립트가 cheerio 미사용 — 의존성 추가 없음) |
+| 2 | `frontend/src/view/util/t3composerpatterns/_data/t3mes-tabs.json` | 스크립트 출력 — 각 tab entry 에 `layers` 필드 추가 (파싱 0건이면 미주입). 수동 편집 금지 |
+| 3 | `frontend/src/view/util/t3composerpatterns/T3mesPatternCatalog.jsx` `buildEntries()` (L119-154 부근) | `t3mes-tabs.json` 의 `layers` 를 `ALL_ENTRIES` entry 로 전파. catalog UI 자체는 손대지 않음 (필드는 선택적) |
+| 4 | `frontend/src/view/util/t3composer/wizardState.js` `specFromUiPattern()` (L3135-L3143) | `entry.layers` 있으면 `specFromMockup` 동일 패턴으로 `spec.layers` 생성 (dataSource NL + columns [] + cascade {} + filterBar.affects 빈 배열 매핑). `pattern: UIPATTERN_<id>` 식별자는 보존. 미주입 시 기본 단일 mainGrid 폴백 |
+| 5 | `frontend/src/view/util/t3composer/UiPatternPickerDialog.jsx` | MockupPickerDialog 처럼 entry 행 우측에 layer 수 칩 ("2L" 등) 노출 — 시각적 패리티만, 동작 변경 없음 |
 
 ### 5.1 손대지 않는 곳
 
@@ -161,17 +195,16 @@ work-area 안의 top-level layer 후보 N개를 찾은 뒤 부모 컨테이너 f
 
 ### 6.1 자동 단위 테스트 (파서 함수 `extractLayers`)
 
-`scripts/__tests__/split-t3mes-tabs.test.cjs` (또는 frontend vitest 단위 — 구현 시 환경 결정):
+`scripts/__tests__/extract-layers.test.cjs` — node 단위 (cjs 환경에서 직접 require 가능):
 
 | 케이스 | 입력 lite HTML | 기대 결과 |
 |---|---|---|
-| C1 | `<SearchArea/><BaseGrid id="grid"/>` | `hasSearchArea:true`, `layers:[{key:'grid', position:{x:0,y:0,w:12,h:12}}]` |
-| C2 | flex-row 안 BaseGrid 2개 (id 있음) | 각 `w:6, h:12`, key 는 id |
-| C3 | flex-column 안 BaseGrid 2개 | 각 `h:6, w:12` |
-| C4 | flex-row 안 BaseGrid + ChartComponent | `[{type:'GRID',w:6}, {type:'CHART',w:6}]` |
-| C5 | TabContainer + 자식 Tab 3개 | top-level 1 layer `{type:'TAB', 전면}`, 중첩 무시 |
-| C6 | 텍스트만 (시그니처 0건) | `layers:[]` → JSON 미주입 |
-| C7 | BaseGrid 8개 (비정상) | 첫 6개만 + warn 발생 |
+| C1 단일 그리드 | `<div class="panel" id="p0"><div class="tbl-wrap"><table class="tbl">...</table></div></div>` | `[{key:'grid1', type:'GRID', subtype:'GRID_BASE', position:{x:0,y:0,w:12,h:12}}]` |
+| C2 마스터-디테일 (grid2) | `panel` 안 `<div class="grid2">` + `<table class="tbl">` + `<input class="inp">` 폼 | `[{key:'grid1',w:6}, {key:'form1',type:'CONTAINER',subtype:'FORM',w:6}]` |
+| C3 그리드 + 차트 (column 기본) | `panel` 안 `<table class="tbl">` 1개 + `<canvas>` 1개 | `[{key:'grid1',h:6,y:0}, {key:'chart1',h:6,y:6}]` |
+| C4 KPI 그리드 (kpi-grid) | `panel` 안 `<div class="kpi-grid">` + KPI 카드 다수 + `<table class="tbl">` | `[{key:'kpi1',type:'CHART',subtype:'KPI_CARD',h:6}, {key:'grid1',h:6}]` |
+| C5 시그니처 0건 | 텍스트만 또는 빈 panel | `[]` → JSON 미주입 |
+| C6 비정상 8개 | 8개 `<table class="tbl">` | 첫 6개만 + warn 발생 |
 
 ### 6.2 수동 회귀 — 빌드 후 5개 대표 패턴
 

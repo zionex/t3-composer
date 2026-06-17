@@ -411,9 +411,9 @@ const MAX_LAYERS = 6;
 function extractLayers(html) {
   if (!html || typeof html !== 'string') return [];
 
-  // panel 루트 안의 내용만 보기 (lite HTML 은 보통 <div class="panel" id="pN"> 안에 본문)
-  const panelMatch = /<div[^>]*class="[^"]*panel[^"]*"[^>]*>([\s\S]*)<\/div>/i.exec(html);
-  const inner = panelMatch ? panelMatch[1] : html;
+  // 시그니처는 모두 panel 안의 자식 요소를 가리키므로 panel wrapper 자체엔 매칭되지 않음 →
+  // 별도 추출 없이 전체 html 을 그대로 스캔 (truncated lite 대응).
+  const inner = html;
 
   // 좌우 분할 신호 — panel 안에 grid2/grid3 가 있으면 자식들을 좌우 layer 로 본다
   const gridSplit = /<div[^>]*class="[^"]*\bgrid([23])\b/i.exec(inner);
@@ -422,10 +422,10 @@ function extractLayers(html) {
   // 시그니처 카운트 (panel 안 전체 기준 — 1레벨 중첩 무시)
   const matchCount = (re) => (inner.match(re) || []).length;
   const counts = {
-    grid:  matchCount(/<table[^>]*class="[^"]*\btbl\b/gi)
-             || matchCount(/<div[^>]*class="[^"]*\btbl-wrap\b/gi),
-    chart: matchCount(/<canvas\b/gi)
-             || matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi),
+    grid:  Math.max(matchCount(/<table[^>]*class="[^"]*\btbl\b/gi),
+                    matchCount(/<div[^>]*class="[^"]*\btbl-wrap\b/gi)),
+    chart: Math.max(matchCount(/<canvas\b/gi),
+                    matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi)),
     kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
              || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2) ? 1 : 0,
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2

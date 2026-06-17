@@ -1,4 +1,6 @@
 import { MOCKUP_ENTRIES } from '../t3mockup';
+import { normalizeDashboardWidgets, getWidgetId } from '../t3dashboard/component/dashboardstudio/viewer/widgetNormalize';
+import { DASHBOARD_GRID_COLS } from '../t3dashboard/component/dashboardstudio/core/dashboardGridRules';
 
 /**
  * 단계별 생성 Wizard (NEW_STEP 모드) 의 9단계 데이터 모델.
@@ -3000,6 +3002,100 @@ export function specFromMockup(entry, baseMeta = {}) {
   return base;
 }
 
+// ─── specFromDashboard 헬퍼 ─────────────────────────────────────────────────────
+//
+// LAYER_TYPES 에 KPI 가 없으므로 (GRID/CHART/CONTAINER/DOCUMENT/AI 만 존재) KPI
+// widget 도 CHART 로 매핑한다 — subtype 에 widget_type 그대로 보존해
+// AiRecommendPanel / SynthesizedMockupPreview 가 KPI 임을 식별할 수 있게 함.
+function inferDashboardLayerType(widgetType) {
+  const t = String(widgetType || '').toLowerCase();
+  if (!t) return LAYER_TYPES.CHART;
+  if (t.includes('grid') || t.includes('table') || t.includes('list')) return LAYER_TYPES.GRID;
+  // chart/bar/line/pie/donut/area/kpi/score/gauge/metric → 모두 CHART
+  return LAYER_TYPES.CHART;
+}
+
+// Dashboard 의 'data-grid' 가 12-col 이 아닐 가능성에 대비한 안전 정규화.
+// 현재 DASHBOARD_GRID_COLS=12, Composer RGL 도 12 → 사실상 identity.
+function pickDashboardPosition(dataGrid, idx) {
+  const dg = dataGrid || {};
+  const xs = Number(dg.x);
+  const ys = Number(dg.y);
+  const ws = Number(dg.w);
+  const hs = Number(dg.h);
+  const allFinite = [xs, ys, ws, hs].every((n) => Number.isFinite(n));
+  if (!allFinite) {
+    return { x: 0, y: idx * 4, w: 6, h: 4 };
+  }
+  if (DASHBOARD_GRID_COLS === 12) {
+    return { x: xs, y: ys, w: ws, h: hs };
+  }
+  const r = 12 / DASHBOARD_GRID_COLS;
+  return { x: Math.round(xs * r), y: ys, w: Math.max(1, Math.round(ws * r)), h: hs };
+}
+
+// ★ 원본 대시보드 메타 (이름·전체 구성) 는 의도적으로 박지 않음 — 사용자가 ① Layout step
+//   에서 위치를 재배치한 후에도 naturalText 가 변하지 않아 Claude 가 원본 layout 을
+//   따라하려 하는 부작용 회피. 위치는 specToInitialPrompt 의 좌표표가 단일 진실.
+function dashboardContextText(dashboard, widget) {
+  const title = widget?.title || widget?.spec_json?.title || getWidgetId(widget) || '';
+  const kind  = widget?.widget_type || 'unknown';
+  return [
+    `위젯 타입: ${kind} · 제목: ${title}`,
+    '이 영역의 데이터를 보완하거나 Data Source 탐색에서 Table/SP 직접 참조 추가.',
+  ].join('\n');
+}
+
+/**
+ * 사용자 대시보드 1건을 ComposerSpec 으로 변환.
+ *   - layout_json.widgets 가 비어있으면 BLANK 폴백
+ *   - 각 위젯 → 1개 layer (CHART 또는 GRID, position 12-col 그대로)
+ *   - dataSource 는 NL 모드 + 자연어 컨텍스트만 — 실제 데이터 바인딩은 Wizard ② 단계
+ *
+ * spec: docs/superpowers/specs/2026-06-17-mode-new-step-dashboard-card-design.md §5
+ */
+export function specFromDashboard(dashboard, baseMeta = {}) {
+  if (!dashboard) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
+
+  const widgets = normalizeDashboardWidgets(dashboard.layout_json);
+  if (widgets.length === 0) {
+    return createComposerSpec({
+      ...baseMeta,
+      pattern: 'BLANK',
+      title: baseMeta.title || dashboard.name || dashboard.title || '새 화면',
+    });
+  }
+
+  const base = createComposerSpec({
+    ...baseMeta,
+    pattern: 'DASHBOARD',
+    title: baseMeta.title || dashboard.name || dashboard.title || '새 화면',
+  });
+
+  base.layers = widgets.map((w, idx) => {
+    const grid = w['data-grid'] || w.data_grid || {};
+    const wid  = getWidgetId(w) || w.key || `w${idx + 1}`;
+    return {
+      key: wid,
+      title: w.title || w.spec_json?.title || wid || `위젯 ${idx + 1}`,
+      type: inferDashboardLayerType(w.widget_type),
+      subtype: w.widget_type || 'unknown',
+      position: pickDashboardPosition(grid, idx),
+      dataSource: {
+        mode: 'NL',
+        naturalText: dashboardContextText(dashboard, w),
+        references: [],
+        sqlBlocks: [],
+      },
+      columns: [],
+      cascade: {},
+    };
+  });
+
+  base.filterBar.affects = Object.fromEntries(base.layers.map((l) => [l.key, []]));
+  return base;
+}
+
 // MOCKUP_ENTRIES patternCode → entry lookup, built once at module init.
 const __MOCKUP_CODE_TO_ENTRY = (() => {
   const m = new Map();
@@ -3260,6 +3356,94 @@ export function specToInitialPrompt(spec) {
     lines.push('');
   }
   // NEW_STEP (기본) 은 별도 prepend 없음 — 아래 기본 prompt 만.
+  // 단, pattern === 'DASHBOARD' 는 비대칭 위젯 격자라 일반 SplitPanel 가이드만으로는
+  // layer position 비율이 잘 보존되지 않음 — CSS Grid template 전용 가이드 추가.
+  if (meta.pattern === 'DASHBOARD') {
+    // ★ 사전 계산 — y tolerance 클러스터링.
+    //   RGL 의 compactType="vertical" 때문에 ComposerCanvas 가 사용자에게 보여주는 시각 행
+    //   ↔ spec.layers[i].position.y 의 raw 값이 어긋날 수 있다. 가까운 y (≤ 2 RGL unit)
+    //   들을 같은 행으로 묶어 사용자가 본 행 구조 그대로 prompt 에 반영.
+    const topsForGrid = (spec.layers || []).filter((l) => !l.parentKey && l.position);
+    const Y_TOLERANCE = 2;
+    const sortedDistinctYs = [...new Set(topsForGrid.map((l) => Number(l.position.y) || 0))].sort((a, b) => a - b);
+    const yClusters = [];
+    for (const y of sortedDistinctYs) {
+      const last = yClusters[yClusters.length - 1];
+      if (!last || y - last[last.length - 1] > Y_TOLERANCE) {
+        yClusters.push([y]);
+      } else {
+        last.push(y);
+      }
+    }
+    const rowYToIdx = new Map();
+    yClusters.forEach((cluster, idx) => cluster.forEach((y) => rowYToIdx.set(y, idx)));
+    const rowHeights = yClusters.map((cluster) => {
+      const inCluster = topsForGrid.filter((l) => cluster.includes(Number(l.position.y) || 0));
+      return Math.max(...inCluster.map((l) => Number(l.position.h) || 1));
+    });
+    const rowHeightsFr = rowHeights.map((h) => `${h}fr`).join(' ');
+
+    lines.push('[★★★ DASHBOARD 패턴 — 절대 규칙 (다른 모든 컨텍스트보다 우선)]');
+    lines.push('');
+    lines.push('아래 §좌표표 의 layer 좌표는 **사용자가 ① Layout step 에서 명시한 최종 의도**.');
+    lines.push('원본 대시보드의 위치/구성은 무시 — 사용자가 위젯을 재배치했을 수 있다.');
+    lines.push('각 layer 의 `데이터 의도:` 블록은 *데이터 소스* 참고용일 뿐, 위치/크기는');
+    lines.push('아래 §좌표표 의 x/y/w/h 가 **단일 진실**. layer 의 자연어 설명에 "원본 대시보드" 같은');
+    lines.push('표현이 있더라도 원본 layout 을 따라하지 말고, §좌표표 를 그대로 사용할 것.');
+    lines.push('');
+    lines.push('### 외곽 컨테이너 — CSS Grid template (필수)');
+    lines.push('```jsx');
+    lines.push('<Box sx={{');
+    lines.push('  height: "100%", overflow: "hidden", p: 2,');
+    lines.push('  display: "grid",');
+    lines.push('  gridTemplateColumns: "repeat(12, 1fr)",');
+    lines.push(`  gridTemplateRows: "${rowHeightsFr}",   // 행 별 h 비율 그대로 — 위젯 세로 비율 살림`);
+    lines.push('  gap: 2,                                // 위젯 간 가로·세로 여백 동일하게');
+    lines.push('}}>');
+    lines.push('  {/* 각 위젯이 Paper 카드 1개로 — 아래 §매핑 참조 */}');
+    lines.push('</Box>');
+    lines.push('```');
+    lines.push('★ 외곽 Box `height: "100%"` + `overflow: "hidden"` 으로 **viewport 안 한 화면에 스크롤 없이 fit**.');
+    lines.push('');
+    lines.push('### 각 layer → Paper 카드 매핑 (필수)');
+    lines.push('```jsx');
+    lines.push('<Paper key={key} variant="outlined" sx={{');
+    lines.push('  gridColumn: `${x + 1} / span ${w}`,    // x 는 0-based, CSS Grid 는 1-based');
+    lines.push('  gridRow:    `${rowIdx + 1} / span 1`,  // rowIdx = 같은 y 그룹의 인덱스 (위→아래)');
+    lines.push('  p: 2, overflow: "hidden", minWidth: 0, minHeight: 0,');
+    lines.push('  border: "1px solid rgba(124,167,224,0.30)", borderRadius: 1,');
+    lines.push('  display: "flex", flexDirection: "column",');
+    lines.push('}}>');
+    lines.push('  <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#3A4A63", mb: 1, flex: "0 0 auto" }}>{title}</Typography>');
+    lines.push('  <Box sx={{ flex: 1, minHeight: 0, position: "relative" }}>');
+    lines.push('    {/* 차트/그리드/KPI 본문 — subtype 매핑 §아래 */}');
+    lines.push('  </Box>');
+    lines.push('</Paper>');
+    lines.push('```');
+    lines.push('★ `minWidth:0 + minHeight:0` 둘 다 필수 — 누락 시 위젯이 셀을 넘쳐 인접 위젯과 시각 중첩.');
+    lines.push('');
+    lines.push('### 본 화면의 layer 좌표표 (이 값 그대로 사용 — 임의 변경 금지)');
+    lines.push('| key | title | subtype | x | y | w | h | gridColumn | gridRow |');
+    lines.push('|---|---|---|---|---|---|---|---|---|');
+    for (const l of topsForGrid) {
+      const x = Number(l.position.x) || 0;
+      const y = Number(l.position.y) || 0;
+      const w = Number(l.position.w) || 1;
+      const h = Number(l.position.h) || 1;
+      const rowIdx = rowYToIdx.get(y) ?? 0;
+      lines.push(`| ${l.key} | ${l.title || ''} | ${l.subtype || ''} | ${x} | ${y} | ${w} | ${h} | \`${x + 1} / span ${w}\` | \`${rowIdx + 1} / span 1\` |`);
+    }
+    lines.push('');
+    lines.push('### 위젯 본문 (subtype 매핑)');
+    lines.push('- **chart/line/bar/pie/area/donut** → react-chartjs-2, wrapper `<Box sx={{ position:"absolute", inset:0 }}>` (Chart.js responsive:true, maintainAspectRatio:false).');
+    lines.push('- **grid/table/list** → BaseGrid (id + items + 부모 flex:1+minHeight:0).');
+    lines.push('- **kpi/score/gauge/metric** → `<Typography variant="h3" sx={{ color:"#0ea5e9", fontWeight:700, textAlign:"center" }}>` 큰 수치 + caption 라벨.');
+    lines.push('');
+    lines.push('### 기타');
+    lines.push('- FilterBar 비어 있어도 무방 — 대시보드는 보통 조회조건 없이 즉시 데이터 노출.');
+    lines.push('- 외곽 Box 위에 ContentInner 만 쓰고, WorkArea/SearchArea 등 다른 레이아웃 컴포넌트 추가 금지.');
+    lines.push('');
+  }
 
   lines.push('[Composer 신규 화면 생성 — 패턴 기반 시각 편집 모델 (NEW_STEP)]');
   lines.push('');

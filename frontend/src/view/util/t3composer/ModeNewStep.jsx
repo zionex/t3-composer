@@ -19,12 +19,14 @@ import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
 import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
+import DashboardIcon         from '@mui/icons-material/Dashboard';
 
 import ComposerWizard from './ComposerWizard';
+import T3Dashboard from '../../util/t3dashboard/T3Dashboard';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import AiRecommendPanel from './AiRecommendPanel';
-import { specFromPattern, specFromMockup, specFromUiPattern } from './wizardState';
+import { specFromPattern, specFromMockup, specFromUiPattern, specFromDashboard } from './wizardState';
 import { useTargetStore } from './targetStore';
 
 function ModeNewStep({ onBack }) {
@@ -49,6 +51,28 @@ function ModeNewStep({ onBack }) {
         onBack={() => setStage('PICK')}
         onStart={(s, atts) => { setSpec(s); setAttachments(atts || []); setStage('WIZARD'); }}
       />
+    );
+  }
+
+  if (stage === 'DASHBOARD') {
+    return (
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => setStage('PICK')}>뒤로</Button>
+          <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800 }}>
+            Dashboard 에서 시작 — 대시보드 선택
+          </Typography>
+        </Stack>
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <T3Dashboard
+            onUseAsScreen={(dashboard) => {
+              if (!dashboard) return;
+              setSpec(specFromDashboard(dashboard, { title: dashboard.name || dashboard.title || '새 화면', menuCd: '' }));
+              setStage('WIZARD');
+            }}
+          />
+        </Box>
+      </Box>
     );
   }
 
@@ -124,6 +148,22 @@ function ModeNewStep({ onBack }) {
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
                 T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+
+        <Paper variant="outlined"
+               sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#0ea5e9', bgcolor: '#f0f9ff' } }}
+               onClick={() => setStage('DASHBOARD')}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <DashboardIcon sx={{ fontSize: 32, color: '#0ea5e9' }} />
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#075985' }}>
+                Dashboard
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b' }}>
+                기존 대시보드 1개를 골라 위젯 레이아웃을 자동 prefill
               </Typography>
             </Box>
           </Stack>

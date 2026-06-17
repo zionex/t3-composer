@@ -36,6 +36,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import EditIcon from '@mui/icons-material/Edit';
 import GroupIcon from '@mui/icons-material/Group';
 import LockIcon from '@mui/icons-material/Lock';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PublicIcon from '@mui/icons-material/Public';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
@@ -360,7 +361,7 @@ function DashboardListDialog({ open, onClose, dashboards, activeId, loading, err
   );
 }
 
-export default function UserDashboardPage() {
+export default function UserDashboardPage({ onUseAsScreen } = {}) {
   const [dashboardId, setDashboardId] = useState(null);
   const [selectedDashboard, setSelectedDashboard] = useState(null);
   const [dashboardList, setDashboardList] = useState([]);
@@ -595,6 +596,24 @@ export default function UserDashboardPage() {
 
           {/* spacer */}
           <Box sx={{ flex: 1 }} />
+
+          {/* Composer 진입용 — onUseAsScreen prop 주입된 경우에만 노출. 좌측 사이드바 진입 시 미렌더. */}
+          {typeof onUseAsScreen === 'function' && (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<OpenInNewIcon fontSize="small" />}
+              disabled={!hasSelectedDashboard || dashboardLoading || Boolean(dashboardError)}
+              onClick={() => onUseAsScreen(selectedDashboard)}
+              sx={{
+                fontWeight: 700,
+                bgcolor: '#0ea5e9',
+                '&:hover': { bgcolor: '#0284c7' },
+              }}
+            >
+              {transLangKey('이 대시보드로 화면 생성')}
+            </Button>
+          )}
 
           {/* 모드 토글 — 편집 권한자만 노출 */}
           {canEditUser && (

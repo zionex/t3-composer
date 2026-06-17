@@ -11,7 +11,7 @@ import UserDashboardPage from './component/dashboardstudio/UserDashboardPage';
  *   x-user-id 헤더 자동 주입 (serviceCall.js). ENABLE_AUTH=true 시 access_token 도 주입.
  * - 레이아웃: 탭 전체 높이를 채우는 Box
  */
-export default function T3Dashboard() {
+export default function T3Dashboard({ onUseAsScreen } = {}) {
   return (
     <Box sx={{ width: '100%', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       <Suspense
@@ -22,7 +22,7 @@ export default function T3Dashboard() {
           </Box>
         }
       >
-        <UserDashboardPage />
+        <UserDashboardPage onUseAsScreen={onUseAsScreen} />
       </Suspense>
     </Box>
   );

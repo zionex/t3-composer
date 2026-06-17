@@ -239,6 +239,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                 display: 'flex', flexDirection: 'column',
                 p: 1.6, gap: 1.2,
                 borderTop: `3px solid ${cat.accent}`,
+                borderRadius: '5px',
               }}
             >
               {/* 보드 헤더 */}

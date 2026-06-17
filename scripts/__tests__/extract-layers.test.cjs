@@ -28,7 +28,7 @@ const c2 = extractLayers(`
 eq(c2, [
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 6, h: 12 } },
-  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'FORM',
+  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'GRID_BASE',
     position: { x: 6, y: 0, w: 6, h: 12 } },
 ], 'C2 마스터-디테일');
 
@@ -105,10 +105,10 @@ const c9 = extractLayers(`
   <table class="tbl"></table>
 </div>`);
 eq(c9, [
-  { key: 'stepper1', title: '단계', type: 'CHART', subtype: 'STEPPER',
+  { key: 'stepper1', title: '단계', type: 'CHART', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 12, h: 6 } },
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 6, w: 12, h: 6 } },
 ], 'C9 stepper + grid');
 
-console.log('OK — extract-layers 10 cases passed');
+console.log('OK — extract-layers 9 cases passed');

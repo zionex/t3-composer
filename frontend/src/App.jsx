@@ -13,6 +13,7 @@ import WidgetsIcon from '@mui/icons-material/Widgets';
 import SchemaIcon from '@mui/icons-material/Schema';
 
 import Logo from './Logo';
+import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
 import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
@@ -139,17 +140,12 @@ function TabbedHome() {
                         </Box>
                         {!collapsed && (
                             <>
-                                <Typography component="div" sx={{
-                                    flex: 1, fontSize: '0.92rem', fontWeight: 800,
-                                    color: 'primary.dark', letterSpacing: '-0.3px', whiteSpace: 'nowrap',
-                                }}>
-                                    T³Composer
-                                    <Box component="span" sx={{
-                                        fontSize: '0.62rem', fontWeight: 600, color: 'text.secondary', ml: 0.5,
-                                    }}>
-                                        v1.0
-                                    </Box>
-                                </Typography>
+                                <Box
+                                    component="img"
+                                    src={t3ComposerWordmark}
+                                    alt="T³Composer"
+                                    sx={{ flex: 1, height: 12, width: 'auto', objectFit: 'contain', objectPosition: 'left center', display: 'block' }}
+                                />
                                 <Tooltip title="메뉴 접기">
                                     <IconButton
                                         size="small"

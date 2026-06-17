@@ -392,4 +392,111 @@ function main() {
   console.log(`split dir : ${SPLIT_DIR}`);
 }
 
-main();
+// ──────────────────────────────────────────────────────────────
+// Layer 추출 — lite HTML → ComposerSpec.layers 12-col RGL 좌표
+//
+// 인식 시그니처 (spec §3.2):
+//   <table class="tbl"> · <div class="tbl-wrap">  → GRID (GRID_BASE)
+//   <canvas> · class="chart" / class="chart-card" → CHART (CHART_LINE)
+//   <div class="kpi-grid"> · <div class="kpi-row"> + 자식 → KPI 영역 1개 (KPI_CARD)
+//   <div class="form-row"> 다수 · <input>/<select> 다수 → CONTAINER (FORM)
+//
+// 좌표 신호:
+//   class="grid2" 또는 grid-template-columns 2-col → 좌우 분할 (w 분배)
+//   class="grid3" 또는 grid-template-columns 3-col → 좌우 3분할
+//   그 외 (기본) → 상하 분할 (h 분배)
+// ──────────────────────────────────────────────────────────────
+const MAX_LAYERS = 6;
+
+function extractLayers(html) {
+  if (!html || typeof html !== 'string') return [];
+
+  // panel 루트 안의 내용만 보기 (lite HTML 은 보통 <div class="panel" id="pN"> 안에 본문)
+  const panelMatch = /<div[^>]*class="[^"]*panel[^"]*"[^>]*>([\s\S]*)<\/div>/i.exec(html);
+  const inner = panelMatch ? panelMatch[1] : html;
+
+  // 좌우 분할 신호 — panel 안에 grid2/grid3 가 있으면 자식들을 좌우 layer 로 본다
+  const gridSplit = /<div[^>]*class="[^"]*\bgrid([23])\b/i.exec(inner);
+  const splitCols = gridSplit ? parseInt(gridSplit[1], 10) : null;
+
+  // 시그니처 카운트 (panel 안 전체 기준 — 1레벨 중첩 무시)
+  const matchCount = (re) => (inner.match(re) || []).length;
+  const counts = {
+    grid:  matchCount(/<table[^>]*class="[^"]*\btbl\b/gi)
+             || matchCount(/<div[^>]*class="[^"]*\btbl-wrap\b/gi),
+    chart: matchCount(/<canvas\b/gi)
+             || matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi),
+    kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
+             || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2) ? 1 : 0,
+    form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
+             || matchCount(/<input\b/gi) + matchCount(/<select\b/gi) >= 3) ? 1 : 0,
+  };
+
+  // type 메타 빌드 — Mockup 의 type/subtype 관례 따름.
+  //   KPI 가 있으면 항상 맨 위 (대시보드 패턴 관례)
+  //   순서: [KPI] → grids → charts → [form]
+  const META = {
+    GRID:  { type: 'GRID',      subtype: 'GRID_BASE', titlePrefix: '그리드' },
+    CHART: { type: 'CHART',     subtype: 'CHART_LINE', titlePrefix: '차트' },
+    KPI:   { type: 'CHART',     subtype: 'KPI_CARD',   titlePrefix: 'KPI' },
+    FORM:  { type: 'CONTAINER', subtype: 'FORM',       titlePrefix: '입력 폼' },
+  };
+  const slots = [];
+  if (counts.kpi) slots.push({ ...META.KPI, slot: 'kpi' });
+  for (let i = 0; i < counts.grid;  i++) slots.push({ ...META.GRID,  slot: 'grid' });
+  for (let i = 0; i < counts.chart; i++) slots.push({ ...META.CHART, slot: 'chart' });
+  if (counts.form) slots.push({ ...META.FORM, slot: 'form' });
+
+  if (slots.length === 0) return [];
+
+  // 7개 이상 → 첫 6개만 + warn
+  if (slots.length > MAX_LAYERS) {
+    console.warn(
+      `[extractLayers] layer 6+ 개 인식 — 첫 ${MAX_LAYERS}개만 유지 (총 ${slots.length}개)`,
+    );
+    slots.length = MAX_LAYERS;
+  }
+
+  // 좌표 분배
+  const N = slots.length;
+  const positions = [];
+  if (splitCols && N >= 2) {
+    // 좌우 분배 — 나머지는 마지막 layer 가 흡수
+    const w = Math.floor(12 / N);
+    let x = 0;
+    for (let i = 0; i < N; i++) {
+      const widthW = (i === N - 1) ? (12 - x) : w;
+      positions.push({ x, y: 0, w: widthW, h: 12 });
+      x += widthW;
+    }
+  } else {
+    // 상하 분배 (기본)
+    const h = Math.floor(12 / N);
+    let y = 0;
+    for (let i = 0; i < N; i++) {
+      const heightH = (i === N - 1) ? (12 - y) : h;
+      positions.push({ x: 0, y, w: 12, h: heightH });
+      y += heightH;
+    }
+  }
+
+  // key/title 부여 (slot 별 인덱스)
+  const counters = { kpi: 0, grid: 0, chart: 0, form: 0 };
+  return slots.map((s, i) => {
+    counters[s.slot] += 1;
+    const n = counters[s.slot];
+    const isSingleton = (s.slot === 'kpi' || s.slot === 'form');
+    return {
+      key:   `${s.slot}${n}`,
+      title: isSingleton ? (s.slot === 'kpi' ? 'KPI 영역' : '입력 폼')
+                         : `${s.titlePrefix} ${n}`,
+      type: s.type,
+      subtype: s.subtype,
+      position: positions[i],
+    };
+  });
+}
+
+module.exports = { extractLayers };
+
+if (require.main === module) main();

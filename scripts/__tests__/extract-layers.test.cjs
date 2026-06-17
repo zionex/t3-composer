@@ -1,0 +1,81 @@
+/* eslint-disable */
+// node 단위 테스트 — assert 만 사용 (jest 미설치 환경 호환)
+const assert = require('assert');
+const { extractLayers } = require('../split-t3mes-tabs.cjs');
+
+function eq(a, b, msg) { assert.deepStrictEqual(a, b, msg); }
+
+// ── C1: 단일 그리드 (panel 안 table.tbl 1개) ──
+const c1 = extractLayers(`
+<!DOCTYPE html><div class="panel" id="p0">
+  <div class="sec-hdr"><h3>제목</h3></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>A</th></tr></thead></table></div>
+</div>`);
+eq(c1, [
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 0, w: 12, h: 12 } },
+], 'C1 단일 그리드');
+
+// ── C2: 마스터-디테일 (grid2 = 좌우 분할) ──
+const c2 = extractLayers(`
+<div class="panel" id="p1">
+  <div class="grid2" style="grid-template-columns:320px 1fr">
+    <div class="card"><table class="tbl"></table></div>
+    <div class="card"><div class="form-row"><input class="inp"></div>
+                      <div class="form-row"><select class="inp"></select></div></div>
+  </div>
+</div>`);
+eq(c2, [
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 0, w: 6, h: 12 } },
+  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'FORM',
+    position: { x: 6, y: 0, w: 6, h: 12 } },
+], 'C2 마스터-디테일');
+
+// ── C3: 그리드 + 차트 (column 기본 — grid2/grid3 없음) ──
+const c3 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="tbl-wrap"><table class="tbl"></table></div>
+  <canvas id="chart1"></canvas>
+</div>`);
+eq(c3, [
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 0, w: 12, h: 6 } },
+  { key: 'chart1', title: '차트 1', type: 'CHART', subtype: 'CHART_LINE',
+    position: { x: 0, y: 6, w: 12, h: 6 } },
+], 'C3 grid + chart column');
+
+// ── C4: KPI 그리드 + 그리드 ──
+const c4 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="kpi-grid">
+    <div class="kpi-card">A</div><div class="kpi-card">B</div>
+    <div class="kpi-card">C</div><div class="kpi-card">D</div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl"></table></div>
+</div>`);
+eq(c4, [
+  { key: 'kpi1', title: 'KPI 영역', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 0, y: 0, w: 12, h: 6 } },
+  { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 6, w: 12, h: 6 } },
+], 'C4 KPI + grid');
+
+// ── C5: 시그니처 0건 (텍스트만) ──
+const c5 = extractLayers(`<div class="panel"><div class="sec-hdr"><h3>제목</h3></div></div>`);
+eq(c5, [], 'C5 0건');
+
+// ── C6: 비정상 8개 그리드 (첫 6개만 + warn) ──
+const warnings = [];
+const origWarn = console.warn;
+console.warn = (m) => warnings.push(m);
+const c6 = extractLayers(
+  '<div class="panel">' +
+  '<table class="tbl"></table>'.repeat(8) +
+  '</div>',
+);
+console.warn = origWarn;
+assert.strictEqual(c6.length, 6, 'C6 6개 cap');
+assert.ok(warnings.some((w) => /6\+/.test(w)), 'C6 warn 발생');
+
+console.log('OK — extract-layers 7 cases passed');

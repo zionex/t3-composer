@@ -143,29 +143,58 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
   };
   const removeAttachment = (idx) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
 
-  // "내 설계 그대로 만들기" — 이미지 1장 이상 첨부 시 활성. 카드 클릭 시 lazy 호출.
+  // "내 설계 그대로 만들기" — 이미지 1장 이상 첨부 시 활성. "추천 찾는 중…" 동안 backend
+  // /spec-from-image 도 병렬 호출(eager). 결과는 imageDerivedSpec 에 캐시 — hero 카드
+  // 클릭 시 즉시 사용. 검색 도중/직후 click 시에도 캐시 도착할 때까지 대기.
   const imageAttachments = attachments.filter(
     (a) => a && a.kind === 'binary' && /^image\//.test(a.mediaType || '')
   );
   const [imageDerivedLoading, setImageDerivedLoading] = useState(false);
-  const onPickImageDerived = async () => {
-    if (imageAttachments.length === 0 || imageDerivedLoading) return;
+  const [imageDerivedSpec,    setImageDerivedSpec]    = useState(null);  // null = 아직 분석 안 함, {} = 빈 fallback, {layers,...} = 성공
+  const imageDerivedPromiseRef = useRef(null);                            // 진행 중 promise — 클릭 시 대기
+
+  const startImageDerivedAnalysis = async () => {
+    if (imageAttachments.length === 0) return;
     setImageDerivedLoading(true);
+    setImageDerivedSpec(null);
     const binaryAttachs = imageAttachments.map(({ name, mediaType, base64 }) => ({ name, mediaType, base64 }));
+    const p = (async () => {
+      try {
+        const res = await specFromImage({
+          nl, moduleCode: '', targetCd, binaryAttachments: binaryAttachs,
+        });
+        const aiSpec = res?.data?.spec || {};
+        setImageDerivedSpec(aiSpec);
+        return aiSpec;
+      } catch {
+        setImageDerivedSpec({});
+        return {};
+      } finally {
+        setImageDerivedLoading(false);
+        imageDerivedPromiseRef.current = null;
+      }
+    })();
+    imageDerivedPromiseRef.current = p;
+    return p;
+  };
+
+  const onPickImageDerived = async () => {
+    if (imageAttachments.length === 0) return;
     const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : '내 설계';
-    try {
-      const res = await specFromImage({
-        nl, moduleCode: '', targetCd, binaryAttachments: binaryAttachs,
-      });
-      const aiSpec = res?.data?.spec || null;
-      const spec = specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' });
-      onStart(spec, attachments);
-    } catch {
-      // 실패 시 빈 image-derived spec (사용자가 Wizard 에서 직접 layer 추가)
-      onStart(specFromImageDerived({}, { title: baseTitle, menuCd: '' }), attachments);
-    } finally {
-      setImageDerivedLoading(false);
+    // 1) 캐시 있으면 즉시 사용
+    if (imageDerivedSpec) {
+      onStart(specFromImageDerived(imageDerivedSpec, { title: baseTitle, menuCd: '' }), attachments);
+      return;
     }
+    // 2) 진행 중이면 그 promise 대기
+    if (imageDerivedPromiseRef.current) {
+      const aiSpec = await imageDerivedPromiseRef.current;
+      onStart(specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' }), attachments);
+      return;
+    }
+    // 3) 아직 시작 안 함 (검색 안 누르고 hero 카드만 직접 클릭한 케이스) → lazy 시작 후 대기
+    const aiSpec = await startImageDerivedAnalysis();
+    onStart(specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' }), attachments);
   };
 
   const codeToEntry = useMemo(() => {
@@ -202,6 +231,15 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     if (!nl.trim() || loading) return;
     setLoading(true);
     setResults(null);
+
+    // Eager 병렬 — 이미지 첨부 시 hero 카드용 vision 분석을 backend 와 동시에 시작.
+    // hero 카드 click 시 캐시된 결과를 곧장 사용 (별도 대기 없음).
+    if (imageAttachments.length > 0) {
+      startImageDerivedAnalysis();
+    } else {
+      setImageDerivedSpec(null);
+      setImageDerivedLoading(false);
+    }
 
     const TARGET_SLOTS       = 6;
     const TARGET_EXISTING    = 4;
@@ -559,11 +597,19 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
             </Box>
           )}
           {/* ── 강조 hero 카드 — 이미지 첨부 시 grid 위에 1개만 노출 ── */}
-          {results && imageAttachments.length > 0 && (
+          {results && imageAttachments.length > 0 && (() => {
+            const layerCount = Array.isArray(imageDerivedSpec?.layers) ? imageDerivedSpec.layers.length : 0;
+            const ready = !imageDerivedLoading && imageDerivedSpec != null;
+            const summary = layerCount > 0
+              ? `${layerCount}개 layer 인식됨 — KPI·차트·그리드 위치 추론 완료`
+              : (ready
+                  ? '분석 결과가 비어있습니다. 이미지가 흐리거나 구조가 모호할 수 있어요 — 시작 후 직접 보강하세요.'
+                  : '첨부 이미지의 layout (KPI·차트·그리드·필터 위치)을 Claude vision 이 분석 중…');
+            return (
             <Box
               onClick={imageDerivedLoading ? undefined : onPickImageDerived}
               sx={{
-                border: `2px solid ${SYNTH_ACCENT_SOFT}`,
+                border: `2px solid ${ready && layerCount > 0 ? SYNTH_ACCENT : SYNTH_ACCENT_SOFT}`,
                 borderRadius: 2,
                 p: 1.5,
                 background: `linear-gradient(135deg, ${SYNTH_ACCENT_BG}, ${ACCENT_BG2})`,
@@ -583,19 +629,33 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                   bgcolor: SYNTH_ACCENT_CHIP,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
+                  position: 'relative',
                 }}>
                   <PhotoFilterIcon sx={{ fontSize: 26, color: SYNTH_ACCENT_DARK }} />
+                  {imageDerivedLoading && (
+                    <CircularProgress size={44} thickness={3}
+                      sx={{ position: 'absolute', inset: 0, color: SYNTH_ACCENT }} />
+                  )}
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" spacing={0.8} alignItems="center">
+                  <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap">
                     <Typography sx={{ fontWeight: 800, fontSize: 14, color: SYNTH_ACCENT_DARK }}>
                       ✨ 내 설계 그대로 만들기
                     </Typography>
                     <Chip label={`이미지 ${imageAttachments.length}개`} size="small"
                           sx={{ height: 18, fontSize: 9.5, bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
+                    {imageDerivedLoading && (
+                      <Chip label="AI 분석 중…" size="small"
+                            sx={{ height: 18, fontSize: 9.5, bgcolor: '#fef3c7', color: '#92400e' }} />
+                    )}
+                    {ready && layerCount > 0 && (
+                      <Chip label={`✓ ${layerCount} layers`} size="small"
+                            sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
+                                  bgcolor: SYNTH_ACCENT, color: '#fff' }} />
+                    )}
                   </Stack>
                   <Typography sx={{ fontSize: 11.5, color: SYNTH_ACCENT_TEXT, mt: 0.2 }}>
-                    첨부 이미지의 layout (KPI·차트·그리드·필터 위치)을 Claude vision 이 분석해 동일하게 재현. 추천 템플릿 대신 내 설계를 그대로 사용.
+                    {summary}
                   </Typography>
                 </Box>
                 <Button
@@ -610,7 +670,8 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                 </Button>
               </Stack>
             </Box>
-          )}
+            );
+          })()}
 
           {results && (
             <Box sx={{

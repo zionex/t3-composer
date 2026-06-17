@@ -282,6 +282,18 @@ export const prefillFromSynthesized = ({
     composerReq()
   );
 
+/**
+ * AI 추천 — 첨부 설계 이미지 → ComposerSpec 직접 추론 (Claude vision).
+ * 응답: { spec: { meta?, layers?, filterBar? }, mode: 'ai'|'fallback', model }
+ *   binaryAttachments 의 image/* 만 사용. 자연어/모듈코드/타겟은 보조.
+ */
+export const specFromImage = ({ nl, moduleCode, targetCd, binaryAttachments }) =>
+  zAxios.post(
+    'composer/spec-from-image',
+    { nl, moduleCode, targetCd, binaryAttachments },
+    composerReq()
+  );
+
 // ---- Menu Registration ----
 
 // sqlOverride: 트리 픽커 등으로 수정한 SQL. null 이면 서버가 저장된 산출물 그대로 실행.

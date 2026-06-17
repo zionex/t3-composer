@@ -3074,6 +3074,58 @@ export function specFromSynthesized(synth, baseMeta = {}) {
 }
 
 /**
+ * SpecFromImageService 응답 (Claude vision 추론) → ComposerSpec.
+ *   aiSpec: { meta?, layers?: [{key,title,type,subtype,position}], filterBar?: {items?} }
+ *
+ *   사용자가 AiRecommendPanel 의 "내 설계 그대로 만들기" 카드를 클릭했을 때.
+ *   - aiSpec.layers 가 비어있으면 BLANK ComposerSpec 폴백.
+ *   - 각 layer 의 누락 필드 (dataSource/columns/cascade) 는 NL 모드 기본값으로 보강.
+ *   - meta.title 은 aiSpec.meta.title 이 있으면 우선, 없으면 baseMeta.title.
+ *   - filterBar.items 가 있으면 그대로 반영 (key/label/type 만).
+ */
+export function specFromImageDerived(aiSpec, baseMeta = {}) {
+  const layers = Array.isArray(aiSpec?.layers) ? aiSpec.layers : [];
+  if (layers.length === 0) {
+    return createComposerSpec({ ...baseMeta, pattern: 'IMAGE_DERIVED' });
+  }
+  const base = createComposerSpec({
+    ...baseMeta,
+    pattern: 'IMAGE_DERIVED',
+    title: (aiSpec?.meta?.title) || baseMeta.title || '내 설계',
+  });
+  base.layers = layers.map((d, idx) => {
+    const key = d.key || `layer-${idx + 1}`;
+    return {
+      key,
+      title: d.title || `위젯 ${idx + 1}`,
+      type: d.type || 'GRID',
+      subtype: d.subtype || null,
+      position: d.position || { x: 0, y: idx * 4, w: 12, h: 4 },
+      dataSource: {
+        mode: 'NL',
+        naturalText: `[이미지에서 추론된 ${d.type || 'layer'} '${d.title || key}']`,
+        references: [],
+        sqlBlocks: [],
+      },
+      columns: [],
+      cascade: {},
+    };
+  });
+  base.filterBar.affects = Object.fromEntries(base.layers.map((l) => [l.key, []]));
+  const fbItems = aiSpec?.filterBar?.items;
+  if (Array.isArray(fbItems) && fbItems.length > 0) {
+    base.filterBar.items = fbItems
+      .filter((it) => it && (it.key || it.label))
+      .map((it) => ({
+        key: it.key || '',
+        label: it.label || '',
+        type: it.type || 'TEXT',
+      }));
+  }
+  return base;
+}
+
+/**
  * UiPatternPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
  *   entry: ALL_ENTRIES 항목 (file, tabIndex, label, sectionCode, ...)
  *

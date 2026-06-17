@@ -32,6 +32,8 @@ import com.zionex.t3composer.domain.dto.RecommendMockupRequest;
 import com.zionex.t3composer.domain.dto.PrefillFromMockupRequest;
 import com.zionex.t3composer.domain.service.PrefillFromSynthesizedService;
 import com.zionex.t3composer.domain.dto.PrefillFromSynthesizedRequest;
+import com.zionex.t3composer.domain.service.SpecFromImageService;
+import com.zionex.t3composer.domain.dto.SpecFromImageRequest;
 import com.zionex.t3composer.domain.service.DesignDocAnalyzeService;
 import com.zionex.t3composer.domain.service.DesignDocExportService;
 import com.zionex.t3composer.domain.service.MenuRegistrationService;
@@ -82,6 +84,7 @@ public class ComposerController {
     private final RecommendMockupService recommendMockupService;
     private final PrefillFromMockupService prefillFromMockupService;
     private final PrefillFromSynthesizedService prefillFromSynthesizedService;
+    private final SpecFromImageService specFromImageService;
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
     private final PreviewModuleResolver previewModuleResolver;
@@ -652,6 +655,18 @@ public class ComposerController {
             return ResponseEntity.ok(prefillFromSynthesizedService.prefill(currentUserId(), req));
         } catch (Exception e) {
             log.error("prefill-from-synthesized failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error",   "server_error",
+                    "message", e.getMessage() != null ? e.getMessage() : "unknown"));
+        }
+    }
+
+    @PostMapping("/spec-from-image")
+    public ResponseEntity<Map<String, Object>> specFromImage(@RequestBody SpecFromImageRequest req) {
+        try {
+            return ResponseEntity.ok(specFromImageService.infer(currentUserId(), req));
+        } catch (Exception e) {
+            log.error("spec-from-image failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "error",   "server_error",
                     "message", e.getMessage() != null ? e.getMessage() : "unknown"));

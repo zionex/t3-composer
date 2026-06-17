@@ -5,11 +5,12 @@ import {
 import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import AutoAwesomeIcon  from '@mui/icons-material/AutoAwesome';
 import CloudUploadIcon  from '@mui/icons-material/CloudUpload';
+import PhotoFilterIcon  from '@mui/icons-material/PhotoFilter';
 
 import { MOCKUP_ENTRIES } from '../t3mockup';
 import { buildMockupCandidates, scoreMockupCandidates, mergeAiPrefillIntoSpec } from './mockupRecommend';
-import { specFromMockup, specFromSynthesized } from './wizardState';
-import { recommendMockups, prefillFromMockup, prefillFromSynthesized } from './api';
+import { specFromMockup, specFromSynthesized, specFromImageDerived } from './wizardState';
+import { recommendMockups, prefillFromMockup, prefillFromSynthesized, specFromImage } from './api';
 import SynthesizedMockupPreview from './SynthesizedMockupPreview';
 
 // 앰버 팔레트 — 패턴 선택 화면의 "AI 추천" 카드와 통일 (빈 캔버스 보라와 구분)
@@ -141,6 +142,31 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     }
   };
   const removeAttachment = (idx) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
+
+  // "내 설계 그대로 만들기" — 이미지 1장 이상 첨부 시 활성. 카드 클릭 시 lazy 호출.
+  const imageAttachments = attachments.filter(
+    (a) => a && a.kind === 'binary' && /^image\//.test(a.mediaType || '')
+  );
+  const [imageDerivedLoading, setImageDerivedLoading] = useState(false);
+  const onPickImageDerived = async () => {
+    if (imageAttachments.length === 0 || imageDerivedLoading) return;
+    setImageDerivedLoading(true);
+    const binaryAttachs = imageAttachments.map(({ name, mediaType, base64 }) => ({ name, mediaType, base64 }));
+    const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : '내 설계';
+    try {
+      const res = await specFromImage({
+        nl, moduleCode: '', targetCd, binaryAttachments: binaryAttachs,
+      });
+      const aiSpec = res?.data?.spec || null;
+      const spec = specFromImageDerived(aiSpec || {}, { title: baseTitle, menuCd: '' });
+      onStart(spec, attachments);
+    } catch {
+      // 실패 시 빈 image-derived spec (사용자가 Wizard 에서 직접 layer 추가)
+      onStart(specFromImageDerived({}, { title: baseTitle, menuCd: '' }), attachments);
+    } finally {
+      setImageDerivedLoading(false);
+    }
+  };
 
   const codeToEntry = useMemo(() => {
     const m = new Map();
@@ -532,6 +558,60 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
               <Typography variant="body2">자연어로 만들고 싶은 화면을 적고 "추천 템플릿 찾기" 를 누르세요.</Typography>
             </Box>
           )}
+          {/* ── 강조 hero 카드 — 이미지 첨부 시 grid 위에 1개만 노출 ── */}
+          {results && imageAttachments.length > 0 && (
+            <Box
+              onClick={imageDerivedLoading ? undefined : onPickImageDerived}
+              sx={{
+                border: `2px solid ${SYNTH_ACCENT_SOFT}`,
+                borderRadius: 2,
+                p: 1.5,
+                background: `linear-gradient(135deg, ${SYNTH_ACCENT_BG}, ${ACCENT_BG2})`,
+                cursor: imageDerivedLoading ? 'wait' : 'pointer',
+                boxShadow: '0 2px 12px rgba(139,92,246,0.18)',
+                transition: 'all 0.15s',
+                '&:hover': imageDerivedLoading ? {} : {
+                  borderColor: SYNTH_ACCENT, boxShadow: '0 4px 18px rgba(139,92,246,0.28)',
+                  transform: 'translateY(-1px)',
+                },
+                flexShrink: 0,
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{
+                  width: 44, height: 44, borderRadius: '50%',
+                  bgcolor: SYNTH_ACCENT_CHIP,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <PhotoFilterIcon sx={{ fontSize: 26, color: SYNTH_ACCENT_DARK }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack direction="row" spacing={0.8} alignItems="center">
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: SYNTH_ACCENT_DARK }}>
+                      ✨ 내 설계 그대로 만들기
+                    </Typography>
+                    <Chip label={`이미지 ${imageAttachments.length}개`} size="small"
+                          sx={{ height: 18, fontSize: 9.5, bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
+                  </Stack>
+                  <Typography sx={{ fontSize: 11.5, color: SYNTH_ACCENT_TEXT, mt: 0.2 }}>
+                    첨부 이미지의 layout (KPI·차트·그리드·필터 위치)을 Claude vision 이 분석해 동일하게 재현. 추천 템플릿 대신 내 설계를 그대로 사용.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained" size="small"
+                  disabled={imageDerivedLoading}
+                  startIcon={imageDerivedLoading ? <CircularProgress size={14} color="inherit" /> : null}
+                  sx={{ bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER },
+                          fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}
+                  onClick={(e) => { e.stopPropagation(); onPickImageDerived(); }}
+                >
+                  {imageDerivedLoading ? '분석 중…' : '이미지로 시작 →'}
+                </Button>
+              </Stack>
+            </Box>
+          )}
+
           {results && (
             <Box sx={{
               display: 'grid',

@@ -31,6 +31,8 @@ function ModeNewStep({ onBack }) {
   // 단계: 'PICK' (패턴 선택) | 'WIZARD' (4단계 Wizard)
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
+  // AI 추천에서 받은 참조 파일 첨부 — GenerateStep 까지 흘려보내 Claude 가 참조.
+  const [attachments, setAttachments] = useState([]);
   const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
   const [uiPatternPickerOpen, setUiPatternPickerOpen] = useState(false);
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
@@ -45,7 +47,7 @@ function ModeNewStep({ onBack }) {
       <AiRecommendPanel
         targetCd={currentTargetCd}
         onBack={() => setStage('PICK')}
-        onStart={(s) => { setSpec(s); setStage('WIZARD'); }}
+        onStart={(s, atts) => { setSpec(s); setAttachments(atts || []); setStage('WIZARD'); }}
       />
     );
   }
@@ -54,8 +56,9 @@ function ModeNewStep({ onBack }) {
     return (
       <ComposerWizard
         initialSpec={spec}
+        initialAttachments={attachments}
         targetCd={currentTargetCd}
-        onBack={() => { setSpec(null); setStage('PICK'); }}
+        onBack={() => { setSpec(null); setAttachments([]); setStage('PICK'); }}
       />
     );
   }

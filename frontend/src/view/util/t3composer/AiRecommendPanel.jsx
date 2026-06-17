@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect, Suspense } from 'react';
 import {
-  Box, Typography, Button, Stack, TextField, Chip, CircularProgress,
+  Box, Typography, Button, Stack, TextField, Chip, CircularProgress, Paper, Tooltip,
 } from '@mui/material';
 import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import AutoAwesomeIcon  from '@mui/icons-material/AutoAwesome';
+import CloudUploadIcon  from '@mui/icons-material/CloudUpload';
 
 import { MOCKUP_ENTRIES } from '../t3mockup';
 import { buildMockupCandidates, scoreMockupCandidates, mergeAiPrefillIntoSpec } from './mockupRecommend';
@@ -42,6 +43,50 @@ const EXAMPLES = ['거래처별 단가 관리', '공급계획 시뮬레이션', 
  *   onStart(spec)     선택 + prefill 완료된 ComposerSpec 으로 Wizard 진입
  *   targetCd          활성 Target
  */
+// ─── 참조 파일 첨부 (D&D) — ModeNewGeneral 와 동일 패턴 ───
+const TEXT_EXTS = new Set([
+  'txt','md','markdown','jsx','tsx','js','ts','mjs','java','kt','scala',
+  'sql','json','yaml','yml','xml','html','htm','css','scss','less',
+  'csv','tsv','sh','ps1','bat','conf','properties','toml','ini','env',
+  'log','gradle','dockerfile','py','rb','go','rs','c','cpp','h','hpp','svg',
+]);
+const MAX_ATTACH = 5;
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+const isTextFile = (file) => {
+  if (file.type && file.type.startsWith('text/')) return true;
+  if (file.type && /(json|xml|yaml|x-sh|x-shellscript|svg\+xml)/.test(file.type)) return true;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  return TEXT_EXTS.has(ext);
+};
+
+const readAsText = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader();
+  r.onload = () => resolve(r.result);
+  r.onerror = () => reject(r.error);
+  r.readAsText(file);
+});
+
+const readAsBase64 = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader();
+  r.onload = () => {
+    const url = String(r.result || '');
+    const m = /^data:([^;]+);base64,(.+)$/.exec(url);
+    if (m) resolve({ mediaType: m[1], base64: m[2] });
+    else reject(new Error('invalid data url'));
+  };
+  r.onerror = () => reject(r.error);
+  r.readAsDataURL(file);
+});
+
+/** Split attachments into Anthropic-shaped payload — text inline 용 + binary content blocks 용. */
+const buildAttachPayload = (atts) => ({
+  textAttachments: (atts || []).filter((a) => a && a.kind === 'text')
+    .map(({ name, lang, text, sizeKb }) => ({ name, lang, text, sizeKb })),
+  binaryAttachments: (atts || []).filter((a) => a && a.kind === 'binary')
+    .map(({ name, mediaType, base64 }) => ({ name, mediaType, base64 })),
+});
+
 function AiRecommendPanel({ onBack, onStart, targetCd }) {
   const [nl, setNl] = useState('');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
@@ -50,6 +95,52 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
   const [mode, setMode] = useState(null);              // 'ai' | 'fallback'
   const [zoomEntry, setZoomEntry] = useState(null);
   const zoomStopRef = useRef(null);
+
+  // 참조 파일 첨부 — 자연어 생성과 동일 UX. 모든 AI 호출 (추천·prefill·최종 생성) 에 동봉.
+  const [attachments, setAttachments] = useState([]);
+  const [dragOver, setDragOver]       = useState(false);
+  const [attachError, setAttachError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFilesPicked = async (files) => {
+    const arr = Array.from(files || []);
+    if (arr.length === 0) return;
+    setAttachError(null);
+    const room = MAX_ATTACH - attachments.length;
+    if (room <= 0) {
+      setAttachError(`참조 파일은 최대 ${MAX_ATTACH}개까지 첨부할 수 있습니다.`);
+      return;
+    }
+    const take = arr.slice(0, room);
+    if (arr.length > room) {
+      setAttachError(`최대 ${MAX_ATTACH}개 — ${take.length}개만 추가했습니다.`);
+    }
+    for (const file of take) {
+      try {
+        const sizeKb = Math.round(file.size / 1024);
+        if (file.size > MAX_FILE_BYTES) {
+          setAttachError(`파일이 너무 큽니다 (${sizeKb}KB > 5MB): ${file.name}`);
+          continue;
+        }
+        if (isTextFile(file)) {
+          const text = await readAsText(file);
+          const lang = (file.name.split('.').pop() || '').toLowerCase();
+          setAttachments((prev) => [...prev, {
+            kind: 'text', name: file.name, mediaType: file.type || 'text/plain',
+            sizeKb, lang, text,
+          }]);
+        } else {
+          const { mediaType, base64 } = await readAsBase64(file);
+          setAttachments((prev) => [...prev, {
+            kind: 'binary', name: file.name, mediaType, base64, sizeKb,
+          }]);
+        }
+      } catch (err) {
+        setAttachError(`파일 읽기 실패: ${file?.name || ''}: ${err?.message || err}`);
+      }
+    }
+  };
+  const removeAttachment = (idx) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
 
   const codeToEntry = useMemo(() => {
     const m = new Map();
@@ -97,7 +188,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     let cards = [];
     let resolvedMode = 'fallback';
     try {
-      const res = await recommendMockups({ nl, candidates });
+      const res = await recommendMockups({ nl, candidates, ...buildAttachPayload(attachments) });
       const data = res?.data || {};
       if (data.mode === 'ai') {
         resolvedMode = 'ai';
@@ -148,6 +239,8 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     if (!item || item.kind === 'placeholder' || fillingIdx !== null) return;
     setFillingIdx(idx);
 
+    const attachPayload = buildAttachPayload(attachments);
+
     if (item.kind === 'existing') {
       const entry = item.entry;
       const base = specFromMockup(entry, { title: entry.patternLabel || '새 화면', menuCd: '' });
@@ -163,11 +256,12 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           },
           moduleCode: '',
           targetCd,
+          ...attachPayload,
         });
         const aiSpec = res?.data?.spec || null;
-        onStart(mergeAiPrefillIntoSpec(base, aiSpec));
+        onStart(mergeAiPrefillIntoSpec(base, aiSpec), attachments);
       } catch {
-        onStart(base);
+        onStart(base, attachments);
       } finally {
         setFillingIdx(null);
       }
@@ -183,11 +277,12 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           synthesized: synth,
           moduleCode: '',
           targetCd,
+          ...attachPayload,
         });
         const aiSpec = res?.data?.spec || null;
-        onStart(mergeAiPrefillIntoSpec(base, aiSpec));
+        onStart(mergeAiPrefillIntoSpec(base, aiSpec), attachments);
       } catch {
-        onStart(base);
+        onStart(base, attachments);
       } finally {
         setFillingIdx(null);
       }
@@ -344,6 +439,77 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                     onClick={() => setNl(ex)} sx={{ fontSize: 11 }} />
             ))}
           </Stack>
+
+          {/* ── 참조 파일 첨부 (D&D) — 설계서 이미지·SQL 등 ── */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => { handleFilesPicked(e.target.files); e.target.value = ''; }}
+          />
+          <Paper
+            variant="outlined"
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); }}
+            onDrop={(e) => {
+              e.preventDefault(); e.stopPropagation();
+              setDragOver(false);
+              handleFilesPicked(e.dataTransfer?.files);
+            }}
+            onClick={() => fileInputRef.current?.click()}
+            sx={{
+              p: 1.5, borderRadius: 1.5, cursor: 'pointer',
+              border: '2px dashed',
+              borderColor: dragOver ? ACCENT : ACCENT_BORDER,
+              bgcolor: dragOver ? ACCENT_BG : '#fffdf5',
+              transition: 'all 0.15s',
+              '&:hover': { borderColor: ACCENT, bgcolor: ACCENT_BG },
+            }}
+          >
+            <Stack alignItems="center" spacing={0.3}>
+              <CloudUploadIcon sx={{ fontSize: 24, color: dragOver ? ACCENT : ACCENT_SOFT }} />
+              <Typography sx={{ fontWeight: 700, color: ACCENT_DARK, fontSize: 11.5 }}>
+                참조 파일 첨부 — 설계서 이미지 · SQL 등
+              </Typography>
+              <Tooltip title="설계서 이미지·캡처·SQL 등을 최대 5개(파일당 5MB) 첨부. 텍스트는 prompt 에 inline, 이미지/PDF 는 multimodal 로 전송. AI 추천·prefill·최종 화면 생성 단계 모두에 활용됩니다.">
+                <Typography sx={{ fontSize: 10, color: '#94a3b8', cursor: 'help',
+                                    borderBottom: '1px dotted', borderColor: 'divider' }}>
+                  끌어다 놓거나 클릭 · 최대 {MAX_ATTACH}개
+                  {attachments.length > 0 && `  (${attachments.length}/${MAX_ATTACH})`}
+                </Typography>
+              </Tooltip>
+            </Stack>
+            {attachments.length > 0 && (
+              <Stack
+                direction="row" flexWrap="wrap" sx={{ mt: 1, gap: 0.5, justifyContent: 'center' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {attachments.map((a, i) => {
+                  const icon = a.kind === 'text' ? '📄' : (/^image\//.test(a.mediaType) ? '🖼️' : '📎');
+                  return (
+                    <Chip
+                      key={`${a.name}-${i}`}
+                      label={`${icon} ${a.name} (${a.sizeKb}KB)`}
+                      size="small"
+                      onDelete={() => removeAttachment(i)}
+                      sx={{
+                        bgcolor: a.kind === 'text' ? 'rgba(245,158,11,0.10)' : 'rgba(245,158,11,0.18)',
+                        fontSize: 10, height: 22,
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            )}
+          </Paper>
+          {attachError && (
+            <Typography sx={{ fontSize: 11, color: '#b45309', bgcolor: '#fef3c7',
+                              border: '1px solid #fcd34d', borderRadius: 1, p: 0.8 }}>
+              ⚠ {attachError}
+            </Typography>
+          )}
+
           <Button variant="contained" onClick={onSearch} disabled={!nl.trim() || loading}
                   startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />}
                   sx={{ bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER }, fontWeight: 700 }}>

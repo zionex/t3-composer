@@ -243,19 +243,27 @@ export const prefillFromDesign = ({ parsedDesign, fileName, newMenuCd, newTitle,
  * AI 추천 — 자연어 + 압축 mockup 후보를 보내 상위 3개를 AI 재랭킹.
  * 응답: { items: [{ patternCode, relevance, reason }], mode: 'ai'|'fallback', model }
  *   mode==='fallback' (키 없음/호출 실패) → 호출부가 프런트 키워드 순서로 폴백.
+ * textAttachments / binaryAttachments: AiRecommendPanel D&D 참조 파일 (선택)
  */
-export const recommendMockups = ({ nl, candidates }) =>
-  zAxios.post('composer/recommend-mockups', { nl, candidates }, composerReq());
+export const recommendMockups = ({ nl, candidates, textAttachments, binaryAttachments }) =>
+  zAxios.post(
+    'composer/recommend-mockups',
+    { nl, candidates, textAttachments, binaryAttachments },
+    composerReq()
+  );
 
 /**
  * AI 추천 — 선택한 mockup + 자연어로 4단계 Wizard 부분 prefill.
  * 응답: { spec: { meta?, filterBar? }, mode: 'ai'|'fallback', model }
  *   데이터바인딩(실제 테이블/SP)은 채우지 않음 — §13.7 환각 방지.
  */
-export const prefillFromMockup = ({ nl, mockupPatternCode, mockupMeta, moduleCode, targetCd }) =>
+export const prefillFromMockup = ({
+  nl, mockupPatternCode, mockupMeta, moduleCode, targetCd,
+  textAttachments, binaryAttachments,
+}) =>
   zAxios.post(
     'composer/prefill-from-mockup',
-    { nl, mockupPatternCode, mockupMeta, moduleCode, targetCd },
+    { nl, mockupPatternCode, mockupMeta, moduleCode, targetCd, textAttachments, binaryAttachments },
     composerReq()
   );
 
@@ -264,10 +272,13 @@ export const prefillFromMockup = ({ nl, mockupPatternCode, mockupMeta, moduleCod
  * 응답: { spec: { meta?, filterBar? }, mode: 'ai'|'fallback', model }
  *   prefillFromMockup 과 응답 shape 동일 — 호출부 mergeAiPrefillIntoSpec 재사용.
  */
-export const prefillFromSynthesized = ({ nl, synthesized, moduleCode, targetCd }) =>
+export const prefillFromSynthesized = ({
+  nl, synthesized, moduleCode, targetCd,
+  textAttachments, binaryAttachments,
+}) =>
   zAxios.post(
     'composer/prefill-from-synthesized',
-    { nl, synthesized, moduleCode, targetCd },
+    { nl, synthesized, moduleCode, targetCd, textAttachments, binaryAttachments },
     composerReq()
   );
 

@@ -27,12 +27,30 @@ function computeRuleScope(spec) {
   return [hasBackend && 'backend', hasFilter && 'filter'].filter(Boolean).join(',');
 }
 
-function GenerateStep({ spec, targetCd, onBackToWizard }) {
+// AI 추천에서 받아온 텍스트 첨부 — Claude prompt 본문에 inline. 파일당 12K자 cap.
+const ATTACH_INLINE_CAP = 12000;
+function buildTextInline(textAttachs) {
+  let s = '';
+  for (const t of textAttachs) {
+    const full = t.text || '';
+    const body = full.length > ATTACH_INLINE_CAP
+      ? full.slice(0, ATTACH_INLINE_CAP) + `\n... (이하 생략 — 전체 ${full.length}자)`
+      : full;
+    s += `\n\n=== 첨부 파일: ${t.name} ===\n\`\`\`${t.lang || ''}\n${body}\n\`\`\`\n`;
+  }
+  return s;
+}
+
+function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard }) {
   const [session, setSession] = useState(null);
   const [initialPrompt, setInitialPrompt] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(null);
   const triedRef = useRef(false);  // mount 시 1회만 createSession
+
+  // 텍스트 = inline, 바이너리 = ComposerWorkspace 의 initialAttachments 로 분리.
+  const textAttachs   = (initialAttachments || []).filter((a) => a && a.kind === 'text');
+  const binaryAttachs = (initialAttachments || []).filter((a) => a && a.kind === 'binary');
 
   useEffect(() => {
     if (triedRef.current) return;
@@ -42,7 +60,7 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
       setCreating(true);
       setError(null);
       try {
-        const promptText = specToInitialPrompt(spec);
+        const promptText = specToInitialPrompt(spec) + buildTextInline(textAttachs);
         const title = (spec?.meta?.title || '새 화면').slice(0, 80);
         // 사용자가 MetaStep 에서 명시 입력한 menuCd 가 있으면 세션 row 에 즉시 기록.
         // 빈 경우는 Claude 가 MENU_SQL 산출 후 backend 가 추출해 채움.
@@ -123,6 +141,7 @@ function GenerateStep({ spec, targetCd, onBackToWizard }) {
       <ComposerWorkspace
         session={session}
         initialPrompt={initialPrompt}
+        initialAttachments={binaryAttachs}
         chatCollapsed
         extraHeader={
           <Button

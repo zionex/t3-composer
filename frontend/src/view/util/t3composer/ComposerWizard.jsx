@@ -41,7 +41,7 @@ const STEPS = [
  *   targetCd     활성 Target Cd
  *   onBack       뒤로 콜백
  */
-function ComposerWizard({ initialSpec, mode = 'NEW_STEP', targetCd, onBack }) {
+function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP', targetCd, onBack }) {
   // mode 를 spec.meta 에 보존 — 이후 Generate step 의 specToInitialPrompt 가 활용.
   const [spec, setSpec] = useState(() => {
     if (!initialSpec) return initialSpec;
@@ -153,7 +153,7 @@ function ComposerWizard({ initialSpec, mode = 'NEW_STEP', targetCd, onBack }) {
         {step === 'LAYOUT'   && <LayoutStep        spec={spec} onChange={setSpec} targetCd={targetCd} />}
         {step === 'DATA'     && <DataAndFilterStep spec={spec} onChange={setSpec} targetCd={targetCd} />}
         {step === 'META'     && <MetaStep          spec={spec} onChange={setSpec} targetCd={targetCd} />}
-        {step === 'GENERATE' && <GenerateStep      spec={spec}                     targetCd={targetCd} onBackToWizard={() => setStep('META')} />}
+        {step === 'GENERATE' && <GenerateStep      spec={spec} initialAttachments={initialAttachments} targetCd={targetCd} onBackToWizard={() => setStep('META')} />}
       </Box>
 
       {/* ── 단계 검증 토스트 (FilterBar 라벨 미입력 등) ── */}

@@ -443,7 +443,13 @@ function extractLayers(html) {
                     matchCount(/<div[^>]*class="[^"]*\btbl-wrap\b/gi)),
     chart: Math.max(matchCount(/<canvas\b/gi),
                     matchCount(/<div[^>]*class="[^"]*\bchart(-card)?\b/gi),
-                    matchCount(/<svg\b/gi)),  // SVG-only diagrams 도 차트로 분류
+                    // SVG 만 인식 — 큰 다이어그램 (icon 제외)
+                    //  ① width="200+" 또는 width="1000+"
+                    //  ② viewBox="x y W H" 에서 W·H 가 3자리 이상
+                    //  ③ chart/diagram/flow/bpmn 클래스 wrapper 안의 SVG
+                    matchCount(/<svg[^>]*\bwidth="(?:[2-9]\d{2}|\d{4,})\b/gi)
+                      + matchCount(/<svg[^>]*\bviewBox="[^"]*\s\d{3,}\s\d{3,}"/gi)
+                      + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi)),
     kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
              || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2) ? 1 : 0,
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
@@ -456,9 +462,14 @@ function extractLayers(html) {
     mobile: (/<div[^>]*class="[^"]*\bmobile-frame\b/i.test(inner)) ? 1 : 0,
   };
 
-  // type 메타 빌드 — Mockup 의 type/subtype 관례 따름.
-  //   KPI 가 있으면 항상 맨 위 (대시보드 패턴 관례)
-  //   순서: [KPI] → grids → charts → [form]
+  // Dedup — cards 가 grid/chart 와 함께 잡히면 cards 는 wrapper 일 가능성 높음 (실제 layer 는 inner)
+  if (counts.cards && (counts.grid > 0 || counts.chart > 0)) {
+    counts.cards = 0;
+  }
+
+  // 슬롯 순서 (Mockup ControlBoard 관례):
+  //   stepper(상단) → KPI → tree → grids → charts → cards → form
+  //   cards 는 inner content 가 있을 때 제외 (Issue 2 dedup 참고)
   const META = {
     GRID:     { type: 'GRID',      subtype: 'GRID_BASE',       titlePrefix: '그리드' },
     CHART:    { type: 'CHART',     subtype: 'CHART_LINE',      titlePrefix: '차트' },

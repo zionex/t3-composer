@@ -3127,19 +3127,71 @@ export function specFromImageDerived(aiSpec, baseMeta = {}) {
 
 /**
  * UiPatternPickerDialog 의 onConfirm(entry) 결과 → ComposerSpec.
- *   entry: ALL_ENTRIES 항목 (file, tabIndex, label, sectionCode, ...)
+ *   entry: ALL_ENTRIES 항목 (file, tabIndex, label, sectionCode, layers?, ...)
  *
- *   UI Pattern 은 layer 구조 메타가 없으므로 단일 mainGrid + 패턴 식별자만 보존.
- *   실제 mockup 의 HTML 콘텐츠를 자연어 컨텍스트로 변환하는 작업은 Phase 2B.
+ *   entry.layers 가 있으면 specFromMockup 동일 패턴으로 ComposerSpec 생성.
+ *   미주입 시 단일 mainGrid 폴백 (createComposerSpec 기본값).
+ *   plan: docs/superpowers/plans/2026-06-17-uipattern-layer-autogen.md (Task 4)
  */
+function uiPatternContextText(entry, layerTitle) {
+  const lines = [
+    `[참조 패턴] ${entry.tabLabel || entry.fileLabel || 'UI Pattern'}`,
+  ];
+  if (entry.fileLabel && entry.tabLabel && entry.fileLabel !== entry.tabLabel) {
+    lines.push(`[파일] ${entry.fileLabel}`);
+  }
+  if (entry.section)  lines.push(`[섹션] ${entry.section}`);
+  if (entry.group)    lines.push(`[그룹] ${entry.group}`);
+  if (layerTitle)     lines.push(`[이 영역의 역할] ${layerTitle}`);
+  lines.push('');
+  lines.push('이 영역에서 보여줄 데이터를 자유롭게 보완하세요 — 또는 Data Source 탐색에서 Table/SP 를 직접 참조 추가.');
+  return lines.join('\n');
+}
+
 export function specFromUiPattern(entry, baseMeta = {}) {
   if (!entry) return createComposerSpec({ ...baseMeta, pattern: 'BLANK' });
   const patternId = `${entry.file || ''}#${entry.tabIndex ?? 0}`;
-  return createComposerSpec({
+  const base = createComposerSpec({
     ...baseMeta,
     pattern: `UIPATTERN_${patternId}`,
-    title: baseMeta.title || entry.label || '새 화면',
+    title: baseMeta.title || entry.tabLabel || entry.fileLabel || entry.label || '새 화면',
   });
+
+  // entry.layers 미주입 시 createComposerSpec 의 단일 mainGrid 유지 (폴백)
+  if (!Array.isArray(entry.layers) || entry.layers.length === 0) {
+    return base;
+  }
+
+  // 각 layer 검증 (key/type/position 필수) — 누락 시 전체 폴백
+  const valid = entry.layers.every((l) =>
+    l && typeof l.key === 'string' && l.key
+    && typeof l.type === 'string' && l.type
+    && l.position && typeof l.position.x === 'number'
+    && typeof l.position.y === 'number'
+    && typeof l.position.w === 'number'
+    && typeof l.position.h === 'number');
+  if (!valid) {
+    console.warn('[specFromUiPattern] entry.layers 형식 오류 — 단일 mainGrid 폴백', entry);
+    return base;
+  }
+
+  base.layers = entry.layers.map((d) => ({
+    key: d.key,
+    title: d.title || d.key,
+    type: d.type,
+    subtype: d.subtype || null,
+    position: d.position,
+    dataSource: {
+      mode: 'NL',
+      naturalText: uiPatternContextText(entry, d.title),
+      references: [],
+      sqlBlocks: [],
+    },
+    columns: [],
+    cascade: {},
+  }));
+  base.filterBar.affects = Object.fromEntries(base.layers.map((l) => [l.key, []]));
+  return base;
 }
 
 // ============================================================================

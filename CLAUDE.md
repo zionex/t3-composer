@@ -44,6 +44,7 @@
 | `…/t3series/rules/31-stored-procedures.md` | SP 네이밍 + ORDER BY |
 | `…/t3series/rules/32-sql-schema-verification.md` | SQL 스키마 사전 검증 |
 | `…/t3series/rules/41b-composer-java.md` | Java 백엔드 표준 (wingui ResponseMessage) |
+| `…/t3series/rules/41c-composer-chart.md` | 차트 라이브러리 화이트리스트 (Chart.js + react-chartjs-2, recharts 등 금지) |
 
 **PLANNEL overlay** (`./.claude/targets/plannel/rules/`) — PostgreSQL·Liquibase·AG-Grid·TabMenuList 전용 13종. 목록은 `.claude/targets/README.md` 참조.
 

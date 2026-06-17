@@ -21,12 +21,13 @@
 #   9. java-class-naming.sh     — CG-L1~L4 Java 클래스명 ↔ 디렉토리 1:1
 #   10. t3mockup.sh             — M1~M4 t3mockup 규약 (Phase 4a/b/c)
 #
-# T3SERIES 전용 overlay (.claude/targets/t3series/hooks/validators/, 7개) :
+# T3SERIES 전용 overlay (.claude/targets/t3series/hooks/validators/, 8개) :
 #   sql-sp.sh                   — S1~S8 SP_UI_ 네이밍 (T3 MSSQL)
 #   menu-sql.sh                 — MENU_SQL: MENU_CD / MENU_FILE_PATH / 부모 코드
 #   sql-schema-whitelist.sh     — .sql 컬럼 화이트리스트 (TB_AD_USER · TB_AD_MENU 등)
 #   path-convention.sh          — `ut/` 금지 → `util/` (com.zionex.t3series 패키지)
 #   jsx-basic.sh                — R1~R9 wingui 화면 구조 + 한글 i18n
+#   jsx-chart-libs.sh           — CG-CHART-1~3 차트 라이브러리 화이트리스트 (Chart.js + react-chartjs-2 만)
 #   java-resp-msg.sh            — wingui ResponseMessage J8/J11 (@Builder·정적 팩토리 금지)
 #   java-wingui-imports.sh      — wingui 패키지 환각 차단 (BaseEntity · Specification · Multipart)
 #

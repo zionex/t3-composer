@@ -368,7 +368,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -874,7 +886,33 @@
       "index": 12,
       "label": "결재 워크플로우",
       "full": "t3mes-split/full/mes_mrp_1_order/13_결재_워크플로우.html",
-      "lite": "t3mes-split/lite/mes_mrp_1_order/13_결재_워크플로우.html"
+      "lite": "t3mes-split/lite/mes_mrp_1_order/13_결재_워크플로우.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 13,
@@ -960,7 +998,33 @@
       "index": 17,
       "label": "납기지연 시뮬",
       "full": "t3mes-split/full/mes_mrp_1_order/18_납기지연_시뮬.html",
-      "lite": "t3mes-split/lite/mes_mrp_1_order/18_납기지연_시뮬.html"
+      "lite": "t3mes-split/lite/mes_mrp_1_order/18_납기지연_시뮬.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 18,
@@ -1021,14 +1085,26 @@
       "lite": "t3mes-split/lite/mes_mrp_1_order/21_수입통관_마법사.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
           "key": "form1",
           "title": "입력 폼",
           "type": "CONTAINER",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 0,
+            "x": 6,
             "y": 0,
-            "w": 12,
+            "w": 6,
             "h": 12
           }
         }
@@ -1058,7 +1134,33 @@
       "index": 22,
       "label": "단종 대체품 AI",
       "full": "t3mes-split/full/mes_mrp_1_order/23_단종_대체품_AI.html",
-      "lite": "t3mes-split/lite/mes_mrp_1_order/23_단종_대체품_AI.html"
+      "lite": "t3mes-split/lite/mes_mrp_1_order/23_단종_대체품_AI.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 23,
@@ -1217,15 +1319,27 @@
       "lite": "t3mes-split/lite/mes_mrp_2_result/03_무발주기타.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 4
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 4,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         },
         {
@@ -1235,9 +1349,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 8,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         }
       ]
@@ -1472,7 +1586,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -1594,7 +1720,33 @@
       "index": 22,
       "label": "ERP 재무연동",
       "full": "t3mes-split/full/mes_mrp_2_result/23_ERP_재무연동.html",
-      "lite": "t3mes-split/lite/mes_mrp_2_result/23_ERP_재무연동.html"
+      "lite": "t3mes-split/lite/mes_mrp_2_result/23_ERP_재무연동.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 23,
@@ -1640,7 +1792,33 @@
       "index": 25,
       "label": "저울 중량입고",
       "full": "t3mes-split/full/mes_mrp_2_result/26_저울_중량입고.html",
-      "lite": "t3mes-split/lite/mes_mrp_2_result/26_저울_중량입고.html"
+      "lite": "t3mes-split/lite/mes_mrp_2_result/26_저울_중량입고.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 26,
@@ -1664,7 +1842,33 @@
       "index": 29,
       "label": "결품 자동해제",
       "full": "t3mes-split/full/mes_mrp_2_result/30_결품_자동해제.html",
-      "lite": "t3mes-split/lite/mes_mrp_2_result/30_결품_자동해제.html"
+      "lite": "t3mes-split/lite/mes_mrp_2_result/30_결품_자동해제.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     }
   ],
   "mes_mrp_3_monitoring_ui_patterns.html": [
@@ -1984,7 +2188,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
+            "w": 3,
             "h": 12
           }
         },
@@ -1994,9 +2198,33 @@
           "type": "CONTAINER",
           "subtype": "GRID_BASE",
           "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
             "x": 6,
             "y": 0,
-            "w": 6,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -2176,7 +2404,33 @@
       "index": 9,
       "label": "긴급 오더",
       "full": "t3mes-split/full/mes_production_1_order/10_긴급_오더.html",
-      "lite": "t3mes-split/lite/mes_production_1_order/10_긴급_오더.html"
+      "lite": "t3mes-split/lite/mes_production_1_order/10_긴급_오더.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 10,
@@ -2318,7 +2572,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -2522,7 +2788,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
+            "w": 3,
             "h": 12
           }
         },
@@ -2532,9 +2798,33 @@
           "type": "CONTAINER",
           "subtype": "GRID_BASE",
           "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
             "x": 6,
             "y": 0,
-            "w": 6,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -2796,7 +3086,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -3328,7 +3654,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -3348,7 +3686,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -3438,7 +3788,33 @@
       "index": 7,
       "label": "터치형 불량패드",
       "full": "t3mes-split/full/mes_qc_1_operation/08_터치형_불량패드.html",
-      "lite": "t3mes-split/lite/mes_qc_1_operation/08_터치형_불량패드.html"
+      "lite": "t3mes-split/lite/mes_qc_1_operation/08_터치형_불량패드.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 8,
@@ -3554,7 +3930,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -3600,7 +3988,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -3688,7 +4112,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -3728,7 +4188,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -4140,15 +4612,27 @@
       "lite": "t3mes-split/lite/mes_sales_1_order/01_헤더-디테일.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 4
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 4,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         },
         {
@@ -4158,9 +4642,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 8,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         }
       ]
@@ -4487,7 +4971,33 @@
       "index": 24,
       "label": "AI 크로스셀",
       "full": "t3mes-split/full/mes_sales_1_order/25_AI_크로스셀.html",
-      "lite": "t3mes-split/lite/mes_sales_1_order/25_AI_크로스셀.html"
+      "lite": "t3mes-split/lite/mes_sales_1_order/25_AI_크로스셀.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     }
   ],
   "mes_sales_2_result_ui_patterns.html": [
@@ -4639,7 +5149,33 @@
       "index": 6,
       "label": "포장 카톤화",
       "full": "t3mes-split/full/mes_sales_2_result/07_포장_카톤화.html",
-      "lite": "t3mes-split/lite/mes_sales_2_result/07_포장_카톤화.html"
+      "lite": "t3mes-split/lite/mes_sales_2_result/07_포장_카톤화.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 7,
@@ -4771,7 +5307,33 @@
       "index": 14,
       "label": "스마트 체중계",
       "full": "t3mes-split/full/mes_sales_2_result/15_스마트_체중계.html",
-      "lite": "t3mes-split/lite/mes_sales_2_result/15_스마트_체중계.html"
+      "lite": "t3mes-split/lite/mes_sales_2_result/15_스마트_체중계.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 15,
@@ -4787,7 +5349,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -4863,7 +5461,33 @@
       "index": 20,
       "label": "승인 결재",
       "full": "t3mes-split/full/mes_sales_2_result/21_승인_결재.html",
-      "lite": "t3mes-split/lite/mes_sales_2_result/21_승인_결재.html"
+      "lite": "t3mes-split/lite/mes_sales_2_result/21_승인_결재.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 21,
@@ -4889,7 +5513,33 @@
       "index": 22,
       "label": "맞교환(RMA)",
       "full": "t3mes-split/full/mes_sales_2_result/23_맞교환(RMA).html",
-      "lite": "t3mes-split/lite/mes_sales_2_result/23_맞교환(RMA).html"
+      "lite": "t3mes-split/lite/mes_sales_2_result/23_맞교환(RMA).html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 23,
@@ -5286,15 +5936,27 @@
       "lite": "t3mes-split/lite/mes_stock_1_retrive/01_기본_그리드.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 4
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 4,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         },
         {
@@ -5304,9 +5966,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 8,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         }
       ]
@@ -5361,7 +6023,21 @@
       "index": 4,
       "label": "다중 UOM 조회",
       "full": "t3mes-split/full/mes_stock_1_retrive/05_다중_UOM_조회.html",
-      "lite": "t3mes-split/lite/mes_stock_1_retrive/05_다중_UOM_조회.html"
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/05_다중_UOM_조회.html",
+      "layers": [
+        {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 5,
@@ -5505,7 +6181,21 @@
       "index": 14,
       "label": "빈(Bin) 적재율 히트맵",
       "full": "t3mes-split/full/mes_stock_1_retrive/15_빈(Bin)_적재율_히트맵.html",
-      "lite": "t3mes-split/lite/mes_stock_1_retrive/15_빈(Bin)_적재율_히트맵.html"
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/15_빈(Bin)_적재율_히트맵.html",
+      "layers": [
+        {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 15,
@@ -5715,7 +6405,33 @@
       "index": 28,
       "label": "사용자정의 엑셀 추출",
       "full": "t3mes-split/full/mes_stock_1_retrive/29_사용자정의_엑셀_추출.html",
-      "lite": "t3mes-split/lite/mes_stock_1_retrive/29_사용자정의_엑셀_추출.html"
+      "lite": "t3mes-split/lite/mes_stock_1_retrive/29_사용자정의_엑셀_추출.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 29,
@@ -5766,15 +6482,27 @@
       "lite": "t3mes-split/lite/mes_stock_2_modify/02_2._일괄_실사입력.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 6
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 6,
             "w": 12,
-            "h": 12
+            "h": 6
           }
         }
       ]
@@ -5903,7 +6631,33 @@
       "index": 8,
       "label": "9. 단위(UOM) 변환",
       "full": "t3mes-split/full/mes_stock_2_modify/09_9._단위(UOM)_변환.html",
-      "lite": "t3mes-split/lite/mes_stock_2_modify/09_9._단위(UOM)_변환.html"
+      "lite": "t3mes-split/lite/mes_stock_2_modify/09_9._단위(UOM)_변환.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 9,
@@ -6061,7 +6815,33 @@
       "index": 18,
       "label": "19. 세트 조립(Kitting)",
       "full": "t3mes-split/full/mes_stock_2_modify/19_19._세트_조립(Kitting).html",
-      "lite": "t3mes-split/lite/mes_stock_2_modify/19_19._세트_조립(Kitting).html"
+      "lite": "t3mes-split/lite/mes_stock_2_modify/19_19._세트_조립(Kitting).html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 19,
@@ -6559,7 +7339,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -6777,7 +7569,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -6847,7 +7651,33 @@
       "index": 17,
       "label": "결품 원인 심층분석",
       "full": "t3mes-split/full/mes_tracking_1_order/18_결품_원인_심층분석.html",
-      "lite": "t3mes-split/lite/mes_tracking_1_order/18_결품_원인_심층분석.html"
+      "lite": "t3mes-split/lite/mes_tracking_1_order/18_결품_원인_심층분석.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 18,
@@ -6863,7 +7693,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -7054,15 +7920,27 @@
       "lite": "t3mes-split/lite/mes_tracking_2_stock/01_실시간_재고.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 4
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 0,
+            "y": 4,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         },
         {
@@ -7072,9 +7950,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 8,
             "w": 12,
-            "h": 6
+            "h": 4
           }
         }
       ]
@@ -7093,7 +7971,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -7173,7 +8063,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -7213,7 +8115,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -7293,7 +8207,43 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -7525,7 +8475,31 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 12
           }
         }
@@ -7617,7 +8591,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -7639,7 +8625,7 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
+            "w": 2,
             "h": 12
           }
         },
@@ -7649,9 +8635,57 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
             "x": 6,
             "y": 0,
-            "w": 6,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card4",
+          "title": "카드 영역 4",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "w": 2,
             "h": 12
           }
         }
@@ -7664,14 +8698,26 @@
       "lite": "t3mes-split/lite/scm_mp_1_controlboard/02_LED_공정_관제.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 0,
+            "x": 2,
             "y": 0,
-            "w": 4,
+            "w": 2,
             "h": 12
           }
         },
@@ -7683,7 +8729,7 @@
           "position": {
             "x": 4,
             "y": 0,
-            "w": 4,
+            "w": 2,
             "h": 12
           }
         },
@@ -7693,9 +8739,33 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
+            "x": 6,
+            "y": 0,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
             "x": 8,
             "y": 0,
-            "w": 4,
+            "w": 2,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 10,
+            "y": 0,
+            "w": 2,
             "h": 12
           }
         }
@@ -7777,7 +8847,21 @@
       "index": 7,
       "label": "노드 상태",
       "full": "t3mes-split/full/scm_mp_1_controlboard/08_노드_상태.html",
-      "lite": "t3mes-split/lite/scm_mp_1_controlboard/08_노드_상태.html"
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/08_노드_상태.html",
+      "layers": [
+        {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 8,
@@ -7795,7 +8879,33 @@
       "index": 10,
       "label": "리소스 관제",
       "full": "t3mes-split/full/scm_mp_1_controlboard/11_리소스_관제.html",
-      "lite": "t3mes-split/lite/scm_mp_1_controlboard/11_리소스_관제.html"
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/11_리소스_관제.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 11,
@@ -8005,7 +9115,33 @@
       "index": 24,
       "label": "엔진버전 비교",
       "full": "t3mes-split/full/scm_mp_1_controlboard/25_엔진버전_비교.html",
-      "lite": "t3mes-split/lite/scm_mp_1_controlboard/25_엔진버전_비교.html"
+      "lite": "t3mes-split/lite/scm_mp_1_controlboard/25_엔진버전_비교.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 25,
@@ -8077,7 +9213,21 @@
       "index": 0,
       "label": "Pivot Grid 직접보정",
       "full": "t3mes-split/full/scm_mp_2_plan/01_Pivot_Grid_직접보정.html",
-      "lite": "t3mes-split/lite/scm_mp_2_plan/01_Pivot_Grid_직접보정.html"
+      "lite": "t3mes-split/lite/scm_mp_2_plan/01_Pivot_Grid_직접보정.html",
+      "layers": [
+        {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 1,
@@ -8099,7 +9249,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -8155,19 +9317,97 @@
       "index": 6,
       "label": "제약조건 알림",
       "full": "t3mes-split/full/scm_mp_2_plan/07_제약조건_알림.html",
-      "lite": "t3mes-split/lite/scm_mp_2_plan/07_제약조건_알림.html"
+      "lite": "t3mes-split/lite/scm_mp_2_plan/07_제약조건_알림.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 7,
       "label": "Capacity 슬라이더",
       "full": "t3mes-split/full/scm_mp_2_plan/08_Capacity_슬라이더.html",
-      "lite": "t3mes-split/lite/scm_mp_2_plan/08_Capacity_슬라이더.html"
+      "lite": "t3mes-split/lite/scm_mp_2_plan/08_Capacity_슬라이더.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 8,
       "label": "파급영향 분석",
       "full": "t3mes-split/full/scm_mp_2_plan/09_파급영향_분석.html",
-      "lite": "t3mes-split/lite/scm_mp_2_plan/09_파급영향_분석.html"
+      "lite": "t3mes-split/lite/scm_mp_2_plan/09_파급영향_분석.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 9,
@@ -8235,7 +9475,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -8261,7 +9513,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -8274,14 +9538,38 @@
       "lite": "t3mes-split/lite/scm_mp_2_plan/15_KPI_대시보드.html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 0,
+            "x": 4,
             "y": 0,
-            "w": 12,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 12
           }
         }
@@ -8323,7 +9611,33 @@
       "index": 18,
       "label": "셋업 최적화 배치",
       "full": "t3mes-split/full/scm_mp_2_plan/19_셋업_최적화_배치.html",
-      "lite": "t3mes-split/lite/scm_mp_2_plan/19_셋업_최적화_배치.html"
+      "lite": "t3mes-split/lite/scm_mp_2_plan/19_셋업_최적화_배치.html",
+      "layers": [
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 12
+          }
+        }
+      ]
     },
     {
       "index": 19,
@@ -8340,14 +9654,38 @@
       "lite": "t3mes-split/lite/scm_mp_3_monitoring/01_통합_KPI_대시보드_(Overall_Dashboard).html",
       "layers": [
         {
+          "key": "kpi1",
+          "title": "KPI 영역",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
           "key": "chart1",
           "title": "차트 1",
           "type": "CHART",
           "subtype": "CHART_LINE",
           "position": {
-            "x": 0,
+            "x": 4,
             "y": 0,
-            "w": 12,
+            "w": 4,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 12
           }
         }
@@ -8407,7 +9745,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -8729,7 +10079,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 12
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 12
           }
         }
@@ -8984,7 +10346,67 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 12
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 6,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card4",
+          "title": "카드 영역 4",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card5",
+          "title": "카드 영역 5",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 2
           }
         }
       ]
@@ -9004,7 +10426,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 4
+            "h": 2
           }
         },
         {
@@ -9014,9 +10436,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 2,
             "w": 12,
-            "h": 4
+            "h": 2
           }
         },
         {
@@ -9026,9 +10448,45 @@
           "subtype": "CHART_LINE",
           "position": {
             "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 6,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
             "y": 8,
             "w": 12,
-            "h": 4
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 2
           }
         }
       ]
@@ -9048,7 +10506,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 6
+            "h": 2
           }
         },
         {
@@ -9058,9 +10516,57 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
+            "y": 2,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
             "y": 6,
             "w": 12,
-            "h": 6
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card4",
+          "title": "카드 영역 4",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 2
           }
         }
       ]
@@ -9080,7 +10586,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 6
+            "h": 2
           }
         },
         {
@@ -9090,9 +10596,45 @@
           "subtype": "CHART_LINE",
           "position": {
             "x": 0,
+            "y": 2,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
             "y": 6,
             "w": 12,
-            "h": 6
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 4
           }
         }
       ]
@@ -9112,7 +10654,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 6
+            "h": 2
           }
         },
         {
@@ -9122,9 +10664,57 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
+            "y": 2,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
             "y": 6,
             "w": 12,
-            "h": 6
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card4",
+          "title": "카드 영역 4",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 2
           }
         }
       ]
@@ -9144,7 +10734,67 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 12
+            "h": 2
+          }
+        },
+        {
+          "key": "card1",
+          "title": "카드 영역 1",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card2",
+          "title": "카드 영역 2",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 6,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card4",
+          "title": "카드 영역 4",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 2
+          }
+        },
+        {
+          "key": "card5",
+          "title": "카드 영역 5",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 2
           }
         }
       ]

@@ -111,4 +111,35 @@ eq(c9, [
     position: { x: 0, y: 6, w: 12, h: 6 } },
 ], 'C9 stepper + grid');
 
-console.log('OK — extract-layers 9 cases passed');
+// ── C10: 대시보드 — grid4 KPI strip + grid2 안 2 card-title (차트+알림) ──
+//   grid4 = KPI strip (kpi=1), chart-card = chart (chart=1),
+//   card-title 2개 = cardSections=2.
+//   explicitSlots = grid(0) + chart(1) + form(0) = 1, cardSections(2) > 1 → 1 card region 추가.
+//   결과: kpi + chart + card → 3 layer
+const c10 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="sec-hdr"><h3>대시보드</h3></div>
+  <div class="grid4" id="kpis"></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">차트</div><div class="chart-card"></div></div>
+    <div class="card"><div class="card-title">알림</div><div id="alerts"></div></div>
+  </div>
+</div>`);
+assert.strictEqual(c10.length, 3, 'C10 — 3 layers (KPI + chart + card region)');
+assert.strictEqual(c10[0].subtype, 'KPI_CARD', 'C10 layer 0 = KPI');
+const c10ChartIdx = c10.findIndex((l) => l.subtype === 'CHART_LINE');
+const c10CardIdx = c10.findIndex((l) => l.subtype === 'CARD_LIST');
+assert.ok(c10ChartIdx >= 0, 'C10 has chart');
+assert.ok(c10CardIdx >= 0, 'C10 has card region');
+
+// ── C11: grid4 단독 (KPI strip only) ──
+const c11 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="grid4" id="kpis"></div>
+</div>`);
+eq(c11, [
+  { key: 'kpi1', title: 'KPI 영역', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 0, y: 0, w: 12, h: 12 } },
+], 'C11 KPI strip 단독');
+
+console.log('OK — extract-layers 11 cases passed');

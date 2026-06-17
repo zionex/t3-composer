@@ -450,8 +450,10 @@ function extractLayers(html) {
                     matchCount(/<svg[^>]*\bwidth="(?:[2-9]\d{2}|\d{4,})\b/gi)
                       + matchCount(/<svg[^>]*\bviewBox="[^"]*\s\d{3,}\s\d{3,}"/gi)
                       + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi)),
+    // grid4/grid5/grid6 = KPI strip (4~6 KPI 카드 가로 배치, 동적 JS 채움 케이스 포함)
     kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
-             || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2) ? 1 : 0,
+             || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2
+             || /<div[^>]*class="[^"]*\bgrid[4-6]\b/i.test(inner)) ? 1 : 0,
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
              || matchCount(/<input\b/gi) + matchCount(/<select\b/gi) >= 3) ? 1 : 0,
     tree:  (/<(div|ul)[^>]*class="[^"]*\b(org-tree|tree-view|treegrid|tree)\b/i.test(inner)) ? 1 : 0,
@@ -460,6 +462,9 @@ function extractLayers(html) {
     stepper: (/<(div|ol|ul)[^>]*class="[^"]*\b(steps|stepper|step-list)\b/i.test(inner)) ? 1 : 0,
     calendar: (/<div[^>]*class="[^"]*\bcal-grid\b/i.test(inner)) ? 1 : 0,
     mobile: (/<div[^>]*class="[^"]*\bmobile-frame\b/i.test(inner)) ? 1 : 0,
+    // card-title 카운트 — 2개 이상이면 다중 컨텐츠 영역 (대시보드 패턴)
+    //   각 card-title 은 distinct 한 시각적 region 을 표시
+    cardSections: matchCount(/<div[^>]*class="[^"]*\bcard-title\b/gi),
   };
 
   // Dedup — cards 가 grid/chart 와 함께 잡히면 cards 는 wrapper 일 가능성 높음 (실제 layer 는 inner)
@@ -483,6 +488,8 @@ function extractLayers(html) {
     STEPPER:  { type: 'CHART',     subtype: 'GRID_BASE',       titlePrefix: '단계' },
     CALENDAR: { type: 'CHART',     subtype: 'CALENDAR_MONTH',  titlePrefix: '달력' },
     MOBILE:   { type: 'CONTAINER', subtype: 'GRID_BASE',       titlePrefix: '모바일' },
+    // card-title 가 발견된 컨텐츠 카드 영역 (대시보드 패턴 — 각 card-title = distinct region)
+    CARD_REGION: { type: 'CONTAINER', subtype: 'CARD_LIST',    titlePrefix: '카드 영역' },
   };
   const slots = [];
   if (counts.stepper)  slots.push({ ...META.STEPPER,  slot: 'stepper' });
@@ -494,6 +501,18 @@ function extractLayers(html) {
   if (counts.mobile)   slots.push({ ...META.MOBILE,   slot: 'mobile' });
   if (counts.cards)    slots.push({ ...META.CARDS,    slot: 'cards' });
   if (counts.form)     slots.push({ ...META.FORM,     slot: 'form' });
+
+  // 다중 카드 영역 — card-title 가 2+ 이면 슬롯 부족분만큼 generic card 영역 추가
+  //   (이미 잡힌 grid/chart/form 카운트와 cardSections 차이만큼 추가).
+  //   예: 대시보드 — grid4 KPI strip + chart + 알림 panel → kpi=1, chart=1, cardSections=2
+  //       → explicitSlots(chart=1) 보다 cardSections(2) 크므로 1개 card region 추가.
+  const explicitSlots = (counts.grid + counts.chart + (counts.form || 0));
+  if (counts.cardSections >= 2 && counts.cardSections > explicitSlots) {
+    const missing = counts.cardSections - explicitSlots;
+    for (let i = 0; i < missing; i++) {
+      slots.push({ ...META.CARD_REGION, slot: 'card' });
+    }
+  }
 
   if (slots.length === 0) return [];
 
@@ -531,10 +550,12 @@ function extractLayers(html) {
   // key/title 부여 (slot 별 인덱스)
   const counters = {
     kpi: 0, grid: 0, chart: 0, form: 0, tree: 0, cards: 0, stepper: 0, calendar: 0, mobile: 0,
+    card: 0,
   };
   const SINGLETON_TITLES = {
     kpi: 'KPI 영역', form: '입력 폼', tree: '트리', cards: '카드 리스트', stepper: '단계',
     calendar: '달력', mobile: '모바일',
+    // card 는 인덱스 (card1/card2/...) 로 — 다중 카드 영역 케이스
   };
   return slots.map((s, i) => {
     counters[s.slot] += 1;

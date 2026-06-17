@@ -1085,26 +1085,14 @@
       "lite": "t3mes-split/lite/mes_mrp_1_order/21_수입통관_마법사.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 6,
-            "h": 12
-          }
-        },
-        {
           "key": "form1",
           "title": "입력 폼",
           "type": "CONTAINER",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
+            "x": 0,
             "y": 0,
-            "w": 6,
+            "w": 12,
             "h": 12
           }
         }
@@ -1319,27 +1307,15 @@
       "lite": "t3mes-split/lite/mes_mrp_2_result/03_무발주기타.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 4
-          }
-        },
-        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 0,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         },
         {
@@ -1349,9 +1325,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         }
       ]
@@ -4612,27 +4588,15 @@
       "lite": "t3mes-split/lite/mes_sales_1_order/01_헤더-디테일.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 4
-          }
-        },
-        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 0,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         },
         {
@@ -4642,9 +4606,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         }
       ]
@@ -5936,27 +5900,15 @@
       "lite": "t3mes-split/lite/mes_stock_1_retrive/01_기본_그리드.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 4
-          }
-        },
-        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 0,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         },
         {
@@ -5966,9 +5918,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         }
       ]
@@ -6482,27 +6434,15 @@
       "lite": "t3mes-split/lite/mes_stock_2_modify/02_2._일괄_실사입력.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 6
-          }
-        },
-        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 0,
             "w": 12,
-            "h": 6
+            "h": 12
           }
         }
       ]
@@ -7920,27 +7860,15 @@
       "lite": "t3mes-split/lite/mes_tracking_2_stock/01_실시간_재고.html",
       "layers": [
         {
-          "key": "kpi1",
-          "title": "KPI 영역",
-          "type": "CHART",
-          "subtype": "KPI_CARD",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "w": 12,
-            "h": 4
-          }
-        },
-        {
           "key": "grid1",
           "title": "그리드 1",
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 0,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         },
         {
@@ -7950,9 +7878,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 4
+            "h": 6
           }
         }
       ]
@@ -8705,8 +8633,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 2,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -8715,10 +8643,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 2,
-            "y": 0,
+            "x": 0,
+            "y": 3,
             "w": 2,
-            "h": 12
+            "h": 9
           }
         },
         {
@@ -8727,10 +8655,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 4,
-            "y": 0,
+            "x": 2,
+            "y": 3,
             "w": 2,
-            "h": 12
+            "h": 9
           }
         },
         {
@@ -8739,10 +8667,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
-            "y": 0,
+            "x": 4,
+            "y": 3,
             "w": 2,
-            "h": 12
+            "h": 9
           }
         },
         {
@@ -8751,10 +8679,10 @@
           "type": "CONTAINER",
           "subtype": "CARD_LIST",
           "position": {
-            "x": 8,
-            "y": 0,
+            "x": 6,
+            "y": 3,
             "w": 2,
-            "h": 12
+            "h": 9
           }
         },
         {
@@ -8763,10 +8691,10 @@
           "type": "CONTAINER",
           "subtype": "CARD_LIST",
           "position": {
-            "x": 10,
-            "y": 0,
-            "w": 2,
-            "h": 12
+            "x": 8,
+            "y": 3,
+            "w": 4,
+            "h": 9
           }
         }
       ]
@@ -9545,8 +9473,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 4,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -9555,10 +9483,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 4,
-            "y": 0,
-            "w": 4,
-            "h": 12
+            "x": 0,
+            "y": 3,
+            "w": 6,
+            "h": 9
           }
         },
         {
@@ -9567,10 +9495,10 @@
           "type": "CONTAINER",
           "subtype": "CARD_LIST",
           "position": {
-            "x": 8,
-            "y": 0,
-            "w": 4,
-            "h": 12
+            "x": 6,
+            "y": 3,
+            "w": 6,
+            "h": 9
           }
         }
       ]
@@ -9661,8 +9589,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 4,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -9671,10 +9599,10 @@
           "type": "CHART",
           "subtype": "CHART_LINE",
           "position": {
-            "x": 4,
-            "y": 0,
-            "w": 4,
-            "h": 12
+            "x": 0,
+            "y": 3,
+            "w": 6,
+            "h": 9
           }
         },
         {
@@ -9683,10 +9611,10 @@
           "type": "CONTAINER",
           "subtype": "CARD_LIST",
           "position": {
-            "x": 8,
-            "y": 0,
-            "w": 4,
-            "h": 12
+            "x": 6,
+            "y": 3,
+            "w": 6,
+            "h": 9
           }
         }
       ]
@@ -9857,8 +9785,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -9867,10 +9795,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
-            "h": 12
+            "x": 0,
+            "y": 3,
+            "w": 12,
+            "h": 9
           }
         }
       ]
@@ -10047,8 +9975,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -10057,10 +9985,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
-            "h": 12
+            "x": 0,
+            "y": 3,
+            "w": 12,
+            "h": 9
           }
         }
       ]
@@ -10311,8 +10239,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 6,
-            "h": 12
+            "w": 12,
+            "h": 3
           }
         },
         {
@@ -10321,10 +10249,10 @@
           "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
-            "x": 6,
-            "y": 0,
-            "w": 6,
-            "h": 12
+            "x": 0,
+            "y": 3,
+            "w": 12,
+            "h": 9
           }
         }
       ]
@@ -10346,7 +10274,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10356,9 +10284,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10370,7 +10298,7 @@
             "x": 0,
             "y": 4,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10380,9 +10308,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10392,9 +10320,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10404,9 +10332,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 7,
             "w": 12,
-            "h": 2
+            "h": 5
           }
         }
       ]
@@ -10426,7 +10354,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10436,9 +10364,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10450,7 +10378,7 @@
             "x": 0,
             "y": 4,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10460,9 +10388,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10472,9 +10400,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10484,9 +10412,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 7,
             "w": 12,
-            "h": 2
+            "h": 5
           }
         }
       ]
@@ -10506,7 +10434,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10516,9 +10444,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10530,7 +10458,7 @@
             "x": 0,
             "y": 4,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10540,9 +10468,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10552,9 +10480,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10564,9 +10492,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 7,
             "w": 12,
-            "h": 2
+            "h": 5
           }
         }
       ]
@@ -10586,7 +10514,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10596,7 +10524,7 @@
           "subtype": "CHART_LINE",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
             "h": 2
           }
@@ -10608,7 +10536,7 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 5,
             "w": 12,
             "h": 2
           }
@@ -10620,7 +10548,7 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 7,
             "w": 12,
             "h": 2
           }
@@ -10632,9 +10560,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 9,
             "w": 12,
-            "h": 4
+            "h": 3
           }
         }
       ]
@@ -10654,7 +10582,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10664,9 +10592,9 @@
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10678,7 +10606,7 @@
             "x": 0,
             "y": 4,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10688,9 +10616,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10700,9 +10628,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10712,9 +10640,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 7,
             "w": 12,
-            "h": 2
+            "h": 5
           }
         }
       ]
@@ -10734,7 +10662,7 @@
             "x": 0,
             "y": 0,
             "w": 12,
-            "h": 2
+            "h": 3
           }
         },
         {
@@ -10744,9 +10672,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 3,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10758,7 +10686,7 @@
             "x": 0,
             "y": 4,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10768,9 +10696,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10780,9 +10708,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 6,
             "w": 12,
-            "h": 2
+            "h": 1
           }
         },
         {
@@ -10792,9 +10720,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 10,
+            "y": 7,
             "w": 12,
-            "h": 2
+            "h": 5
           }
         }
       ]

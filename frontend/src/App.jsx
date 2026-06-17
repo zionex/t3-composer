@@ -144,7 +144,7 @@ function TabbedHome() {
                                     component="img"
                                     src={t3ComposerWordmark}
                                     alt="T³Composer"
-                                    sx={{ flex: 1, height: 12, width: 'auto', objectFit: 'contain', objectPosition: 'left center', display: 'block' }}
+                                    sx={{ flex: 1, height: 17, width: 'auto', objectFit: 'contain', objectPosition: 'left center', display: 'block' }}
                                 />
                                 <Tooltip title="메뉴 접기">
                                     <IconButton

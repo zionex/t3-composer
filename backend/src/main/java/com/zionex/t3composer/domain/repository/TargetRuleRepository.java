@@ -14,4 +14,6 @@ public interface TargetRuleRepository extends JpaRepository<TargetRule, String> 
     Optional<TargetRule> findFirstByTargetCdAndRuleCodeOrderByRuleVersionDesc(String targetCd, String ruleCode);
 
     long countByTargetCd(String targetCd);
+
+    long countByTargetCdAndUseYn(String targetCd, String useYn);
 }

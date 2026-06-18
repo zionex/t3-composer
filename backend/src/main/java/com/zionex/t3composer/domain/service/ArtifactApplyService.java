@@ -211,7 +211,7 @@ public class ArtifactApplyService {
         //   autoApply 체크박스는 control-plane 작업 (npm run build · mvn compile = 재빌드/재컴파일)
         //   의 트리거 여부만 결정. 데이터 평면(file/DDL/SP) 은 admin policy 만 통과하면 항상 실행.
         //
-        // ★ Routing 정책 변경 (2026-05-27 사용자 요청):
+        // ★ Routing 정책 변경 (2026-05-27 사용자 요청 + 2026-06-18 fail-fast 강화):
         //   기존엔 글로벌 `app.composer.project-root` (=/workspace/staging) 에 떨궈 sync 스크립트로
         //   wingui 에 복사하는 2-step 흐름이었다. 사용자 흐름이 staging → sync 단계 우회를 원해서
         //   세션 targetCd 의 운영 wingui 경로 (TargetPathResolver) 에 직접 쓰도록 변경.
@@ -219,7 +219,9 @@ public class ArtifactApplyService {
         //   docker-compose 의 T3SERIES wingui 마운트는 :rw 로 풀어두어야 컨테이너 안에서 쓰기 가능.
         //
         //   resolveSourcePath 가 실제 wingui 트리(구조 마커 보유 — packages/wingui/src 등) 반환하면 그쪽에 직접.
-        //   못 찾으면 글로벌 staging fallback.
+        //   못 찾으면 **즉시 실패** (2026-06-18) — staging fallback 제거. 사용자가 명시적으로 Target source
+        //   경로를 설정하도록 강제. 적용 단계에서 정확히 어느 폴더로 가는지 모호한 상황 제거 + staging
+        //   에 흔적 남기는 것 방지.
         String sessTargetCd = sessionRepo.findById(sessionId)
                 .map(ComposerSession::getTargetCd).orElse(null);
         // ★ 2026-06-01: 단일 root → 3개 root (frontend / backend / database) 로 분리.
@@ -254,13 +256,15 @@ public class ArtifactApplyService {
                     sessionId, sessTargetCd, frontendRoot, backendRoot, databaseRoot);
         }
         if (frontendRoot == null || frontendRoot.isBlank()) {
-            frontendRoot = props.getComposer().getProjectRoot();   // fallback (staging)
-            if (backendRoot  == null || backendRoot.isBlank())  backendRoot  = frontendRoot;
-            if (databaseRoot == null || databaseRoot.isBlank()) databaseRoot = frontendRoot;
-            log.info("Artifact apply routing: TargetPathResolver 미해석 → staging fallback root={}", frontendRoot);
-        }
-        if (frontendRoot == null || frontendRoot.isBlank()) {
-            return failure("산출물 출력 루트 결정 실패 — TargetPathResolver 도 fallback 도 빈 값.");
+            // (2026-06-18) staging fallback 제거 — Target source 경로 미설정 시 즉시 실패.
+            //   사용자가 정확히 어느 위치에 산출물이 가는지 알도록 강제.
+            String cd = (sessTargetCd == null || sessTargetCd.isBlank()) ? "<targetCd 없음>" : sessTargetCd;
+            return failure("Target [" + cd + "] 의 source 경로가 설정되지 않았습니다. " +
+                    "다음 중 하나로 설정 후 다시 시도하세요:\n" +
+                    "  · UI: Composer 우상단 Target System 옆 [💾 Storage] 버튼 → source_ref_path 입력\n" +
+                    "  · .env: TARGET_" + cd + "_PATH=<호스트의 wingui 트리 절대경로> 추가 후 " +
+                    "`docker compose up -d --force-recreate composer-backend`\n" +
+                    "구조 마커(packages/wingui/src · src/pages 등) 가 있는 폴더만 인정됩니다.");
         }
         // rootPath 는 frontendRoot 기반 유지 — triggerControlPlane(npm build) 이 이 경로를 사용.
         Path rootPath;

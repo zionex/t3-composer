@@ -85,11 +85,21 @@
 - **프론트**: composer-frontend (webpack-dev-server, port 5173)
 - **insight-llm**: 호스트에서 **별도 기동 필요** (port 9160). 미기동 시 Insight 기능 비활성 (UI 에 'upstream error' 표시). 
 
-### 1.3 ArtifactApply 모드
+### 1.3 ArtifactApply 라우팅 — Per-Target source 경로 필수
 
-`COMPOSER_APPLY_MODE` 환경변수:
-- `staging` (기본): `./staging/output/<session_id>/` 에 산출
-- (2026-05-28) `direct` 모드 폐기 — Per-Target source 경로 (`TARGET_<CD>_PATH`) 를 `TargetPathResolver` 가 자동 채택. 명시한 경우 staging fallback 으로 전환.
+산출물 [검증 + 적용] 은 세션의 `targetCd` 의 source 트리에 **직접 쓴다**. `TargetPathResolver`
+가 두 후보를 차례로 확인:
+
+1. `tb_cmp_target_system.source_ref_path` — UI 의 [💾 Storage] 다이얼로그로 입력
+2. `.env` 의 `TARGET_<CD>_PATH` → `/workspace/targets/<CD>/wingui` 마운트
+
+각 후보는 구조 마커(`packages/wingui/src` · `src/pages` 등) 보유 여부로 채택 — 빈
+placeholder 슬롯 자동 탈락.
+
+(2026-05-28) `direct` 모드 폐기.
+(2026-06-18) **staging fallback 제거** — 둘 다 미설정 시 명확한 안내 메시지와 함께 즉시 실패.
+사용자가 의도하지 않은 경로에 산출물이 가는 모호함 제거. `COMPOSER_APPLY_MODE` 환경변수는
+deprecated (예전 fallback 토글 — 이제 의미 없음).
 
 DB 등록(TB_AD_MENU 등)은 composer-db 에만 INSERT. Target DB 적용은 sync 스크립트.
 

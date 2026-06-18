@@ -28,7 +28,7 @@ const c2 = extractLayers(`
 eq(c2, [
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 6, h: 12 } },
-  { key: 'form1', title: '입력 폼', type: 'GRID', subtype: 'GRID_BASE',
+  { key: 'form1', title: '입력 폼 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 6, y: 0, w: 6, h: 12 } },
 ], 'C2 마스터-디테일');
 
@@ -178,8 +178,50 @@ const c12 = extractLayers(`
 eq(c12, [
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 12, h: 6 } },
-  { key: 'form1', title: '입력 폼', type: 'GRID', subtype: 'GRID_BASE',
+  { key: 'form1', title: '입력 폼 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 6, w: 12, h: 6 } },
 ], 'C12 grid4 with inputs = FORM');
 
-console.log('OK — extract-layers 12 cases passed');
+// ── C13: grid3 with cards only (no signature inside) — pad to 3 layers ──
+const c13 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="grid3">
+    <div class="card">공급사 A 정보</div>
+    <div class="card">공급사 B 정보</div>
+    <div class="card">공급사 C 정보</div>
+  </div>
+</div>`);
+// 3 cards (no signature inside) → cards 시그니처가 트리거 (≥3 card)
+// + grid3 splitCols → cards count 1 + pad to 3 = 3 layers
+// cards 가 wrapper 가 아닌 자체 1 layer 라 dedup 안 됨 (grid=0, chart=0).
+// 결과: 3 generic GRID layers 좌우 분할.
+assert.strictEqual(c13.length, 3, 'C13 3 layers from grid3 cards');
+assert.ok(c13.every((l) => l.position.y === 0 && l.position.h === 12),
+  'C13 all layers full height');
+assert.ok(c13[0].position.w === 4 && c13[1].position.w === 4 && c13[2].position.w === 4,
+  'C13 each w=4');
+
+// ── C14: grid2 with form inputs only (no table) → 2 form layers ──
+const c14 = extractLayers(`
+<div class="panel" id="p0">
+  <div class="grid2">
+    <div class="card">
+      <div class="form-row"><label>A</label><input class="inp"></div>
+      <div class="form-row"><label>B</label><input class="inp"></div>
+    </div>
+    <div class="card">
+      <div class="form-row"><label>C</label><input class="inp"></div>
+      <div class="form-row"><label>D</label><input class="inp"></div>
+    </div>
+  </div>
+</div>`);
+// 4 inputs total → form count = 1 → Rule B1 upgrades to 2 (splitCols=2)
+// 좌우 분할: form1 (0,0,6,12) + form2 (6,0,6,12)
+eq(c14, [
+  { key: 'form1', title: '입력 폼 1', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 0, y: 0, w: 6, h: 12 } },
+  { key: 'form2', title: '입력 폼 2', type: 'GRID', subtype: 'GRID_BASE',
+    position: { x: 6, y: 0, w: 6, h: 12 } },
+], 'C14 form-only grid2 → 2 form layers');
+
+console.log('OK — extract-layers 14 cases passed');

@@ -476,7 +476,10 @@ function extractLayers(html) {
                     //  ③ chart/diagram/flow/bpmn 클래스 wrapper 안의 SVG
                     matchCount(/<svg[^>]*\bwidth="(?:[2-9]\d{2}|\d{4,})\b/gi)
                       + matchCount(/<svg[^>]*\bviewBox="[^"]*\s\d{3,}\s\d{3,}"/gi)
-                      + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi)),
+                      + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi),
+                    // Rule B2 — legend swatches 패턴 (가로 막대 차트 범례)
+                    //   card 안 div with background:var(--color) ≥3개 → 1 chart slot
+                    matchCount(/<div[^>]*style="[^"]*background:\s*var\(\s*--(?:teal|red|blue|cyan|amber|orange|yellow|green|purple|pink|gray)\s*\)/gi) >= 3 ? 1 : 0),
     // grid4/grid5/grid6 = KPI strip (4~6 KPI 카드 가로 배치, 동적 JS 채움 케이스 포함)
     //   integer count — Mockup widget_dashboard 관례 (KPI 카드별 layer 분리)
     kpi:   kpiCount(inner),
@@ -496,6 +499,16 @@ function extractLayers(html) {
   // Dedup — cards 가 grid/chart 와 함께 잡히면 cards 는 wrapper 일 가능성 높음 (실제 layer 는 inner)
   if (counts.cards && (counts.grid > 0 || counts.chart > 0)) {
     counts.cards = 0;
+  }
+
+  // Rule B1 — grid2/grid3 + form 만 단독 (table.tbl 없음) → form 을 N 칸으로 확장
+  //   (각 grid2 칸이 form 일 경우 = 검색폼 + 입력폼 패턴)
+  if (splitCols
+      && counts.form > 0
+      && counts.grid === 0 && counts.chart === 0 && counts.kpi === 0
+      && counts.tree === 0 && counts.cards === 0
+      && counts.calendar === 0 && counts.mobile === 0) {
+    counts.form = splitCols;  // form 1 → form N
   }
 
   // 슬롯 순서 (Mockup ControlBoard 관례):
@@ -528,7 +541,22 @@ function extractLayers(html) {
   if (counts.calendar) slots.push({ ...META.CALENDAR, slot: 'calendar' });
   if (counts.mobile)   slots.push({ ...META.MOBILE,   slot: 'mobile' });
   if (counts.cards)    slots.push({ ...META.CARDS,    slot: 'cards' });
-  if (counts.form)     slots.push({ ...META.FORM,     slot: 'form' });
+  for (let i = 0; i < counts.form; i++) {
+    slots.push({ ...META.FORM, slot: 'form' });
+  }
+
+  // Rule A — grid2/grid3 splitCols detected → ensure slot count >= N
+  //   (카드 자식이 텍스트만 있어 시그니처 0건이거나, 한쪽만 잡혀 1L 인 경우 보강)
+  //   KPI strip 은 별도 상단 strip 이라 grid2/grid3 split count 와 무관 — 제외.
+  if (splitCols && !counts.kpi) {
+    const nonKpiCount = slots.length;
+    if (nonKpiCount < splitCols) {
+      const padN = splitCols - nonKpiCount;
+      for (let i = 0; i < padN; i++) {
+        slots.push({ ...META.GRID, slot: 'grid' });
+      }
+    }
+  }
 
   // 다중 카드 영역 — card-title 가 2+ 이면 슬롯 부족분만큼 generic card 영역 추가
   //   (이미 잡힌 grid/chart/form 카운트와 cardSections 차이만큼 추가).
@@ -624,8 +652,9 @@ function extractLayers(html) {
     card: 0,
   };
   const SINGLETON_TITLES = {
-    form: '입력 폼', tree: '트리', cards: '카드 리스트', stepper: '단계',
+    tree: '트리', cards: '카드 리스트', stepper: '단계',
     calendar: '달력', mobile: '모바일',
+    // form 제거 — 다중 form 인덱스 사용 (form1/form2/...)
     // kpi 제거 — 다중 KPI 카드 (kpi1/kpi2/...) 인덱스 사용
     // card 는 인덱스 (card1/card2/...) 로 — 다중 카드 영역 케이스
   };

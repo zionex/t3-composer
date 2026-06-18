@@ -45,7 +45,7 @@ eq(c3, [
     position: { x: 0, y: 6, w: 12, h: 6 } },
 ], 'C3 grid + chart column');
 
-// ── C4: KPI 그리드 + 그리드 ──
+// ── C4: KPI 그리드 + 그리드 (4 KPI 카드 + 1 grid = 5 layers) ──
 const c4 = extractLayers(`
 <div class="panel" id="p0">
   <div class="kpi-grid">
@@ -55,28 +55,34 @@ const c4 = extractLayers(`
   <div class="tbl-wrap"><table class="tbl"></table></div>
 </div>`);
 eq(c4, [
-  { key: 'kpi1', title: 'KPI 영역', type: 'CHART', subtype: 'KPI_CARD',
-    position: { x: 0, y: 0, w: 12, h: 3 } },
+  { key: 'kpi1', title: 'KPI 1', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 0, y: 0, w: 3, h: 3 } },
+  { key: 'kpi2', title: 'KPI 2', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 3, y: 0, w: 3, h: 3 } },
+  { key: 'kpi3', title: 'KPI 3', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 6, y: 0, w: 3, h: 3 } },
+  { key: 'kpi4', title: 'KPI 4', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 9, y: 0, w: 3, h: 3 } },
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 3, w: 12, h: 9 } },
-], 'C4 KPI + grid');
+], 'C4 KPI 카드 4개 + grid');
 
 // ── C5: 시그니처 0건 (텍스트만) ──
 const c5 = extractLayers(`<div class="panel"><div class="sec-hdr"><h3>제목</h3></div></div>`);
 eq(c5, [], 'C5 0건');
 
-// ── C6: 비정상 8개 그리드 (첫 6개만 + warn) ──
+// ── C6: 비정상 12개 그리드 (첫 10개만 + warn) ──
 const warnings = [];
 const origWarn = console.warn;
 console.warn = (m) => warnings.push(m);
 const c6 = extractLayers(
   '<div class="panel">' +
-  '<table class="tbl"></table>'.repeat(8) +
+  '<table class="tbl"></table>'.repeat(12) +
   '</div>',
 );
 console.warn = origWarn;
-assert.strictEqual(c6.length, 6, 'C6 6개 cap');
-assert.ok(warnings.some((w) => /6\+/.test(w)), 'C6 warn 발생');
+assert.strictEqual(c6.length, 10, 'C6 10개 cap');
+assert.ok(warnings.some((w) => /10\+/.test(w)), 'C6 warn 발생');
 
 // ── C7: 트리 시각화 (org-tree) ──
 const c7 = extractLayers(`
@@ -112,10 +118,10 @@ eq(c9, [
 ], 'C9 stepper + grid');
 
 // ── C10: 대시보드 — grid4 KPI strip + grid2 안 2 card-title (차트+알림) ──
-//   grid4 = KPI strip (kpi=1), chart-card = chart (chart=1),
+//   grid4 = 4 KPI 카드 (kpi=4), chart-card = chart (chart=1),
 //   card-title 2개 = cardSections=2.
 //   explicitSlots = grid(0) + chart(1) + form(0) = 1, cardSections(2) > 1 → 1 card region 추가.
-//   결과: kpi + chart + card → 3 layer
+//   결과: 4 kpi + chart + card → 6 layer
 const c10 = extractLayers(`
 <div class="panel" id="p0">
   <div class="sec-hdr"><h3>대시보드</h3></div>
@@ -126,20 +132,35 @@ const c10 = extractLayers(`
   </div>
 </div>`);
 eq(c10, [
-  { key: 'kpi1',   title: 'KPI 영역',   type: 'CHART',     subtype: 'KPI_CARD',   position: { x: 0, y: 0, w: 12, h: 3 } },
-  { key: 'chart1', title: '차트 1',     type: 'CHART',     subtype: 'CHART_LINE', position: { x: 0, y: 3, w: 6,  h: 9 } },
-  { key: 'card1',  title: '카드 영역 1', type: 'CONTAINER', subtype: 'CARD_LIST',  position: { x: 6, y: 3, w: 6,  h: 9 } },
-], 'C10 dashboard layout');
+  { key: 'kpi1', title: 'KPI 1', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 0, y: 0, w: 3, h: 3 } },
+  { key: 'kpi2', title: 'KPI 2', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 3, y: 0, w: 3, h: 3 } },
+  { key: 'kpi3', title: 'KPI 3', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 6, y: 0, w: 3, h: 3 } },
+  { key: 'kpi4', title: 'KPI 4', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 9, y: 0, w: 3, h: 3 } },
+  { key: 'chart1', title: '차트 1', type: 'CHART', subtype: 'CHART_LINE',
+    position: { x: 0, y: 3, w: 6, h: 9 } },
+  { key: 'card1', title: '카드 영역 1', type: 'CONTAINER', subtype: 'CARD_LIST',
+    position: { x: 6, y: 3, w: 6, h: 9 } },
+], 'C10 대시보드 4 KPI + chart + card region');
 
-// ── C11: grid4 단독 (KPI strip only) ──
+// ── C11: grid4 단독 (KPI strip only — 4 카드 전면) ──
 const c11 = extractLayers(`
 <div class="panel" id="p0">
   <div class="grid4" id="kpis"></div>
 </div>`);
 eq(c11, [
-  { key: 'kpi1', title: 'KPI 영역', type: 'CHART', subtype: 'KPI_CARD',
-    position: { x: 0, y: 0, w: 12, h: 12 } },
-], 'C11 KPI strip 단독');
+  { key: 'kpi1', title: 'KPI 1', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 0, y: 0, w: 3, h: 12 } },
+  { key: 'kpi2', title: 'KPI 2', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 3, y: 0, w: 3, h: 12 } },
+  { key: 'kpi3', title: 'KPI 3', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 6, y: 0, w: 3, h: 12 } },
+  { key: 'kpi4', title: 'KPI 4', type: 'CHART', subtype: 'KPI_CARD',
+    position: { x: 9, y: 0, w: 3, h: 12 } },
+], 'C11 KPI strip 단독 — 4 카드 전면');
 
 // ── C12: grid4 with inputs = FORM (NOT KPI strip — false positive 차단) ──
 const c12 = extractLayers(`

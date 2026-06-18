@@ -12,12 +12,19 @@
 ## 빠른 시작
 
 ```bash
-# 1. .env 작성
-cp .env.example .env
-# 편집기로 .env 열어 ANTHROPIC_API_KEY 채우기 (없으면 LLM 호출 비활성화 — 부팅은 됨)
+# 1. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
+./up.sh --build           # macOS / Linux / Git Bash 사용자
+.\up.ps1 --build          # Windows PowerShell 사용자
 
-# 2. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
-docker compose up -d --build
+# wrapper 가 .env 없으면 .env.example 에서 자동 복사 후 docker compose up -d 호출.
+# 직접 docker compose 호출도 가능하지만, .env 가 없으면 ${VAR} 경고가 쏟아집니다:
+#   cp .env.example .env && docker compose up -d --build
+
+# 2. 편집기로 .env 열어 필수값 채우기 (안 채워도 부팅은 됨 — 해당 기능만 비활성)
+#   · ANTHROPIC_API_KEY            — 자연어 화면 생성
+#   · COMPOSER_SNAPSHOT_SECRET_KEY — 스냅샷 시크릿 암호화 마스터키 (임의 충분히 긴 문자열)
+#   · TARGET_T3SERIES_PATH 등      — 산출물 적용 대상 wingui 트리 절대경로
+# .env 수정 후 변경 반영:  ./up.sh --force-recreate composer-backend
 
 # 3. 헬스 체크
 docker compose ps

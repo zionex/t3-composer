@@ -39,7 +39,9 @@ logs/
 Thumbs.db
 
 # Environment & secrets
-.env
+# .env 는 placeholder 상태로 레포에 commit 되어 있음 (.env.example 동일 내용).
+# 사용자가 실제 시크릿을 채워도 git status 에는 modified 로 뜨므로 — ★ push 금지 ★.
+# 환경별 override 만 ignore.
 .env.local
 .env.*.local
 *.key

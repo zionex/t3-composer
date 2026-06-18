@@ -12,12 +12,15 @@
 ## 빠른 시작
 
 ```bash
-# 1. .env 작성
-cp .env.example .env
-# 편집기로 .env 열어 ANTHROPIC_API_KEY 채우기 (없으면 LLM 호출 비활성화 — 부팅은 됨)
-
-# 2. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
+# 1. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
 docker compose up -d --build
+
+# 2. 편집기로 .env 열어 필수값 채우기 (안 채워도 부팅은 됨 — 해당 기능만 비활성)
+#   · ANTHROPIC_API_KEY            — 자연어 화면 생성
+#   · COMPOSER_SNAPSHOT_SECRET_KEY — 스냅샷 시크릿 암호화 마스터키 (임의 충분히 긴 문자열)
+#   · TARGET_T3SERIES_PATH 등      — 산출물 적용 대상 wingui 트리 절대경로
+# .env 수정 후 변경 반영:
+docker compose up -d --force-recreate composer-backend
 
 # 3. 헬스 체크
 docker compose ps
@@ -26,6 +29,17 @@ docker compose ps
 # 4. 브라우저 진입
 # http://localhost:5173/  →  /composer 로 자동 리디렉트
 ```
+
+### `.env` 라이프사이클 (★ 자주 헷갈리는 부분)
+
+| 질문 | 답 |
+|---|---|
+| `.env` 는 어디 있나요? | **호스트(로컬) 레포 루트** (`<repo>/.env`). docker 안에는 없습니다. |
+| 클론하면 바로 있나요? | ✅ 네. 레포에 placeholder 상태로 commit 되어 있어 신규 클론 시 바로 존재. (= `.env.example` 동일 내용 — 키 자리가 비어있을 뿐 docker compose 가 읽을 수 있음) |
+| 처음엔 어떻게 채우나요? | 편집기로 `.env` 열어 `ANTHROPIC_API_KEY` · `COMPOSER_SNAPSHOT_SECRET_KEY` · `TARGET_<CD>_PATH` 등 빈 자리를 직접 입력. |
+| ⚠️ commit/push 해도 되나요? | **❌ 절대 안 됨**. `.env` 는 tracked 파일이라 `git status` 에 modified 로 뜨는데, **실수로 commit + push 하면 git history 에 시크릿이 영구 노출됩니다**. 변경분은 로컬에만 두세요 (`git restore .env` 로 placeholder 로 되돌리거나, 본인만의 가짜 키로 채워둘 것). |
+| `.env` 수정하면 즉시 반영? | **❌ 아니요**. docker-compose 가 `.env` 를 컨테이너 기동 **전에 한 번** 읽어 `${VAR}` 치환하므로, 값 변경 후엔 backend 재기동: `docker compose up -d --force-recreate composer-backend` |
+| 비밀값 미입력 시 부팅? | 부팅은 됨. 단 `${VAR}` 가 빈 값으로 치환되어 LLM 호출 · Target DB 연결 등 비밀이 필요한 기능은 비활성. |
 
 ### 접속 주소
 

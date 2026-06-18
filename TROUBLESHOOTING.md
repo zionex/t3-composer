@@ -251,7 +251,45 @@ docker exec composer-db /opt/mssql-tools18/bin/sqlcmd \
 - SearchArea 가 click 시점에 store 직접 lookup (subscribe 의 timing 무관)
 - LLM 측: `composer-jsx.sh CG-STORE` 가 산출물 jsx 작성 시 차단
 
-## 19. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
+## 19. `.env` 수정했는데 변경이 반영 안 됨
+
+**증상**: 편집기로 `.env` 의 `ANTHROPIC_API_KEY` 나 `TARGET_T3SERIES_PATH` 등을 바꿨는데 backend 가 여전히 옛 값으로 동작 (LLM 호출 401 · Target 경로 못 찾음 등).
+
+**원인**: docker-compose 는 `.env` 를 컨테이너 기동 **전**에 한 번 읽어 `docker-compose.yml` 의 `${VAR}` 들을 치환합니다. **이미 기동된 컨테이너 안의 환경변수는 그 시점의 스냅샷** — `.env` 파일을 나중에 수정해도 컨테이너 안 env 는 변하지 않습니다.
+
+**대처**: 영향 받는 컨테이너를 `--force-recreate` 로 재기동.
+```bash
+# .env 수정 후 backend 만 재기동 (보통 충분)
+docker compose up -d --force-recreate composer-backend
+
+# DB · MSSQL 비밀번호처럼 db 컨테이너 변수가 바뀌었으면 그쪽도:
+docker compose up -d --force-recreate composer-db composer-backend
+```
+참고 — `restart` 만으로는 환경변수가 재적용되지 않습니다. 반드시 `--force-recreate` 사용.
+
+## 20. ⚠️ `.env` 수정분이 실수로 push 됨 — git history 에 시크릿 노출
+
+**증상**: `.env` 에 채워둔 `ANTHROPIC_API_KEY` 등이 `git push` 후 GitHub/원격 레포에 노출. (`.env` 는 placeholder 상태로 레포에 commit 되어 있어 tracked 파일 — `.gitignore` 가 보호 안 함.)
+
+**예방** (이게 더 중요):
+- 시크릿 채워둔 채로는 절대 `git add .` / `git commit -a` 금지.
+- 커밋 전 항상 `git status` 로 `.env` 가 staged 됐는지 확인.
+- 의도하지 않은 변경분 되돌리기:
+  ```bash
+  git restore .env             # placeholder 로 즉시 복원 (시크릿 사라짐 — 다시 채워야 함)
+  ```
+- 본인 머신 전용으로 시크릿을 보존하고 싶고 git status 에서 안 보이게 하려면:
+  ```bash
+  git update-index --skip-worktree .env    # 이 머신 한정 — git 이 .env 변경 추적 정지
+  git update-index --no-skip-worktree .env # 해제 (다시 추적)
+  ```
+
+**유출됐다면**:
+1. `.env` 의 노출된 키를 **즉시 무효화** (Anthropic console 에서 회수 → 새 키 발급)
+2. git history 에서 제거 (`git filter-branch` / `bfg-repo-cleaner`) — 단 fork/clone 한 사람이 있으면 한계 있음
+3. 그래도 안전한 가정: **공개된 키는 영구 노출**. 새 키 발급이 정답.
+
+## 21. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
 
 **증상**: 화면 정상 진입 + [조회] 정상 호출하지만 그리드 0건
 

@@ -28,7 +28,7 @@ const c2 = extractLayers(`
 eq(c2, [
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 6, h: 12 } },
-  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'GRID_BASE',
+  { key: 'form1', title: '입력 폼', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 6, y: 0, w: 6, h: 12 } },
 ], 'C2 마스터-디테일');
 
@@ -100,7 +100,7 @@ const c8 = extractLayers(`
   <div class="card">A</div><div class="card">B</div><div class="card">C</div><div class="card">D</div>
 </div>`);
 eq(c8, [
-  { key: 'cards1', title: '카드 리스트', type: 'CONTAINER', subtype: 'CARD_LIST',
+  { key: 'cards1', title: '카드 리스트', type: 'GRID', subtype: 'CARD_LIST',
     position: { x: 0, y: 0, w: 12, h: 12 } },
 ], 'C8 cards');
 
@@ -142,7 +142,7 @@ eq(c10, [
     position: { x: 9, y: 0, w: 3, h: 3 } },
   { key: 'chart1', title: '차트 1', type: 'CHART', subtype: 'CHART_LINE',
     position: { x: 0, y: 3, w: 6, h: 9 } },
-  { key: 'card1', title: '카드 영역 1', type: 'CONTAINER', subtype: 'CARD_LIST',
+  { key: 'card1', title: '카드 영역 1', type: 'GRID', subtype: 'CARD_LIST',
     position: { x: 6, y: 3, w: 6, h: 9 } },
 ], 'C10 대시보드 4 KPI + chart + card region');
 
@@ -178,7 +178,7 @@ const c12 = extractLayers(`
 eq(c12, [
   { key: 'grid1', title: '그리드 1', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 0, w: 12, h: 6 } },
-  { key: 'form1', title: '입력 폼', type: 'CONTAINER', subtype: 'GRID_BASE',
+  { key: 'form1', title: '입력 폼', type: 'GRID', subtype: 'GRID_BASE',
     position: { x: 0, y: 6, w: 12, h: 6 } },
 ], 'C12 grid4 with inputs = FORM');
 

@@ -505,17 +505,17 @@ function extractLayers(html) {
   //   FORM / STEPPER / MOBILE_PREVIEW → COMPONENT_INDEX 미보유 → 안전 폴백 GRID_BASE
   //   CALENDAR → CALENDAR_MONTH (DATA_DISPLAY 그룹 실제 코드)
   const META = {
-    GRID:     { type: 'GRID',      subtype: 'GRID_BASE',       titlePrefix: '그리드' },
-    CHART:    { type: 'CHART',     subtype: 'CHART_LINE',      titlePrefix: '차트' },
-    KPI:      { type: 'CHART',     subtype: 'KPI_CARD',        titlePrefix: 'KPI' },
-    FORM:     { type: 'CONTAINER', subtype: 'GRID_BASE',       titlePrefix: '입력 폼' },
-    TREE:     { type: 'GRID',      subtype: 'GRID_TREE',       titlePrefix: '트리' },
-    CARDS:    { type: 'CONTAINER', subtype: 'CARD_LIST',       titlePrefix: '카드 리스트' },
-    STEPPER:  { type: 'CHART',     subtype: 'GRID_BASE',       titlePrefix: '단계' },
-    CALENDAR: { type: 'CHART',     subtype: 'CALENDAR_MONTH',  titlePrefix: '달력' },
-    MOBILE:   { type: 'CONTAINER', subtype: 'GRID_BASE',       titlePrefix: '모바일' },
+    GRID:     { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '그리드' },
+    CHART:    { type: 'CHART', subtype: 'CHART_LINE',      titlePrefix: '차트' },
+    KPI:      { type: 'CHART', subtype: 'KPI_CARD',        titlePrefix: 'KPI' },
+    FORM:     { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '입력 폼' },
+    TREE:     { type: 'GRID',  subtype: 'GRID_TREE',       titlePrefix: '트리' },
+    CARDS:    { type: 'GRID',  subtype: 'CARD_LIST',       titlePrefix: '카드 리스트' },
+    STEPPER:  { type: 'CHART', subtype: 'GRID_BASE',       titlePrefix: '단계' },
+    CALENDAR: { type: 'GRID',  subtype: 'CALENDAR_MONTH',  titlePrefix: '달력' },
+    MOBILE:   { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '모바일' },
     // card-title 가 발견된 컨텐츠 카드 영역 (대시보드 패턴 — 각 card-title = distinct region)
-    CARD_REGION: { type: 'CONTAINER', subtype: 'CARD_LIST',    titlePrefix: '카드 영역' },
+    CARD_REGION: { type: 'GRID', subtype: 'CARD_LIST',     titlePrefix: '카드 영역' },
   };
   const slots = [];
   if (counts.stepper)  slots.push({ ...META.STEPPER,  slot: 'stepper' });

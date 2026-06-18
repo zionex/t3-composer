@@ -3,9 +3,13 @@
 <title>⑨ 자동 스케줄 생성</title>
 <!-- T3MES UI Pattern · mes_lot_manage · TabPage #9: ⑨ 자동 스케줄 생성 -->
 <!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
-<div data-t3mes-dynamic="true">
-  <!-- 이 TabPage 는 원본 HTML 의 스크립트가 런타임에 DOM 을 생성합니다.
-       정적 마크업 조각을 추출할 수 없어 골격만 제공합니다.
-       전체 동작은 full 버전(t3mes-split/full/mes_lot_manage/) 또는
-       원본(t3mes/mes_lot_manage_ui_patterns.html)을 참조하세요. -->
+<!-- 이 TabPage 는 원본 스크립트가 동적 생성합니다. 아래는 panel innerHTML 템플릿 -->
+<div class="panel active" id="p8">
+
+    <div class="sec-hdr"><div><h3>⑨ 정규 분할 (LOT Split)</h3><span class="tip">25장짜리 Mother LOT를 특정 사유(장비 캐파, 긴급도)로 Child LOT로 분할합니다.</span></div></div>
+    <div class="card" style="border-color:var(--purple);background:var(--purple-dim)"><div class="card-title" style="color:var(--purple)">Mother LOT</div><div style="font-size:24px;font-family:var(--mono);font-weight:700">PRD-2410-0010 <span style="font-size:14px;color:var(--text2)">(현재 25 WFR)</span></div></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">분할 설정</div><div class="label">분할해낼 수량 (Child로 보낼 수량)</div><input type="number" class="inp" value="10" style="font-size:24px;color:var(--purple);font-weight:700;text-align:right"><div class="tip" style="margin-top:10px;font-size:14px">Mother 잔량: 15 WFR</div><button class="btn btn-purple" style="width:100%;margin-top:20px" onclick="showToast('분할되어 Child LOT가 발급되었습니다.')">분할(Split) 실행 ➔</button></div>
+      <div class="card"><div class="card-title">생성된 Child LOT</div><div style="border:2px dashed var(--purple);padding:30px;text-align:center;border-radius:8px"><div style="font-size:24px;font-family:var(--mono);color:var(--purple);font-weight:700">PRD-2410-0010<span style="color:var(--magenta)">-A</span></div><div style="font-size:16px;margin-top:10px">수량: <b style="color:var(--magenta)">10 WFR</b></div></div></div>
+    </div>
 </div>

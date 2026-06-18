@@ -3,9 +3,12 @@
 <title>㉛ LOT 보류(Hold)</title>
 <!-- T3MES UI Pattern · mes_lot_manage · TabPage #31: ㉛ LOT 보류(Hold) -->
 <!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
-<div data-t3mes-dynamic="true">
-  <!-- 이 TabPage 는 원본 HTML 의 스크립트가 런타임에 DOM 을 생성합니다.
-       정적 마크업 조각을 추출할 수 없어 골격만 제공합니다.
-       전체 동작은 full 버전(t3mes-split/full/mes_lot_manage/) 또는
-       원본(t3mes/mes_lot_manage_ui_patterns.html)을 참조하세요. -->
+<!-- 이 TabPage 는 원본 스크립트가 동적 생성합니다. 아래는 panel innerHTML 템플릿 -->
+<div class="panel active" id="p30">
+
+    <div class="sec-hdr"><div><h3>㉛ Wafer Defect Map (불량 맵핑)</h3><span class="tip">검사 장비에서 올라온 데이터 또는 작업자 육안 검사 결과를 Wafer 단위로 매핑하여 불량(Scrap) 처리합니다.</span></div></div>
+    <div class="grid2" style="grid-template-columns: 300px 1fr">
+      <div class="card" style="text-align:center"><div class="card-title" style="justify-content:center">FOUP (LOT-991) Defect Map</div><div class="wafer-map" style="margin:20px auto">${dMap}</div><div class="tip" style="margin-top:20px">빨간색: 불량(NG) 판정 웨이퍼</div></div>
+      <div class="card"><div class="card-title">Defect Code 등록</div><div class="label">선택된 불량 웨이퍼</div><div style="font-family:var(--mono);font-size:18px;color:var(--red);font-weight:700;margin-bottom:16px">Slot 03, Slot 15, Slot 22 (총 3장)</div><div class="label">불량 코드 (Defect Code)</div><select class="inp" style="margin-bottom:16px"><option>SCRATCH (표면 스크래치)</option><option>PARTICLE (이물질)</option><option>PATTERN_DEFECT (패턴불량)</option></select><button class="btn btn-red" style="width:100%" onclick="showToast('불량 판정 및 Scrap 처리 완료')">선택된 웨이퍼 Scrap(폐기) 확정</button></div>
+    </div>
 </div>

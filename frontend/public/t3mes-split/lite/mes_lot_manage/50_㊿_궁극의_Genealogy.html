@@ -3,9 +3,30 @@
 <title>㊿ 궁극의 Genealogy</title>
 <!-- T3MES UI Pattern · mes_lot_manage · TabPage #50: ㊿ 궁극의 Genealogy -->
 <!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
-<div data-t3mes-dynamic="true">
-  <!-- 이 TabPage 는 원본 HTML 의 스크립트가 런타임에 DOM 을 생성합니다.
-       정적 마크업 조각을 추출할 수 없어 골격만 제공합니다.
-       전체 동작은 full 버전(t3mes-split/full/mes_lot_manage/) 또는
-       원본(t3mes/mes_lot_manage_ui_patterns.html)을 참조하세요. -->
+<!-- 이 TabPage 는 원본 스크립트가 동적 생성합니다. 아래는 panel innerHTML 템플릿 -->
+<div class="panel active" id="p49">
+
+    <div class="sec-hdr"><div><h3>㊿ 궁극의 LOT Genealogy (족보/토폴로지 추적)</h3><span class="tip">하나의 웨이퍼가 어떻게 쪼개지고 합쳐져서 최종 Chip이 되었는지, N:M 분할/병합 이력을 트리 구조로 완벽하게 시각화합니다.</span></div></div>
+    <div class="topo-wrap">
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">1. 원자재 투입</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--blue);margin-bottom:4px">MAT-WFR-001</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">Bare Wafer 투입</div><div class="badge" style="background:var(--green-dim);color:var(--green)">100 WFR</div></div>
+      </div>
+      <div class="topo-arrow">Wafer Start<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">2. 생산 LOT 생성</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:4px">PRD-FAB-100</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">FAB 공정 진행</div><div class="badge" style="background:var(--blue-dim);color:var(--blue)">100 WFR</div></div>
+      </div>
+      <div class="topo-arrow">분할 (Split)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">3. 분할 진행 (Split)</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:4px">PRD-FAB-100-A</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">정상 라우팅 계속</div><div class="badge" style="background:var(--blue-dim);color:var(--blue)">80 WFR</div></div>
+        <div class="topo-node warn"><div style="font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:4px">PRD-FAB-100-B</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">재작업(Rework) 라우팅</div><div class="badge" style="background:var(--rose-dim);color:var(--rose)">20 WFR</div></div>
+      </div>
+      <div class="topo-arrow">병합 (Merge)<div class="topo-line"></div></div>
+      <div class="topo-col">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:5px">4. 최종 병합 및 EDS</div>
+        <div class="topo-node"><div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:4px">EDS-TEST-999</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">EDS 테스트 공정</div><div class="badge" style="background:var(--purple-dim);color:var(--purple)">100 WFR (병합됨)</div></div>
+      </div>
+    </div>
 </div>

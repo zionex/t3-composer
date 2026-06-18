@@ -3,9 +3,12 @@
 <title>⑰ 샘플링용 분할</title>
 <!-- T3MES UI Pattern · mes_lot_manage · TabPage #17: ⑰ 샘플링용 분할 -->
 <!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
-<div data-t3mes-dynamic="true">
-  <!-- 이 TabPage 는 원본 HTML 의 스크립트가 런타임에 DOM 을 생성합니다.
-       정적 마크업 조각을 추출할 수 없어 골격만 제공합니다.
-       전체 동작은 full 버전(t3mes-split/full/mes_lot_manage/) 또는
-       원본(t3mes/mes_lot_manage_ui_patterns.html)을 참조하세요. -->
+<!-- 이 TabPage 는 원본 스크립트가 동적 생성합니다. 아래는 panel innerHTML 템플릿 -->
+<div class="panel active" id="p16">
+
+    <div class="sec-hdr"><div><h3>⑰ 설비 Track-In (작업 시작)</h3><span class="tip">설비에 LOT를 걸고 가공을 시작(Track-In)하는 화면입니다. (가상 대기열 50건)</span></div></div>
+    <div class="grid2" style="grid-template-columns: 300px 1fr">
+      <div class="card" style="border-color:var(--green)"><div class="card-title" style="color:var(--green)">대상 설비 (Equipment)</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;margin-bottom:10px">EQP-ETCH-05</div><div class="label">현재 상태</div><span class="badge" style="background:var(--green-dim);color:var(--green);font-size:14px">Idle (대기중)</span><div class="label" style="margin-top:20px">레시피 (Recipe)</div><input type="text" class="inp" value="REC-ETCH-NANO-01" disabled></div>
+      <div class="card" style="margin:0"><div class="card-title">설비 앞 대기열 (Queue)</div>${buildTable(['대기 LOT','수량','상태','액션'], p16_rows, '400px')}</div>
+    </div>
 </div>

@@ -3,9 +3,9 @@
 <title>㉝ Wafer 부분 폐기</title>
 <!-- T3MES UI Pattern · mes_lot_manage · TabPage #33: ㉝ Wafer 부분 폐기 -->
 <!-- 경량 마크업 조각 (AI 참조용) — 스타일/스크립트 제외, panel 레이아웃 구조만 -->
-<div data-t3mes-dynamic="true">
-  <!-- 이 TabPage 는 원본 HTML 의 스크립트가 런타임에 DOM 을 생성합니다.
-       정적 마크업 조각을 추출할 수 없어 골격만 제공합니다.
-       전체 동작은 full 버전(t3mes-split/full/mes_lot_manage/) 또는
-       원본(t3mes/mes_lot_manage_ui_patterns.html)을 참조하세요. -->
+<!-- 이 TabPage 는 원본 스크립트가 동적 생성합니다. 아래는 panel innerHTML 템플릿 -->
+<div class="panel active" id="p32">
+
+    <div class="sec-hdr"><div><h3>㉝ 실시간 공정별 WIP(재공) 대시보드</h3><span class="tip">FAB 전체의 공정별로 머물러 있는 LOT의 수량과 상태(Wait, Run, Hold)를 실시간 모니터링합니다.</span></div><button class="btn btn-amber">새로고침 ↻</button></div>
+    ${buildTable(['공정 단계 (Step)','총 대기 LOT수','대기(Wait)','진행(Run)','보류(Hold)'], p32_rows, '600px')}
 </div>

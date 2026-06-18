@@ -29,6 +29,33 @@ function catColor(cat) {
   }
 }
 
+// patternLabel 에 productLine prefix ("PlanNEL — ", "KTNG — " 등) 가 박혀 있는 경우 제거
+// — entry 의 productLine code/display label 양쪽 모두 시도
+function stripProductLinePrefix(label, productLine) {
+  if (!label) return label;
+  const code = productLine;
+  const display = PRODUCT_LINE_LABEL[productLine];
+  for (const p of [display, code]) {
+    if (!p) continue;
+    const sep = ` ${'—'} `;            // 정상 공백 — em-dash — 공백
+    if (label.startsWith(p + sep)) return label.slice(p.length + sep.length);
+    if (label.startsWith(p + '—')) return label.slice(p.length + 1).trim();
+  }
+  return label;
+}
+
+// productLine 별 chip 색 — 색상 단조롭게 통일 (border + 텍스트만 강조)
+function productLineColor(pl) {
+  switch (pl) {
+    case 'T3SmartSCM': return '#1976d2';
+    case 'PlaNEL':     return '#2a9d8f';
+    case 'KTNG':       return '#8b5cf6';
+    case 'ORON':       return '#ed6c02';
+    case 'CJBO':       return '#ef4444';
+    default:           return '#64748b';
+  }
+}
+
 /**
  * T3Mockup — 모든 패턴 목업의 인덱스 갤러리.
  *
@@ -41,7 +68,7 @@ function catColor(cat) {
 export default function T3Mockup() {
   const [active, setActiveState] = useState(null); // 선택된 patternCode
   const [filter, setFilter] = useState({ productLine: 'ALL', category: 'ALL', layout: 'ALL', q: '' });
-  const [view, setView] = useState('list');
+  const [view, setView] = useState('grid');
 
   // 카드 클릭 — active 설정 + history entry push (브라우저 뒤로가기 지원)
   const openMockup = useCallback((code) => {
@@ -118,98 +145,99 @@ export default function T3Mockup() {
   // 인덱스 화면
   return (
     <ContentInner>
-      {/* 헤더 */}
-      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>T3Mockup — UI 패턴 목업 갤러리</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          T3Series 의 {MOCK_STATS.totalMockups}개 UI 패턴 목업. Composer LLM 학습 + 디자인 시스템 문서화 + 신규 화면 참조용.
-        </Typography>
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap" rowGap={0.5}>
-          {Object.entries(PRODUCT_LINE_LABEL).map(([k, v]) => {
-            const count = MOCK_STATS.byProductLine[k] || 0;
-            if (count === 0) return null;
-            return (
-              <Chip key={k} size="small" label={`${v}: ${count}`} color="primary" sx={{ fontWeight: 700 }} />
-            );
-          })}
-          <Box sx={{ width: 8 }} />
-          {Object.entries(CATEGORY_LABEL).map(([k, v]) => (
-            <Chip key={k} size="small" label={`${v}: ${MOCK_STATS.byCategory[k] || 0}`}
-                  color={k === 'core' ? 'primary' : (k === 'domain' ? 'secondary' : 'default')}
-                  variant="outlined" />
-          ))}
+      {/* 헤더 — 제목 + 부제 (간결) */}
+      <Box sx={{ px: 2, pt: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
+        <Stack direction="row" alignItems="baseline" spacing={1.5} flexWrap="wrap" rowGap={0.5}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>SCM UI Mockup</Typography>
+          <Typography variant="body2" color="text.secondary">UI 패턴 목업 갤러리</Typography>
         </Stack>
       </Box>
 
-      {/* 필터바 */}
-      <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'grey.50' }}>
-        {/* L1 — Product Line (최상위) */}
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1, mb: 1 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 80 }}>
-            Product Line
-          </Typography>
-          <ToggleButtonGroup size="small" exclusive value={filter.productLine}
-                              onChange={(_, v) => v && setFilter((f) => ({ ...f, productLine: v, category: 'ALL', layout: 'ALL' }))}>
-            <ToggleButton value="ALL">전체 ({MOCKUP_ENTRIES.length})</ToggleButton>
-            {Object.entries(PRODUCT_LINE_LABEL).map(([k, v]) => {
-              const count = MOCK_STATS.byProductLine[k] || 0;
-              return (
-                <ToggleButton key={k} value={k} disabled={count === 0} sx={{ fontWeight: 600 }}>
-                  {v} ({count})
-                </ToggleButton>
-              );
-            })}
-          </ToggleButtonGroup>
-        </Stack>
+      {/* 필터바 — 단일 줄 sticky (Product Line · Category · Layout · 검색 · view 모드 · 카운트) */}
+      <Box sx={{
+        px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider',
+        backgroundColor: 'background.paper',
+        position: 'sticky', top: 0, zIndex: 2,
+      }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          {/* 줄 1 — 프로젝트 구분 (Product Line) */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <ToggleButtonGroup size="small" exclusive value={filter.productLine}
+                                onChange={(_, v) => v && setFilter((f) => ({ ...f, productLine: v, category: 'ALL', layout: 'ALL' }))}>
+              <ToggleButton value="ALL" sx={{ px: 1.5 }}>전체 {MOCKUP_ENTRIES.length}</ToggleButton>
+              {Object.entries(PRODUCT_LINE_LABEL).map(([k, v]) => {
+                const count = MOCK_STATS.byProductLine[k] || 0;
+                return (
+                  <ToggleButton key={k} value={k} disabled={count === 0} sx={{ px: 1.5, fontWeight: 600 }}>
+                    {v} {count}
+                  </ToggleButton>
+                );
+              })}
+            </ToggleButtonGroup>
+          </Box>
 
-        {/* L2 — Category + Layout + 검색 + View Mode */}
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', minWidth: 80 }}>
-            Category
-          </Typography>
-          <ToggleButtonGroup size="small" exclusive value={filter.category}
-                              onChange={(_, v) => v && setFilter((f) => ({ ...f, category: v }))}>
-            <ToggleButton value="ALL">전체</ToggleButton>
-            <ToggleButton value="core"         sx={{ color: 'primary.main' }}>정규 ({visibleCategoryCount.core || 0})</ToggleButton>
-            <ToggleButton value="domain"       sx={{ color: 'secondary.main' }}>도메인 ({visibleCategoryCount.domain || 0})</ToggleButton>
-            <ToggleButton value="dashboard"    sx={{ color: 'info.main' }}>Dashboard ({visibleCategoryCount.dashboard || 0})</ToggleButton>
-            <ToggleButton value="controlboard" sx={{ color: 'warning.main' }}>ControlBoard ({visibleCategoryCount.controlboard || 0})</ToggleButton>
-            <ToggleButton value="meta">메타 ({visibleCategoryCount.meta || 0})</ToggleButton>
-          </ToggleButtonGroup>
-          <TextField size="small" select label="Layout 카테고리" value={filter.layout}
-                      onChange={(e) => setFilter((f) => ({ ...f, layout: e.target.value }))}
-                      sx={{ width: 220 }}>
-            <MenuItem value="ALL">전체</MenuItem>
-            {layoutCategories.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-          </TextField>
-          <TextField size="small" placeholder="검색 — 코드/라벨/설명/메뉴ID/메뉴명"
-                      value={filter.q} onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value }))}
-                      sx={{ width: 320 }} />
-          <Box sx={{ flex: 1 }} />
-          <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
-            <ToggleButton value="grid"><GridViewIcon fontSize="small" /></ToggleButton>
-            <ToggleButton value="list"><ViewListIcon fontSize="small" /></ToggleButton>
-          </ToggleButtonGroup>
-          <Typography variant="caption" color="text.secondary">{filtered.length}개 표시</Typography>
-        </Stack>
+          {/* 줄 2 — 타입 구분 (Category) + Layout + 검색 + view 모드 */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <ToggleButtonGroup size="small" exclusive value={filter.category}
+                                onChange={(_, v) => v && setFilter((f) => ({ ...f, category: v }))}>
+              <ToggleButton value="ALL" sx={{ px: 1.5 }}>All</ToggleButton>
+              <ToggleButton value="core"         sx={{ px: 1.5, color: 'primary.main' }}>정규 {visibleCategoryCount.core || 0}</ToggleButton>
+              <ToggleButton value="domain"       sx={{ px: 1.5, color: 'secondary.main' }}>도메인 {visibleCategoryCount.domain || 0}</ToggleButton>
+              <ToggleButton value="dashboard"    sx={{ px: 1.5, color: 'info.main' }}>Dashboard {visibleCategoryCount.dashboard || 0}</ToggleButton>
+              <ToggleButton value="controlboard" sx={{ px: 1.5, color: 'warning.main' }}>CB {visibleCategoryCount.controlboard || 0}</ToggleButton>
+              <ToggleButton value="meta" sx={{ px: 1.5 }}>메타 {visibleCategoryCount.meta || 0}</ToggleButton>
+            </ToggleButtonGroup>
+
+            <TextField size="small" select value={filter.layout}
+                        onChange={(e) => setFilter((f) => ({ ...f, layout: e.target.value }))}
+                        sx={{ width: 180, '& .MuiSelect-select': { py: 0.75 } }}>
+              <MenuItem value="ALL">Layout — 전체</MenuItem>
+              {layoutCategories.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
+
+            <TextField size="small" placeholder="코드/라벨/설명/메뉴 검색"
+                        value={filter.q} onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value }))}
+                        sx={{ width: 260, '& .MuiInputBase-input': { py: 0.75 } }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon fontSize="small" />
+                            </InputAdornment>
+                          ),
+                        }} />
+
+            <Box sx={{ flex: 1 }} />
+
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {filtered.length}개
+            </Typography>
+            <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
+              <ToggleButton value="grid" sx={{ px: 1 }}><GridViewIcon fontSize="small" /></ToggleButton>
+              <ToggleButton value="list" sx={{ px: 1 }}><ViewListIcon fontSize="small" /></ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
       </Box>
 
       {/* 카드 그리드 / 리스트 */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
         {view === 'grid' ? (
-          <Grid container spacing={1.5}>
+          <Grid container spacing={2}>
             {filtered.map((e) => {
               const accent = catColor(e.category);
+              const menuCount = e.menus?.length || 0;
+              const plColor = productLineColor(e.productLine);
+              const plLabel = PRODUCT_LINE_LABEL[e.productLine] || e.productLine;
+              const cleanLabel = stripProductLinePrefix(e.patternLabel, e.productLine);
               return (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={e.patternCode}>
                   <Card variant="outlined" sx={{
                     height: '100%', display: 'flex', flexDirection: 'column',
-                    transition: 'all .18s ease',
+                    transition: 'border-color .15s ease, box-shadow .15s ease',
                     borderTop: `3px solid ${accent}`,
                     '&:hover': {
                       borderColor: accent,
-                      boxShadow: `0 6px 20px ${accent}33`,
-                      transform: 'translateY(-2px)',
+                      boxShadow: `0 2px 12px ${accent}22`,
                     },
                   }}>
                     <MockupPressPreview
@@ -217,24 +245,42 @@ export default function T3Mockup() {
                       onClick={() => openMockup(e.patternCode)}
                       sx={{ flex: 1, cursor: 'pointer', userSelect: 'none' }}
                     >
-                      <CardContent sx={{ '&:last-child': { pb: 1.5 } }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                          <Chip size="small" label={e.patternCode} sx={{ fontFamily: 'monospace', maxWidth: '60%', fontSize: 11 }} />
-                          <Stack direction="row" spacing={0.5}>
-                            {(e.menus?.length || 0) > 0 && (
-                              <Tooltip title={`매핑된 운영 메뉴 ${e.menus.length}개`}>
-                                <Chip size="small" label={`📋 ${e.menus.length}`} color="info" variant="outlined" />
-                              </Tooltip>
-                            )}
-                            <Tooltip title={`Phase 1 에서 ${e.usage}개 화면이 이 패턴으로 분류됨`}>
-                              <Chip size="small" label={`×${e.usage}`} variant="outlined" />
-                            </Tooltip>
+                      <CardContent sx={{ '&:last-child': { pb: 1.75 } }}>
+                        {/* 1행 — productLine + patternCode + 매핑 메뉴 수 */}
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+                          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                            <Chip
+                              size="small"
+                              label={plLabel}
+                              sx={{
+                                height: 22, fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                color: plColor, borderColor: `${plColor}66`, bgcolor: `${plColor}10`,
+                                border: '1px solid',
+                              }}
+                            />
+                            <Chip size="small" label={e.patternCode}
+                                  sx={{ fontFamily: 'monospace', fontSize: 11, height: 22, minWidth: 0,
+                                        '& .MuiChip-label': { px: 0.75, overflow: 'hidden', textOverflow: 'ellipsis' } }} />
                           </Stack>
+                          {menuCount > 0 && (
+                            <Tooltip title={`매핑된 운영 메뉴 ${menuCount}개`}>
+                              <Chip size="small" label={`📋 ${menuCount}`} variant="outlined"
+                                    sx={{ height: 22, fontSize: 11, flexShrink: 0 }} />
+                            </Tooltip>
+                          )}
                         </Stack>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>{e.patternLabel}</Typography>
-                        <Chip size="small" label={e.layoutCategory} variant="outlined"
-                              color={e.category === 'core' ? 'primary' : (e.category === 'domain' ? 'secondary' : (e.category === 'dashboard' ? 'info' : (e.category === 'controlboard' ? 'warning' : 'default')))}
-                              sx={{ mb: 1 }} />
+
+                        {/* 2행 — 라벨 (시인성 메인) */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, lineHeight: 1.35 }}>
+                          {cleanLabel}
+                        </Typography>
+
+                        {/* 3행 — meta 한 줄 (layoutCategory) */}
+                        <Typography variant="caption" sx={{ display: 'block', color: accent, fontWeight: 600, mb: 0.5 }}>
+                          {e.layoutCategory}
+                        </Typography>
+
+                        {/* 4행 — 설명 */}
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                           {e.description}
                         </Typography>
@@ -251,12 +297,16 @@ export default function T3Mockup() {
             )}
           </Grid>
         ) : (
-          <Stack spacing={0.5}>
+          <Stack spacing={0.75}>
             {filtered.map((e) => {
               const accent = catColor(e.category);
+              const menuCount = e.menus?.length || 0;
+              const plColor = productLineColor(e.productLine);
+              const plLabel = PRODUCT_LINE_LABEL[e.productLine] || e.productLine;
+              const cleanLabel = stripProductLinePrefix(e.patternLabel, e.productLine);
               return (
                 <Card key={e.patternCode} variant="outlined" sx={{
-                  transition: 'all .15s ease',
+                  transition: 'border-color .15s ease, box-shadow .15s ease',
                   borderLeft: `4px solid ${accent}`,
                   '&:hover': { borderColor: accent, boxShadow: `0 2px 8px ${accent}22` },
                 }}>
@@ -265,23 +315,39 @@ export default function T3Mockup() {
                     onClick={() => openMockup(e.patternCode)}
                     sx={{ cursor: 'pointer', userSelect: 'none' }}
                   >
-                    <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Chip size="small" label={e.patternCode} sx={{ fontFamily: 'monospace', minWidth: 220, justifyContent: 'flex-start' }} />
-                      <Typography sx={{ flex: 1, fontWeight: 600 }}>{e.patternLabel}</Typography>
-                      <Chip size="small" label={e.layoutCategory} variant="outlined"
-                            color={e.category === 'core' ? 'primary' : (e.category === 'domain' ? 'secondary' : (e.category === 'dashboard' ? 'info' : (e.category === 'controlboard' ? 'warning' : 'default')))} />
-                      <Typography sx={{ width: 60, fontFamily: 'monospace', textAlign: 'right', color: 'text.secondary' }}>×{e.usage}</Typography>
-                      {(e.menus?.length || 0) > 0 && (
-                        <Tooltip title={`매핑된 운영 메뉴 ${e.menus.length}개`}>
-                          <Chip size="small" label={`📋 ${e.menus.length}`} color="info" variant="outlined" sx={{ minWidth: 50 }} />
-                        </Tooltip>
-                      )}
-                      <Typography sx={{ width: 300, fontSize: 12, color: 'text.secondary' }} noWrap>{e.description}</Typography>
+                    <Box sx={{ p: 1.25, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, width: 240, color: 'text.secondary', flexShrink: 0 }} noWrap>
+                        {e.patternCode}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={plLabel}
+                        sx={{
+                          height: 22, fontSize: 11, fontWeight: 700, flexShrink: 0,
+                          color: plColor, borderColor: `${plColor}66`, bgcolor: `${plColor}10`,
+                          border: '1px solid',
+                        }}
+                      />
+                      <Typography sx={{ flex: 1, fontWeight: 600, fontSize: 14 }} noWrap>
+                        {cleanLabel}
+                      </Typography>
+                      <Typography sx={{ width: 140, fontSize: 11, color: accent, fontWeight: 600, textAlign: 'left', flexShrink: 0 }} noWrap>
+                        {e.layoutCategory}
+                      </Typography>
+                      <Typography sx={{ width: 56, fontFamily: 'monospace', fontSize: 12, textAlign: 'right', color: menuCount > 0 ? 'text.primary' : 'text.disabled', flexShrink: 0 }}>
+                        📋 {menuCount}
+                      </Typography>
+                      <Typography sx={{ flex: 1.5, fontSize: 12, color: 'text.secondary', minWidth: 0 }} noWrap>
+                        {e.description}
+                      </Typography>
                     </Box>
                   </MockupPressPreview>
                 </Card>
               );
             })}
+            {filtered.length === 0 && (
+              <Box sx={{ p: 4, textAlign: 'center', color: 'text.disabled' }}>조회된 목업이 없습니다.</Box>
+            )}
           </Stack>
         )}
       </Box>

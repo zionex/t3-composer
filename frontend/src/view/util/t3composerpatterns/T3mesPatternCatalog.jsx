@@ -63,7 +63,7 @@ const SECTIONS = [
   {
     section: 'MES',
     sectionLabel: 'MES (Manufacturing Execution System)',
-    icon: '🏭', color: '#00e5ff',
+    icon: '🏭', color: '#4794fe',
     groups: [
       { title: '영업관리 (Sales)', icon: '💼', color: '#4d9fff', items: [
         { label: '수주/오더 등록 패턴',          file: 'mes_sales_1_order_ui_patterns.html' },

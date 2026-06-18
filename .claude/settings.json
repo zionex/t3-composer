@@ -6,7 +6,6 @@
     "T3_DB_SCHEMA": "T3SMARTSCM.dbo"
   },
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Read",
       "Write",
@@ -92,7 +91,16 @@
       "Bash(Get-ChildItem -Path \"C:\\\\vs_project\\\\PLANNEL\\\\saas-web\\\\src\\\\pages\" -Directory)",
       "Bash(Select-Object Name)",
       "Bash(find /c/vs_project -maxdepth 3 -type d -name \"PLANNEL\" 2>/dev/null)",
-      "Read(//c/vs_project/**)"
+      "Read(//c/vs_project/**)",
+      "Bash(git push *)",
+      "Read(//Users/hej/Downloads/**)",
+      "Bash(cp /Users/hej/Downloads/T3Composer_logo_blue.png /Users/hej/work/projects/t3-composer/frontend/src/assets/T3Composer_logo_b.png)",
+      "Bash(cp /Users/hej/Downloads/logo.png /Users/hej/work/projects/t3-composer/frontend/src/assets/T3Composer_icon.png && ls -la /Users/hej/work/projects/t3-composer/frontend/src/assets/T3Composer_icon.png)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(FILE_PATH=/test/Bar.jsx CONTENT='import { Bar } from '\\\\''react-chartjs-2'\\\\''; *)",
+      "Bash(cat /Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/implementer-prompt.md 2>&1 | head -80)",
+      "Read(//Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/**)"
     ],
     "deny": [
       "Bash(rm -rf*)",
@@ -104,6 +112,10 @@
       "Read(**/*.pem)",
       "Read(**/application-prod.yaml)",
       "Read(**/application-prod.yml)"
+    ],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "/Users/hej/Downloads"
     ]
   },
   "model": "claude-opus-4-7",

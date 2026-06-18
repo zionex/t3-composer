@@ -199,14 +199,39 @@ function extractPanel(html, panelIndex) {
   return null;
 }
 
-// 동적 panel 파일 fallback — `panel.innerHTML = `<TEMPLATE>`` 의 template literal 추출.
-//   panel 박스를 JS 가 생성하는 monitoring 류 파일 대응.
-//   보간 ${n}/${i}/${i+1} 은 해당 TabPage 값으로 치환, 그 외 보간은 그대로 둠.
+// Dynamic panel HTML 추출 — 원본 스크립트가 런타임에 DOM 생성하는 케이스 대응.
+// 3가지 패턴 순차 시도:
+//   A. panel.innerHTML = `...`         — 일반화된 변수 (모든 탭 공통)
+//   B. $('pN').innerHTML = `...`       — jQuery shortcut 특정 panel ID
+//   C. document.getElementById('pN').innerHTML = `...` — DOM API
+//
+// B/C 는 panel ID 가 'pN' (N = index) 인 것을 매칭. ${i}, ${i+1}, ${n} 보간만 치환.
+// 다른 ${...} 는 그대로 둠 (parser 가 layer 시그니처만 보므로 정확한 렌더 불필요).
 function extractPanelTemplate(html, index, label) {
-  const re = /\bpanel\.innerHTML\s*=\s*`([\s\S]*?)`/;
-  const m = re.exec(html);
-  if (!m) return null;
-  return m[1]
+  // Pattern A — generalized "panel" variable
+  let m = /\bpanel\.innerHTML\s*=\s*`([\s\S]*?)`/.exec(html);
+  if (m) return interpolate(m[1], index, label);
+
+  // Pattern B — $('pN').innerHTML
+  // Use a function constructor to avoid eslint warning on dynamic regex
+  const reB = new RegExp(
+    "\\$\\(\\s*['\"]p" + index + "['\"]\\s*\\)\\.innerHTML\\s*=\\s*`([\\s\\S]*?)`",
+  );
+  m = reB.exec(html);
+  if (m) return interpolate(m[1], index, label);
+
+  // Pattern C — document.getElementById('pN').innerHTML
+  const reC = new RegExp(
+    "document\\.getElementById\\(\\s*['\"]p" + index + "['\"]\\s*\\)\\.innerHTML\\s*=\\s*`([\\s\\S]*?)`",
+  );
+  m = reC.exec(html);
+  if (m) return interpolate(m[1], index, label);
+
+  return null;
+}
+
+function interpolate(s, index, label) {
+  return s
     .replace(/\$\{\s*i\s*\+\s*1\s*\}/g, String(index + 1))
     .replace(/\$\{\s*i\s*\}/g, String(index))
     .replace(/\$\{\s*n\s*\}/g, label);

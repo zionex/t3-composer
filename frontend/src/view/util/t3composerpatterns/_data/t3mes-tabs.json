@@ -5979,13 +5979,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -6137,13 +6173,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -8627,13 +8699,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 3
           }
         },
@@ -8693,7 +8801,19 @@
           "position": {
             "x": 8,
             "y": 3,
-            "w": 4,
+            "w": 2,
+            "h": 9
+          }
+        },
+        {
+          "key": "card3",
+          "title": "카드 영역 3",
+          "type": "CONTAINER",
+          "subtype": "CARD_LIST",
+          "position": {
+            "x": 10,
+            "y": 3,
+            "w": 2,
             "h": 9
           }
         }
@@ -8779,13 +8899,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -9145,13 +9301,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 12
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 12
           }
         }
@@ -9467,13 +9659,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 3
           }
         },
@@ -9583,13 +9811,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 3
           }
         },
@@ -9779,13 +10043,25 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 3
           }
         },
@@ -9969,13 +10245,37 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 4,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 3
           }
         },
@@ -10233,13 +10533,25 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 6,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 3
           }
         },
@@ -10267,13 +10579,85 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 1,
+            "y": 0,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 2,
+            "y": 0,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi5",
+          "title": "KPI 5",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi6",
+          "title": "KPI 6",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 5,
+            "y": 0,
+            "w": 1,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi7",
+          "title": "KPI 7",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
             "h": 3
           }
         },
@@ -10286,7 +10670,7 @@
             "x": 0,
             "y": 3,
             "w": 12,
-            "h": 1
+            "h": 3
           }
         },
         {
@@ -10296,9 +10680,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 4,
+            "y": 6,
             "w": 12,
-            "h": 1
+            "h": 3
           }
         },
         {
@@ -10308,33 +10692,9 @@
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 9,
             "w": 12,
-            "h": 1
-          }
-        },
-        {
-          "key": "card4",
-          "title": "카드 영역 4",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 0,
-            "y": 6,
-            "w": 12,
-            "h": 1
-          }
-        },
-        {
-          "key": "card5",
-          "title": "카드 영역 5",
-          "type": "CONTAINER",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 0,
-            "y": 7,
-            "w": 12,
-            "h": 5
+            "h": 3
           }
         }
       ]
@@ -10347,13 +10707,61 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi5",
+          "title": "KPI 5",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 3
           }
         },
@@ -10427,13 +10835,61 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi5",
+          "title": "KPI 5",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 3
           }
         },
@@ -10507,13 +10963,49 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 3,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 9,
+            "y": 0,
+            "w": 3,
             "h": 3
           }
         },
@@ -10575,13 +11067,61 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi5",
+          "title": "KPI 5",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 3
           }
         },
@@ -10655,13 +11195,61 @@
       "layers": [
         {
           "key": "kpi1",
-          "title": "KPI 영역",
+          "title": "KPI 1",
           "type": "CHART",
           "subtype": "KPI_CARD",
           "position": {
             "x": 0,
             "y": 0,
-            "w": 12,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi2",
+          "title": "KPI 2",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi3",
+          "title": "KPI 3",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi4",
+          "title": "KPI 4",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 6,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        },
+        {
+          "key": "kpi5",
+          "title": "KPI 5",
+          "type": "CHART",
+          "subtype": "KPI_CARD",
+          "position": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
             "h": 3
           }
         },

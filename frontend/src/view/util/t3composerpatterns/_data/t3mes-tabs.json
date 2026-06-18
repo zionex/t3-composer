@@ -343,7 +343,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 6,
@@ -375,7 +375,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -785,7 +785,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -805,7 +805,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -891,7 +891,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -903,7 +903,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -943,7 +943,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -963,7 +963,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1003,7 +1003,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1015,7 +1015,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -1047,7 +1047,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -1087,7 +1087,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -1127,7 +1127,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1139,7 +1139,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -1269,7 +1269,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 8,
@@ -1321,7 +1321,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -1425,7 +1425,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 6,
@@ -1557,7 +1557,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -1569,7 +1569,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -1589,7 +1589,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -1701,7 +1701,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1713,7 +1713,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -1733,7 +1733,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -1773,7 +1773,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1785,7 +1785,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -1823,7 +1823,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -1835,7 +1835,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -2159,7 +2159,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -2171,7 +2171,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 3,
@@ -2183,7 +2183,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -2195,7 +2195,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -2313,7 +2313,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -2385,7 +2385,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -2397,7 +2397,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -2543,7 +2543,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -2555,7 +2555,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -2759,7 +2759,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -2771,7 +2771,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 3,
@@ -2783,7 +2783,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -2795,7 +2795,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -2881,7 +2881,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -3057,7 +3057,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -3069,7 +3069,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -3081,7 +3081,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3093,7 +3093,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -3625,7 +3625,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -3637,7 +3637,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3657,7 +3657,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -3669,7 +3669,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3749,7 +3749,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -3769,7 +3769,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -3781,7 +3781,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3861,7 +3861,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -3913,7 +3913,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3959,7 +3959,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -3971,7 +3971,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -3983,7 +3983,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -3995,7 +3995,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -4083,7 +4083,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -4095,7 +4095,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -4107,7 +4107,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -4119,7 +4119,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -4171,7 +4171,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -4602,7 +4602,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -4700,7 +4700,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 6,
@@ -4720,7 +4720,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -4784,7 +4784,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -4900,7 +4900,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -4940,7 +4940,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -4952,7 +4952,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -4998,7 +4998,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 8,
@@ -5118,7 +5118,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5130,7 +5130,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -5196,7 +5196,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -5216,7 +5216,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -5276,7 +5276,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5288,7 +5288,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -5308,7 +5308,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5320,7 +5320,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -5332,7 +5332,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -5344,7 +5344,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -5364,7 +5364,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -5404,7 +5404,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5430,7 +5430,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5442,7 +5442,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -5482,7 +5482,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -5494,7 +5494,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -5914,7 +5914,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -6102,7 +6102,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6230,7 +6230,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6276,7 +6276,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6396,7 +6396,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -6434,7 +6434,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6446,7 +6446,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -6488,7 +6488,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -6648,7 +6648,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6660,7 +6660,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -6686,7 +6686,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -6726,7 +6726,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -6832,7 +6832,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -6844,7 +6844,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -6956,7 +6956,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -7022,7 +7022,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -7358,7 +7358,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -7418,7 +7418,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -7588,7 +7588,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -7668,7 +7668,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -7680,7 +7680,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -7700,7 +7700,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -7712,7 +7712,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -7724,7 +7724,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -7736,7 +7736,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -7796,7 +7796,7 @@
         {
           "key": "mobile1",
           "title": "모바일",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -7946,7 +7946,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -7978,7 +7978,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8070,7 +8070,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8122,7 +8122,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8202,7 +8202,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -8214,7 +8214,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 3,
@@ -8226,7 +8226,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8238,7 +8238,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 9,
@@ -8482,7 +8482,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 4,
@@ -8494,7 +8494,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 8,
@@ -8598,7 +8598,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8644,7 +8644,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 4,
@@ -8656,7 +8656,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8668,7 +8668,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 8,
@@ -8680,7 +8680,7 @@
         {
           "key": "card4",
           "title": "카드 영역 4",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 10,
@@ -8784,7 +8784,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -8796,7 +8796,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 8,
@@ -8808,7 +8808,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 10,
@@ -8968,7 +8968,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -8980,7 +8980,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9204,7 +9204,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9216,7 +9216,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9280,7 +9280,7 @@
         {
           "key": "cards1",
           "title": "카드 리스트",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9376,7 +9376,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9422,7 +9422,7 @@
         {
           "key": "calendar1",
           "title": "달력",
-          "type": "CHART",
+          "type": "GRID",
           "subtype": "CALENDAR_MONTH",
           "position": {
             "x": 0,
@@ -9442,7 +9442,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9454,7 +9454,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9474,7 +9474,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9486,7 +9486,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9506,7 +9506,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9518,7 +9518,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9570,7 +9570,7 @@
         {
           "key": "form1",
           "title": "입력 폼",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "GRID_BASE",
           "position": {
             "x": 0,
@@ -9602,7 +9602,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9640,7 +9640,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9720,7 +9720,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9772,7 +9772,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -9784,7 +9784,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9872,7 +9872,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -9944,7 +9944,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -10314,7 +10314,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 6,
@@ -10664,7 +10664,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10676,7 +10676,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10688,7 +10688,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10792,7 +10792,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10804,7 +10804,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10816,7 +10816,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10908,7 +10908,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10920,7 +10920,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10932,7 +10932,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -10944,7 +10944,7 @@
         {
           "key": "card4",
           "title": "카드 영역 4",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11024,7 +11024,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11036,7 +11036,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11048,7 +11048,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11140,7 +11140,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11152,7 +11152,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11164,7 +11164,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11176,7 +11176,7 @@
         {
           "key": "card4",
           "title": "카드 영역 4",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11256,7 +11256,7 @@
         {
           "key": "card1",
           "title": "카드 영역 1",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11268,7 +11268,7 @@
         {
           "key": "card2",
           "title": "카드 영역 2",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11280,7 +11280,7 @@
         {
           "key": "card3",
           "title": "카드 영역 3",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11292,7 +11292,7 @@
         {
           "key": "card4",
           "title": "카드 영역 4",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,
@@ -11304,7 +11304,7 @@
         {
           "key": "card5",
           "title": "카드 영역 5",
-          "type": "CONTAINER",
+          "type": "GRID",
           "subtype": "CARD_LIST",
           "position": {
             "x": 0,

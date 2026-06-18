@@ -13,18 +13,14 @@
 
 ```bash
 # 1. 모든 서비스 기동 (첫 실행은 5~10분 — Maven dep + npm install + MSSQL 이미지 풀)
-./up.sh --build           # macOS / Linux / Git Bash 사용자
-.\up.ps1 --build          # Windows PowerShell 사용자
-
-# wrapper 가 .env 없으면 .env.example 에서 자동 복사 후 docker compose up -d 호출.
-# 직접 docker compose 호출도 가능하지만, .env 가 없으면 ${VAR} 경고가 쏟아집니다:
-#   cp .env.example .env && docker compose up -d --build
+docker compose up -d --build
 
 # 2. 편집기로 .env 열어 필수값 채우기 (안 채워도 부팅은 됨 — 해당 기능만 비활성)
 #   · ANTHROPIC_API_KEY            — 자연어 화면 생성
 #   · COMPOSER_SNAPSHOT_SECRET_KEY — 스냅샷 시크릿 암호화 마스터키 (임의 충분히 긴 문자열)
 #   · TARGET_T3SERIES_PATH 등      — 산출물 적용 대상 wingui 트리 절대경로
-# .env 수정 후 변경 반영:  ./up.sh --force-recreate composer-backend
+# .env 수정 후 변경 반영:
+docker compose up -d --force-recreate composer-backend
 
 # 3. 헬스 체크
 docker compose ps
@@ -39,10 +35,11 @@ docker compose ps
 | 질문 | 답 |
 |---|---|
 | `.env` 는 어디 있나요? | **호스트(로컬) 레포 루트** (`<repo>/.env`). docker 안에는 없습니다. |
-| 자동 생성되나요? | `./up.sh` / `.\up.ps1` wrapper 실행 시, 없으면 `.env.example` 에서 자동 복사. `docker compose up` 직접 호출 시는 자동 생성 X. |
-| 처음엔 어떻게 채우나요? | wrapper 가 만들어준 `.env` 는 placeholder. 편집기로 열어 `ANTHROPIC_API_KEY` · `COMPOSER_SNAPSHOT_SECRET_KEY` · `TARGET_<CD>_PATH` 등을 직접 입력. |
-| `.env` 수정하면 즉시 반영되나요? | **❌ 아니요**. docker-compose 가 `.env` 를 컨테이너 기동 **전에 한 번** 읽어 `${VAR}` 치환하므로, 값 변경 후엔 **반드시 backend 재기동**: `./up.sh --force-recreate composer-backend` |
-| `.env` 없이도 부팅되나요? | 부팅은 됨. 단 `${VAR}` 가 빈 값으로 치환되어 LLM 호출 · Target DB 연결 등 비밀이 필요한 기능은 비활성. console 에 `The "ANTHROPIC_API_KEY" variable is not set. Defaulting to a blank string.` 경고가 매번 뜸. |
+| 클론하면 바로 있나요? | ✅ 네. 레포에 placeholder 상태로 commit 되어 있어 신규 클론 시 바로 존재. (= `.env.example` 동일 내용 — 키 자리가 비어있을 뿐 docker compose 가 읽을 수 있음) |
+| 처음엔 어떻게 채우나요? | 편집기로 `.env` 열어 `ANTHROPIC_API_KEY` · `COMPOSER_SNAPSHOT_SECRET_KEY` · `TARGET_<CD>_PATH` 등 빈 자리를 직접 입력. |
+| ⚠️ commit/push 해도 되나요? | **❌ 절대 안 됨**. `.env` 는 tracked 파일이라 `git status` 에 modified 로 뜨는데, **실수로 commit + push 하면 git history 에 시크릿이 영구 노출됩니다**. 변경분은 로컬에만 두세요 (`git restore .env` 로 placeholder 로 되돌리거나, 본인만의 가짜 키로 채워둘 것). |
+| `.env` 수정하면 즉시 반영? | **❌ 아니요**. docker-compose 가 `.env` 를 컨테이너 기동 **전에 한 번** 읽어 `${VAR}` 치환하므로, 값 변경 후엔 backend 재기동: `docker compose up -d --force-recreate composer-backend` |
+| 비밀값 미입력 시 부팅? | 부팅은 됨. 단 `${VAR}` 가 빈 값으로 치환되어 LLM 호출 · Target DB 연결 등 비밀이 필요한 기능은 비활성. |
 
 ### 접속 주소
 

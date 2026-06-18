@@ -260,32 +260,34 @@ docker exec composer-db /opt/mssql-tools18/bin/sqlcmd \
 **대처**: 영향 받는 컨테이너를 `--force-recreate` 로 재기동.
 ```bash
 # .env 수정 후 backend 만 재기동 (보통 충분)
-./up.sh --force-recreate composer-backend           # macOS/Linux/Git Bash
-.\up.ps1 --force-recreate composer-backend          # Windows PowerShell
-# = docker compose up -d --force-recreate composer-backend
+docker compose up -d --force-recreate composer-backend
 
 # DB · MSSQL 비밀번호처럼 db 컨테이너 변수가 바뀌었으면 그쪽도:
-./up.sh --force-recreate composer-db composer-backend
+docker compose up -d --force-recreate composer-db composer-backend
 ```
 참고 — `restart` 만으로는 환경변수가 재적용되지 않습니다. 반드시 `--force-recreate` 사용.
 
-## 20. `.env` 파일이 호스트에 없음 — wrapper 가 자동 생성 안 함
+## 20. ⚠️ `.env` 수정분이 실수로 push 됨 — git history 에 시크릿 노출
 
-**증상**: `docker compose up -d` 직접 호출 시 모든 명령에서 `The "ANTHROPIC_API_KEY" variable is not set. Defaulting to a blank string.` 같은 경고가 쏟아짐.
+**증상**: `.env` 에 채워둔 `ANTHROPIC_API_KEY` 등이 `git push` 후 GitHub/원격 레포에 노출. (`.env` 는 placeholder 상태로 레포에 commit 되어 있어 tracked 파일 — `.gitignore` 가 보호 안 함.)
 
-**원인**: `.env` 자동 생성은 `./up.sh` / `.\up.ps1` wrapper 가 하는 일. `docker compose` 명령을 직접 쓰면 wrapper 가 안 끼어들어 `.env` 가 없으면 그대로 빈 값으로 치환.
+**예방** (이게 더 중요):
+- 시크릿 채워둔 채로는 절대 `git add .` / `git commit -a` 금지.
+- 커밋 전 항상 `git status` 로 `.env` 가 staged 됐는지 확인.
+- 의도하지 않은 변경분 되돌리기:
+  ```bash
+  git restore .env             # placeholder 로 즉시 복원 (시크릿 사라짐 — 다시 채워야 함)
+  ```
+- 본인 머신 전용으로 시크릿을 보존하고 싶고 git status 에서 안 보이게 하려면:
+  ```bash
+  git update-index --skip-worktree .env    # 이 머신 한정 — git 이 .env 변경 추적 정지
+  git update-index --no-skip-worktree .env # 해제 (다시 추적)
+  ```
 
-**대처**: 다음 중 하나.
-```bash
-# (a) wrapper 사용 — 권장. 다음 부팅부터 .env 자동 준비.
-./up.sh
-.\up.ps1
-
-# (b) 수동 복사
-cp .env.example .env
-docker compose up -d
-```
-어느 쪽이든 `.env` 는 호스트 레포 루트(`<repo>/.env`) 에 생기고, gitignore 됩니다.
+**유출됐다면**:
+1. `.env` 의 노출된 키를 **즉시 무효화** (Anthropic console 에서 회수 → 새 키 발급)
+2. git history 에서 제거 (`git filter-branch` / `bfg-repo-cleaner`) — 단 fork/clone 한 사람이 있으면 한계 있음
+3. 그래도 안전한 가정: **공개된 키는 영구 노출**. 새 키 발급이 정답.
 
 ## 21. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
 

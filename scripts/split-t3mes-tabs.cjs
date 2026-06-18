@@ -423,7 +423,7 @@ function main() {
 //   class="grid3" 또는 grid-template-columns 3-col → 좌우 3분할
 //   그 외 (기본) → 상하 분할 (h 분배)
 // ──────────────────────────────────────────────────────────────
-const MAX_LAYERS = 6;
+const MAX_LAYERS = 10;  // 대시보드 4-6 KPI + 2-4 content layer 수용
 
 // grid4-6 KPI strip 검출 — input/select 가 들어있으면 form 으로 판정 (false positive 차단)
 function hasKpiStrip(html) {
@@ -435,6 +435,21 @@ function hasKpiStrip(html) {
   // 본문 안에 input 또는 select 가 있으면 form 으로 분류 → KPI 아님
   if (/<(input|select)\b/i.test(stripBody)) return false;
   return true;
+}
+
+// KPI 카드 개수 추정 — grid4-6 의 숫자 또는 명시 kpi-card 카운트 또는 기본값(4)
+function kpiCount(html) {
+  // grid4-6 strip (false positive 차단: input/select 없을 때만)
+  if (hasKpiStrip(html)) {
+    const m = /<div[^>]*class="[^"]*\bgrid([4-6])\b/i.exec(html);
+    if (m) return parseInt(m[1], 10);
+  }
+  // 명시 kpi-card 카운트 (>=2 면 그대로 사용)
+  const explicit = (html.match(/<div[^>]*class="[^"]*\bkpi-card\b/gi) || []).length;
+  if (explicit >= 2) return explicit;
+  // 빈 kpi-grid/kpi-row 컨테이너 → 기본 4
+  if (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(html)) return 4;
+  return 0;
 }
 
 function extractLayers(html) {
@@ -461,11 +476,13 @@ function extractLayers(html) {
                     //  ③ chart/diagram/flow/bpmn 클래스 wrapper 안의 SVG
                     matchCount(/<svg[^>]*\bwidth="(?:[2-9]\d{2}|\d{4,})\b/gi)
                       + matchCount(/<svg[^>]*\bviewBox="[^"]*\s\d{3,}\s\d{3,}"/gi)
-                      + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi)),
+                      + matchCount(/<div[^>]*class="[^"]*\b(?:chart|diagram|flow|bpmn|svg-wrap)\b[^"]*"[\s\S]{0,500}?<svg/gi),
+                    // Rule B2 — legend swatches 패턴 (가로 막대 차트 범례)
+                    //   card 안 div with background:var(--color) ≥3개 → 1 chart slot
+                    matchCount(/<div[^>]*style="[^"]*background:\s*var\(\s*--(?:teal|red|blue|cyan|amber|orange|yellow|green|purple|pink|gray)\s*\)/gi) >= 3 ? 1 : 0),
     // grid4/grid5/grid6 = KPI strip (4~6 KPI 카드 가로 배치, 동적 JS 채움 케이스 포함)
-    kpi:   (/<div[^>]*class="[^"]*\bkpi-(grid|row)\b/i.test(inner)
-             || matchCount(/<div[^>]*class="[^"]*\bkpi-card\b/gi) >= 2
-             || hasKpiStrip(inner)) ? 1 : 0,
+    //   integer count — Mockup widget_dashboard 관례 (KPI 카드별 layer 분리)
+    kpi:   kpiCount(inner),
     form:  (matchCount(/<div[^>]*class="[^"]*\bform-row\b/gi) >= 2
              || matchCount(/<input\b/gi) + matchCount(/<select\b/gi) >= 3) ? 1 : 0,
     tree:  (/<(div|ul)[^>]*class="[^"]*\b(org-tree|tree-view|treegrid|tree)\b/i.test(inner)) ? 1 : 0,
@@ -484,6 +501,16 @@ function extractLayers(html) {
     counts.cards = 0;
   }
 
+  // Rule B1 — grid2/grid3 + form 만 단독 (table.tbl 없음) → form 을 N 칸으로 확장
+  //   (각 grid2 칸이 form 일 경우 = 검색폼 + 입력폼 패턴)
+  if (splitCols
+      && counts.form > 0
+      && counts.grid === 0 && counts.chart === 0 && counts.kpi === 0
+      && counts.tree === 0 && counts.cards === 0
+      && counts.calendar === 0 && counts.mobile === 0) {
+    counts.form = splitCols;  // form 1 → form N
+  }
+
   // 슬롯 순서 (Mockup ControlBoard 관례):
   //   stepper(상단) → KPI → tree → grids → charts → cards → form
   //   cards 는 inner content 가 있을 때 제외 (Issue 2 dedup 참고)
@@ -491,28 +518,45 @@ function extractLayers(html) {
   //   FORM / STEPPER / MOBILE_PREVIEW → COMPONENT_INDEX 미보유 → 안전 폴백 GRID_BASE
   //   CALENDAR → CALENDAR_MONTH (DATA_DISPLAY 그룹 실제 코드)
   const META = {
-    GRID:     { type: 'GRID',      subtype: 'GRID_BASE',       titlePrefix: '그리드' },
-    CHART:    { type: 'CHART',     subtype: 'CHART_LINE',      titlePrefix: '차트' },
-    KPI:      { type: 'CHART',     subtype: 'KPI_CARD',        titlePrefix: 'KPI' },
-    FORM:     { type: 'CONTAINER', subtype: 'GRID_BASE',       titlePrefix: '입력 폼' },
-    TREE:     { type: 'GRID',      subtype: 'GRID_TREE',       titlePrefix: '트리' },
-    CARDS:    { type: 'CONTAINER', subtype: 'CARD_LIST',       titlePrefix: '카드 리스트' },
-    STEPPER:  { type: 'CHART',     subtype: 'GRID_BASE',       titlePrefix: '단계' },
-    CALENDAR: { type: 'CHART',     subtype: 'CALENDAR_MONTH',  titlePrefix: '달력' },
-    MOBILE:   { type: 'CONTAINER', subtype: 'GRID_BASE',       titlePrefix: '모바일' },
+    GRID:     { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '그리드' },
+    CHART:    { type: 'CHART', subtype: 'CHART_LINE',      titlePrefix: '차트' },
+    KPI:      { type: 'CHART', subtype: 'KPI_CARD',        titlePrefix: 'KPI' },
+    FORM:     { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '입력 폼' },
+    TREE:     { type: 'GRID',  subtype: 'GRID_TREE',       titlePrefix: '트리' },
+    CARDS:    { type: 'GRID',  subtype: 'CARD_LIST',       titlePrefix: '카드 리스트' },
+    STEPPER:  { type: 'CHART', subtype: 'GRID_BASE',       titlePrefix: '단계' },
+    CALENDAR: { type: 'GRID',  subtype: 'CALENDAR_MONTH',  titlePrefix: '달력' },
+    MOBILE:   { type: 'GRID',  subtype: 'GRID_BASE',       titlePrefix: '모바일' },
     // card-title 가 발견된 컨텐츠 카드 영역 (대시보드 패턴 — 각 card-title = distinct region)
-    CARD_REGION: { type: 'CONTAINER', subtype: 'CARD_LIST',    titlePrefix: '카드 영역' },
+    CARD_REGION: { type: 'GRID', subtype: 'CARD_LIST',     titlePrefix: '카드 영역' },
   };
   const slots = [];
   if (counts.stepper)  slots.push({ ...META.STEPPER,  slot: 'stepper' });
-  if (counts.kpi)      slots.push({ ...META.KPI,      slot: 'kpi' });
+  for (let i = 0; i < counts.kpi; i++) {
+    slots.push({ ...META.KPI, slot: 'kpi' });
+  }
   if (counts.tree)     slots.push({ ...META.TREE,     slot: 'tree' });
   for (let i = 0; i < counts.grid;  i++) slots.push({ ...META.GRID,  slot: 'grid' });
   for (let i = 0; i < counts.chart; i++) slots.push({ ...META.CHART, slot: 'chart' });
   if (counts.calendar) slots.push({ ...META.CALENDAR, slot: 'calendar' });
   if (counts.mobile)   slots.push({ ...META.MOBILE,   slot: 'mobile' });
   if (counts.cards)    slots.push({ ...META.CARDS,    slot: 'cards' });
-  if (counts.form)     slots.push({ ...META.FORM,     slot: 'form' });
+  for (let i = 0; i < counts.form; i++) {
+    slots.push({ ...META.FORM, slot: 'form' });
+  }
+
+  // Rule A — grid2/grid3 splitCols detected → ensure slot count >= N
+  //   (카드 자식이 텍스트만 있어 시그니처 0건이거나, 한쪽만 잡혀 1L 인 경우 보강)
+  //   KPI strip 은 별도 상단 strip 이라 grid2/grid3 split count 와 무관 — 제외.
+  if (splitCols && !counts.kpi) {
+    const nonKpiCount = slots.length;
+    if (nonKpiCount < splitCols) {
+      const padN = splitCols - nonKpiCount;
+      for (let i = 0; i < padN; i++) {
+        slots.push({ ...META.GRID, slot: 'grid' });
+      }
+    }
+  }
 
   // 다중 카드 영역 — card-title 가 2+ 이면 슬롯 부족분만큼 generic card 영역 추가
   //   (이미 잡힌 grid/chart/form 카운트와 cardSections 차이만큼 추가).
@@ -528,10 +572,10 @@ function extractLayers(html) {
 
   if (slots.length === 0) return [];
 
-  // 7개 이상 → 첫 6개만 + warn
+  // MAX_LAYERS 초과 → 첫 MAX_LAYERS 개만 + warn
   if (slots.length > MAX_LAYERS) {
     console.warn(
-      `[extractLayers] layer 6+ 개 인식 — 첫 ${MAX_LAYERS}개만 유지 (총 ${slots.length}개)`,
+      `[extractLayers] layer 10+ 개 인식 — 첫 ${MAX_LAYERS}개만 유지 (총 ${slots.length}개)`,
     );
     slots.length = MAX_LAYERS;
   }
@@ -540,37 +584,65 @@ function extractLayers(html) {
   const N = slots.length;
   const positions = [];
 
-  // KPI strip 이 첫 slot 이면 상단 h:3 고정 (Mockup ControlBoard 관례)
-  //  나머지 slots 는 (0, 3, 12, 9) 안에서 분배
-  const kpiIsFirstSlot = slots.length > 0 && slots[0].slot === 'kpi';
-  const restCount = kpiIsFirstSlot ? (N - 1) : N;
-  const restY = kpiIsFirstSlot ? 3 : 0;
-  const restH = kpiIsFirstSlot ? 9 : 12;
+  // KPI 카드들이 첫 slots — 상단 strip 으로 균등 분할 (Mockup widget_dashboard 관례)
+  const kpiSlots = slots.filter((s) => s.slot === 'kpi').length;
+  const otherSlots = N - kpiSlots;
 
-  if (kpiIsFirstSlot) {
-    positions.push({ x: 0, y: 0, w: 12, h: 3 });  // KPI strip
-  }
+  if (kpiSlots > 0) {
+    // KPI strip 높이: 다른 slot 이 있으면 h:3 (위쪽 strip), 없으면 h:12 (전면 채움)
+    const kpiH = otherSlots > 0 ? 3 : 12;
+    const restY = otherSlots > 0 ? 3 : 0;
+    const restH = 12 - kpiH;
 
-  if (restCount === 0) {
-    // KPI 만 → KPI 단독은 전체 (12,12) 로 키움 (덮어쓰기)
-    positions[0] = { x: 0, y: 0, w: 12, h: 12 };
-  } else if (splitCols && restCount >= 2) {
-    // 나머지 좌우 분배
-    const w = Math.floor(12 / restCount);
-    let x = 0;
-    for (let i = 0; i < restCount; i++) {
-      const widthW = (i === restCount - 1) ? (12 - x) : w;
-      positions.push({ x, y: restY, w: widthW, h: restH });
-      x += widthW;
+    // KPI 카드 좌우 균등 분배
+    const kpiW = Math.floor(12 / kpiSlots);
+    let kx = 0;
+    for (let i = 0; i < kpiSlots; i++) {
+      const widthW = (i === kpiSlots - 1) ? (12 - kx) : kpiW;
+      positions.push({ x: kx, y: 0, w: widthW, h: kpiH });
+      kx += widthW;
+    }
+
+    // 나머지 slot 들 — (0, restY, 12, restH) 안에서 분배
+    if (otherSlots > 0) {
+      if (splitCols && otherSlots >= 2) {
+        // 좌우 분배
+        const w = Math.floor(12 / otherSlots);
+        let x = 0;
+        for (let i = 0; i < otherSlots; i++) {
+          const widthW = (i === otherSlots - 1) ? (12 - x) : w;
+          positions.push({ x, y: restY, w: widthW, h: restH });
+          x += widthW;
+        }
+      } else {
+        // 상하 분배
+        const h = Math.floor(restH / otherSlots);
+        let y = restY;
+        for (let i = 0; i < otherSlots; i++) {
+          const heightH = (i === otherSlots - 1) ? (restY + restH - y) : h;
+          positions.push({ x: 0, y, w: 12, h: heightH });
+          y += heightH;
+        }
+      }
     }
   } else {
-    // 나머지 상하 분배
-    const h = Math.floor(restH / restCount);
-    let y = restY;
-    for (let i = 0; i < restCount; i++) {
-      const heightH = (i === restCount - 1) ? (restY + restH - y) : h;
-      positions.push({ x: 0, y, w: 12, h: heightH });
-      y += heightH;
+    // KPI 없음 — 기존 분배 로직 그대로
+    if (splitCols && N >= 2) {
+      const w = Math.floor(12 / N);
+      let x = 0;
+      for (let i = 0; i < N; i++) {
+        const widthW = (i === N - 1) ? (12 - x) : w;
+        positions.push({ x, y: 0, w: widthW, h: 12 });
+        x += widthW;
+      }
+    } else {
+      const h = Math.floor(12 / N);
+      let y = 0;
+      for (let i = 0; i < N; i++) {
+        const heightH = (i === N - 1) ? (12 - y) : h;
+        positions.push({ x: 0, y, w: 12, h: heightH });
+        y += heightH;
+      }
     }
   }
 
@@ -580,8 +652,10 @@ function extractLayers(html) {
     card: 0,
   };
   const SINGLETON_TITLES = {
-    kpi: 'KPI 영역', form: '입력 폼', tree: '트리', cards: '카드 리스트', stepper: '단계',
+    tree: '트리', cards: '카드 리스트', stepper: '단계',
     calendar: '달력', mobile: '모바일',
+    // form 제거 — 다중 form 인덱스 사용 (form1/form2/...)
+    // kpi 제거 — 다중 KPI 카드 (kpi1/kpi2/...) 인덱스 사용
     // card 는 인덱스 (card1/card2/...) 로 — 다중 카드 영역 케이스
   };
   return slots.map((s, i) => {

@@ -128,6 +128,11 @@ module.exports = (env, argv) => {
             if (req.url.startsWith('/t3mes/') || req.url.startsWith('/t3mes-split/')) {
               return req.url;
             }
+            // 사용자 매뉴얼 HTML — docs/manual 을 public/manual 로 마운트, /manual/ 경로로 서빙.
+            // SPA fallback 에 걸리면 매뉴얼 대신 index.html 이 나오므로 여기서 명시적으로 통과.
+            if (req.url.startsWith('/manual/')) {
+              return req.url;
+            }
             // SPA route — HTML GET 만 fallback
             if (req.method === 'GET' && accept.includes('text/html')) {
               return '/index.html';

@@ -19,10 +19,13 @@ public class ProcessBuilderInvoker implements LlmCliInvoker {
 
     @Override
     public LlmCliProcess start(List<String> command) throws IOException {
-        Process p = new ProcessBuilder(command)
-                .redirectErrorStream(false)
-                .start();
-        return new ProcessAdapter(p);
+        ProcessBuilder pb = new ProcessBuilder(command).redirectErrorStream(false);
+        // ★ CLI 모드는 호스트 ~/.claude OAuth (구독) 사용이 의도. backend 컨테이너 환경에
+        // ANTHROPIC_API_KEY 가 있으면 claude CLI 가 그걸 우선 사용 ("apiKeySource":"ANTHROPIC_API_KEY")
+        // → OAuth 무시 + 401 → exit=1. CLI subprocess 환경에서만 제거 (API 모드는 그대로 사용).
+        pb.environment().remove("ANTHROPIC_API_KEY");
+        pb.environment().remove("ANTHROPIC_AUTH_TOKEN");
+        return new ProcessAdapter(pb.start());
     }
 
     private static final class ProcessAdapter implements LlmCliProcess {

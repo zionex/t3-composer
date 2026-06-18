@@ -296,7 +296,13 @@ services:
       # LLM CLI 모드용 — 호스트 ~/.claude 로그인 정보 (OAuth 토큰) 컨테이너에 노출.
       # rw 인 이유: claude CLI 가 토큰 refresh 결과를 호스트에 다시 써 동기화.
       # 호스트에 ~/.claude 가 없으면 docker 가 빈 디렉토리 자동 생성 — LLM_BACKEND=api 시 무해.
-      - ${HOME}/.claude:/root/.claude:rw
+      # ★ Windows: USERPROFILE (C:\Users\...) 우선 — Git Bash 의 $HOME (/c/Users/...) 은 drvfs
+      #   가 인식 못 해 마운트 silently 무시됨. Linux/Mac: USERPROFILE 없으니 $HOME fallback.
+      # ★ claude CLI 는 두 곳을 사용: ~/.claude/ (디렉토리 — OAuth credentials) +
+      #   ~/.claude.json (별도 파일 — settings/project state). 둘 다 마운트 필수.
+      #   .json 만 빠지면 컨테이너 안에서 자체 분기 → 호스트와 다른 state → exit=1 + backup 경고.
+      - ${USERPROFILE:-${HOME}}/.claude:/root/.claude:rw
+      - ${USERPROFILE:-${HOME}}/.claude.json:/root/.claude.json:rw
     networks:
       - composer-net
     # 호스트(Windows)에서 직접 실행 중인 insight-llm :9160 등에 컨테이너에서 접근 — host.docker.internal 명시.
@@ -331,6 +337,10 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      # 사용자 매뉴얼 HTML — repo 의 docs/manual 을 dev-server 의 /manual/ 경로로 read-only 노출.
+      # 사이드바 하단 [매뉴얼] 링크가 새창으로 /manual/T3Composer-User-Guide.html 을 열어 사용.
+      # docs 가 단일 진실 저장소 — public/manual 사본 없이 그대로 서빙.
+      - ./docs/manual:/app/public/manual:ro
       # frontend 빌드용 wingui-core / RealGrid2 alias 원본 — entrypoint.sh 가 realgrid 자동 복사.
       # (2026-05-28) COMPOSER_WINGUI_REF_PATH 폐기 — TARGET_T3SERIES_PATH 재사용 (T3SERIES 가
       # 표준 wingui 모노레포 = packages/wingui/realgrid 보유). PLANNEL/기타 Target 만 쓰는 사용자는

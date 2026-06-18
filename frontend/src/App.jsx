@@ -11,6 +11,8 @@ import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import SchemaIcon from '@mui/icons-material/Schema';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
@@ -218,6 +220,55 @@ function TabbedHome() {
                             </Tooltip>
                         );
                     })}
+
+                    {/* 스크롤 빈 공간 — 매뉴얼 링크를 하단으로 밀어내기 */}
+                    <Box sx={{ flex: 1 }} />
+
+                    {/* 매뉴얼 — 새창 링크 (사이드바 최하단 고정) */}
+                    <Tooltip
+                        title={collapsed ? 'Manual — 새 창에서 열기 (T3Composer User Guide)' : '새 창에서 열기 — T3Composer User Guide (ko/en)'}
+                        placement="right"
+                    >
+                        <Box
+                            component="a"
+                            href="/manual/T3Composer-User-Guide.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                mt: 1.2,
+                                pt: 1, pb: 0.9,
+                                px: collapsed ? 0 : 1.2,
+                                borderTop: '1px solid',
+                                borderColor: 'rgba(124,167,224,0.22)',
+                                display: 'flex', alignItems: 'center', gap: 1.2,
+                                justifyContent: collapsed ? 'center' : 'flex-start',
+                                borderRadius: 0,
+                                cursor: 'pointer',
+                                color: 'text.secondary',
+                                textDecoration: 'none',
+                                fontWeight: 500,
+                                transition: 'background-color .15s ease, color .15s ease',
+                                '&:hover': {
+                                    bgcolor: 'rgba(124,167,224,0.10)',
+                                    color: 'primary.dark',
+                                },
+                            }}
+                        >
+                            <MenuBookIcon fontSize="small" />
+                            {!collapsed && (
+                                <>
+                                    <Typography sx={{
+                                        fontSize: '0.8rem', fontWeight: 'inherit',
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                        flex: 1,
+                                    }}>
+                                        Manual
+                                    </Typography>
+                                    <OpenInNewIcon sx={{ fontSize: '0.85rem', opacity: 0.6 }} />
+                                </>
+                            )}
+                        </Box>
+                    </Tooltip>
                 </Box>
             </Box>
 

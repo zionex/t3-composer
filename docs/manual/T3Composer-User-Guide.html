@@ -503,6 +503,7 @@
         <ol>
           <li><a href="#s9-1"><span class="ko">Target 전환</span><span class="en">Target Switching</span></a></li>
           <li><a href="#s9-2"><span class="ko">API 키 등록</span><span class="en">API Key Setup</span></a></li>
+          <li><a href="#s0-3-cli"><span class="ko">CLI 모드 (구독)</span><span class="en">CLI mode (subscription)</span></a></li>
           <li><a href="#s9-3"><span class="ko">첨부 파일</span><span class="en">Attachments</span></a></li>
           <li><a href="#s9-4"><span class="ko">단축키 / 팁</span><span class="en">Shortcuts / Tips</span></a></li>
         </ol>
@@ -698,6 +699,137 @@ docker compose ps
         <p>
           <span class="ko">키는 <code>TB_IS_EXTRNLAPIKEY</code> 테이블에 Jasypt PBE 로 암호화되어 저장됩니다. 로그/스냅샷에는 prefix(12자) + suffix(4자) + SHA-256 prefix(8자) 만 노출되며, 키 전체는 다시 표시되지 않으므로 별도 안전한 곳에 백업하세요.</span>
           <span class="en">The key is stored encrypted with Jasypt PBE in the <code>TB_IS_EXTRNLAPIKEY</code> table. Logs and snapshots only show prefix (12 chars) + suffix (4 chars) + SHA-256 prefix (8 chars). The full key is never re-displayed — back it up safely elsewhere.</span></p>
+      </div>
+
+      <h4 id="s0-3-cli">
+        <span class="ko">1-A) (선택) CLI 모드 — Claude 구독 사용</span>
+        <span class="en">1-A) (Optional) CLI mode — use a Claude subscription</span></h4>
+
+      <p>
+        <span class="ko">Claude Pro / Team / Enterprise 구독을 이미 갖고 있다면, API 키 대신 그 구독의 OAuth 로그인을 그대로 사용할 수 있습니다. 구독 한도 안에서는 별도 API 과금이 없고, <strong>API 키 등록 단계 (1) 는 건너뛰어도 됩니다</strong>.</span>
+        <span class="en">If you already have a Claude Pro / Team / Enterprise subscription, you can reuse its OAuth login instead of an API key. No per-token API billing within the subscription quota, and <strong>you can skip step (1) — API key registration</strong>.</span></p>
+
+      <h5 style="margin-top:18px;margin-bottom:8px;">
+        <span class="ko">활성화 — 3단계</span><span class="en">Enable — 3 steps</span></h5>
+
+      <div class="panel">
+        <p style="margin:0 0 6px 0;font-weight:700;">
+          <span class="ko">① 호스트에서 OAuth 로그인 (최초 1회)</span>
+          <span class="en">① OAuth login on the host (one-time)</span></p>
+        <p style="margin:0 0 8px 0;">
+          <span class="ko">호스트(개발 PC)에 <code>claude</code> CLI 가 설치돼 있어야 합니다 → <a href="https://claude.com/download" target="_blank">claude.com/download</a>. 터미널에서:</span>
+          <span class="en">The <code>claude</code> CLI must be installed on the host → <a href="https://claude.com/download" target="_blank">claude.com/download</a>. In a terminal:</span></p>
+<pre><code>claude /login</code></pre>
+        <p style="margin:8px 0 0 0;font-size:13px;color:#6E7E96;">
+          <span class="ko">→ 브라우저로 구독 계정 로그인. 토큰은 <code>~/.claude/.credentials.json</code> + <code>~/.claude.json</code> 에 저장됩니다.</span>
+          <span class="en">→ Browser opens for the subscription account. Tokens are saved to <code>~/.claude/.credentials.json</code> + <code>~/.claude.json</code>.</span></p>
+      </div>
+
+      <div class="panel" style="margin-top:10px;">
+        <p style="margin:0 0 6px 0;font-weight:700;">
+          <span class="ko">② <code>.env</code> 한 줄 변경</span>
+          <span class="en">② Flip one line in <code>.env</code></span></p>
+        <p style="margin:0 0 8px 0;">
+          <span class="ko">repo 루트의 <code>.env</code> 에서:</span>
+          <span class="en">In <code>.env</code> at the repo root:</span></p>
+<pre><code>LLM_BACKEND=cli</code></pre>
+        <p style="margin:8px 0 4px 0;font-size:13px;">
+          <span class="ko">선택 옵션 (대부분 그대로 두면 됨):</span>
+          <span class="en">Optional knobs (defaults are fine in most cases):</span></p>
+        <table style="margin-top:4px;">
+          <thead><tr><th style="text-align:left;">Key</th><th style="text-align:left;">Default</th><th style="text-align:left;">
+            <span class="ko">의미</span><span class="en">Purpose</span></th></tr></thead>
+          <tbody>
+            <tr><td><code>LLM_CLI_BINARY</code></td><td><code>/usr/bin/claude</code></td><td>
+              <span class="ko">컨테이너 안 CLI 경로</span><span class="en">CLI path inside container</span></td></tr>
+            <tr><td><code>LLM_CLI_TIMEOUT_MIN</code></td><td>40</td><td>
+              <span class="ko">단일 요청 타임아웃 (분)</span><span class="en">Per-request timeout (min)</span></td></tr>
+            <tr><td><code>LLM_CLI_MAX_CONCURRENT</code></td><td>4</td><td>
+              <span class="ko">구독 rate-limit 보호 (동시 요청 수)</span><span class="en">Concurrent request cap (rate-limit guard)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:10px;">
+        <p style="margin:0 0 6px 0;font-weight:700;">
+          <span class="ko">③ backend 컨테이너 재생성</span>
+          <span class="en">③ Recreate the backend container</span></p>
+<pre><code>docker compose up -d --force-recreate composer-backend</code></pre>
+        <p style="margin:8px 0 0 0;font-size:13px;color:#6E7E96;">
+          <span class="ko">로그에 다음 라인이 보이면 성공:</span>
+          <span class="en">Success when logs show:</span></p>
+<pre><code>LLM backend = cli (binary=/usr/bin/claude, ~/.claude mounted)</code></pre>
+      </div>
+
+      <p style="margin-top:14px;">
+        <span class="ko"><strong>전환은 양방향</strong>. <code>.env</code> 한 줄 + 재기동으로 언제든 API ↔ CLI. 구독 한도 초과 시에는 <strong>자동 API fallback 없이 즉시 실패</strong>합니다 — 호스트에서 재로그인 또는 5시간 window 종료를 기다리세요.</span>
+        <span class="en"><strong>The switch is reversible.</strong> Flip <code>.env</code> + restart to go API ↔ CLI anytime. When the subscription quota is exhausted, requests <strong>fail immediately</strong> (no automatic API fallback) — log in again on the host or wait for the 5-hour window to roll over.</span></p>
+
+      <h5 style="margin-top:22px;margin-bottom:8px;">
+        <span class="ko">⚠️ Windows + Docker Desktop — 마운트 점검</span>
+        <span class="en">⚠️ Windows + Docker Desktop — verifying the mount</span></h5>
+
+      <div class="panel warn">
+        <p style="margin:0 0 8px 0;">
+          <span class="ko">CLI 모드는 호스트의 두 곳을 컨테이너에 bind-mount 합니다:</span>
+          <span class="en">CLI mode bind-mounts two host paths into the container:</span></p>
+        <ul style="margin:0 0 10px 0;padding-left:22px;">
+          <li><code>~/.claude/</code> — <span class="ko">OAuth credentials (디렉토리)</span><span class="en">OAuth credentials (directory)</span></li>
+          <li><code>~/.claude.json</code> — <span class="ko">settings / state (파일)</span><span class="en">settings / state (file)</span></li>
+        </ul>
+        <p style="margin:0 0 8px 0;">
+          <span class="ko"><code>docker-compose.yml</code> 은 <code>${USERPROFILE:-${HOME}}</code> 패턴으로 Windows / Linux / macOS 자동 호환됩니다. <strong>둘 중 하나라도 마운트가 빠지면</strong> claude CLI 가 컨테이너 안에서 분기 → <code>CLI 실패 (exit=1): backup file exists at ...</code> 로 끝납니다.</span>
+          <span class="en"><code>docker-compose.yml</code> uses <code>${USERPROFILE:-${HOME}}</code> for cross-OS portability. <strong>If either mount drops</strong>, the CLI diverges inside the container and fails with <code>CLI 실패 (exit=1): backup file exists at ...</code>.</span></p>
+
+        <p style="margin:10px 0 6px 0;font-weight:700;">
+          <span class="ko">점검 — 컨테이너 안에서:</span>
+          <span class="en">Check inside the container:</span></p>
+<pre><code>docker exec composer-backend sh -c 'mount | grep /root/.claude'</code></pre>
+        <p style="margin:8px 0 4px 0;">
+          <span class="ko"><strong>정상</strong>: <code>9p (drvfs)</code> 두 줄. <strong>고장</strong>: <code>overlay</code> 한 줄만.</span>
+          <span class="en"><strong>OK</strong>: two <code>9p (drvfs)</code> lines. <strong>Broken</strong>: a single <code>overlay</code> line.</span></p>
+
+        <p style="margin:10px 0 6px 0;font-weight:700;">
+          <span class="ko">고장 시 — 재바인딩:</span>
+          <span class="en">If broken — rebind:</span></p>
+<pre><code>docker compose up -d --force-recreate composer-backend</code></pre>
+        <p style="margin:8px 0 0 0;font-size:13px;color:#6E7E96;">
+          <span class="ko">Docker Desktop 의 [Settings → Resources → File Sharing] 에 <code>C:\Users\&lt;user&gt;</code> 가 포함돼 있어야 합니다 (기본 허용).</span>
+          <span class="en">Docker Desktop's [Settings → Resources → File Sharing] must include <code>C:\Users\&lt;user&gt;</code> (allowed by default).</span></p>
+      </div>
+
+      <h5 style="margin-top:22px;margin-bottom:8px;">
+        <span class="ko">🔑 API 키와 OAuth 가 충돌하지 않는 이유</span>
+        <span class="en">🔑 Why the API key in <code>.env</code> doesn't break OAuth</span></h5>
+
+      <div class="panel note">
+        <p style="margin:0 0 8px 0;">
+          <span class="ko"><strong>한 줄 요약</strong>: <code>.env</code> 에 <code>ANTHROPIC_API_KEY</code> 가 있어도 CLI 모드는 호스트 OAuth 만 사용합니다. backend 가 알아서 처리합니다 — 사용자가 신경 쓸 부분은 없습니다.</span>
+          <span class="en"><strong>In one line</strong>: even with <code>ANTHROPIC_API_KEY</code> still in <code>.env</code>, CLI mode uses only the host OAuth. The backend handles it — nothing for you to do.</span></p>
+
+        <p style="margin:10px 0 6px 0;font-weight:700;">
+          <span class="ko">배경 (관심 있는 분만)</span><span class="en">Background (skip if uninterested)</span></p>
+        <p style="margin:0 0 8px 0;">
+          <span class="ko">claude CLI 는 기본적으로 <strong>환경변수 &gt; OAuth</strong> 우선순위라서, 컨테이너에 주입된 만료/무효 API 키가 OAuth 를 가로채면 <code>Invalid API key · 401</code> 로 끝납니다. 이를 막기 위해 backend 의 <code>ProcessBuilderInvoker</code> 가 CLI subprocess 시작 시 <code>ANTHROPIC_API_KEY</code> · <code>ANTHROPIC_AUTH_TOKEN</code> 을 <strong>자동으로 제거</strong>합니다 (subprocess 한정 — JVM 본체와 API 모드는 무영향).</span>
+          <span class="en">The CLI's default precedence is <strong>env var &gt; OAuth</strong>. Without intervention, an injected expired/invalid API key would override OAuth and produce <code>Invalid API key · 401</code>. To prevent this, the backend's <code>ProcessBuilderInvoker</code> <strong>strips <code>ANTHROPIC_API_KEY</code> and <code>ANTHROPIC_AUTH_TOKEN</code></strong> from the CLI subprocess environment (subprocess only — the JVM itself and API mode are unaffected).</span></p>
+
+        <p style="margin:10px 0 6px 0;font-weight:700;">
+          <span class="ko">검증 (선택)</span><span class="en">Verify (optional)</span></p>
+<pre><code>docker exec composer-backend sh -c 'echo "{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"hi\"}}" \
+  | claude -p --verbose --input-format stream-json --output-format stream-json --model claude-opus-4-7' | head -1</code></pre>
+        <p style="margin:8px 0 0 0;font-size:13px;">
+          <span class="ko">응답 첫 줄에 <code>"apiKeySource":"none"</code> → OAuth 사용 중 (정상). <code>"ANTHROPIC_API_KEY"</code> → API 키 사용 중.</span>
+          <span class="en">First line shows <code>"apiKeySource":"none"</code> → OAuth in use (OK). <code>"ANTHROPIC_API_KEY"</code> → API key in use.</span></p>
+      </div>
+
+      <h5 style="margin-top:22px;margin-bottom:8px;">
+        <span class="ko">💡 팀원 / 다른 PC 에서 같이 쓰려면</span>
+        <span class="en">💡 Sharing CLI mode with teammates / other machines</span></h5>
+
+      <div class="panel note">
+        <p style="margin:0;">
+          <span class="ko">repo (<code>docker-compose.yml</code> · <code>.env</code>) 만 클론하면 인프라 설정은 그대로 따라옵니다. <strong>OAuth 토큰은 개인용</strong> 이라 각 사용자가 자기 호스트에서 <code>claude /login</code> 을 1회 실행하면 됩니다. 토큰 파일을 다른 컴퓨터로 복사·공유하지 마세요.</span>
+          <span class="en">Cloning the repo (<code>docker-compose.yml</code> · <code>.env</code>) carries the infra settings over. <strong>OAuth tokens are per-user</strong> — each user just runs <code>claude /login</code> on their own host once. Don't copy or share token files across machines.</span></p>
       </div>
 
       <h4>

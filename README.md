@@ -34,6 +34,16 @@ docker compose ps
 # http://localhost:5173/  →  /composer 로 자동 리디렉트
 ```
 
+### `.env` 라이프사이클 (★ 자주 헷갈리는 부분)
+
+| 질문 | 답 |
+|---|---|
+| `.env` 는 어디 있나요? | **호스트(로컬) 레포 루트** (`<repo>/.env`). docker 안에는 없습니다. |
+| 자동 생성되나요? | `./up.sh` / `.\up.ps1` wrapper 실행 시, 없으면 `.env.example` 에서 자동 복사. `docker compose up` 직접 호출 시는 자동 생성 X. |
+| 처음엔 어떻게 채우나요? | wrapper 가 만들어준 `.env` 는 placeholder. 편집기로 열어 `ANTHROPIC_API_KEY` · `COMPOSER_SNAPSHOT_SECRET_KEY` · `TARGET_<CD>_PATH` 등을 직접 입력. |
+| `.env` 수정하면 즉시 반영되나요? | **❌ 아니요**. docker-compose 가 `.env` 를 컨테이너 기동 **전에 한 번** 읽어 `${VAR}` 치환하므로, 값 변경 후엔 **반드시 backend 재기동**: `./up.sh --force-recreate composer-backend` |
+| `.env` 없이도 부팅되나요? | 부팅은 됨. 단 `${VAR}` 가 빈 값으로 치환되어 LLM 호출 · Target DB 연결 등 비밀이 필요한 기능은 비활성. console 에 `The "ANTHROPIC_API_KEY" variable is not set. Defaulting to a blank string.` 경고가 매번 뜸. |
+
 ### 접속 주소
 
 | 용도 | URL | 비고 |

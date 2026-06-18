@@ -251,7 +251,43 @@ docker exec composer-db /opt/mssql-tools18/bin/sqlcmd \
 - SearchArea 가 click 시점에 store 직접 lookup (subscribe 의 timing 무관)
 - LLM 측: `composer-jsx.sh CG-STORE` 가 산출물 jsx 작성 시 차단
 
-## 19. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
+## 19. `.env` 수정했는데 변경이 반영 안 됨
+
+**증상**: 편집기로 `.env` 의 `ANTHROPIC_API_KEY` 나 `TARGET_T3SERIES_PATH` 등을 바꿨는데 backend 가 여전히 옛 값으로 동작 (LLM 호출 401 · Target 경로 못 찾음 등).
+
+**원인**: docker-compose 는 `.env` 를 컨테이너 기동 **전**에 한 번 읽어 `docker-compose.yml` 의 `${VAR}` 들을 치환합니다. **이미 기동된 컨테이너 안의 환경변수는 그 시점의 스냅샷** — `.env` 파일을 나중에 수정해도 컨테이너 안 env 는 변하지 않습니다.
+
+**대처**: 영향 받는 컨테이너를 `--force-recreate` 로 재기동.
+```bash
+# .env 수정 후 backend 만 재기동 (보통 충분)
+./up.sh --force-recreate composer-backend           # macOS/Linux/Git Bash
+.\up.ps1 --force-recreate composer-backend          # Windows PowerShell
+# = docker compose up -d --force-recreate composer-backend
+
+# DB · MSSQL 비밀번호처럼 db 컨테이너 변수가 바뀌었으면 그쪽도:
+./up.sh --force-recreate composer-db composer-backend
+```
+참고 — `restart` 만으로는 환경변수가 재적용되지 않습니다. 반드시 `--force-recreate` 사용.
+
+## 20. `.env` 파일이 호스트에 없음 — wrapper 가 자동 생성 안 함
+
+**증상**: `docker compose up -d` 직접 호출 시 모든 명령에서 `The "ANTHROPIC_API_KEY" variable is not set. Defaulting to a blank string.` 같은 경고가 쏟아짐.
+
+**원인**: `.env` 자동 생성은 `./up.sh` / `.\up.ps1` wrapper 가 하는 일. `docker compose` 명령을 직접 쓰면 wrapper 가 안 끼어들어 `.env` 가 없으면 그대로 빈 값으로 치환.
+
+**대처**: 다음 중 하나.
+```bash
+# (a) wrapper 사용 — 권장. 다음 부팅부터 .env 자동 준비.
+./up.sh
+.\up.ps1
+
+# (b) 수동 복사
+cp .env.example .env
+docker compose up -d
+```
+어느 쪽이든 `.env` 는 호스트 레포 루트(`<repo>/.env`) 에 생기고, gitignore 됩니다.
+
+## 21. TB_UT_USER_INFO 등 마스터 테이블이 비어있어 조회 결과 0건
 
 **증상**: 화면 정상 진입 + [조회] 정상 호출하지만 그리드 0건
 

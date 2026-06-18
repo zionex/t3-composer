@@ -46,8 +46,8 @@ CREATE INDEX IF NOT EXISTS IX_TB_IS_COMPOSER_SESSION_USER   ON dbo.TB_IS_COMPOSE
 CREATE INDEX IF NOT EXISTS IX_TB_IS_COMPOSER_SESSION_MODE   ON dbo.TB_IS_COMPOSER_SESSION (MODE ASC);
 CREATE INDEX IF NOT EXISTS IX_TB_IS_COMPOSER_SESSION_STATUS ON dbo.TB_IS_COMPOSER_SESSION (STATUS ASC);
 
--- 화면 생성 rule 선별 scope (2026-05-28) — 기존 DB 에도 멱등 적용
-ALTER TABLE dbo.TB_IS_COMPOSER_SESSION ADD COLUMN IF NOT EXISTS RULE_SCOPE varchar(40);
+-- 화면 생성 rule 선별 scope (2026-05-28) → always/01_composer_session_rule_scope.sql 로 분리됨
+-- (Phase 2 incremental migration — 기존 볼륨에 자동 흡수)
 
 -- EXEC sys.sp_addextendedproperty
 --     @name = 'MS_Description',

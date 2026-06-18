@@ -433,18 +433,20 @@ merge 직후 step4 의 모든 area 를 재검사:
 - 큰 의존성 변경 시 `docker compose down composer-backend && docker compose up -d composer-backend` (down + up)
 
 ### 소스 동기화(git pull/rebase) 후 절차 — 필수 점검 (2026-05-15)
-git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 자동 반영되지 **않으므로** 수동 조치:
+git 동기화로 backend 코드가 바뀌면 다음 항목이 컨테이너에 자동 반영되지 **않으므로** 수동 조치:
 
 1. **신규 npm 의존성** — `package.json` 에 새 의존성이 들어오면 컨테이너 `node_modules` 에 없다.
    `docker compose exec -T composer-frontend npm install --legacy-peer-deps` → frontend 재시작.
    (예: `@babel/standalone` 누락 → `Module not found` 컴파일 에러)
-2. **신규 DB 마이그레이션** — `docker/db/init-pg/*.sql` 의 새 파일은 composer-db **최초 생성 시에만** 실행된다
-   (`composer-db-init` 이 `T3COMPOSER_INIT_DONE` 마커로 멱등 skip). 기존 DB 볼륨에는 미적용 →
-   backend Entity ≠ DB 테이블 → `column "..." does not exist` 로 해당 테이블 조회가 전부 500.
-   조치: 누락 마이그레이션을 수동 적용 (모두 `IF NOT EXISTS`/조건부 — 멱등):
-   `docker compose exec -T composer-db psql -U composer -d T3SMARTSCM -v ON_ERROR_STOP=1 < docker/db/init-pg/<NN>_*.sql`
-   누락 여부는 `information_schema.columns` 로 Entity 기대 컬럼과 대조.
-   (예: `25~28` 미적용 → `tb_cmp_target_system.database_ref_path/source_ref_path/menu_source` 누락 → Target 로딩 실패)
+2. **신규 DB 마이그레이션** — Phase 분리 구조 (2026-06-18 — `composer-db-init` 재설계):
+   - **Phase 1 baseline** (`docker/db/init-pg/00-99_*.sql`) — 멱등 마커 `t3composer_init_done` 로 보호.
+     기존 볼륨엔 **자동 적용 안 됨** (`DROP TABLE`, PK rename 등 파괴적 SQL 포함). 새 baseline 파일은
+     주로 fresh install 용. 기존 볼륨에 적용해야 하면 수동 psql.
+   - **Phase 2 always/** (`docker/db/init-pg/always/*.sql`) — **마커 무관, 매 docker compose up 마다
+     실행**. 멱등 ALTER/시드만 (DROP/rename 금지 — `always/README.md`). 새 컬럼·인덱스·시드 추가는
+     여기에 두면 신규 install · 기존 볼륨 양쪽에서 자동 흡수.
+   - 결론: 새 컬럼이 필요하면 `always/<NN>_<name>.sql` 추가만 하면 끝. 기존 사고 패턴 (마이그레이션
+     수동 적용) 은 새 파일을 `always/` 에 두는 한 발생하지 않음.
 3. **backend 재컴파일** — `mvn` 재컴파일 + DevTools restart 확인.
 
 ## 11. Anti-patterns (단독 환경 한정)
@@ -468,7 +470,7 @@ git 동기화로 backend 코드가 바뀌면 다음 3가지가 컨테이너에 �
 | JDBC URL 에 SSL 옵션 `encrypt=true;trustServerCertificate=true` 누락 | MSSQL JDBC 12+ 의 default encrypt=true 때문에 연결 거부. 기존 endpoint 의 옵션 패턴 그대로 복사 |
 | `composer-db` 의 `tb_cmp_target_system` 을 직접 UPDATE 하고 registry invalidate API 미호출 | `PUT /composer/targets/{cd}/db-connection` 사용 (저장 + invalidate 자동) 또는 backend 재기동 |
 | webpack `devServer.static.watch` 를 `{ usePolling:true }` 로 둠 → public/t3mes-split 1460+ 파일 폴링 → 번들 0바이트 전송 끊김 | `static: { watch: false }` (src 변경은 watchOptions.poll 담당) — Hook `build-config.sh` W1 |
-| 소스 동기화 후 `docker/db/init-pg/` 신규 마이그레이션을 기존 composer-db 에 미적용 → `column "..." does not exist` | 누락 마이그레이션 수동 적용 (`psql ... < init-pg/<NN>_*.sql` — 멱등) §10 |
+| 새 컬럼/시드 마이그레이션을 `docker/db/init-pg/<NN>_*.sql` 에 baseline 으로 추가 → 기존 볼륨 (마커 보유) 에 영원히 미적용 → `column "..." does not exist` | `docker/db/init-pg/always/<NN>_<name>.sql` 에 멱등 ALTER 로 추가 — Phase 2 가 매 up 마다 자동 적용. `always/README.md` 규약 (DROP/rename 금지 · `IF NOT EXISTS` · `ON CONFLICT`) §10 |
 | 동기화 후 `package.json` 신규 의존성을 컨테이너에 미설치 → `Module not found` | `npm install --legacy-peer-deps` 후 frontend 재시작 §10 |
 | 자동보완 카운터를 자동 재실행 경로에서도 리셋 → 오류 무한루프 | 카운터는 수동 [화면 실행] 시에만 리셋 · MAX_AUTOFIX(1) 상한 + 동일오류 중단 §14.2 |
 | `handlePreview` 의 'ready' 자동닫기 setTimeout 이 'autofixing' 토스트를 무조건 제거 | 함수형 업데이트로 `phase==='ready'` 일 때만 닫기 §14.3 |

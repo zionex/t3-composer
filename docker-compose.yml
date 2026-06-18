@@ -61,15 +61,38 @@ services:
           sleep 2
         done
 
-        # 멱등 마커 — 있으면 skip
+        # =================================================================
+        # Phase 1 — Baseline (one-shot, 멱등 마커로 보호)
+        #   00-99 *.sql = 테이블 생성·초기 시드·data 재구성. DROP TABLE / PK
+        #   rename 등 재실행 시 파괴적 SQL 포함. 마커가 없을 때만 실행.
+        # =================================================================
         EXISTS=$$(psql -tA -c "SELECT CASE WHEN EXISTS(SELECT 1 FROM pg_class WHERE relname='t3composer_init_done') THEN 1 ELSE 0 END" 2>/dev/null | tr -d '[:space:]')
-        if [ "$$EXISTS" = "1" ]; then
-          echo "[init] t3composer_init_done marker exists. SKIP."
-          exit 0
+        if [ "$$EXISTS" = "0" ]; then
+          echo "[init] Phase 1: Running baseline (00-99) ..."
+          for f in /init/00_*.sql /init/0[2-9]_*.sql /init/[1-9][0-9]_*.sql; do
+            [ -f "$$f" ] || continue
+            echo "[init]   $$f"
+            psql -v ON_ERROR_STOP=1 -f "$$f"
+            if [ $$? -ne 0 ]; then
+              echo "[init] FAILED at $$f"
+              exit 1
+            fi
+          done
+          psql -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS t3composer_init_done (created timestamp DEFAULT now()); INSERT INTO t3composer_init_done DEFAULT VALUES;"
+          echo "[init] Phase 1: Baseline marker set."
+        else
+          echo "[init] Phase 1: Baseline marker exists. SKIP."
         fi
 
-        echo "[init] Running init SQL files (first time) ..."
-        for f in /init/00_*.sql /init/0[2-9]_*.sql /init/[1-9][0-9]_*.sql; do
+        # =================================================================
+        # Phase 2 — always/*.sql (매 docker compose up 마다 실행)
+        #   기존 볼륨이 새 ALTER 마이그레이션을 자동 흡수하기 위한 통로.
+        #   모두 멱등이어야 함 (IF NOT EXISTS · ON CONFLICT · IF EXISTS guard).
+        #   파괴적 SQL (DROP TABLE, PK rename 등) 절대 금지.
+        #   상세 규약: docker/db/init-pg/always/README.md
+        # =================================================================
+        echo "[init] Phase 2: Running always/ migrations ..."
+        for f in /init/always/*.sql; do
           [ -f "$$f" ] || continue
           echo "[init]   $$f"
           psql -v ON_ERROR_STOP=1 -f "$$f"
@@ -79,8 +102,6 @@ services:
           fi
         done
 
-        # 멱등 마커
-        psql -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS t3composer_init_done (created timestamp DEFAULT now()); INSERT INTO t3composer_init_done DEFAULT VALUES;"
         echo "[init] DONE"
     restart: "no"
 

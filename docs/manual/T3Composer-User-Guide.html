@@ -790,9 +790,11 @@ docker compose ps
       <h3 id="s0-4">
         <span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></h3>
       <p>
-        <span class="ko">Insight LLM 은 자연어 질의·온톨로지 답변용 별도 서비스로 호스트 포트 9160 에 직접 기동해야 합니다. <strong>미기동 시 Insight 기능만 비활성</strong> (UI 에 'upstream error' 표시) 되고, T3Composer 의 화면 생성 기능은 정상 동작합니다.</span>
-        <span class="en">Insight LLM is a separate service for natural-language queries and ontology answers, running directly on host port 9160. <strong>Without it, only the Insight feature is disabled</strong> (UI shows 'upstream error'); T3Composer's screen generation still works normally.</span></p>
+        <span class="ko">Insight LLM 은 자연어 질의·온톨로지 답변용 별도 서비스로 호스트 포트 9160 에 직접 기동해야 합니다. <strong>기본은 비활성</strong> — <code>.env</code> 의 <code>INSIGHT_ENABLED=false</code> (기본값) 상태에서는 Insight 의존 UI 가 모두 숨겨지고, T3Composer 의 화면 생성 기능은 정상 동작합니다.</span>
+        <span class="en">Insight LLM is a separate service for natural-language queries and ontology answers, running directly on host port 9160. <strong>Disabled by default</strong> — with <code>INSIGHT_ENABLED=false</code> (default) in <code>.env</code>, all Insight-dependent UI is hidden and T3Composer's screen generation still works normally.</span></p>
       <ul>
+        <li><span class="ko">활성화 방법: <code>.env</code> 에서 <code>INSIGHT_ENABLED=true</code> + insight-llm 호스트 기동 + <code>docker compose up -d --force-recreate composer-frontend</code> 재기동 (frontend 빌드 플래그라 backend 재기동 불필요)</span>
+            <span class="en">To enable: set <code>INSIGHT_ENABLED=true</code> in <code>.env</code>, start insight-llm on the host, then <code>docker compose up -d --force-recreate composer-frontend</code> (it's a frontend build flag; no backend restart needed)</span></li>
         <li><span class="ko">설치 안내: 별도 insight-llm 저장소 참조 (사내 위키 또는 관리자 문의)</span>
             <span class="en">Setup: refer to the separate insight-llm repository (internal wiki or contact admin)</span></li>
         <li><span class="ko">대안: 기본 Composer 흐름은 Anthropic API 만으로 충분 — Insight 는 자연어 SQL 질의·온톨로지 답변 같은 부가 기능</span>
@@ -1418,6 +1420,14 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
         <p>
           <span class="ko">Insight LLM 이 호스트 port 9160 에 기동돼 있으면 위젯 데이터를 자연어 질의로 동적 조회 가능 (예: "최근 3개월 매출 추이 보여줘"). 미기동 시 사전 정의 위젯만 사용 가능.</span>
           <span class="en">If Insight LLM is running on host port 9160, widget data can be queried dynamically via natural language (e.g., "Show me sales trend for the past 3 months"). Without it, only predefined widgets are available.</span></p>
+      </div>
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">메뉴가 안 보인다면?</span>
+          <span class="en">Menu not showing?</span></div>
+        <p>
+          <span class="ko">사이드바에 <strong>Dashboard</strong> 메뉴가 없다면 <code>.env</code> 의 <code>INSIGHT_ENABLED</code> 가 <code>false</code> (기본값) 입니다. 활성화 방법은 <a href="#s0-4">설치 §0-4 Insight LLM</a> 참조.</span>
+          <span class="en">If the <strong>Dashboard</strong> menu is missing from the sidebar, <code>INSIGHT_ENABLED</code> in <code>.env</code> is <code>false</code> (default). See <a href="#s0-4">Install §0-4 Insight LLM</a> to enable.</span></p>
       </div>
     </section>
 

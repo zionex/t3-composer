@@ -37,6 +37,10 @@ import { ShowMessageHost } from '@wingui/common/imports';
  *
  * /preview/<sessionId>/<viewSub> 라우트 — 산출물 화면 새 창에서 단독 표시 (PreviewLoader).
  */
+
+// INSIGHT_ENABLED — false 시 Dashboard 메뉴 숨김
+const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
+
 const MENU_ITEMS = [
     { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    Icon: AutoAwesomeIcon,        Component: T3Composer },
     { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     Icon: HistoryIcon,            Component: T3ComposerHistory },
@@ -44,7 +48,9 @@ const MENU_ITEMS = [
     { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   Icon: ViewQuiltIcon,          Component: T3mesPatternCatalog },
     // { key: 'dict',     labelKey: 'app.menu.gallery',     hintKey: 'app.menuHint.gallery',     Icon: WidgetsIcon,            Component: T3ComposerDict },
     { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    Icon: SchemaIcon,             Component: OntologyPage },
+    ...(INSIGHT_ENABLED ? [
     { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   Icon: DashboardIcon,          Component: T3Dashboard },
+    ] : []),
 ];
 
 const SIDEBAR_W           = 212;

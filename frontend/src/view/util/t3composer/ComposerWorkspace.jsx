@@ -75,6 +75,9 @@ const MAX_AUTOFIX = 1;
 // ───────────────────────────────────────────────────────────────────────────
 const SHOW_PREVIEW_UI = true;
 
+// INSIGHT_ENABLED — false 시 [Insight AI] 탭 숨김
+const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
+
 function modelMeta(id) {
   return MODEL_OPTIONS.find((m) => m.id === id)
       || { id, label: id, sub: id, desc: '', Icon: BoltIcon, color: '#64748b' };
@@ -901,12 +904,15 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     label={t('workspace.tabs.artifactSource')}
                     value={1}
                   />
-                  <Tab
-                    icon={<SmartToyIcon fontSize="small" />}
-                    iconPosition="start"
-                    label={t('workspace.tabs.insightAi')}
-                    value={2}
-                  />
+                  {/* [Insight AI] Tab — INSIGHT_ENABLED=false 면 숨김. */}
+                  {INSIGHT_ENABLED && (
+                    <Tab
+                      icon={<SmartToyIcon fontSize="small" />}
+                      iconPosition="start"
+                      label={t('workspace.tabs.insightAi')}
+                      value={2}
+                    />
+                  )}
                 </Tabs>
               </Box>
               {/* 새창열기 — 실행 화면 표시일 때만. SHOW_PREVIEW_UI=false 면 숨김. */}
@@ -950,7 +956,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             <Box sx={{ flex: 1, minHeight: 0, display: rightTab === 1 ? 'flex' : 'none', flexDirection: 'column' }}>
               <ArtifactCodeView selectedId={selectedArtifactId} />
             </Box>
-            {rightTab === 2 && (
+            {INSIGHT_ENABLED && rightTab === 2 && (
               <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <InsightChatPanel
                   menuCd={session.targetMenuCd ?? null}

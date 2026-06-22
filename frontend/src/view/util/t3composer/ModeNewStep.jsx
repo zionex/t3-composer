@@ -30,6 +30,9 @@ import AiRecommendPanel from './AiRecommendPanel';
 import { specFromPattern, specFromMockup, specFromUiPattern, specFromDashboard } from './wizardState';
 import { useTargetStore } from './targetStore';
 
+// INSIGHT_ENABLED — false 시 [Dashboard] 패턴 카드 숨김
+const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
+
 function ModeNewStep({ onBack }) {
   const { t } = useTranslation('composer');
   // 단계: 'PICK' (패턴 선택) | 'WIZARD' (4단계 Wizard)
@@ -155,6 +158,8 @@ function ModeNewStep({ onBack }) {
           </Stack>
         </Paper>
 
+        {/* [Dashboard] 패턴 카드 — INSIGHT_ENABLED=false 면 숨김. */}
+        {INSIGHT_ENABLED && (
         <Paper variant="outlined"
                sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#0ea5e9', bgcolor: '#f0f9ff' } }}
                onClick={() => setStage('DASHBOARD')}>
@@ -170,6 +175,7 @@ function ModeNewStep({ onBack }) {
             </Box>
           </Stack>
         </Paper>
+        )}
 
         <Paper variant="outlined"
                sx={{ p: 2, cursor: 'pointer', '&:hover': { borderColor: '#8b5cf6', bgcolor: '#faf5ff' } }}

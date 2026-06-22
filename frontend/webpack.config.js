@@ -10,6 +10,8 @@ module.exports = (env, argv) => {
   const isDev = argv.mode !== 'production';
   const apiBase = process.env.COMPOSER_API_BASE || 'http://localhost:8090';
   const insightApiBase = process.env.INSIGHT_API_BASE || 'http://localhost:9160';
+  // INSIGHT_ENABLED — false 시 Dashboard 메뉴/Insight AI 탭 숨김. 기본 false.
+  const insightEnabled = String(process.env.INSIGHT_ENABLED || 'false').toLowerCase() === 'true';
 
   return {
     entry: './src/index.jsx',
@@ -71,6 +73,7 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin({
         'process.env.COMPOSER_API_BASE': JSON.stringify(apiBase),
         'process.env.INSIGHT_API_BASE': JSON.stringify(insightApiBase),
+        'process.env.INSIGHT_ENABLED': JSON.stringify(insightEnabled ? 'true' : 'false'),
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       }),
       // _preview 격리 안전망 — 어떤 형태의 import / require 든 _preview 경로를 가리키면

@@ -6,6 +6,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 5)
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   Box, TextField, Typography, Stack, Chip, Button, Alert,
 } from '@mui/material';
@@ -15,6 +16,7 @@ import MenuPickerDialog from './MenuPickerDialog';
 import { checkMenuExists } from './api';
 
 function MetaStep({ spec, onChange, targetCd }) {
+  const { t } = useTranslation('wizard');
   const meta = spec?.meta || {};
   const [menuPickerOpen, setMenuPickerOpen] = useState(false);
   const [parentMenuLabel, setParentMenuLabel] = useState(meta.parentMenuCd || '');
@@ -89,36 +91,36 @@ function MetaStep({ spec, onChange, targetCd }) {
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto' }}>
       <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800, mb: 0.5 }}>
-        ③ 메타·메뉴
+        {t('step.meta.title')}
       </Typography>
       <Typography variant="caption" sx={{ color: '#64748b', mb: 2, display: 'block' }}>
-        화면의 식별 정보와 메뉴 등록 위치를 입력합니다. 빈 값은 Claude 가 추론합니다.
+        {t('step.meta.hint')}
       </Typography>
 
       <Stack spacing={2}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-            화면 제목
+            {t('step.meta.screenTitleLabel')}
           </Typography>
           <TextField
             value={meta.title || ''}
             onChange={(e) => update({ title: e.target.value })}
             fullWidth size="small"
-            placeholder="예: 사용자정보 관리"
+            placeholder={t('step.meta.screenTitlePlaceholder')}
             sx={{ mt: 0.5 }}
           />
         </Box>
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-            메뉴 코드 (MENU_CD) — <code style={{ fontSize: 11 }}>UI_&lt;DOMAIN&gt;_&lt;NAME&gt;</code>
+            {t('step.meta.menuCdLabel')} <code style={{ fontSize: 11 }}>{t('step.meta.menuCdFormat')}</code>
           </Typography>
           <TextField
             value={meta.menuCd || ''}
             onChange={(e) => update({ menuCd: e.target.value.toUpperCase() })}
             fullWidth size="small"
-            placeholder="UI_UT_USER_INFO_MGMT"
-            helperText="비워두면 Claude 가 화면 의도에서 추론."
+            placeholder={t('step.meta.menuCdPlaceholder')}
+            helperText={t('step.meta.menuCdHelper')}
             FormHelperTextProps={{ sx: { fontSize: 10 } }}
             sx={{ mt: 0.5, '& input': { fontFamily: 'monospace' } }}
           />
@@ -126,14 +128,14 @@ function MetaStep({ spec, onChange, targetCd }) {
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-            메뉴 파일 경로 (MENU_FILE_PATH)
+            {t('step.meta.menuFilePathLabel')}
           </Typography>
           <TextField
             value={meta.menuFilePath || ''}
             onChange={(e) => update({ menuFilePath: e.target.value })}
             fullWidth size="small"
-            placeholder="/util/UserInfoMgmt"
-            helperText="형식: /<module>[/<category>]/<PascalName> (확장자 없이)."
+            placeholder={t('step.meta.menuFilePathPlaceholder')}
+            helperText={t('step.meta.menuFilePathHelper')}
             FormHelperTextProps={{ sx: { fontSize: 10 } }}
             sx={{ mt: 0.5, '& input': { fontFamily: 'monospace' } }}
           />
@@ -141,10 +143,10 @@ function MetaStep({ spec, onChange, targetCd }) {
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-            부모 메뉴 (그룹)
+            {t('step.meta.parentMenuLabel')}
             <Typography component="span" sx={{ color: '#E0989A', fontWeight: 700, ml: 0.3 }}>*</Typography>
             <Typography component="span" sx={{ color: '#94a3b8', fontWeight: 400, fontSize: 11, ml: 0.5 }}>
-              — 메뉴 등록 위치 선택 (필수)
+              {t('step.meta.parentMenuRequired')}
             </Typography>
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.7 }}>
@@ -157,13 +159,13 @@ function MetaStep({ spec, onChange, targetCd }) {
                          fontFamily: 'monospace' }}
                 />
                 {parentValidation === 'ok' && (
-                  <Chip label="운영 DB 존재 확인" size="small" color="success" variant="outlined"
+                  <Chip label={t('step.meta.parentMenuOk')} size="small" color="success" variant="outlined"
                         sx={{ fontSize: 10 }} />
                 )}
               </>
             ) : (
               <Typography variant="caption" sx={{ color: '#E0989A', fontStyle: 'italic' }}>
-                미선택 — [메뉴 선택] 으로 부모를 지정하세요
+                {t('step.meta.parentMenuMissing')}
               </Typography>
             )}
             <Button
@@ -172,15 +174,19 @@ function MetaStep({ spec, onChange, targetCd }) {
               onClick={() => setMenuPickerOpen(true)}
               disabled={!targetCd}
             >
-              메뉴 선택
+              {t('step.meta.selectMenu')}
             </Button>
           </Stack>
           {/* default 가 운영 DB 에 없어 clear 된 경우 — 사용자에게 명시적으로 안내 */}
           {parentValidation === 'gone' && clearedParent && (
             <Alert severity="warning" sx={{ mt: 0.8, py: 0.3,
                    '& .MuiAlert-message': { fontSize: 11.5 } }}>
-              자동 채워졌던 부모 메뉴 <b style={{ fontFamily: 'monospace' }}>{clearedParent}</b> 가
-              운영 DB ({targetCd}) 에 존재하지 않아 비웠습니다. [메뉴 선택] 으로 실제 부모를 지정하세요.
+              <Trans
+                i18nKey="step.meta.parentMenuGone"
+                ns="wizard"
+                values={{ cd: clearedParent, targetCd }}
+                components={{ b: <b style={{ fontFamily: 'monospace' }} /> }}
+              />
             </Alert>
           )}
         </Box>

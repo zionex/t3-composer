@@ -58,6 +58,25 @@
       "aiNoResult":     "AI 가 추천할 항목을 찾지 못했습니다. layer / dataSource 를 더 채워보세요.",
       "aiSuccess":      "검색조건 {{filterCount}}개 · 관계 {{relationCount}}개 추가됨.",
       "aiFail":         "AI 호출 실패: {{message}}"
+    },
+    "meta": {
+      "title":          "③ 메타·메뉴",
+      "hint":           "화면의 식별 정보와 메뉴 등록 위치를 입력합니다. 빈 값은 Claude 가 추론합니다.",
+      "screenTitleLabel":   "화면 제목",
+      "screenTitlePlaceholder": "예: 사용자정보 관리",
+      "menuCdLabel":        "메뉴 코드 (MENU_CD) —",
+      "menuCdFormat":       "UI_<DOMAIN>_<NAME>",
+      "menuCdPlaceholder":  "UI_UT_USER_INFO_MGMT",
+      "menuCdHelper":       "비워두면 Claude 가 화면 의도에서 추론.",
+      "menuFilePathLabel":  "메뉴 파일 경로 (MENU_FILE_PATH)",
+      "menuFilePathPlaceholder": "/util/UserInfoMgmt",
+      "menuFilePathHelper": "형식: /<module>[/<category>]/<PascalName> (확장자 없이).",
+      "parentMenuLabel":    "부모 메뉴 (그룹)",
+      "parentMenuRequired": "— 메뉴 등록 위치 선택 (필수)",
+      "parentMenuOk":       "운영 DB 존재 확인",
+      "parentMenuMissing":  "미선택 — [메뉴 선택] 으로 부모를 지정하세요",
+      "selectMenu":         "메뉴 선택",
+      "parentMenuGone":     "자동 채워졌던 부모 메뉴 <b>{{cd}}</b> 가 운영 DB ({{targetCd}}) 에 존재하지 않아 비웠습니다. [메뉴 선택] 으로 실제 부모를 지정하세요."
     }
   }
 }

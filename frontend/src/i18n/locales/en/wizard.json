@@ -58,6 +58,25 @@
       "aiNoResult":     "AI could not find any suggestions. Try filling in more layers / dataSource.",
       "aiSuccess":      "Added {{filterCount}} filter(s) · {{relationCount}} relation(s).",
       "aiFail":         "AI call failed: {{message}}"
+    },
+    "meta": {
+      "title":          "③ Meta & Menu",
+      "hint":           "Enter the screen identifier and menu registration location. Empty fields are inferred by Claude.",
+      "screenTitleLabel":   "Screen Title",
+      "screenTitlePlaceholder": "e.g. User Info Management",
+      "menuCdLabel":        "Menu Code (MENU_CD) —",
+      "menuCdFormat":       "UI_<DOMAIN>_<NAME>",
+      "menuCdPlaceholder":  "UI_UT_USER_INFO_MGMT",
+      "menuCdHelper":       "Leave blank to let Claude infer from screen intent.",
+      "menuFilePathLabel":  "Menu File Path (MENU_FILE_PATH)",
+      "menuFilePathPlaceholder": "/util/UserInfoMgmt",
+      "menuFilePathHelper": "Format: /<module>[/<category>]/<PascalName> (no extension).",
+      "parentMenuLabel":    "Parent Menu (Group)",
+      "parentMenuRequired": "— Select menu registration location (required)",
+      "parentMenuOk":       "Verified in production DB",
+      "parentMenuMissing":  "Not selected — Use [Select Menu] to specify a parent",
+      "selectMenu":         "Select Menu",
+      "parentMenuGone":     "The auto-filled parent menu <b>{{cd}}</b> does not exist in production DB ({{targetCd}}). It has been cleared. Please use [Select Menu] to specify the actual parent."
     }
   }
 }

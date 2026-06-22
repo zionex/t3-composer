@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -206,6 +207,7 @@ const CREATION_EXAMPLES = [
  *      - 단계별: StepByStepWizard 로 위임 (내부에서 module 재사용)
  */
 function ModeNewGeneral({ onBack, startWith = null }) {
+  const { t } = useTranslation('composer');
   // startWith === 'NL'   → 자연어 모드로 바로 진입 (서브모드 선택 스킵)
   // startWith === 'STEP' → 단계별 Wizard 로 바로 진입
   // startWith === null   → 서브모드 선택 화면 표시 (구 동작)
@@ -490,7 +492,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
   const startNlSession = async () => {
     if (!prompt.trim()) {
-      setError('요구사항을 입력해주세요.');
+      setError(t('modeNewNl.errors.promptRequired'));
       return;
     }
     setStarting(true);
@@ -504,7 +506,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       });
       setSession(res.data);
     } catch (e) {
-      setError(e?.response?.data?.message || e?.response?.data?.error || e?.message || '세션 생성 실패');
+      setError(e?.response?.data?.message || e?.response?.data?.error || e?.message || t('modeNewNl.errors.sessionFailed'));
     } finally {
       setStarting(false);
     }
@@ -716,7 +718,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         initialAttachments={binaryAttachs}
         extraHeader={
           <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
-            종료
+            {t('modeNewNl.header.exit')}
           </Button>
         }
       />
@@ -730,14 +732,14 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   const Header = (
     <Stack direction="row" alignItems="center" sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
       <Button startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} size="small">
-        모드 선택
+        {t('modeNewNl.header.back')}
       </Button>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
         <AutoAwesomeIcon sx={{ color: startWith === 'STEP' ? '#7c3aed' : '#059669' }} />
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          {startWith === 'NL'   ? '자연어 기반 신규 생성'
-           : startWith === 'STEP' ? '단계별 생성'
-           : '신규 개발 — 일반 생성'}
+          {startWith === 'NL'   ? t('modeNewNl.header.titleNl')
+           : startWith === 'STEP' ? t('modeNewNl.header.titleStep')
+           : t('modeNewNl.header.titleGeneral')}
         </Typography>
       </Stack>
       {subMode && module && (
@@ -749,7 +751,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       )}
       {subMode === 'NL' && (
         <Button size="small" onClick={reset} sx={{ ml: 'auto' }}>
-          처음부터 다시
+          {t('modeNewNl.header.restart')}
         </Button>
       )}
     </Stack>
@@ -762,18 +764,18 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         {Header}
         <Box sx={{ p: 4, maxWidth: 1100, mx: 'auto', flex: 1, overflow: 'auto' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            생성 방식을 선택하세요.
+            {t('modeNewNl.submode.intro')}
           </Typography>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
             <SubModeCard
-              title="자연어 기반 생성"
-              subtitle="Natural Language"
+              title={t('modeNewNl.submode.nl.title')}
+              subtitle={t('modeNewNl.submode.nl.subtitle')}
               icon={ChatIcon}
               color="#2a9d8f"
-              description="요구사항을 자연어로 설명하면 Claude 가 패턴·스펙·코드를 한 번에 결정해 생성합니다. 빠르고 유연하지만 토큰 사용량이 많습니다."
-              pros={['빠른 시작', '유연한 표현', '설계 미확정 시 적합']}
-              cons={['토큰 사용량 많음', '결과 해석 비용', '반복 수정 시 비용 누적']}
+              description={t('modeNewNl.submode.nl.description')}
+              pros={t('modeNewNl.submode.nl.pros', { returnObjects: true })}
+              cons={t('modeNewNl.submode.nl.cons', { returnObjects: true })}
               onClick={() => setSubMode('NL')}
             />
             {/* 2026-06-11: "Step 별 선택 생성" (StepByStepWizard 9-step) 카드 제거.
@@ -791,10 +793,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         {Header}
         <Box sx={{ p: 4, maxWidth: 1100, mx: 'auto', flex: 1, overflow: 'auto' }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            모듈 선택
+            {t('modeNewNl.module.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            생성할 화면이 속한 모듈을 선택하세요. 모듈별 네이밍 규약과 공통 테이블을 Claude 에 자동 주입합니다.
+            {t('modeNewNl.module.hint')}
           </Typography>
           <ModuleSelector value={moduleCode} onChange={setModuleCode} />
         </Box>
@@ -821,10 +823,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            요구사항 입력
+            {t('modeNewNl.promptPanel.title')}
           </Typography>
           <Button size="small" onClick={() => setModuleCode(null)}>
-            모듈 변경
+            {t('modeNewNl.promptPanel.changeModule')}
           </Button>
         </Stack>
 
@@ -849,7 +851,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               fullWidth
               multiline
               minRows={6}
-              placeholder={`예: ${examples[0] || '원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)'}\n\n💡 참조 파일은 아래 "참조 파일 첨부" 영역에 끌어다 놓으세요`}
+              placeholder={t('modeNewNl.promptPanel.placeholderTemplate', { example: examples[0] || t('modeNewNl.promptPanel.fallbackExample') })}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               autoFocus
@@ -861,7 +863,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 fontSize: 14, fontWeight: 700, color: '#5683C0',
                 bgcolor: 'rgba(124,167,224,0.12)', borderRadius: 1,
               }}>
-                파일을 여기에 놓으세요
+                {t('modeNewNl.promptPanel.dropHere')}
               </Box>
             )}
           </Box>
@@ -873,7 +875,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                  sx={{ mb: 2, p: 1.5, bgcolor: 'rgba(124,167,224,0.06)', borderRadius: 1.5,
                        border: '1px solid rgba(124,167,224,0.25)' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              AI 엔진:
+              {t('modeNewNl.promptPanel.aiEngine')}
             </Typography>
             <ToggleButtonGroup
               value={selectedModel}
@@ -911,7 +913,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                       <Stack alignItems="flex-start" spacing={0} sx={{ lineHeight: 1.15 }}>
                         <span style={{ fontWeight: 700 }}>{m.label}</span>
                         <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.9 }}>
-                          {sel ? '✓ 현재 선택' : m.sub}
+                          {sel ? t('modeNewNl.promptPanel.currentSel') : m.sub}
                         </Typography>
                       </Stack>
                     </ToggleButton>
@@ -927,7 +929,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 <Chip
                   size="small"
                   icon={<cur.Icon sx={{ fontSize: 14, color: cur.color + ' !important' }} />}
-                  label={`선택됨 · ${cur.label}`}
+                  label={t('modeNewNl.promptPanel.selectedChip', { label: cur.label })}
                   sx={{
                     height: 24, fontWeight: 700, fontSize: 11.5,
                     color: cur.color,
@@ -944,14 +946,14 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                      border: '1px dashed rgba(124,167,224,0.35)' }}>
             <Typography variant="caption" color="text.secondary"
                         sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
-              선택사항 — SCM UI Mockup · UI Pattern 중 1개 선택 (서로 배타) · 파일 첨부는 별도 (하단 영역 · 최대 5개)
+              {t('modeNewNl.options.title')}
             </Typography>
 
             {/* Row 1 — SCM UI Mockup 선택 + 3D 체크박스 */}
             <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ gap: 1, mb: 1 }}>
               <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
                           fontWeight: 700, color: '#5683C0' }}>
-                SCM UI Mockup
+                {t('modeNewNl.options.scmMockup')}
               </Typography>
               <Button
                 size="medium"
@@ -961,10 +963,10 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 color="primary"
                 sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
               >
-                {selectedMockup ? `Mockup: ${selectedMockup.patternCode}` : 'SCM UI Mockup 선택'}
+                {selectedMockup ? t('modeNewNl.options.scmMockupSelected', { code: selectedMockup.patternCode }) : t('modeNewNl.options.scmMockupSelect')}
               </Button>
               {/* 3D 체크박스 — 체크 시 전체화면 JARVIS 3D 갤러리로 진입 */}
-              <Tooltip title="3D 체크 시 — [SCM UI Mockup 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 mockup 을 카테고리별로 배치하고, 드래그 이동·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.">
+              <Tooltip title={t('modeNewNl.options.tooltip3DMockup')}>
                 <FormControlLabel
                   sx={{ ml: 0,
                         '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
@@ -982,7 +984,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 />
               </Tooltip>
               {selectedMockup && (
-                <Chip size="small" label="해제"
+                <Chip size="small" label={t('modeNewNl.options.clear')}
                       onClick={() => setSelectedMockup(null)} sx={{ height: 22 }} />
               )}
             </Stack>
@@ -992,7 +994,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                    sx={{ gap: 1, mb: showKpiTrigger ? 1 : 0 }}>
               <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
                           fontWeight: 700, color: '#6F87AA' }}>
-                UI Pattern
+                {t('modeNewNl.options.uiPattern')}
               </Typography>
               <Button
                 size="medium"
@@ -1003,11 +1005,11 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
               >
                 {selectedUiPattern
-                  ? `Pattern: ${(selectedUiPattern.tabLabel || selectedUiPattern.fileLabel || '').slice(0, 22)}`
-                  : 'UI Pattern 선택'}
+                  ? t('modeNewNl.options.uiPatternSelected', { label: (selectedUiPattern.tabLabel || selectedUiPattern.fileLabel || '').slice(0, 22) })
+                  : t('modeNewNl.options.uiPatternSelect')}
               </Button>
               {/* 3D 체크박스 — 체크 시 전체화면 JARVIS 3D 갤러리로 진입 */}
-              <Tooltip title="3D 체크 시 — [UI Pattern 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 패턴을 그룹별로 배치하고, 드래그 회전·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.">
+              <Tooltip title={t('modeNewNl.options.tooltip3DUiPattern')}>
                 <FormControlLabel
                   sx={{ ml: 0,
                         '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
@@ -1025,7 +1027,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 />
               </Tooltip>
               {selectedUiPattern && (
-                <Chip size="small" label="해제"
+                <Chip size="small" label={t('modeNewNl.options.clear')}
                       onClick={() => { setSelectedUiPattern(null); setSelectedUiPatternSource(''); }}
                       sx={{ height: 22 }} />
               )}
@@ -1039,7 +1041,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                 <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ gap: 1 }}>
                   <Typography variant="caption" sx={{ width: 86, flexShrink: 0,
                               fontWeight: 700, color: '#9D8FD4' }}>
-                    KPI / Chart
+                    {t('modeNewNl.options.kpiChart')}
                   </Typography>
                   <Button
                     size="small"
@@ -1057,8 +1059,8 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                     } : undefined}
                   >
                     {totalSel > 0
-                      ? `KPI ${selectedKpis.length} · Chart ${selectedCharts.length}`
-                      : 'KPI / Chart 사전 항목 선택'}
+                      ? t('modeNewNl.options.kpiChartSelected', { kpis: selectedKpis.length, charts: selectedCharts.length })
+                      : t('modeNewNl.options.kpiChartSelect')}
                   </Button>
                 </Stack>
               );
@@ -1098,14 +1100,14 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           <Stack alignItems="center" spacing={0.5}>
             <CloudUploadIcon sx={{ fontSize: 32, color: bottomDragOver ? '#7CA7E0' : '#A6B2C4' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              참조 파일 첨부 — SQL · 설계서 이미지 등 (끌어다 놓거나 클릭)
+              {t('modeNewNl.attach.title')}
             </Typography>
-            <Tooltip title="필요한 SQL 파일·설계서 이미지·캡처·소스 등을 최대 5개까지 첨부. 텍스트(.sql 등)는 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB). SCM UI Mockup·UI Pattern 선택과 함께 사용할 수 있습니다.">
+            <Tooltip title={t('modeNewNl.attach.tooltip')}>
               <Typography variant="caption" color="text.secondary"
                           sx={{ textAlign: 'center', cursor: 'help',
                                 borderBottom: '1px dotted', borderColor: 'divider' }}>
-                최대 {MAX_ATTACH}개 · 파일당 5MB — SQL · 이미지 · 설계서 등
-                {attachments.length > 0 && `  (현재 ${attachments.length}/${MAX_ATTACH})`}
+                {t('modeNewNl.attach.limit', { max: MAX_ATTACH })}
+                {attachments.length > 0 && t('modeNewNl.attach.limitCount', { n: attachments.length, max: MAX_ATTACH })}
               </Typography>
             </Tooltip>
           </Stack>
@@ -1153,15 +1155,14 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               sx={{ px: 2.6, py: 1, fontSize: '0.92rem', fontWeight: 700 }}
             >
               {dataSources.length > 0
-                ? `Data Source — ${dataSources.length}개 선택됨`
-                : 'Data Source 선택'}
+                ? t('modeNewNl.dataSource.selectedChip', { n: dataSources.length })
+                : t('modeNewNl.dataSource.select')}
             </Button>
             <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 220 }}>
-              Target DB 테이블·SP · T3Insight 온톨로지 · 직접 쿼리를 별자리 맵으로 골라
-              화면이 읽고/쓰는 데이터를 지정합니다 (선택사항 · Mockup/UI Pattern 과 독립 · 다중 선택).
+              {t('modeNewNl.dataSource.hint')}
             </Typography>
             {dataSources.length > 0 && (
-              <Chip size="small" label="전체 해제"
+              <Chip size="small" label={t('modeNewNl.dataSource.clearAll')}
                     onClick={() => setDataSources([])} sx={{ height: 22 }} />
             )}
           </Stack>
@@ -1186,7 +1187,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         <Stack direction="row" justifyContent="space-between" alignItems="center"
                sx={{ mb: 3, gap: 2, flexWrap: 'wrap' }}>
           <Typography variant="caption" color="text.secondary">
-            Claude 는 모듈 규약(TB_{module.code}_ / SP_UI_{module.code}_)에 맞춰 생성합니다.
+            {t('modeNewNl.submit.moduleHint', { code: module.code })}
           </Typography>
           <Button
             variant="contained"
@@ -1196,7 +1197,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             startIcon={<AutoAwesomeIcon />}
             sx={{ px: 4, py: 1.4, fontSize: '1.05rem', fontWeight: 700 }}
           >
-            {starting ? '세션 생성 중...' : 'Claude 에게 생성 요청'}
+            {starting ? t('modeNewNl.submit.creating') : t('modeNewNl.submit.submit')}
           </Button>
         </Stack>
 
@@ -1262,18 +1263,15 @@ function ModeNewGeneral({ onBack, startWith = null }) {
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
               <StorageIcon fontSize="small" sx={{ color: '#6BA0B0' }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#5683C0' }}>
-                자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)
+                {t('modeNewNl.tableLookup.title')}
               </Typography>
               {tableLookupLoading && <CircularProgress size={14} sx={{ color: '#6BA0B0' }} />}
             </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              prompt 안의 <code>TB_*</code> 테이블명을 백엔드 DB 에서 직접 조회 — 존재하면 기존 컬럼으로 Entity 매핑,
-              없으면 새 SQL_DDL 산출물로 생성. 결과는 Claude prompt 컨텍스트에 자동 첨부됩니다.
-            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}
+                        dangerouslySetInnerHTML={{ __html: t('modeNewNl.tableLookup.explain') }} />
             {tableLookup.extracted.length === 0 && !tableLookupLoading && (
-              <Typography variant="caption" color="text.secondary">
-                (prompt 에서 <code>TB_*</code> 패턴 미발견 — 사용할 테이블명이 있으면 입력하세요)
-              </Typography>
+              <Typography variant="caption" color="text.secondary"
+                          dangerouslySetInnerHTML={{ __html: t('modeNewNl.tableLookup.noTables') }} />
             )}
             {tableLookup.extracted.length > 0 && (
               <Stack spacing={0.5}>
@@ -1316,7 +1314,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                         )}
                         {!exists && (
                           <Typography variant="caption" sx={{ color: '#92400e' }}>
-                            존재하지 않음 — 새 SQL_DDL 산출물로 생성됩니다 (NEW_NL 모드 허용)
+                            {t('modeNewNl.tableLookup.notExists')}
                           </Typography>
                         )}
                       </Stack>
@@ -1324,7 +1322,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                         <Box sx={{ mt: 0.5, pl: 3 }}>
                           <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: 10.5, color: '#475569' }}>
                             {cols.slice(0, 12).map((c) => c.name).join(' · ')}
-                            {cols.length > 12 && ` · 외 ${cols.length - 12}개`}
+                            {cols.length > 12 && t('modeNewNl.tableLookup.moreCols', { n: cols.length - 12 })}
                           </Typography>
                         </Box>
                       )}
@@ -1353,21 +1351,21 @@ function ModeNewGeneral({ onBack, startWith = null }) {
         <Stack direction="row" alignItems="center" justifyContent="space-between"
                sx={{ mb: showExamples ? 1.5 : 0 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#5683C0' }}>
-            신규 생성 예시
+            {t('modeNewNl.examples.title')}
           </Typography>
           <Button
             size="small" variant="outlined" color="primary"
             startIcon={showExamples ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             onClick={() => setShowExamples((v) => !v)}
           >
-            {showExamples ? '예시 숨기기' : '예시 보기'}
+            {showExamples ? t('modeNewNl.examples.hide') : t('modeNewNl.examples.show')}
           </Button>
         </Stack>
         {!showExamples && (
           <Box>
             <Typography variant="caption" color="text.secondary"
                         sx={{ display: 'block', mt: 1 }}>
-              [예시 보기] 를 누르면 모듈 예시와 입력 방식별 예시가 펼쳐집니다.
+              {t('modeNewNl.examples.collapsedHint')}
             </Typography>
             {/* 예시 접힘 상태 — 하단 여백에 자연어 생성 흐름 개념도를 배경처럼 (고투명) */}
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
@@ -1394,7 +1392,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           {examples.length > 0 && (
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: '#5683C0' }}>
-                {module.code} 모듈 예시
+                {t('modeNewNl.examples.moduleSection', { code: module.code })}
               </Typography>
               <Stack spacing={1}>
                 {examples.map((p, i) => (
@@ -1417,7 +1415,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
           {/* 입력 방식별 예시 (프롬프트 / Mockup / UI Pattern / 파일첨부) */}
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: '#5683C0' }}>
-              신규 생성 예시 — 입력 방식별
+              {t('modeNewNl.examples.byInputTitle')}
             </Typography>
             <Stack spacing={1.2}>
               {CREATION_EXAMPLES.map((g) => (
@@ -1459,7 +1457,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                             {clickable && (
                               <Typography variant="caption"
                                           sx={{ color: '#A6B2C4', fontSize: 9.5 }}>
-                                클릭 → 프롬프트에 입력
+                                {t('modeNewNl.examples.clickToPrompt')}
                               </Typography>
                             )}
                           </Stack>

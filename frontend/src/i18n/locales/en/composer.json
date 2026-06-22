@@ -34,6 +34,92 @@
       "hint":  "Decompose existing screen into a Spec and modify only what's needed"
     }
   },
+  "modeNewNl": {
+    "header": {
+      "back":      "Mode Selection",
+      "titleNl":   "NL-based New Creation",
+      "titleStep": "Step-by-Step Creation",
+      "titleGeneral": "New Development — General Creation",
+      "restart":   "Start over",
+      "exit":      "Exit"
+    },
+    "submode": {
+      "intro": "Choose a generation approach.",
+      "nl": {
+        "title":       "NL-based Creation",
+        "subtitle":    "Natural Language",
+        "description": "Describe requirements in natural language; Claude determines pattern, spec, and code in one shot. Fast and flexible but token-heavy.",
+        "pros":        ["Quick start", "Flexible expression", "Suited for undecided designs"],
+        "cons":        ["High token usage", "Cost of interpreting results", "Cost accumulates with iterations"]
+      }
+    },
+    "module": {
+      "title": "Module Selection",
+      "hint":  "Pick the module the screen belongs to. Per-module naming conventions and common tables are auto-injected to Claude."
+    },
+    "promptPanel": {
+      "title":           "Requirement Input",
+      "changeModule":    "Change Module",
+      "placeholderTemplate": "e.g. {{example}}\n\n💡 Drop reference files in the \"Attach Reference Files\" area below",
+      "fallbackExample": "Describe the screen you want... (mention table names like TB_AD_USER to auto-check existence)",
+      "dropHere":        "Drop files here",
+      "aiEngine":        "AI Engine:",
+      "currentSel":      "✓ Current selection",
+      "selectedChip":    "Selected · {{label}}"
+    },
+    "options": {
+      "title":             "Options — Pick one of SCM UI Mockup · UI Pattern (mutually exclusive) · File attach is separate (bottom · max 5)",
+      "scmMockup":         "SCM UI Mockup",
+      "uiPattern":         "UI Pattern",
+      "kpiChart":          "KPI / Chart",
+      "scmMockupSelect":   "Select SCM UI Mockup",
+      "scmMockupSelected": "Mockup: {{code}}",
+      "uiPatternSelect":   "Select UI Pattern",
+      "uiPatternSelected": "Pattern: {{label}}",
+      "kpiChartSelect":    "Select KPI / Chart entries",
+      "kpiChartSelected":  "KPI {{kpis}} · Chart {{charts}}",
+      "clear":             "Clear",
+      "tooltip3DMockup":   "When 3D is checked — clicking [Select SCM UI Mockup] opens a full-screen 3D gallery (JARVIS style) that lays out mockups by category; drag to pan, wheel to zoom. Unchecked uses the regular list popup.",
+      "tooltip3DUiPattern": "When 3D is checked — clicking [Select UI Pattern] opens a full-screen 3D gallery (JARVIS style) that lays out patterns by group; drag to rotate, wheel to zoom. Unchecked uses the regular list popup."
+    },
+    "attach": {
+      "title":      "Attach Reference Files — SQL · design images, etc. (drop or click)",
+      "limit":      "Max {{max}} files · 5MB each — SQL · images · design docs, etc.",
+      "limitCount": "  (current {{n}}/{{max}})",
+      "tooltip":    "Attach up to 5 SQL files / design images / captures / source files. Text files (.sql etc.) are inlined in the prompt; images/PDF/binary are sent as attachments (max 5MB each). Can be used alongside SCM UI Mockup / UI Pattern selection."
+    },
+    "dataSource": {
+      "select":       "Select Data Source",
+      "selectedChip": "Data Source — {{n}} selected",
+      "hint":         "Pick Target DB tables / SPs · T3Insight ontology · direct queries from a constellation map to specify what data the screen reads/writes (optional · independent of Mockup/UI Pattern · multi-select).",
+      "clearAll":     "Clear all"
+    },
+    "submit": {
+      "moduleHint":  "Claude generates following the module convention (TB_{{code}}_ / SP_UI_{{code}}_).",
+      "creating":    "Creating session...",
+      "submit":      "Send to Claude"
+    },
+    "tableLookup": {
+      "title":          "Auto Table Existence Check (T3SMARTSCM.dbo)",
+      "explain":        "Looks up <code>TB_*</code> table names in your prompt directly against the backend DB — if it exists, Entity is mapped to existing columns; otherwise a new SQL_DDL artifact is generated. The result is auto-attached to the Claude prompt context.",
+      "noTables":       "(no <code>TB_*</code> pattern found in prompt — enter a table name if you want to use one)",
+      "notExists":      "Does not exist — a new SQL_DDL artifact will be generated (allowed in NEW_NL mode)",
+      "moreCols":       " · and {{n}} more"
+    },
+    "examples": {
+      "title":            "New Creation Examples",
+      "show":             "Show examples",
+      "hide":             "Hide examples",
+      "collapsedHint":    "Press [Show examples] to expand module examples and examples per input style.",
+      "moduleSection":    "{{code}} Module Examples",
+      "byInputTitle":     "New Creation Examples — by Input Style",
+      "clickToPrompt":    "Click → fill prompt"
+    },
+    "errors": {
+      "promptRequired":   "Please enter a requirement.",
+      "sessionFailed":    "Session creation failed"
+    }
+  },
   "modeExistingModify": {
     "header": {
       "backToSub":  "Sub-mode Selection",

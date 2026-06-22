@@ -54,7 +54,9 @@ public class ComposerPromptBuilder {
 
     public String buildSystemPrompt(ComposerSession session) {
         // ruleScope 전달 — 이 wrapper 로 호출돼도 화면 생성 rule 선별이 적용되도록.
-        return buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope()) + buildSessionSystemPrompt(session);
+        // uiLanguage 전달 — Claude 응답 언어 제어 (Phase 6 i18n).
+        return buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope(), session.getUiLanguage())
+                + buildSessionSystemPrompt(session);
     }
 
     /**
@@ -70,6 +72,49 @@ public class ComposerPromptBuilder {
     /** ruleScope 기반 정적 블록 — 화면 생성 시 필요한 rule 만 포함. */
     public String buildStaticSystemPrompt(String targetCd, String ruleScope) {
         return composer.compose(targetCd, ruleScope);
+    }
+
+    /**
+     * ruleScope + uiLanguage 기반 정적 블록 — 화면 생성 rule + Claude 응답 언어 지침 포함.
+     * Phase 6 i18n. uiLanguage 미지정/null/'ko' 면 한국어, 'en' 이면 영어 응답.
+     * 산출물 코드는 항상 한국어 라벨/문자열 보존 (운영 배포 환경이 한국어).
+     */
+    public String buildStaticSystemPrompt(String targetCd, String ruleScope, String uiLanguage) {
+        return composer.compose(targetCd, ruleScope) + "\n\n" + buildLanguageInstruction(uiLanguage);
+    }
+
+    /**
+     * Claude 응답 언어 지침 블록.
+     * - 'en': 영어로 응답, 단 산출물 코드(===FILE:) 안의 한국어 라벨/문자열/주석은 보존
+     * - 'ko' / null / 기타: 한국어로 응답
+     */
+    public String buildLanguageInstruction(String uiLanguage) {
+        boolean isEnglish = "en".equalsIgnoreCase(uiLanguage);
+        if (isEnglish) {
+            return """
+                ## Response Language
+                Respond to user messages in English. Tone: professional, concise.
+
+                ## Code Artifact Language — CRITICAL
+                All code artifacts (===FILE: blocks) MUST keep Korean labels, strings, comments, and
+                UI text unchanged. The operational deployment environment is Korean — generating
+                English code labels would break production usage.
+
+                Specifically preserve in Korean:
+                - JSX: `<Typography>저장</Typography>` · `<Chip label="신규" />` · `headerText: '사용자명'`
+                - Java: `new ResponseMessage(HttpStatus.OK.value(), "저장 완료")`
+                - showMessage('확인', '저장하시겠습니까?', ...)
+                - MENU registration: TB_AD_LANG_PACK Korean translations
+                - Validation messages, error toasts, button labels, grid headers
+
+                Only the explanation/description text you write back to the user (outside ===FILE: blocks)
+                should be in English. The code itself stays Korean.
+                """;
+        }
+        return """
+            ## 응답 언어
+            사용자에게 한국어로 응답하세요. 톤은 전문적이고 간결하게.
+            """;
     }
 
     /**

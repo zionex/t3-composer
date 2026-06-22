@@ -18,6 +18,7 @@ import DnsIcon from '@mui/icons-material/Dns';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import EditNoteIcon from '@mui/icons-material/EditOutlined';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import { useTranslation } from 'react-i18next';
 
 import { zAxios } from '@wingui/common/imports';
 
@@ -147,6 +148,7 @@ function buildFixPrompt(errInfo, previewMeta, opts) {
  *  - 산출물 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
  */
 function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader, chatCollapsed = false }) {
+  const { t } = useTranslation('wizard');
   const [refreshKey, setRefreshKey] = useState(0);
   const [menuDialogOpen, setMenuDialogOpen]   = useState(false);
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
@@ -209,7 +211,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       setCurrentModel(res?.data?.modelName || modelId);
     } catch (e) {
       // eslint-disable-next-line no-alert
-      alert('AI 엔진 전환 실패: ' + (e?.response?.data?.message || e?.message || ''));
+      alert(t('workspace.modelSwitchFail') + (e?.response?.data?.message || e?.message || ''));
     } finally {
       setModelSwitching(false);
     }
@@ -249,31 +251,31 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       // backend 가 SCREEN_JSX 산출물을 AI mockup 으로 변환 후 _preview 폴더에 작성.
       // 캐시 hit (같은 원본 두 번째) 은 즉시, miss (첫 실행) 는 5~10초 소요.
       message: sampleMode
-        ? '산출물 적용 중 — AI mockup 변환 (첫 실행 5~10초 · 이후 캐시)...'
-        : '산출물 적용 중 (재기동 포함)...',
+        ? t('workspace.previewStage.applyingMsgSample')
+        : t('workspace.previewStage.applyingMsgFull'),
       elapsedMs: 0 });
     try {
       const res = await applyPreview(session.id, { skipJava: sampleMode });
       const r = res?.data || {};
       if (!r.success) {
         setPreviewStage(null);
-        const errMsg = r.error || 'JSX/SQL/MENU 처리 오류';
+        const errMsg = r.error || t('workspace.snackbar.previewErrorDefault');
         if (autoFixOnError) {
           // 자동보완 ON — 오류 스낵바(차단창) 없이 곧바로 보완 흐름 진입.
           //   SP/SQL/JSX apply 단계 오류도 AI 자동 수정 → 재실행 대상.
           handlePreviewError({ type: 'apply', message: errMsg });
         } else {
-          setSnackbar({ open: true, severity: 'error', title: '화면 실행 준비 실패',
+          setSnackbar({ open: true, severity: 'error', title: t('workspace.snackbar.previewFailTitle'),
                         message: errMsg });
         }
         return;
       }
       setAutoFixActive(false);   // 산출물 적용 성공 — apply 오류 자동보완 중이었다면 해소
       const skipped = r.skipped || 0;
-      setSnackbar({ open: true, severity: 'success', title: '화면 실행 준비 완료',
+      setSnackbar({ open: true, severity: 'success', title: t('workspace.snackbar.previewReadyTitle'),
                     message: skipped > 0
-                      ? `JSX ${r.jsxOk}건 · 그 외 ${skipped}건 (Java/SQL/MENU) 화면 실행 대상 외`
-                      : `JSX ${r.jsxOk}건 적용` });
+                      ? t('workspace.snackbar.previewReadyWithSkip', { ok: r.jsxOk, skipped })
+                      : t('workspace.snackbar.previewReadyJsxOnly', { ok: r.jsxOk }) });
 
       // 첫 미리보기 링크 + 메타 (Tab embed 용) 저장
       const link = r.previewLinks?.[0];
@@ -288,7 +290,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
         return;
       }
       // backend 컴파일 없음 (항상 sample 모드) → 즉시 화면 노출 (Tab 0 에 자동 embed)
-      setPreviewStage({ phase: 'ready', message: '실행 준비 완료', elapsedMs: 0, targetUrl });
+      setPreviewStage({ phase: 'ready', message: t('workspace.previewStage.readyMsg'), elapsedMs: 0, targetUrl });
       // 'ready' 일 때만 자동 닫기 — 그 사이 자동보완(autofixing)/실패 단계로 바뀌었으면 유지.
       setTimeout(() => {
         setPreviewStage((s) =>
@@ -297,8 +299,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     } catch (e) {
       const data = e?.response?.data || {};
       setPreviewStage(null);
-      setSnackbar({ open: true, severity: 'error', title: '미리보기 통신 오류',
-                    message: data.message || data.error || e?.message || '네트워크 오류' });
+      setSnackbar({ open: true, severity: 'error', title: t('workspace.snackbar.previewCommErrorTitle'),
+                    message: data.message || data.error || e?.message || t('workspace.snackbar.previewCommErrorMsg') });
     } finally {
       setPreviewBusy(false);
     }
@@ -311,9 +313,9 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     if (!session?.id) return;
     try {
       await cancelPreview(session.id);
-      setSnackbar({ open: true, severity: 'info', title: '실행 화면 정리', message: '실행 산출물 + DB row 정리됨' });
+      setSnackbar({ open: true, severity: 'info', title: t('workspace.snackbar.previewCleanupTitle'), message: t('workspace.snackbar.previewCleanupMsg') });
     } catch (e) {
-      setSnackbar({ open: true, severity: 'error', title: '정리 실패',
+      setSnackbar({ open: true, severity: 'error', title: t('workspace.snackbar.previewCleanupFailTitle'),
                     message: e?.response?.data?.message || e?.message });
     }
   };
@@ -356,8 +358,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     if (autoFixAttemptRef.current >= MAX_AUTOFIX) {
       setAutoFixActive(false);
       setPreviewStage({ phase: 'failed', elapsedMs: 0,
-        message: `AI 자동보완을 ${MAX_AUTOFIX}회 시도했으나 오류가 계속됩니다. `
-               + '우측 [산출물 소스] 탭에서 직접 확인하거나 채팅으로 수정을 요청하세요.' });
+        message: t('workspace.previewStage.autofixGiveUp', { max: MAX_AUTOFIX }) });
       return;
     }
     autoFixingRef.current = true;
@@ -366,18 +367,18 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
     const attempt = autoFixAttemptRef.current;
     // PreviewEmbed 가 오류 화면 대신 '자동보완 중' 화면을 표시하도록 state ON.
     setAutoFixActive(true);
-    setAutoFixLabel(`AI 자동보완 중 (${attempt}/${MAX_AUTOFIX})`);
+    setAutoFixLabel(t('workspace.previewStage.autofixLabel', { n: attempt, max: MAX_AUTOFIX }));
     let ok = false;
     try {
       setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
-        message: `AI 가 오류를 분석해 산출물을 수정 중입니다 (${attempt}/${MAX_AUTOFIX})...` });
+        message: t('workspace.previewStage.autofixWorking', { n: attempt, max: MAX_AUTOFIX }) });
       ok = await chatRef.current?.sendMessage(
         buildFixPrompt(errInfo, previewMeta, { escalate: sameError }));
       triggerRefresh();
     } catch (e) {
       ok = false;
       setPreviewStage({ phase: 'failed', elapsedMs: 0,
-        message: '자동보완 처리 오류: ' + (e?.message || '') });
+        message: t('workspace.previewStage.autofixError') + (e?.message || '') });
     } finally {
       // ★ 재실행 전에 lock 해제 — 재실행의 apply 단계 '동기' 오류도 자동보완 재진입 가능.
       //   (lock 을 재실행 await 동안 잡고 있으면 동기 오류가 [3] 가드에 막혀 루프가 끊김)
@@ -387,13 +388,13 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       setAutoFixActive(false);
       setPreviewStage((s) => (s && s.phase === 'failed') ? s : ({
         phase: 'failed', elapsedMs: 0,
-        message: 'AI 자동보완 요청이 실패했습니다. 좌측 작업 내역의 오류를 확인하세요.' }));
+        message: t('workspace.previewStage.autofixRequestFail') }));
       return;
     }
-    setSnackbar({ open: true, severity: 'info', title: `AI 자동보완 (${attempt}/${MAX_AUTOFIX})`,
-      message: '산출물을 수정했습니다. 화면을 다시 실행합니다.' });
+    setSnackbar({ open: true, severity: 'info', title: t('workspace.snackbar.autoFixTitle', { n: attempt, max: MAX_AUTOFIX }),
+      message: t('workspace.snackbar.autoFixMsg') });
     setPreviewStage({ phase: 'autofixing', elapsedMs: 0,
-      message: `보완 완료 — 화면을 다시 실행합니다 (${attempt}/${MAX_AUTOFIX})...` });
+      message: t('workspace.previewStage.autofixDone', { n: attempt, max: MAX_AUTOFIX }) });
     // 재실행 — lock 해제 후 호출(await 안 함). 재실행이 또 실패하면 apply 오류(동기)·
     //   런타임 오류(비동기) 모두 handlePreviewError 로 재진입 (attempt+1, 최대 MAX).
     handlePreview();
@@ -416,7 +417,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
       URL.revokeObjectURL(url);
     } catch (e) {
       // eslint-disable-next-line no-alert
-      alert('설계서 다운로드 실패: ' + (e?.message || ''));
+      alert(t('workspace.downloadFail') + (e?.message || ''));
     } finally {
       setDownloading(false);
     }
@@ -458,7 +459,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             const meta = modelMeta(currentModel);
             const ModelIcon = meta.Icon;
             return (
-              <Tooltip title={`AI 엔진: ${meta.sub} — 클릭하여 변경`}>
+              <Tooltip title={t('workspace.header.aiEngineTooltip', { sub: meta.sub })}>
                 <Chip
                   size="small"
                   variant="outlined"
@@ -497,7 +498,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           >
             <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
               <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, letterSpacing: 1 }}>
-                AI 엔진 선택
+                {t('workspace.header.aiEngineTitle')}
               </Typography>
             </Box>
             {MODEL_OPTIONS.map((m) => {
@@ -541,7 +542,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           {extraHeader}
 
           {/* 기능 버튼 */}
-          <Tooltip title="화면설계서 Excel 다운로드">
+          <Tooltip title={t('workspace.header.designDocTooltip')}>
             <span>
               <Button
                 size="small"
@@ -551,14 +552,14 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                 variant="outlined"
                 sx={{ mr: 0.5 }}
               >
-                {downloading ? '생성 중...' : '설계서'}
+                {downloading ? t('workspace.header.designDocBusy') : t('workspace.header.designDoc')}
               </Button>
             </span>
           </Tooltip>
           {/* [화면 실행] + [오류 시 자동보완] — SHOW_PREVIEW_UI=false 일 때 숨김 (2026-05-27 사용자 요청) */}
           {SHOW_PREVIEW_UI && (
             <>
-              <Tooltip title="JSX 산출물을 AI mockup 으로 변환해 우측 [실행 화면] 탭에 렌더. 데이터는 sample, SQL/Java apply 는 skip (시각 확인 용). 첫 실행 5~10초, 이후 캐시.">
+              <Tooltip title={t('workspace.header.runPreviewTooltip')}>
                 <span>
                   <Button
                     size="small"
@@ -581,16 +582,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                     color="info"
                     sx={{ mr: 0.5 }}
                   >
-                    {previewBusy ? '실행 중...' : '화면 실행'}
+                    {previewBusy ? t('workspace.header.runPreviewBusy') : t('workspace.header.runPreview')}
                   </Button>
                 </span>
               </Tooltip>
-              <Tooltip title={
-                  "오류 시 자동보완 — 체크 시:\n"
-                + "[화면 실행] 후 런타임 오류가 발생하면 AI 가 오류 메시지를 분석해\n"
-                + "산출물(JSX/Java/SP)을 자동 수정한 뒤 화면을 다시 실행합니다.\n"
-                + "최대 3회까지 자동 반복하며, 해결되지 않으면 안내 후 멈춥니다."
-              }>
+              <Tooltip title={t('workspace.header.autoFixTooltip')}>
                 <FormControlLabel
                   sx={{ ml: 0, mr: 0.5,
                         '& .MuiFormControlLabel-label': { fontSize: 12, lineHeight: 1, whiteSpace: 'nowrap' } }}
@@ -605,7 +601,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   label={
                     <Stack direction="row" alignItems="center" spacing={0.3}>
                       <AutoFixHighIcon sx={{ fontSize: 14 }} />
-                      <span>오류 시 자동보완</span>
+                      <span>{t('workspace.header.autoFixToggle')}</span>
                     </Stack>
                   }
                 />
@@ -642,9 +638,9 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               }}
             >
               <DnsIcon sx={{ fontSize: 11 }} />
-              Target System 적용
+              {t('workspace.header.applyArtifactGroup')}
             </Typography>
-            <Tooltip title="① 메뉴 등록 — MENU_SQL 만 실제 DB 에 적용 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)">
+            <Tooltip title={t('workspace.header.registerMenuTooltip')}>
               <span>
                 <Button
                   size="small"
@@ -653,11 +649,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   variant="outlined"
                   color="warning"
                 >
-                  메뉴 등록
+                  {t('workspace.header.registerMenu')}
                 </Button>
               </span>
             </Tooltip>
-            <Tooltip title="② 산출물 실행 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행 (메뉴 등록 후 권장)">
+            <Tooltip title={t('workspace.header.applyArtifactTooltip')}>
               <span>
                 <Button
                   size="small"
@@ -666,7 +662,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   variant="outlined"
                   color="secondary"
                 >
-                  산출물 실행
+                  {t('workspace.header.applyArtifact')}
                 </Button>
               </span>
             </Tooltip>
@@ -707,12 +703,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             )}
             <Box sx={{ flex: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', color: '#0f172a' }}>
-                {previewStage.phase === 'applying'   && '⏳ 산출물 적용'}
-                {previewStage.phase === 'compiling'  && '⏳ 백엔드 컴파일'}
-                {previewStage.phase === 'restarting' && '🔄 백엔드 재기동'}
-                {previewStage.phase === 'autofixing' && '🤖 AI 자동보완'}
-                {previewStage.phase === 'ready'      && '✅ 실행 준비 완료'}
-                {previewStage.phase === 'failed'     && '⚠ 실행 준비 실패'}
+                {previewStage.phase === 'applying'   && t('workspace.previewStage.applying')}
+                {previewStage.phase === 'compiling'  && t('workspace.previewStage.compiling')}
+                {previewStage.phase === 'restarting' && t('workspace.previewStage.restarting')}
+                {previewStage.phase === 'autofixing' && t('workspace.previewStage.autofixing')}
+                {previewStage.phase === 'ready'      && t('workspace.previewStage.ready')}
+                {previewStage.phase === 'failed'     && t('workspace.previewStage.failed')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
                 {previewStage.message}
@@ -726,11 +722,11 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
             {previewStage.phase === 'failed' && previewStage.targetUrl && (
               <Button size="small" variant="outlined" color="info"
                       href={previewStage.targetUrl} target="_blank" rel="noopener noreferrer">
-                새 창에서 열기
+                {t('workspace.previewStage.openInNew')}
               </Button>
             )}
             <Button size="small" color="inherit" onClick={handlePreviewCancel}>
-              닫기
+              {t('workspace.previewStage.close')}
             </Button>
           </Stack>
         </Box>
@@ -745,12 +741,12 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           <Typography variant="body2" sx={{ flex: 1, fontWeight: 600,
                      color: genStatus.phase === 'error' ? '#b91c1c' : '#1e40af',
                      whiteSpace: 'pre-wrap' }}>
-            {genStatus.phase === 'sending' ? '🪄 화면 생성 중…' : `⚠ 생성 실패: ${genStatus.message || ''}`}
+            {genStatus.phase === 'sending' ? t('workspace.chatCollapsed.generating') : t('workspace.chatCollapsed.genFailPrefix') + (genStatus.message || '')}
           </Typography>
           {genStatus.phase === 'error' && (
             <Button size="small" variant="outlined" color="error"
                     onClick={() => { setGenStatus({ phase: 'sending' }); chatRef.current?.sendMessage(initialPrompt); }}>
-              재시도
+              {t('workspace.chatCollapsed.retry')}
             </Button>
           )}
         </Box>
@@ -786,7 +782,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                              '&:hover': { bgcolor: '#f8fafc' } }}>
                     <EditNoteIcon fontSize="small" sx={{ color: '#64748b' }} />
                     <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569', flex: 1 }}>
-                      수정 요청 {chatExpanded ? '' : '— 추가로 고칠 내용을 입력하려면 펼치기'}
+                      {t('workspace.chatCollapsed.editTitle')} {chatExpanded ? '' : t('workspace.chatCollapsed.editHint')}
                     </Typography>
                     <ExpandMoreIcon fontSize="small"
                       sx={{ color: '#94a3b8', transform: chatExpanded ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
@@ -844,7 +840,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                       iconPosition="start"
                       label={
                         <Stack direction="row" alignItems="center" spacing={0.6}>
-                          <span>실행 화면</span>
+                          <span>{t('workspace.tabs.previewLive')}</span>
                           {previewMeta && (
                             <Chip size="small" color="success" label="LIVE"
                                   sx={{ height: 16, fontSize: 9, fontWeight: 700 }} />
@@ -857,13 +853,13 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                   <Tab
                     icon={<CodeIcon fontSize="small" />}
                     iconPosition="start"
-                    label="산출물 소스"
+                    label={t('workspace.tabs.artifactSource')}
                     value={1}
                   />
                   <Tab
                     icon={<SmartToyIcon fontSize="small" />}
                     iconPosition="start"
-                    label="Insight AI"
+                    label={t('workspace.tabs.insightAi')}
                     value={2}
                   />
                 </Tabs>
@@ -871,8 +867,8 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
               {/* 새창열기 — 실행 화면 표시일 때만. SHOW_PREVIEW_UI=false 면 숨김. */}
               {SHOW_PREVIEW_UI && (
                 <Tooltip title={previewMeta
-                    ? '실행 화면을 새 창으로 열기 (전체화면 보기)'
-                    : '먼저 [화면 실행] 버튼을 눌러 실행 화면을 띄우세요'}>
+                    ? t('workspace.tabs.openInNew')
+                    : t('workspace.tabs.openInNewHint')}>
                   <span>
                     <IconButton
                       size="small"

@@ -86,6 +86,74 @@
       "defaultTitle":   "New Screen"
     }
   },
+  "workspace": {
+    "header": {
+      "runPreview":         "Run Preview",
+      "runPreviewBusy":     "Running...",
+      "registerMenu":       "Register Menu",
+      "applyArtifact":      "Apply Artifact",
+      "applyArtifactGroup": "Apply to Target System",
+      "autoFixToggle":      "Auto-fix on Error",
+      "autoFixTooltip":     "Auto-fix on Error — When checked:\nIf a runtime error occurs after [Run Preview], the AI will analyze\nthe error and modify the artifacts (JSX/Java/SP) automatically, then rerun.\nUp to 3 retries; stops with a message if unresolved.",
+      "designDoc":          "Design Doc",
+      "designDocBusy":      "Generating...",
+      "designDocTooltip":   "Download Screen Design Doc (Excel)",
+      "runPreviewTooltip":  "Convert JSX artifacts to AI mockups and render on the right [Preview] tab. Data is sample, SQL/Java apply is skipped (visual check only). First run takes 5-10s; subsequent runs are cached.",
+      "registerMenuTooltip":"① Register Menu — Apply only MENU_SQL to the actual DB (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)",
+      "applyArtifactTooltip":"② Apply Artifact — Save JSX/Java files + execute SQL_DDL/SQL_SP on the DB (recommended after Register Menu)",
+      "aiEngineTitle":      "AI Engine",
+      "aiEngineTooltip":    "AI Engine: {{sub}} — Click to change"
+    },
+    "tabs": {
+      "previewLive":     "Preview",
+      "artifactSource":  "Artifact Source",
+      "insightAi":       "Insight AI",
+      "openInNew":       "Open preview in new window (fullscreen view)",
+      "openInNewHint":   "Click [Run Preview] first to launch the preview"
+    },
+    "previewStage": {
+      "applying":       "⏳ Applying artifacts",
+      "compiling":      "⏳ Backend compiling",
+      "restarting":     "🔄 Backend restarting",
+      "ready":          "✅ Ready",
+      "autofixing":     "🤖 AI auto-fix",
+      "failed":         "⚠ Preview failed",
+      "openInNew":      "Open in new window",
+      "close":          "Close",
+      "applyingMsgSample":  "Applying artifacts — AI mockup conversion (first run 5-10s, then cached)...",
+      "applyingMsgFull":    "Applying artifacts (including restart)...",
+      "readyMsg":           "Preview is ready",
+      "autofixWorking":     "AI is analyzing the error and modifying artifacts ({{n}}/{{max}})...",
+      "autofixDone":        "Fix applied — rerunning preview ({{n}}/{{max}})...",
+      "autofixGiveUp":      "AI auto-fix tried {{max}} times but the error persists. Please check the [Artifact Source] tab on the right or request a fix via chat.",
+      "autofixError":       "Auto-fix error: ",
+      "autofixRequestFail": "AI auto-fix request failed. Check the activity log on the left for details.",
+      "autofixLabel":       "AI auto-fix in progress ({{n}}/{{max}})"
+    },
+    "snackbar": {
+      "previewReadyTitle":   "Preview ready",
+      "previewReadyJsxOnly": "{{ok}} JSX file(s) applied",
+      "previewReadyWithSkip":"{{ok}} JSX · {{skipped}} other (Java/SQL/MENU) skipped for preview",
+      "previewFailTitle":    "Preview preparation failed",
+      "previewErrorDefault": "JSX/SQL/MENU processing error",
+      "previewCommErrorTitle": "Preview communication error",
+      "previewCommErrorMsg":   "Network error",
+      "previewCleanupTitle": "Preview cleanup",
+      "previewCleanupMsg":   "Preview artifacts and DB rows cleaned up",
+      "previewCleanupFailTitle": "Cleanup failed",
+      "autoFixTitle":        "AI auto-fix ({{n}}/{{max}})",
+      "autoFixMsg":          "Artifacts modified. Rerunning preview."
+    },
+    "chatCollapsed": {
+      "editTitle":      "Modification Request",
+      "editHint":       "— Expand to enter additional changes",
+      "generating":     "🪄 Generating screen…",
+      "genFailPrefix":  "⚠ Generation failed: ",
+      "retry":          "Retry"
+    },
+    "modelSwitchFail": "Failed to switch AI engine: ",
+    "downloadFail":    "Failed to download design doc: "
+  },
   "chat": {
     "placeholder":         "Enter your modification request...",
     "placeholderDefault":  "Type a message (Ctrl+Enter to send)",

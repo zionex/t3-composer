@@ -86,6 +86,74 @@
       "defaultTitle":   "새 화면"
     }
   },
+  "workspace": {
+    "header": {
+      "runPreview":         "화면 실행",
+      "runPreviewBusy":     "실행 중...",
+      "registerMenu":       "메뉴 등록",
+      "applyArtifact":      "산출물 실행",
+      "applyArtifactGroup": "Target System 적용",
+      "autoFixToggle":      "오류 시 자동보완",
+      "autoFixTooltip":     "오류 시 자동보완 — 체크 시:\n[화면 실행] 후 런타임 오류가 발생하면 AI 가 오류 메시지를 분석해\n산출물(JSX/Java/SP)을 자동 수정한 뒤 화면을 다시 실행합니다.\n최대 3회까지 자동 반복하며, 해결되지 않으면 안내 후 멈춥니다.",
+      "designDoc":          "설계서",
+      "designDocBusy":      "생성 중...",
+      "designDocTooltip":   "화면설계서 Excel 다운로드",
+      "runPreviewTooltip":  "JSX 산출물을 AI mockup 으로 변환해 우측 [실행 화면] 탭에 렌더. 데이터는 sample, SQL/Java apply 는 skip (시각 확인 용). 첫 실행 5~10초, 이후 캐시.",
+      "registerMenuTooltip":"① 메뉴 등록 — MENU_SQL 만 실제 DB 에 적용 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)",
+      "applyArtifactTooltip":"② 산출물 실행 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행 (메뉴 등록 후 권장)",
+      "aiEngineTitle":      "AI 엔진 선택",
+      "aiEngineTooltip":    "AI 엔진: {{sub}} — 클릭하여 변경"
+    },
+    "tabs": {
+      "previewLive":     "실행 화면",
+      "artifactSource":  "산출물 소스",
+      "insightAi":       "Insight AI",
+      "openInNew":       "실행 화면을 새 창으로 열기 (전체화면 보기)",
+      "openInNewHint":   "먼저 [화면 실행] 버튼을 눌러 실행 화면을 띄우세요"
+    },
+    "previewStage": {
+      "applying":       "⏳ 산출물 적용",
+      "compiling":      "⏳ 백엔드 컴파일",
+      "restarting":     "🔄 백엔드 재기동",
+      "ready":          "✅ 실행 준비 완료",
+      "autofixing":     "🤖 AI 자동보완",
+      "failed":         "⚠ 실행 준비 실패",
+      "openInNew":      "새 창에서 열기",
+      "close":          "닫기",
+      "applyingMsgSample":  "산출물 적용 중 — AI mockup 변환 (첫 실행 5~10초 · 이후 캐시)...",
+      "applyingMsgFull":    "산출물 적용 중 (재기동 포함)...",
+      "readyMsg":           "실행 준비 완료",
+      "autofixWorking":     "AI 가 오류를 분석해 산출물을 수정 중입니다 ({{n}}/{{max}})...",
+      "autofixDone":        "보완 완료 — 화면을 다시 실행합니다 ({{n}}/{{max}})...",
+      "autofixGiveUp":      "AI 자동보완을 {{max}}회 시도했으나 오류가 계속됩니다. 우측 [산출물 소스] 탭에서 직접 확인하거나 채팅으로 수정을 요청하세요.",
+      "autofixError":       "자동보완 처리 오류: ",
+      "autofixRequestFail": "AI 자동보완 요청이 실패했습니다. 좌측 작업 내역의 오류를 확인하세요.",
+      "autofixLabel":       "AI 자동보완 중 ({{n}}/{{max}})"
+    },
+    "snackbar": {
+      "previewReadyTitle":   "화면 실행 준비 완료",
+      "previewReadyJsxOnly": "JSX {{ok}}건 적용",
+      "previewReadyWithSkip":"JSX {{ok}}건 · 그 외 {{skipped}}건 (Java/SQL/MENU) 화면 실행 대상 외",
+      "previewFailTitle":    "화면 실행 준비 실패",
+      "previewErrorDefault": "JSX/SQL/MENU 처리 오류",
+      "previewCommErrorTitle": "미리보기 통신 오류",
+      "previewCommErrorMsg":   "네트워크 오류",
+      "previewCleanupTitle": "실행 화면 정리",
+      "previewCleanupMsg":   "실행 산출물 + DB row 정리됨",
+      "previewCleanupFailTitle": "정리 실패",
+      "autoFixTitle":        "AI 자동보완 ({{n}}/{{max}})",
+      "autoFixMsg":          "산출물을 수정했습니다. 화면을 다시 실행합니다."
+    },
+    "chatCollapsed": {
+      "editTitle":      "수정 요청",
+      "editHint":       "— 추가로 고칠 내용을 입력하려면 펼치기",
+      "generating":     "🪄 화면 생성 중…",
+      "genFailPrefix":  "⚠ 생성 실패: ",
+      "retry":          "재시도"
+    },
+    "modelSwitchFail": "AI 엔진 전환 실패: ",
+    "downloadFail":    "설계서 다운로드 실패: "
+  },
   "chat": {
     "placeholder":         "수정 요청을 입력하세요...",
     "placeholderDefault":  "메시지를 입력하세요 (Ctrl+Enter 로 전송)",

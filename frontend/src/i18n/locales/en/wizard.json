@@ -85,5 +85,27 @@
       "backToPrevShort": "Previous Step",
       "defaultTitle":   "New Screen"
     }
+  },
+  "chat": {
+    "placeholder":         "Enter your modification request...",
+    "placeholderDefault":  "Type a message (Ctrl+Enter to send)",
+    "emptyHint":           "Enter requirements in natural language. (Ctrl+Enter to send)",
+    "send":                "Send",
+    "sendTooltip":         "Send (Ctrl+Enter)",
+    "generating":          "Generating...",
+    "emptyMessage":        "(empty message)",
+    "userLabel":           "User",
+    "assistantLabel":      "Claude",
+    "errorHistoryFail":    "Failed to load message history: ",
+    "errorSessionExpired": "Your login session has expired. Please log in again and retry.",
+    "errorSessionCheckFail": "Session check failed: ",
+    "errorSendFail":       "Send failed",
+    "errorAuthExpired":    "The authentication session has expired or you logged in from another tab/browser. Please log out and log in again. (Server log: JwtTokenProvider.validateToken)",
+    "errorTimeout":        "Claude response timed out (30 minutes).\nThe server may still be continuing automatically.\nPlease press \"Refresh conversation\" below shortly to view the final result.",
+    "autoFix": {
+      "toast":      "🤖 AI auto-fix ({{n}}/{{max}})",
+      "completed":  "Auto-fix completed",
+      "failed":     "Auto-fix failed — manual check needed"
+    }
   }
 }

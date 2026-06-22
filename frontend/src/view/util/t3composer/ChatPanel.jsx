@@ -16,6 +16,7 @@ import SendIcon from '@mui/icons-material/Send';
 import PersonIcon from '@mui/icons-material/Person';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { useTranslation } from 'react-i18next';
 
 import { zAxios } from '@wingui/common/imports';
 
@@ -33,6 +34,7 @@ import { listMessages, sendChat } from './api';
  */
 const ChatPanel = forwardRef(function ChatPanel(
   { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments, onGenStatus }, ref) {
+  const { t } = useTranslation('wizard');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -46,7 +48,7 @@ const ChatPanel = forwardRef(function ChatPanel(
       const res = await listMessages(sessionId);
       setMessages(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
-      setError('메시지 이력 조회 실패: ' + (e?.message || ''));
+      setError(t('chat.errorHistoryFail') + (e?.message || ''));
     }
   };
 
@@ -74,13 +76,13 @@ const ChatPanel = forwardRef(function ChatPanel(
             waitOn: false, errorMessage: false,
           });
           if (res?.data !== true) {
-            setError('로그인 세션이 만료되었습니다. 재로그인 후 다시 시도해주세요.');
+            setError(t('chat.errorSessionExpired'));
             return;
           }
         } catch (e) {
           // 401 은 전역 interceptor 가 처리, 그 외 네트워크 에러는 여기서 중단
           if (e?.response?.status === 401) return;
-          setError('세션 확인 실패: ' + (e?.message || ''));
+          setError(t('chat.errorSessionCheckFail') + (e?.message || ''));
           return;
         }
         // 첫 메시지에 D&D 첨부된 binary (이미지/PDF) 도 함께 전송
@@ -121,7 +123,7 @@ const ChatPanel = forwardRef(function ChatPanel(
       // 백엔드가 502 (Anthropic 오류) · 400 · 500 등을 반환하는 경우
       // data.message 에 사용자 친화적 메시지가 있음
       const data = e?.response?.data || {};
-      let msg = data.message || data.error || e?.message || '전송 실패';
+      let msg = data.message || data.error || e?.message || t('chat.errorSendFail');
       if (data.upstreamStatus) {
         msg = `${msg} (Anthropic ${data.upstreamStatus})`;
       }
@@ -142,8 +144,7 @@ const ChatPanel = forwardRef(function ChatPanel(
           }
         } catch (_e) { /* no-op — 계속 에러 처리 */ }
         if (!ok) {
-          msg = '인증 세션이 만료되었거나 다른 탭/브라우저에서 재로그인이 발생했습니다. '
-              + '로그아웃 후 다시 로그인 해주세요. (서버 로그: JwtTokenProvider.validateToken 참조)';
+          msg = t('chat.errorAuthExpired');
         }
       }
       if (!ok) {
@@ -151,9 +152,7 @@ const ChatPanel = forwardRef(function ChatPanel(
         // 서버 측 continuation 루프는 클라이언트 단절 후에도 계속 진행되므로
         // 리로드만 하면 최종 결과를 볼 수 있음을 안내.
         if (e?.code === 'ECONNABORTED' || /timeout/i.test(e?.message || '')) {
-          msg = 'Claude 응답 대기 시간 초과 (30분).\n'
-              + '서버에서는 자동 continuation 이 계속 진행 중일 수 있습니다.\n'
-              + '잠시 후 아래 "대화 새로고침" 을 눌러 최종 결과를 확인하세요.';
+          msg = t('chat.errorTimeout');
           // 자동 폴링 — 30초마다 listMessages reload 시도 (5분 최대)
           let attempts = 0;
           const pollId = setInterval(async () => {
@@ -206,7 +205,7 @@ const ChatPanel = forwardRef(function ChatPanel(
       >
         {messages.length === 0 && !sending && (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-            {placeholder || '요구사항을 자연어로 입력하세요. (Ctrl+Enter 전송)'}
+            {placeholder || t('chat.emptyHint')}
           </Typography>
         )}
 
@@ -223,7 +222,7 @@ const ChatPanel = forwardRef(function ChatPanel(
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CircularProgress size={14} />
                 <Typography variant="body2" color="text.secondary">
-                  응답 중...
+                  {t('chat.generating')}
                 </Typography>
               </Stack>
             </Paper>
@@ -251,11 +250,11 @@ const ChatPanel = forwardRef(function ChatPanel(
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder || '메시지를 입력하세요 (Ctrl+Enter 로 전송)'}
+            placeholder={placeholder || t('chat.placeholderDefault')}
             disabled={sending}
             size="small"
           />
-          <Tooltip title="전송 (Ctrl+Enter)">
+          <Tooltip title={t('chat.sendTooltip')}>
             <span>
               <IconButton
                 color="primary"
@@ -274,6 +273,7 @@ const ChatPanel = forwardRef(function ChatPanel(
 });
 
 function MessageBubble({ msg }) {
+  const { t } = useTranslation('wizard');
   const isUser = msg.role === 'user';
   const isAssistant = msg.role === 'assistant';
   const [expanded, setExpanded] = React.useState(false);
@@ -306,14 +306,14 @@ function MessageBubble({ msg }) {
           {isUser ? <PersonIcon sx={{ fontSize: 14 }} /> : <SmartToyIcon sx={{ fontSize: 14 }} />}
         </Avatar>
         <Typography variant="caption" sx={{ fontWeight: 700, color: isUser ? '#0369a1' : '#0f172a' }}>
-          {isUser ? 'User' : 'Claude'}
+          {isUser ? t('chat.userLabel') : t('chat.assistantLabel')}
         </Typography>
         {!expanded && (
           <Typography variant="caption" sx={{
             color: '#64748b', flex: 1, minWidth: 0,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
-            {oneLine || '(빈 메시지)'}
+            {oneLine || t('chat.emptyMessage')}
           </Typography>
         )}
         {(msg.outputTokens != null) && !expanded && (

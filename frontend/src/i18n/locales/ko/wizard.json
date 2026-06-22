@@ -1,1 +1,27 @@
-{}
+{
+  "stepper": {
+    "layout":   "① Layout",
+    "data":     "② 데이터·검색조건",
+    "meta":     "③ 메타·메뉴",
+    "generate": "④ 화면 생성",
+    "layoutShort":   "Layout",
+    "dataShort":     "데이터·검색조건",
+    "metaShort":     "메타·메뉴",
+    "generateShort": "화면 생성"
+  },
+  "buttons": {
+    "previous":   "이전",
+    "next":       "다음: {{label}}",
+    "nextLast":   "끝",
+    "backPicker": "패턴 다시 선택"
+  },
+  "header": {
+    "patternHint": "pattern:",
+    "menuHint":    "menu:"
+  },
+  "validation": {
+    "filterBarBlankLabels": "FilterBar 필드 {{count}}개에 라벨이 비어있습니다. 입력 후 다음으로 진행하세요.",
+    "orphanRelations":      "Layer 관계 {{count}}개의 source/target layer 가 존재하지 않습니다. 정리 후 다음으로 진행.",
+    "parentMenuRequired":   "부모 메뉴를 선택하세요. [메뉴 선택] 으로 등록 위치를 지정해야 합니다."
+  }
+}

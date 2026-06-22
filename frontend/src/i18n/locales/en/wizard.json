@@ -1,1 +1,27 @@
-{}
+{
+  "stepper": {
+    "layout":   "① Layout",
+    "data":     "② Data & Filter",
+    "meta":     "③ Meta & Menu",
+    "generate": "④ Generate",
+    "layoutShort":   "Layout",
+    "dataShort":     "Data & Filter",
+    "metaShort":     "Meta & Menu",
+    "generateShort": "Generate"
+  },
+  "buttons": {
+    "previous":   "Previous",
+    "next":       "Next: {{label}}",
+    "nextLast":   "Finish",
+    "backPicker": "Reselect Pattern"
+  },
+  "header": {
+    "patternHint": "pattern:",
+    "menuHint":    "menu:"
+  },
+  "validation": {
+    "filterBarBlankLabels": "{{count}} FilterBar field(s) have empty labels. Please fill them in before proceeding.",
+    "orphanRelations":      "{{count}} Layer relation(s) reference non-existent source/target layers. Clean up before proceeding.",
+    "parentMenuRequired":   "Please select a parent menu. Use [Select Menu] to specify the registration location."
+  }
+}

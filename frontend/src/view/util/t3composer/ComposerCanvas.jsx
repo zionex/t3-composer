@@ -21,6 +21,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase1.md (Task 5)
  */
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, Button, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -144,6 +145,7 @@ const RGL_PADDING = [4, 4];
 function ComposerCanvas({
   spec, onChange, readOnly = false, targetCd, onOpenDataSourcePicker,
 }) {
+  const { t } = useTranslation('wizard');
   const [editingLayerKey, setEditingLayerKey] = useState(null);
   const [addAnchor, setAddAnchor] = useState(null);
 
@@ -269,8 +271,7 @@ function ComposerCanvas({
           pb: 0.5,
         }}>
           <Typography variant="caption" sx={{ color: '#64748b', mr: 'auto' }}>
-            각 영역에 데이터를 채운 뒤 [화면 생성] 클릭 → Claude 가 산출물 + 미리보기 진행.
-            Layer 는 드래그/리사이즈/추가/삭제 가능.
+            {t('step.layout.hint')}
           </Typography>
 
           <Button
@@ -283,7 +284,7 @@ function ComposerCanvas({
               '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
             }}
           >
-            Layer
+            {t('step.layout.addLayer')}
           </Button>
           <Menu
             anchorEl={addAnchor}
@@ -292,19 +293,19 @@ function ComposerCanvas({
             slotProps={{ paper: { sx: { minWidth: 200 } } }}
           >
             <MenuItem onClick={() => handleAddLayer('GRID')}>
-              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid · 표 형태 데이터
+              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> {t('step.layout.typeGrid')}
             </MenuItem>
             <MenuItem onClick={() => handleAddLayer('CHART')}>
-              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart · 차트/KPI/지도
+              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> {t('step.layout.typeChart')}
             </MenuItem>
             <MenuItem onClick={() => handleAddLayer('CONTAINER')}>
-              <ViewQuiltIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CONTAINER }} /> Container · 탭/카드 wrapper
+              <ViewQuiltIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CONTAINER }} /> {t('step.layout.typeContainer')}
             </MenuItem>
             <MenuItem onClick={() => handleAddLayer('DOCUMENT')}>
-              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document · PDF/이미지/마크다운
+              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> {t('step.layout.typeDocument')}
             </MenuItem>
             <MenuItem onClick={() => handleAddLayer('AI')}>
-              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI · 채팅/인사이트 패널
+              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> {t('step.layout.typeAi')}
             </MenuItem>
           </Menu>
 
@@ -316,19 +317,19 @@ function ComposerCanvas({
             slotProps={{ paper: { sx: { minWidth: 220 } } }}
           >
             <Box sx={{ px: 1.5, py: 0.5, fontSize: 11, color: '#64748b', fontWeight: 700 }}>
-              Container 자식 추가
+              {t('step.layout.childMenuTitle')}
             </Box>
             <MenuItem onClick={() => handleAddChildLayer('GRID')}>
-              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> Grid · 표 형태 데이터
+              <TableViewIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.GRID }} /> {t('step.layout.typeGrid')}
             </MenuItem>
             <MenuItem onClick={() => handleAddChildLayer('CHART')}>
-              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> Chart · 차트/KPI/지도
+              <InsightsIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.CHART }} /> {t('step.layout.typeChart')}
             </MenuItem>
             <MenuItem onClick={() => handleAddChildLayer('DOCUMENT')}>
-              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> Document · PDF/이미지/마크다운
+              <DescriptionIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.DOCUMENT }} /> {t('step.layout.typeDocument')}
             </MenuItem>
             <MenuItem onClick={() => handleAddChildLayer('AI')}>
-              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> AI · 채팅/인사이트 패널
+              <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1, color: LAYER_TYPE_ACCENT.AI }} /> {t('step.layout.typeAi')}
             </MenuItem>
           </Menu>
 
@@ -339,10 +340,10 @@ function ComposerCanvas({
       {/* ───── Body Layers 라벨 ───── */}
       <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.7 }}>
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e40af' }}>
-          📐 본문 (Body Layers)
+          {t('step.layout.bodyLayers')}
         </Typography>
         <Typography variant="caption" sx={{ color: '#64748b' }}>
-          — 각 layer 박스를 클릭하면 데이터 편집 다이얼로그가 열립니다.
+          {t('step.layout.bodyHint')}
         </Typography>
       </Box>
 
@@ -352,7 +353,7 @@ function ComposerCanvas({
       }}>
         {layers.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center', color: '#94a3b8' }}>
-            Layer 가 없습니다. 우측 상단 [+ Layer] 로 추가하세요.
+            {t('step.layout.emptyState')}
           </Box>
         )}
         {layers.length > 0 && containerW > 0 && (
@@ -449,10 +450,10 @@ function ComposerCanvas({
                                         bgcolor: `${accent}26`, color: accent,
                                         fontSize: 9, fontWeight: 800, letterSpacing: '0.05em',
                                         textTransform: 'uppercase' }}>
-                              CONTAINER
+                              {t('step.layout.containerLabel')}
                             </Box>
                             <Typography sx={{ fontSize: 10, color: '#64748b' }}>
-                              · 자식 {children.length}개
+                              {t('step.layout.childCount', { count: children.length })}
                             </Typography>
                           </Box>
                         </Box>
@@ -472,7 +473,7 @@ function ComposerCanvas({
                             }}
                             variant="outlined"
                           >
-                            자식 추가
+                            {t('step.layout.addChild')}
                           </Button>
                         )}
                       </Box>
@@ -490,7 +491,7 @@ function ComposerCanvas({
                         {children.length === 0 && (
                           <Typography sx={{ fontSize: 11, color: accent, fontStyle: 'italic',
                                               textAlign: 'center', py: 1.5 }}>
-                            ↑ 우상단 [+ 자식 추가] 로 이 wrapper 안에 들어갈 layer 를 추가
+                            {t('step.layout.childEmptyHint')}
                           </Typography>
                         )}
                         {children.map((c) => {
@@ -602,7 +603,7 @@ function ComposerCanvas({
                         <Typography sx={{ fontSize: 11, fontWeight: hasData ? 700 : 500,
                                            color: hasData ? '#16a34a' : '#94a3b8',
                                            lineHeight: 1.3, mt: 0.3 }}>
-                          {hasData ? '✓ 데이터 설정됨' : '클릭하여 데이터 입력'}
+                          {hasData ? t('step.layout.dataSetState') : t('step.layout.dataEmptyState')}
                         </Typography>
                       </Box>
 
@@ -618,7 +619,7 @@ function ComposerCanvas({
 
                   {/* 호버 시 우상단 X 삭제 버튼 */}
                   {!readOnly && canDelete && (
-                    <Tooltip title="Layer 삭제" placement="left">
+                    <Tooltip title={t('step.layout.removeLayer')} placement="left">
                       <IconButton
                         className="cnv-layer-remove"
                         size="small"

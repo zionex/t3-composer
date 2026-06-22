@@ -23,5 +23,27 @@
     "filterBarBlankLabels": "{{count}} FilterBar field(s) have empty labels. Please fill them in before proceeding.",
     "orphanRelations":      "{{count}} Layer relation(s) reference non-existent source/target layers. Clean up before proceeding.",
     "parentMenuRequired":   "Please select a parent menu. Use [Select Menu] to specify the registration location."
+  },
+  "step": {
+    "layout": {
+      "addLayer":   "Layer",
+      "addChild":   "Add Child",
+      "childMenuTitle": "Add Container Child",
+      "typeGrid":      "Grid · Tabular data",
+      "typeChart":     "Chart · Chart / KPI / Map",
+      "typeContainer": "Container · Tab / Card wrapper",
+      "typeDocument":  "Document · PDF / Image / Markdown",
+      "typeAi":        "AI · Chat / Insight panel",
+      "hint":          "Fill in each region and click [Generate] → Claude produces artifacts + preview. Layers can be dragged, resized, added, or removed.",
+      "bodyLayers":    "📐 Body Layers",
+      "bodyHint":      "— Click any layer box to open the data editor dialog.",
+      "emptyState":    "No layers. Add one with [+ Layer] at the top right.",
+      "containerLabel": "CONTAINER",
+      "childCount":    "· {{count}} child(ren)",
+      "childEmptyHint": "↑ Use [+ Add Child] at the top right to add a layer inside this wrapper",
+      "dataSetState":   "✓ Data configured",
+      "dataEmptyState": "Click to enter data",
+      "removeLayer":    "Remove Layer"
+    }
   }
 }

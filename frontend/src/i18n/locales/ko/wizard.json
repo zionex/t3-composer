@@ -23,5 +23,27 @@
     "filterBarBlankLabels": "FilterBar 필드 {{count}}개에 라벨이 비어있습니다. 입력 후 다음으로 진행하세요.",
     "orphanRelations":      "Layer 관계 {{count}}개의 source/target layer 가 존재하지 않습니다. 정리 후 다음으로 진행.",
     "parentMenuRequired":   "부모 메뉴를 선택하세요. [메뉴 선택] 으로 등록 위치를 지정해야 합니다."
+  },
+  "step": {
+    "layout": {
+      "addLayer":   "Layer",
+      "addChild":   "자식 추가",
+      "childMenuTitle": "Container 자식 추가",
+      "typeGrid":      "Grid · 표 형태 데이터",
+      "typeChart":     "Chart · 차트/KPI/지도",
+      "typeContainer": "Container · 탭/카드 wrapper",
+      "typeDocument":  "Document · PDF/이미지/마크다운",
+      "typeAi":        "AI · 채팅/인사이트 패널",
+      "hint":          "각 영역에 데이터를 채운 뒤 [화면 생성] 클릭 → Claude 가 산출물 + 미리보기 진행. Layer 는 드래그/리사이즈/추가/삭제 가능.",
+      "bodyLayers":    "📐 본문 (Body Layers)",
+      "bodyHint":      "— 각 layer 박스를 클릭하면 데이터 편집 다이얼로그가 열립니다.",
+      "emptyState":    "Layer 가 없습니다. 우측 상단 [+ Layer] 로 추가하세요.",
+      "containerLabel": "CONTAINER",
+      "childCount":    "· 자식 {{count}}개",
+      "childEmptyHint": "↑ 우상단 [+ 자식 추가] 로 이 wrapper 안에 들어갈 layer 를 추가",
+      "dataSetState":   "✓ 데이터 설정됨",
+      "dataEmptyState": "클릭하여 데이터 입력",
+      "removeLayer":    "Layer 삭제"
+    }
   }
 }

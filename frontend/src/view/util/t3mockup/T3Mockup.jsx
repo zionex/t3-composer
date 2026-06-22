@@ -17,6 +17,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import { ContentInner } from '@wingui/common/imports';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
 import MockupPressPreview from './MockupPressPreview';
+import mockupLabelEn from './_data/mockup-label-en.json';
+
+// 한국어 patternLabel → 영어 lookup. 미존재 시 원본 그대로.
+function localizePatternLabel(label, isEn) {
+  if (!isEn || !label) return label;
+  return mockupLabelEn.patternLabel[label] || label;
+}
+// description 동일.
+function localizeDescription(desc, isEn) {
+  if (!isEn || !desc) return desc;
+  return mockupLabelEn.description[desc] || desc;
+}
 
 // 카테고리 → hover 색상 (border 강조용)
 function catColor(cat) {
@@ -67,7 +79,8 @@ function productLineColor(pl) {
  * 여기는 가벼운 인덱스만.
  */
 export default function T3Mockup() {
-  const { t } = useTranslation('composer');
+  const { t, i18n } = useTranslation('composer');
+  const isEn = i18n.language?.startsWith('en');
   const [active, setActiveState] = useState(null); // 선택된 patternCode
   const [filter, setFilter] = useState({ productLine: 'ALL', category: 'ALL', layout: 'ALL', q: '' });
   const [view, setView] = useState('grid');
@@ -230,7 +243,8 @@ export default function T3Mockup() {
               const menuCount = e.menus?.length || 0;
               const plColor = productLineColor(e.productLine);
               const plLabel = PRODUCT_LINE_LABEL[e.productLine] || e.productLine;
-              const cleanLabel = stripProductLinePrefix(e.patternLabel, e.productLine);
+              const cleanLabel = stripProductLinePrefix(localizePatternLabel(e.patternLabel, isEn), e.productLine);
+              const desc = localizeDescription(e.description, isEn);
               return (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={e.patternCode}>
                   <Card variant="outlined" sx={{
@@ -284,7 +298,7 @@ export default function T3Mockup() {
 
                         {/* 4행 — 설명 */}
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          {e.description}
+                          {desc}
                         </Typography>
                       </CardContent>
                     </MockupPressPreview>
@@ -305,7 +319,8 @@ export default function T3Mockup() {
               const menuCount = e.menus?.length || 0;
               const plColor = productLineColor(e.productLine);
               const plLabel = PRODUCT_LINE_LABEL[e.productLine] || e.productLine;
-              const cleanLabel = stripProductLinePrefix(e.patternLabel, e.productLine);
+              const cleanLabel = stripProductLinePrefix(localizePatternLabel(e.patternLabel, isEn), e.productLine);
+              const desc = localizeDescription(e.description, isEn);
               return (
                 <Card key={e.patternCode} variant="outlined" sx={{
                   transition: 'border-color .15s ease, box-shadow .15s ease',
@@ -340,7 +355,7 @@ export default function T3Mockup() {
                         📋 {menuCount}
                       </Typography>
                       <Typography sx={{ flex: 1.5, fontSize: 12, color: 'text.secondary', minWidth: 0 }} noWrap>
-                        {e.description}
+                        {desc}
                       </Typography>
                     </Box>
                   </MockupPressPreview>
@@ -361,7 +376,8 @@ export default function T3Mockup() {
 // ActiveView — mockup 본문 + 매핑된 운영 메뉴 collapsible 목록
 // =====================================================================
 function ActiveView({ active, ActiveComp, closeMockup }) {
-  const { t } = useTranslation('composer');
+  const { t, i18n } = useTranslation('composer');
+  const isEn = i18n.language?.startsWith('en');
   const activeEntry = MOCKUP_ENTRIES.find((x) => x.patternCode === active);
   const mappedMenus = activeEntry?.menus || [];
   const [menusOpen, setMenusOpen] = useState(false);
@@ -387,7 +403,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
           </Button>
           <Chip size="small" label={activeEntry?.patternCode} sx={{ fontFamily: 'monospace' }} />
           <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-            {activeEntry?.patternLabel}
+            {localizePatternLabel(activeEntry?.patternLabel, isEn)}
           </Typography>
           <Box sx={{ flex: 1 }} />
           {mappedMenus.length > 0 && (

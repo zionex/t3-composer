@@ -22,6 +22,7 @@ import T3Dashboard from './view/util/t3dashboard/T3Dashboard';
 import T3Mockup from './view/util/t3mockup/T3Mockup';
 import OntologyPage from './view/util/t3composer/ontology/OntologyPage';
 import PreviewLoader from './view/util/preview/PreviewLoader';
+import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
 import { ShowMessageHost } from '@wingui/common/imports';
 
 /**
@@ -232,6 +233,7 @@ function TabbedHome() {
                     borderBottom: '1px solid', borderColor: 'divider',
                     boxShadow: '0 6px 16px -10px rgba(58,74,99,0.30), '
                              + '0 1px 0 rgba(255,255,255,0.75) inset',
+                    display: 'flex', alignItems: 'flex-end',
                 }}>
                     <Tabs
                         value={activeKey}
@@ -239,6 +241,7 @@ function TabbedHome() {
                         variant="scrollable"
                         scrollButtons="auto"
                         sx={{
+                            flex: 1, minWidth: 0,
                             minHeight: 38,
                             // 입체 탭이라 하단 인디케이터 라인은 숨김
                             '& .MuiTabs-indicator': { display: 'none' },
@@ -294,6 +297,9 @@ function TabbedHome() {
                             );
                         })}
                     </Tabs>
+                    <Box sx={{ flex: '0 0 auto', pb: 0.6 }}>
+                        <LanguageSwitcher />
+                    </Box>
                 </Box>
 
                 {/* Tab Content — 열린 Tab 들은 항상 mount, display 만 토글 (상태 보존) */}

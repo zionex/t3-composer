@@ -8,6 +8,7 @@
  *   Spec: docs/superpowers/specs/2026-05-25-composer-canvas-phase2d3-ai-suggest-design.md
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, Chip, IconButton, Stack, Snackbar, Alert, CircularProgress, TextField,
 } from '@mui/material';
@@ -22,6 +23,7 @@ import { addRelation } from './wizardState';
 import { autoSuggestSpec } from './api';
 
 function DataAndFilterStep({ spec, onChange, targetCd }) {
+  const { t } = useTranslation('wizard');
   const [expandedLayerKey, setExpandedLayerKey] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [instruction, setInstruction] = useState('');
@@ -50,7 +52,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
       const relations    = Array.isArray(r.relations)    ? r.relations    : [];
 
       if (filterFields.length === 0 && relations.length === 0) {
-        setSnackbar({ severity: 'info', message: 'AI 가 추천할 항목을 찾지 못했습니다. layer / dataSource 를 더 채워보세요.' });
+        setSnackbar({ severity: 'info', message: t('step.data.aiNoResult') });
         return;
       }
 
@@ -91,15 +93,20 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
       setInstruction('');  // 성공 시 입력 비움
       setSnackbar({
         severity: 'success',
-        message: `검색조건 ${filterFields.length}개 · 관계 ${relations.length}개 추가됨.`,
+        message: t('step.data.aiSuccess', {
+          filterCount: filterFields.length,
+          relationCount: relations.length,
+        }),
       });
     } catch (e) {
       setSnackbar({
         severity: 'error',
-        message: 'AI 호출 실패: ' + (e?.response?.data?.message
-                                     || e?.response?.data?.error
-                                     || e?.message
-                                     || 'unknown'),
+        message: t('step.data.aiFail', {
+          message: e?.response?.data?.message
+                   || e?.response?.data?.error
+                   || e?.message
+                   || 'unknown',
+        }),
       });
     } finally {
       setSuggesting(false);
@@ -114,11 +121,11 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
                   gap: 0.5, overflow: 'auto' }}>
         <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e40af',
                                               flexShrink: 0, mb: 0.5 }}>
-          📐 Body Layers — 클릭하여 펼치고 데이터 편집
+          {t('step.data.leftHeader')}
         </Typography>
         {layers.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center', color: '#94a3b8' }}>
-            Layer 가 없습니다. ① Layout 단계에서 추가하세요.
+            {t('step.data.emptyLayers')}
           </Box>
         )}
         {layers.map((l) => {
@@ -154,7 +161,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
                 </Typography>
                 <Chip
                   size="small"
-                  label={hasData ? '✓' : '미설정'}
+                  label={hasData ? t('step.data.statusReady') : t('step.data.statusEmpty')}
                   sx={{
                     height: 18, fontSize: 10,
                     bgcolor: hasData ? '#dcfce7' : '#fef3c7',
@@ -205,7 +212,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
           <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mb: 0.3 }}>
             <AutoFixHighIcon sx={{ fontSize: 16, color: '#9D8FD4' }} />
             <Typography variant="caption" sx={{ fontWeight: 800, color: '#3A4A63', flex: 1 }}>
-              AI 자동완성 — 검색조건 + 관계
+              {t('step.data.aiTitle')}
             </Typography>
           </Stack>
           <TextField
@@ -218,7 +225,7 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
                 if (!suggesting && layers.length > 0) handleAutoSuggest();
               }
             }}
-            placeholder={'예: "기간 조건 추가" · "master→detail 관계 만들어줘"\n비워두면 spec 만으로 자동 유추'}
+            placeholder={t('step.data.aiPlaceholder')}
             multiline minRows={2} maxRows={5}
             fullWidth size="small" variant="outlined"
             disabled={suggesting}
@@ -245,7 +252,11 @@ function DataAndFilterStep({ spec, onChange, targetCd }) {
             }}
           />
           <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
-            {suggesting ? 'AI 분석 중...' : layers.length === 0 ? 'layer 가 1개 이상 필요' : 'Enter 또는 ▶ 클릭으로 생성'}
+            {suggesting
+              ? t('step.data.aiAnalyzing')
+              : layers.length === 0
+                ? t('step.data.aiNeedLayer')
+                : t('step.data.aiHelp')}
           </Typography>
         </Box>
 

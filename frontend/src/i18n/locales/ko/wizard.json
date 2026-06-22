@@ -44,6 +44,20 @@
       "dataSetState":   "✓ 데이터 설정됨",
       "dataEmptyState": "클릭하여 데이터 입력",
       "removeLayer":    "Layer 삭제"
+    },
+    "data": {
+      "leftHeader":     "📐 Body Layers — 클릭하여 펼치고 데이터 편집",
+      "emptyLayers":    "Layer 가 없습니다. ① Layout 단계에서 추가하세요.",
+      "statusReady":    "✓",
+      "statusEmpty":    "미설정",
+      "aiTitle":        "AI 자동완성 — 검색조건 + 관계",
+      "aiPlaceholder":  "예: \"기간 조건 추가\" · \"master→detail 관계 만들어줘\"\n비워두면 spec 만으로 자동 유추",
+      "aiAnalyzing":    "AI 분석 중...",
+      "aiNeedLayer":    "layer 가 1개 이상 필요",
+      "aiHelp":         "Enter 또는 ▶ 클릭으로 생성",
+      "aiNoResult":     "AI 가 추천할 항목을 찾지 못했습니다. layer / dataSource 를 더 채워보세요.",
+      "aiSuccess":      "검색조건 {{filterCount}}개 · 관계 {{relationCount}}개 추가됨.",
+      "aiFail":         "AI 호출 실패: {{message}}"
     }
   }
 }

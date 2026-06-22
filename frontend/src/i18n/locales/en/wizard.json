@@ -44,6 +44,20 @@
       "dataSetState":   "✓ Data configured",
       "dataEmptyState": "Click to enter data",
       "removeLayer":    "Remove Layer"
+    },
+    "data": {
+      "leftHeader":     "📐 Body Layers — Click to expand and edit data",
+      "emptyLayers":    "No layers. Add one in step ① Layout.",
+      "statusReady":    "✓",
+      "statusEmpty":    "Not set",
+      "aiTitle":        "AI Autocomplete — Filters + Relations",
+      "aiPlaceholder":  "e.g. \"Add date range\" · \"Create master→detail relation\"\nLeave blank to infer from the spec automatically",
+      "aiAnalyzing":    "AI analyzing...",
+      "aiNeedLayer":    "Requires at least one layer",
+      "aiHelp":         "Press Enter or click ▶ to generate",
+      "aiNoResult":     "AI could not find any suggestions. Try filling in more layers / dataSource.",
+      "aiSuccess":      "Added {{filterCount}} filter(s) · {{relationCount}} relation(s).",
+      "aiFail":         "AI call failed: {{message}}"
     }
   }
 }

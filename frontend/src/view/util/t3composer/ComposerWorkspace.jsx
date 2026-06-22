@@ -147,6 +147,43 @@ function buildFixPrompt(errInfo, previewMeta, opts) {
  *  - 메뉴 등록  (MENU_SQL 만 실행 — TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)
  *  - 산출물 실행 (그 외 — JSX/Java 파일 저장 + SQL_DDL/SQL_SP DB 실행)
  */
+/**
+ * chatCollapsed 헤더 토스트 문구 — ChatPanel 이 onGenStatus 로 전달한 streaming 진행 정보를
+ * 사용자 친화적 한 줄로 변환. progress 가 없으면 기본 메시지.
+ *
+ * 디자인 문서: docs/superpowers/specs/2026-06-22-chat-streaming-progress-design.md §6.3
+ */
+function formatGenStatusText(gs) {
+  if (!gs) return '🪄 화면 생성 중…';
+  const sp = gs.streamPhase;
+  const files = gs.files || [];
+  const round = gs.continuationRound;
+  const roundSuffix = (round && round > 1) ? ` (${round}차)` : '';
+  if (!sp) return '🪄 화면 생성 중…';
+  switch (sp) {
+    case 'PROMPT':
+      return '🪄 요구사항 분석 중…';
+    case 'STREAM_START':
+    case 'CONTINUATION':
+      if (files.length > 0) {
+        const last = files[files.length - 1];
+        return `📄 ${files.length}개 작성 중 / ${last.name}${roundSuffix}`;
+      }
+      if (gs.tokens && gs.tokens > 0) {
+        return `✨ Claude 응답 수신 중… (${gs.tokens.toLocaleString()} 토큰)${roundSuffix}`;
+      }
+      return `✨ Claude 응답 수신 중…${roundSuffix}`;
+    case 'STREAM_END':
+      return `📋 산출물 추출 준비 중… (${files.length}개)`;
+    case 'EXTRACT':
+      return `📋 산출물 추출 중… (${files.length}개)`;
+    case 'SAVE':
+      return `💾 저장 중… (${files.length}개)`;
+    default:
+      return '🪄 화면 생성 중…';
+  }
+}
+
 function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHeader, chatCollapsed = false }) {
   const { t } = useTranslation('wizard');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -741,8 +778,15 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
           <Typography variant="body2" sx={{ flex: 1, fontWeight: 600,
                      color: genStatus.phase === 'error' ? '#b91c1c' : '#1e40af',
                      whiteSpace: 'pre-wrap' }}>
-            {genStatus.phase === 'sending' ? t('workspace.chatCollapsed.generating') : t('workspace.chatCollapsed.genFailPrefix') + (genStatus.message || '')}
+            {genStatus.phase === 'sending'
+              ? formatGenStatusText(genStatus)
+              : t('workspace.chatCollapsed.genFailPrefix') + (genStatus.message || '')}
           </Typography>
+          {genStatus.phase === 'sending' && genStatus.elapsedMs != null && (
+            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#475569' }}>
+              {Math.max(0, Math.floor(genStatus.elapsedMs / 1000))}s
+            </Typography>
+          )}
           {genStatus.phase === 'error' && (
             <Button size="small" variant="outlined" color="error"
                     onClick={() => { setGenStatus({ phase: 'sending' }); chatRef.current?.sendMessage(initialPrompt); }}>
@@ -801,6 +845,7 @@ function ComposerWorkspace({ session, initialPrompt, initialAttachments, extraHe
                       onGenStatus={setGenStatus}
                       initialPrompt={initialPrompt}
                       initialAttachments={initialAttachments}
+                      chatCollapsed={chatCollapsed}
                     />
                   </Box>
                 </Box>

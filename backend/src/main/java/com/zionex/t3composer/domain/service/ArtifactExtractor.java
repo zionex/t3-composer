@@ -115,6 +115,20 @@ public class ArtifactExtractor {
         return "text";
     }
 
+    /**
+     * 스트리밍 컨텍스트에서 file path 만으로 artifact type 분류 — content 가 아직 없을 때 사용.
+     * 내부 {@link #classifyArtifact(String, String)} 로 위임.
+     * StreamPhaseEmitter 가 ===FILE: 마커 감지 직후 호출.
+     */
+    public String classifyByPath(String path) {
+        return classifyArtifact(path, inferLanguageFromPath(path));
+    }
+
+    /** path → 파일명 (스트리밍 컨텍스트 공용 노출) */
+    public String fileNameOf(String path) {
+        return extractFileName(path);
+    }
+
     private String classifyArtifact(String path, String language) {
         if (path == null) return ComposerArtifact.TYPE_OTHER;
         String lower = path.toLowerCase();

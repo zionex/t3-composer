@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -39,6 +40,7 @@ import { useTargetStore } from './targetStore';
  *               (createInitialSpecFromSource → convertStep9SpecToWizardSpec 변환)
  */
 function ModeExistingModify({ onBack, startWith = null }) {
+  const { t } = useTranslation('composer');
   // 활성 Target System (운영 DB 직접 조회용)
   const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
 
@@ -80,7 +82,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
       const res = await collectSourceForLlm(menuNode.id, activeTargetCd);
       setSourceBundle(res.data);
     } catch (e) {
-      setError('소스 수집 실패: ' + (e?.response?.data?.error || e?.message || ''));
+      setError(t('modeExistingModify.errors.sourceFailed', { detail: e?.response?.data?.error || e?.message || '' }));
     } finally {
       setLoadingSource(false);
     }
@@ -97,7 +99,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
       const sessRes = await createSession({
         mode: 'EXISTING_MODIFY',
         targetMenuCd: selectedMenu.id,
-        title: `${selectedMenu.id} 수정`,
+        title: t('modeExistingModify.prompt.sessionTitleSuffix', { id: selectedMenu.id }),
         targetCd: activeTargetCd,
       });
 
@@ -127,7 +129,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
       setInitialPrompt(prompt);
       setSession(sessRes.data);
     } catch (e) {
-      setError(e?.response?.data?.error || e?.message || '세션 생성 실패');
+      setError(e?.response?.data?.error || e?.message || t('modeExistingModify.errors.sessionFailed'));
     } finally {
       setStarting(false);
     }
@@ -156,7 +158,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
       setPrefilledSpec(baseSpec);
       setWizardEntered(true);
     } catch (e) {
-      setError('Spec 생성 실패: ' + (e?.message || ''));
+      setError(t('modeExistingModify.errors.specFailed', { detail: e?.message || '' }));
     } finally {
       setStarting(false);
     }
@@ -174,7 +176,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
         initialPrompt={initialPrompt}
         extraHeader={
           <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
-            종료
+            {t('modeExistingModify.buttons.exit')}
           </Button>
         }
       />
@@ -209,15 +211,15 @@ function ModeExistingModify({ onBack, startWith = null }) {
         }}
         size="small"
       >
-        {(subMode && !startWith) ? '서브모드 선택' : '모드 선택'}
+        {(subMode && !startWith) ? t('modeExistingModify.header.backToSub') : t('modeExistingModify.header.backToMode')}
       </Button>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
         <BorderColorIcon sx={{ color: '#fa7d5b' }} />
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          기존 화면 수정
+          {t('modeExistingModify.header.title')}
           {subMode && (
             <Chip
-              label={subMode === 'NL' ? '자연어 수정' : '단계별 수정'}
+              label={subMode === 'NL' ? t('modeExistingModify.header.subModeNl') : t('modeExistingModify.header.subModeStep')}
               size="small"
               sx={{ ml: 1, bgcolor: subMode === 'NL' ? '#fef3c7' : '#dbeafe',
                     color:   subMode === 'NL' ? '#92400e' : '#1e40af', fontWeight: 600 }}
@@ -237,28 +239,28 @@ function ModeExistingModify({ onBack, startWith = null }) {
         {Header}
         <Box sx={{ p: 4, maxWidth: 1100, mx: 'auto', flex: 1, overflow: 'auto' }}>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            기존 화면을 어떻게 수정할지 선택하세요. 두 방식 모두 메뉴 트리에서 화면을 선택한 후 진행합니다.
+            {t('modeExistingModify.submode.intro')}
           </Typography>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
             <SubModeCard
-              title="자연어 수정"
-              subtitle="Natural Language"
+              title={t('modeExistingModify.submode.nl.title')}
+              subtitle={t('modeExistingModify.submode.nl.subtitle')}
               icon={ChatIcon}
               color="#f59e0b"
-              description="현재 소스를 Claude 에 제공하고 자연어 대화로 변경 요청을 전달합니다. 빠르고 유연하지만 토큰 사용량이 많습니다."
-              pros={['빠른 시작', '자유로운 변경 요청', '복합 변경에 적합']}
-              cons={['토큰 비용 높음', '결과 확인은 응답 후']}
+              description={t('modeExistingModify.submode.nl.description')}
+              pros={t('modeExistingModify.submode.nl.pros', { returnObjects: true })}
+              cons={t('modeExistingModify.submode.nl.cons', { returnObjects: true })}
               onClick={() => setSubMode('NL')}
             />
             <SubModeCard
-              title="단계별 수정"
-              subtitle="Step-by-step Wizard"
+              title={t('modeExistingModify.submode.step.title')}
+              subtitle={t('modeExistingModify.submode.step.subtitle')}
               icon={PlaylistAddCheckIcon}
               color="#5281b3"
-              description="현재 화면을 9단계 Spec 으로 분해해 단계별로 보여주며 수정하고 싶은 부분만 변경 후 Claude 호출. 토큰 절감 + 변경 범위 명확."
-              pros={['토큰 절약', '변경 영역 명확', 'Step 별 미세 조정 가능']}
-              cons={['입력 단계 다수', '완전히 새로운 패턴 변경엔 부적합']}
+              description={t('modeExistingModify.submode.step.description')}
+              pros={t('modeExistingModify.submode.step.pros', { returnObjects: true })}
+              cons={t('modeExistingModify.submode.step.cons', { returnObjects: true })}
               onClick={() => setSubMode('STEP')}
             />
           </Stack>
@@ -270,7 +272,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
   // ─────────────────────────────────────────────────────────────────
   // Phase 1 — 메뉴 선택 + 소스 번들 (NL/STEP 공통)
   // ─────────────────────────────────────────────────────────────────
-  const startBtnLabel = subMode === 'NL' ? '수정 세션 시작' : '단계별 Wizard 시작';
+  const startBtnLabel = subMode === 'NL' ? t('modeExistingModify.buttons.startNl') : t('modeExistingModify.buttons.startStep');
   const startHandler  = subMode === 'NL' ? handleStartNl  : handleStartStep;
 
   return (
@@ -290,7 +292,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
               <Box
                 component="img"
                 src="/t3composer-nl-modify.png"
-                alt="좌측 메뉴에서 수정할 화면을 선택해주세요"
+                alt={t('modeExistingModify.rightPanel.placeholderAlt')}
                 sx={{ width: '100%', maxWidth: 720, height: 'auto', opacity: 0.5, userSelect: 'none', pointerEvents: 'none' }}
               />
             </Box>
@@ -320,7 +322,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
                   onClick={startHandler}
                   disabled={starting || loadingSource || !sourceBundle}
                 >
-                  {starting ? '시작 중...' : startBtnLabel}
+                  {starting ? t('modeExistingModify.buttons.starting') : startBtnLabel}
                 </Button>
               </Stack>
 
@@ -328,7 +330,7 @@ function ModeExistingModify({ onBack, startWith = null }) {
                 <Box sx={{ p: 4, textAlign: 'center' }}>
                   <CircularProgress size={28} />
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    소스 수집 중 (insight-apicall/screen-metadata/collect-source-for-llm)...
+                    {t('modeExistingModify.rightPanel.loading')}
                   </Typography>
                 </Box>
               )}
@@ -344,8 +346,8 @@ function ModeExistingModify({ onBack, startWith = null }) {
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="caption" color="text.secondary">
                     {subMode === 'NL'
-                      ? '수집된 소스 번들 (수정 세션 시작 시 Claude 의 초기 컨텍스트로 전달됩니다)'
-                      : '수집된 소스 번들 (Wizard 의 9단계 Spec 으로 자동 prefill — 변경하고 싶은 단계만 수정)'}
+                      ? t('modeExistingModify.rightPanel.hintNl')
+                      : t('modeExistingModify.rightPanel.hintStep')}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
                   {/* 섹션별 파일 목록 + Repository 의 JPA 추론 SQL 펼침 */}

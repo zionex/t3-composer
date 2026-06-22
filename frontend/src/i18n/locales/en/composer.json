@@ -34,6 +34,52 @@
       "hint":  "Decompose existing screen into a Spec and modify only what's needed"
     }
   },
+  "modeExistingModify": {
+    "header": {
+      "backToSub":  "Sub-mode Selection",
+      "backToMode": "Mode Selection",
+      "title":      "Modify Existing Screen",
+      "subModeNl":   "NL Modify",
+      "subModeStep": "Step Modify"
+    },
+    "submode": {
+      "intro":     "Choose how to modify the existing screen. Both paths start by picking a screen from the menu tree.",
+      "nl": {
+        "title":    "NL Modify",
+        "subtitle": "Natural Language",
+        "description": "Provide current source to Claude and request changes via natural-language conversation. Fast and flexible but high in token usage.",
+        "pros":     ["Quick start", "Free-form change requests", "Suited for compound changes"],
+        "cons":     ["Higher token cost", "Result visible only after response"]
+      },
+      "step": {
+        "title":    "Step Modify",
+        "subtitle": "Step-by-step Wizard",
+        "description": "Decomposes the current screen into a 9-step Spec, shows each step, and calls Claude only after you modify the parts you want. Token-efficient + scope is clear.",
+        "pros":     ["Token savings", "Clear change scope", "Fine-tuning per step"],
+        "cons":     ["Many input steps", "Not ideal for wholly new pattern changes"]
+      }
+    },
+    "rightPanel": {
+      "placeholderAlt": "Pick a screen to modify from the menu on the left",
+      "loading":      "Collecting source (insight-apicall/screen-metadata/collect-source-for-llm)...",
+      "hintNl":       "Collected source bundle (delivered as initial context to Claude when the modify session starts)",
+      "hintStep":     "Collected source bundle (auto-prefills the 9-step Wizard Spec — modify only the steps you need)"
+    },
+    "buttons": {
+      "exit":        "Exit",
+      "starting":    "Starting...",
+      "startNl":     "Start Modify Session",
+      "startStep":   "Start Step-by-Step Wizard"
+    },
+    "errors": {
+      "sourceFailed":     "Source collection failed: {{detail}}",
+      "sessionFailed":    "Session creation failed",
+      "specFailed":       "Spec creation failed: {{detail}}"
+    },
+    "prompt": {
+      "sessionTitleSuffix": "{{id}} modify"
+    }
+  },
   "modeNewFromCopy": {
     "header": {
       "back":     "Mode Selection",

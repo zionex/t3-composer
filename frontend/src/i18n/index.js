@@ -16,12 +16,18 @@ i18n.use(LanguageDetector).use(initReactI18next).init({
   },
   fallbackLng: 'ko',
   supportedLngs: ['ko', 'en'],
+  // region 코드 (en-US, en-GB, ko-KR) 가 들어와도 언어 코드만 매칭
+  load: 'languageOnly',
+  nonExplicitSupportedLngs: true,
   ns: ['common', 'composer', 'wizard'],
   defaultNS: 'common',
   detection: {
-    order: ['localStorage', 'navigator'],
+    // 사용자가 토글한 적 있으면 localStorage 우선, 없으면 navigator.language 자동 감지
+    order: ['localStorage', 'navigator', 'htmlTag'],
     lookupLocalStorage: 'composer.lang',
     caches: ['localStorage'],
+    // 정책: 한국 (ko*) 만 ko, 그 외 모든 언어 (en-US, ja, zh-CN, fr 등) 는 en 디폴트
+    convertDetectedLanguage: (lng) => ((lng || '').toLowerCase().startsWith('ko') ? 'ko' : 'en'),
   },
   interpolation: { escapeValue: false },
   react: { useSuspense: false },

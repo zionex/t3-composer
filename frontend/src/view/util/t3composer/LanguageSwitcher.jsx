@@ -1,20 +1,42 @@
 import React from 'react';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { MenuItem, Select } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+
+const LANGUAGES = [
+  { code: 'ko', label: 'KO' },
+  { code: 'en', label: 'EN' },
+];
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const current = i18n.language.startsWith('en') ? 'en' : 'ko';
+  const current = i18n.language?.startsWith('en') ? 'en' : 'ko';
   return (
-    <ToggleButtonGroup
+    <Select
       size="small"
-      exclusive
       value={current}
-      onChange={(_, v) => v && i18n.changeLanguage(v)}
-      sx={{ ml: 1, '& .MuiToggleButton-root': { px: 1.5, py: 0.25, fontSize: 12, fontWeight: 700 } }}
+      onChange={(e) => i18n.changeLanguage(e.target.value)}
+      sx={{
+        ml: 1,
+        minWidth: 72,
+        fontSize: 13,
+        fontWeight: 700,
+        '& .MuiSelect-select': {
+          display: 'flex',
+          alignItems: 'center',
+          py: 0.5,
+          pl: 1.25,
+          pr: '28px !important',
+        },
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'rgba(124,167,224,0.4)',
+        },
+      }}
     >
-      <ToggleButton value="ko">KO</ToggleButton>
-      <ToggleButton value="en">EN</ToggleButton>
-    </ToggleButtonGroup>
+      {LANGUAGES.map((lng) => (
+        <MenuItem key={lng.code} value={lng.code} sx={{ fontWeight: 600 }}>
+          {lng.label}
+        </MenuItem>
+      ))}
+    </Select>
   );
 }

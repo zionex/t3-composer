@@ -33,5 +33,34 @@
       "sub":   "Step Modify",
       "hint":  "Decompose existing screen into a Spec and modify only what's needed"
     }
+  },
+  "modeNewStep": {
+    "title":   "Step-by-Step Screen Creation (Beta) — Pattern Selection",
+    "hint":    "Choose a starting skeleton for your screen. The 4-step Wizard will then guide you through Layout / Data·Filter / Meta·Menu / Generate.",
+    "back":    "Back",
+    "dashboardTitle": "Start from Dashboard — Pick a Dashboard",
+    "newScreenDefault": "New Screen",
+    "pattern": {
+      "aiSuggest": {
+        "title": "✨ AI Suggestion",
+        "desc":  "Describe your intent in natural language — get 3 related SCM UI Mockup suggestions + 4-step AI auto prefill"
+      },
+      "mockup": {
+        "title": "SCM UI Mockup",
+        "desc":  "Product Line · Category filter — the mockup's actual layer structure is auto-prefilled"
+      },
+      "uiPattern": {
+        "title": "T3MES UI Pattern",
+        "desc":  "T3MES publishing patterns — single layer + pattern identifier preserved"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc":  "Pick one of the existing dashboards to auto-prefill widget layout"
+      },
+      "blank": {
+        "title": "Blank Canvas (P02 — Search + Single Grid)",
+        "desc":  "Start with the most common master CRUD pattern"
+      }
+    }
   }
 }

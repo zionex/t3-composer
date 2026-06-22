@@ -13,6 +13,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 7)
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, Button, Stack, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
@@ -30,6 +31,7 @@ import { specFromPattern, specFromMockup, specFromUiPattern, specFromDashboard }
 import { useTargetStore } from './targetStore';
 
 function ModeNewStep({ onBack }) {
+  const { t } = useTranslation('composer');
   // 단계: 'PICK' (패턴 선택) | 'WIZARD' (4단계 Wizard)
   const [stage, setStage] = useState('PICK');
   const [spec, setSpec]   = useState(null);
@@ -40,7 +42,7 @@ function ModeNewStep({ onBack }) {
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
 
   const startWithPattern = (patternCode) => {
-    setSpec(specFromPattern(patternCode, { title: '새 화면', menuCd: '', pattern: patternCode }));
+    setSpec(specFromPattern(patternCode, { title: t('modeNewStep.newScreenDefault'), menuCd: '', pattern: patternCode }));
     setStage('WIZARD');
   };
 
@@ -58,16 +60,16 @@ function ModeNewStep({ onBack }) {
     return (
       <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => setStage('PICK')}>뒤로</Button>
+          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => setStage('PICK')}>{t('modeNewStep.back')}</Button>
           <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800 }}>
-            Dashboard 에서 시작 — 대시보드 선택
+            {t('modeNewStep.dashboardTitle')}
           </Typography>
         </Stack>
         <Box sx={{ flex: 1, minHeight: 0 }}>
           <T3Dashboard
             onUseAsScreen={(dashboard) => {
               if (!dashboard) return;
-              setSpec(specFromDashboard(dashboard, { title: dashboard.name || dashboard.title || '새 화면', menuCd: '' }));
+              setSpec(specFromDashboard(dashboard, { title: dashboard.name || dashboard.title || t('modeNewStep.newScreenDefault'), menuCd: '' }));
               setStage('WIZARD');
             }}
           />
@@ -92,14 +94,14 @@ function ModeNewStep({ onBack }) {
     <>
     <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>뒤로</Button>
+        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>{t('modeNewStep.back')}</Button>
         <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800 }}>
-          단계별 화면 생성 (Beta) — 패턴 선택
+          {t('modeNewStep.title')}
         </Typography>
       </Stack>
 
       <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-        화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.
+        {t('modeNewStep.hint')}
       </Typography>
 
       <Stack spacing={2}>
@@ -112,10 +114,10 @@ function ModeNewStep({ onBack }) {
             <AutoAwesomeIcon sx={{ fontSize: 32, color: '#f59e0b' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#b45309' }}>
-                ✨ AI 추천
+                {t('modeNewStep.pattern.aiSuggest.title')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                자연어로 의도를 적으면 관련 SCM UI Mockup 3개 추천 + 4단계 AI 자동 prefill
+                {t('modeNewStep.pattern.aiSuggest.desc')}
               </Typography>
             </Box>
           </Stack>
@@ -128,10 +130,10 @@ function ModeNewStep({ onBack }) {
             <DashboardCustomizeIcon sx={{ fontSize: 32, color: '#3b82f6' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e40af' }}>
-                SCM UI Mockup
+                {t('modeNewStep.pattern.mockup.title')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                Product Line · 카테고리 필터 — mockup 의 실제 layer 구조가 자동 prefill
+                {t('modeNewStep.pattern.mockup.desc')}
               </Typography>
             </Box>
           </Stack>
@@ -144,10 +146,10 @@ function ModeNewStep({ onBack }) {
             <ViewQuiltIcon sx={{ fontSize: 32, color: '#10b981' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#065f46' }}>
-                T3MES UI Pattern
+                {t('modeNewStep.pattern.uiPattern.title')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존
+                {t('modeNewStep.pattern.uiPattern.desc')}
               </Typography>
             </Box>
           </Stack>
@@ -160,10 +162,10 @@ function ModeNewStep({ onBack }) {
             <DashboardIcon sx={{ fontSize: 32, color: '#0ea5e9' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#075985' }}>
-                Dashboard
+                {t('modeNewStep.pattern.dashboard.title')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                기존 대시보드 1개를 골라 위젯 레이아웃을 자동 prefill
+                {t('modeNewStep.pattern.dashboard.desc')}
               </Typography>
             </Box>
           </Stack>
@@ -176,10 +178,10 @@ function ModeNewStep({ onBack }) {
             <EditOutlinedIcon sx={{ fontSize: 32, color: '#8b5cf6' }} />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#5b21b6' }}>
-                빈 캔버스 (P02 — 검색 + 단일 그리드)
+                {t('modeNewStep.pattern.blank.title')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>
-                가장 일반적인 마스터 CRUD 패턴으로 시작
+                {t('modeNewStep.pattern.blank.desc')}
               </Typography>
             </Box>
           </Stack>
@@ -195,7 +197,7 @@ function ModeNewStep({ onBack }) {
       onConfirm={(entry) => {
         setMockupPickerOpen(false);
         if (!entry) return;  // 사용자가 '해제' 한 경우
-        setSpec(specFromMockup(entry, { title: '새 화면', menuCd: '' }));
+        setSpec(specFromMockup(entry, { title: t('modeNewStep.newScreenDefault'), menuCd: '' }));
         setStage('WIZARD');
       }}
     />
@@ -206,7 +208,7 @@ function ModeNewStep({ onBack }) {
       onConfirm={(entry) => {
         setUiPatternPickerOpen(false);
         if (!entry) return;
-        setSpec(specFromUiPattern(entry, { title: '새 화면', menuCd: '' }));
+        setSpec(specFromUiPattern(entry, { title: t('modeNewStep.newScreenDefault'), menuCd: '' }));
         setStage('WIZARD');
       }}
     />

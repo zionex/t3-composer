@@ -33,5 +33,34 @@
       "sub":   "Step Modify",
       "hint":  "기존 화면을 Spec 으로 분해해 수정할 부분만 변경"
     }
+  },
+  "modeNewStep": {
+    "title":   "단계별 화면 생성 (Beta) — 패턴 선택",
+    "hint":    "화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.",
+    "back":    "뒤로",
+    "dashboardTitle": "Dashboard 에서 시작 — 대시보드 선택",
+    "newScreenDefault": "새 화면",
+    "pattern": {
+      "aiSuggest": {
+        "title": "✨ AI 추천",
+        "desc":  "자연어로 의도를 적으면 관련 SCM UI Mockup 3개 추천 + 4단계 AI 자동 prefill"
+      },
+      "mockup": {
+        "title": "SCM UI Mockup",
+        "desc":  "Product Line · 카테고리 필터 — mockup 의 실제 layer 구조가 자동 prefill"
+      },
+      "uiPattern": {
+        "title": "T3MES UI Pattern",
+        "desc":  "T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc":  "기존 대시보드 1개를 골라 위젯 레이아웃을 자동 prefill"
+      },
+      "blank": {
+        "title": "빈 캔버스 (P02 — 검색 + 단일 그리드)",
+        "desc":  "가장 일반적인 마스터 CRUD 패턴으로 시작"
+      }
+    }
   }
 }

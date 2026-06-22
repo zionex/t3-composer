@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -27,6 +28,7 @@ const entryKey = (e) => `${e.file}#${e.tabIndex ?? '-'}`;
  *   onConfirm(entry)   entry = ALL_ENTRIES 항목 또는 null (해제)
  */
 function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
+  const { t } = useTranslation('composer');
   const [selected, setSelected]           = useState(currentValue || null);
   const [query, setQuery]                 = useState('');
   const [sectionFilter, setSectionFilter] = useState('ALL');  // ALL | MES | SCM
@@ -72,9 +74,9 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 6 }}>
         <ViewQuiltIcon fontSize="small" sx={{ color: '#7c3aed' }} />
-        UI Pattern 선택
+        {t('picker.uiPattern.title')}
         <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-          (선택사항 — 고른 패턴의 경량 마크업을 Claude 가 참조 · 미리보기 우측 표시)
+          {t('picker.uiPattern.caption')}
         </Typography>
         <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', right: 8, top: 8 }}>
           <CloseIcon fontSize="small" />
@@ -94,15 +96,15 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                   value={sectionFilter} exclusive size="small"
                   onChange={(_, v) => { if (v) setSectionFilter(v); }}
                 >
-                  <ToggleButton value="ALL" sx={{ px: 1.2, py: 0.3 }}>전체</ToggleButton>
+                  <ToggleButton value="ALL" sx={{ px: 1.2, py: 0.3 }}>{t('picker.uiPattern.filterAll')}</ToggleButton>
                   <ToggleButton value="SCM" sx={{ px: 1.2, py: 0.3 }}>SCM</ToggleButton>
                   <ToggleButton value="MES" sx={{ px: 1.2, py: 0.3 }}>MES</ToggleButton>
                 </ToggleButtonGroup>
-                <Chip size="small" variant="outlined" label={`${filtered.length}개`} />
+                <Chip size="small" variant="outlined" label={t('picker.uiPattern.countChip', { n: filtered.length })} />
               </Stack>
               <TextField
                 fullWidth size="small"
-                placeholder="섹션 · 그룹 · 파일 · 패턴 라벨 검색"
+                placeholder={t('picker.uiPattern.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
@@ -116,7 +118,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
             <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
               {filtered.length === 0 && (
                 <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-                  검색 결과가 없습니다.
+                  {t('picker.uiPattern.emptyHint')}
                 </Typography>
               )}
               {Array.from(tree.entries()).map(([section, grpMap]) => (
@@ -164,7 +166,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                                   </Typography>
                                   {layerCount > 0 && (
                                     <Chip size="small" label={`${layerCount}L`}
-                                      title={`이 패턴은 ${layerCount}개 layer 로 자동 분할됩니다`}
+                                      title={t('picker.uiPattern.layerChipTitle', { n: layerCount })}
                                       sx={{ height: 16, fontSize: 9, fontWeight: 700,
                                             bgcolor: 'rgba(124,58,237,0.12)', color: '#7c3aed',
                                             border: '1px solid rgba(124,58,237,0.25)',
@@ -190,7 +192,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                 position: 'absolute', inset: 0, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', color: '#64748b',
               }}>
-                <Typography variant="body2">왼쪽 목록에서 UI Pattern 을 선택하면 미리보기가 표시됩니다.</Typography>
+                <Typography variant="body2">{t('picker.uiPattern.previewEmpty')}</Typography>
               </Box>
             )}
             {selectedEntry && (
@@ -208,13 +210,13 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
       <DialogActions>
         {currentValue && (
           <Button color="inherit" onClick={() => { setSelected(null); onConfirm(null); }}>
-            선택 해제
+            {t('picker.uiPattern.clearSelection')}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />
-        <Button onClick={onClose}>취소</Button>
+        <Button onClick={onClose}>{t('picker.uiPattern.cancel')}</Button>
         <Button variant="contained" color="secondary" onClick={confirm} disabled={!selectedEntry}>
-          이 패턴 적용
+          {t('picker.uiPattern.apply')}
         </Button>
       </DialogActions>
     </Dialog>

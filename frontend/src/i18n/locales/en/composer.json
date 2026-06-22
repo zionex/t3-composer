@@ -244,5 +244,58 @@
         "desc":  "Start with the most common master CRUD pattern"
       }
     }
+  },
+  "picker": {
+    "mockup": {
+      "title":             "Select SCM UI Mockup",
+      "caption":           "(optional — Claude references the chosen mockup's layout skeleton · preview on the right)",
+      "searchPlaceholder": "Search by code · label · description",
+      "productLineLabel":  "Product",
+      "categoryLabel":     "Category",
+      "all":               "All",
+      "allWithCount":      "All · {{n}}",
+      "emptyHint":         "No results.",
+      "previewEmpty":      "Pick a mockup from the list to see its preview.",
+      "clearSelection":    "Clear selection",
+      "cancel":            "Cancel",
+      "apply":             "Apply this Mockup"
+    },
+    "uiPattern": {
+      "title":             "Select UI Pattern",
+      "caption":           "(optional — Claude references the chosen pattern's lite markup · preview on the right)",
+      "filterAll":         "All",
+      "countChip":         "{{n}}",
+      "searchPlaceholder": "Search by section · group · file · pattern label",
+      "emptyHint":         "No results.",
+      "layerChipTitle":    "This pattern is auto-split into {{n}} layers",
+      "previewEmpty":      "Pick a UI Pattern from the list to see its preview.",
+      "clearSelection":    "Clear selection",
+      "cancel":            "Cancel",
+      "apply":             "Apply this Pattern"
+    },
+    "dataSource": {
+      "title":             "Select Data Source — Neural Constellation Map",
+      "targetChip":        "Target · {{cd}}",
+      "targetNone":        "No Target selected",
+      "close":             "Close",
+      "tab": {
+        "dbEntity":    "DB Entity",
+        "ontology":    "Ontology",
+        "queryInline": "Query Inline"
+      },
+      "basketCount":       "Selected {{n}}",
+      "emptyHint":         "Picked tables · SPs · ontology entries · queries will appear here.",
+      "clearAll":          "Clear all",
+      "cancel":            "Cancel",
+      "apply":             "Apply ({{n}})",
+      "kind": {
+        "TABLE":           "Table",
+        "SP":              "SP",
+        "ONTOLOGY_QA":     "Q&A",
+        "ONTOLOGY_INTENT": "Intent",
+        "ONTOLOGY_SP":     "UI SP",
+        "INLINE_QUERY":    "Query"
+      }
+    }
   }
 }

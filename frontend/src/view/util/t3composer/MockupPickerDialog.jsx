@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -31,6 +32,7 @@ const PREVIEW_SCALE = 0.62;
  *   onConfirm(entry)    entry = MOCKUP_ENTRIES 항목 또는 null (해제)
  */
 function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
+  const { t } = useTranslation('composer');
   const [selected, setSelected]                 = useState(currentValue || null);
   const [query, setQuery]                       = useState('');
   const [productLineFilter, setProductLineFilter] = useState('ALL');
@@ -134,9 +136,9 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 6 }}>
         <DashboardCustomizeIcon fontSize="small" sx={{ color: '#2563eb' }} />
-        SCM UI Mockup 선택
+        {t('picker.mockup.title')}
         <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-          (선택사항 — 고른 mockup 의 레이아웃 골격을 Claude 가 참조 · 미리보기 우측 표시)
+          {t('picker.mockup.caption')}
         </Typography>
         <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', right: 8, top: 8 }}>
           <CloseIcon fontSize="small" />
@@ -153,7 +155,7 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
             <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
               <TextField
                 fullWidth size="small"
-                placeholder="코드 · 라벨 · 설명 검색"
+                placeholder={t('picker.mockup.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
@@ -166,10 +168,10 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
               {/* Product Line — 전체 + 등록된 productLine 별 */}
               <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ gap: 0.5, mb: 0.6 }}>
                 <Typography variant="caption" sx={{ alignSelf: 'center', mr: 0.5, color: '#94a3b8', fontWeight: 600 }}>
-                  Product
+                  {t('picker.mockup.productLineLabel')}
                 </Typography>
                 <Chip
-                  size="small" label={`전체 · ${MOCKUP_ENTRIES.length}`}
+                  size="small" label={t('picker.mockup.allWithCount', { n: MOCKUP_ENTRIES.length })}
                   onClick={() => setProductLineFilter('ALL')}
                   color={productLineFilter === 'ALL' ? 'secondary' : 'default'}
                   variant={productLineFilter === 'ALL' ? 'filled' : 'outlined'}
@@ -188,10 +190,10 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
               {/* 카테고리 — 현재 Product Line 안에서 등장하는 것만 */}
               <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ gap: 0.5 }}>
                 <Typography variant="caption" sx={{ alignSelf: 'center', mr: 0.5, color: '#94a3b8', fontWeight: 600 }}>
-                  Category
+                  {t('picker.mockup.categoryLabel')}
                 </Typography>
                 <Chip
-                  size="small" label="전체"
+                  size="small" label={t('picker.mockup.all')}
                   onClick={() => setCatFilter('ALL')}
                   color={catFilter === 'ALL' ? 'primary' : 'default'}
                   variant={catFilter === 'ALL' ? 'filled' : 'outlined'}
@@ -210,7 +212,7 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
             <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
               {grouped.length === 0 && (
                 <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-                  검색 결과가 없습니다.
+                  {t('picker.mockup.emptyHint')}
                 </Typography>
               )}
               {grouped.map(([cat, entries]) => (
@@ -273,7 +275,7 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
                 position: 'absolute', inset: 0, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', color: '#64748b',
               }}>
-                <Typography variant="body2">왼쪽 목록에서 mockup 을 선택하면 미리보기가 표시됩니다.</Typography>
+                <Typography variant="body2">{t('picker.mockup.previewEmpty')}</Typography>
               </Box>
             )}
             {selectedEntry && PreviewComp && (
@@ -301,13 +303,13 @@ function MockupPickerDialog({ open, onClose, currentValue, onConfirm }) {
       <DialogActions>
         {currentValue && (
           <Button color="inherit" onClick={() => { setSelected(null); onConfirm(null); }}>
-            선택 해제
+            {t('picker.mockup.clearSelection')}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />
-        <Button onClick={onClose}>취소</Button>
+        <Button onClick={onClose}>{t('picker.mockup.cancel')}</Button>
         <Button variant="contained" onClick={confirm} disabled={!selectedEntry}>
-          이 Mockup 적용
+          {t('picker.mockup.apply')}
         </Button>
       </DialogActions>
     </Dialog>

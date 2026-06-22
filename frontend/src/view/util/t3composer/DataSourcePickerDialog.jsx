@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Dialog, Box, Typography, Stack, Chip, IconButton, Button, Tooltip, Tabs, Tab,
@@ -17,13 +18,13 @@ import QueryInlineTab from './QueryInlineTab';
 const HOLO = '#38bdf8';
 const RGBA = (a) => `rgba(56,189,248,${a})`;
 
-const KIND_META = {
-  TABLE:           { label: '테이블',  color: '#38bdf8' },
-  SP:              { label: 'SP',      color: '#f59e0b' },
-  ONTOLOGY_QA:     { label: 'Q&A',     color: '#86C7A8' },
-  ONTOLOGY_INTENT: { label: '의도',    color: '#9D8FD4' },
-  ONTOLOGY_SP:     { label: 'UI SP',   color: '#2dd4bf' },
-  INLINE_QUERY:    { label: '쿼리',    color: '#7CA7E0' },
+const KIND_COLOR = {
+  TABLE:           '#38bdf8',
+  SP:              '#f59e0b',
+  ONTOLOGY_QA:     '#86C7A8',
+  ONTOLOGY_INTENT: '#9D8FD4',
+  ONTOLOGY_SP:     '#2dd4bf',
+  INLINE_QUERY:    '#7CA7E0',
 };
 
 /**
@@ -37,8 +38,18 @@ const KIND_META = {
  *   open · onClose() · currentValue(basket[]|null) · onConfirm(basket[]) · targetCd
  */
 function DataSourcePickerDialog({ open, onClose, currentValue, onConfirm, targetCd }) {
+  const { t } = useTranslation('composer');
   const [tab, setTab] = useState('DB');
   const [basket, setBasket] = useState([]);
+
+  const kindMeta = useMemo(() => ({
+    TABLE:           { label: t('picker.dataSource.kind.TABLE'),           color: KIND_COLOR.TABLE },
+    SP:              { label: t('picker.dataSource.kind.SP'),              color: KIND_COLOR.SP },
+    ONTOLOGY_QA:     { label: t('picker.dataSource.kind.ONTOLOGY_QA'),     color: KIND_COLOR.ONTOLOGY_QA },
+    ONTOLOGY_INTENT: { label: t('picker.dataSource.kind.ONTOLOGY_INTENT'), color: KIND_COLOR.ONTOLOGY_INTENT },
+    ONTOLOGY_SP:     { label: t('picker.dataSource.kind.ONTOLOGY_SP'),     color: KIND_COLOR.ONTOLOGY_SP },
+    INLINE_QUERY:    { label: t('picker.dataSource.kind.INLINE_QUERY'),    color: KIND_COLOR.INLINE_QUERY },
+  }), [t]);
 
   useEffect(() => {
     if (open) {
@@ -89,16 +100,16 @@ function DataSourcePickerDialog({ open, onClose, currentValue, onConfirm, target
         <HubIcon sx={{ color: HOLO, filter: `drop-shadow(0 0 6px ${RGBA(0.8)})` }} />
         <Typography sx={{ fontWeight: 800, color: '#dffaff', letterSpacing: 1,
                           textShadow: `0 0 12px ${RGBA(0.7)}` }}>
-          Data Source 선택 — 뉴럴 별자리 맵
+          {t('picker.dataSource.title')}
         </Typography>
         <Chip
           size="small"
-          label={targetCd ? `Target · ${targetCd}` : 'Target 미선택'}
+          label={targetCd ? t('picker.dataSource.targetChip', { cd: targetCd }) : t('picker.dataSource.targetNone')}
           sx={{ height: 20, fontSize: 10, color: HOLO, bgcolor: RGBA(0.1),
                 border: `1px solid ${RGBA(0.4)}` }}
         />
         <Box sx={{ flex: 1 }} />
-        <Tooltip title="닫기">
+        <Tooltip title={t('picker.dataSource.close')}>
           <IconButton size="small" onClick={onClose} sx={{ color: '#9fc7d8' }}>
             <CloseIcon />
           </IconButton>
@@ -113,9 +124,9 @@ function DataSourcePickerDialog({ open, onClose, currentValue, onConfirm, target
           sx={{ minHeight: 42, '& .MuiTab-root': { color: '#5b7a92', minHeight: 42, textTransform: 'none' },
                 '& .Mui-selected': { color: `${HOLO} !important` } }}
         >
-          <Tab value="DB"       icon={<AccountTreeIcon fontSize="small" />} iconPosition="start" label="DB Entity" />
-          <Tab value="ONTOLOGY" icon={<PsychologyIcon fontSize="small" />}  iconPosition="start" label="Ontology" />
-          <Tab value="QUERY"    icon={<CodeIcon fontSize="small" />}        iconPosition="start" label="Query Inline" />
+          <Tab value="DB"       icon={<AccountTreeIcon fontSize="small" />} iconPosition="start" label={t('picker.dataSource.tab.dbEntity')} />
+          <Tab value="ONTOLOGY" icon={<PsychologyIcon fontSize="small" />}  iconPosition="start" label={t('picker.dataSource.tab.ontology')} />
+          <Tab value="QUERY"    icon={<CodeIcon fontSize="small" />}        iconPosition="start" label={t('picker.dataSource.tab.queryInline')} />
         </Tabs>
       </Box>
 
@@ -133,17 +144,17 @@ function DataSourcePickerDialog({ open, onClose, currentValue, onConfirm, target
         borderTop: `1px solid ${RGBA(0.3)}`, bgcolor: 'rgba(5,8,15,0.9)',
       }}>
         <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#9fc7d8', flexShrink: 0 }}>
-          선택 {basket.length}
+          {t('picker.dataSource.basketCount', { n: basket.length })}
         </Typography>
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', gap: 0.6, flexWrap: 'nowrap',
                    overflowX: 'auto', py: 0.5 }}>
           {basket.length === 0 && (
             <Typography sx={{ fontSize: 11.5, color: '#5b7a92' }}>
-              탭에서 테이블·SP·온톨로지·쿼리를 선택하면 여기에 담깁니다.
+              {t('picker.dataSource.emptyHint')}
             </Typography>
           )}
           {basket.map((b) => {
-            const m = KIND_META[b.kind] || { label: b.kind, color: '#9fc7d8' };
+            const m = kindMeta[b.kind] || { label: b.kind, color: '#9fc7d8' };
             return (
               <Chip
                 key={`${b.kind}_${b.key}`}
@@ -167,17 +178,17 @@ function DataSourcePickerDialog({ open, onClose, currentValue, onConfirm, target
         </Box>
         {basket.length > 0 && (
           <Button size="small" onClick={() => setBasket([])} sx={{ color: '#9fc7d8', flexShrink: 0 }}>
-            전체 해제
+            {t('picker.dataSource.clearAll')}
           </Button>
         )}
-        <Button onClick={onClose} sx={{ color: '#9fc7d8', flexShrink: 0 }}>취소</Button>
+        <Button onClick={onClose} sx={{ color: '#9fc7d8', flexShrink: 0 }}>{t('picker.dataSource.cancel')}</Button>
         <Button
           variant="contained" startIcon={<CheckCircleIcon />}
           onClick={() => { onConfirm(basket); onClose(); }}
           sx={{ bgcolor: HOLO, color: '#04141f', fontWeight: 800, flexShrink: 0,
                 '&:hover': { bgcolor: '#7dd3fc' } }}
         >
-          적용 ({basket.length})
+          {t('picker.dataSource.apply', { n: basket.length })}
         </Button>
       </Box>
     </Dialog>

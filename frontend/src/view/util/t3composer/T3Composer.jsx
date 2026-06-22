@@ -163,7 +163,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
 
           <TargetSystemSelector />
 
-          <Tooltip title={apiKeyRegistered ? 'API 키 등록됨 — 모든 모드 사용 가능' : 'API 키 미등록 — 클릭하여 등록'}>
+          <Tooltip title={apiKeyRegistered ? t('header.apiKey.registeredTooltip') : t('header.apiKey.unregisteredTooltip')}>
             <Box
               onClick={onOpenSettings}
               sx={{
@@ -183,7 +183,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                 ? <CheckCircleIcon sx={{ fontSize: 16, color: '#1F6B49' }} />
                 : <WarningAmberIcon sx={{ fontSize: 16, color: '#8A5410' }} />}
               <Typography variant="caption" sx={{ fontWeight: 700, color: apiKeyRegistered ? '#1F6B49' : '#7A4A0E' }}>
-                {apiKeyRegistered ? 'API Key 등록' : 'API Key 필요'}
+                {apiKeyRegistered ? t('header.apiKey.registeredLabel') : t('header.apiKey.unregisteredLabel')}
               </Typography>
             </Box>
           </Tooltip>
@@ -191,8 +191,8 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
           {/* LLM Backend 모드 칩 — .env 의 LLM_BACKEND 값. cli=구독 OAuth, api=HTTP API */}
           <Tooltip title={
             llmBackend === 'cli'
-              ? 'CLI 모드 — 호스트 ~/.claude OAuth 로그인 사용 (Claude 구독)'
-              : 'API 모드 — Anthropic HTTP API + ANTHROPIC_API_KEY 사용'
+              ? t('header.llmBackend.cliTooltip')
+              : t('header.llmBackend.apiTooltip')
           }>
             <Box
               sx={{
@@ -214,7 +214,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
               </Typography>
             </Box>
           </Tooltip>
-          <Tooltip title="설정">
+          <Tooltip title={t('header.settings')}>
             <IconButton size="small" onClick={onOpenSettings}
                         sx={{ color: 'primary.dark', bgcolor: 'rgba(124,167,224,0.16)',
                               '&:hover': { bgcolor: 'rgba(124,167,224,0.30)' } }}>
@@ -354,7 +354,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                           <Box
                             component="img"
                             src="/t3composer-concept.png"
-                            alt="T³Composer — ScreenSpec 개념도"
+                            alt={t('conceptDiagram.alt')}
                             sx={{ maxWidth: '100%', maxHeight: '100%',
                                   objectFit: 'contain', display: 'block',
                                   opacity: 0.4 }}
@@ -364,7 +364,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                           flexShrink: 0, textAlign: 'center',
                           color: 'text.secondary', fontSize: 9.5, letterSpacing: 0.2,
                         }}>
-                          다양한 입력 → ScreenSpec → 화면 산출물
+                          {t('conceptDiagram.caption')}
                         </Typography>
                       </Box>
                     )}
@@ -383,6 +383,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
 // Main
 // =====================================================================
 function T3Composer() {
+  const { t } = useTranslation('composer');
   const [mode, setMode] = useState(null);                   // 선택된 실행 모드
   const [modifyStartWith, setModifyStartWith] = useState(null);  // 기존 화면 수정 서브모드 ('NL'|'STEP')
   const [apiKeyRegistered, setApiKeyReg]    = useState(null);
@@ -621,7 +622,7 @@ function T3Composer() {
                         startIcon={<ArrowBackIcon fontSize="small" />}
                         onClick={backFromResume}
                         sx={{ mr: 1 }}>
-                  종료
+                  {t('workspace.exit')}
                 </Button>
               }
             />

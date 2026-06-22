@@ -63,7 +63,9 @@ const MODEL_OPTIONS = [
     id:    'claude-sonnet-4-6',
     label: 'Sonnet',
     sub:   'Sonnet 4.6 — 빠름',
+    subEn: 'Sonnet 4.6 — Fast',
     desc:  '속도·비용·품질 균형. 빠른 생성이 필요할 때.',
+    descEn:'Balanced speed, cost and quality. Choose for fast generation.',
     Icon:  BoltIcon,
     color: '#7CA7E0',
   },
@@ -71,7 +73,9 @@ const MODEL_OPTIONS = [
     id:    'claude-opus-4-7',
     label: 'Opus',
     sub:   'Opus 4.7 — 기본값 (고품질)',
+    subEn: 'Opus 4.7 — Default (high quality)',
     desc:  '복잡 로직·고난이도 화면에 적합. 출력이 매우 많으면(16K+) 응답에 3~5분+ 소요될 수 있음.',
+    descEn:'Best for complex logic and demanding screens. Very large outputs (16K+) may take 3–5+ minutes.',
     Icon:  DiamondIcon,
     color: '#9D8FD4',
   },
@@ -147,6 +151,52 @@ const EXAMPLE_PROMPTS = {
   ],
 };
 
+const EXAMPLE_PROMPTS_EN = {
+  DP: [
+    'Monthly demand plan entry by customer — crosstab pivot. P06',
+    'Demand plan vs actual analysis — top grid + bottom trend chart. P05',
+  ],
+  MP: [
+    'Resource utilization Gantt — adjustable time bucket. P09',
+    'MP simulation result summary + detail tabs. P03',
+  ],
+  FP: [
+    'FP work order monitoring dashboard — KPI + charts. P01',
+    'Resource-wise production plan Gantt. P09',
+  ],
+  RP: [
+    'Confirmed replenishment orders — search + single grid. P02',
+    'Replenishment plan pivot entry. P06',
+  ],
+  BF: [
+    'Forecast accuracy analysis — grid + trend chart. P05',
+    'BF control board · version management. P07',
+  ],
+  IM: [
+    'Safety / target inventory policy — search + grid. P02',
+    'ABC/XYZ analysis chart + list. P05',
+  ],
+  SA: [
+    'S&OP meeting agenda management. P01',
+    'Sales aggregation dashboard. P01',
+  ],
+  SO: [
+    'Sales order browse. P02',
+  ],
+  CM: [
+    'Item master management — search + single grid. P02',
+    'Location / warehouse hierarchy — horizontal split. P04',
+  ],
+  AD: [
+    'User management — search + grid + role assignment. P04',
+    'Menu management — tree + detail. P04',
+  ],
+  UT: [
+    'Notice management — search + grid. P02',
+    'Issue management dashboard. P01',
+  ],
+};
+
 /**
  * 신규 생성 입력 방식별 예시 — 우측 가이드 패널에 카테고리로 표시.
  *   kind:'prompt' 항목은 클릭 시 프롬프트 입력란에 채워짐. kind:'info' 는 안내.
@@ -207,7 +257,8 @@ const CREATION_EXAMPLES = [
  *      - 단계별: StepByStepWizard 로 위임 (내부에서 module 재사용)
  */
 function ModeNewGeneral({ onBack, startWith = null }) {
-  const { t } = useTranslation('composer');
+  const { t, i18n } = useTranslation('composer');
+  const isEn = i18n.language?.startsWith('en');
   // startWith === 'NL'   → 자연어 모드로 바로 진입 (서브모드 선택 스킵)
   // startWith === 'STEP' → 단계별 Wizard 로 바로 진입
   // startWith === null   → 서브모드 선택 화면 표시 (구 동작)
@@ -272,7 +323,9 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
   const module = useMemo(() => getModule(moduleCode), [moduleCode]);
 
-  const examples = moduleCode ? (EXAMPLE_PROMPTS[moduleCode] || []) : [];
+  const examples = moduleCode
+    ? ((isEn ? (EXAMPLE_PROMPTS_EN[moduleCode] || EXAMPLE_PROMPTS[moduleCode]) : EXAMPLE_PROMPTS[moduleCode]) || [])
+    : [];
 
   // SCM UI Mockup 선택 확정 — 일반 POPUP(MockupPickerDialog) / 3D 갤러리 공용 핸들러.
   const handleMockupPicked = (m) => {
@@ -886,7 +939,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               {MODEL_OPTIONS.map((m) => {
                 const sel = selectedModel === m.id;
                 return (
-                  <Tooltip key={m.id} title={m.desc} arrow placement="top">
+                  <Tooltip key={m.id} title={isEn && m.descEn ? m.descEn : m.desc} arrow placement="top">
                     <ToggleButton
                       value={m.id}
                       sx={{
@@ -913,7 +966,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                       <Stack alignItems="flex-start" spacing={0} sx={{ lineHeight: 1.15 }}>
                         <span style={{ fontWeight: 700 }}>{m.label}</span>
                         <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.9 }}>
-                          {sel ? t('modeNewNl.promptPanel.currentSel') : m.sub}
+                          {sel ? t('modeNewNl.promptPanel.currentSel') : (isEn && m.subEn ? m.subEn : m.sub)}
                         </Typography>
                       </Stack>
                     </ToggleButton>

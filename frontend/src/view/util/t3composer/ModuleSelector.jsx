@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Box, Card, CardActionArea, Typography, Stack, Chip } from '@mui/material';
 import * as MuiIcons from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 import { MODULES } from './constants';
 
@@ -10,11 +11,13 @@ import { MODULES } from './constants';
  * NEW_GENERAL 의 자연어/단계별 경로 공통 첫 스텝.
  */
 function ModuleSelector({ value, onChange, compact = false }) {
+  const { i18n, t } = useTranslation('composer');
+  const isEn = i18n.language?.startsWith('en');
   return (
     <Box>
       {!compact && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          생성할 화면이 속한 모듈을 선택하세요. 모듈별로 테이블/SP 네이밍 규약과 공통 패턴이 다릅니다.
+          {t('moduleSelector.intro')}
         </Typography>
       )}
       <Box
@@ -68,7 +71,7 @@ function ModuleSelector({ value, onChange, compact = false }) {
                       {m.code}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                      {m.nameKo}
+                      {isEn ? m.name : m.nameKo}
                     </Typography>
                   </Box>
                 </Stack>
@@ -86,7 +89,7 @@ function ModuleSelector({ value, onChange, compact = false }) {
                         mb: 0.8,
                       }}
                     >
-                      {m.description}
+                      {isEn && m.descriptionEn ? m.descriptionEn : m.description}
                     </Typography>
                     <Stack direction="row" spacing={0.5}>
                       <Chip

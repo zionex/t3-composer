@@ -289,12 +289,15 @@ function ModeExistingModify({ onBack, startWith = null }) {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {!selectedMenu ? (
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
-              <Box
-                component="img"
-                src="/t3composer-nl-modify.png"
-                alt={t('modeExistingModify.rightPanel.placeholderAlt')}
-                sx={{ width: '100%', maxWidth: 720, height: 'auto', opacity: 0.5, userSelect: 'none', pointerEvents: 'none' }}
-              />
+              <Stack alignItems="center" spacing={2} sx={{ maxWidth: 480, textAlign: 'center', color: 'text.secondary' }}>
+                <BorderColorIcon sx={{ fontSize: 64, color: 'rgba(124,167,224,0.55)' }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#3A4A63' }}>
+                  {t('modeExistingModify.rightPanel.placeholderTitle')}
+                </Typography>
+                <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                  {t('modeExistingModify.rightPanel.placeholderHint')}
+                </Typography>
+              </Stack>
             </Box>
           ) : (
             <>

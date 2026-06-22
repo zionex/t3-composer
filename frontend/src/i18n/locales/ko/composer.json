@@ -1,166 +1,189 @@
 {
   "landing": {
-    "title":    "T³Composer",
+    "title": "T³Composer",
     "subtitle": "AI 기반 화면 자동 생성"
   },
   "category": {
-    "newDev":         "신규 개발",
+    "newDev": "신규 개발",
     "modifyExisting": "기존 화면 수정"
   },
   "mode": {
     "newNl": {
       "title": "자연어 생성",
-      "sub":   "Natural Lang.",
-      "hint":  "요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다"
+      "sub": "Natural Lang.",
+      "hint": "요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다"
     },
     "newStep": {
       "title": "단계별 생성",
-      "sub":   "Pattern + Visual",
-      "hint":  "패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다"
+      "sub": "Pattern + Visual",
+      "hint": "패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다"
     },
     "newFromCopy": {
       "title": "기존 화면 복사",
-      "sub":   "Copy Existing",
-      "hint":  "기존 화면을 복사해 단계별 마법사로 수정합니다"
+      "sub": "Copy Existing",
+      "hint": "기존 화면을 복사해 단계별 마법사로 수정합니다"
     },
     "modifyNl": {
       "title": "자연어 수정",
-      "sub":   "NL Modify",
-      "hint":  "현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청"
+      "sub": "NL Modify",
+      "hint": "현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청"
     },
     "modifyStep": {
       "title": "단계별 수정",
-      "sub":   "Step Modify",
-      "hint":  "기존 화면을 Spec 으로 분해해 수정할 부분만 변경"
+      "sub": "Step Modify",
+      "hint": "기존 화면을 Spec 으로 분해해 수정할 부분만 변경"
     }
   },
   "modeNewNl": {
     "header": {
-      "back":      "모드 선택",
-      "titleNl":   "자연어 기반 신규 생성",
+      "back": "모드 선택",
+      "titleNl": "자연어 기반 신규 생성",
       "titleStep": "단계별 생성",
       "titleGeneral": "신규 개발 — 일반 생성",
-      "restart":   "처음부터 다시",
-      "exit":      "종료"
+      "restart": "처음부터 다시",
+      "exit": "종료"
     },
     "submode": {
       "intro": "생성 방식을 선택하세요.",
       "nl": {
-        "title":       "자연어 기반 생성",
-        "subtitle":    "Natural Language",
+        "title": "자연어 기반 생성",
+        "subtitle": "Natural Language",
         "description": "요구사항을 자연어로 설명하면 Claude 가 패턴·스펙·코드를 한 번에 결정해 생성합니다. 빠르고 유연하지만 토큰 사용량이 많습니다.",
-        "pros":        ["빠른 시작", "유연한 표현", "설계 미확정 시 적합"],
-        "cons":        ["토큰 사용량 많음", "결과 해석 비용", "반복 수정 시 비용 누적"]
+        "pros": [
+          "빠른 시작",
+          "유연한 표현",
+          "설계 미확정 시 적합"
+        ],
+        "cons": [
+          "토큰 사용량 많음",
+          "결과 해석 비용",
+          "반복 수정 시 비용 누적"
+        ]
       }
     },
     "module": {
       "title": "모듈 선택",
-      "hint":  "생성할 화면이 속한 모듈을 선택하세요. 모듈별 네이밍 규약과 공통 테이블을 Claude 에 자동 주입합니다."
+      "hint": "생성할 화면이 속한 모듈을 선택하세요. 모듈별 네이밍 규약과 공통 테이블을 Claude 에 자동 주입합니다."
     },
     "promptPanel": {
-      "title":           "요구사항 입력",
-      "changeModule":    "모듈 변경",
+      "title": "요구사항 입력",
+      "changeModule": "모듈 변경",
       "placeholderTemplate": "예: {{example}}\n\n💡 참조 파일은 아래 \"참조 파일 첨부\" 영역에 끌어다 놓으세요",
       "fallbackExample": "원하는 화면 설명을 입력... (TB_AD_USER 등 테이블명을 언급하면 자동으로 존재 여부를 확인합니다)",
-      "dropHere":        "파일을 여기에 놓으세요",
-      "aiEngine":        "AI 엔진:",
-      "currentSel":      "✓ 현재 선택",
-      "selectedChip":    "선택됨 · {{label}}"
+      "dropHere": "파일을 여기에 놓으세요",
+      "aiEngine": "AI 엔진:",
+      "currentSel": "✓ 현재 선택",
+      "selectedChip": "선택됨 · {{label}}"
     },
     "options": {
-      "title":             "선택사항 — SCM UI Mockup · UI Pattern 중 1개 선택 (서로 배타) · 파일 첨부는 별도 (하단 영역 · 최대 5개)",
-      "scmMockup":         "SCM UI Mockup",
-      "uiPattern":         "UI Pattern",
-      "kpiChart":          "KPI / Chart",
-      "scmMockupSelect":   "SCM UI Mockup 선택",
+      "title": "선택사항 — SCM UI Mockup · UI Pattern 중 1개 선택 (서로 배타) · 파일 첨부는 별도 (하단 영역 · 최대 5개)",
+      "scmMockup": "SCM UI Mockup",
+      "uiPattern": "UI Pattern",
+      "kpiChart": "KPI / Chart",
+      "scmMockupSelect": "SCM UI Mockup 선택",
       "scmMockupSelected": "Mockup: {{code}}",
-      "uiPatternSelect":   "UI Pattern 선택",
+      "uiPatternSelect": "UI Pattern 선택",
       "uiPatternSelected": "Pattern: {{label}}",
-      "kpiChartSelect":    "KPI / Chart 사전 항목 선택",
-      "kpiChartSelected":  "KPI {{kpis}} · Chart {{charts}}",
-      "clear":             "해제",
-      "tooltip3DMockup":   "3D 체크 시 — [SCM UI Mockup 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 mockup 을 카테고리별로 배치하고, 드래그 이동·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.",
+      "kpiChartSelect": "KPI / Chart 사전 항목 선택",
+      "kpiChartSelected": "KPI {{kpis}} · Chart {{charts}}",
+      "clear": "해제",
+      "tooltip3DMockup": "3D 체크 시 — [SCM UI Mockup 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 mockup 을 카테고리별로 배치하고, 드래그 이동·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP.",
       "tooltip3DUiPattern": "3D 체크 시 — [UI Pattern 선택] 클릭하면 전체화면 3D 갤러리(JARVIS 룩)로 패턴을 그룹별로 배치하고, 드래그 회전·휠 확대축소하며 탐색합니다. 미체크 시 일반 목록 POPUP."
     },
     "attach": {
-      "title":      "참조 파일 첨부 — SQL · 설계서 이미지 등 (끌어다 놓거나 클릭)",
-      "limit":      "최대 {{max}}개 · 파일당 5MB — SQL · 이미지 · 설계서 등",
+      "title": "참조 파일 첨부 — SQL · 설계서 이미지 등 (끌어다 놓거나 클릭)",
+      "limit": "최대 {{max}}개 · 파일당 5MB — SQL · 이미지 · 설계서 등",
       "limitCount": "  (현재 {{n}}/{{max}})",
-      "tooltip":    "필요한 SQL 파일·설계서 이미지·캡처·소스 등을 최대 5개까지 첨부. 텍스트(.sql 등)는 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB). SCM UI Mockup·UI Pattern 선택과 함께 사용할 수 있습니다."
+      "tooltip": "필요한 SQL 파일·설계서 이미지·캡처·소스 등을 최대 5개까지 첨부. 텍스트(.sql 등)는 prompt 에 inline, 이미지/PDF/binary 는 첨부로 전송 (파일당 최대 5MB). SCM UI Mockup·UI Pattern 선택과 함께 사용할 수 있습니다."
     },
     "dataSource": {
-      "select":       "Data Source 선택",
+      "select": "Data Source 선택",
       "selectedChip": "Data Source — {{n}}개 선택됨",
-      "hint":         "Target DB 테이블·SP · T3Insight 온톨로지 · 직접 쿼리를 별자리 맵으로 골라 화면이 읽고/쓰는 데이터를 지정합니다 (선택사항 · Mockup/UI Pattern 과 독립 · 다중 선택).",
-      "clearAll":     "전체 해제"
+      "hint": "Target DB 테이블·SP · T3Insight 온톨로지 · 직접 쿼리를 별자리 맵으로 골라 화면이 읽고/쓰는 데이터를 지정합니다 (선택사항 · Mockup/UI Pattern 과 독립 · 다중 선택).",
+      "clearAll": "전체 해제"
     },
     "submit": {
-      "moduleHint":  "Claude 는 모듈 규약(TB_{{code}}_ / SP_UI_{{code}}_)에 맞춰 생성합니다.",
-      "creating":    "세션 생성 중...",
-      "submit":      "Claude 에게 생성 요청"
+      "moduleHint": "Claude 는 모듈 규약(TB_{{code}}_ / SP_UI_{{code}}_)에 맞춰 생성합니다.",
+      "creating": "세션 생성 중...",
+      "submit": "Claude 에게 생성 요청"
     },
     "tableLookup": {
-      "title":          "자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)",
-      "explain":        "prompt 안의 <code>TB_*</code> 테이블명을 백엔드 DB 에서 직접 조회 — 존재하면 기존 컬럼으로 Entity 매핑, 없으면 새 SQL_DDL 산출물로 생성. 결과는 Claude prompt 컨텍스트에 자동 첨부됩니다.",
-      "noTables":       "(prompt 에서 <code>TB_*</code> 패턴 미발견 — 사용할 테이블명이 있으면 입력하세요)",
-      "notExists":      "존재하지 않음 — 새 SQL_DDL 산출물로 생성됩니다 (NEW_NL 모드 허용)",
-      "moreCols":       " · 외 {{n}}개"
+      "title": "자동 테이블 존재 여부 확인 (T3SMARTSCM.dbo)",
+      "explain": "prompt 안의 <code>TB_*</code> 테이블명을 백엔드 DB 에서 직접 조회 — 존재하면 기존 컬럼으로 Entity 매핑, 없으면 새 SQL_DDL 산출물로 생성. 결과는 Claude prompt 컨텍스트에 자동 첨부됩니다.",
+      "noTables": "(prompt 에서 <code>TB_*</code> 패턴 미발견 — 사용할 테이블명이 있으면 입력하세요)",
+      "notExists": "존재하지 않음 — 새 SQL_DDL 산출물로 생성됩니다 (NEW_NL 모드 허용)",
+      "moreCols": " · 외 {{n}}개"
     },
     "examples": {
-      "title":            "신규 생성 예시",
-      "show":             "예시 보기",
-      "hide":             "예시 숨기기",
-      "collapsedHint":    "[예시 보기] 를 누르면 모듈 예시와 입력 방식별 예시가 펼쳐집니다.",
-      "moduleSection":    "{{code}} 모듈 예시",
-      "byInputTitle":     "신규 생성 예시 — 입력 방식별",
-      "clickToPrompt":    "클릭 → 프롬프트에 입력"
+      "title": "신규 생성 예시",
+      "show": "예시 보기",
+      "hide": "예시 숨기기",
+      "collapsedHint": "[예시 보기] 를 누르면 모듈 예시와 입력 방식별 예시가 펼쳐집니다.",
+      "moduleSection": "{{code}} 모듈 예시",
+      "byInputTitle": "신규 생성 예시 — 입력 방식별",
+      "clickToPrompt": "클릭 → 프롬프트에 입력"
     },
     "errors": {
-      "promptRequired":   "요구사항을 입력해주세요.",
-      "sessionFailed":    "세션 생성 실패"
+      "promptRequired": "요구사항을 입력해주세요.",
+      "sessionFailed": "세션 생성 실패"
     }
   },
   "modeExistingModify": {
     "header": {
-      "backToSub":  "서브모드 선택",
+      "backToSub": "서브모드 선택",
       "backToMode": "모드 선택",
-      "title":      "기존 화면 수정",
-      "subModeNl":   "자연어 수정",
+      "title": "기존 화면 수정",
+      "subModeNl": "자연어 수정",
       "subModeStep": "단계별 수정"
     },
     "submode": {
-      "intro":     "기존 화면을 어떻게 수정할지 선택하세요. 두 방식 모두 메뉴 트리에서 화면을 선택한 후 진행합니다.",
+      "intro": "기존 화면을 어떻게 수정할지 선택하세요. 두 방식 모두 메뉴 트리에서 화면을 선택한 후 진행합니다.",
       "nl": {
-        "title":    "자연어 수정",
+        "title": "자연어 수정",
         "subtitle": "Natural Language",
         "description": "현재 소스를 Claude 에 제공하고 자연어 대화로 변경 요청을 전달합니다. 빠르고 유연하지만 토큰 사용량이 많습니다.",
-        "pros":     ["빠른 시작", "자유로운 변경 요청", "복합 변경에 적합"],
-        "cons":     ["토큰 비용 높음", "결과 확인은 응답 후"]
+        "pros": [
+          "빠른 시작",
+          "자유로운 변경 요청",
+          "복합 변경에 적합"
+        ],
+        "cons": [
+          "토큰 비용 높음",
+          "결과 확인은 응답 후"
+        ]
       },
       "step": {
-        "title":    "단계별 수정",
+        "title": "단계별 수정",
         "subtitle": "Step-by-step Wizard",
         "description": "현재 화면을 9단계 Spec 으로 분해해 단계별로 보여주며 수정하고 싶은 부분만 변경 후 Claude 호출. 토큰 절감 + 변경 범위 명확.",
-        "pros":     ["토큰 절약", "변경 영역 명확", "Step 별 미세 조정 가능"],
-        "cons":     ["입력 단계 다수", "완전히 새로운 패턴 변경엔 부적합"]
+        "pros": [
+          "토큰 절약",
+          "변경 영역 명확",
+          "Step 별 미세 조정 가능"
+        ],
+        "cons": [
+          "입력 단계 다수",
+          "완전히 새로운 패턴 변경엔 부적합"
+        ]
       }
     },
     "rightPanel": {
-      "placeholderAlt": "좌측 메뉴에서 수정할 화면을 선택해주세요",
-      "loading":      "소스 수집 중 (insight-apicall/screen-metadata/collect-source-for-llm)...",
-      "hintNl":       "수집된 소스 번들 (수정 세션 시작 시 Claude 의 초기 컨텍스트로 전달됩니다)",
-      "hintStep":     "수집된 소스 번들 (Wizard 의 9단계 Spec 으로 자동 prefill — 변경하고 싶은 단계만 수정)"
+      "loading": "소스 수집 중 (insight-apicall/screen-metadata/collect-source-for-llm)...",
+      "hintNl": "수집된 소스 번들 (수정 세션 시작 시 Claude 의 초기 컨텍스트로 전달됩니다)",
+      "hintStep": "수집된 소스 번들 (Wizard 의 9단계 Spec 으로 자동 prefill — 변경하고 싶은 단계만 수정)",
+      "placeholderTitle": "수정할 화면을 선택하세요",
+      "placeholderHint": "좌측 메뉴 트리에서 수정할 화면을 클릭하면 우측에 원본 소스 미리보기가 표시됩니다."
     },
     "buttons": {
-      "exit":        "종료",
-      "starting":    "시작 중...",
-      "startNl":     "수정 세션 시작",
-      "startStep":   "단계별 Wizard 시작"
+      "exit": "종료",
+      "starting": "시작 중...",
+      "startNl": "수정 세션 시작",
+      "startStep": "단계별 Wizard 시작"
     },
     "errors": {
-      "sourceFailed":     "소스 수집 실패: {{detail}}",
-      "sessionFailed":    "세션 생성 실패",
-      "specFailed":       "Spec 생성 실패: {{detail}}"
+      "sourceFailed": "소스 수집 실패: {{detail}}",
+      "sessionFailed": "세션 생성 실패",
+      "specFailed": "Spec 생성 실패: {{detail}}"
     },
     "prompt": {
       "sessionTitleSuffix": "{{id}} 수정"
@@ -168,134 +191,390 @@
   },
   "modeNewFromCopy": {
     "header": {
-      "back":     "모드 선택",
-      "title":    "기존 화면 복사 — 4단계 Wizard",
+      "back": "모드 선택",
+      "title": "기존 화면 복사 — 4단계 Wizard",
       "subtitle": "Copy from Existing · 원본 선택 후 단계별 검토·생성"
     },
     "leftPanel": {
-      "title":    "1. 복사할 원본 화면 선택",
+      "title": "1. 복사할 원본 화면 선택",
       "selected": "선택됨"
     },
     "middlePanel": {
       "placeholder": "좌측에서 복사할 원본 화면을 선택하세요.",
-      "loading":     "원본 소스 수집 중...",
-      "hint":        "수집된 원본 소스 번들 — Wizard 4단계에 자동 prefill 됩니다"
+      "loading": "원본 소스 수집 중...",
+      "hint": "수집된 원본 소스 번들 — Wizard 4단계에 자동 prefill 됩니다"
     },
     "rightPanel": {
-      "title":            "2. 신규 화면 기본 정보",
-      "originLabel":      "원본",
-      "newMenuCdLabel":   "신규 메뉴 코드",
+      "title": "2. 신규 화면 기본 정보",
+      "originLabel": "원본",
+      "newMenuCdLabel": "신규 메뉴 코드",
       "newMenuCdPlaceholder": "예: UI_DP_MONTHLY_PLAN_V2",
-      "newMenuCdCheck":   "확인",
-      "newTitleLabel":    "신규 화면 제목",
+      "newMenuCdCheck": "확인",
+      "newTitleLabel": "신규 화면 제목",
       "newTitlePlaceholder": "예: DP 월간 계획 V2",
-      "infoAlert":        "상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard (① Canvas / ② 데이터·검색조건 / ③ 메타·메뉴 / ④ 화면 생성) 의 각 단계에서 입력합니다. 자유 텍스트 형태의 추가 요청은 마지막 단계(④ 화면 생성) 에서 입력 가능합니다.",
+      "infoAlert": "상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard (① Canvas / ② 데이터·검색조건 / ③ 메타·메뉴 / ④ 화면 생성) 의 각 단계에서 입력합니다. 자유 텍스트 형태의 추가 요청은 마지막 단계(④ 화면 생성) 에서 입력 가능합니다.",
       "ai": {
-        "label":        "AI 자동 분석으로 4단계 prefill (권장)",
-        "desc":         "Layer 별 SP (조회/CUD), FilterBar, 컴포넌트, Entity 까지 정확히 추출. OFF 면 정규식 분석만 사용.",
-        "analyzing":    "Claude 가 sourceBundle 을 분석 중입니다 (5~15초)...",
-        "done":         "✓ AI 분석 완료 — {{modelName}} · {{stepCount}}/8 단계 보강됨"
+        "label": "AI 자동 분석으로 4단계 prefill (권장)",
+        "desc": "Layer 별 SP (조회/CUD), FilterBar, 컴포넌트, Entity 까지 정확히 추출. OFF 면 정규식 분석만 사용.",
+        "analyzing": "Claude 가 sourceBundle 을 분석 중입니다 (5~15초)...",
+        "done": "✓ AI 분석 완료 — {{modelName}} · {{stepCount}}/8 단계 보강됨"
       },
       "warnNoSelection": "먼저 좌측에서 복사할 원본 화면을 선택하세요.",
-      "reset":           "초기화",
-      "aiAnalyzing":     "AI 분석 중...",
-      "aiSubmit":        "AI 분석 + 4단계 Wizard",
-      "plainSubmit":     "다음 — 4단계 Wizard"
+      "reset": "초기화",
+      "aiAnalyzing": "AI 분석 중...",
+      "aiSubmit": "AI 분석 + 4단계 Wizard",
+      "plainSubmit": "다음 — 4단계 Wizard"
     },
     "menuCdValidation": {
-      "empty":          "메뉴 코드를 입력하세요",
-      "sameAsOrigin":   "원본과 동일한 메뉴 코드는 사용할 수 없습니다",
-      "exists":         "이미 존재하는 메뉴 코드입니다",
-      "ok":             "✓ 사용 가능한 메뉴 코드입니다",
-      "skipped":        "(사용 가능 여부 확인 건너뜀)"
+      "empty": "메뉴 코드를 입력하세요",
+      "sameAsOrigin": "원본과 동일한 메뉴 코드는 사용할 수 없습니다",
+      "exists": "이미 존재하는 메뉴 코드입니다",
+      "ok": "✓ 사용 가능한 메뉴 코드입니다",
+      "skipped": "(사용 가능 여부 확인 건너뜀)"
     },
     "errors": {
-      "sourceFailed":   "소스 수집 실패: {{detail}}",
+      "sourceFailed": "소스 수집 실패: {{detail}}",
       "newMenuCdRequired": "신규 메뉴 코드를 입력해주세요.",
-      "aiFailed":       "AI 분석 실패 (정규식 결과로 진행): {{detail}}"
+      "aiFailed": "AI 분석 실패 (정규식 결과로 진행): {{detail}}"
     },
-    "copySuffix":       "{{id}} 복사본"
+    "copySuffix": "{{id}} 복사본"
   },
   "modeNewStep": {
-    "title":   "단계별 화면 생성 (Beta) — 패턴 선택",
-    "hint":    "화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.",
-    "back":    "뒤로",
+    "title": "단계별 화면 생성 (Beta) — 패턴 선택",
+    "hint": "화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.",
+    "back": "뒤로",
     "dashboardTitle": "Dashboard 에서 시작 — 대시보드 선택",
     "newScreenDefault": "새 화면",
     "pattern": {
       "aiSuggest": {
         "title": "✨ AI 추천",
-        "desc":  "자연어로 의도를 적으면 관련 SCM UI Mockup 3개 추천 + 4단계 AI 자동 prefill"
+        "desc": "자연어로 의도를 적으면 관련 SCM UI Mockup 3개 추천 + 4단계 AI 자동 prefill"
       },
       "mockup": {
         "title": "SCM UI Mockup",
-        "desc":  "Product Line · 카테고리 필터 — mockup 의 실제 layer 구조가 자동 prefill"
+        "desc": "Product Line · 카테고리 필터 — mockup 의 실제 layer 구조가 자동 prefill"
       },
       "uiPattern": {
         "title": "T3MES UI Pattern",
-        "desc":  "T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존"
+        "desc": "T3MES 퍼블리싱 패턴 — 단일 layer + 패턴 식별자 보존"
       },
       "dashboard": {
         "title": "Dashboard",
-        "desc":  "기존 대시보드 1개를 골라 위젯 레이아웃을 자동 prefill"
+        "desc": "기존 대시보드 1개를 골라 위젯 레이아웃을 자동 prefill"
       },
       "blank": {
         "title": "빈 캔버스 (P02 — 검색 + 단일 그리드)",
-        "desc":  "가장 일반적인 마스터 CRUD 패턴으로 시작"
+        "desc": "가장 일반적인 마스터 CRUD 패턴으로 시작"
       }
     }
   },
   "picker": {
     "mockup": {
-      "title":             "SCM UI Mockup 선택",
-      "caption":           "(선택사항 — 고른 mockup 의 레이아웃 골격을 Claude 가 참조 · 미리보기 우측 표시)",
+      "title": "SCM UI Mockup 선택",
+      "caption": "(선택사항 — 고른 mockup 의 레이아웃 골격을 Claude 가 참조 · 미리보기 우측 표시)",
       "searchPlaceholder": "코드 · 라벨 · 설명 검색",
-      "productLineLabel":  "Product",
-      "categoryLabel":     "Category",
-      "all":               "전체",
-      "allWithCount":      "전체 · {{n}}",
-      "emptyHint":         "검색 결과가 없습니다.",
-      "previewEmpty":      "왼쪽 목록에서 mockup 을 선택하면 미리보기가 표시됩니다.",
-      "clearSelection":    "선택 해제",
-      "cancel":            "취소",
-      "apply":             "이 Mockup 적용"
+      "productLineLabel": "Product",
+      "categoryLabel": "Category",
+      "all": "전체",
+      "allWithCount": "전체 · {{n}}",
+      "emptyHint": "검색 결과가 없습니다.",
+      "previewEmpty": "왼쪽 목록에서 mockup 을 선택하면 미리보기가 표시됩니다.",
+      "clearSelection": "선택 해제",
+      "cancel": "취소",
+      "apply": "이 Mockup 적용"
     },
     "uiPattern": {
-      "title":             "UI Pattern 선택",
-      "caption":           "(선택사항 — 고른 패턴의 경량 마크업을 Claude 가 참조 · 미리보기 우측 표시)",
-      "filterAll":         "전체",
-      "countChip":         "{{n}}개",
+      "title": "UI Pattern 선택",
+      "caption": "(선택사항 — 고른 패턴의 경량 마크업을 Claude 가 참조 · 미리보기 우측 표시)",
+      "filterAll": "전체",
+      "countChip": "{{n}}개",
       "searchPlaceholder": "섹션 · 그룹 · 파일 · 패턴 라벨 검색",
-      "emptyHint":         "검색 결과가 없습니다.",
-      "layerChipTitle":    "이 패턴은 {{n}}개 layer 로 자동 분할됩니다",
-      "previewEmpty":      "왼쪽 목록에서 UI Pattern 을 선택하면 미리보기가 표시됩니다.",
-      "clearSelection":    "선택 해제",
-      "cancel":            "취소",
-      "apply":             "이 패턴 적용"
+      "emptyHint": "검색 결과가 없습니다.",
+      "layerChipTitle": "이 패턴은 {{n}}개 layer 로 자동 분할됩니다",
+      "previewEmpty": "왼쪽 목록에서 UI Pattern 을 선택하면 미리보기가 표시됩니다.",
+      "clearSelection": "선택 해제",
+      "cancel": "취소",
+      "apply": "이 패턴 적용"
     },
     "dataSource": {
-      "title":             "Data Source 선택 — 뉴럴 별자리 맵",
-      "targetChip":        "Target · {{cd}}",
-      "targetNone":        "Target 미선택",
-      "close":             "닫기",
+      "title": "Data Source 선택 — 뉴럴 별자리 맵",
+      "targetChip": "Target · {{cd}}",
+      "targetNone": "Target 미선택",
+      "close": "닫기",
       "tab": {
-        "dbEntity":    "DB Entity",
-        "ontology":    "Ontology",
+        "dbEntity": "DB Entity",
+        "ontology": "Ontology",
         "queryInline": "Query Inline"
       },
-      "basketCount":       "선택 {{n}}",
-      "emptyHint":         "탭에서 테이블·SP·온톨로지·쿼리를 선택하면 여기에 담깁니다.",
-      "clearAll":          "전체 해제",
-      "cancel":            "취소",
-      "apply":             "적용 ({{n}})",
+      "basketCount": "선택 {{n}}",
+      "emptyHint": "탭에서 테이블·SP·온톨로지·쿼리를 선택하면 여기에 담깁니다.",
+      "clearAll": "전체 해제",
+      "cancel": "취소",
+      "apply": "적용 ({{n}})",
       "kind": {
-        "TABLE":           "테이블",
-        "SP":              "SP",
-        "ONTOLOGY_QA":     "Q&A",
+        "TABLE": "테이블",
+        "SP": "SP",
+        "ONTOLOGY_QA": "Q&A",
         "ONTOLOGY_INTENT": "의도",
-        "ONTOLOGY_SP":     "UI SP",
-        "INLINE_QUERY":    "쿼리"
+        "ONTOLOGY_SP": "UI SP",
+        "INLINE_QUERY": "쿼리"
       }
     }
+  },
+  "moduleSelector": {
+    "intro": "생성할 화면이 속한 모듈을 선택하세요. 모듈별로 테이블/SP 네이밍 규약과 공통 패턴이 다릅니다."
+  },
+  "apiKeyDialog": {
+    "title": "Anthropic API 키",
+    "description": "T3Composer 는 Claude API 로 화면·SP·테이블을 생성합니다. 개인 Anthropic API 키를 등록해 주세요. 키는 서버에서 암호화되어 저장됩니다 (TB_IS_EXTRNLAPIKEY, Jasypt PBE).",
+    "consoleLink": "→ Anthropic Console 에서 키 발급",
+    "apiKeyLabel": "API Key",
+    "descriptionLabel": "설명 (옵션)",
+    "defaultDescription": "Personal key",
+    "cancel": "취소",
+    "save": "저장",
+    "saving": "저장 중...",
+    "errors": {
+      "empty": "API 키를 입력해주세요.",
+      "invalidPrefix": "Anthropic API 키는 sk-ant- 로 시작해야 합니다.",
+      "saveFailed": "저장 중 오류가 발생했습니다."
+    }
+  },
+  "header": {
+    "apiKey": {
+      "registeredLabel": "API Key",
+      "unregisteredLabel": "API Key 필요",
+      "registeredTooltip": "API 키 등록됨 — 모든 모드 사용 가능",
+      "unregisteredTooltip": "API 키 미등록 — 클릭하여 등록"
+    },
+    "llmBackend": {
+      "cliTooltip": "CLI 모드 — 호스트 ~/.claude OAuth 로그인 사용 (Claude 구독)",
+      "apiTooltip": "API 모드 — Anthropic HTTP API + ANTHROPIC_API_KEY 사용"
+    },
+    "settings": "설정"
+  },
+  "aiRecommend": {
+    "back": "뒤로",
+    "title": "✨ AI 추천으로 화면 시작",
+    "targetLabel": "Target:",
+    "inputTitle": "무엇을 만들까요?",
+    "placeholder": "예: 수요계획 입력 화면을 만들고 싶어. 월별로 판매계획을 입력하고 실적과 비교했으면 좋겠어.",
+    "emptyHint": "자연어로 만들고 싶은 화면을 적고 \"추천 템플릿 찾기\" 를 누르세요.",
+    "footerSteps": "선택 후 → ① Layout ② 데이터·검색조건 ③ 메타·메뉴 ④ 생성 <b style=\"color:{{accentColor}}\">(AI 자동 prefill)</b>",
+    "attach": {
+      "title": "참조 파일 첨부 — 설계서 이미지 · SQL 등",
+      "tooltip": "설계서 이미지·캡처·SQL 등을 최대 5개(파일당 5MB) 첨부. 텍스트는 prompt 에 inline, 이미지/PDF 는 multimodal 로 전송. AI 추천·prefill·최종 화면 생성 단계 모두에 활용됩니다.",
+      "hint": "끌어다 놓거나 클릭 · 최대 {{max}}개",
+      "maxItemsError": "참조 파일은 최대 {{max}}개까지 첨부할 수 있습니다.",
+      "partialAddedError": "최대 {{max}}개 — {{n}}개만 추가했습니다.",
+      "fileTooBig": "파일이 너무 큽니다 ({{sizeKb}}KB > 5MB): {{name}}",
+      "fileReadFailed": "파일 읽기 실패: {{name}}: {{message}}"
+    },
+    "search": {
+      "searching": "추천 찾는 중…",
+      "button": "추천 템플릿 찾기",
+      "summaryCount": "🔎 관련 mockup {{n}}개 추천",
+      "keywordMatching": "키워드 매칭"
+    },
+    "errors": {
+      "noResults": "관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도해보세요.",
+      "noMore": "AI 가 적절한 추가 템플릿을 찾지 못했습니다."
+    },
+    "cards": {
+      "defaultScreenTitle": "새 화면",
+      "relevanceChip": "관련도 {{relevance}}%",
+      "analyzing": "분석 중…",
+      "startTemplate": "이 템플릿으로 시작 →"
+    },
+    "synth": {
+      "badge": "🪄 AI 재조합",
+      "startSynth": "이 재조합으로 시작 →"
+    },
+    "image": {
+      "badge": "📷 내 설계",
+      "title": "내 설계 그대로 만들기",
+      "defaultTitle": "내 설계",
+      "layersInferred": "이미지에서 {{n}}개 layer (KPI·차트·그리드·필터) 위치 추론 완료",
+      "structureAmbiguous": "구조가 모호합니다 — 시작 후 Layout 단계에서 직접 보강",
+      "analyzingDesc": "Claude vision 이 이미지의 layout 을 분석하고 있습니다",
+      "analyzingStatus": "AI 분석 중…",
+      "emptyAnalysis": "분석 결과가 비어있습니다",
+      "waiting": "대기 중",
+      "entering": "진입 중…",
+      "analyzingBtn": "분석 중…",
+      "startDesign": "이 설계로 시작 →"
+    }
+  },
+  "conceptDiagram": {
+    "alt": "T³Composer — ScreenSpec 개념도",
+    "caption": "다양한 입력 → ScreenSpec → 화면 산출물"
+  },
+  "menuTree": {
+    "title": "메뉴 트리",
+    "screenCount": "화면 {{n}}",
+    "refreshTooltip": "메뉴 트리 새로고침",
+    "searchPlaceholder": "메뉴 코드·명칭·경로 검색",
+    "loading": "Target DB 메뉴 트리 로딩...",
+    "emptyMenu": "Target DB 의 TB_AD_MENU 에 등록된 메뉴가 없습니다.",
+    "noResults": "검색 결과가 없습니다.",
+    "loadError": "Target 메뉴 트리 조회 실패",
+    "langPackMissing": "{{id}} — LangPack 미등록"
+  },
+  "targetSystem": {
+    "loading": "로딩중...",
+    "pickTarget": "Target 선택",
+    "tooltipCurrent": "Target: {{name}} ({{dbType}} · {{grid}})",
+    "tooltipEmpty": "Target System 선택",
+    "noTargets": "등록된 Target 이 없습니다",
+    "dbConnectedTooltip": "운영 DB 연결됨: {{url}}",
+    "governanceSnapshotTooltip": "거버넌스 설정 스냅샷 / 복원",
+    "dbConnectionTooltip": "운영 DB 접속 정보 설정",
+    "snapshot": {
+      "none": "스냅샷 없음",
+      "inSync": "동기화됨",
+      "changeCount": "{{n}}건 변경"
+    },
+    "restoreDialog": {
+      "title": "{{targetCd}} — 거버넌스 설정 복원",
+      "mismatch": "의 저장된 스냅샷과 현재 디스크가 다릅니다. 이 Target 으로 전환하려면 스냅샷을 디스크로 복원해야 합니다.",
+      "preview": "복원하면 누락 {{missing}}개 재생성 · 변경 {{modified}}개 원복 · 추가 {{extra}}개 삭제됩니다. 복원 직전 현재 상태는 자동 백업됩니다.",
+      "failed": "복원 실패",
+      "completed": "복원 완료 — {{summary}}",
+      "busy": "복원 중...",
+      "cancel": "취소",
+      "switchWithout": "복원 없이 전환",
+      "restoreAndSwitch": "복원하고 전환",
+      "close": "닫기"
+    }
+  },
+  "targetDb": {
+    "title": "Target DB 접속 정보 — {{name}}",
+    "loadFailed": "대상 로딩 실패: {{message}}",
+    "saveSuccess": "저장됨 — 다음 메뉴 트리/소스 조회부터 적용됩니다",
+    "saveFailed": "저장 실패: {{message}}",
+    "infoConnection": "운영 wingui DB 에 직접 연결하면 NEW_FROM_COPY / EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다. 비워두면 로컬 target-mssql synced 데이터를 폴백 사용합니다.",
+    "driverClassLabel": "Driver Class (선택)",
+    "connectionSuccess": "연결 성공 — {{product}} {{version}} ({{elapsedMs}}ms)",
+    "connectionFailure": "연결 실패 — {{error}}",
+    "sourcePathTitle": "Target source path",
+    "sourcePathInfo": "컨테이너 안 절대경로 입력 (또는 우측 <strong>탐색</strong> 버튼). <strong> source</strong> 는 frontend root, <strong>backend</strong> 는 backend root (PLANNEL 처럼 monorepo 가 아닌 경우만 별도 지정 — 비우면 source 와 동일 가정). 비워두면 docker-compose 의 <code>/workspace/targets/{{targetCd}}/wingui</code> fallback.",
+    "sourceFolderLabel": "source 폴더 경로",
+    "sourceFolderPlaceholder": "(미설정 — 컨테이너 안 /workspace/targets/{{targetCd}}/wingui 자동 사용)",
+    "backendFolderLabel": "backend 폴더 경로 (분리 구조일 때만)",
+    "backendFolderPlaceholder": "(미설정 — source 와 동일한 root 가정. PLANNEL 처럼 분리되었으면 backend root 지정)",
+    "folderBrowse": "폴더 탐색",
+    "close": "닫기",
+    "testConnection": "연결 테스트",
+    "save": "저장",
+    "pickerSource": "source 폴더 선택",
+    "pickerBackend": "backend 폴더 선택"
+  },
+  "history": {
+    "title": "Composer 작업 이력",
+    "searchPlaceholder": "제목 / 메뉴코드 / 모드 / Target 검색",
+    "refresh": "새로고침",
+    "emptyAll": "이력 없음 — Composer 메인에서 세션을 시작하세요.",
+    "emptyFiltered": "조건에 맞는 세션 없음",
+    "untitled": "(제목 없음)",
+    "deleted": "삭제됨: {{name}}",
+    "filter": {
+      "all": "전체",
+      "active": "진행중",
+      "completed": "완료",
+      "archived": "보관"
+    },
+    "status": {
+      "active": "진행중",
+      "completed": "완료",
+      "archived": "보관"
+    },
+    "col": {
+      "target": "Target",
+      "mode": "모드",
+      "title": "제목",
+      "menuCd": "메뉴코드",
+      "model": "모델",
+      "status": "상태",
+      "tokens": "토큰",
+      "createdAt": "생성일시",
+      "actions": "작업"
+    },
+    "action": {
+      "resume": "이어하기",
+      "markActive": "진행중으로 전환",
+      "markCompleted": "완료",
+      "markArchived": "보관",
+      "delete": "삭제"
+    },
+    "deleteDialog": {
+      "title": "세션 삭제",
+      "body": "\"{{name}}\" 세션을 영구 삭제합니다. 메시지·산출물도 함께 제거됩니다. 계속 진행하시겠습니까?",
+      "cancel": "취소",
+      "confirm": "삭제"
+    },
+    "errors": {
+      "loadList": "세션 목록 조회 실패",
+      "statusChange": "상태 변경 실패: {{message}}",
+      "deleteFailed": "삭제 실패: {{message}}"
+    }
+  },
+  "workspace": {
+    "exit": "종료"
+  },
+  "mockup": {
+    "subtitle": "UI 패턴 목업 갤러리",
+    "searchPlaceholder": "코드/라벨/설명/메뉴 검색",
+    "countDisplay": "{{n}}개",
+    "empty": "조회된 목업이 없습니다.",
+    "mappedMenusTooltip": "매핑된 운영 메뉴 {{n}}개",
+    "backToList": "전체 목업 목록으로",
+    "usedMenus": "사용 메뉴 {{n}}개",
+    "menuListSummary": "이 mockup 으로 매핑된 T3SmartSCM 운영 메뉴 — 총 {{total}}개",
+    "menuListMatched": "{{n}}개 일치",
+    "menuSearchPlaceholder": "메뉴ID / 메뉴명 / 경로 검색",
+    "filter": {
+      "all": "전체 {{n}}"
+    },
+    "category": {
+      "all": "All",
+      "core": "정규 {{n}}",
+      "domain": "도메인 {{n}}",
+      "dashboard": "Dashboard {{n}}",
+      "controlboard": "CB {{n}}",
+      "meta": "메타 {{n}}"
+    },
+    "layout": {
+      "all": "Layout — 전체"
+    },
+    "menuTable": {
+      "id": "메뉴ID",
+      "name": "메뉴명",
+      "path": "경로 (filePath)",
+      "reason": "매핑 근거",
+      "noName": "(이름없음)",
+      "noMatch": "\"{{query}}\" 와 일치하는 메뉴 없음",
+      "noMapped": "매핑된 메뉴 없음"
+    }
+  },
+  "uiPattern": {
+    "backToList": "목록으로",
+    "openLite": "AI 참조용 경량 파일 (lite) 열기",
+    "openFull": "이 화면(full) 새 창으로 열기",
+    "openInNewWindow": "새 창으로 열기",
+    "heroTitle": "UI Pattern 취합본",
+    "heroSubtitle": "MES / SCM 도메인별 UI 패턴 — 각 TabPage 를 선택하면 본문에 해당 패턴이 즉시 활성화된 상태로 표시됩니다.",
+    "stats": {
+      "total": "전체 패턴",
+      "files": "파일"
+    },
+    "filter": {
+      "all": "전체"
+    },
+    "allGroups": "전체 그룹",
+    "searchPlaceholder": "섹션 · 그룹 · 파일 · TabPage 라벨 검색",
+    "reset": "초기화",
+    "resultCount": "결과 {{n}}개",
+    "noResults": "검색 조건에 맞는 패턴이 없습니다.",
+    "resetFilters": "필터 초기화"
   }
 }

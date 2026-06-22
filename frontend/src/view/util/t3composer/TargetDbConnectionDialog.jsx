@@ -3,6 +3,7 @@
 // MenuTreeBrowser / InsightSourceController 가 이 정보로 직접 운영 DB 조회.
 // =============================================================================
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -35,6 +36,7 @@ const PLACEHOLDER_BY_DBTYPE = {
 };
 
 export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSaved }) {
+  const { t } = useTranslation('composer');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving]   = useState(false);
   const [testing, setTesting] = useState(false);
@@ -66,7 +68,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
           backendRefPath: t.backendRefPath || '',
         });
       })
-      .catch((e) => setTestResult({ success: false, error: '대상 로딩 실패: ' + (e?.message || '') }))
+      .catch((e) => setTestResult({ success: false, error: t('targetDb.loadFailed', { message: e?.message || '' }) }))
       .finally(() => setLoading(false));
   }, [open, targetCd]);
 
@@ -96,10 +98,10 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         sourceRefPath:  form.sourceRefPath  || '',
         backendRefPath: form.backendRefPath || '',
       });
-      setSavedMsg({ kind: 'success', text: '저장됨 — 다음 메뉴 트리/소스 조회부터 적용됩니다' });
+      setSavedMsg({ kind: 'success', text: t('targetDb.saveSuccess') });
       if (onSaved) onSaved();
     } catch (e) {
-      setSavedMsg({ kind: 'error', text: '저장 실패: ' + (e?.response?.data?.message || e?.message || '') });
+      setSavedMsg({ kind: 'error', text: t('targetDb.saveFailed', { message: e?.response?.data?.message || e?.message || '' }) });
     } finally {
       setSaving(false);
     }
@@ -118,7 +120,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         <Stack direction="row" alignItems="center" spacing={1}>
           <StorageIcon fontSize="small" />
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Target DB 접속 정보 — {target?.targetName || targetCd}
+            {t('targetDb.title', { name: target?.targetName || targetCd })}
           </Typography>
           {target && <Chip size="small" label={target.dbType} sx={{ fontSize: 10, fontWeight: 600 }} />}
         </Stack>
@@ -132,8 +134,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         {!loading && target && (
           <Stack spacing={2}>
             <Alert severity="info" sx={{ bgcolor: '#eff6ff' }}>
-              운영 wingui DB 에 직접 연결하면 NEW_FROM_COPY / EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다.
-              비워두면 로컬 target-mssql synced 데이터를 폴백 사용합니다.
+              {t('targetDb.infoConnection')}
             </Alert>
 
             <TextField
@@ -156,7 +157,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               />
             </Stack>
             <TextField
-              label="Driver Class (선택)" size="small" fullWidth
+              label={t('targetDb.driverClassLabel')} size="small" fullWidth
               value={form.dbDriverClass}
               onChange={(e) => setForm({ ...form, dbDriverClass: e.target.value })}
               InputProps={{ sx: { fontFamily: 'monospace', fontSize: 12 } }}
@@ -165,8 +166,12 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
             {testResult && (
               <Alert severity={testResult.success ? 'success' : 'error'}>
                 {testResult.success
-                  ? `연결 성공 — ${testResult.databaseProduct} ${testResult.databaseVersion} (${testResult.elapsedMs}ms)`
-                  : `연결 실패 — ${testResult.error}`}
+                  ? t('targetDb.connectionSuccess', {
+                      product: testResult.databaseProduct,
+                      version: testResult.databaseVersion,
+                      elapsedMs: testResult.elapsedMs,
+                    })
+                  : t('targetDb.connectionFailure', { error: testResult.error })}
               </Alert>
             )}
 
@@ -175,25 +180,22 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
                    sx={{ pt: 1, mt: 1, borderTop: '1px solid #e2e8f0' }}>
               <FolderIcon fontSize="small" sx={{ color: '#64748b' }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>
-                Target source path
+                {t('targetDb.sourcePathTitle')}
               </Typography>
             </Stack>
             <Alert severity="info" sx={{ bgcolor: '#f1f5f9', '& .MuiAlert-icon': { color: '#64748b' } }}>
-              컨테이너 안 절대경로 입력 (또는 우측 <strong>탐색</strong> 버튼).
-              <strong> source</strong> 는 frontend root, <strong>backend</strong> 는 backend root
-              (PLANNEL 처럼 monorepo 가 아닌 경우만 별도 지정 — 비우면 source 와 동일 가정).
-              비워두면 docker-compose 의 <code>/workspace/targets/{targetCd}/wingui</code> fallback.
+              <span dangerouslySetInnerHTML={{ __html: t('targetDb.sourcePathInfo', { targetCd }) }} />
             </Alert>
             <TextField
-              label="source 폴더 경로" fullWidth size="small"
+              label={t('targetDb.sourceFolderLabel')} fullWidth size="small"
               value={form.sourceRefPath}
               onChange={(e) => setForm({ ...form, sourceRefPath: e.target.value })}
-              placeholder={`(미설정 — 컨테이너 안 /workspace/targets/${targetCd}/wingui 자동 사용)`}
+              placeholder={t('targetDb.sourceFolderPlaceholder', { targetCd })}
               InputProps={{
                 sx: { fontFamily: 'monospace', fontSize: 12 },
                 endAdornment: (
                   <InputAdornment position="end">
-                    <Tooltip title="폴더 탐색">
+                    <Tooltip title={t('targetDb.folderBrowse')}>
                       <IconButton size="small" onClick={() => setPickerOpen('sourceRefPath')}>
                         <FolderOpenIcon fontSize="small" />
                       </IconButton>
@@ -203,15 +205,15 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               }}
             />
             <TextField
-              label="backend 폴더 경로 (분리 구조일 때만)" fullWidth size="small"
+              label={t('targetDb.backendFolderLabel')} fullWidth size="small"
               value={form.backendRefPath}
               onChange={(e) => setForm({ ...form, backendRefPath: e.target.value })}
-              placeholder="(미설정 — source 와 동일한 root 가정. PLANNEL 처럼 분리되었으면 backend root 지정)"
+              placeholder={t('targetDb.backendFolderPlaceholder')}
               InputProps={{
                 sx: { fontFamily: 'monospace', fontSize: 12 },
                 endAdornment: (
                   <InputAdornment position="end">
-                    <Tooltip title="폴더 탐색">
+                    <Tooltip title={t('targetDb.folderBrowse')}>
                       <IconButton size="small" onClick={() => setPickerOpen('backendRefPath')}>
                         <FolderOpenIcon fontSize="small" />
                       </IconButton>
@@ -226,13 +228,13 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>닫기</Button>
+        <Button onClick={onClose}>{t('targetDb.close')}</Button>
         <Button
           startIcon={testing ? <CircularProgress size={14} /> : <PlayArrowIcon />}
           onClick={handleTest}
           disabled={!form.dbUrl || testing || saving}
         >
-          연결 테스트
+          {t('targetDb.testConnection')}
         </Button>
         <Button
           variant="contained"
@@ -240,14 +242,14 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
           onClick={handleSave}
           disabled={saving}
         >
-          저장
+          {t('targetDb.save')}
         </Button>
       </DialogActions>
 
       <FolderPickerDialog
         open={!!pickerOpen}
         initialPath={pickerOpen ? form[pickerOpen] : ''}
-        title={pickerOpen === 'backendRefPath' ? 'backend 폴더 선택' : 'source 폴더 선택'}
+        title={pickerOpen === 'backendRefPath' ? t('targetDb.pickerBackend') : t('targetDb.pickerSource')}
         onClose={() => setPickerOpen(null)}
         onSelect={handlePickerSelect}
       />

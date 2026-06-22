@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box, Card, CardContent, Typography, Chip, Stack, TextField, MenuItem,
   ToggleButton, ToggleButtonGroup, Grid, CircularProgress, Button, Tooltip,
@@ -66,6 +67,7 @@ function productLineColor(pl) {
  * 여기는 가벼운 인덱스만.
  */
 export default function T3Mockup() {
+  const { t } = useTranslation('composer');
   const [active, setActiveState] = useState(null); // 선택된 patternCode
   const [filter, setFilter] = useState({ productLine: 'ALL', category: 'ALL', layout: 'ALL', q: '' });
   const [view, setView] = useState('grid');
@@ -149,7 +151,7 @@ export default function T3Mockup() {
       <Box sx={{ px: 2, pt: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
         <Stack direction="row" alignItems="baseline" spacing={1.5} flexWrap="wrap" rowGap={0.5}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>SCM UI Mockup</Typography>
-          <Typography variant="body2" color="text.secondary">UI 패턴 목업 갤러리</Typography>
+          <Typography variant="body2" color="text.secondary">{t('mockup.subtitle')}</Typography>
         </Stack>
       </Box>
 
@@ -164,7 +166,7 @@ export default function T3Mockup() {
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <ToggleButtonGroup size="small" exclusive value={filter.productLine}
                                 onChange={(_, v) => v && setFilter((f) => ({ ...f, productLine: v, category: 'ALL', layout: 'ALL' }))}>
-              <ToggleButton value="ALL" sx={{ px: 1.5 }}>전체 {MOCKUP_ENTRIES.length}</ToggleButton>
+              <ToggleButton value="ALL" sx={{ px: 1.5 }}>{t('mockup.filter.all', { n: MOCKUP_ENTRIES.length })}</ToggleButton>
               {Object.entries(PRODUCT_LINE_LABEL).map(([k, v]) => {
                 const count = MOCK_STATS.byProductLine[k] || 0;
                 return (
@@ -180,22 +182,22 @@ export default function T3Mockup() {
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <ToggleButtonGroup size="small" exclusive value={filter.category}
                                 onChange={(_, v) => v && setFilter((f) => ({ ...f, category: v }))}>
-              <ToggleButton value="ALL" sx={{ px: 1.5 }}>All</ToggleButton>
-              <ToggleButton value="core"         sx={{ px: 1.5, color: 'primary.main' }}>정규 {visibleCategoryCount.core || 0}</ToggleButton>
-              <ToggleButton value="domain"       sx={{ px: 1.5, color: 'secondary.main' }}>도메인 {visibleCategoryCount.domain || 0}</ToggleButton>
-              <ToggleButton value="dashboard"    sx={{ px: 1.5, color: 'info.main' }}>Dashboard {visibleCategoryCount.dashboard || 0}</ToggleButton>
-              <ToggleButton value="controlboard" sx={{ px: 1.5, color: 'warning.main' }}>CB {visibleCategoryCount.controlboard || 0}</ToggleButton>
-              <ToggleButton value="meta" sx={{ px: 1.5 }}>메타 {visibleCategoryCount.meta || 0}</ToggleButton>
+              <ToggleButton value="ALL" sx={{ px: 1.5 }}>{t('mockup.category.all')}</ToggleButton>
+              <ToggleButton value="core"         sx={{ px: 1.5, color: 'primary.main' }}>{t('mockup.category.core', { n: visibleCategoryCount.core || 0 })}</ToggleButton>
+              <ToggleButton value="domain"       sx={{ px: 1.5, color: 'secondary.main' }}>{t('mockup.category.domain', { n: visibleCategoryCount.domain || 0 })}</ToggleButton>
+              <ToggleButton value="dashboard"    sx={{ px: 1.5, color: 'info.main' }}>{t('mockup.category.dashboard', { n: visibleCategoryCount.dashboard || 0 })}</ToggleButton>
+              <ToggleButton value="controlboard" sx={{ px: 1.5, color: 'warning.main' }}>{t('mockup.category.controlboard', { n: visibleCategoryCount.controlboard || 0 })}</ToggleButton>
+              <ToggleButton value="meta" sx={{ px: 1.5 }}>{t('mockup.category.meta', { n: visibleCategoryCount.meta || 0 })}</ToggleButton>
             </ToggleButtonGroup>
 
             <TextField size="small" select value={filter.layout}
                         onChange={(e) => setFilter((f) => ({ ...f, layout: e.target.value }))}
                         sx={{ width: 180, '& .MuiSelect-select': { py: 0.75 } }}>
-              <MenuItem value="ALL">Layout — 전체</MenuItem>
+              <MenuItem value="ALL">{t('mockup.layout.all')}</MenuItem>
               {layoutCategories.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
             </TextField>
 
-            <TextField size="small" placeholder="코드/라벨/설명/메뉴 검색"
+            <TextField size="small" placeholder={t('mockup.searchPlaceholder')}
                         value={filter.q} onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value }))}
                         sx={{ width: 260, '& .MuiInputBase-input': { py: 0.75 } }}
                         InputProps={{
@@ -209,7 +211,7 @@ export default function T3Mockup() {
             <Box sx={{ flex: 1 }} />
 
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              {filtered.length}개
+              {t('mockup.countDisplay', { n: filtered.length })}
             </Typography>
             <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
               <ToggleButton value="grid" sx={{ px: 1 }}><GridViewIcon fontSize="small" /></ToggleButton>
@@ -263,7 +265,7 @@ export default function T3Mockup() {
                                         '& .MuiChip-label': { px: 0.75, overflow: 'hidden', textOverflow: 'ellipsis' } }} />
                           </Stack>
                           {menuCount > 0 && (
-                            <Tooltip title={`매핑된 운영 메뉴 ${menuCount}개`}>
+                            <Tooltip title={t('mockup.mappedMenusTooltip', { n: menuCount })}>
                               <Chip size="small" label={`📋 ${menuCount}`} variant="outlined"
                                     sx={{ height: 22, fontSize: 11, flexShrink: 0 }} />
                             </Tooltip>
@@ -292,7 +294,7 @@ export default function T3Mockup() {
             })}
             {filtered.length === 0 && (
               <Grid item xs={12}>
-                <Box sx={{ p: 4, textAlign: 'center', color: 'text.disabled' }}>조회된 목업이 없습니다.</Box>
+                <Box sx={{ p: 4, textAlign: 'center', color: 'text.disabled' }}>{t('mockup.empty')}</Box>
               </Grid>
             )}
           </Grid>
@@ -359,6 +361,7 @@ export default function T3Mockup() {
 // ActiveView — mockup 본문 + 매핑된 운영 메뉴 collapsible 목록
 // =====================================================================
 function ActiveView({ active, ActiveComp, closeMockup }) {
+  const { t } = useTranslation('composer');
   const activeEntry = MOCKUP_ENTRIES.find((x) => x.patternCode === active);
   const mappedMenus = activeEntry?.menus || [];
   const [menusOpen, setMenusOpen] = useState(false);
@@ -380,7 +383,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
       <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
         <Stack direction="row" alignItems="center" sx={{ p: 0.75, gap: 1 }}>
           <Button size="small" startIcon={<ArrowBackIcon />} onClick={closeMockup}>
-            전체 목업 목록으로
+            {t('mockup.backToList')}
           </Button>
           <Chip size="small" label={activeEntry?.patternCode} sx={{ fontFamily: 'monospace' }} />
           <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
@@ -397,7 +400,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
               variant={menusOpen ? 'contained' : 'outlined'}
               disableElevation
             >
-              사용 메뉴 {mappedMenus.length}개
+              {t('mockup.usedMenus', { n: mappedMenus.length })}
             </Button>
           )}
         </Stack>
@@ -408,13 +411,13 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
             <Box sx={{ px: 1.5, pb: 1.5, pt: 0.5, bgcolor: 'grey.50', borderTop: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" alignItems="center" sx={{ mb: 1, gap: 1.5 }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                  이 mockup 으로 매핑된 T3SmartSCM 운영 메뉴 — 총 {mappedMenus.length}개
-                  {menuQuery && ` · ${filteredMenus.length}개 일치`}
+                  {t('mockup.menuListSummary', { total: mappedMenus.length })}
+                  {menuQuery && ` · ${t('mockup.menuListMatched', { n: filteredMenus.length })}`}
                 </Typography>
                 <Box sx={{ flex: 1 }} />
                 <TextField
                   size="small"
-                  placeholder="메뉴ID / 메뉴명 / 경로 검색"
+                  placeholder={t('mockup.menuSearchPlaceholder')}
                   value={menuQuery}
                   onChange={(e) => setMenuQuery(e.target.value)}
                   sx={{ width: 280, bgcolor: 'white' }}
@@ -432,10 +435,10 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 700, width: 50 }}>#</TableCell>
-                      <TableCell sx={{ fontWeight: 700, width: 220 }}>메뉴ID</TableCell>
-                      <TableCell sx={{ fontWeight: 700, width: 240 }}>메뉴명</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>경로 (filePath)</TableCell>
-                      <TableCell sx={{ fontWeight: 700, width: 220 }}>매핑 근거</TableCell>
+                      <TableCell sx={{ fontWeight: 700, width: 220 }}>{t('mockup.menuTable.id')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700, width: 240 }}>{t('mockup.menuTable.name')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('mockup.menuTable.path')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700, width: 220 }}>{t('mockup.menuTable.reason')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -443,7 +446,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
                       <TableRow key={m.menuId} hover>
                         <TableCell sx={{ color: 'text.secondary' }}>{i + 1}</TableCell>
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{m.menuId}</TableCell>
-                        <TableCell sx={{ fontSize: 13, fontWeight: 500 }}>{m.menuNm || <em style={{ color: '#999' }}>(이름없음)</em>}</TableCell>
+                        <TableCell sx={{ fontSize: 13, fontWeight: 500 }}>{m.menuNm || <em style={{ color: '#999' }}>{t('mockup.menuTable.noName')}</em>}</TableCell>
                         <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>{m.filePath}</TableCell>
                         <TableCell sx={{ fontSize: 11, color: 'text.secondary' }}>{m.reason}</TableCell>
                       </TableRow>
@@ -451,7 +454,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
                     {filteredMenus.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} sx={{ textAlign: 'center', color: 'text.disabled', py: 3 }}>
-                          {menuQuery ? `"${menuQuery}" 와 일치하는 메뉴 없음` : '매핑된 메뉴 없음'}
+                          {menuQuery ? t('mockup.menuTable.noMatch', { query: menuQuery }) : t('mockup.menuTable.noMapped')}
                         </TableCell>
                       </TableRow>
                     )}

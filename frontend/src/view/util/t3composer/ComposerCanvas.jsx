@@ -137,6 +137,48 @@ function subtypeHintFor(layer) {
   return SUBTYPE_HINT_ICON[layer?.subtype] || null;
 }
 
+// wizardState.js 의 spec template 들이 사용하는 한국어 기본 layer 제목을
+// 렌더 시점에 i18n 키로 매핑 — 사용자가 별도로 수정하지 않은 default 만 번역.
+const LAYER_TITLE_KEY_MAP = {
+  '메인 그리드':  'layerTitle.mainGrid',
+  '그리드':       'layerTitle.grid',
+  '피벗 그리드':  'layerTitle.pivotGrid',
+  '검색 조건':    'layerTitle.searchFilter',
+  '마스터':       'layerTitle.master',
+  '디테일':       'layerTitle.detail',
+  '상세':         'layerTitle.detail',
+  '상세 그리드':  'layerTitle.detailGrid',
+  '대시보드':     'layerTitle.dashboard',
+  '탭 영역':      'layerTitle.tabArea',
+  '요약':         'layerTitle.summary',
+  '차트':         'layerTitle.chart',
+  '실시간 차트':  'layerTitle.liveChart',
+  '알람':         'layerTitle.alerts',
+  '이벤트 로그':  'layerTitle.eventLog',
+  '메인':         'layerTitle.main',
+  '패널 1':       'layerTitle.panel1',
+  // wizardState.js 의 TYPE_DEFAULT_TITLE
+  '컨테이너':     'layerTitle.container',
+  '문서':         'layerTitle.document',
+  'AI 패널':      'layerTitle.aiPanel',
+  '위젯':         'layerTitle.widget',
+  '공정 라우트':  'layerTitle.processRoute',
+};
+
+/** Default layer title 을 i18n 변환 — 사용자 커스텀 title 은 그대로 통과.
+ *  '위젯 1', '패널 2' 등 번호 붙은 default 는 interpolation 으로 변환. */
+function displayLayerTitle(rawTitle, t) {
+  if (!rawTitle) return '';
+  const key = LAYER_TITLE_KEY_MAP[rawTitle];
+  if (key) return t(key);
+  // 번호 붙은 패턴: '위젯 N' / '패널 N'
+  const widgetN = /^위젯\s+(\d+)$/.exec(rawTitle);
+  if (widgetN) return t('layerTitle.widgetN', { n: widgetN[1] });
+  const panelN  = /^패널\s+(\d+)$/.exec(rawTitle);
+  if (panelN)  return t('layerTitle.panelN',  { n: panelN[1] });
+  return rawTitle;
+}
+
 // ── RGL 상수 ──
 const COLS = 12;
 const RGL_MARGIN = [8, 8];
@@ -443,7 +485,7 @@ function ComposerCanvas({
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2, flex: 1, minWidth: 0 }}>
                           <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#1e293b',
                                              lineHeight: 1.2 }}>
-                            {l.title || l.key}
+                            {displayLayerTitle(l.title, t) || l.key}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Box sx={{ px: 0.7, py: 0.1, borderRadius: 0.7,
@@ -524,7 +566,7 @@ function ComposerCanvas({
                               <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#1e293b',
                                                    lineHeight: 1.2 }}>
-                                  {c.title || c.key}
+                                  {displayLayerTitle(c.title, t) || c.key}
                                 </Typography>
                                 <Typography sx={{ fontSize: 9.5, color: cHasData ? '#16a34a' : '#94a3b8',
                                                    fontWeight: cHasData ? 700 : 500 }}>
@@ -581,7 +623,7 @@ function ComposerCanvas({
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, minWidth: 0, zIndex: 1 }}>
                         <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#1e293b',
                                            lineHeight: 1.2, letterSpacing: '-0.01em' }}>
-                          {l.title || l.key}
+                          {displayLayerTitle(l.title, t) || l.key}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap' }}>
                           <Box sx={{ px: 0.9, py: 0.15, borderRadius: 0.8,

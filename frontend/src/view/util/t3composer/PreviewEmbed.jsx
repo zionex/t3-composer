@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
+import { useTranslation } from 'react-i18next';
 import {
     Box, Stack, Typography, CircularProgress, Alert, AlertTitle, Chip,
     Button,
@@ -69,6 +70,7 @@ class PreviewErrorBoundary extends React.Component {
  *   viewSub   : view 하위 경로
  */
 function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixing, autoFixLabel }) {
+    const { t } = useTranslation('wizard');
     const [phase, setPhase] = useState('idle');   // 'idle' | 'loading' | 'ready' | 'error'
     const [Comp, setComp] = useState(null);
     const [error, setError] = useState(null);
@@ -127,15 +129,13 @@ function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixi
             }}>
                 <CircularProgress sx={{ color: '#d97706' }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#92400e' }}>
-                    🤖 {autoFixLabel || 'AI 자동보완 중'}
+                    🤖 {autoFixLabel || t('previewEmbed.autoFix.label')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ lineHeight: 1.8 }}>
-                    화면 실행 중 발생한 오류를 AI 가 분석해<br />
-                    산출물(JSX / Java / SP)을 자동 수정하고 있습니다.<br />
-                    수정이 끝나면 화면이 <b>자동으로 다시 실행</b>됩니다.
+                    <span dangerouslySetInnerHTML={{ __html: t('previewEmbed.autoFix.body') }} />
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#a16207' }}>
-                    진행 대화는 좌측 하단 <b>작업 내역</b> 패널에서 실시간 확인할 수 있습니다.
+                    <span dangerouslySetInnerHTML={{ __html: t('previewEmbed.autoFix.chatHint') }} />
                 </Typography>
             </Box>
         );
@@ -149,8 +149,7 @@ function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixi
             }}>
                 <LaunchIcon sx={{ fontSize: 56, color: '#cbd5e1' }} />
                 <Typography variant="body2" color="text.secondary" align="center">
-                    헤더의 <b>[화면 실행]</b> 버튼을 누르면<br />
-                    이 자리에 실제 운영되는 형태의 화면이 표시됩니다.
+                    <span dangerouslySetInnerHTML={{ __html: t('previewEmbed.idle.hint') }} />
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Chip label="JSX" size="small" variant="outlined" />
@@ -165,15 +164,15 @@ function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixi
         return (
             <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', gap: 1 }}>
                 <CircularProgress />
-                <Typography variant="caption" color="text.secondary">화면 로드 중...</Typography>
+                <Typography variant="caption" color="text.secondary">{t('previewEmbed.loading')}</Typography>
             </Stack>
         );
     }
 
     if (phase === 'error') {
-        const phaseLabel = error?.phase === 'transform' ? 'JSX 변환'
-                         : error?.phase === 'execute' ? '모듈 실행'
-                         : '화면 로드';
+        const phaseLabel = error?.phase === 'transform' ? t('previewEmbed.errorPhase.transform')
+                         : error?.phase === 'execute' ? t('previewEmbed.errorPhase.execute')
+                         : t('previewEmbed.errorPhase.load');
         const causeMsg = error?.cause?.message;
         return (
             <Box sx={{ p: 3, overflow: 'auto', height: '100%' }}>
@@ -186,13 +185,13 @@ function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixi
                             startIcon={<RefreshIcon fontSize="small" />}
                             onClick={() => setReloadKey((k) => k + 1)}
                         >
-                            다시 시도
+                            {t('previewEmbed.retry')}
                         </Button>
                     }
                 >
-                    <AlertTitle>{phaseLabel} 실패</AlertTitle>
+                    <AlertTitle>{t('previewEmbed.errorTitle', { phase: phaseLabel })}</AlertTitle>
                     <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                        경로: <code>{viewSub}</code>{sid8 ? <> · sid <code>{sid8}</code></> : null}
+                        {t('previewEmbed.errorPath')} <code>{viewSub}</code>{sid8 ? <> · sid <code>{sid8}</code></> : null}
                     </Typography>
                     <Typography variant="caption" component="pre" sx={{
                         display: 'block', mt: 1, p: 1.2,
@@ -200,11 +199,10 @@ function PreviewEmbed({ sessionId, sid8, viewSub, onError, reloadNonce, autoFixi
                         fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     }}>
                         {error?.message || String(error)}
-                        {causeMsg && causeMsg !== error?.message ? '\n\n원인: ' + causeMsg : ''}
+                        {causeMsg && causeMsg !== error?.message ? t('previewEmbed.errorCause', { cause: causeMsg }) : ''}
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                        💡 산출물 소스는 우측의 <b>[산출물 소스]</b> 탭에서 그대로 검토할 수 있습니다.
-                        격리되어 있어 이 에러가 다른 화면에는 영향을 주지 않습니다.
+                        <span dangerouslySetInnerHTML={{ __html: t('previewEmbed.errorTip') }} />
                     </Typography>
                 </Alert>
             </Box>

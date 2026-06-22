@@ -11,6 +11,7 @@
 //      → iframe 내부의 해당 패널이 활성화된 상태로 보임
 //   3) [목록으로] 버튼 / 브라우저 뒤로가기로 카탈로그 복귀
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Paper,
@@ -49,13 +50,13 @@ const SECTIONS = [
     sectionLabel: 'SCM (Supply Chain Management)',
     icon: '🌐', color: '#9d72ff',
     groups: [
-      { title: 'Master Plan (MP)', icon: '📊', color: '#9d72ff', items: [
-        { label: 'MP 컨트롤 보드',                file: 'scm_mp_1_controlboard_ui_patterns.html' },
-        { label: '수급/생산 계획 패턴',           file: 'scm_mp_2_plan_ui_patterns.html' },
-        { label: '계획 대비 실적 모니터링',       file: 'scm_mp_3_monitoring_ui_patterns.html' },
+      { title: 'Master Plan (MP)', titleEn: 'Master Plan (MP)', icon: '📊', color: '#9d72ff', items: [
+        { label: 'MP 컨트롤 보드',                labelEn: 'MP Control Board',                       file: 'scm_mp_1_controlboard_ui_patterns.html' },
+        { label: '수급/생산 계획 패턴',           labelEn: 'Supply & Production Plan Patterns',      file: 'scm_mp_2_plan_ui_patterns.html' },
+        { label: '계획 대비 실적 모니터링',       labelEn: 'Plan vs Actual Monitoring',              file: 'scm_mp_3_monitoring_ui_patterns.html' },
       ]},
-      { title: 'S&OP', icon: '📈', color: '#ffb347', items: [
-        { label: 'S&OP 통합 화면',                file: 'scm_snop_1_ui_patterns.html' },
+      { title: 'S&OP', titleEn: 'S&OP', icon: '📈', color: '#ffb347', items: [
+        { label: 'S&OP 통합 화면',                labelEn: 'S&OP Integrated Screen',                 file: 'scm_snop_1_ui_patterns.html' },
         // 분석 차트 / KPI 대시보드 — 사용자 요청으로 목록 제외
       ]},
     ],
@@ -65,44 +66,44 @@ const SECTIONS = [
     sectionLabel: 'MES (Manufacturing Execution System)',
     icon: '🏭', color: '#4794fe',
     groups: [
-      { title: '영업관리 (Sales)', icon: '💼', color: '#4d9fff', items: [
-        { label: '수주/오더 등록 패턴',          file: 'mes_sales_1_order_ui_patterns.html' },
-        { label: '출하/실적 처리 패턴',           file: 'mes_sales_2_result_ui_patterns.html' },
-        { label: '영업 현황 모니터링',           file: 'mes_sales_3_monitoring_ui_patterns.html' },
+      { title: '영업관리 (Sales)', titleEn: 'Sales Management', icon: '💼', color: '#4d9fff', items: [
+        { label: '수주/오더 등록 패턴',          labelEn: 'Order Entry Patterns',                    file: 'mes_sales_1_order_ui_patterns.html' },
+        { label: '출하/실적 처리 패턴',           labelEn: 'Shipping & Result Patterns',              file: 'mes_sales_2_result_ui_patterns.html' },
+        { label: '영업 현황 모니터링',           labelEn: 'Sales Status Monitoring',                 file: 'mes_sales_3_monitoring_ui_patterns.html' },
       ]},
-      { title: '생산관리 (Production)', icon: '⚙️', color: '#00e5ff', items: [
-        { label: '작업지시 패턴',                file: 'mes_production_1_order_ui_patterns.html' },
-        { label: '생산실적 등록 패턴',            file: 'mes_production_2_result_ui_patterns.html' },
-        { label: '생산 현황 모니터링',            file: 'mes_production_3_monitoring_ui_patterns.html' },
+      { title: '생산관리 (Production)', titleEn: 'Production Management', icon: '⚙️', color: '#00e5ff', items: [
+        { label: '작업지시 패턴',                labelEn: 'Work Order Patterns',                     file: 'mes_production_1_order_ui_patterns.html' },
+        { label: '생산실적 등록 패턴',            labelEn: 'Production Result Entry Patterns',        file: 'mes_production_2_result_ui_patterns.html' },
+        { label: '생산 현황 모니터링',            labelEn: 'Production Status Monitoring',            file: 'mes_production_3_monitoring_ui_patterns.html' },
       ]},
-      { title: '구매관리 (MRP)', icon: '🛒', color: '#00d68f', items: [
-        { label: '발주/구매요청 패턴',            file: 'mes_mrp_1_order_ui_patterns.html' },
-        { label: '입고/구매실적 패턴',            file: 'mes_mrp_2_result_ui_patterns.html' },
-        { label: '구매 현황 모니터링',            file: 'mes_mrp_3_monitoring_ui_patterns.html' },
+      { title: '구매관리 (MRP)', titleEn: 'Purchasing (MRP)', icon: '🛒', color: '#00d68f', items: [
+        { label: '발주/구매요청 패턴',            labelEn: 'PO / Purchase Request Patterns',          file: 'mes_mrp_1_order_ui_patterns.html' },
+        { label: '입고/구매실적 패턴',            labelEn: 'GR / Purchase Result Patterns',           file: 'mes_mrp_2_result_ui_patterns.html' },
+        { label: '구매 현황 모니터링',            labelEn: 'Purchase Status Monitoring',              file: 'mes_mrp_3_monitoring_ui_patterns.html' },
       ]},
-      { title: '자재 및 Lot 관리', icon: '📦', color: '#ffb347', items: [
-        { label: '재고 조회 패턴',                file: 'mes_stock_1_retrive_ui_patterns.html' },
-        { label: '재고 조정/이동 패턴',           file: 'mes_stock_2_modify_ui_patterns.html' },
-        { label: '재고 현황 모니터링',            file: 'mes_stock_3_monitoring_ui_patterns.html' },
-        { label: 'Lot 관리 및 추적',              file: 'mes_lot_manage_ui_patterns.html' },
+      { title: '자재 및 Lot 관리', titleEn: 'Material & Lot Management', icon: '📦', color: '#ffb347', items: [
+        { label: '재고 조회 패턴',                labelEn: 'Stock Browse Patterns',                   file: 'mes_stock_1_retrive_ui_patterns.html' },
+        { label: '재고 조정/이동 패턴',           labelEn: 'Stock Adjustment / Move Patterns',        file: 'mes_stock_2_modify_ui_patterns.html' },
+        { label: '재고 현황 모니터링',            labelEn: 'Stock Status Monitoring',                 file: 'mes_stock_3_monitoring_ui_patterns.html' },
+        { label: 'Lot 관리 및 추적',              labelEn: 'Lot Management & Tracking',               file: 'mes_lot_manage_ui_patterns.html' },
       ]},
-      { title: '품질관리 (QC)', icon: '🔬', color: '#f43f5e', items: [
-        { label: '품질 검사 및 등록',             file: 'mes_qc_1_operation_ui_patterns.html' },
-        { label: '품질 현황 모니터링',            file: 'mes_qc_2_operation_monitoring_patterns.html' },
+      { title: '품질관리 (QC)', titleEn: 'Quality Control (QC)', icon: '🔬', color: '#f43f5e', items: [
+        { label: '품질 검사 및 등록',             labelEn: 'Quality Inspection & Entry',              file: 'mes_qc_1_operation_ui_patterns.html' },
+        { label: '품질 현황 모니터링',            labelEn: 'Quality Status Monitoring',               file: 'mes_qc_2_operation_monitoring_patterns.html' },
       ]},
-      { title: 'Tracking', icon: '📍', color: '#9d72ff', items: [
-        { label: '오더 트래킹',                  file: 'mes_tracking_1_order_ui_patterns.html' },
-        { label: '물류/재고 트래킹',              file: 'mes_tracking_2_stock_ui_patterns.html' },
+      { title: 'Tracking', titleEn: 'Tracking', icon: '📍', color: '#9d72ff', items: [
+        { label: '오더 트래킹',                  labelEn: 'Order Tracking',                          file: 'mes_tracking_1_order_ui_patterns.html' },
+        { label: '물류/재고 트래킹',              labelEn: 'Logistics / Stock Tracking',              file: 'mes_tracking_2_stock_ui_patterns.html' },
       ]},
-      { title: 'Route & WIP', icon: '🛣️', color: '#94a3b8', items: [
-        { label: '라우트 레이아웃',               file: 'mes_route_1_layout.html' },
-        { label: '재공품 라우팅',                 file: 'mes_route_2_wip.html' },
-        { label: '재공품 3D 모니터링',            file: 'mes_route_3_wip_3d.html' },
-        { label: '라우트 시뮬레이션',             file: 'mes_route_4_wip_simulation.html' },
-        { label: '라우트 3D 시뮬레이션',          file: 'mes_route_5_wip_simulation_3d.html' },
+      { title: 'Route & WIP', titleEn: 'Route & WIP', icon: '🛣️', color: '#94a3b8', items: [
+        { label: '라우트 레이아웃',               labelEn: 'Route Layout',                            file: 'mes_route_1_layout.html' },
+        { label: '재공품 라우팅',                 labelEn: 'WIP Routing',                             file: 'mes_route_2_wip.html' },
+        { label: '재공품 3D 모니터링',            labelEn: 'WIP 3D Monitoring',                       file: 'mes_route_3_wip_3d.html' },
+        { label: '라우트 시뮬레이션',             labelEn: 'Route Simulation',                        file: 'mes_route_4_wip_simulation.html' },
+        { label: '라우트 3D 시뮬레이션',          labelEn: 'Route 3D Simulation',                     file: 'mes_route_5_wip_simulation_3d.html' },
       ]},
-      { title: '기준정보 (Master Data)', icon: '📁', color: '#94a3b8', items: [
-        { label: '마스터 데이터 관리',            file: 'mes_master_1_ui_patterns.html' },
+      { title: '기준정보 (Master Data)', titleEn: 'Master Data', icon: '📁', color: '#94a3b8', items: [
+        { label: '마스터 데이터 관리',            labelEn: 'Master Data Management',                  file: 'mes_master_1_ui_patterns.html' },
       ]},
     ],
   },
@@ -127,9 +128,11 @@ function buildEntries() {
           sectionLabel: sec.sectionLabel,
           sectionColor: sec.color,
           group:        g.title,
+          groupEn:      g.titleEn || g.title,
           groupColor:   g.color,
           file:         item.file,
           fileLabel:    item.label,
+          fileLabelEn:  item.labelEn || item.label,
         };
         if (tabs.length === 0) {
           // 탭 없는 단일 페이지 — 원본 HTML 그대로
@@ -161,7 +164,20 @@ function buildEntries() {
 // Composer 자연어 생성 모드의 'UI Pattern 선택' POPUP 이 재사용 (UiPatternPickerDialog)
 export const ALL_ENTRIES = buildEntries();
 
+// group title (Korean) → titleEn 매핑 — 그룹 chip 필터 영어 표시용
+const groupEnByKo = (() => {
+  const map = {};
+  for (const sec of SECTIONS) {
+    for (const g of sec.groups) {
+      map[g.title] = g.titleEn || g.title;
+    }
+  }
+  return map;
+})();
+
 function T3mesPatternCatalog() {
+  const { t, i18n } = useTranslation('composer');
+  const isEn = i18n.language?.startsWith('en');
   const [active, setActive] = useState(null);  // entry
   const [query, setQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('ALL');  // ALL | MES | SCM
@@ -266,7 +282,7 @@ function T3mesPatternCatalog() {
                 size="small" variant="outlined" startIcon={<ArrowBackIcon />}
                 onClick={closeEntry}
               >
-                목록으로
+                {t('uiPattern.backToList')}
               </Button>
               <Divider orientation="vertical" flexItem />
               <Chip
@@ -279,7 +295,7 @@ function T3mesPatternCatalog() {
                 }}
               />
               <Typography variant="caption" sx={{ color: '#6E7E96' }}>
-                {active.group}
+                {isEn ? (active.groupEn || active.group) : active.group}
               </Typography>
               <Box component="span" sx={{ color: '#A6B2C4' }}>›</Box>
               {active.tabLabel ? (
@@ -299,7 +315,7 @@ function T3mesPatternCatalog() {
                 </>
               ) : (
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {active.fileLabel}
+                  {isEn ? (active.fileLabelEn || active.fileLabel) : active.fileLabel}
                 </Typography>
               )}
               <Chip
@@ -313,7 +329,7 @@ function T3mesPatternCatalog() {
               />
               <Box sx={{ flex: 1 }} />
               {active.liteUrl && (
-                <Tooltip title="AI 참조용 경량 파일 (lite) 열기">
+                <Tooltip title={t('uiPattern.openLite')}>
                   <Button
                     size="small" variant="outlined"
                     onClick={() => window.open(active.liteUrl, '_blank', 'noopener,noreferrer')}
@@ -323,7 +339,7 @@ function T3mesPatternCatalog() {
                   </Button>
                 </Tooltip>
               )}
-              <Tooltip title="이 화면(full) 새 창으로 열기">
+              <Tooltip title={t('uiPattern.openFull')}>
                 <IconButton
                   size="small" sx={{ color: '#5683C0' }}
                   onClick={() => window.open(active.srcUrl, '_blank', 'noopener,noreferrer')}
@@ -391,18 +407,18 @@ function T3mesPatternCatalog() {
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: '#3A4A63',
                                                textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}>
-                  UI Pattern 취합본
+                  {t('uiPattern.heroTitle')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#5A6B85', mt: 0.3 }}>
-                  MES / SCM 도메인별 UI 패턴 — 각 TabPage 를 선택하면 본문에 해당 패턴이 즉시 활성화된 상태로 표시됩니다.
+                  {t('uiPattern.heroSubtitle')}
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1}>
                 {[
-                  { label: '전체 패턴', val: stats.total },
-                  { label: 'MES',     val: stats.byMes },
-                  { label: 'SCM',     val: stats.byScm },
-                  { label: '파일',    val: stats.fileCount },
+                  { label: t('uiPattern.stats.total'),  val: stats.total },
+                  { label: 'MES',                       val: stats.byMes },
+                  { label: 'SCM',                       val: stats.byScm },
+                  { label: t('uiPattern.stats.files'),  val: stats.fileCount },
                 ].map((s) => (
                   <Box key={s.label} sx={{
                     minWidth: 86, textAlign: 'center',
@@ -440,14 +456,14 @@ function T3mesPatternCatalog() {
                 size="small"
                 sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.4, fontWeight: 700 } }}
               >
-                <ToggleButton value="ALL">전체</ToggleButton>
+                <ToggleButton value="ALL">{t('uiPattern.filter.all')}</ToggleButton>
                 <ToggleButton value="MES" sx={{ color: '#6BA0B0 !important' }}>MES</ToggleButton>
                 <ToggleButton value="SCM" sx={{ color: '#9D8FD4 !important' }}>SCM</ToggleButton>
               </ToggleButtonGroup>
               <Divider orientation="vertical" flexItem />
               <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                 <Chip
-                  size="small" label="전체 그룹"
+                  size="small" label={t('uiPattern.allGroups')}
                   onClick={() => setGroupFilter('ALL')}
                   sx={{
                     height: 26, fontWeight: 700,
@@ -458,7 +474,7 @@ function T3mesPatternCatalog() {
                 />
                 {groupOptions.map((g) => (
                   <Chip
-                    key={g} size="small" label={g}
+                    key={g} size="small" label={isEn ? (groupEnByKo[g] || g) : g}
                     onClick={() => setGroupFilter(g)}
                     sx={{
                       height: 26, fontWeight: 500,
@@ -472,7 +488,7 @@ function T3mesPatternCatalog() {
               <Box sx={{ flex: 1 }} />
               <TextField
                 size="small"
-                placeholder="섹션 · 그룹 · 파일 · TabPage 라벨 검색"
+                placeholder={t('uiPattern.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 sx={{ minWidth: 280 }}
@@ -492,11 +508,11 @@ function T3mesPatternCatalog() {
                 }}
               />
               {hasFilter && (
-                <Button size="small" variant="text" onClick={clearFilters}>초기화</Button>
+                <Button size="small" variant="text" onClick={clearFilters}>{t('uiPattern.reset')}</Button>
               )}
               <Chip
                 size="small" color="info" variant="outlined"
-                label={`결과 ${filtered.length}개`}
+                label={t('uiPattern.resultCount', { n: filtered.length })}
                 sx={{ fontWeight: 600 }}
               />
             </Stack>
@@ -507,9 +523,9 @@ function T3mesPatternCatalog() {
             {filtered.length === 0 && (
               <Paper elevation={0} sx={{ p: 6, textAlign: 'center', bgcolor: '#fff', borderRadius: 2 }}>
                 <Typography variant="body1" sx={{ color: '#64748b' }}>
-                  검색 조건에 맞는 패턴이 없습니다.
+                  {t('uiPattern.noResults')}
                 </Typography>
-                <Button size="small" sx={{ mt: 1 }} onClick={clearFilters}>필터 초기화</Button>
+                <Button size="small" sx={{ mt: 1 }} onClick={clearFilters}>{t('uiPattern.resetFilters')}</Button>
               </Paper>
             )}
 
@@ -543,7 +559,7 @@ function T3mesPatternCatalog() {
                             ◆
                           </Avatar>
                           <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
-                            {g.group}
+                            {isEn ? (groupEnByKo[g.group] || g.group) : g.group}
                           </Typography>
                           <Box sx={{ flex: 1 }} />
                           <Chip
@@ -586,7 +602,7 @@ function T3mesPatternCatalog() {
                                   }}
                                 >
                                   <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                                    {f.fileLabel}
+                                    {isEn ? (f.fileLabelEn || f.fileLabel) : f.fileLabel}
                                   </Typography>
                                   <Typography variant="caption" sx={{
                                     fontFamily: 'monospace', color: '#94a3b8', fontSize: 10,
@@ -594,7 +610,7 @@ function T3mesPatternCatalog() {
                                     {f.file}
                                   </Typography>
                                   <Box sx={{ flex: 1 }} />
-                                  <Tooltip title="새 창으로 열기">
+                                  <Tooltip title={t('uiPattern.openInNewWindow')}>
                                     <IconButton
                                       size="small"
                                       onClick={(e) => {
@@ -617,7 +633,7 @@ function T3mesPatternCatalog() {
                               }}>
                                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.6 }}>
                                   <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                                    {f.fileLabel}
+                                    {isEn ? (f.fileLabelEn || f.fileLabel) : f.fileLabel}
                                   </Typography>
                                   <Typography variant="caption" sx={{
                                     fontFamily: 'monospace', color: '#94a3b8', fontSize: 10,
@@ -633,7 +649,7 @@ function T3mesPatternCatalog() {
                                     }}
                                   />
                                   <Box sx={{ flex: 1 }} />
-                                  <Tooltip title="새 창으로 열기">
+                                  <Tooltip title={t('uiPattern.openInNewWindow')}>
                                     <IconButton
                                       size="small"
                                       onClick={(e) => {

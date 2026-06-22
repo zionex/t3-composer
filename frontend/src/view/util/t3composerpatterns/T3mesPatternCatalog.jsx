@@ -38,7 +38,14 @@ import DashboardIcon  from '@mui/icons-material/Dashboard';
 import { ContentInner, WorkArea } from '@wingui/common/imports';
 
 import tabsByFile from './_data/t3mes-tabs.json';
+import tabLabelEn from './_data/tab-label-en.json';
 import PressPreview from './PressPreview';
+
+// 한국어 라벨 → 영어 lookup. 미존재 시 원본 라벨 그대로.
+function localizeLabel(label, isEn) {
+  if (!isEn || !label) return label;
+  return tabLabelEn[label] || label;
+}
 
 // ─────────────────────────────────────────
 // Section/Group/File 메타 (T3MES index.html 구조)
@@ -208,11 +215,11 @@ function T3mesPatternCatalog() {
       });
       const sec = tree.get(e.section);
       if (!sec.groups.has(e.group)) sec.groups.set(e.group, {
-        group: e.group, groupColor: e.groupColor, files: new Map(),
+        group: e.group, groupEn: e.groupEn, groupColor: e.groupColor, files: new Map(),
       });
       const grp = sec.groups.get(e.group);
       if (!grp.files.has(e.file)) grp.files.set(e.file, {
-        file: e.file, fileLabel: e.fileLabel, entries: [],
+        file: e.file, fileLabel: e.fileLabel, fileLabelEn: e.fileLabelEn, entries: [],
       });
       grp.files.get(e.file).entries.push(e);
     }
@@ -301,7 +308,7 @@ function T3mesPatternCatalog() {
               {active.tabLabel ? (
                 <>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {active.tabLabel}
+                    {localizeLabel(active.tabLabel, isEn)}
                   </Typography>
                   <Chip
                     size="small"
@@ -356,7 +363,7 @@ function T3mesPatternCatalog() {
             */}
             <iframe
               key={active.srcUrl}
-              title={active.tabLabel || active.fileLabel}
+              title={localizeLabel(active.tabLabel, isEn) || (isEn ? (active.fileLabelEn || active.fileLabel) : active.fileLabel)}
               src={active.srcUrl}
               onLoad={(e) => {
                 const el = e.currentTarget;
@@ -561,7 +568,6 @@ function T3mesPatternCatalog() {
                           <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
                             {isEn ? (groupEnByKo[g.group] || g.group) : g.group}
                           </Typography>
-                          <Box sx={{ flex: 1 }} />
                           <Chip
                             label={g.files.reduce((acc, f) => acc + f.entries.length, 0)}
                             size="small"
@@ -604,23 +610,6 @@ function T3mesPatternCatalog() {
                                   <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a' }}>
                                     {isEn ? (f.fileLabelEn || f.fileLabel) : f.fileLabel}
                                   </Typography>
-                                  <Typography variant="caption" sx={{
-                                    fontFamily: 'monospace', color: '#94a3b8', fontSize: 10,
-                                  }}>
-                                    {f.file}
-                                  </Typography>
-                                  <Box sx={{ flex: 1 }} />
-                                  <Tooltip title={t('uiPattern.openInNewWindow')}>
-                                    <IconButton
-                                      size="small"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(`/t3mes/${f.file}`, '_blank', 'noopener,noreferrer');
-                                      }}
-                                    >
-                                      <OpenInNewIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
                                 </PressPreview>
                               );
                             }
@@ -635,11 +624,6 @@ function T3mesPatternCatalog() {
                                   <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
                                     {isEn ? (f.fileLabelEn || f.fileLabel) : f.fileLabel}
                                   </Typography>
-                                  <Typography variant="caption" sx={{
-                                    fontFamily: 'monospace', color: '#94a3b8', fontSize: 10,
-                                  }}>
-                                    {f.file}
-                                  </Typography>
                                   <Chip
                                     label={`${f.entries.length} TabPage`}
                                     size="small"
@@ -648,18 +632,6 @@ function T3mesPatternCatalog() {
                                       bgcolor: `${g.groupColor}22`, color: g.groupColor,
                                     }}
                                   />
-                                  <Box sx={{ flex: 1 }} />
-                                  <Tooltip title={t('uiPattern.openInNewWindow')}>
-                                    <IconButton
-                                      size="small"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(`/t3mes/${f.file}`, '_blank', 'noopener,noreferrer');
-                                      }}
-                                    >
-                                      <OpenInNewIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
                                 </Stack>
                                 <Box sx={{
                                   display: 'grid',
@@ -699,9 +671,9 @@ function T3mesPatternCatalog() {
                                         variant="caption"
                                         sx={{ fontWeight: 600, color: '#0f172a', flex: 1, minWidth: 0 }}
                                         noWrap
-                                        title={entry.tabLabel}
+                                        title={localizeLabel(entry.tabLabel, isEn)}
                                       >
-                                        {entry.tabLabel}
+                                        {localizeLabel(entry.tabLabel, isEn)}
                                       </Typography>
                                     </PressPreview>
                                   ))}

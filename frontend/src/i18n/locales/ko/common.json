@@ -1,1 +1,38 @@
-{}
+{
+  "app": {
+    "menu": {
+      "composer":    "Composer",
+      "history":     "History",
+      "scmUiMockup": "SCM UI Mockup",
+      "uiPattern":   "UI Pattern",
+      "ontology":    "Ontology",
+      "dashboard":   "Dashboard"
+    },
+    "menuHint": {
+      "composer":    "AI 화면 생성 — 자연어·복사·설계서 기반 신규 / 기존 화면 수정",
+      "history":     "작업 이력 — 진행·완료·보관 세션 조회 및 이어하기",
+      "scmUiMockup": "SCM UI Mockup 패턴 갤러리 — 화면 목업 카탈로그",
+      "uiPattern":   "T3MES UI 패턴 카탈로그 — MES/SCM 도메인별 화면 패턴",
+      "ontology":    "Ontology 관리 — Q&A · Entity · View · Process",
+      "dashboard":   "대시보드 빌더 — 위젯 기반 사용자 대시보드 조회 및 편집"
+    }
+  },
+  "action": {
+    "create":   "생성",
+    "cancel":   "취소",
+    "confirm":  "확인",
+    "save":     "저장",
+    "delete":   "삭제",
+    "next":     "다음",
+    "previous": "이전",
+    "search":   "검색",
+    "close":    "닫기",
+    "back":     "뒤로",
+    "apply":    "적용"
+  },
+  "status": {
+    "loading": "불러오는 중...",
+    "empty":   "결과 없음",
+    "error":   "오류가 발생했습니다"
+  }
+}

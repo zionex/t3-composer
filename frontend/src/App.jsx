@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Switch, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, Tabs, Tab, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
@@ -37,13 +38,13 @@ import { ShowMessageHost } from '@wingui/common/imports';
  * /preview/<sessionId>/<viewSub> 라우트 — 산출물 화면 새 창에서 단독 표시 (PreviewLoader).
  */
 const MENU_ITEMS = [
-    { key: 'composer', label: 'Composer',      Icon: AutoAwesomeIcon,        hint: 'AI 화면 생성 — 자연어·복사·설계서 기반 신규 / 기존 화면 수정', Component: T3Composer },
-    { key: 'history',  label: 'History',       Icon: HistoryIcon,            hint: '작업 이력 — 진행·완료·보관 세션 조회 및 이어하기',           Component: T3ComposerHistory },
-    { key: 'mockup',   label: 'SCM UI Mockup', Icon: DashboardCustomizeIcon, hint: 'SCM UI Mockup 패턴 갤러리 — 화면 목업 카탈로그',             Component: T3Mockup },
-    { key: 'patterns', label: 'UI Pattern',    Icon: ViewQuiltIcon,          hint: 'T3MES UI 패턴 카탈로그 — MES/SCM 도메인별 화면 패턴',         Component: T3mesPatternCatalog },
-    // { key: 'dict',     label: 'Gallery',       Icon: WidgetsIcon,            hint: 'Composer 갤러리 — Grid·Chart·KPI 사전',                      Component: T3ComposerDict },
-    { key: 'ontology', label: 'Ontology',      Icon: SchemaIcon,             hint: 'Ontology 관리 — Q&A · Entity · View · Process',              Component: OntologyPage },
-    { key: 'dashboard',  label: 'Dashboard',      Icon: DashboardIcon,          hint: '대시보드 빌더 — 위젯 기반 사용자 대시보드 조회 및 편집',       Component: T3Dashboard },
+    { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    Icon: AutoAwesomeIcon,        Component: T3Composer },
+    { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     Icon: HistoryIcon,            Component: T3ComposerHistory },
+    { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', Icon: DashboardCustomizeIcon, Component: T3Mockup },
+    { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   Icon: ViewQuiltIcon,          Component: T3mesPatternCatalog },
+    // { key: 'dict',     labelKey: 'app.menu.gallery',     hintKey: 'app.menuHint.gallery',     Icon: WidgetsIcon,            Component: T3ComposerDict },
+    { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    Icon: SchemaIcon,             Component: OntologyPage },
+    { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   Icon: DashboardIcon,          Component: T3Dashboard },
 ];
 
 const SIDEBAR_W           = 212;
@@ -52,6 +53,7 @@ const SIDEBAR_W_COLLAPSED = 56;
 function findMenu(key) { return MENU_ITEMS.find((m) => m.key === key); }
 
 function TabbedHome() {
+    const { t } = useTranslation();
     // 초기 — 메인 Tab 만 열려 있음
     const [openTabs, setOpenTabs] = useState([MENU_ITEMS[0].key]);
     const [activeKey, setActiveKey] = useState(MENU_ITEMS[0].key);
@@ -183,10 +185,12 @@ function TabbedHome() {
                     {MENU_ITEMS.map((m) => {
                         const isActive = activeKey === m.key && openTabs.includes(m.key);
                         const Icon = m.Icon;
+                        const label = t(m.labelKey);
+                        const hint  = t(m.hintKey);
                         return (
                             <Tooltip
                                 key={m.key}
-                                title={collapsed ? `${m.label} — ${m.hint}` : m.hint}
+                                title={collapsed ? `${label} — ${hint}` : hint}
                                 placement="right"
                             >
                                 <Box
@@ -212,7 +216,7 @@ function TabbedHome() {
                                             fontSize: '0.8rem', fontWeight: 'inherit',
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
-                                            {m.label}
+                                            {label}
                                         </Typography>
                                     )}
                                 </Box>
@@ -275,7 +279,7 @@ function TabbedHome() {
                                     value={key}
                                     label={
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <span>{m.label}</span>
+                                            <span>{t(m.labelKey)}</span>
                                             <IconButton
                                                 component="div"
                                                 role="button"

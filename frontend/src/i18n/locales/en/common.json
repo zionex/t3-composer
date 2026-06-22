@@ -1,1 +1,38 @@
-{}
+{
+  "app": {
+    "menu": {
+      "composer":    "Composer",
+      "history":     "History",
+      "scmUiMockup": "SCM UI Mockup",
+      "uiPattern":   "UI Pattern",
+      "ontology":    "Ontology",
+      "dashboard":   "Dashboard"
+    },
+    "menuHint": {
+      "composer":    "AI screen generation — Natural language / Copy / Design-based new or modify existing screens",
+      "history":     "Work history — Browse and resume active, completed, or archived sessions",
+      "scmUiMockup": "SCM UI Mockup pattern gallery — Screen mockup catalog",
+      "uiPattern":   "T3MES UI Pattern catalog — Screen patterns by MES/SCM domain",
+      "ontology":    "Ontology management — Q&A, Entity, View, Process",
+      "dashboard":   "Dashboard builder — Widget-based user dashboard browse and edit"
+    }
+  },
+  "action": {
+    "create":   "Create",
+    "cancel":   "Cancel",
+    "confirm":  "Confirm",
+    "save":     "Save",
+    "delete":   "Delete",
+    "next":     "Next",
+    "previous": "Previous",
+    "search":   "Search",
+    "close":    "Close",
+    "back":     "Back",
+    "apply":    "Apply"
+  },
+  "status": {
+    "loading": "Loading...",
+    "empty":   "No results",
+    "error":   "An error occurred"
+  }
+}

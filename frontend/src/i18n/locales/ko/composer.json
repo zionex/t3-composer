@@ -1,1 +1,37 @@
-{}
+{
+  "landing": {
+    "title":    "T³Composer",
+    "subtitle": "AI 기반 화면 자동 생성"
+  },
+  "category": {
+    "newDev":         "신규 개발",
+    "modifyExisting": "기존 화면 수정"
+  },
+  "mode": {
+    "newNl": {
+      "title": "자연어 생성",
+      "sub":   "Natural Lang.",
+      "hint":  "요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다"
+    },
+    "newStep": {
+      "title": "단계별 생성",
+      "sub":   "Pattern + Visual",
+      "hint":  "패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다"
+    },
+    "newFromCopy": {
+      "title": "기존 화면 복사",
+      "sub":   "Copy Existing",
+      "hint":  "기존 화면을 복사해 단계별 마법사로 수정합니다"
+    },
+    "modifyNl": {
+      "title": "자연어 수정",
+      "sub":   "NL Modify",
+      "hint":  "현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청"
+    },
+    "modifyStep": {
+      "title": "단계별 수정",
+      "sub":   "Step Modify",
+      "hint":  "기존 화면을 Spec 으로 분해해 수정할 부분만 변경"
+    }
+  }
+}

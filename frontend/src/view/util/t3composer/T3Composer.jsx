@@ -34,6 +34,7 @@ import CloudOutlinedIcon     from '@mui/icons-material/CloudOutlined';
 import TerminalIcon          from '@mui/icons-material/Terminal';
 
 import { useLocation, useHistory } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { ContentInner, WorkArea, showMessage } from '@wingui/common/imports';
 
@@ -60,7 +61,7 @@ const MODE = {
 // ===== 상위 2 카테고리 =====
 const CATEGORY_NEW = {
   key: 'NEW',
-  title: '신규 개발',
+  titleKey: 'category.newDev',
   subtitle: 'New Development',
   icon: AddCircleOutlineIcon,
   accent: '#7CA7E0',
@@ -68,7 +69,7 @@ const CATEGORY_NEW = {
 };
 const CATEGORY_MODIFY = {
   key: 'MODIFY',
-  title: '기존 화면 수정',
+  titleKey: 'category.modifyExisting',
   subtitle: 'Modify Existing',
   icon: BorderColorIcon,
   accent: '#E6C079',
@@ -82,15 +83,15 @@ const CATEGORY_MODIFY = {
 //   · NEW_NL 모드 안의 "Step 별 선택 생성" 서브카드도 별도 제거 (ModeNewGeneral)
 //   현재 활성 진입: NL · 단계별 생성 (4-step) · 기존 화면 복사 (4-step).
 const NEW_MODE_OPTIONS = [
-  { key: MODE.NEW_NL,          step: 1, title: '자연어 생성',     sub: 'Natural Lang.', icon: ChatIcon,        color: '#8FC4D4', hint: '요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성합니다' },
-  { key: MODE.NEW_STEP,        step: 2, title: '단계별 생성',     sub: 'Pattern + Visual', icon: ViewQuiltIcon, color: '#9D8FD4', hint: '패턴을 고른 뒤 시각 편집으로 데이터를 채웁니다' },
-  { key: MODE.NEW_FROM_COPY,   step: 3, title: '기존 화면 복사', sub: 'Copy Existing', icon: ContentCopyIcon, color: '#86C7A8', hint: '기존 화면을 복사해 단계별 마법사로 수정합니다' },
+  { key: MODE.NEW_NL,          step: 1, titleKey: 'mode.newNl.title',        subKey: 'mode.newNl.sub',        hintKey: 'mode.newNl.hint',        icon: ChatIcon,        color: '#8FC4D4' },
+  { key: MODE.NEW_STEP,        step: 2, titleKey: 'mode.newStep.title',      subKey: 'mode.newStep.sub',      hintKey: 'mode.newStep.hint',      icon: ViewQuiltIcon,   color: '#9D8FD4' },
+  { key: MODE.NEW_FROM_COPY,   step: 3, titleKey: 'mode.newFromCopy.title',  subKey: 'mode.newFromCopy.sub',  hintKey: 'mode.newFromCopy.hint',  icon: ContentCopyIcon, color: '#86C7A8' },
 ];
 
 // ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)
 const MODIFY_MODE_OPTIONS = [
-  { key: 'NL',   step: 1, title: '자연어 수정', sub: 'NL Modify',   icon: ChatIcon,             color: '#8FC4D4', hint: '현재 화면 소스를 Claude 에 제공하고 자연어 대화로 수정 요청' },
-  { key: 'STEP', step: 2, title: '단계별 수정', sub: 'Step Modify', icon: PlaylistAddCheckIcon, color: '#86C7A8', hint: '기존 화면을 Spec 으로 분해해 수정할 부분만 변경' },
+  { key: 'NL',   step: 1, titleKey: 'mode.modifyNl.title',   subKey: 'mode.modifyNl.sub',   hintKey: 'mode.modifyNl.hint',   icon: ChatIcon,             color: '#8FC4D4' },
+  { key: 'STEP', step: 2, titleKey: 'mode.modifyStep.title', subKey: 'mode.modifyStep.sub', hintKey: 'mode.modifyStep.hint', icon: PlaylistAddCheckIcon, color: '#86C7A8' },
 ];
 
 /**
@@ -107,6 +108,7 @@ function embossedPaper(accent, hovered = false) {
 //   하위 모드 카드가 펼쳐지고, 하위 카드를 누르면 해당 모드로 진입.
 // =====================================================================
 function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend }) {
+  const { t } = useTranslation('composer');
   const [hovered, setHovered] = useState(null);
 
   return (
@@ -145,7 +147,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
             <Stack direction="row" alignItems="center" spacing={1}>
               <Tooltip title="AI 화면 생성기 — 신규 개발 또는 기존 화면 수정을 선택하세요">
                 <Typography variant="h4" sx={{ lineHeight: 1.1, letterSpacing: -0.5, cursor: 'default' }}>
-                  Composer
+                  {t('landing.title')}
                 </Typography>
               </Tooltip>
               <Chip label="AI" size="small" sx={{
@@ -155,7 +157,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
               }} />
             </Stack>
             <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.2, display: 'block' }}>
-              AI 화면 생성기
+              {t('landing.subtitle')}
             </Typography>
           </Box>
 
@@ -253,7 +255,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.15 }}>
-                    {cat.title}
+                    {t(cat.titleKey)}
                   </Typography>
                   <Typography variant="caption" sx={{
                     color: cat.accent, fontWeight: 800, letterSpacing: 1.2,
@@ -270,7 +272,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                   const Icon = opt.icon;
                   const isHover = hovered === `${cat.key}-${opt.key}`;
                   return (
-                    <Tooltip key={opt.key} title={opt.hint} placement="top">
+                    <Tooltip key={opt.key} title={t(opt.hintKey)} placement="top">
                       <Paper
                         elevation={0}
                         onClick={() => onPickMode(cat.key, opt.key)}
@@ -308,17 +310,17 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                               color: opt.color, fontWeight: 800, letterSpacing: 1.2,
                               textTransform: 'uppercase', fontSize: 9.5,
                             }}>
-                              {opt.sub}
+                              {t(opt.subKey)}
                             </Typography>
                             <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.2 }}>
-                              {opt.title}
+                              {t(opt.titleKey)}
                             </Typography>
                             <Typography variant="caption" sx={{
                               color: 'text.secondary', mt: 0.2,
                               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                             }}>
-                              {opt.hint}
+                              {t(opt.hintKey)}
                             </Typography>
                           </Box>
                           <Stack direction="row" alignItems="center" spacing={0.4} sx={{

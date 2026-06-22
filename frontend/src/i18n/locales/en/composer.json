@@ -1,1 +1,37 @@
-{}
+{
+  "landing": {
+    "title":    "T³Composer",
+    "subtitle": "AI-powered Screen Generation"
+  },
+  "category": {
+    "newDev":         "New Development",
+    "modifyExisting": "Modify Existing Screen"
+  },
+  "mode": {
+    "newNl": {
+      "title": "Natural Language",
+      "sub":   "Natural Lang.",
+      "hint":  "Describe requirements in natural language; Claude generates patterns and code"
+    },
+    "newStep": {
+      "title": "Step-by-Step",
+      "sub":   "Pattern + Visual",
+      "hint":  "Pick a pattern, then fill in data with visual editing"
+    },
+    "newFromCopy": {
+      "title": "Copy Existing",
+      "sub":   "Copy Existing",
+      "hint":  "Copy an existing screen and modify with the step-by-step wizard"
+    },
+    "modifyNl": {
+      "title": "NL Modify",
+      "sub":   "NL Modify",
+      "hint":  "Send current screen source to Claude and modify via natural-language conversation"
+    },
+    "modifyStep": {
+      "title": "Step Modify",
+      "sub":   "Step Modify",
+      "hint":  "Decompose existing screen into a Spec and modify only what's needed"
+    }
+  }
+}

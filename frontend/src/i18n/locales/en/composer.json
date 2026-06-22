@@ -34,6 +34,56 @@
       "hint":  "Decompose existing screen into a Spec and modify only what's needed"
     }
   },
+  "modeNewFromCopy": {
+    "header": {
+      "back":     "Mode Selection",
+      "title":    "Copy Existing Screen — 4-Step Wizard",
+      "subtitle": "Copy from Existing · Pick a source then review·generate step by step"
+    },
+    "leftPanel": {
+      "title":    "1. Select source screen to copy",
+      "selected": "Selected"
+    },
+    "middlePanel": {
+      "placeholder": "Pick a source screen from the left to copy.",
+      "loading":     "Collecting source bundle...",
+      "hint":        "Collected source bundle — will auto-prefill the 4 Wizard steps"
+    },
+    "rightPanel": {
+      "title":            "2. New screen basics",
+      "originLabel":      "Origin",
+      "newMenuCdLabel":   "New Menu Code",
+      "newMenuCdPlaceholder": "e.g. UI_DP_MONTHLY_PLAN_V2",
+      "newMenuCdCheck":   "Check",
+      "newTitleLabel":    "New Screen Title",
+      "newTitlePlaceholder": "e.g. DP Monthly Plan V2",
+      "infoAlert":        "Detailed changes (added columns, filter conditions, etc.) are entered in each step of the 4-step Wizard (① Canvas / ② Data·Filters / ③ Meta·Menu / ④ Generate). Free-form additional requests can be entered in the last step (④ Generate).",
+      "ai": {
+        "label":        "AI Auto-analysis for 4-step prefill (recommended)",
+        "desc":         "Accurately extracts SPs per layer (read/CUD), FilterBar, components, and Entity. When OFF only regex analysis is used.",
+        "analyzing":    "Claude is analyzing the sourceBundle (5-15 sec)...",
+        "done":         "✓ AI analysis complete — {{modelName}} · {{stepCount}}/8 steps enhanced"
+      },
+      "warnNoSelection": "Please select a source screen on the left first.",
+      "reset":           "Reset",
+      "aiAnalyzing":     "AI analyzing...",
+      "aiSubmit":        "AI Analyze + 4-Step Wizard",
+      "plainSubmit":     "Next — 4-Step Wizard"
+    },
+    "menuCdValidation": {
+      "empty":          "Please enter a menu code",
+      "sameAsOrigin":   "Menu code cannot be the same as the source",
+      "exists":         "This menu code already exists",
+      "ok":             "✓ Menu code is available",
+      "skipped":        "(availability check skipped)"
+    },
+    "errors": {
+      "sourceFailed":   "Source collection failed: {{detail}}",
+      "newMenuCdRequired": "Please enter a new menu code.",
+      "aiFailed":       "AI analysis failed (proceeding with regex result): {{detail}}"
+    },
+    "copySuffix":       "{{id}} Copy"
+  },
   "modeNewStep": {
     "title":   "Step-by-Step Screen Creation (Beta) — Pattern Selection",
     "hint":    "Choose a starting skeleton for your screen. The 4-step Wizard will then guide you through Layout / Data·Filter / Meta·Menu / Generate.",

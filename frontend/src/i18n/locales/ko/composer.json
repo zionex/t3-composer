@@ -34,6 +34,56 @@
       "hint":  "기존 화면을 Spec 으로 분해해 수정할 부분만 변경"
     }
   },
+  "modeNewFromCopy": {
+    "header": {
+      "back":     "모드 선택",
+      "title":    "기존 화면 복사 — 4단계 Wizard",
+      "subtitle": "Copy from Existing · 원본 선택 후 단계별 검토·생성"
+    },
+    "leftPanel": {
+      "title":    "1. 복사할 원본 화면 선택",
+      "selected": "선택됨"
+    },
+    "middlePanel": {
+      "placeholder": "좌측에서 복사할 원본 화면을 선택하세요.",
+      "loading":     "원본 소스 수집 중...",
+      "hint":        "수집된 원본 소스 번들 — Wizard 4단계에 자동 prefill 됩니다"
+    },
+    "rightPanel": {
+      "title":            "2. 신규 화면 기본 정보",
+      "originLabel":      "원본",
+      "newMenuCdLabel":   "신규 메뉴 코드",
+      "newMenuCdPlaceholder": "예: UI_DP_MONTHLY_PLAN_V2",
+      "newMenuCdCheck":   "확인",
+      "newTitleLabel":    "신규 화면 제목",
+      "newTitlePlaceholder": "예: DP 월간 계획 V2",
+      "infoAlert":        "상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard (① Canvas / ② 데이터·검색조건 / ③ 메타·메뉴 / ④ 화면 생성) 의 각 단계에서 입력합니다. 자유 텍스트 형태의 추가 요청은 마지막 단계(④ 화면 생성) 에서 입력 가능합니다.",
+      "ai": {
+        "label":        "AI 자동 분석으로 4단계 prefill (권장)",
+        "desc":         "Layer 별 SP (조회/CUD), FilterBar, 컴포넌트, Entity 까지 정확히 추출. OFF 면 정규식 분석만 사용.",
+        "analyzing":    "Claude 가 sourceBundle 을 분석 중입니다 (5~15초)...",
+        "done":         "✓ AI 분석 완료 — {{modelName}} · {{stepCount}}/8 단계 보강됨"
+      },
+      "warnNoSelection": "먼저 좌측에서 복사할 원본 화면을 선택하세요.",
+      "reset":           "초기화",
+      "aiAnalyzing":     "AI 분석 중...",
+      "aiSubmit":        "AI 분석 + 4단계 Wizard",
+      "plainSubmit":     "다음 — 4단계 Wizard"
+    },
+    "menuCdValidation": {
+      "empty":          "메뉴 코드를 입력하세요",
+      "sameAsOrigin":   "원본과 동일한 메뉴 코드는 사용할 수 없습니다",
+      "exists":         "이미 존재하는 메뉴 코드입니다",
+      "ok":             "✓ 사용 가능한 메뉴 코드입니다",
+      "skipped":        "(사용 가능 여부 확인 건너뜀)"
+    },
+    "errors": {
+      "sourceFailed":   "소스 수집 실패: {{detail}}",
+      "newMenuCdRequired": "신규 메뉴 코드를 입력해주세요.",
+      "aiFailed":       "AI 분석 실패 (정규식 결과로 진행): {{detail}}"
+    },
+    "copySuffix":       "{{id}} 복사본"
+  },
   "modeNewStep": {
     "title":   "단계별 화면 생성 (Beta) — 패턴 선택",
     "hint":    "화면의 시작 골격을 선택하세요. 선택 후 4단계 Wizard 에서 Layout / 데이터·검색조건 / 메타·메뉴 / 화면 생성 순으로 진행합니다.",

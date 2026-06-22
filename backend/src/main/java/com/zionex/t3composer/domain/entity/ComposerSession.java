@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -73,6 +74,14 @@ public class ComposerSession {
     @Column(name = "RULE_SCOPE", length = 40)
     private String ruleScope;
 
+    /**
+     * Composer 세션의 UI 언어 (Claude 응답 언어용 — Phase 6 i18n).
+     * 'ko' (한국어, 기본) | 'en' (English). 산출물 코드는 system prompt 강제로
+     * 한국어 라벨/문자열/주석 보존.
+     */
+    @Column(name = "UI_LANGUAGE", length = 8)
+    private String uiLanguage;
+
     @Column(name = "TITLE")
     private String title;
 
@@ -109,4 +118,11 @@ public class ComposerSession {
     @LastModifiedDate
     @Column(name = "MODIFY_DTTM", insertable = false)
     private LocalDateTime modifyDttm;
+
+    @PrePersist
+    void onPrePersist() {
+        if (this.uiLanguage == null || this.uiLanguage.isBlank()) {
+            this.uiLanguage = "ko";
+        }
+    }
 }

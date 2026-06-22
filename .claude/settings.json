@@ -100,7 +100,10 @@
       "Read(//tmp/**)",
       "Bash(FILE_PATH=/test/Bar.jsx CONTENT='import { Bar } from '\\\\''react-chartjs-2'\\\\''; *)",
       "Bash(cat /Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/implementer-prompt.md 2>&1 | head -80)",
-      "Read(//Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/**)"
+      "Read(//Users/hej/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/**)",
+      "Bash(git check-ignore *)",
+      "Bash(git -C /Users/hej/work/projects/t3-composer status)",
+      "Bash(git -C /Users/hej/work/projects/t3-composer log --oneline -10)"
     ],
     "deny": [
       "Bash(rm -rf*)",

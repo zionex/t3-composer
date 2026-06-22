@@ -135,6 +135,7 @@ public class ComposerService {
                 .title(req.getTitle() != null ? req.getTitle() : defaultTitle(req))
                 .modelName(req.getModelName() != null ? req.getModelName() : DEFAULT_MODEL)
                 .status(ComposerSession.STATUS_ACTIVE)
+                .uiLanguage("en".equalsIgnoreCase(req.getLang()) ? "en" : "ko")
                 .totalInTokens(0)
                 .totalOutTokens(0)
                 .build();

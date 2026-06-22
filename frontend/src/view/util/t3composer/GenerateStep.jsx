@@ -6,6 +6,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 6)
  */
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -42,6 +43,7 @@ function buildTextInline(textAttachs) {
 }
 
 function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard }) {
+  const { t } = useTranslation('wizard');
   const [session, setSession] = useState(null);
   const [initialPrompt, setInitialPrompt] = useState('');
   const [creating, setCreating] = useState(false);
@@ -61,7 +63,7 @@ function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard 
       setError(null);
       try {
         const promptText = specToInitialPrompt(spec) + buildTextInline(textAttachs);
-        const title = (spec?.meta?.title || '새 화면').slice(0, 80);
+        const title = (spec?.meta?.title || t('step.generate.defaultTitle')).slice(0, 80);
         // 사용자가 MetaStep 에서 명시 입력한 menuCd 가 있으면 세션 row 에 즉시 기록.
         // 빈 경우는 Claude 가 MENU_SQL 산출 후 backend 가 추출해 채움.
         const explicitMenuCd = (spec?.meta?.menuCd || '').trim() || null;
@@ -91,7 +93,7 @@ function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard 
         setError(e?.response?.data?.message
               || e?.response?.data?.error
               || e?.message
-              || '세션 생성 실패');
+              || t('step.generate.createFail'));
       } finally {
         if (alive) setCreating(false);
       }
@@ -106,7 +108,7 @@ function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard 
                   justifyContent: 'center', height: '100%', gap: 2 }}>
         <CircularProgress size={32} />
         <Typography variant="caption" sx={{ color: '#64748b' }}>
-          세션 생성 중 — Claude 호출 준비
+          {t('step.generate.creating')}
         </Typography>
       </Box>
     );
@@ -126,7 +128,7 @@ function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard 
           onClick={onBackToWizard}
           sx={{ mt: 2 }}
         >
-          이전 단계로
+          {t('step.generate.backToPrev')}
         </Button>
       </Box>
     );
@@ -150,7 +152,7 @@ function GenerateStep({ spec, initialAttachments = [], targetCd, onBackToWizard 
             onClick={onBackToWizard}
             sx={{ mr: 1 }}
           >
-            이전 단계
+            {t('step.generate.backToPrevShort')}
           </Button>
         }
       />

@@ -77,6 +77,13 @@
       "parentMenuMissing":  "미선택 — [메뉴 선택] 으로 부모를 지정하세요",
       "selectMenu":         "메뉴 선택",
       "parentMenuGone":     "자동 채워졌던 부모 메뉴 <b>{{cd}}</b> 가 운영 DB ({{targetCd}}) 에 존재하지 않아 비웠습니다. [메뉴 선택] 으로 실제 부모를 지정하세요."
+    },
+    "generate": {
+      "creating":       "세션 생성 중 — Claude 호출 준비",
+      "createFail":     "세션 생성 실패",
+      "backToPrev":     "이전 단계로",
+      "backToPrevShort": "이전 단계",
+      "defaultTitle":   "새 화면"
     }
   }
 }

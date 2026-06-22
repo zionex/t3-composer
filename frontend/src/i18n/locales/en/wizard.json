@@ -77,6 +77,13 @@
       "parentMenuMissing":  "Not selected — Use [Select Menu] to specify a parent",
       "selectMenu":         "Select Menu",
       "parentMenuGone":     "The auto-filled parent menu <b>{{cd}}</b> does not exist in production DB ({{targetCd}}). It has been cleared. Please use [Select Menu] to specify the actual parent."
+    },
+    "generate": {
+      "creating":       "Creating session — preparing Claude call",
+      "createFail":     "Session creation failed",
+      "backToPrev":     "Back to Previous Step",
+      "backToPrevShort": "Previous Step",
+      "defaultTitle":   "New Screen"
     }
   }
 }

@@ -52,6 +52,7 @@ import com.zionex.t3composer.domain.service.ArtifactApplyService;
 import com.zionex.t3composer.domain.service.AutoSuggestService;
 import com.zionex.t3composer.domain.service.ArtifactPreviewService;
 import com.zionex.t3composer.domain.service.ComposerService;
+import com.zionex.t3composer.domain.service.ComposerStreamingService;
 import com.zionex.t3composer.domain.service.PreviewModuleResolver;
 import com.zionex.t3composer.shared.auth.AuthenticationInfo;
 import com.zionex.t3composer.shared.auth.AuthenticationProvider;
@@ -88,6 +89,7 @@ public class ComposerController {
     private final ArtifactApplyService artifactApplyService;
     private final ArtifactPreviewService artifactPreviewService;
     private final PreviewModuleResolver previewModuleResolver;
+    private final ComposerStreamingService composerStreamingService;
 
     /** 현재 활성 LLM 백엔드 모드 — "api" (기본) | "cli". UI 칩 표시에 사용. */
     @Value("${llm.backend:api}")
@@ -321,6 +323,28 @@ public class ComposerController {
         return composerService.chat(userId, sessionId, req.getAttachments())
                 .map(MessageDto::from)
                 .doOnError(e -> log.error("Composer chat error: {}", e.getMessage(), e));
+    }
+
+    /**
+     * 사용자 메시지 추가 + Claude 호출 (streaming SSE).
+     *
+     * 진행 단계별로 SSE event 를 emit — phase(PROMPT/STREAM_START/STREAM_END/EXTRACT/SAVE/CONTINUATION) ·
+     * file(idx,name,type,path) · done(messageId,artifacts) · error(phase,message,recoverable).
+     *
+     * 프런트는 fetch + ReadableStream 으로 소비 (EventSource 는 POST body 미지원).
+     * 디자인 문서: docs/superpowers/specs/2026-06-22-chat-streaming-progress-design.md
+     */
+    @PostMapping(value = "/sessions/{sessionId}/chat-stream",
+                 produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>>
+            chatStream(@PathVariable String sessionId, @RequestBody ChatRequest req) {
+        if (req == null || req.getMessage() == null || req.getMessage().isBlank()) {
+            return reactor.core.publisher.Flux.error(new IllegalArgumentException("message 가 비어 있습니다"));
+        }
+        String userId = currentUserId();
+        // 사용자 메시지 저장 (TB_* lookup 포함 — non-streaming 흐름과 동일)
+        composerService.appendUserMessage(sessionId, req.getMessage());
+        return composerStreamingService.chatStream(userId, sessionId, req.getAttachments());
     }
 
     /**

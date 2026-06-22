@@ -2,7 +2,7 @@
 
 **작성일**: 2026-06-22
 **작성자**: youngeun_park@zionex.com (with Claude Opus 4.7)
-**상태**: Draft → User Review
+**상태**: Implemented (2026-06-22) — 본 문서는 실제 구현 결과를 반영해 갱신됨
 
 ---
 
@@ -164,56 +164,59 @@ public Flux<ServerSentEvent<Object>> chatStream(
 
 기존 `ComposerService.chat` / `persistAssistantResponse` / `buildRequest` 는 **재사용** — wrapper 만 추가.
 
+> ⚠️ **별도 keep-alive interval 을 mergeWith 로 붙이지 말 것.**
+> 시도해 보고 발견된 사고 (2026-06-22): `.mergeWith(Flux.interval(15s).takeUntilOther(Flux.never()))` 로
+> nginx idle timeout 방지하려 했으나, `Flux.never()` 는 영원히 emit 안 함 → keep-alive interval 이
+> `sink.complete()` 후에도 계속 발화 → HTTP 응답 채널 안 닫힘 → 프런트 `reader.read()` 가
+> `:keep-alive` comment 만 받으며 무한 대기 → 마지막 phase(SAVE) 에 stuck.
+>
+> Anthropic delta 자체가 1초 미만 간격으로 emit 되어 idle 없음 — 별도 keep-alive 불필요.
+> 실제 구현은 `.map(this::toSse)` 단독.
+
 ### 5.3 `StreamPhaseEmitter` — 핵심 파싱
 
+핵심 책임:
+- Anthropic SSE event 의 `content_block_delta` 의 `delta.text` 를 누적 buffer 에 append
+- `===FILE: <path>===` 마커 검출 시 즉시 `file` event sink emit
+- `message_delta` 의 `stop_reason` · `usage` 캡처 (continuation 판단 / 통계용)
+
+`FILE_MARKER` 정규식:
 ```java
-public class StreamPhaseEmitter {
-    private final FluxSink<ServerSentEvent<Object>> sink;
-    private final StringBuilder buf = new StringBuilder();
-    private int fileCount = 0;
-    private int tokenCount = 0;
-    private String stopReason;
-    private int round = 1;
-    private int scanFrom = 0;
+private static final Pattern FILE_MARKER = Pattern.compile(
+        "^[ \\t]*===\\s*FILE:\\s*([^\\n=]+?)(?:\\s*===)?[ \\t]*$",
+        Pattern.MULTILINE);
+```
+trailing `===` 는 optional (rules/50 §13.5 의 3가지 변형 호환).
 
-    private static final Pattern FILE_MARKER =
-        Pattern.compile("^===FILE:\\s*([^=]+?)\\s*===\\s*$", Pattern.MULTILINE);
+#### ⚠️ 완성 줄만 스캔 (필수 가드)
 
-    public void onAnthropicEvent(AnthropicStreamEvent ev) {
-        switch (ev.getType()) {
-            case CONTENT_BLOCK_DELTA -> {
-                String delta = ev.getDelta().getText();
-                if (delta == null) return;
-                buf.append(delta);
-                Matcher m = FILE_MARKER.matcher(buf);
-                while (m.find(scanFrom)) {
-                    String path = m.group(1).trim();
-                    fileCount++;
-                    String type = ArtifactExtractor.classifyArtifact(path);
-                    sink.next(fileEvent(fileCount, basename(path), type));
-                    scanFrom = m.end();
-                }
-                tokenCount += estimateTokens(delta);
-            }
-            case MESSAGE_DELTA -> {
-                if (ev.getDelta() != null && ev.getDelta().getStopReason() != null) {
-                    stopReason = ev.getDelta().getStopReason();
-                }
-            }
-            // ... message_stop, ping 등
-        }
-    }
-
-    public boolean needsContinuation() {
-        return "max_tokens".equals(stopReason) && round < MAX_CONTINUATION;
-    }
-    public String fullText() { return buf.toString(); }
-    public int totalTokens() { return tokenCount; }
-    // ...
+```java
+private void scanForFileMarkers() {
+    int safeEnd = buf.lastIndexOf("\n");
+    if (safeEnd < 0 || safeEnd < scanFrom) return;   // 새 완성 줄 없음
+    String safe = buf.substring(0, safeEnd + 1);
+    Matcher m = FILE_MARKER.matcher(safe);
+    if (!m.find(scanFrom)) { scanFrom = safeEnd + 1; return; }
+    do {
+        String path = m.group(1) == null ? "" : m.group(1).trim();
+        if (path.isEmpty() || seenPaths.contains(path)) continue;
+        seenPaths.add(path);
+        fileCount++;
+        sink.next(ChatStreamEvent.file(
+                fileCount,
+                artifactExtractor.fileNameOf(path),
+                artifactExtractor.classifyByPath(path),
+                path));
+    } while (m.find());
+    scanFrom = safeEnd + 1;
 }
 ```
 
-`classifyType` 은 기존 `ArtifactExtractor.classifyArtifact()` 그대로 호출 — 새 분류기 만들지 않음.
+**왜 마지막 `\n` 까지만 스캔?** `Pattern.MULTILINE` 의 `$` 가 end-of-line 뿐 아니라 **end-of-input** 도 line-end 로 인정함. Anthropic delta 가 마커 라인을 도중에 끊으면 (예: `===FILE: /backend/src/main/java/` 까지만 도착) 정규식이 false positive 매칭 → `accountmonthlydemand` 같은 fragment 가 path 로 잡혀 중복 file event 발화. 다음 delta 에서 진짜 path 가 다시 매칭 → 같은 파일이 두 번. 마지막 `\n` 직전까지의 substring 만 정규식에 넘기면 미완성 라인은 자연 대기 (2026-06-22 발견 · 수정).
+
+`seenPaths` set 은 같은 path 의 중복 emit 추가 방지 (delta 가 mid-token 으로 끊겨도 안전).
+
+`classifyByPath` / `fileNameOf` 는 `ArtifactExtractor` 에 새로 추가한 public 래퍼 — 기존 private `classifyArtifact(path, language)` / `extractFileName(path)` 위임. 새 분류기 만들지 않음.
 
 ### 5.4 LLM_BACKEND=cli 호환
 
@@ -298,57 +301,52 @@ export function useChatStream() {
 
 ### 6.2 `<ChatProgress>` 컴포넌트
 
-`ChatPanel.jsx:226` 의 "응답 중..." Stack 을 교체:
+`ChatPanel.jsx:226` 의 "응답 중..." Stack 을 교체. **헤더 한 줄만 표시** (사용자 요청 — 2026-06-22 · 누적 파일 리스트는 시각 노이즈로 판단). 작성 중인 파일명이 헤더 본문에 노출되므로 별도 리스트 불필요.
 
 ```jsx
+const PHASE_TEXT = {
+  PROMPT:       '🪄 요구사항 분석 중…',
+  STREAM_START: '✨ Claude 응답 수신 중…',
+  STREAM_END:   '📋 산출물 추출 준비 중…',
+  CONTINUATION: '↻ 이어서 받는 중…',
+  EXTRACT:      '📋 산출물 추출 중…',
+  SAVE:         '💾 저장 중…',
+};
+
 function ChatProgress({ progress }) {
   if (!progress) return null;
-  const { phase, files, elapsedMs, tokens, error } = progress;
-  const sec = Math.floor(elapsedMs / 1000);
+  const { phase, files = [], elapsedMs = 0, tokens, error, continuationRound } = progress;
+  const sec = Math.max(0, Math.floor(elapsedMs / 1000));
 
-  if (error) return <ErrorBubble msg={error.message}
-                                  recoverable={error.recoverable} />;
+  if (error) return <ErrorBubble {...error} />;
 
-  const phaseText = {
-    PROMPT:       '🪄 요구사항 분석 중…',
-    STREAM_START: '✨ Claude 응답 수신 중…',
-    // STREAM_DELTA 가상 phase — 토큰 delta 받는 중
-    STREAM_END:   '📋 산출물 추출 준비 중…',
-    CONTINUATION: '↻ 이어서 받는 중…',
-    EXTRACT:      '📋 산출물 추출 중…',
-    SAVE:         '💾 저장 중…',
-  }[phase];
-
-  // file 이벤트가 한 건이라도 있으면 현재 작성 중인 파일명 노출
-  const headerText = (phase === 'STREAM_START' && files.length > 0)
-    ? `📄 ${files[files.length - 1].name} 작성 중…`
-    : phaseText;
+  // 작성 중인 파일이 있으면 그 파일명을 헤더에 노출, 없으면 phase 라벨
+  let headerText = PHASE_TEXT[phase] || `진행 중… (${phase || ''})`;
+  if ((phase === 'STREAM_START' || phase === 'CONTINUATION') && files.length > 0) {
+    headerText = `📄 ${files[files.length - 1].name} 작성 중…`;
+  } else if (phase === 'STREAM_START' && tokens && tokens > 0) {
+    headerText = `✨ Claude 응답 수신 중… (${tokens.toLocaleString()} 토큰)`;
+  }
 
   return (
     <Stack direction="row" spacing={1.5} sx={{ my: 1.5 }}>
-      <Avatar sx={{ bgcolor: 'primary.main' }}><SmartToyIcon /></Avatar>
-      <Paper variant="outlined" sx={{ p: 1.5, minWidth: 280 }}>
-        <Stack spacing={0.75}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CircularProgress size={14} />
-            <Typography variant="body2" sx={{ flex: 1, fontWeight: 600 }}>
-              {headerText}
+      <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+        <SmartToyIcon fontSize="small" />
+      </Avatar>
+      <Paper variant="outlined" sx={{ p: 1.5, minWidth: 280, flex: 1, maxWidth: 560 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <CircularProgress size={14} />
+          <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, color: '#1e40af' }}>
+            {headerText}
+          </Typography>
+          {continuationRound > 1 && (
+            <Typography variant="caption" sx={{ color: '#7c3aed', fontWeight: 700 }}>
+              {continuationRound}차
             </Typography>
-            <Typography variant="caption" color="text.secondary">{sec}s</Typography>
-          </Stack>
-          {files.length > 0 && (
-            <Box sx={{ pl: 3, borderLeft: '2px solid', borderColor: 'primary.light' }}>
-              {files.map((f, i) => (
-                <Typography key={i} variant="caption"
-                            sx={{ display:'block', color:'text.secondary' }}>
-                  {i === files.length - 1 && phase === 'STREAM_START' ? '✏️' : '✓'} {f.name}
-                  <Box component="span" sx={{ ml: 1, opacity: 0.6 }}>
-                    · {TYPE_LABEL[f.type] || f.type}
-                  </Box>
-                </Typography>
-              ))}
-            </Box>
           )}
+          <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+            {sec}s
+          </Typography>
         </Stack>
       </Paper>
     </Stack>
@@ -356,36 +354,52 @@ function ChatProgress({ progress }) {
 }
 ```
 
-렌더 결과 예시:
+렌더 결과 예시 (헤더 한 줄):
 ```
-🤖 ┌─────────────────────────────────────────┐
-   │ ⏳ 📄 SP_UI_UT_01_Q1.sql 작성 중…   18s │
-   │   ┊                                     │
-   │   ┊ ✓ UserInfoMgmt.jsx        · JSX     │
-   │   ┊ ✓ UserInfoMgmtCtrl.java   · Controller │
-   │   ┊ ✏️ SP_UI_UT_01_Q1.sql      · SP DDL   │
-   └─────────────────────────────────────────┘
+🤖 ┌────────────────────────────────────────────────────────┐
+   │ ⏳ 📄 SP_UI_UT_01_Q1.sql 작성 중…              18s    │
+   └────────────────────────────────────────────────────────┘
 ```
 
-### 6.3 `<HeaderProgressBar>` (캡처 2 자리)
+### 6.3 헤더 토스트 — `genStatus` 데이터 흐름 enrich (별도 컴포넌트 X)
 
-`ComposerWorkspace.jsx:740` 의 `chatCollapsed && genStatus && ...` 조건 자리에:
+`ComposerWorkspace.jsx:740` 의 기존 `genStatus` 헤더 토스트를 **그대로 재사용** — 별도 `<HeaderProgressBar>` 컴포넌트 만들지 않음. ChatPanel 이 `onGenStatus` 콜백으로 stream progress 의 풍부한 필드 (`streamPhase` · `files` · `tokens` · `continuationRound`) 를 전달하고, ComposerWorkspace 의 `formatGenStatusText(gs)` 헬퍼가 한 줄 한글 문구로 변환:
 
 ```jsx
-{chatCollapsed && progress && (
-  <HeaderProgressBar
-    phaseText={getCompactPhaseText(progress)}
-    elapsedMs={progress.elapsedMs}
-    fileCount={progress.files.length}
-    onClick={() => setChatCollapsed(false)}
-  />
-)}
+// ComposerWorkspace.jsx — 파일 상단 헬퍼
+function formatGenStatusText(gs) {
+  if (!gs || !gs.streamPhase) return '🪄 화면 생성 중…';
+  const { streamPhase: sp, files = [], tokens, continuationRound } = gs;
+  const round = (continuationRound > 1) ? ` (${continuationRound}차)` : '';
+  switch (sp) {
+    case 'PROMPT':       return '🪄 요구사항 분석 중…';
+    case 'STREAM_START':
+    case 'CONTINUATION':
+      if (files.length > 0) return `📄 ${files.length}개 작성 중 / ${files[files.length - 1].name}${round}`;
+      if (tokens > 0)       return `✨ Claude 응답 수신 중… (${tokens.toLocaleString()} 토큰)${round}`;
+      return `✨ Claude 응답 수신 중…${round}`;
+    case 'STREAM_END':   return `📋 산출물 추출 준비 중… (${files.length}개)`;
+    case 'EXTRACT':      return `📋 산출물 추출 중… (${files.length}개)`;
+    case 'SAVE':         return `💾 저장 중… (${files.length}개)`;
+    default:             return '🪄 화면 생성 중…';
+  }
+}
 ```
 
-`getCompactPhaseText`:
-- `PROMPT/EXTRACT/SAVE` → "🪄 화면 생성 중… (요구사항 분석)" / "(산출물 추출)" / "(저장 중)"
-- `STREAM_START` + files.length === 0 → "✨ Claude 응답 수신 중… (1,240 토큰)"
-- `STREAM_START` + files.length > 0 → "📄 3개 파일 / SP_UI_UT_01_Q1.sql 작성 중…"
+ChatPanel 의 `useEffect([stream.progress, sending])` 가 `setProgress` 마다 부모로 풍부한 payload 발송:
+```jsx
+onGenStatus({
+  phase: 'sending',
+  streamPhase: p.phase,
+  files: p.files,
+  elapsedMs: p.elapsedMs,
+  tokens: p.tokens,
+  continuationRound: p.continuationRound,
+  error: p.error,
+});
+```
+
+기존 `genStatus.phase` (`'sending'|'done'|'error'`) 분기 + `genStatus.message` 는 유지 — 에러/재시도 UI 그대로.
 
 ### 6.4 `ChatPanel.jsx` 의 sendMessage 교체
 
@@ -393,12 +407,35 @@ function ChatProgress({ progress }) {
 
 ### 6.5 헤더 토스트 vs 채팅 버블 중복 방지
 
-캡처 2 처럼 두 자리 모두 동일 정보 중복은 시각 노이즈. 규칙:
+캡처 2 처럼 두 자리 모두 동일 정보 중복은 시각 노이즈. **chatCollapsed prop 기반 분기**로 한 자리만 노출:
 
-- `chatCollapsed === true` → 헤더 토스트만 (채팅 안 보이니 진척이 헤더에 와야)
-- `chatCollapsed === false` → 채팅 버블만 (헤더는 깔끔하게)
+- `chatCollapsed === true` (NEW_STEP Step 4) → 헤더 토스트만. 채팅 영역의 `<ChatProgress>` 는 ChatPanel 내부에서 자체 억제 (`{sending && !chatCollapsed && ...}`).
+- `chatCollapsed === false` (NEW_NL · 자유 채팅) → 채팅 버블 `<ChatProgress>` 만. 헤더 토스트는 그 조건절 `{chatCollapsed && ...}` 로 자연 생략.
 
-**`genStatus` state 의 운명** — 기존 `ComposerWorkspace.jsx:188` 의 `genStatus` (`{phase:'sending'|'done'|'error', message}`) state 는 **제거**. 새 데이터 소스는 `useChatStream().progress`. `chatCollapsed` 분기 조건만 유지 (`progress && progress.phase !== 'done'`).
+**`chatCollapsed` 전달 흐름** — ComposerWorkspace 가 ChatPanel 두 곳 (chatCollapsed=true 분기 / false 분기 동일) 에 prop 전달:
+```jsx
+<ChatPanel
+  ref={chatRef}
+  sessionId={session.id}
+  onNewAssistantMsg={triggerRefresh}
+  onGenStatus={setGenStatus}
+  initialPrompt={initialPrompt}
+  initialAttachments={initialAttachments}
+  chatCollapsed={chatCollapsed}    // ← 신규
+/>
+```
+
+ChatPanel:
+```jsx
+{sending && !chatCollapsed && (stream.progress
+  ? <ChatProgress progress={stream.progress} />
+  : <PlainSpinner text="요청 전송 중..." />)}
+```
+
+**`genStatus` state — 제거 안 함 · enrich** (spec 초안에서 "제거" 라고 적었으나 실제로는 유지):
+- `genStatus.phase` (`'sending'|'done'|'error'`) 와 `genStatus.message` 의 에러/재시도 흐름은 그대로 보존
+- `streamPhase` · `files` · `tokens` · `continuationRound` · `elapsedMs` 필드만 추가로 실어 보냄
+- 기존 `formatGenStatusText(gs)` 헬퍼가 streamPhase 유무로 분기
 
 **`previewStage` state 와의 구분** — `previewStage` (autofix/preview 헤더 토스트, rules/50 §14.3) 는 **별개로 유지**. 자동 보완 시 두 토스트가 위아래로 동시 노출 (§8.6) — 서로 다른 정보 (autofix 단계 vs 채팅 생성 단계).
 
@@ -522,49 +559,62 @@ event:error data:{"phase":"STREAM","message":"529 overloaded_error","recoverable
 
 ---
 
-## 9. 영향 받는 파일 (요약)
+## 9. 영향 받는 파일 (실제)
 
 ### 신규
-- `backend/src/main/java/com/zionex/t3composer/domain/service/ComposerStreamingService.java`
-- `backend/src/main/java/com/zionex/t3composer/domain/service/StreamPhaseEmitter.java`
-- `backend/src/main/java/com/zionex/t3composer/domain/dto/ChatStreamEvent.java`
-- `frontend/src/view/util/t3composer/useChatStream.js`
-- `frontend/src/view/util/t3composer/ChatProgress.jsx`
-- `frontend/src/view/util/t3composer/HeaderProgressBar.jsx`
+- `backend/src/main/java/com/zionex/t3composer/domain/dto/ChatStreamEvent.java` — SSE event payload + factory helpers (`phase` · `file` · `done` · `error`)
+- `backend/src/main/java/com/zionex/t3composer/domain/service/StreamPhaseEmitter.java` — Anthropic SSE 누적 + `===FILE:` 마커 감지 (완성 줄만 스캔 가드)
+- `backend/src/main/java/com/zionex/t3composer/domain/service/ComposerStreamingService.java` — Flux 조립 + continuation 재귀 + persist
+- `frontend/src/view/util/t3composer/useChatStream.js` — fetch + ReadableStream 으로 SSE 소비
+- `frontend/src/view/util/t3composer/ChatProgress.jsx` — 헤더 한 줄 진행 표시 (파일 리스트 X)
 
 ### 수정
-- `backend/.../ComposerController.java` — endpoint 추가
-- `backend/.../ComposerService.java` — `buildRequest` / `persistAssistantResponse` / `resolveApiKey` 가시성 public 노출
-- `backend/.../ApiLlmClient.java` — `streamMessages()` 활성화 확인
-- `frontend/src/view/util/t3composer/ChatPanel.jsx` — `useChatStream` 으로 교체, 226라인 `<ChatProgress>` 삽입
-- `frontend/src/view/util/t3composer/ComposerWorkspace.jsx` — 740라인 헤더 토스트 `<HeaderProgressBar>` 로 교체, `chatCollapsed` 분기 강화
-- `frontend/src/view/util/t3composer/api.js` — fallback POST polling helper
+- `backend/.../ComposerController.java` — `POST /sessions/{id}/chat-stream` endpoint 추가 + `ComposerStreamingService` 주입
+- `backend/.../ComposerService.java` — `buildRequest(...)` package-private → **public** · `nextTurnSeqPublic(...)` · `CONTINUE_PROMPT_PUBLIC` 노출
+- `backend/.../ArtifactExtractor.java` — public `classifyByPath(path)` · `fileNameOf(path)` 래퍼 추가 (기존 `classifyArtifact` private 유지)
+- `frontend/.../ChatPanel.jsx` — `useChatStream` 통합 · `send()` SSE 우선 + 실패 시 `sendChat` fallback · `chatCollapsed` prop 받아 내부 ChatProgress 억제 · `onGenStatus` 에 streamPhase/files/tokens enrich
+- `frontend/.../ComposerWorkspace.jsx` — `formatGenStatusText(gs)` 헬퍼 추가 · 헤더 토스트 본문 enrichment · ChatPanel 호출에 `chatCollapsed` prop 전달
 
 ### 무변경 (재사용)
-- `backend/.../ArtifactExtractor.java` — `classifyArtifact()` 그대로 호출
-- `backend/.../LlmClient.java` / `CliLlmClient.java` — 인터페이스 그대로
-- `backend/.../SseEventTranslator.java` — Anthropic SSE 변환 그대로
+- `backend/.../ApiLlmClient.java` — 이미 구현된 `streamMessages()` 활성화만 (HTTP API)
+- `backend/.../CliLlmClient.java` · `SseEventTranslator.java` — CLI 모드 streaming 변환 그대로
+- `backend/.../ArtifactPersistService.java` — `saveWithSupersede` 그대로
+- 기존 `POST /sessions/{id}/chat` endpoint — fallback 용 유지
 
 ---
 
 ## 10. 검증 계획
 
-1. **API 모드 — 정상 흐름**: NEW_NL 로 간단한 화면 생성 → 채팅 버블에 PROMPT → STREAM_START → file 1~N → EXTRACT → SAVE 순서대로 ✓ / ✏️ 표시 확인. 산출물 트리의 파일 개수와 progress 의 file 개수 일치.
-2. **API 모드 — continuation**: 산출물이 많은 화면 (Java 4종 + SP 3개 + MENU + JSX) → max_tokens hit 발생하면 `↻ 이어서 받는 중 (2/3차)` 표시 + 누적 리스트 유지 확인.
-3. **CLI 모드**: `LLM_BACKEND=cli` 로 백엔드 재기동 → 동일 시나리오 → phase 4개는 실시간, file 이벤트는 STREAM_END 직전 일괄 emit. "Claude (CLI) 응답 수신 중… 45s" 라벨 확인.
-4. **SSE 끊김 fallback**: 네트워크 끊고 재시도 → "스트리밍 불가, 직접 응답 받는 중…" 후 결과 정상 표시.
-5. **자동 보완**: 의도적으로 잘못된 SP 컬럼명을 추가한 NL 입력 → 자동 보완 트리거 시 헤더에 `🤖 AI 자동보완 중` + 그 아래 채팅에 `<ChatProgress>` 동시 노출 확인.
-6. **chatCollapsed 분기**: 채팅 접고 → 헤더 토스트만 보이고 채팅 버블 X. 다시 펼치고 → 채팅 버블만 보이고 헤더 토스트 X.
-7. **NEW_STEP Step 4**: 캡처 2 의 이중 노출이 사라지고 한 자리만 보이는지 확인.
+**실제 검증 (2026-06-22)**:
+
+1. ✅ **API 모드 — 정상 흐름**: NEW_STEP Step 4 로 `MOCKUP_dash_inventory_state` 화면 생성. 채팅에 `🪄 요구사항 분석 중…` → `✨ Claude 응답 수신 중…` → `📄 InventoryState.jsx 작성 중…` → 다음 파일들 순차 → `📋 산출물 추출 중…` → `💾 저장 중…` → done. 산출물 트리에 파일 정상 노출.
+2. ✅ **NEW_STEP Step 4 — 한 자리만 노출**: 캡처 2 의 이중 노출 (헤더 + 채팅 버블) 사라짐. chatCollapsed=true → 헤더 토스트만 표시. chatCollapsed=false (자유 채팅) → 채팅 버블만 표시.
+3. ✅ **continuation 흐름** (간접): max_tokens hit 시 partial assistant message 저장 후 `CONTINUE_PROMPT` 추가 + 재귀 호출 코드 경로 점검.
+
+**미수행** (회귀 시 확인):
+- CLI 모드 (`LLM_BACKEND=cli`) full 시나리오
+- SSE 끊김 fallback (`fetch()` 실패 → `sendChat` 재호출)
+- 자동 보완 (autofix) 시 동시 노출
 
 ---
 
-## 11. 미해결 / 후속 고려
+## 11. 미해결 / 후속 고려 + 회고
 
+### 후속 작업
 - **Anthropic prompt cache 검증**: stream + cache_control 조합이 `cache_read` 통계에 정상 잡히는지 (rules/50 §16.1) — 백엔드 로그로 확인 필요.
 - **`POST /chat` 제거 시점**: 새 endpoint 가 1~2주 안정 동작하면 fallback 제거 PR 검토.
 - **continuation 진행률 표시**: 현재는 "round/remaining" 만 표시 — 토큰 비율 (예: "현재 round 의 60%") 까지 표시할지 후속 검토.
 - **WebSocket 으로 전환**: 다중 사용자 / 다중 세션 동시 진행 시 SSE 한계가 보이면 WebSocket 검토 (현재는 SSE 로 충분).
+
+### 회고 — 구현 중 발견된 사고 (rules/50 의 anti-pattern 카탈로그 후보)
+
+| # | 사고 | 근본 원인 | 해결 |
+|---|---|---|---|
+| 1 | `StreamPhaseEmitter` 가 garbage path emit (예: `accountmonthlydemand`, ` `, `t3series` 같은 fragment) | `Pattern.MULTILINE` 의 `$` 가 end-of-input 도 line-end 로 인정 → Anthropic delta 가 마커 라인을 중간에서 끊으면 partial path 매칭 후 진짜 path 매칭으로 중복 emit | `scanForFileMarkers` 가 buffer 의 마지막 `\n` 까지의 substring 만 정규식에 넘기도록 변경 (§5.3) |
+| 2 | "💾 저장 중…" 에서 7분+ stuck. 실제 백엔드는 정상 저장 완료 | `Flux.create(...).map(toSse).mergeWith(Flux.interval(15s).takeUntilOther(Flux.never()))` — `Flux.never()` 는 영원히 emit 안 함 → keep-alive interval 이 `sink.complete()` 후에도 계속 발화 → HTTP 응답 채널 안 닫힘 → 프런트 `reader.read()` 가 `:keep-alive` comment 만 받으며 무한 대기 | `mergeWith(keep-alive)` 통째 제거. Anthropic delta 자체가 1초 미만 간격으로 emit 되어 idle 없으므로 별도 keep-alive 불필요 (§5.2) |
+| 3 | `buf.lastIndexOf('\n')` 컴파일 실패 — `The method lastIndexOf(String) ... is not applicable for the arguments (char)` | `StringBuilder.lastIndexOf` 는 `String` 시그니처만 — `String.lastIndexOf` 와 다름 (String 은 char 도 받음). 첫 구현은 `"\n"` 으로 정상 작성했으나 두 번째 수정에서 char literal 로 잘못 변경 | `"\n"` 으로 복원. Spring DevTools 가 hot-recompile 시점에 오류 검출해 SSE error event 로 전파 — 정확히 본 흐름대로 사용자에게 노출됨 (의도된 graceful degradation) |
+| 4 | NEW_STEP Step 4 에서 진행 표시가 두 자리(헤더 + 채팅 버블) 동시 노출 — 시각 노이즈 | spec §6.5 의 분기 의도 ("chatCollapsed → 헤더만") 가 ChatPanel 내부에서 강제되지 않음. ChatPanel 이 `chatCollapsed` prop 모름 | ChatPanel 에 `chatCollapsed` prop 추가 + `{sending && !chatCollapsed && ...}` 가드로 내부 ChatProgress 자체 억제. 사용자 의사결정으로 "헤더만 유지" 선택 (§6.5) |
+| 5 | 누적 파일 리스트 (✓/✏️ + type 라벨) 가 visual noise | spec §6.2 가 디테일한 리스트를 제안했으나 실제 사용자 경험에서는 헤더 한 줄로 충분 (현재 작성 중 파일명이 헤더에 노출되므로) | 파일 리스트 통째 제거 — `<ChatProgress>` 가 헤더 한 줄만 표시 (§6.2) |
 
 ---
 

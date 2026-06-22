@@ -95,6 +95,9 @@ public class ComposerService {
             "모든 파일이 완성되면 끝에 실행 체크리스트를 추가합니다."
     );
 
+    /** Streaming(ComposerStreamingService) 의 continuation 흐름에서 동일 prompt 사용. */
+    public static final String CONTINUE_PROMPT_PUBLIC = CONTINUE_PROMPT;
+
     private final ComposerSessionRepository  sessionRepo;
     private final ComposerMessageRepository  messageRepo;
     private final ComposerArtifactRepository artifactRepo;
@@ -610,14 +613,14 @@ public class ComposerService {
 
     // ---- Helpers ----
 
-    MessagesRequest buildRequest(ComposerSession session) {
+    public MessagesRequest buildRequest(ComposerSession session) {
         return buildRequest(session, null);
     }
 
     /**
      * @param attachmentsForLastUserMsg 마지막 user message 에 부착할 binary 첨부 — null/empty 면 plain text
      */
-    MessagesRequest buildRequest(ComposerSession session, List<Attachment> attachmentsForLastUserMsg) {
+    public MessagesRequest buildRequest(ComposerSession session, List<Attachment> attachmentsForLastUserMsg) {
         List<ComposerMessage> history = messageRepo.findBySessionIdOrderByTurnSeqAsc(session.getId());
 
         // 마지막 user message 의 index 찾기 — auto-continuation 시 "계속" 도 user 이므로 마지막 user 가 정답
@@ -747,6 +750,11 @@ public class ComposerService {
     private int nextTurnSeq(String sessionId) {
         Integer max = messageRepo.findMaxTurnSeqBySessionId(sessionId);
         return (max == null ? 0 : max) + 1;
+    }
+
+    /** Streaming 흐름이 동일 시퀀스 계산 사용 — public 위임. */
+    public int nextTurnSeqPublic(String sessionId) {
+        return nextTurnSeq(sessionId);
     }
 
     private void validateMode(String mode) {

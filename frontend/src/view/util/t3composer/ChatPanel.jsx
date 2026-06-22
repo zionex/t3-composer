@@ -21,6 +21,8 @@ import { zAxios } from '@wingui/common/imports';
 
 import LlmMarkdown from '../../common/LlmMarkdown';
 import { listMessages, sendChat } from './api';
+import { useChatStream } from './useChatStream';
+import ChatProgress from './ChatProgress';
 
 /**
  * Composer 채팅 패널 — 3개 모드에서 공용 사용.
@@ -32,13 +34,40 @@ import { listMessages, sendChat } from './api';
  *   initialPrompt     : 세션 최초 진입 시 자동 전송할 사용자 메시지 (선택)
  */
 const ChatPanel = forwardRef(function ChatPanel(
-  { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments, onGenStatus }, ref) {
+  { sessionId, onNewAssistantMsg, placeholder, initialPrompt, initialAttachments,
+    onGenStatus, chatCollapsed = false }, ref) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const scrollRef = useRef(null);
   const initialSentRef = useRef(false);
+
+  // SSE 스트리밍 — 진행 단계별 표시. send() 와 병행 사용 (실패 시 non-streaming fallback).
+  // 디자인 문서: docs/superpowers/specs/2026-06-22-chat-streaming-progress-design.md
+  const stream = useChatStream();
+
+  // stream.progress 변경 시 부모(ComposerWorkspace) 에 풍부한 progress 정보 전달.
+  // 부모는 chatCollapsed 일 때 헤더 토스트에 같은 정보 노출.
+  useEffect(() => {
+    if (!onGenStatus) return;
+    if (!sending) return;
+    if (!stream.progress) {
+      onGenStatus({ phase: 'sending' });
+      return;
+    }
+    const p = stream.progress;
+    onGenStatus({
+      phase: 'sending',
+      streamPhase: p.phase,
+      files: p.files,
+      elapsedMs: p.elapsedMs,
+      tokens: p.tokens,
+      continuationRound: p.continuationRound,
+      error: p.error,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream.progress, sending]);
 
   const reload = async () => {
     if (!sessionId) return;
@@ -91,6 +120,8 @@ const ChatPanel = forwardRef(function ChatPanel(
   }, [sessionId, initialPrompt]);
 
   // send — 사용자/프로그램(자동보완) 공용. 성공 시 true, 실패 시 false 반환.
+  // SSE 스트리밍 (/composer/sessions/{id}/chat-stream) 으로 진행 단계별 표시.
+  // 실패(연결 불가/4xx)면 기존 POST /chat 으로 fallback — 사용자에겐 결과는 동일.
   const send = async (text, attachments) => {
     const message = (text ?? input).trim();
     if (!message) return false;
@@ -112,6 +143,26 @@ const ChatPanel = forwardRef(function ChatPanel(
         },
       ]);
 
+      // 1) Streaming 시도 — 진행 단계 실시간 표시
+      const streamRes = await stream.send(sessionId, message, attachments);
+      if (streamRes.ok) {
+        await reload();
+        if (onNewAssistantMsg) onNewAssistantMsg();
+        ok = true;
+        if (onGenStatus) onGenStatus({ phase: 'done' });
+        stream.reset();
+        return true;
+      }
+
+      // 2) Streaming 실패 시 fallback — non-streaming POST /chat
+      //    (사용자 취소면 fallback 없이 종료)
+      if (streamRes.error && /취소/.test(streamRes.error.message || '')) {
+        ok = false;
+        if (onGenStatus) onGenStatus({ phase: 'error', message: '사용자 취소' });
+        return false;
+      }
+      console.warn('[ChatPanel] streaming 실패 — non-streaming POST /chat 으로 fallback:', streamRes.error);
+      stream.reset();
       await sendChat(sessionId, message, undefined, attachments);
       await reload();
       if (onNewAssistantMsg) onNewAssistantMsg();
@@ -214,7 +265,13 @@ const ChatPanel = forwardRef(function ChatPanel(
           <MessageBubble key={m.id} msg={m} />
         ))}
 
-        {sending && (
+        {/* 진행 표시 — chatCollapsed=true (NEW_STEP) 일 때는 부모(ComposerWorkspace) 가
+            상단 헤더 토스트에 같은 정보를 표시하므로 중복 회피 위해 내부 ChatProgress 생략.
+            chatCollapsed=false (NEW_NL · 자유 채팅) 면 채팅 영역이 메인이므로 여기서 표시. */}
+        {sending && !chatCollapsed && (stream.progress ? (
+          <ChatProgress progress={stream.progress} />
+        ) : (
+          /* 스트리밍 시작 전 (사용자 메시지 보낸 직후 ~ PROMPT 이벤트 도착 전) — 단순 스피너 */
           <Stack direction="row" spacing={1.5} sx={{ my: 1.5 }}>
             <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
               <SmartToyIcon fontSize="small" />
@@ -223,12 +280,12 @@ const ChatPanel = forwardRef(function ChatPanel(
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CircularProgress size={14} />
                 <Typography variant="body2" color="text.secondary">
-                  응답 중...
+                  요청 전송 중...
                 </Typography>
               </Stack>
             </Paper>
           </Stack>
-        )}
+        ))}
 
         {error && (
           <Paper variant="outlined" sx={{ p: 1.5, mt: 1, borderColor: 'error.light', bgcolor: 'error.lighter' }}>

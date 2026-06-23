@@ -155,6 +155,14 @@ export const updateTargetRefPaths = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
 
 /**
+ * Target source 폴더 해석 가능 여부 사전 체크. NEW_FROM_COPY / EXISTING_MODIFY 진입 가드.
+ * 응답: { targetCd, sourceRefPath, resolved, resolvedPath }
+ *   resolved=false → sourceRefPath 미설정 + convention 마운트도 비어있음 → 산출물 수집 불가.
+ */
+export const getTargetSourceResolved = (targetCd) =>
+  zAxios.get(`composer/targets/${encodeURIComponent(targetCd)}/source-resolved`, composerReq());
+
+/**
  * Workspace 폴더 한 단계 listing (UI 폴더 picker 용).
  * params: { path?: string } — 비우면 컨테이너 안의 /workspace/projects 시작.
  * 응답: { ok, path, parent, initial_cwd, is_root, items: [{name, type:'dir', child_count}], message? }

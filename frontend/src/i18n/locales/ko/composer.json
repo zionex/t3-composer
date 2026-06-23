@@ -237,7 +237,17 @@
       "newMenuCdRequired": "신규 메뉴 코드를 입력해주세요.",
       "aiFailed": "AI 분석 실패 (정규식 결과로 진행): {{detail}}"
     },
-    "copySuffix": "{{id}} 복사본"
+    "copySuffix": "{{id}} 복사본",
+    "sourceMissing": {
+      "title": "Target Source 경로 미설정",
+      "description": "기존 화면 복사는 Target System {{targetCd}} 의 원본 소스 폴더에서 JSX·Java 파일을 직접 읽어 들입니다. 현재 Target 의 sourceRefPath 가 설정되어 있지 않거나, 설정된 경로에서 실제 소스 트리(예: packages/wingui/src · src/pages)를 찾지 못했습니다.",
+      "targetUnselected": "(미선택)",
+      "currentLabel": "현재 저장된 sourceRefPath",
+      "currentEmpty": "(비어있음 — 마운트 convention /workspace/targets/{{targetCd}}/wingui 도 사용 불가)",
+      "hint": "[Storage 설정 열기] 를 눌러 컨테이너 안의 source 폴더 절대경로(예: /workspace/projects/<repo>) 를 지정하세요.",
+      "cancel": "취소",
+      "openStorage": "Storage 설정 열기"
+    }
   },
   "modeNewStep": {
     "title": "단계별 화면 생성 (Beta) — 패턴 선택",

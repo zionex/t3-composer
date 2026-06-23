@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -15,7 +15,13 @@ import {
   InputAdornment,
   Checkbox,
   FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -26,7 +32,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
-import { collectSourceForLlm, checkMenuExists, prefillFromSource } from './api';
+import { collectSourceForLlm, checkMenuExists, prefillFromSource, getTargetSourceResolved } from './api';
+import TargetDbConnectionDialog from './TargetDbConnectionDialog';
 import {
   createInitialSpecFromSource,
   mergeAiSpecIntoBaseSpec,
@@ -74,6 +81,12 @@ function ModeNewFromCopy({ onBack }) {
   const [useAiPrefill, setUseAiPrefill]   = useState(true);   // 기본 ON — 사용자가 끌 수 있음
   const [aiInfo, setAiInfo]               = useState(null);   // { modelName, mergedFields[] }
 
+  // Target source path 미설정 경고 + Storage 다이얼로그
+  //   - sourceMissing: { sourceRefPath, pendingMenuNode }  (null 이면 정상)
+  //   - storageOpen: TargetDbConnectionDialog open 여부
+  const [sourceMissing, setSourceMissing] = useState(null);
+  const [storageOpen, setStorageOpen]     = useState(false);
+
   const handleSelect = async (menuNode) => {
     setSelectedMenu(menuNode);
     setSourceBundle(null);
@@ -83,6 +96,25 @@ function ModeNewFromCopy({ onBack }) {
     setNewTitle(t('modeNewFromCopy.copySuffix', { id: menuNode.id }));
     setMenuCdCheck(null);
     if (!menuNode.id) return;
+
+    // ★ 사전 가드 — Target source path 가 미설정/미해석이면 collectSourceForLlm 호출 전에 차단.
+    //   convention 마운트 (/workspace/targets/<CD>/wingui) 도 backend 가 함께 검증하므로 false-positive 없음.
+    if (activeTargetCd) {
+      try {
+        const r = await getTargetSourceResolved(activeTargetCd);
+        if (r?.data && r.data.resolved === false) {
+          setSourceMissing({
+            sourceRefPath: r.data.sourceRefPath || '',
+            pendingMenuNode: menuNode,
+          });
+          return;   // collectSourceForLlm 호출하지 않음 — 사용자가 Storage 설정 후 재선택
+        }
+      } catch (e) {
+        // resolve 체크 자체가 실패하면 차단하지 않고 진행 (기존 동작 유지) — 에러는 collectSourceForLlm 에서 잡힘
+        console.warn('[ModeNewFromCopy] source-resolved 체크 실패 — 진행:', e?.message || e);
+      }
+    }
+
     // 2단계 — async 로 운영 DB collision 회피한 next available 코드 검색 (parallel with source)
     //         activeTargetCd 전달 — checkMenuExists 가 운영 wingui DB (MSSQL) 검사 (composer-db 폴백 X)
     findNextAvailableMenuCd(menuNode.id, activeTargetCd).then((avail) => {
@@ -98,6 +130,40 @@ function ModeNewFromCopy({ onBack }) {
       setLoadingSource(false);
     }
   };
+
+  // Storage 다이얼로그 저장 후 — 보류 중인 메뉴 선택을 자동 재시도 (있으면)
+  const handleStorageSaved = () => {
+    setStorageOpen(false);
+    const pending = sourceMissing?.pendingMenuNode;
+    setSourceMissing(null);
+    if (pending) {
+      handleSelect(pending);
+    }
+  };
+
+  // 진입 시 Target source path 사전 체크 — activeTargetCd 변경 시에도 재검증
+  //   resolved=false 면 메뉴 선택 전에 미리 경고 Dialog 표시.
+  //   pendingMenuNode 는 null (진입 직후이므로 보류 메뉴 없음 — Storage 저장 후 그대로 종료)
+  useEffect(() => {
+    if (!activeTargetCd) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await getTargetSourceResolved(activeTargetCd);
+        if (cancelled) return;
+        if (r?.data && r.data.resolved === false) {
+          setSourceMissing({
+            sourceRefPath: r.data.sourceRefPath || '',
+            pendingMenuNode: null,
+          });
+        }
+      } catch (e) {
+        if (cancelled) return;
+        console.warn('[ModeNewFromCopy] 진입 시 source-resolved 체크 실패:', e?.message || e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeTargetCd]);
 
   const validateMenuCd = async () => {
     if (!newMenuCd.trim()) {
@@ -473,6 +539,55 @@ function ModeNewFromCopy({ onBack }) {
           </Box>
         </Box>
       </Box>
+
+      {/* ===== Target source path 미설정 경고 ===== */}
+      <Dialog
+        open={!!sourceMissing}
+        onClose={() => setSourceMissing(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#b45309' }}>
+          <WarningAmberIcon sx={{ color: '#f59e0b' }} />
+          {t('modeNewFromCopy.sourceMissing.title')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: '#334155' }}>
+            {t('modeNewFromCopy.sourceMissing.description', {
+              targetCd: activeTargetCd || t('modeNewFromCopy.sourceMissing.targetUnselected'),
+            })}
+          </DialogContentText>
+          <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#fffbeb', border: '1px solid #fde68a', borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ color: '#92400e', fontWeight: 600 }}>
+              {t('modeNewFromCopy.sourceMissing.currentLabel')}
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#78350f', mt: 0.3 }}>
+              {sourceMissing?.sourceRefPath
+                ? sourceMissing.sourceRefPath
+                : t('modeNewFromCopy.sourceMissing.currentEmpty', { targetCd: activeTargetCd || '<CD>' })}
+            </Typography>
+          </Box>
+          <DialogContentText sx={{ color: '#475569', mt: 1.5, fontSize: 13 }}>
+            {t('modeNewFromCopy.sourceMissing.hint')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSourceMissing(null)} color="inherit">
+            {t('modeNewFromCopy.sourceMissing.cancel')}
+          </Button>
+          <Button onClick={() => setStorageOpen(true)} variant="contained" color="warning">
+            {t('modeNewFromCopy.sourceMissing.openStorage')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* TargetDbConnectionDialog 는 DB 연결 + source/backend/database ref path 편집을 함께 제공 */}
+      <TargetDbConnectionDialog
+        open={storageOpen}
+        targetCd={activeTargetCd}
+        onClose={() => setStorageOpen(false)}
+        onSaved={handleStorageSaved}
+      />
     </Box>
   );
 }

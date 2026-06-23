@@ -23,6 +23,7 @@ import com.zionex.t3composer.domain.entity.TargetSystem;
 import com.zionex.t3composer.domain.repository.TargetSystemRepository;
 import com.zionex.t3composer.domain.schema.SchemaMetaCache;
 import com.zionex.t3composer.domain.service.ClaudeAssetImportService;
+import com.zionex.t3composer.domain.service.TargetPathResolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ public class TargetSystemController {
     private final ClaudeAssetImportService  importService;
     private final TargetDataSourceRegistry  dsRegistry;
     private final SchemaMetaCache           schemaMetaCache;
+    private final TargetPathResolver        pathResolver;
     /** Primary (composer-db PG) — DB 정보 update 시 jsonb 변환 우회용 직접 SQL */
     @Qualifier("composerJdbcTemplate")
     private final JdbcTemplate              composerDbJdbc;
@@ -70,6 +72,27 @@ public class TargetSystemController {
     public TargetSystem get(@PathVariable String targetCd) {
         return targetRepo.findById(targetCd)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown target: " + targetCd));
+    }
+
+    /**
+     * Target 의 source 폴더 해석 가능 여부 — NEW_FROM_COPY / EXISTING_MODIFY 진입 사전 가드.
+     *
+     * resolved=true 이면 {@link TargetPathResolver#resolveSourcePath} 가 구조 마커
+     * (packages/wingui/src · src/pages) 보유한 실제 소스 루트를 찾았다는 뜻.
+     * resolved=false 이면 sourceRefPath 미설정이고 /workspace/targets/&lt;CD&gt;/wingui
+     * convention 마운트도 비었거나 구조 마커가 없음 — 산출물 수집 불가.
+     */
+    @GetMapping("/{targetCd}/source-resolved")
+    public Map<String, Object> getSourceResolved(@PathVariable String targetCd) {
+        TargetSystem t = targetRepo.findById(targetCd)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown target: " + targetCd));
+        String resolvedPath = pathResolver.resolveSourcePath(targetCd);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("targetCd",       targetCd);
+        out.put("sourceRefPath",  t.getSourceRefPath());
+        out.put("resolved",       resolvedPath != null);
+        out.put("resolvedPath",   resolvedPath);
+        return out;
     }
 
     /**

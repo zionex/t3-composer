@@ -237,7 +237,17 @@
       "newMenuCdRequired": "Please enter a new menu code.",
       "aiFailed": "AI analysis failed (proceeding with regex result): {{detail}}"
     },
-    "copySuffix": "{{id}} Copy"
+    "copySuffix": "{{id}} Copy",
+    "sourceMissing": {
+      "title": "Target source path not set",
+      "description": "Copying an existing screen reads JSX·Java files directly from the source folder of Target System {{targetCd}}. This Target's sourceRefPath is not set, or no source tree (e.g. packages/wingui/src · src/pages) was found at the configured path.",
+      "targetUnselected": "(none selected)",
+      "currentLabel": "Currently stored sourceRefPath",
+      "currentEmpty": "(empty — mount convention /workspace/targets/{{targetCd}}/wingui is also unusable)",
+      "hint": "Click [Open Storage Settings] and provide the absolute path inside the container (e.g. /workspace/projects/<repo>).",
+      "cancel": "Cancel",
+      "openStorage": "Open Storage Settings"
+    }
   },
   "modeNewStep": {
     "title": "Step-by-Step Screen Creation (Beta) — Pattern Selection",

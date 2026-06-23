@@ -176,6 +176,25 @@
       "failed": "Auto-fix failed — manual check needed"
     }
   },
+  "chatProgress": {
+    "phase": {
+      "PROMPT":       "🪄 Analyzing request…",
+      "STREAM_START": "✨ Receiving Claude response…",
+      "STREAM_END":   "📋 Preparing artifact extraction…",
+      "CONTINUATION": "↻ Receiving continuation…",
+      "EXTRACT":      "📋 Extracting artifacts…",
+      "SAVE":         "💾 Saving…"
+    },
+    "phaseUnknown": "In progress… ({{phase}})",
+    "writingFile": "📄 Writing {{name}}…",
+    "receivingTokens": "✨ Receiving Claude response… ({{tokens}} tokens)",
+    "continuationRound": "Pass {{n}}",
+    "error": {
+      "title": "⚠ Generation error",
+      "phaseSuffix": " ({{phase}})",
+      "recoverable": "This may be a transient error — please try again shortly."
+    }
+  },
   "layerTitle": {
     "mainGrid": "Main Grid",
     "grid": "Grid",

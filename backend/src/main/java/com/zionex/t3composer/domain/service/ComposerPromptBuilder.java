@@ -85,8 +85,11 @@ public class ComposerPromptBuilder {
 
     /**
      * Claude 응답 언어 지침 블록.
-     * - 'en': 영어로 응답, 단 산출물 코드(===FILE:) 안의 한국어 라벨/문자열/주석은 보존
-     * - 'ko' / null / 기타: 한국어로 응답
+     *
+     * - 'en': 사용자 응답 + 산출물의 **주석 / 로그 / 디버그 메시지**까지 영어. 단,
+     *         **사용자 화면에 노출되는 라벨 / UI 텍스트**는 보존 (한국어 라벨 또는 i18n 키 그대로).
+     *         산출물 자체에 다국어 코드 구조를 강제하지는 않는다 — 주석 언어만 locale 따라감.
+     * - 'ko' / null / 기타: 모두 한국어.
      */
     public String buildLanguageInstruction(String uiLanguage) {
         boolean isEnglish = "en".equalsIgnoreCase(uiLanguage);
@@ -95,25 +98,37 @@ public class ComposerPromptBuilder {
                 ## Response Language
                 Respond to user messages in English. Tone: professional, concise.
 
-                ## Code Artifact Language — CRITICAL
-                All code artifacts (===FILE: blocks) MUST keep Korean labels, strings, comments, and
-                UI text unchanged. The operational deployment environment is Korean — generating
-                English code labels would break production usage.
+                ## Code Artifact — Comment / Log / Debug Language (English)
+                Inside generated code artifacts (===FILE: blocks), the following MUST be written in English:
+                  - Line comments and block comments (`//`, `/* */`, `#`, `--` for SQL)
+                  - JSDoc / Javadoc / Python docstrings
+                  - `console.log` · `console.warn` · `console.error` · `log.info` · `log.debug` debug messages
+                  - `System.out.println` debug messages (rare — prefer logger)
+                  - Commit-message style descriptions, README sections, CHANGELOG entries
 
-                Specifically preserve in Korean:
-                - JSX: `<Typography>저장</Typography>` · `<Chip label="신규" />` · `headerText: '사용자명'`
-                - Java: `new ResponseMessage(HttpStatus.OK.value(), "저장 완료")`
-                - showMessage('확인', '저장하시겠습니까?', ...)
-                - MENU registration: TB_AD_LANG_PACK Korean translations
-                - Validation messages, error toasts, button labels, grid headers
+                ## Code Artifact — UI Text / Labels (PRESERVE AS-IS)
+                The following are **user-visible strings**, NOT comments. Do NOT translate them.
+                Keep them in Korean (or as i18n keys) exactly as the existing codebase does:
+                  - JSX: `<Typography>저장</Typography>` · `<Chip label="신규" />` · `headerText: '사용자명'`
+                  - Java: `new ResponseMessage(HttpStatus.OK.value(), "저장 완료")` · validation messages
+                  - `showMessage('확인', '저장하시겠습니까?', ...)` arguments
+                  - Grid column headers · button labels · placeholder text · error toasts shown to end users
+                  - MENU registration (TB_AD_MENU / TB_AD_LANG_PACK) — Korean translations stay Korean,
+                    `transLangKey('...')` keys stay as-is
+                The operational deployment is Korean — translating UI strings would break production.
 
-                Only the explanation/description text you write back to the user (outside ===FILE: blocks)
-                should be in English. The code itself stays Korean.
+                ## Rule of thumb
+                  English  → developer-facing text (anything a developer reads while editing the file)
+                  Korean   → end-user-facing text (anything an end user sees in the running app)
                 """;
         }
         return """
             ## 응답 언어
             사용자에게 한국어로 응답하세요. 톤은 전문적이고 간결하게.
+
+            ## 산출물 코드 — 주석 / 로그 / 디버그 메시지
+            산출물 (===FILE: blocks) 안의 주석·JSDoc·`console.log`·`log.info` 등 개발자 노출
+            텍스트는 한국어로 작성. 사용자 화면 라벨 / UI 텍스트는 평소대로 (한국어 또는 i18n 키).
             """;
     }
 

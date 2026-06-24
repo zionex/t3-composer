@@ -38,7 +38,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import HubIcon from '@mui/icons-material/Hub';
 
 import { createSession, extractAndLookupTables, fetchQaBulk, fetchEntityBulk } from './api';
-import { getModule } from './constants';
+import { getModule, localizedModuleName } from './constants';
+import useUiLanguage from './useUiLanguage';
 import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
@@ -53,32 +54,15 @@ import DataSourcePickerDialog from './DataSourcePickerDialog';
 /**
  * AI 엔진(모델) 선택지 — Anthropic Claude.
  * id 는 백엔드 ComposerService 가 createSession.modelName 으로 받아 그대로 Anthropic API 에 전달.
+ * sub / desc 텍스트는 composer.modeNewNl.modelOptions.<key>.{sub,desc} i18n 키로 해석 (5 locale).
  *
  * 정책 (CLAUDE.md / ComposerService.DEFAULT_MODEL):
- *   - Opus 4.7  = 기본값. 고품질 — 복잡 로직·고난이도 화면에 적합 (출력 많으면 다소 느림)
- *   - Sonnet 4.6 = 빠름. 속도·비용 우선
+ *   - Opus 4.7  = 기본값. 고품질
+ *   - Sonnet 4.6 = 빠름
  */
 const MODEL_OPTIONS = [
-  {
-    id:    'claude-sonnet-4-6',
-    label: 'Sonnet',
-    sub:   'Sonnet 4.6 — 빠름',
-    subEn: 'Sonnet 4.6 — Fast',
-    desc:  '속도·비용·품질 균형. 빠른 생성이 필요할 때.',
-    descEn:'Balanced speed, cost and quality. Choose for fast generation.',
-    Icon:  BoltIcon,
-    color: '#7CA7E0',
-  },
-  {
-    id:    'claude-opus-4-7',
-    label: 'Opus',
-    sub:   'Opus 4.7 — 기본값 (고품질)',
-    subEn: 'Opus 4.7 — Default (high quality)',
-    desc:  '복잡 로직·고난이도 화면에 적합. 출력이 매우 많으면(16K+) 응답에 3~5분+ 소요될 수 있음.',
-    descEn:'Best for complex logic and demanding screens. Very large outputs (16K+) may take 3–5+ minutes.',
-    Icon:  DiamondIcon,
-    color: '#9D8FD4',
-  },
+  { id: 'claude-sonnet-4-6', label: 'Sonnet', i18nKey: 'sonnet', Icon: BoltIcon,    color: '#7CA7E0' },
+  { id: 'claude-opus-4-7',   label: 'Opus',   i18nKey: 'opus',   Icon: DiamondIcon, color: '#9D8FD4' },
 ];
 
 const DEFAULT_MODEL_ID = 'claude-opus-4-7';
@@ -105,145 +89,22 @@ function isChartLikeUiPattern(p) {
   return /(monitoring|dashboard|controlboard|chart|kpi|대시보드|모니터링|차트)/.test(hay);
 }
 
-const EXAMPLE_PROMPTS = {
-  DP: [
-    '거래처별 월별 수요 계획 입력 화면 — 크로스탭 피벗. P06 패턴',
-    '수요 계획 실적 분석 — 상단 그리드 + 하단 트렌드 차트. P05 패턴',
-  ],
-  MP: [
-    '자원 가동 현황 간트 차트 — 시간 단위 조정 가능. P09 패턴',
-    'MP 시뮬레이션 결과 요약 · 상세 탭. P03 패턴',
-  ],
-  FP: [
-    'FP 작업 지시 모니터링 대시보드 — KPI + 차트. P01 패턴',
-    '자원별 생산 계획 간트. P09 패턴',
-  ],
-  RP: [
-    '보충 주문 확정 조회 — 검색 + 단일 그리드. P02 패턴',
-    '보충 계획 피벗 입력. P06 패턴',
-  ],
-  BF: [
-    '예측 정확도 분석 — 그리드 + 트렌드 차트. P05 패턴',
-    'BF 컨트롤보드 · 버전 관리. P07 패턴',
-  ],
-  IM: [
-    '안전재고 · 목표재고 정책 관리 — 검색 + 그리드. P02 패턴',
-    'ABC/XYZ 분석 차트 + 리스트. P05 패턴',
-  ],
-  SA: [
-    'S&OP 회의 안건 관리. P01 패턴',
-    '판매 실적 집계 대시보드. P01 패턴',
-  ],
-  SO: [
-    '판매 주문 조회. P02 패턴',
-  ],
-  CM: [
-    '품목 마스터 관리 — 검색 + 단일 그리드. P02 패턴',
-    '거점/창고 계층 — 수평 스플릿. P04 패턴',
-  ],
-  AD: [
-    '사용자 관리 — 검색 + 그리드 + 역할 할당. P04 패턴',
-    '메뉴 관리 — 트리 + 상세. P04 패턴',
-  ],
-  UT: [
-    '공지사항 관리 — 검색 + 그리드. P02 패턴',
-    '이슈 관리 대시보드. P01 패턴',
-  ],
-};
-
-const EXAMPLE_PROMPTS_EN = {
-  DP: [
-    'Monthly demand plan entry by customer — crosstab pivot. P06',
-    'Demand plan vs actual analysis — top grid + bottom trend chart. P05',
-  ],
-  MP: [
-    'Resource utilization Gantt — adjustable time bucket. P09',
-    'MP simulation result summary + detail tabs. P03',
-  ],
-  FP: [
-    'FP work order monitoring dashboard — KPI + charts. P01',
-    'Resource-wise production plan Gantt. P09',
-  ],
-  RP: [
-    'Confirmed replenishment orders — search + single grid. P02',
-    'Replenishment plan pivot entry. P06',
-  ],
-  BF: [
-    'Forecast accuracy analysis — grid + trend chart. P05',
-    'BF control board · version management. P07',
-  ],
-  IM: [
-    'Safety / target inventory policy — search + grid. P02',
-    'ABC/XYZ analysis chart + list. P05',
-  ],
-  SA: [
-    'S&OP meeting agenda management. P01',
-    'Sales aggregation dashboard. P01',
-  ],
-  SO: [
-    'Sales order browse. P02',
-  ],
-  CM: [
-    'Item master management — search + single grid. P02',
-    'Location / warehouse hierarchy — horizontal split. P04',
-  ],
-  AD: [
-    'User management — search + grid + role assignment. P04',
-    'Menu management — tree + detail. P04',
-  ],
-  UT: [
-    'Notice management — search + grid. P02',
-    'Issue management dashboard. P01',
-  ],
-};
+/**
+ * 모듈별 예시 프롬프트는 i18n composer.modeNewNl.examplePrompts.<MODULE_CODE> 배열로 이전.
+ * 5 locale (ko/en/ja/zh-CN/zh-TW) 모두 등록되어 있으며 t(..., {returnObjects:true}) 로 사용.
+ */
 
 /**
  * 신규 생성 입력 방식별 예시 — 우측 가이드 패널에 카테고리로 표시.
  *   kind:'prompt' 항목은 클릭 시 프롬프트 입력란에 채워짐. kind:'info' 는 안내.
+ *   group/tag/text 텍스트는 i18n composer.modeNewNl.creationExamples.<key> 로 이전 — 5 locale.
+ *   여기는 코드만 — i18nKey + color 매핑. 항목 본문은 t() 로 해석.
  */
-const CREATION_EXAMPLES = [
-  {
-    group: '프롬프트만 입력', color: '#7CA7E0',
-    items: [
-      { tag: '기존 테이블 · SP 있음', kind: 'prompt',
-        text: 'TB_AD_USER 테이블과 SP_UI_AD_01_Q1 / _S1 / _D1 프로시저를 사용해 '
-            + '사용자 목록 조회·저장·삭제 화면을 만들어줘.' },
-      { tag: '기존 테이블 · SP 없음', kind: 'prompt',
-        text: '기존 TB_CM_ITEM_MST 테이블 기반 품목 마스터 관리(CRUD) 화면. '
-            + '조회/저장/삭제 SP 는 새로 생성해줘.' },
-      { tag: '쿼리 직접 지정', kind: 'prompt',
-        text: 'VW_INVENTORY_PLAN_CONFIRMED 뷰를 조회하는 재고 현황 화면 — '
-            + '검색조건은 거점·품목, 결과는 그리드.' },
-      { tag: '테이블 없음 · 신규 설계', kind: 'prompt',
-        text: '공지사항을 관리할 새 테이블을 설계하고 공지 등록·수정·삭제 화면을 만들어줘.' },
-    ],
-  },
-  {
-    group: 'SCM UI Mockup 선택', color: '#86C7A8',
-    items: [
-      { tag: 'Mockup + 프롬프트', kind: 'info',
-        text: '위 [SCM UI Mockup 선택] 으로 화면 목업을 고르면 그 레이아웃 골격을 '
-            + 'Claude 가 참조합니다. 프롬프트엔 데이터 요구만 적으면 됩니다. '
-            + '(UI Pattern 과는 둘 중 하나)' },
-    ],
-  },
-  {
-    group: 'UI Pattern 선택', color: '#9D8FD4',
-    items: [
-      { tag: 'UI Pattern + 프롬프트', kind: 'info',
-        text: '위 [UI Pattern 선택] 으로 T3MES 패턴을 고르면 그 화면 마크업을 '
-            + '참조해 생성합니다. (SCM UI Mockup 과는 둘 중 하나)' },
-    ],
-  },
-  {
-    group: '파일 첨부 (D&D)', color: '#E6C079',
-    items: [
-      { tag: 'SQL · 설계 이미지 첨부', kind: 'info',
-        text: '하단 [참조 파일 첨부] 영역에 SQL 파일 · 설계서 이미지 · 캡처 등을 '
-            + '최대 5개까지 끌어다 놓으면 함께 참조합니다. Mockup / UI Pattern 선택과 '
-            + '같이 사용할 수 있습니다.' },
-    ],
-  },
+const CREATION_EXAMPLE_GROUPS = [
+  { key: 'promptOnly', color: '#7CA7E0' },
+  { key: 'mockup',     color: '#86C7A8' },
+  { key: 'uiPattern',  color: '#9D8FD4' },
+  { key: 'fileAttach', color: '#E6C079' },
 ];
 
 /**
@@ -258,7 +119,8 @@ const CREATION_EXAMPLES = [
  */
 function ModeNewGeneral({ onBack, startWith = null }) {
   const { t, i18n } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
+  const lng  = useUiLanguage();                       // 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW'
+  const isEn = lng !== 'ko';                          // (legacy) — non-Korean → 영문 데이터 폴백 분기용
   // startWith === 'NL'   → 자연어 모드로 바로 진입 (서브모드 선택 스킵)
   // startWith === 'STEP' → 단계별 Wizard 로 바로 진입
   // startWith === null   → 서브모드 선택 화면 표시 (구 동작)
@@ -323,9 +185,13 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
   const module = useMemo(() => getModule(moduleCode), [moduleCode]);
 
-  const examples = moduleCode
-    ? ((isEn ? (EXAMPLE_PROMPTS_EN[moduleCode] || EXAMPLE_PROMPTS[moduleCode]) : EXAMPLE_PROMPTS[moduleCode]) || [])
-    : [];
+  // 모듈별 예시 프롬프트 — i18n 키에서 현재 locale 의 배열 반환.
+  //   t(key, {returnObjects:true}) 가 키 미존재 시 키 문자열을 그대로 돌려주므로 배열 가드 필요.
+  const examples = useMemo(() => {
+    if (!moduleCode) return [];
+    const arr = t(`modeNewNl.examplePrompts.${moduleCode}`, { returnObjects: true });
+    return Array.isArray(arr) ? arr : [];
+  }, [moduleCode, t, i18n.language]);
 
   // SCM UI Mockup 선택 확정 — 일반 POPUP(MockupPickerDialog) / 3D 갤러리 공용 핸들러.
   const handleMockupPicked = (m) => {
@@ -797,7 +663,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
       </Stack>
       {subMode && module && (
         <Chip
-          label={`${module.code} · ${module.nameKo}`}
+          label={`${module.code} · ${localizedModuleName(module, lng)}`}
           size="small"
           sx={{ ml: 2, bgcolor: `${module.color}22`, color: module.color, fontWeight: 500 }}
         />
@@ -939,7 +805,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               {MODEL_OPTIONS.map((m) => {
                 const sel = selectedModel === m.id;
                 return (
-                  <Tooltip key={m.id} title={isEn && m.descEn ? m.descEn : m.desc} arrow placement="top">
+                  <Tooltip key={m.id} title={t(`modeNewNl.modelOptions.${m.i18nKey}.desc`)} arrow placement="top">
                     <ToggleButton
                       value={m.id}
                       sx={{
@@ -966,7 +832,7 @@ function ModeNewGeneral({ onBack, startWith = null }) {
                       <Stack alignItems="flex-start" spacing={0} sx={{ lineHeight: 1.15 }}>
                         <span style={{ fontWeight: 700 }}>{m.label}</span>
                         <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.9 }}>
-                          {sel ? t('modeNewNl.promptPanel.currentSel') : (isEn && m.subEn ? m.subEn : m.sub)}
+                          {sel ? t('modeNewNl.promptPanel.currentSel') : t(`modeNewNl.modelOptions.${m.i18nKey}.sub`)}
                         </Typography>
                       </Stack>
                     </ToggleButton>
@@ -1471,59 +1337,66 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               {t('modeNewNl.examples.byInputTitle')}
             </Typography>
             <Stack spacing={1.2}>
-              {CREATION_EXAMPLES.map((g) => (
-                <Box key={g.group} sx={{
-                  border: '1px solid', borderColor: `${g.color}55`, borderRadius: 1.5,
-                  bgcolor: `${g.color}10`, p: 1.2,
-                }}>
-                  <Typography variant="caption"
-                              sx={{ fontWeight: 800, color: g.color, display: 'block', mb: 0.8 }}>
-                    {g.group}
-                  </Typography>
-                  <Stack spacing={0.7}>
-                    {g.items.map((it, idx) => {
-                      const clickable = it.kind === 'prompt';
-                      return (
-                        <Box
-                          key={idx}
-                          onClick={clickable ? () => setPrompt(it.text) : undefined}
-                          sx={{
-                            p: 1, borderRadius: 1, bgcolor: '#fff',
-                            border: '1px solid rgba(124,167,224,0.22)',
-                            cursor: clickable ? 'pointer' : 'default',
-                            transition: 'all .14s ease',
-                            ...(clickable && {
-                              '&:hover': {
-                                borderColor: g.color,
-                                boxShadow: `0 2px 10px -5px ${g.color}`,
-                              },
-                            }),
-                          }}
-                        >
-                          <Stack direction="row" alignItems="center" spacing={0.6}
-                                 flexWrap="wrap" sx={{ mb: 0.4, gap: 0.4 }}>
-                            <Chip
-                              size="small" label={it.tag}
-                              sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
-                                    bgcolor: `${g.color}26`, color: g.color }}
-                            />
-                            {clickable && (
-                              <Typography variant="caption"
-                                          sx={{ color: '#A6B2C4', fontSize: 9.5 }}>
-                                {t('modeNewNl.examples.clickToPrompt')}
-                              </Typography>
-                            )}
-                          </Stack>
-                          <Typography variant="caption"
-                                      sx={{ color: '#3A4A63', lineHeight: 1.55, display: 'block' }}>
-                            {it.text}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Box>
-              ))}
+              {CREATION_EXAMPLE_GROUPS.map((g) => {
+                // i18n 에서 그룹 본체 (group 텍스트 + items 배열) 해석.
+                //   returnObjects 미존재 시 t() 가 key 문자열을 반환할 수 있으므로 가드.
+                const groupLabel = t(`modeNewNl.creationExamples.${g.key}.group`);
+                const itemsRaw   = t(`modeNewNl.creationExamples.${g.key}.items`, { returnObjects: true });
+                const items      = Array.isArray(itemsRaw) ? itemsRaw : [];
+                return (
+                  <Box key={g.key} sx={{
+                    border: '1px solid', borderColor: `${g.color}55`, borderRadius: 1.5,
+                    bgcolor: `${g.color}10`, p: 1.2,
+                  }}>
+                    <Typography variant="caption"
+                                sx={{ fontWeight: 800, color: g.color, display: 'block', mb: 0.8 }}>
+                      {groupLabel}
+                    </Typography>
+                    <Stack spacing={0.7}>
+                      {items.map((it, idx) => {
+                        const clickable = it.kind === 'prompt';
+                        return (
+                          <Box
+                            key={idx}
+                            onClick={clickable ? () => setPrompt(it.text) : undefined}
+                            sx={{
+                              p: 1, borderRadius: 1, bgcolor: '#fff',
+                              border: '1px solid rgba(124,167,224,0.22)',
+                              cursor: clickable ? 'pointer' : 'default',
+                              transition: 'all .14s ease',
+                              ...(clickable && {
+                                '&:hover': {
+                                  borderColor: g.color,
+                                  boxShadow: `0 2px 10px -5px ${g.color}`,
+                                },
+                              }),
+                            }}
+                          >
+                            <Stack direction="row" alignItems="center" spacing={0.6}
+                                   flexWrap="wrap" sx={{ mb: 0.4, gap: 0.4 }}>
+                              <Chip
+                                size="small" label={it.tag}
+                                sx={{ height: 18, fontSize: 9.5, fontWeight: 700,
+                                      bgcolor: `${g.color}26`, color: g.color }}
+                              />
+                              {clickable && (
+                                <Typography variant="caption"
+                                            sx={{ color: '#A6B2C4', fontSize: 9.5 }}>
+                                  {t('modeNewNl.examples.clickToPrompt')}
+                                </Typography>
+                              )}
+                            </Stack>
+                            <Typography variant="caption"
+                                        sx={{ color: '#3A4A63', lineHeight: 1.55, display: 'block' }}>
+                              {it.text}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                );
+              })}
             </Stack>
           </Box>
         </Box>

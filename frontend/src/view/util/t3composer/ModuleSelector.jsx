@@ -4,15 +4,16 @@ import { Box, Card, CardActionArea, Typography, Stack, Chip } from '@mui/materia
 import * as MuiIcons from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
-import { MODULES } from './constants';
+import { MODULES, localizedModuleName, localizedModuleDesc } from './constants';
+import useUiLanguage from './useUiLanguage';
 
 /**
  * 모듈 대그룹 선택.
  * NEW_GENERAL 의 자연어/단계별 경로 공통 첫 스텝.
  */
 function ModuleSelector({ value, onChange, compact = false }) {
-  const { i18n, t } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
+  const { t } = useTranslation('composer');
+  const lng = useUiLanguage();   // 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW'
   return (
     <Box>
       {!compact && (
@@ -71,7 +72,7 @@ function ModuleSelector({ value, onChange, compact = false }) {
                       {m.code}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                      {isEn ? m.name : m.nameKo}
+                      {localizedModuleName(m, lng)}
                     </Typography>
                   </Box>
                 </Stack>
@@ -89,7 +90,7 @@ function ModuleSelector({ value, onChange, compact = false }) {
                         mb: 0.8,
                       }}
                     >
-                      {isEn && m.descriptionEn ? m.descriptionEn : m.description}
+                      {localizedModuleDesc(m, lng)}
                     </Typography>
                     <Stack direction="row" spacing={0.5}>
                       <Chip

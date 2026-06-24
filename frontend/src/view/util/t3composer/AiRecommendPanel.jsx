@@ -8,6 +8,7 @@ import CloudUploadIcon  from '@mui/icons-material/CloudUpload';
 import PhotoFilterIcon  from '@mui/icons-material/PhotoFilter';
 import { useTranslation } from 'react-i18next';
 
+import useUiLanguage from './useUiLanguage';
 import { MOCKUP_ENTRIES } from '../t3mockup';
 import { buildMockupCandidates, scoreMockupCandidates, mergeAiPrefillIntoSpec } from './mockupRecommend';
 import { specFromMockup, specFromSynthesized, specFromImageDerived } from './wizardState';
@@ -36,8 +37,17 @@ const SYNTH_ACCENT_SOFT  = '#c4b5fd'; // purple-300 — card border
 const THUMB_W = 1400;   // mockup 컴포넌트 가상 폭
 const THUMB_H = 900;
 
-const EXAMPLES_KO = ['거래처별 단가 관리', '공급계획 시뮬레이션', '재고 현황 조회'];
-const EXAMPLES_EN = ['Per-customer unit price management', 'Supply plan simulation', 'Inventory status browse'];
+/**
+ * 자연어 예시 — 5 locale (ko/en/ja/zh-CN/zh-TW) 별 placeholder 텍스트 배열.
+ *   현재 locale 키가 없으면 en → ko 순 폴백.
+ */
+const EXAMPLES_BY_LNG = {
+  'ko':    ['거래처별 단가 관리', '공급계획 시뮬레이션', '재고 현황 조회'],
+  'en':    ['Per-customer unit price management', 'Supply plan simulation', 'Inventory status browse'],
+  'ja':    ['取引先別単価管理', '供給計画シミュレーション', '在庫状況照会'],
+  'zh-CN': ['按客户的单价管理', '供应计划模拟', '库存状况查询'],
+  'zh-TW': ['依客戶的單價管理', '供應計畫模擬', '庫存狀況查詢'],
+};
 
 /**
  * AI 추천 진입 화면 (B 레이아웃).
@@ -91,9 +101,9 @@ const buildAttachPayload = (atts) => ({
 });
 
 function AiRecommendPanel({ onBack, onStart, targetCd }) {
-  const { t, i18n } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
-  const EXAMPLES = isEn ? EXAMPLES_EN : EXAMPLES_KO;
+  const { t } = useTranslation('composer');
+  const lng   = useUiLanguage();                                                    // 'ko'|'en'|'ja'|'zh-CN'|'zh-TW'
+  const EXAMPLES = EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
   const [nl, setNl] = useState('');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
   const [fillingIdx, setFillingIdx] = useState(null); // 선택 후 prefill 중 (카드 인덱스)

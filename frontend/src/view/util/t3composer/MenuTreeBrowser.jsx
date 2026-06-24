@@ -54,7 +54,13 @@ const C = {
 
 function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
   const { t, i18n } = useTranslation('composer');
-  const lang = i18n.language?.startsWith('en') ? 'en' : 'ko';
+  // wingui LangPack lookup 용 — TB_AD_LANG_PACK.LANG_CD 는 4종 ko/en/ja/zh standard.
+  //   'zh-CN' / 'zh-TW' 는 base 'zh' 로 변환해 전달 (LangPack 미보유 시 backend 가 자동 fallback).
+  const cur = (i18n.language || '').toLowerCase();
+  const lang = cur.startsWith('ja') ? 'ja'
+             : cur.startsWith('zh') ? 'zh'
+             : cur.startsWith('en') ? 'en'
+             : 'ko';
   const [menus, setMenus]     = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);

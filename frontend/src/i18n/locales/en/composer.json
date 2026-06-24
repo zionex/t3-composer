@@ -123,6 +123,52 @@
       "byInputTitle": "New Creation Examples — by Input Style",
       "clickToPrompt": "Click → fill prompt"
     },
+    "modelOptions": {
+      "sonnet": { "sub": "Sonnet 4.6 — Fast",                     "desc": "Balanced speed, cost and quality. Choose for fast generation." },
+      "opus":   { "sub": "Opus 4.7 — Default (high quality)",     "desc": "Best for complex logic and demanding screens. Very large outputs (16K+) may take 3–5+ minutes." }
+    },
+    "examplePrompts": {
+      "DP": ["Monthly demand plan entry by customer — crosstab pivot. P06", "Demand plan vs actual analysis — top grid + bottom trend chart. P05"],
+      "MP": ["Resource utilization Gantt — adjustable time bucket. P09", "MP simulation result summary + detail tabs. P03"],
+      "FP": ["FP work order monitoring dashboard — KPI + charts. P01", "Resource-wise production plan Gantt. P09"],
+      "RP": ["Confirmed replenishment orders — search + single grid. P02", "Replenishment plan pivot entry. P06"],
+      "BF": ["Forecast accuracy analysis — grid + trend chart. P05", "BF control board · version management. P07"],
+      "IM": ["Safety / target inventory policy — search + grid. P02", "ABC/XYZ analysis chart + list. P05"],
+      "SA": ["S&OP meeting agenda management. P01", "Sales aggregation dashboard. P01"],
+      "SO": ["Sales order browse. P02"],
+      "CM": ["Item master management — search + single grid. P02", "Location / warehouse hierarchy — horizontal split. P04"],
+      "AD": ["User management — search + grid + role assignment. P04", "Menu management — tree + detail. P04"],
+      "UT": ["Notice management — search + grid. P02", "Issue management dashboard. P01"]
+    },
+    "creationExamples": {
+      "promptOnly": {
+        "group": "Prompt only",
+        "items": [
+          { "tag": "Existing table · with SP",  "kind": "prompt", "text": "Build a user list view/save/delete screen using the TB_AD_USER table and SP_UI_AD_01_Q1 / _S1 / _D1 procedures." },
+          { "tag": "Existing table · no SP",    "kind": "prompt", "text": "Item master CRUD screen on the existing TB_CM_ITEM_MST table. Generate read/save/delete SPs as needed." },
+          { "tag": "Direct query",              "kind": "prompt", "text": "Inventory status screen querying the VW_INVENTORY_PLAN_CONFIRMED view — search by location and item, results in a grid." },
+          { "tag": "No table · new design",     "kind": "prompt", "text": "Design a new table for notices and build screens to create/edit/delete notices." }
+        ]
+      },
+      "mockup": {
+        "group": "SCM UI Mockup",
+        "items": [
+          { "tag": "Mockup + prompt", "kind": "info", "text": "Pick a mockup via [Select SCM UI Mockup] above and Claude will reference its layout skeleton. Just describe the data requirements in the prompt. (Exclusive with UI Pattern.)" }
+        ]
+      },
+      "uiPattern": {
+        "group": "UI Pattern",
+        "items": [
+          { "tag": "UI Pattern + prompt", "kind": "info", "text": "Pick a T3MES pattern via [Select UI Pattern] above and Claude will reference its markup. (Exclusive with SCM UI Mockup.)" }
+        ]
+      },
+      "fileAttach": {
+        "group": "File attach (D&D)",
+        "items": [
+          { "tag": "SQL · design image attach", "kind": "info", "text": "Drop up to 5 SQL files / design images / captures into the [Reference file attach] area below to include them as references. Can be combined with Mockup / UI Pattern selection." }
+        ]
+      }
+    },
     "errors": {
       "promptRequired": "Please enter a requirement.",
       "sessionFailed": "Session creation failed"

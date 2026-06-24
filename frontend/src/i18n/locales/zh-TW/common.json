@@ -1,0 +1,38 @@
+{
+  "app": {
+    "menu": {
+      "composer":    "Composer",
+      "history":     "歷史記錄",
+      "scmUiMockup": "SCM UI 原型",
+      "uiPattern":   "UI 模式",
+      "ontology":    "本體",
+      "dashboard":   "儀表板"
+    },
+    "menuHint": {
+      "composer":    "AI 畫面生成 — 基於自然語言・複製・設計文件的新增 / 既有畫面修改",
+      "history":     "工作歷史 — 進行中・已完成・已封存工作階段的查看與繼續",
+      "scmUiMockup": "SCM UI 原型庫 — 畫面原型目錄",
+      "uiPattern":   "T3MES UI 模式目錄 — 依 MES/SCM 領域劃分的畫面模式",
+      "ontology":    "本體管理 — Q&A・Entity・View・Process",
+      "dashboard":   "儀表板建構器 — 基於小工具的使用者儀表板查看與編輯"
+    }
+  },
+  "action": {
+    "create":   "建立",
+    "cancel":   "取消",
+    "confirm":  "確認",
+    "save":     "儲存",
+    "delete":   "刪除",
+    "next":     "下一步",
+    "previous": "上一步",
+    "search":   "搜尋",
+    "close":    "關閉",
+    "back":     "返回",
+    "apply":    "套用"
+  },
+  "status": {
+    "loading": "載入中...",
+    "empty":   "無結果",
+    "error":   "發生錯誤"
+  }
+}

@@ -3,13 +3,28 @@ import { MenuItem, Select } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 const LANGUAGES = [
-  { code: 'ko', label: 'KO' },
-  { code: 'en', label: 'EN' },
+  { code: 'ko',    label: 'KO',    title: '한국어' },
+  { code: 'en',    label: 'EN',    title: 'English' },
+  { code: 'ja',    label: 'JA',    title: '日本語' },
+  { code: 'zh-CN', label: '简',    title: '中文 (简体)' },
+  { code: 'zh-TW', label: '繁',    title: '中文 (繁體)' },
 ];
+
+/** i18n.language (예: 'zh-Hant-TW') 를 5개 지원 locale 중 하나로 정규화. */
+function normalizeLng(raw) {
+  const l = (raw || '').toLowerCase();
+  if (l.startsWith('ko')) return 'ko';
+  if (l.startsWith('ja')) return 'ja';
+  if (l.startsWith('zh')) {
+    if (l.startsWith('zh-tw') || l.startsWith('zh-hk') || l.includes('hant')) return 'zh-TW';
+    return 'zh-CN';
+  }
+  return 'en';
+}
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const current = i18n.language?.startsWith('en') ? 'en' : 'ko';
+  const current = normalizeLng(i18n.language);
   return (
     <Select
       size="small"
@@ -17,7 +32,7 @@ export default function LanguageSwitcher() {
       onChange={(e) => i18n.changeLanguage(e.target.value)}
       sx={{
         ml: 1,
-        minWidth: 72,
+        minWidth: 80,
         fontSize: 13,
         fontWeight: 700,
         '& .MuiSelect-select': {
@@ -33,7 +48,7 @@ export default function LanguageSwitcher() {
       }}
     >
       {LANGUAGES.map((lng) => (
-        <MenuItem key={lng.code} value={lng.code} sx={{ fontWeight: 600 }}>
+        <MenuItem key={lng.code} value={lng.code} sx={{ fontWeight: 600 }} title={lng.title}>
           {lng.label}
         </MenuItem>
       ))}

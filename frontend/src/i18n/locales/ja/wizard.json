@@ -1,0 +1,277 @@
+{
+  "stepper": {
+    "layout": "① レイアウト",
+    "data": "② データ・検索条件",
+    "meta": "③ メタ・メニュー",
+    "generate": "④ 画面生成",
+    "layoutShort": "レイアウト",
+    "dataShort": "データ・検索条件",
+    "metaShort": "メタ・メニュー",
+    "generateShort": "画面生成"
+  },
+  "buttons": {
+    "previous": "前へ",
+    "next": "次へ: {{label}}",
+    "nextLast": "完了",
+    "backPicker": "パターンを再選択"
+  },
+  "header": {
+    "patternHint": "pattern:",
+    "menuHint": "menu:"
+  },
+  "validation": {
+    "filterBarBlankLabels": "FilterBar フィールド {{count}} 個のラベルが空です。入力後に次へ進んでください。",
+    "orphanRelations": "Layer 関係 {{count}} 個の source/target layer が存在しません。整理後に次へ進んでください。",
+    "parentMenuRequired": "親メニューを選択してください。[メニュー選択] で登録位置を指定する必要があります。"
+  },
+  "step": {
+    "layout": {
+      "addLayer": "Layer",
+      "addChild": "子を追加",
+      "childMenuTitle": "Container の子を追加",
+      "typeGrid": "Grid · 表形式データ",
+      "typeChart": "Chart · チャート/KPI/地図",
+      "typeContainer": "Container · タブ/カード wrapper",
+      "typeDocument": "Document · PDF/画像/Markdown",
+      "typeAi": "AI · チャット/インサイトパネル",
+      "hint": "各エリアにデータを入力後 [画面生成] をクリック → Claude が成果物 + プレビューを進行。Layer はドラッグ/リサイズ/追加/削除可能。",
+      "bodyLayers": "📐 本文 (Body Layers)",
+      "bodyHint": "— 各 layer ボックスをクリックするとデータ編集ダイアログが開きます。",
+      "emptyState": "Layer がありません。右上 [+ Layer] で追加してください。",
+      "containerLabel": "CONTAINER",
+      "childCount": "· 子 {{count}} 個",
+      "childEmptyHint": "↑ 右上 [+ 子を追加] でこの wrapper 内に入る layer を追加",
+      "dataSetState": "✓ データ設定済",
+      "dataEmptyState": "クリックしてデータ入力",
+      "removeLayer": "Layer 削除"
+    },
+    "data": {
+      "leftHeader": "📐 Body Layers — クリックして展開しデータ編集",
+      "emptyLayers": "Layer がありません。① レイアウト段階で追加してください。",
+      "statusReady": "✓",
+      "statusEmpty": "未設定",
+      "aiTitle": "AI 自動補完 — 検索条件 + 関係",
+      "aiPlaceholder": "例: \"期間条件を追加\" · \"master→detail 関係を作って\"\n空欄なら spec のみで自動推論",
+      "aiAnalyzing": "AI 解析中...",
+      "aiNeedLayer": "layer が 1 個以上必要",
+      "aiHelp": "Enter または ▶ クリックで生成",
+      "aiNoResult": "AI が推薦する項目を見つけられませんでした。layer / dataSource をさらに入力してください。",
+      "aiSuccess": "検索条件 {{filterCount}} 個 · 関係 {{relationCount}} 個追加されました。",
+      "aiFail": "AI 呼び出し失敗: {{message}}"
+    },
+    "meta": {
+      "title": "③ メタ・メニュー",
+      "hint": "画面の識別情報とメニュー登録位置を入力します。空欄は Claude が推論します。",
+      "screenTitleLabel": "画面タイトル",
+      "screenTitlePlaceholder": "例: ユーザー情報管理",
+      "menuCdLabel": "メニューコード (MENU_CD) —",
+      "menuCdFormat": "UI_<DOMAIN>_<NAME>",
+      "menuCdPlaceholder": "UI_UT_USER_INFO_MGMT",
+      "menuCdHelper": "空欄にすると Claude が画面の意図から推論します。",
+      "menuFilePathLabel": "メニューファイルパス (MENU_FILE_PATH)",
+      "menuFilePathPlaceholder": "/util/UserInfoMgmt",
+      "menuFilePathHelper": "形式: /<module>[/<category>]/<PascalName> (拡張子なし)。",
+      "parentMenuLabel": "親メニュー (グループ)",
+      "parentMenuRequired": "— メニュー登録位置を選択 (必須)",
+      "parentMenuOk": "運用 DB 存在確認済",
+      "parentMenuMissing": "未選択 — [メニュー選択] で親を指定してください",
+      "selectMenu": "メニュー選択",
+      "parentMenuGone": "自動入力されていた親メニュー <b>{{cd}}</b> が運用 DB ({{targetCd}}) に存在しないため空にしました。[メニュー選択] で実際の親を指定してください。"
+    },
+    "generate": {
+      "creating": "セッション作成中 — Claude 呼び出し準備",
+      "createFail": "セッション作成失敗",
+      "backToPrev": "前のステップへ",
+      "backToPrevShort": "前のステップ",
+      "defaultTitle": "新規画面"
+    }
+  },
+  "workspace": {
+    "header": {
+      "runPreview": "画面実行",
+      "runPreviewBusy": "実行中...",
+      "registerMenu": "メニュー登録",
+      "applyArtifact": "成果物実行",
+      "applyArtifactGroup": "Target System 適用",
+      "autoFixToggle": "エラー時自動補完",
+      "autoFixTooltip": "エラー時自動補完 — チェック時:\n[画面実行] 後に実行時エラーが発生すると AI がエラーメッセージを解析し\n成果物 (JSX/Java/SP) を自動修正後、画面を再実行します。\n最大 3 回まで自動繰り返し、解決しない場合はガイド表示後に停止します。",
+      "designDoc": "設計書",
+      "designDocBusy": "生成中...",
+      "designDocTooltip": "画面設計書 Excel ダウンロード",
+      "runPreviewTooltip": "JSX 成果物を AI モックアップに変換して右側 [実行画面] タブにレンダリング。データは sample、SQL/Java apply は skip (視覚確認用)。初回実行 5~10 秒、以降キャッシュ。",
+      "registerMenuTooltip": "① メニュー登録 — MENU_SQL のみ実際の DB に適用 (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)",
+      "applyArtifactTooltip": "② 成果物実行 — JSX/Java ファイル保存 + SQL_DDL/SQL_SP DB 実行 (メニュー登録後を推奨)",
+      "aiEngineTitle": "AI エンジン選択",
+      "aiEngineTooltip": "AI エンジン: {{sub}} — クリックして変更"
+    },
+    "tabs": {
+      "previewLive": "実行画面",
+      "artifactSource": "成果物ソース",
+      "insightAi": "Insight AI",
+      "openInNew": "実行画面を新しいウィンドウで開く (全画面表示)",
+      "openInNewHint": "先に [画面実行] ボタンを押して実行画面を表示してください"
+    },
+    "previewStage": {
+      "applying": "⏳ 成果物適用",
+      "compiling": "⏳ バックエンドコンパイル",
+      "restarting": "🔄 バックエンド再起動",
+      "ready": "✅ 実行準備完了",
+      "autofixing": "🤖 AI 自動補完",
+      "failed": "⚠ 実行準備失敗",
+      "openInNew": "新しいウィンドウで開く",
+      "close": "閉じる",
+      "applyingMsgSample": "成果物適用中 — AI モックアップ変換 (初回 5~10 秒 · 以降キャッシュ)...",
+      "applyingMsgFull": "成果物適用中 (再起動含む)...",
+      "readyMsg": "実行準備完了",
+      "autofixWorking": "AI がエラーを解析し成果物を修正中です ({{n}}/{{max}})...",
+      "autofixDone": "補完完了 — 画面を再実行します ({{n}}/{{max}})...",
+      "autofixGiveUp": "AI 自動補完を {{max}} 回試みましたがエラーが続いています。右側 [成果物ソース] タブで直接確認するか、チャットで修正を依頼してください。",
+      "autofixError": "自動補完処理エラー: ",
+      "autofixRequestFail": "AI 自動補完リクエストが失敗しました。左側の作業履歴のエラーを確認してください。",
+      "autofixLabel": "AI 自動補完中 ({{n}}/{{max}})"
+    },
+    "snackbar": {
+      "previewReadyTitle": "画面実行準備完了",
+      "previewReadyJsxOnly": "JSX {{ok}} 件適用",
+      "previewReadyWithSkip": "JSX {{ok}} 件 · その他 {{skipped}} 件 (Java/SQL/MENU) は画面実行対象外",
+      "previewFailTitle": "画面実行準備失敗",
+      "previewErrorDefault": "JSX/SQL/MENU 処理エラー",
+      "previewCommErrorTitle": "プレビュー通信エラー",
+      "previewCommErrorMsg": "ネットワークエラー",
+      "previewCleanupTitle": "実行画面のクリーンアップ",
+      "previewCleanupMsg": "実行成果物 + DB 行が整理されました",
+      "previewCleanupFailTitle": "クリーンアップ失敗",
+      "autoFixTitle": "AI 自動補完 ({{n}}/{{max}})",
+      "autoFixMsg": "成果物を修正しました。画面を再実行します。"
+    },
+    "chatCollapsed": {
+      "editTitle": "修正リクエスト",
+      "editHint": "— 追加で修正する内容を入力するには展開",
+      "generating": "🪄 画面生成中…",
+      "genFailPrefix": "⚠ 生成失敗: ",
+      "retry": "再試行"
+    },
+    "modelSwitchFail": "AI エンジンの切替失敗: ",
+    "downloadFail": "設計書ダウンロード失敗: "
+  },
+  "chat": {
+    "placeholder": "修正リクエストを入力してください...",
+    "placeholderDefault": "メッセージを入力 (Ctrl+Enter で送信)",
+    "emptyHint": "要件を自然言語で入力してください。(Ctrl+Enter 送信)",
+    "send": "送信",
+    "sendTooltip": "送信 (Ctrl+Enter)",
+    "generating": "応答中...",
+    "emptyMessage": "(空のメッセージ)",
+    "userLabel": "User",
+    "assistantLabel": "Claude",
+    "errorHistoryFail": "メッセージ履歴の取得に失敗しました: ",
+    "errorSessionExpired": "ログインセッションの有効期限が切れました。再ログインしてからもう一度お試しください。",
+    "errorSessionCheckFail": "セッション確認失敗: ",
+    "errorSendFail": "送信失敗",
+    "errorAuthExpired": "認証セッションの有効期限が切れたか、別のタブ/ブラウザで再ログインが発生しました。ログアウト後に再ログインしてください。(サーバーログ: JwtTokenProvider.validateToken 参照)",
+    "errorTimeout": "Claude 応答の待機時間を超過しました (30 分)。\nサーバー側では自動 continuation が続行中の可能性があります。\nしばらくしてから下の \"会話を更新\" を押して最終結果を確認してください。",
+    "autoFix": {
+      "toast": "🤖 AI 自動補完 ({{n}}/{{max}})",
+      "completed": "自動補完完了",
+      "failed": "自動補完失敗 — 手動確認が必要"
+    }
+  },
+  "chatProgress": {
+    "phase": {
+      "PROMPT":       "🪄 要件解析中…",
+      "STREAM_START": "✨ Claude 応答受信中…",
+      "STREAM_END":   "📋 成果物抽出準備中…",
+      "CONTINUATION": "↻ 継続受信中…",
+      "EXTRACT":      "📋 成果物抽出中…",
+      "SAVE":         "💾 保存中…"
+    },
+    "phaseUnknown": "進行中… ({{phase}})",
+    "writingFile": "📄 {{name}} 作成中…",
+    "receivingTokens": "✨ Claude 応答受信中… ({{tokens}} トークン)",
+    "continuationRound": "{{n}} 回目",
+    "error": {
+      "title": "⚠ 生成エラー",
+      "phaseSuffix": " ({{phase}})",
+      "recoverable": "一時的なエラーの可能性があります — しばらくしてから再度お試しください。"
+    }
+  },
+  "layerTitle": {
+    "mainGrid": "メイングリッド",
+    "grid": "グリッド",
+    "pivotGrid": "ピボットグリッド",
+    "searchFilter": "検索条件",
+    "master": "マスター",
+    "detail": "ディテール",
+    "detailGrid": "詳細グリッド",
+    "dashboard": "ダッシュボード",
+    "tabArea": "タブエリア",
+    "summary": "サマリー",
+    "chart": "チャート",
+    "liveChart": "リアルタイムチャート",
+    "alerts": "アラート",
+    "eventLog": "イベントログ",
+    "main": "メイン",
+    "panel1": "パネル 1",
+    "container": "コンテナ",
+    "document": "ドキュメント",
+    "aiPanel": "AI パネル",
+    "widget": "ウィジェット",
+    "processRoute": "工程ルート",
+    "widgetN": "ウィジェット {{n}}",
+    "panelN": "パネル {{n}}"
+  },
+  "previewEmbed": {
+    "autoFix": {
+      "label": "AI 自動補完中",
+      "body": "画面実行中に発生したエラーを AI が解析して<br />成果物 (JSX / Java / SP) を自動修正しています。<br />修正が完了すると画面が <b>自動的に再実行</b>されます。",
+      "chatHint": "進行中の会話は左下の <b>作業履歴</b> パネルでリアルタイム確認できます。"
+    },
+    "idle": {
+      "hint": "ヘッダーの <b>[画面実行]</b> ボタンを押すと<br />ここに実際の運用形態の画面が表示されます。"
+    },
+    "loading": "画面読み込み中...",
+    "errorPhase": {
+      "transform": "JSX 変換",
+      "execute": "モジュール実行",
+      "load": "画面ロード"
+    },
+    "errorTitle": "{{phase}} 失敗",
+    "errorPath": "パス:",
+    "errorCause": "\n\n原因: {{cause}}",
+    "errorTip": "💡 成果物ソースは右側の <b>[成果物ソース]</b> タブでそのまま確認できます。隔離されているのでこのエラーが他の画面に影響することはありません。",
+    "retry": "再試行"
+  },
+  "artifactPanel": {
+    "title": "成果物 ({{n}})",
+    "empty": "まだ生成されたファイルはありません。Claude が応答するとファイルがここに表示されます。",
+    "emptyShort": "まだ生成されたファイルはありません。",
+    "refresh": "更新",
+    "copy": "コピー",
+    "download": "ダウンロード",
+    "supersededChip": "旧",
+    "supersededShown": "旧 {{n}}",
+    "supersededHiddenBadge": "+{{n}}",
+    "supersededToggleTooltip": "旧バージョン (supersede) {{n}} 個 — クリックで表示切替",
+    "supersededShortTooltip": "旧バージョン {{n}} 個",
+    "cleanupTooltip": "旧バージョン {{n}} 個を完全削除 (DB hard delete)",
+    "cleanupShortTooltip": "旧バージョン {{n}} 個を完全削除",
+    "cleanupConfirm": "旧バージョン {{n}} 個を完全削除します。(DB hard delete · 復元不可) 続行しますか?",
+    "cleanupConfirmShort": "旧バージョン {{n}} 個を完全削除します。続行しますか?",
+    "pickFromLeft": "左側でファイルを選択するとここに表示されます。",
+    "pickFromTree": "成果物ツリーからファイルを選択してください。",
+    "sourceLoading": "成果物ソースを読み込み中...",
+    "sourceLoadFailed": "成果物ソースを読み込めませんでした。",
+    "group": {
+      "screen": "画面",
+      "backend": "バックエンド",
+      "sql": "SQL",
+      "menu": "メニュー登録",
+      "other": "その他"
+    },
+    "typeLabel": {
+      "designDoc": "設計書",
+      "source": "ソース",
+      "other": "その他"
+    }
+  }
+}

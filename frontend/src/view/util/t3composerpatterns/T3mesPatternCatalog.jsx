@@ -184,7 +184,8 @@ const groupEnByKo = (() => {
 
 function T3mesPatternCatalog() {
   const { t, i18n } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
+  // 'ko' 외 모든 locale (en/ja/zh-CN/zh-TW) 에서 영문 라벨 매핑 적용 — 패턴 라벨은 ja/zh 매핑 미보유.
+  const isEn = !(i18n.language || '').toLowerCase().startsWith('ko');
   const [active, setActive] = useState(null);  // entry
   const [query, setQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('ALL');  // ALL | MES | SCM

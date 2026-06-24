@@ -80,7 +80,8 @@ function productLineColor(pl) {
  */
 export default function T3Mockup() {
   const { t, i18n } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
+  // 'ko' 외 모든 locale (en/ja/zh-CN/zh-TW) 에서 영문 라벨 매핑 적용 — 도메인 라벨은 ja/zh 매핑 미보유.
+  const isEn = !(i18n.language || '').toLowerCase().startsWith('ko');
   const [active, setActiveState] = useState(null); // 선택된 patternCode
   const [filter, setFilter] = useState({ productLine: 'ALL', category: 'ALL', layout: 'ALL', q: '' });
   const [view, setView] = useState('grid');
@@ -377,7 +378,8 @@ export default function T3Mockup() {
 // =====================================================================
 function ActiveView({ active, ActiveComp, closeMockup }) {
   const { t, i18n } = useTranslation('composer');
-  const isEn = i18n.language?.startsWith('en');
+  // 'ko' 외 모든 locale (en/ja/zh-CN/zh-TW) 에서 영문 라벨 매핑 적용 — 도메인 라벨은 ja/zh 매핑 미보유.
+  const isEn = !(i18n.language || '').toLowerCase().startsWith('ko');
   const activeEntry = MOCKUP_ENTRIES.find((x) => x.patternCode === active);
   const mappedMenus = activeEntry?.menus || [];
   const [menusOpen, setMenusOpen] = useState(false);

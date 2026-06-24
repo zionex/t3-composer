@@ -1,0 +1,277 @@
+{
+  "stepper": {
+    "layout": "① 版面",
+    "data": "② 資料·搜尋條件",
+    "meta": "③ 中繼資料·選單",
+    "generate": "④ 畫面生成",
+    "layoutShort": "版面",
+    "dataShort": "資料·搜尋條件",
+    "metaShort": "中繼資料·選單",
+    "generateShort": "畫面生成"
+  },
+  "buttons": {
+    "previous": "上一步",
+    "next": "下一步: {{label}}",
+    "nextLast": "完成",
+    "backPicker": "重新選擇模式"
+  },
+  "header": {
+    "patternHint": "pattern:",
+    "menuHint": "menu:"
+  },
+  "validation": {
+    "filterBarBlankLabels": "FilterBar 欄位 {{count}} 個的標籤為空。請輸入後再進行下一步。",
+    "orphanRelations": "Layer 關係 {{count}} 個的 source/target layer 不存在。請整理後再進行下一步。",
+    "parentMenuRequired": "請選擇父選單。需透過 [選單選擇] 指定註冊位置。"
+  },
+  "step": {
+    "layout": {
+      "addLayer": "Layer",
+      "addChild": "新增子項",
+      "childMenuTitle": "新增 Container 子項",
+      "typeGrid": "Grid · 表格資料",
+      "typeChart": "Chart · 圖表/KPI/地圖",
+      "typeContainer": "Container · 分頁/卡片 wrapper",
+      "typeDocument": "Document · PDF/影像/Markdown",
+      "typeAi": "AI · 聊天/洞察面板",
+      "hint": "在各區域填入資料後點選 [畫面生成] → Claude 進行成果物 + 預覽。Layer 可拖曳/調整大小/新增/刪除。",
+      "bodyLayers": "📐 主體 (Body Layers)",
+      "bodyHint": "— 點選各 layer 方塊可開啟資料編輯對話方塊。",
+      "emptyState": "沒有 Layer。請透過右上 [+ Layer] 新增。",
+      "containerLabel": "CONTAINER",
+      "childCount": "· 子項 {{count}} 個",
+      "childEmptyHint": "↑ 右上 [+ 新增子項] 在此 wrapper 內新增 layer",
+      "dataSetState": "✓ 資料已設定",
+      "dataEmptyState": "點選輸入資料",
+      "removeLayer": "刪除 Layer"
+    },
+    "data": {
+      "leftHeader": "📐 Body Layers — 點選展開並編輯資料",
+      "emptyLayers": "沒有 Layer。請在 ① 版面階段新增。",
+      "statusReady": "✓",
+      "statusEmpty": "未設定",
+      "aiTitle": "AI 自動完成 — 搜尋條件 + 關係",
+      "aiPlaceholder": "例: \"新增日期條件\" · \"建立 master→detail 關係\"\n留空則僅依 spec 自動推斷",
+      "aiAnalyzing": "AI 分析中...",
+      "aiNeedLayer": "需要 1 個以上 layer",
+      "aiHelp": "按 Enter 或點選 ▶ 生成",
+      "aiNoResult": "AI 找不到可推薦的項目。請填入更多 layer / dataSource。",
+      "aiSuccess": "已新增搜尋條件 {{filterCount}} 個 · 關係 {{relationCount}} 個。",
+      "aiFail": "AI 呼叫失敗: {{message}}"
+    },
+    "meta": {
+      "title": "③ 中繼資料·選單",
+      "hint": "輸入畫面的識別資訊與選單註冊位置。空值由 Claude 推斷。",
+      "screenTitleLabel": "畫面標題",
+      "screenTitlePlaceholder": "例: 使用者資訊管理",
+      "menuCdLabel": "選單代碼 (MENU_CD) —",
+      "menuCdFormat": "UI_<DOMAIN>_<NAME>",
+      "menuCdPlaceholder": "UI_UT_USER_INFO_MGMT",
+      "menuCdHelper": "留空則 Claude 從畫面意圖推斷。",
+      "menuFilePathLabel": "選單檔案路徑 (MENU_FILE_PATH)",
+      "menuFilePathPlaceholder": "/util/UserInfoMgmt",
+      "menuFilePathHelper": "格式: /<module>[/<category>]/<PascalName> (不含副檔名)。",
+      "parentMenuLabel": "父選單 (群組)",
+      "parentMenuRequired": "— 選擇選單註冊位置 (必填)",
+      "parentMenuOk": "營運 DB 存在確認",
+      "parentMenuMissing": "未選擇 — 請透過 [選單選擇] 指定父項",
+      "selectMenu": "選單選擇",
+      "parentMenuGone": "自動填入的父選單 <b>{{cd}}</b> 在營運 DB ({{targetCd}}) 中不存在,已清空。請透過 [選單選擇] 指定實際的父項。"
+    },
+    "generate": {
+      "creating": "建立工作階段中 — 準備 Claude 呼叫",
+      "createFail": "工作階段建立失敗",
+      "backToPrev": "返回上一步",
+      "backToPrevShort": "上一步",
+      "defaultTitle": "新畫面"
+    }
+  },
+  "workspace": {
+    "header": {
+      "runPreview": "執行畫面",
+      "runPreviewBusy": "執行中...",
+      "registerMenu": "註冊選單",
+      "applyArtifact": "執行成果物",
+      "applyArtifactGroup": "Target System 套用",
+      "autoFixToggle": "錯誤時自動補完",
+      "autoFixTooltip": "錯誤時自動補完 — 勾選時:\n[執行畫面] 後發生執行階段錯誤,AI 會分析錯誤訊息\n自動修改成果物 (JSX/Java/SP) 後重新執行畫面。\n最多自動重複 3 次,若無法解決會顯示提示後停止。",
+      "designDoc": "設計文件",
+      "designDocBusy": "生成中...",
+      "designDocTooltip": "下載畫面設計文件 Excel",
+      "runPreviewTooltip": "將 JSX 成果物轉換為 AI 原型並算繪到右側 [執行畫面] 分頁。資料為 sample,跳過 SQL/Java apply (僅作視覺確認)。首次執行 5~10 秒,之後使用快取。",
+      "registerMenuTooltip": "① 註冊選單 — 僅將 MENU_SQL 套用到實際 DB (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)",
+      "applyArtifactTooltip": "② 執行成果物 — 儲存 JSX/Java 檔案 + 執行 SQL_DDL/SQL_SP DB (建議在選單註冊後執行)",
+      "aiEngineTitle": "選擇 AI 引擎",
+      "aiEngineTooltip": "AI 引擎: {{sub}} — 點選變更"
+    },
+    "tabs": {
+      "previewLive": "執行畫面",
+      "artifactSource": "成果物原始碼",
+      "insightAi": "Insight AI",
+      "openInNew": "在新視窗開啟執行畫面 (全螢幕檢視)",
+      "openInNewHint": "請先點選 [執行畫面] 按鈕顯示執行畫面"
+    },
+    "previewStage": {
+      "applying": "⏳ 套用成果物",
+      "compiling": "⏳ 後端編譯",
+      "restarting": "🔄 後端重新啟動",
+      "ready": "✅ 執行準備完成",
+      "autofixing": "🤖 AI 自動補完",
+      "failed": "⚠ 執行準備失敗",
+      "openInNew": "在新視窗開啟",
+      "close": "關閉",
+      "applyingMsgSample": "套用成果物中 — AI 原型轉換 (首次 5~10 秒 · 之後使用快取)...",
+      "applyingMsgFull": "套用成果物中 (含重新啟動)...",
+      "readyMsg": "執行準備完成",
+      "autofixWorking": "AI 正在分析錯誤並修改成果物 ({{n}}/{{max}})...",
+      "autofixDone": "補完完成 — 重新執行畫面 ({{n}}/{{max}})...",
+      "autofixGiveUp": "AI 自動補完已嘗試 {{max}} 次但錯誤仍然持續。請在右側 [成果物原始碼] 分頁直接確認,或透過聊天請求修改。",
+      "autofixError": "自動補完處理錯誤: ",
+      "autofixRequestFail": "AI 自動補完請求失敗。請確認左側工作歷史中的錯誤。",
+      "autofixLabel": "AI 自動補完中 ({{n}}/{{max}})"
+    },
+    "snackbar": {
+      "previewReadyTitle": "畫面執行準備完成",
+      "previewReadyJsxOnly": "已套用 JSX {{ok}} 個",
+      "previewReadyWithSkip": "JSX {{ok}} 個 · 其他 {{skipped}} 個 (Java/SQL/MENU) 不在畫面執行範圍",
+      "previewFailTitle": "畫面執行準備失敗",
+      "previewErrorDefault": "JSX/SQL/MENU 處理錯誤",
+      "previewCommErrorTitle": "預覽通訊錯誤",
+      "previewCommErrorMsg": "網路錯誤",
+      "previewCleanupTitle": "執行畫面清理",
+      "previewCleanupMsg": "已清理執行成果物 + DB 列",
+      "previewCleanupFailTitle": "清理失敗",
+      "autoFixTitle": "AI 自動補完 ({{n}}/{{max}})",
+      "autoFixMsg": "已修改成果物。將重新執行畫面。"
+    },
+    "chatCollapsed": {
+      "editTitle": "修改請求",
+      "editHint": "— 展開以輸入額外的修改內容",
+      "generating": "🪄 正在生成畫面…",
+      "genFailPrefix": "⚠ 生成失敗: ",
+      "retry": "重試"
+    },
+    "modelSwitchFail": "AI 引擎切換失敗: ",
+    "downloadFail": "設計文件下載失敗: "
+  },
+  "chat": {
+    "placeholder": "請輸入修改請求...",
+    "placeholderDefault": "輸入訊息 (按 Ctrl+Enter 傳送)",
+    "emptyHint": "請以自然語言輸入需求。(Ctrl+Enter 傳送)",
+    "send": "傳送",
+    "sendTooltip": "傳送 (Ctrl+Enter)",
+    "generating": "回應中...",
+    "emptyMessage": "(空訊息)",
+    "userLabel": "User",
+    "assistantLabel": "Claude",
+    "errorHistoryFail": "取得訊息歷史失敗: ",
+    "errorSessionExpired": "登入工作階段已過期。請重新登入後再試。",
+    "errorSessionCheckFail": "工作階段確認失敗: ",
+    "errorSendFail": "傳送失敗",
+    "errorAuthExpired": "驗證工作階段已過期,或在其他分頁/瀏覽器中發生了重新登入。請登出後重新登入。(伺服器記錄: 參考 JwtTokenProvider.validateToken)",
+    "errorTimeout": "Claude 回應等待逾時 (30 分鐘)。\n伺服器端的自動 continuation 可能仍在進行中。\n請稍後點選下方 \"重新整理對話\" 查看最終結果。",
+    "autoFix": {
+      "toast": "🤖 AI 自動補完 ({{n}}/{{max}})",
+      "completed": "自動補完完成",
+      "failed": "自動補完失敗 — 需要手動確認"
+    }
+  },
+  "chatProgress": {
+    "phase": {
+      "PROMPT":       "🪄 需求分析中…",
+      "STREAM_START": "✨ 接收 Claude 回應中…",
+      "STREAM_END":   "📋 準備擷取成果物…",
+      "CONTINUATION": "↻ 繼續接收中…",
+      "EXTRACT":      "📋 擷取成果物中…",
+      "SAVE":         "💾 儲存中…"
+    },
+    "phaseUnknown": "進行中… ({{phase}})",
+    "writingFile": "📄 正在寫入 {{name}}…",
+    "receivingTokens": "✨ 接收 Claude 回應中… ({{tokens}} 詞元)",
+    "continuationRound": "第 {{n}} 輪",
+    "error": {
+      "title": "⚠ 生成錯誤",
+      "phaseSuffix": " ({{phase}})",
+      "recoverable": "可能是暫時性錯誤 — 請稍後重試。"
+    }
+  },
+  "layerTitle": {
+    "mainGrid": "主格線",
+    "grid": "格線",
+    "pivotGrid": "樞紐格線",
+    "searchFilter": "搜尋條件",
+    "master": "主表",
+    "detail": "明細",
+    "detailGrid": "明細格線",
+    "dashboard": "儀表板",
+    "tabArea": "分頁區域",
+    "summary": "摘要",
+    "chart": "圖表",
+    "liveChart": "即時圖表",
+    "alerts": "警示",
+    "eventLog": "事件記錄",
+    "main": "主要",
+    "panel1": "面板 1",
+    "container": "容器",
+    "document": "文件",
+    "aiPanel": "AI 面板",
+    "widget": "小工具",
+    "processRoute": "製程路線",
+    "widgetN": "小工具 {{n}}",
+    "panelN": "面板 {{n}}"
+  },
+  "previewEmbed": {
+    "autoFix": {
+      "label": "AI 自動補完中",
+      "body": "AI 正在分析畫面執行中發生的錯誤<br />自動修改成果物 (JSX / Java / SP)。<br />修改完成後畫面將<b>自動重新執行</b>。",
+      "chatHint": "進行中的對話可在左下方的<b>工作歷史</b>面板即時查看。"
+    },
+    "idle": {
+      "hint": "按下頁首的 <b>[執行畫面]</b> 按鈕後<br />此處將顯示實際運作形態的畫面。"
+    },
+    "loading": "畫面載入中...",
+    "errorPhase": {
+      "transform": "JSX 轉換",
+      "execute": "模組執行",
+      "load": "畫面載入"
+    },
+    "errorTitle": "{{phase}} 失敗",
+    "errorPath": "路徑:",
+    "errorCause": "\n\n原因: {{cause}}",
+    "errorTip": "💡 成果物原始碼可在右側 <b>[成果物原始碼]</b> 分頁原樣檢視。由於已隔離,此錯誤不會影響其他畫面。",
+    "retry": "重試"
+  },
+  "artifactPanel": {
+    "title": "成果物 ({{n}})",
+    "empty": "尚未生成檔案。Claude 回應後檔案將顯示於此處。",
+    "emptyShort": "尚未生成檔案。",
+    "refresh": "重新整理",
+    "copy": "複製",
+    "download": "下載",
+    "supersededChip": "舊版",
+    "supersededShown": "舊版 {{n}}",
+    "supersededHiddenBadge": "+{{n}}",
+    "supersededToggleTooltip": "舊版本 (supersede) {{n}} 個 — 點選切換顯示",
+    "supersededShortTooltip": "舊版本 {{n}} 個",
+    "cleanupTooltip": "永久刪除舊版本 {{n}} 個 (DB hard delete)",
+    "cleanupShortTooltip": "永久刪除舊版本 {{n}} 個",
+    "cleanupConfirm": "將永久刪除舊版本 {{n}} 個。(DB hard delete · 無法復原) 是否繼續?",
+    "cleanupConfirmShort": "將永久刪除舊版本 {{n}} 個。是否繼續?",
+    "pickFromLeft": "在左側選擇檔案後將顯示於此處。",
+    "pickFromTree": "請從成果物樹中選擇檔案。",
+    "sourceLoading": "正在載入成果物原始碼...",
+    "sourceLoadFailed": "無法載入成果物原始碼。",
+    "group": {
+      "screen": "畫面",
+      "backend": "後端",
+      "sql": "SQL",
+      "menu": "選單註冊",
+      "other": "其他"
+    },
+    "typeLabel": {
+      "designDoc": "設計文件",
+      "source": "原始碼",
+      "other": "其他"
+    }
+  }
+}

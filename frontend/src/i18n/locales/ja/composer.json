@@ -1,0 +1,636 @@
+{
+  "landing": {
+    "title": "T³Composer",
+    "subtitle": "AI ベースの画面自動生成"
+  },
+  "category": {
+    "newDev": "新規開発",
+    "modifyExisting": "既存画面の修正"
+  },
+  "mode": {
+    "newNl": {
+      "title": "自然言語生成",
+      "sub": "Natural Lang.",
+      "hint": "要件を自然言語で説明すると Claude がパターン・コードを生成します"
+    },
+    "newStep": {
+      "title": "ステップ別生成",
+      "sub": "Pattern + Visual",
+      "hint": "パターンを選択した後、ビジュアル編集でデータを入力します"
+    },
+    "newFromCopy": {
+      "title": "既存画面のコピー",
+      "sub": "Copy Existing",
+      "hint": "既存画面をコピーしてステップウィザードで修正します"
+    },
+    "modifyNl": {
+      "title": "自然言語修正",
+      "sub": "NL Modify",
+      "hint": "現在の画面ソースを Claude に提供し、自然言語の対話で修正リクエスト"
+    },
+    "modifyStep": {
+      "title": "ステップ別修正",
+      "sub": "Step Modify",
+      "hint": "既存画面を Spec に分解して修正部分のみ変更"
+    }
+  },
+  "modeNewNl": {
+    "header": {
+      "back": "モード選択",
+      "titleNl": "自然言語による新規生成",
+      "titleStep": "ステップ別生成",
+      "titleGeneral": "新規開発 — 一般生成",
+      "restart": "最初からやり直す",
+      "exit": "終了"
+    },
+    "submode": {
+      "intro": "生成方式を選択してください。",
+      "nl": {
+        "title": "自然言語ベース生成",
+        "subtitle": "Natural Language",
+        "description": "要件を自然言語で説明すると Claude がパターン・仕様・コードを一度に決定して生成します。高速かつ柔軟ですがトークン使用量が多くなります。",
+        "pros": [
+          "素早い開始",
+          "柔軟な表現",
+          "設計が未確定の場合に適合"
+        ],
+        "cons": [
+          "トークン使用量が多い",
+          "結果解釈コスト",
+          "繰り返し修正時のコスト累積"
+        ]
+      }
+    },
+    "module": {
+      "title": "モジュール選択",
+      "hint": "生成する画面が属するモジュールを選択してください。モジュール別の命名規約と共通テーブルを Claude に自動注入します。"
+    },
+    "promptPanel": {
+      "title": "要件入力",
+      "changeModule": "モジュール変更",
+      "placeholderTemplate": "例: {{example}}\n\n💡 参照ファイルは下の \"参照ファイル添付\" 領域にドラッグ&ドロップしてください",
+      "fallbackExample": "希望する画面の説明を入力... (TB_AD_USER などのテーブル名を含めると自動で存在を確認します)",
+      "dropHere": "ファイルをここにドロップしてください",
+      "aiEngine": "AI エンジン:",
+      "currentSel": "✓ 現在の選択",
+      "selectedChip": "選択済 · {{label}}"
+    },
+    "options": {
+      "title": "選択項目 — SCM UI モックアップ · UI パターンのうち 1 つを選択 (相互排他) · ファイル添付は別途 (下部領域 · 最大 5 個)",
+      "scmMockup": "SCM UI モックアップ",
+      "uiPattern": "UI パターン",
+      "kpiChart": "KPI / Chart",
+      "scmMockupSelect": "SCM UI モックアップ選択",
+      "scmMockupSelected": "Mockup: {{code}}",
+      "uiPatternSelect": "UI パターン選択",
+      "uiPatternSelected": "Pattern: {{label}}",
+      "kpiChartSelect": "KPI / Chart 辞書項目選択",
+      "kpiChartSelected": "KPI {{kpis}} · Chart {{charts}}",
+      "clear": "解除",
+      "tooltip3DMockup": "3D チェック時 — [SCM UI モックアップ選択] をクリックすると全画面 3D ギャラリー (JARVIS 風) で mockup をカテゴリ別に配置し、ドラッグ移動・ホイール拡大縮小で探索します。未チェック時は通常リスト POPUP。",
+      "tooltip3DUiPattern": "3D チェック時 — [UI パターン選択] をクリックすると全画面 3D ギャラリー (JARVIS 風) でパターンをグループ別に配置し、ドラッグ回転・ホイール拡大縮小で探索します。未チェック時は通常リスト POPUP。"
+    },
+    "attach": {
+      "title": "参照ファイル添付 — SQL · 設計書画像など (ドラッグ&ドロップまたはクリック)",
+      "limit": "最大 {{max}} 個 · ファイルあたり 5MB — SQL · 画像 · 設計書など",
+      "limitCount": "  (現在 {{n}}/{{max}})",
+      "tooltip": "必要な SQL ファイル・設計書画像・キャプチャ・ソースなどを最大 5 個まで添付。テキスト (.sql など) は prompt に inline、画像/PDF/binary は添付として送信 (ファイルあたり最大 5MB)。SCM UI モックアップ・UI パターン選択と併用可能です。"
+    },
+    "dataSource": {
+      "select": "Data Source 選択",
+      "selectedChip": "Data Source — {{n}} 個選択済",
+      "hint": "Target DB テーブル・SP · T3Insight オントロジー · 直接クエリを星座マップで選んで画面が読み取る/書き込むデータを指定します (オプション · Mockup/UI パターンと独立 · 複数選択)。",
+      "clearAll": "全て解除"
+    },
+    "submit": {
+      "moduleHint": "Claude はモジュール規約 (TB_{{code}}_ / SP_UI_{{code}}_) に従って生成します。",
+      "creating": "セッション作成中...",
+      "submit": "Claude に生成リクエスト"
+    },
+    "tableLookup": {
+      "title": "自動テーブル存在確認 (T3SMARTSCM.dbo)",
+      "explain": "prompt 内の <code>TB_*</code> テーブル名をバックエンド DB で直接照会 — 存在すれば既存カラムで Entity マッピング、なければ新規 SQL_DDL 成果物として生成。結果は Claude prompt コンテキストに自動添付されます。",
+      "noTables": "(prompt 内に <code>TB_*</code> パターン未検出 — 使用するテーブル名があれば入力してください)",
+      "notExists": "存在しません — 新規 SQL_DDL 成果物として生成されます (NEW_NL モード許可)",
+      "moreCols": " · 他 {{n}} 個"
+    },
+    "examples": {
+      "title": "新規生成の例",
+      "show": "例を表示",
+      "hide": "例を隠す",
+      "collapsedHint": "[例を表示] を押すとモジュールの例と入力方式別の例が展開されます。",
+      "moduleSection": "{{code}} モジュールの例",
+      "byInputTitle": "新規生成の例 — 入力方式別",
+      "clickToPrompt": "クリック → プロンプトに入力"
+    },
+    "modelOptions": {
+      "sonnet": { "sub": "Sonnet 4.6 — 高速",            "desc": "速度・コスト・品質のバランス。高速生成が必要なときに。" },
+      "opus":   { "sub": "Opus 4.7 — デフォルト (高品質)", "desc": "複雑なロジック・難易度の高い画面に最適。出力が非常に多い場合(16K+)、応答に 3~5 分以上かかることがあります。" }
+    },
+    "examplePrompts": {
+      "DP": ["取引先別の月次需要計画入力画面 — クロス集計ピボット。P06 パターン", "需要計画と実績の分析 — 上部グリッド + 下部トレンドチャート。P05 パターン"],
+      "MP": ["リソース稼働状況ガントチャート — 時間単位調整可能。P09 パターン", "MP シミュレーション結果サマリー・詳細タブ。P03 パターン"],
+      "FP": ["FP 作業指示モニタリングダッシュボード — KPI + チャート。P01 パターン", "リソース別生産計画ガント。P09 パターン"],
+      "RP": ["補充注文確定照会 — 検索 + 単一グリッド。P02 パターン", "補充計画ピボット入力。P06 パターン"],
+      "BF": ["予測精度分析 — グリッド + トレンドチャート。P05 パターン", "BF コントロールボード・バージョン管理。P07 パターン"],
+      "IM": ["安全在庫・目標在庫ポリシー管理 — 検索 + グリッド。P02 パターン", "ABC/XYZ 分析チャート + リスト。P05 パターン"],
+      "SA": ["S&OP 会議議題管理。P01 パターン", "販売実績集計ダッシュボード。P01 パターン"],
+      "SO": ["販売注文照会。P02 パターン"],
+      "CM": ["品目マスター管理 — 検索 + 単一グリッド。P02 パターン", "拠点/倉庫階層 — 水平スプリット。P04 パターン"],
+      "AD": ["ユーザー管理 — 検索 + グリッド + ロール割当。P04 パターン", "メニュー管理 — ツリー + 詳細。P04 パターン"],
+      "UT": ["お知らせ管理 — 検索 + グリッド。P02 パターン", "課題管理ダッシュボード。P01 パターン"]
+    },
+    "creationExamples": {
+      "promptOnly": {
+        "group": "プロンプトのみ入力",
+        "items": [
+          { "tag": "既存テーブル・SP あり",   "kind": "prompt", "text": "TB_AD_USER テーブルと SP_UI_AD_01_Q1 / _S1 / _D1 プロシージャを使ってユーザー一覧の照会・保存・削除画面を作成してください。" },
+          { "tag": "既存テーブル・SP なし",   "kind": "prompt", "text": "既存の TB_CM_ITEM_MST テーブルを使った品目マスター管理 (CRUD) 画面。照会/保存/削除 SP は新規作成してください。" },
+          { "tag": "クエリ直接指定",         "kind": "prompt", "text": "VW_INVENTORY_PLAN_CONFIRMED ビューを照会する在庫状況画面 — 検索条件は拠点・品目、結果はグリッド。" },
+          { "tag": "テーブルなし・新規設計",  "kind": "prompt", "text": "お知らせを管理する新しいテーブルを設計し、お知らせの登録・編集・削除画面を作成してください。" }
+        ]
+      },
+      "mockup": {
+        "group": "SCM UI モックアップ選択",
+        "items": [
+          { "tag": "Mockup + プロンプト", "kind": "info", "text": "上の [SCM UI モックアップ選択] で画面モックアップを選ぶと、そのレイアウトスケルトンを Claude が参照します。プロンプトにはデータ要件のみ記載すれば OK です。(UI パターンとはどちらか一方)" }
+        ]
+      },
+      "uiPattern": {
+        "group": "UI パターン選択",
+        "items": [
+          { "tag": "UI パターン + プロンプト", "kind": "info", "text": "上の [UI パターン選択] で T3MES パターンを選ぶと、その画面マークアップを参照して生成します。(SCM UI モックアップとはどちらか一方)" }
+        ]
+      },
+      "fileAttach": {
+        "group": "ファイル添付 (D&D)",
+        "items": [
+          { "tag": "SQL・設計画像添付", "kind": "info", "text": "下の [参照ファイル添付] エリアに SQL ファイル・設計書画像・キャプチャなどを最大 5 個までドラッグ&ドロップすると一緒に参照します。Mockup / UI パターン選択と併用可能です。" }
+        ]
+      }
+    },
+    "errors": {
+      "promptRequired": "要件を入力してください。",
+      "sessionFailed": "セッション作成失敗"
+    }
+  },
+  "modeExistingModify": {
+    "header": {
+      "backToSub": "サブモード選択",
+      "backToMode": "モード選択",
+      "title": "既存画面の修正",
+      "subModeNl": "自然言語修正",
+      "subModeStep": "ステップ別修正"
+    },
+    "submode": {
+      "intro": "既存画面をどう修正するか選択してください。両方ともメニューツリーから画面を選択した後に進みます。",
+      "nl": {
+        "title": "自然言語修正",
+        "subtitle": "Natural Language",
+        "description": "現在のソースを Claude に提供し、自然言語の対話で変更リクエストを伝えます。高速かつ柔軟ですがトークン使用量が多くなります。",
+        "pros": [
+          "素早い開始",
+          "自由な変更リクエスト",
+          "複合変更に適合"
+        ],
+        "cons": [
+          "トークンコスト高",
+          "結果確認は応答後"
+        ]
+      },
+      "step": {
+        "title": "ステップ別修正",
+        "subtitle": "Step-by-step Wizard",
+        "description": "現在の画面を 9 ステップの Spec に分解しステップごとに表示しながら修正したい部分のみ変更後 Claude 呼び出し。トークン節約 + 変更範囲が明確。",
+        "pros": [
+          "トークン節約",
+          "変更領域が明確",
+          "Step ごとの微調整可能"
+        ],
+        "cons": [
+          "入力ステップ多数",
+          "完全に新しいパターンへの変更には不向き"
+        ]
+      }
+    },
+    "rightPanel": {
+      "loading": "ソース収集中 (insight-apicall/screen-metadata/collect-source-for-llm)...",
+      "hintNl": "収集されたソースバンドル (修正セッション開始時に Claude の初期コンテキストとして渡されます)",
+      "hintStep": "収集されたソースバンドル (Wizard の 9 ステップ Spec に自動 prefill — 変更したいステップのみ修正)",
+      "placeholderTitle": "修正する画面を選択してください",
+      "placeholderHint": "左側のメニューツリーから修正する画面をクリックすると、右側に元のソースプレビューが表示されます。"
+    },
+    "buttons": {
+      "exit": "終了",
+      "starting": "開始中...",
+      "startNl": "修正セッション開始",
+      "startStep": "ステップ別 Wizard 開始"
+    },
+    "errors": {
+      "sourceFailed": "ソース収集失敗: {{detail}}",
+      "sessionFailed": "セッション作成失敗",
+      "specFailed": "Spec 作成失敗: {{detail}}"
+    },
+    "prompt": {
+      "sessionTitleSuffix": "{{id}} 修正"
+    }
+  },
+  "modeNewFromCopy": {
+    "header": {
+      "back": "モード選択",
+      "title": "既存画面のコピー — 4 ステップ Wizard",
+      "subtitle": "Copy from Existing · 元を選択後、ステップごとに確認・生成"
+    },
+    "leftPanel": {
+      "title": "1. コピーする元画面を選択",
+      "selected": "選択済"
+    },
+    "middlePanel": {
+      "placeholder": "左側からコピーする元画面を選択してください。",
+      "loading": "元ソース収集中...",
+      "hint": "収集された元ソースバンドル — Wizard の 4 ステップに自動 prefill されます"
+    },
+    "rightPanel": {
+      "title": "2. 新規画面の基本情報",
+      "originLabel": "元",
+      "newMenuCdLabel": "新規メニューコード",
+      "newMenuCdPlaceholder": "例: UI_DP_MONTHLY_PLAN_V2",
+      "newMenuCdCheck": "確認",
+      "newTitleLabel": "新規画面タイトル",
+      "newTitlePlaceholder": "例: DP 月次計画 V2",
+      "infoAlert": "詳細な変更事項 (カラム追加・検索条件変更など) は 4 ステップ Wizard (① Canvas / ② データ・検索条件 / ③ メタ・メニュー / ④ 画面生成) の各ステップで入力します。自由テキスト形式の追加リクエストは最終ステップ (④ 画面生成) で入力可能です。",
+      "ai": {
+        "label": "AI 自動解析で 4 ステップ prefill (推奨)",
+        "desc": "Layer 別 SP (照会/CUD)、FilterBar、コンポーネント、Entity まで正確に抽出。OFF の場合は正規表現解析のみ使用。",
+        "analyzing": "Claude が sourceBundle を解析中です (5~15 秒)...",
+        "done": "✓ AI 解析完了 — {{modelName}} · {{stepCount}}/8 ステップ強化"
+      },
+      "warnNoSelection": "まず左側でコピーする元画面を選択してください。",
+      "reset": "リセット",
+      "aiAnalyzing": "AI 解析中...",
+      "aiSubmit": "AI 解析 + 4 ステップ Wizard",
+      "plainSubmit": "次へ — 4 ステップ Wizard"
+    },
+    "menuCdValidation": {
+      "empty": "メニューコードを入力してください",
+      "sameAsOrigin": "元と同じメニューコードは使用できません",
+      "exists": "既に存在するメニューコードです",
+      "ok": "✓ 使用可能なメニューコードです",
+      "skipped": "(使用可否確認をスキップ)"
+    },
+    "errors": {
+      "sourceFailed": "ソース収集失敗: {{detail}}",
+      "newMenuCdRequired": "新規メニューコードを入力してください。",
+      "aiFailed": "AI 解析失敗 (正規表現結果で進行): {{detail}}"
+    },
+    "copySuffix": "{{id}} のコピー",
+    "sourceMissing": {
+      "title": "Target Source パス未設定",
+      "description": "既存画面のコピーは Target System {{targetCd}} の元ソースフォルダから JSX・Java ファイルを直接読み込みます。現在の Target の sourceRefPath が設定されていないか、設定されたパスに実際のソースツリー (例: packages/wingui/src · src/pages) が見つかりませんでした。",
+      "targetUnselected": "(未選択)",
+      "currentLabel": "現在保存されている sourceRefPath",
+      "currentEmpty": "(空 — マウント convention /workspace/targets/{{targetCd}}/wingui も使用不可)",
+      "hint": "[Storage 設定を開く] を押してコンテナ内の source フォルダの絶対パス (例: /workspace/projects/<repo>) を指定してください。",
+      "cancel": "キャンセル",
+      "openStorage": "Storage 設定を開く"
+    }
+  },
+  "modeNewStep": {
+    "title": "ステップ別画面生成 (Beta) — パターン選択",
+    "hint": "画面の出発点となるスケルトンを選択してください。選択後、4 ステップ Wizard で Layout / データ・検索条件 / メタ・メニュー / 画面生成の順に進みます。",
+    "back": "戻る",
+    "dashboardTitle": "Dashboard から開始 — ダッシュボード選択",
+    "newScreenDefault": "新規画面",
+    "pattern": {
+      "aiSuggest": {
+        "title": "✨ AI 推薦",
+        "desc": "自然言語で意図を書くと関連 SCM UI モックアップ 3 つを推薦 + 4 ステップ AI 自動 prefill"
+      },
+      "mockup": {
+        "title": "SCM UI モックアップ",
+        "desc": "Product Line · カテゴリフィルタ — mockup の実際の layer 構造が自動 prefill"
+      },
+      "uiPattern": {
+        "title": "T3MES UI パターン",
+        "desc": "T3MES パブリッシングパターン — 単一 layer + パターン識別子を保持"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc": "既存ダッシュボードを 1 つ選んでウィジェットレイアウトを自動 prefill"
+      },
+      "blank": {
+        "title": "空のキャンバス (P02 — 検索 + 単一グリッド)",
+        "desc": "最も一般的なマスター CRUD パターンで開始"
+      }
+    }
+  },
+  "picker": {
+    "mockup": {
+      "title": "SCM UI モックアップ選択",
+      "caption": "(オプション — 選んだ mockup のレイアウトスケルトンを Claude が参照 · 右側にプレビュー表示)",
+      "searchPlaceholder": "コード · ラベル · 説明検索",
+      "productLineLabel": "Product",
+      "categoryLabel": "Category",
+      "all": "全て",
+      "allWithCount": "全て · {{n}}",
+      "emptyHint": "検索結果がありません。",
+      "previewEmpty": "左のリストから mockup を選択するとプレビューが表示されます。",
+      "clearSelection": "選択解除",
+      "cancel": "キャンセル",
+      "apply": "この Mockup を適用"
+    },
+    "uiPattern": {
+      "title": "UI パターン選択",
+      "caption": "(オプション — 選んだパターンの軽量マークアップを Claude が参照 · 右側にプレビュー表示)",
+      "filterAll": "全て",
+      "countChip": "{{n}} 個",
+      "searchPlaceholder": "セクション · グループ · ファイル · パターンラベル検索",
+      "emptyHint": "検索結果がありません。",
+      "layerChipTitle": "このパターンは {{n}} 個の layer に自動分割されます",
+      "previewEmpty": "左のリストから UI パターンを選択するとプレビューが表示されます。",
+      "clearSelection": "選択解除",
+      "cancel": "キャンセル",
+      "apply": "このパターンを適用"
+    },
+    "dataSource": {
+      "title": "Data Source 選択 — ニューラル星座マップ",
+      "targetChip": "Target · {{cd}}",
+      "targetNone": "Target 未選択",
+      "close": "閉じる",
+      "tab": {
+        "dbEntity": "DB Entity",
+        "ontology": "Ontology",
+        "queryInline": "Query Inline"
+      },
+      "basketCount": "選択 {{n}}",
+      "emptyHint": "タブからテーブル・SP・オントロジー・クエリを選択するとここに追加されます。",
+      "clearAll": "全て解除",
+      "cancel": "キャンセル",
+      "apply": "適用 ({{n}})",
+      "kind": {
+        "TABLE": "テーブル",
+        "SP": "SP",
+        "ONTOLOGY_QA": "Q&A",
+        "ONTOLOGY_INTENT": "意図",
+        "ONTOLOGY_SP": "UI SP",
+        "INLINE_QUERY": "クエリ"
+      }
+    }
+  },
+  "moduleSelector": {
+    "intro": "生成する画面が属するモジュールを選択してください。モジュール別にテーブル/SP の命名規約と共通パターンが異なります。"
+  },
+  "apiKeyDialog": {
+    "title": "Anthropic API キー",
+    "description": "T3Composer は Claude API で画面・SP・テーブルを生成します。個人の Anthropic API キーを登録してください。キーはサーバーで暗号化されて保存されます (TB_IS_EXTRNLAPIKEY, Jasypt PBE)。",
+    "consoleLink": "→ Anthropic Console でキーを発行",
+    "apiKeyLabel": "API Key",
+    "descriptionLabel": "説明 (オプション)",
+    "defaultDescription": "Personal key",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saving": "保存中...",
+    "errors": {
+      "empty": "API キーを入力してください。",
+      "invalidPrefix": "Anthropic API キーは sk-ant- で始まる必要があります。",
+      "saveFailed": "保存中にエラーが発生しました。"
+    }
+  },
+  "header": {
+    "apiKey": {
+      "registeredLabel": "API Key",
+      "unregisteredLabel": "API Key 必要",
+      "registeredTooltip": "API キー登録済 — 全モード使用可能",
+      "unregisteredTooltip": "API キー未登録 — クリックして登録"
+    },
+    "llmBackend": {
+      "cliTooltip": "CLI モード — ホスト ~/.claude OAuth ログインを使用 (Claude サブスクリプション)",
+      "apiTooltip": "API モード — Anthropic HTTP API + ANTHROPIC_API_KEY を使用"
+    },
+    "settings": "設定"
+  },
+  "aiRecommend": {
+    "back": "戻る",
+    "title": "✨ AI 推薦で画面開始",
+    "targetLabel": "Target:",
+    "inputTitle": "何を作成しますか?",
+    "placeholder": "例: 需要計画入力画面を作りたい。月別に販売計画を入力して実績と比較したい。",
+    "emptyHint": "自然言語で作りたい画面を書き \"推薦テンプレートを探す\" を押してください。",
+    "footerSteps": "選択後 → ① Layout ② データ・検索条件 ③ メタ・メニュー ④ 生成 <b style=\"color:{{accentColor}}\">(AI 自動 prefill)</b>",
+    "attach": {
+      "title": "参照ファイル添付 — 設計書画像 · SQL など",
+      "tooltip": "設計書画像・キャプチャ・SQL などを最大 5 個 (ファイルあたり 5MB) 添付。テキストは prompt に inline、画像/PDF は multimodal で送信。AI 推薦・prefill・最終画面生成のすべてのステップで活用されます。",
+      "hint": "ドラッグ&ドロップまたはクリック · 最大 {{max}} 個",
+      "maxItemsError": "参照ファイルは最大 {{max}} 個まで添付できます。",
+      "partialAddedError": "最大 {{max}} 個 — {{n}} 個のみ追加しました。",
+      "fileTooBig": "ファイルが大きすぎます ({{sizeKb}}KB > 5MB): {{name}}",
+      "fileReadFailed": "ファイル読み込み失敗: {{name}}: {{message}}"
+    },
+    "search": {
+      "searching": "推薦を探しています…",
+      "button": "推薦テンプレートを探す",
+      "summaryCount": "🔎 関連 mockup {{n}} 個推薦",
+      "keywordMatching": "キーワードマッチング"
+    },
+    "errors": {
+      "noResults": "関連テンプレートが見つかりませんでした。別の表現で再試行してください。",
+      "noMore": "AI が適切な追加テンプレートを見つけられませんでした。"
+    },
+    "cards": {
+      "defaultScreenTitle": "新規画面",
+      "relevanceChip": "関連度 {{relevance}}%",
+      "analyzing": "解析中…",
+      "startTemplate": "このテンプレートで開始 →"
+    },
+    "synth": {
+      "badge": "🪄 AI 再合成",
+      "startSynth": "この再合成で開始 →"
+    },
+    "image": {
+      "badge": "📷 自作設計",
+      "title": "自作設計をそのまま作成",
+      "defaultTitle": "自作設計",
+      "layersInferred": "画像から {{n}} 個の layer (KPI・チャート・グリッド・フィルタ) の位置を推論完了",
+      "structureAmbiguous": "構造が曖昧です — 開始後、Layout ステップで直接補強",
+      "analyzingDesc": "Claude vision が画像の layout を解析中です",
+      "analyzingStatus": "AI 解析中…",
+      "emptyAnalysis": "解析結果が空です",
+      "waiting": "待機中",
+      "entering": "進入中…",
+      "analyzingBtn": "解析中…",
+      "startDesign": "この設計で開始 →"
+    }
+  },
+  "conceptDiagram": {
+    "alt": "T³Composer — ScreenSpec 概念図",
+    "caption": "多様な入力 → ScreenSpec → 画面成果物"
+  },
+  "menuTree": {
+    "title": "メニューツリー",
+    "screenCount": "画面 {{n}}",
+    "refreshTooltip": "メニューツリーを更新",
+    "searchPlaceholder": "メニューコード・名称・パス検索",
+    "loading": "Target DB メニューツリー読み込み中...",
+    "emptyMenu": "Target DB の TB_AD_MENU に登録されたメニューがありません。",
+    "noResults": "検索結果がありません。",
+    "loadError": "Target メニューツリー照会失敗",
+    "langPackMissing": "{{id}} — LangPack 未登録"
+  },
+  "targetSystem": {
+    "loading": "読み込み中...",
+    "pickTarget": "Target 選択",
+    "tooltipCurrent": "Target: {{name}} ({{dbType}} · {{grid}})",
+    "tooltipEmpty": "Target System 選択",
+    "noTargets": "登録された Target がありません",
+    "dbConnectedTooltip": "運用 DB 接続済: {{url}}",
+    "governanceSnapshotTooltip": "ガバナンス設定スナップショット / 復元",
+    "dbConnectionTooltip": "運用 DB 接続情報設定",
+    "snapshot": {
+      "none": "スナップショットなし",
+      "inSync": "同期済",
+      "changeCount": "{{n}} 件変更"
+    },
+    "restoreDialog": {
+      "title": "{{targetCd}} — ガバナンス設定の復元",
+      "mismatch": "の保存されたスナップショットと現在のディスクが異なります。この Target に切り替えるにはスナップショットをディスクに復元する必要があります。",
+      "preview": "復元すると不足 {{missing}} 個を再生成 · 変更 {{modified}} 個を復元 · 追加 {{extra}} 個を削除します。復元直前の現在の状態は自動バックアップされます。",
+      "failed": "復元失敗",
+      "completed": "復元完了 — {{summary}}",
+      "busy": "復元中...",
+      "cancel": "キャンセル",
+      "switchWithout": "復元せずに切り替え",
+      "restoreAndSwitch": "復元して切り替え",
+      "close": "閉じる"
+    }
+  },
+  "targetDb": {
+    "title": "Target DB 接続情報 — {{name}}",
+    "loadFailed": "対象読み込み失敗: {{message}}",
+    "saveSuccess": "保存されました — 次のメニューツリー/ソース照会から適用されます",
+    "saveFailed": "保存失敗: {{message}}",
+    "infoConnection": "運用 wingui DB に直接接続すると NEW_FROM_COPY / EXISTING_MODIFY がリアルタイムでメニュー・LangPack・SP データを取得します。空欄にするとローカルの target-mssql synced データをフォールバック使用します。",
+    "driverClassLabel": "Driver Class (オプション)",
+    "connectionSuccess": "接続成功 — {{product}} {{version}} ({{elapsedMs}}ms)",
+    "connectionFailure": "接続失敗 — {{error}}",
+    "sourcePathTitle": "Target source path",
+    "sourcePathInfo": "コンテナ内の絶対パスを入力 (または右側の<strong>探索</strong>ボタン)。<strong> source</strong> は frontend root、<strong>backend</strong> は backend root (PLANNEL のような monorepo でない場合のみ別途指定 — 空欄なら source と同じと仮定)。空欄なら docker-compose の <code>/workspace/targets/{{targetCd}}/wingui</code> fallback。",
+    "sourceFolderLabel": "source フォルダパス",
+    "sourceFolderPlaceholder": "(未設定 — コンテナ内 /workspace/targets/{{targetCd}}/wingui を自動使用)",
+    "backendFolderLabel": "backend フォルダパス (分離構造の場合のみ)",
+    "backendFolderPlaceholder": "(未設定 — source と同じ root と仮定。PLANNEL のように分離している場合は backend root を指定)",
+    "folderBrowse": "フォルダ探索",
+    "close": "閉じる",
+    "testConnection": "接続テスト",
+    "save": "保存",
+    "pickerSource": "source フォルダ選択",
+    "pickerBackend": "backend フォルダ選択"
+  },
+  "history": {
+    "title": "Composer 作業履歴",
+    "searchPlaceholder": "タイトル / メニューコード / モード / Target 検索",
+    "refresh": "更新",
+    "emptyAll": "履歴なし — Composer メインからセッションを開始してください。",
+    "emptyFiltered": "条件に合うセッションがありません",
+    "untitled": "(タイトルなし)",
+    "deleted": "削除済: {{name}}",
+    "filter": {
+      "all": "全て",
+      "active": "進行中",
+      "completed": "完了",
+      "archived": "保管"
+    },
+    "status": {
+      "active": "進行中",
+      "completed": "完了",
+      "archived": "保管"
+    },
+    "col": {
+      "target": "Target",
+      "mode": "モード",
+      "title": "タイトル",
+      "menuCd": "メニューコード",
+      "model": "モデル",
+      "status": "状態",
+      "tokens": "トークン",
+      "createdAt": "作成日時",
+      "actions": "操作"
+    },
+    "action": {
+      "resume": "続ける",
+      "markActive": "進行中に変更",
+      "markCompleted": "完了",
+      "markArchived": "保管",
+      "delete": "削除"
+    },
+    "deleteDialog": {
+      "title": "セッション削除",
+      "body": "\"{{name}}\" セッションを完全削除します。メッセージ・成果物も一緒に削除されます。続行しますか?",
+      "cancel": "キャンセル",
+      "confirm": "削除"
+    },
+    "errors": {
+      "loadList": "セッション一覧の取得失敗",
+      "statusChange": "状態変更失敗: {{message}}",
+      "deleteFailed": "削除失敗: {{message}}"
+    }
+  },
+  "workspace": {
+    "exit": "終了"
+  },
+  "mockup": {
+    "subtitle": "UI パターンモックアップギャラリー",
+    "searchPlaceholder": "コード/ラベル/説明/メニュー検索",
+    "countDisplay": "{{n}} 個",
+    "empty": "該当するモックアップがありません。",
+    "mappedMenusTooltip": "マッピングされた運用メニュー {{n}} 個",
+    "backToList": "全モックアップ一覧へ",
+    "usedMenus": "使用メニュー {{n}} 個",
+    "menuListSummary": "この mockup にマッピングされた T3SmartSCM 運用メニュー — 合計 {{total}} 個",
+    "menuListMatched": "{{n}} 個一致",
+    "menuSearchPlaceholder": "メニュー ID / メニュー名 / パス検索",
+    "filter": {
+      "all": "全て {{n}}"
+    },
+    "category": {
+      "all": "All",
+      "core": "正規 {{n}}",
+      "domain": "ドメイン {{n}}",
+      "dashboard": "Dashboard {{n}}",
+      "controlboard": "CB {{n}}",
+      "meta": "メタ {{n}}"
+    },
+    "layout": {
+      "all": "Layout — 全て"
+    },
+    "menuTable": {
+      "id": "メニュー ID",
+      "name": "メニュー名",
+      "path": "パス (filePath)",
+      "reason": "マッピング根拠",
+      "noName": "(名前なし)",
+      "noMatch": "\"{{query}}\" と一致するメニューなし",
+      "noMapped": "マッピングされたメニューなし"
+    }
+  },
+  "uiPattern": {
+    "backToList": "一覧へ",
+    "openLite": "AI 参照用軽量ファイル (lite) を開く",
+    "openFull": "この画面 (full) を新しいウィンドウで開く",
+    "openInNewWindow": "新しいウィンドウで開く",
+    "heroTitle": "UI Pattern 取りまとめ",
+    "heroSubtitle": "MES / SCM ドメイン別 UI パターン — 各 TabPage を選択すると本文に該当パターンが即座に有効化された状態で表示されます。",
+    "stats": {
+      "total": "全パターン",
+      "files": "ファイル"
+    },
+    "filter": {
+      "all": "全て"
+    },
+    "allGroups": "全グループ",
+    "searchPlaceholder": "セクション · グループ · ファイル · TabPage ラベル検索",
+    "reset": "リセット",
+    "resultCount": "結果 {{n}} 個",
+    "noResults": "検索条件に合うパターンがありません。",
+    "resetFilters": "フィルタリセット"
+  }
+}

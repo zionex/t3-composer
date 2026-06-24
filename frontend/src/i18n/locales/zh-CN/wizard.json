@@ -1,0 +1,277 @@
+{
+  "stepper": {
+    "layout": "① 布局",
+    "data": "② 数据·搜索条件",
+    "meta": "③ 元数据·菜单",
+    "generate": "④ 画面生成",
+    "layoutShort": "布局",
+    "dataShort": "数据·搜索条件",
+    "metaShort": "元数据·菜单",
+    "generateShort": "画面生成"
+  },
+  "buttons": {
+    "previous": "上一步",
+    "next": "下一步: {{label}}",
+    "nextLast": "完成",
+    "backPicker": "重新选择模式"
+  },
+  "header": {
+    "patternHint": "pattern:",
+    "menuHint": "menu:"
+  },
+  "validation": {
+    "filterBarBlankLabels": "FilterBar 字段 {{count}} 个的标签为空。请输入后再进行下一步。",
+    "orphanRelations": "Layer 关系 {{count}} 个的 source/target layer 不存在。请整理后再进行下一步。",
+    "parentMenuRequired": "请选择父菜单。需要通过 [菜单选择] 指定注册位置。"
+  },
+  "step": {
+    "layout": {
+      "addLayer": "Layer",
+      "addChild": "添加子项",
+      "childMenuTitle": "添加 Container 子项",
+      "typeGrid": "Grid · 表格数据",
+      "typeChart": "Chart · 图表/KPI/地图",
+      "typeContainer": "Container · 选项卡/卡片 wrapper",
+      "typeDocument": "Document · PDF/图像/Markdown",
+      "typeAi": "AI · 聊天/洞察面板",
+      "hint": "在各区域填入数据后点击 [画面生成] → Claude 进行成果物 + 预览。Layer 可拖拽/调整大小/添加/删除。",
+      "bodyLayers": "📐 主体 (Body Layers)",
+      "bodyHint": "— 点击各 layer 框可打开数据编辑对话框。",
+      "emptyState": "没有 Layer。请通过右上 [+ Layer] 添加。",
+      "containerLabel": "CONTAINER",
+      "childCount": "· 子项 {{count}} 个",
+      "childEmptyHint": "↑ 右上 [+ 添加子项] 在此 wrapper 内添加 layer",
+      "dataSetState": "✓ 数据已设置",
+      "dataEmptyState": "点击输入数据",
+      "removeLayer": "删除 Layer"
+    },
+    "data": {
+      "leftHeader": "📐 Body Layers — 点击展开并编辑数据",
+      "emptyLayers": "没有 Layer。请在 ① 布局阶段添加。",
+      "statusReady": "✓",
+      "statusEmpty": "未设置",
+      "aiTitle": "AI 自动补全 — 搜索条件 + 关系",
+      "aiPlaceholder": "例: \"添加日期条件\" · \"创建 master→detail 关系\"\n留空则仅根据 spec 自动推断",
+      "aiAnalyzing": "AI 分析中...",
+      "aiNeedLayer": "需要 1 个以上 layer",
+      "aiHelp": "按 Enter 或点击 ▶ 生成",
+      "aiNoResult": "AI 未找到可推荐的项目。请填充更多 layer / dataSource。",
+      "aiSuccess": "已添加搜索条件 {{filterCount}} 个 · 关系 {{relationCount}} 个。",
+      "aiFail": "AI 调用失败: {{message}}"
+    },
+    "meta": {
+      "title": "③ 元数据·菜单",
+      "hint": "输入画面的识别信息和菜单注册位置。空值由 Claude 推断。",
+      "screenTitleLabel": "画面标题",
+      "screenTitlePlaceholder": "例: 用户信息管理",
+      "menuCdLabel": "菜单代码 (MENU_CD) —",
+      "menuCdFormat": "UI_<DOMAIN>_<NAME>",
+      "menuCdPlaceholder": "UI_UT_USER_INFO_MGMT",
+      "menuCdHelper": "留空则 Claude 从画面意图推断。",
+      "menuFilePathLabel": "菜单文件路径 (MENU_FILE_PATH)",
+      "menuFilePathPlaceholder": "/util/UserInfoMgmt",
+      "menuFilePathHelper": "格式: /<module>[/<category>]/<PascalName> (不含扩展名)。",
+      "parentMenuLabel": "父菜单 (组)",
+      "parentMenuRequired": "— 选择菜单注册位置 (必填)",
+      "parentMenuOk": "运营 DB 存在确认",
+      "parentMenuMissing": "未选择 — 请通过 [菜单选择] 指定父项",
+      "selectMenu": "菜单选择",
+      "parentMenuGone": "自动填充的父菜单 <b>{{cd}}</b> 在运营 DB ({{targetCd}}) 中不存在,已清空。请通过 [菜单选择] 指定实际的父项。"
+    },
+    "generate": {
+      "creating": "创建会话中 — 准备 Claude 调用",
+      "createFail": "会话创建失败",
+      "backToPrev": "返回上一步",
+      "backToPrevShort": "上一步",
+      "defaultTitle": "新画面"
+    }
+  },
+  "workspace": {
+    "header": {
+      "runPreview": "运行画面",
+      "runPreviewBusy": "运行中...",
+      "registerMenu": "注册菜单",
+      "applyArtifact": "执行成果物",
+      "applyArtifactGroup": "Target System 应用",
+      "autoFixToggle": "出错时自动补全",
+      "autoFixTooltip": "出错时自动补全 — 勾选时:\n[运行画面] 后发生运行时错误,AI 会分析错误消息\n自动修改成果物 (JSX/Java/SP) 后重新运行画面。\n最多自动重复 3 次,无法解决时显示提示后停止。",
+      "designDoc": "设计文档",
+      "designDocBusy": "生成中...",
+      "designDocTooltip": "下载画面设计文档 Excel",
+      "runPreviewTooltip": "将 JSX 成果物转换为 AI 原型并渲染到右侧 [运行画面] 选项卡。数据为 sample,跳过 SQL/Java apply (仅用于视觉确认)。首次运行 5~10 秒,之后使用缓存。",
+      "registerMenuTooltip": "① 注册菜单 — 仅将 MENU_SQL 应用到实际 DB (TB_AD_MENU + TB_AD_LANG_PACK + TB_AD_PERMISSION_GROUP)",
+      "applyArtifactTooltip": "② 执行成果物 — 保存 JSX/Java 文件 + 执行 SQL_DDL/SQL_SP DB (建议在菜单注册后执行)",
+      "aiEngineTitle": "选择 AI 引擎",
+      "aiEngineTooltip": "AI 引擎: {{sub}} — 点击更改"
+    },
+    "tabs": {
+      "previewLive": "运行画面",
+      "artifactSource": "成果物源码",
+      "insightAi": "Insight AI",
+      "openInNew": "在新窗口中打开运行画面 (全屏查看)",
+      "openInNewHint": "请先点击 [运行画面] 按钮显示运行画面"
+    },
+    "previewStage": {
+      "applying": "⏳ 应用成果物",
+      "compiling": "⏳ 后端编译",
+      "restarting": "🔄 后端重启",
+      "ready": "✅ 运行准备完成",
+      "autofixing": "🤖 AI 自动补全",
+      "failed": "⚠ 运行准备失败",
+      "openInNew": "在新窗口打开",
+      "close": "关闭",
+      "applyingMsgSample": "应用成果物中 — AI 原型转换 (首次 5~10 秒 · 之后使用缓存)...",
+      "applyingMsgFull": "应用成果物中 (含重启)...",
+      "readyMsg": "运行准备完成",
+      "autofixWorking": "AI 正在分析错误并修改成果物 ({{n}}/{{max}})...",
+      "autofixDone": "补全完成 — 重新运行画面 ({{n}}/{{max}})...",
+      "autofixGiveUp": "AI 自动补全已尝试 {{max}} 次但错误仍然持续。请在右侧 [成果物源码] 选项卡中直接确认,或通过聊天请求修改。",
+      "autofixError": "自动补全处理错误: ",
+      "autofixRequestFail": "AI 自动补全请求失败。请确认左侧工作历史中的错误。",
+      "autofixLabel": "AI 自动补全中 ({{n}}/{{max}})"
+    },
+    "snackbar": {
+      "previewReadyTitle": "画面运行准备完成",
+      "previewReadyJsxOnly": "已应用 JSX {{ok}} 个",
+      "previewReadyWithSkip": "JSX {{ok}} 个 · 其他 {{skipped}} 个 (Java/SQL/MENU) 不在画面运行范围",
+      "previewFailTitle": "画面运行准备失败",
+      "previewErrorDefault": "JSX/SQL/MENU 处理错误",
+      "previewCommErrorTitle": "预览通信错误",
+      "previewCommErrorMsg": "网络错误",
+      "previewCleanupTitle": "运行画面清理",
+      "previewCleanupMsg": "已清理运行成果物 + DB 行",
+      "previewCleanupFailTitle": "清理失败",
+      "autoFixTitle": "AI 自动补全 ({{n}}/{{max}})",
+      "autoFixMsg": "已修改成果物。将重新运行画面。"
+    },
+    "chatCollapsed": {
+      "editTitle": "修改请求",
+      "editHint": "— 展开以输入额外的修改内容",
+      "generating": "🪄 正在生成画面…",
+      "genFailPrefix": "⚠ 生成失败: ",
+      "retry": "重试"
+    },
+    "modelSwitchFail": "AI 引擎切换失败: ",
+    "downloadFail": "设计文档下载失败: "
+  },
+  "chat": {
+    "placeholder": "请输入修改请求...",
+    "placeholderDefault": "输入消息 (按 Ctrl+Enter 发送)",
+    "emptyHint": "请用自然语言输入需求。(Ctrl+Enter 发送)",
+    "send": "发送",
+    "sendTooltip": "发送 (Ctrl+Enter)",
+    "generating": "响应中...",
+    "emptyMessage": "(空消息)",
+    "userLabel": "User",
+    "assistantLabel": "Claude",
+    "errorHistoryFail": "获取消息历史失败: ",
+    "errorSessionExpired": "登录会话已过期。请重新登录后再试。",
+    "errorSessionCheckFail": "会话确认失败: ",
+    "errorSendFail": "发送失败",
+    "errorAuthExpired": "认证会话已过期,或在其他选项卡/浏览器中发生了重新登录。请退出后重新登录。(服务器日志: 参考 JwtTokenProvider.validateToken)",
+    "errorTimeout": "Claude 响应等待超时 (30 分钟)。\n服务器端的自动 continuation 可能仍在进行。\n请稍后点击下方 \"刷新对话\" 查看最终结果。",
+    "autoFix": {
+      "toast": "🤖 AI 自动补全 ({{n}}/{{max}})",
+      "completed": "自动补全完成",
+      "failed": "自动补全失败 — 需要手动确认"
+    }
+  },
+  "chatProgress": {
+    "phase": {
+      "PROMPT":       "🪄 需求分析中…",
+      "STREAM_START": "✨ 接收 Claude 响应中…",
+      "STREAM_END":   "📋 准备提取成果物…",
+      "CONTINUATION": "↻ 继续接收中…",
+      "EXTRACT":      "📋 提取成果物中…",
+      "SAVE":         "💾 保存中…"
+    },
+    "phaseUnknown": "进行中… ({{phase}})",
+    "writingFile": "📄 正在写入 {{name}}…",
+    "receivingTokens": "✨ 接收 Claude 响应中… ({{tokens}} 词元)",
+    "continuationRound": "第 {{n}} 轮",
+    "error": {
+      "title": "⚠ 生成错误",
+      "phaseSuffix": " ({{phase}})",
+      "recoverable": "可能是临时性错误 — 请稍后重试。"
+    }
+  },
+  "layerTitle": {
+    "mainGrid": "主网格",
+    "grid": "网格",
+    "pivotGrid": "透视网格",
+    "searchFilter": "搜索条件",
+    "master": "主表",
+    "detail": "明细",
+    "detailGrid": "明细网格",
+    "dashboard": "仪表盘",
+    "tabArea": "选项卡区域",
+    "summary": "摘要",
+    "chart": "图表",
+    "liveChart": "实时图表",
+    "alerts": "告警",
+    "eventLog": "事件日志",
+    "main": "主要",
+    "panel1": "面板 1",
+    "container": "容器",
+    "document": "文档",
+    "aiPanel": "AI 面板",
+    "widget": "小部件",
+    "processRoute": "工艺路线",
+    "widgetN": "小部件 {{n}}",
+    "panelN": "面板 {{n}}"
+  },
+  "previewEmbed": {
+    "autoFix": {
+      "label": "AI 自动补全中",
+      "body": "AI 正在分析画面运行中发生的错误<br />自动修改成果物 (JSX / Java / SP)。<br />修改完成后画面将<b>自动重新运行</b>。",
+      "chatHint": "进行中的对话可在左下方的<b>工作历史</b>面板实时查看。"
+    },
+    "idle": {
+      "hint": "按下页眉的 <b>[运行画面]</b> 按钮后<br />此处将显示实际运行形态的画面。"
+    },
+    "loading": "画面加载中...",
+    "errorPhase": {
+      "transform": "JSX 转换",
+      "execute": "模块执行",
+      "load": "画面加载"
+    },
+    "errorTitle": "{{phase}} 失败",
+    "errorPath": "路径:",
+    "errorCause": "\n\n原因: {{cause}}",
+    "errorTip": "💡 成果物源码可在右侧 <b>[成果物源码]</b> 选项卡中原样查看。由于已隔离,此错误不会影响其他画面。",
+    "retry": "重试"
+  },
+  "artifactPanel": {
+    "title": "成果物 ({{n}})",
+    "empty": "尚未生成文件。Claude 响应后文件将显示在此处。",
+    "emptyShort": "尚未生成文件。",
+    "refresh": "刷新",
+    "copy": "复制",
+    "download": "下载",
+    "supersededChip": "旧版",
+    "supersededShown": "旧版 {{n}}",
+    "supersededHiddenBadge": "+{{n}}",
+    "supersededToggleTooltip": "旧版本 (supersede) {{n}} 个 — 点击切换显示",
+    "supersededShortTooltip": "旧版本 {{n}} 个",
+    "cleanupTooltip": "永久删除旧版本 {{n}} 个 (DB hard delete)",
+    "cleanupShortTooltip": "永久删除旧版本 {{n}} 个",
+    "cleanupConfirm": "将永久删除旧版本 {{n}} 个。(DB hard delete · 不可恢复) 是否继续?",
+    "cleanupConfirmShort": "将永久删除旧版本 {{n}} 个。是否继续?",
+    "pickFromLeft": "在左侧选择文件后将显示在此处。",
+    "pickFromTree": "请从成果物树中选择文件。",
+    "sourceLoading": "正在加载成果物源码...",
+    "sourceLoadFailed": "无法加载成果物源码。",
+    "group": {
+      "screen": "画面",
+      "backend": "后端",
+      "sql": "SQL",
+      "menu": "菜单注册",
+      "other": "其他"
+    },
+    "typeLabel": {
+      "designDoc": "设计文档",
+      "source": "源码",
+      "other": "其他"
+    }
+  }
+}

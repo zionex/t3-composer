@@ -311,8 +311,17 @@ public class ComposerController {
     public Mono<MessageDto> chat(@PathVariable String sessionId, @RequestBody ChatRequest req) {
         String userId = currentUserId();
 
-        if (req == null || req.getMessage() == null || req.getMessage().isBlank()) {
+        if (req == null) {
             return Mono.error(new IllegalArgumentException("message 가 비어 있습니다"));
+        }
+        // 첨부 (이미지/PDF) 만 보내고 본문이 비어있는 경우도 허용 — placeholder 로 메시지 history 보존.
+        boolean hasMessage = req.getMessage() != null && !req.getMessage().isBlank();
+        boolean hasAttachments = req.getAttachments() != null && !req.getAttachments().isEmpty();
+        if (!hasMessage && !hasAttachments) {
+            return Mono.error(new IllegalArgumentException("message 가 비어 있습니다"));
+        }
+        if (!hasMessage) {
+            req.setMessage("[첨부 파일 " + req.getAttachments().size() + "개 — 분석해 주세요]");
         }
 
         // 사용자 메시지 저장
@@ -338,8 +347,16 @@ public class ComposerController {
                  produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>>
             chatStream(@PathVariable String sessionId, @RequestBody ChatRequest req) {
-        if (req == null || req.getMessage() == null || req.getMessage().isBlank()) {
+        if (req == null) {
             return reactor.core.publisher.Flux.error(new IllegalArgumentException("message 가 비어 있습니다"));
+        }
+        boolean hasMessage = req.getMessage() != null && !req.getMessage().isBlank();
+        boolean hasAttachments = req.getAttachments() != null && !req.getAttachments().isEmpty();
+        if (!hasMessage && !hasAttachments) {
+            return reactor.core.publisher.Flux.error(new IllegalArgumentException("message 가 비어 있습니다"));
+        }
+        if (!hasMessage) {
+            req.setMessage("[첨부 파일 " + req.getAttachments().size() + "개 — 분석해 주세요]");
         }
         String userId = currentUserId();
         // 사용자 메시지 저장 (TB_* lookup 포함 — non-streaming 흐름과 동일)

@@ -174,6 +174,15 @@
       "toast": "🤖 AI 自動補完 ({{n}}/{{max}})",
       "completed": "自動補完完了",
       "failed": "自動補完失敗 — 手動確認が必要"
+    },
+    "attach": {
+      "tooltip": "ファイル添付 (画像・PDF・テキスト)",
+      "dropHint": "ここにドロップして添付",
+      "tooBig": "ファイルが大きすぎます ({{sizeKb}}KB > 5MB): {{name}}",
+      "tooMany": "参照ファイルは最大 {{max}} 件まで添付できます。既存の添付を削除してから追加してください。",
+      "tooManyAdded": "参照ファイルは最大 {{max}} 件までです — {{n}} 件のみ追加しました。",
+      "readFail": "ファイル読み取りに失敗しました: {{name}}: {{msg}}",
+      "remove": "削除"
     }
   },
   "chatProgress": {

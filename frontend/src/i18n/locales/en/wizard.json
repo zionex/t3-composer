@@ -174,6 +174,15 @@
       "toast": "🤖 AI auto-fix ({{n}}/{{max}})",
       "completed": "Auto-fix completed",
       "failed": "Auto-fix failed — manual check needed"
+    },
+    "attach": {
+      "tooltip": "Attach file (image · PDF · text)",
+      "dropHint": "Drop here to attach",
+      "tooBig": "File too large ({{sizeKb}}KB > 5MB): {{name}}",
+      "tooMany": "You can attach up to {{max}} reference files. Remove an existing attachment first.",
+      "tooManyAdded": "Up to {{max}} reference files allowed — only {{n}} added.",
+      "readFail": "Failed to read file: {{name}}: {{msg}}",
+      "remove": "Remove"
     }
   },
   "chatProgress": {

@@ -47,7 +47,7 @@ export default function LanguageSwitcher({ variant = 'select' }) {
           </span>
         )}
         sx={{
-          height: 28, borderRadius: 1.5,
+          height: 28, borderRadius: '9px',
           bgcolor: '#FFFFFF',
           fontSize: 11, fontWeight: 500, color: '#4B5563',
           '& .MuiSelect-select': {

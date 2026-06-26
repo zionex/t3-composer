@@ -113,7 +113,7 @@ export default function TargetSystemSelector({ darkMode = true }) {
           onDelete={openMenu}
           sx={{
             height: 32,
-            borderRadius: '12px',
+            borderRadius: '9px',
             fontSize: 12.5,
             fontWeight: 500,
             bgcolor: bg,

@@ -184,10 +184,10 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
     );
   };
 
-  // A시안 .chip 룩 — 흰 배경 + 회색 보더
+  // A시안 .chip 룩 — 흰 배경 + 회색 보더 + radius 9px
   const chipBase = {
     display: 'inline-flex', alignItems: 'center', gap: 0.7,
-    height: 32, px: 1.4, borderRadius: 1.5,
+    height: 32, px: 1.4, borderRadius: '9px',
     bgcolor: '#FFFFFF',
     border: `1px solid ${PANEL_BORDER}`,
     color: '#4B5563',

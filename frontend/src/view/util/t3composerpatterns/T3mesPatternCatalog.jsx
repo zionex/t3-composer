@@ -435,12 +435,12 @@ function T3mesPatternCatalog() {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
                    bgcolor: 'transparent', p: 1.2, gap: 1.2 }}>
 
-          {/* Toolbar — 흰 패널 (A시안 톤) */}
+          {/* Toolbar — 흰 패널 (A시안 톤, 그림자 없음) */}
           <Paper elevation={0} sx={{
             p: 1, borderRadius: '10px', flexShrink: 0,
             bgcolor: '#FFFFFF',
             border: `1px solid ${PALETTE.panelBorder}`,
-            boxShadow: '0 1px 2px rgba(16,24,40,.03)',
+            boxShadow: 'none',
             backdropFilter: 'none', WebkitBackdropFilter: 'none',
           }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
@@ -544,6 +544,8 @@ function T3mesPatternCatalog() {
               <Paper elevation={0} sx={{
                 p: 6, textAlign: 'center', bgcolor: '#FFFFFF',
                 borderRadius: '12px', border: `1px solid ${PALETTE.panelBorder}`,
+                boxShadow: 'none',
+                backdropFilter: 'none', WebkitBackdropFilter: 'none',
               }}>
                 <Typography variant="body1" sx={{ color: PALETTE.textSecondary }}>
                   {t('uiPattern.noResults')}
@@ -573,6 +575,8 @@ function T3mesPatternCatalog() {
                       <Paper key={`${sec.section}_${g.group}`} elevation={0} sx={{
                         p: 1.2, borderRadius: '10px',
                         bgcolor: '#FFFFFF', border: `1px solid ${PALETTE.panelBorder}`,
+                        boxShadow: 'none',
+                        backdropFilter: 'none', WebkitBackdropFilter: 'none',
                       }}>
                         {/* Group header — 파스텔 Avatar */}
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>

@@ -16,6 +16,7 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import { ContentInner } from '@wingui/common/imports';
 import PageHeader from '../t3composer/PageHeader';
+import { PALETTE } from '../../../theme';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
 import MockupPressPreview from './MockupPressPreview';
 import mockupLabelEn from './_data/mockup-label-en.json';
@@ -31,15 +32,15 @@ function localizeDescription(desc, isEn) {
   return mockupLabelEn.description[desc] || desc;
 }
 
-// 카테고리 → hover 색상 (border 강조용)
+// 카테고리 → 파스텔 톤 (A시안 PALETTE 계열 · 채도 낮은 약한 색 차이)
 function catColor(cat) {
   switch (cat) {
-    case 'core':         return '#1976d2';
-    case 'domain':       return '#9c27b0';
-    case 'dashboard':    return '#0288d1';
-    case 'controlboard': return '#ed6c02';
-    case 'meta':         return '#64748b';
-    default:             return '#94a3b8';
+    case 'core':         return '#7FB9D0';   // teal light  — 핵심 패턴
+    case 'domain':       return '#B9A8D4';   // lavender    — 도메인 화면
+    case 'dashboard':    return '#8FC4D4';   // soft cyan   — 대시보드
+    case 'controlboard': return '#E6C079';   // pastel amber — control board
+    case 'meta':         return '#A8B4C0';   // muted slate — meta
+    default:             return '#A8B4C0';
   }
 }
 
@@ -58,15 +59,30 @@ function stripProductLinePrefix(label, productLine) {
   return label;
 }
 
-// productLine 별 chip 색 — 색상 단조롭게 통일 (border + 텍스트만 강조)
+// ToggleButtonGroup 공통 sx — A시안 selected 룩 (회색 → 티얼 soft)
+const TOGGLE_GROUP_SX = {
+  '& .MuiToggleButton-root': {
+    color: '#6B7280',
+    border: '1px solid #ECEEF1',
+    fontSize: 12, py: 0.5,
+    '&.Mui-selected': {
+      bgcolor: '#E8F2F6', color: '#1F6680',
+      borderColor: '#CFE3EB',
+      '&:hover': { bgcolor: '#E8F2F6' },
+    },
+    '&.Mui-disabled': { color: '#C4CDD5', borderColor: '#F0F1F4' },
+  },
+};
+
+// productLine 별 chip 색 — 파스텔 톤 (catColor 와 같은 라인, product 별 약한 색 차이)
 function productLineColor(pl) {
   switch (pl) {
-    case 'T3SmartSCM': return '#1976d2';
-    case 'PlaNEL':     return '#2a9d8f';
-    case 'KTNG':       return '#8b5cf6';
-    case 'ORON':       return '#ed6c02';
-    case 'CJBO':       return '#ef4444';
-    default:           return '#64748b';
+    case 'T3SmartSCM': return '#9DB4D4';   // steel blue
+    case 'PlaNEL':     return '#86C7A8';   // mint
+    case 'KTNG':       return '#B9A8D4';   // lavender
+    case 'ORON':       return '#E6C079';   // pastel amber
+    case 'CJBO':       return '#E0989A';   // coral
+    default:           return '#A8B4C0';
   }
 }
 
@@ -169,15 +185,18 @@ export default function T3Mockup() {
 
       {/* 필터바 — 단일 줄 sticky (Product Line · Category · Layout · 검색 · view 모드 · 카운트) */}
       <Box sx={{
-        px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider',
-        backgroundColor: 'background.paper',
+        px: 2, py: 1, borderBottom: '1px solid #ECEEF1',
+        backgroundColor: '#FFFFFF',
         position: 'sticky', top: 0, zIndex: 2,
       }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          {/* ToggleButton 공통 A시안 룩 — 회색 텍스트 + selected 시 티얼 soft */}
+          {(() => null)()}
           {/* 줄 1 — 프로젝트 구분 (Product Line) */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <ToggleButtonGroup size="small" exclusive value={filter.productLine}
-                                onChange={(_, v) => v && setFilter((f) => ({ ...f, productLine: v, category: 'ALL', layout: 'ALL' }))}>
+                                onChange={(_, v) => v && setFilter((f) => ({ ...f, productLine: v, category: 'ALL', layout: 'ALL' }))}
+                                sx={TOGGLE_GROUP_SX}>
               <ToggleButton value="ALL" sx={{ px: 1.5 }}>{t('mockup.filter.all', { n: MOCKUP_ENTRIES.length })}</ToggleButton>
               {Object.entries(PRODUCT_LINE_LABEL).map(([k, v]) => {
                 const count = MOCK_STATS.byProductLine[k] || 0;
@@ -193,13 +212,14 @@ export default function T3Mockup() {
           {/* 줄 2 — 타입 구분 (Category) + Layout + 검색 + view 모드 */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <ToggleButtonGroup size="small" exclusive value={filter.category}
-                                onChange={(_, v) => v && setFilter((f) => ({ ...f, category: v }))}>
-              <ToggleButton value="ALL" sx={{ px: 1.5 }}>{t('mockup.category.all')}</ToggleButton>
-              <ToggleButton value="core"         sx={{ px: 1.5, color: 'primary.main' }}>{t('mockup.category.core', { n: visibleCategoryCount.core || 0 })}</ToggleButton>
-              <ToggleButton value="domain"       sx={{ px: 1.5, color: 'secondary.main' }}>{t('mockup.category.domain', { n: visibleCategoryCount.domain || 0 })}</ToggleButton>
-              <ToggleButton value="dashboard"    sx={{ px: 1.5, color: 'info.main' }}>{t('mockup.category.dashboard', { n: visibleCategoryCount.dashboard || 0 })}</ToggleButton>
-              <ToggleButton value="controlboard" sx={{ px: 1.5, color: 'warning.main' }}>{t('mockup.category.controlboard', { n: visibleCategoryCount.controlboard || 0 })}</ToggleButton>
-              <ToggleButton value="meta" sx={{ px: 1.5 }}>{t('mockup.category.meta', { n: visibleCategoryCount.meta || 0 })}</ToggleButton>
+                                onChange={(_, v) => v && setFilter((f) => ({ ...f, category: v }))}
+                                sx={TOGGLE_GROUP_SX}>
+              <ToggleButton value="ALL"          sx={{ px: 1.5 }}>{t('mockup.category.all')}</ToggleButton>
+              <ToggleButton value="core"         sx={{ px: 1.5 }}>{t('mockup.category.core', { n: visibleCategoryCount.core || 0 })}</ToggleButton>
+              <ToggleButton value="domain"       sx={{ px: 1.5 }}>{t('mockup.category.domain', { n: visibleCategoryCount.domain || 0 })}</ToggleButton>
+              <ToggleButton value="dashboard"    sx={{ px: 1.5 }}>{t('mockup.category.dashboard', { n: visibleCategoryCount.dashboard || 0 })}</ToggleButton>
+              <ToggleButton value="controlboard" sx={{ px: 1.5 }}>{t('mockup.category.controlboard', { n: visibleCategoryCount.controlboard || 0 })}</ToggleButton>
+              <ToggleButton value="meta"         sx={{ px: 1.5 }}>{t('mockup.category.meta', { n: visibleCategoryCount.meta || 0 })}</ToggleButton>
             </ToggleButtonGroup>
 
             <TextField size="small" select value={filter.layout}
@@ -225,7 +245,8 @@ export default function T3Mockup() {
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
               {t('mockup.countDisplay', { n: filtered.length })}
             </Typography>
-            <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
+            <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}
+                                sx={TOGGLE_GROUP_SX}>
               <ToggleButton value="grid" sx={{ px: 1 }}><GridViewIcon fontSize="small" /></ToggleButton>
               <ToggleButton value="list" sx={{ px: 1 }}><ViewListIcon fontSize="small" /></ToggleButton>
             </ToggleButtonGroup>
@@ -248,12 +269,12 @@ export default function T3Mockup() {
                 <Grid item xs={12} sm={6} md={4} lg={3} key={e.patternCode}>
                   <Card variant="outlined" sx={{
                     height: '100%', display: 'flex', flexDirection: 'column',
-                    transition: 'border-color .15s ease, box-shadow .15s ease',
-                    borderTop: `3px solid ${accent}`,
-                    '&:hover': {
-                      borderColor: accent,
-                      boxShadow: `0 2px 12px ${accent}22`,
-                    },
+                    bgcolor: '#FFFFFF',
+                    border: `1px solid ${PALETTE.panelBorder}`,
+                    borderRadius: '11px',
+                    boxShadow: 'none',
+                    transition: 'border-color .15s ease',
+                    '&:hover': { borderColor: PALETTE.primary },
                   }}>
                     <MockupPressPreview
                       entry={e}
@@ -322,9 +343,12 @@ export default function T3Mockup() {
               const desc = localizeDescription(e.description, isEn);
               return (
                 <Card key={e.patternCode} variant="outlined" sx={{
-                  transition: 'border-color .15s ease, box-shadow .15s ease',
-                  borderLeft: `4px solid ${accent}`,
-                  '&:hover': { borderColor: accent, boxShadow: `0 2px 8px ${accent}22` },
+                  bgcolor: '#FFFFFF',
+                  border: `1px solid ${PALETTE.panelBorder}`,
+                  borderRadius: '11px',
+                  boxShadow: 'none',
+                  transition: 'border-color .15s ease',
+                  '&:hover': { borderColor: PALETTE.primary },
                 }}>
                   <MockupPressPreview
                     entry={e}

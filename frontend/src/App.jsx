@@ -5,13 +5,13 @@ import { Box, Typography, Tabs, Tab, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import HistoryIcon from '@mui/icons-material/History';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
-import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
-import WidgetsIcon from '@mui/icons-material/Widgets';
-import SchemaIcon from '@mui/icons-material/Schema';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
+import SchemaOutlinedIcon from '@mui/icons-material/SchemaOutlined';
 
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
@@ -43,14 +43,14 @@ import { ShowMessageHost } from '@wingui/common/imports';
 const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
 
 const MENU_ITEMS = [
-    { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    Icon: AutoAwesomeIcon,        Component: T3Composer },
-    { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     Icon: HistoryIcon,            Component: T3ComposerHistory },
-    { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', Icon: DashboardCustomizeIcon, Component: T3Mockup },
-    { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   Icon: ViewQuiltIcon,          Component: T3mesPatternCatalog },
-    // { key: 'dict',     labelKey: 'app.menu.gallery',     hintKey: 'app.menuHint.gallery',     Icon: WidgetsIcon,            Component: T3ComposerDict },
-    { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    Icon: SchemaIcon,             Component: OntologyPage },
+    { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    Icon: AutoAwesomeOutlinedIcon,  Component: T3Composer },
+    { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     Icon: HistoryOutlinedIcon,      Component: T3ComposerHistory },
+    { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', Icon: GridViewOutlinedIcon,     Component: T3Mockup },
+    { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   Icon: DashboardOutlinedIcon,    Component: T3mesPatternCatalog },
+    // { key: 'dict',     labelKey: 'app.menu.gallery',     hintKey: 'app.menuHint.gallery',     Icon: WidgetsOutlinedIcon,    Component: T3ComposerDict },
+    { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    Icon: SchemaOutlinedIcon,       Component: OntologyPage },
     ...(INSIGHT_ENABLED ? [
-    { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   Icon: DashboardIcon,          Component: T3Dashboard },
+    { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   Icon: InsertChartOutlinedIcon,  Component: T3Dashboard },
     ] : []),
 ];
 

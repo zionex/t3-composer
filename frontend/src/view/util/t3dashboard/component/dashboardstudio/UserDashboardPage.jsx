@@ -33,6 +33,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import EditIcon from '@mui/icons-material/Edit';
 import GroupIcon from '@mui/icons-material/Group';
 import LockIcon from '@mui/icons-material/Lock';
@@ -56,7 +57,11 @@ import {
   notifyDashboardListChanged,
 } from './core/dashboardEvents';
 import DashboardViewer, { ViewerWidget } from './viewer/DashboardViewer';
-import { normalizeDashboardWidgets } from './viewer/widgetNormalize';
+import { normalizeDashboardWidgets, getWidgetGrid } from './viewer/widgetNormalize';
+import {
+  DASHBOARD_GRID_DEFAULT_H,
+  DASHBOARD_GRID_DEFAULT_W,
+} from './core/dashboardGridRules';
 
 const MENU_CD = 'USR_DASHBOARD';
 
@@ -378,9 +383,15 @@ export default function UserDashboardPage({ onUseAsScreen } = {}) {
   const [accessFilter, setAccessFilter] = useState('all'); // 'all' | 'public' | 'group' | 'private'
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [mode, setMode] = useState('edit'); // 'edit' | 'viewer' — Composer 내부는 기본 편집 모드
+  const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
   const canEditUser = useCanEditUser();
   const resetDashboardBuilder = useDashboardBuilderStore(state => state.reset);
   const addCanvasWidget = useDashboardBuilderStore(state => state.addWidget);
+  const setBuilderDashboardId = useDashboardBuilderStore(state => state.setDashboardId);
+  const setBuilderTitle = useDashboardBuilderStore(state => state.setTitle);
+  const setBuilderType = useDashboardBuilderStore(state => state.setType);
+  const setBuilderGroupIds = useDashboardBuilderStore(state => state.setSelectedGroupIds);
+  const setBuilderCanvasWidgets = useDashboardBuilderStore(state => state.setCanvasWidgets);
 
   const hasSelectedDashboard = Boolean(
     dashboardId &&
@@ -496,7 +507,7 @@ export default function UserDashboardPage({ onUseAsScreen } = {}) {
     return () => {
       mounted = false;
     };
-  }, [dashboardId]);
+  }, [dashboardId, dashboardReloadKey]);
 
   useEffect(() => {
     setMaximizedWidget(null);
@@ -521,6 +532,44 @@ export default function UserDashboardPage({ onUseAsScreen } = {}) {
     setDashboardBuilderOpen(true);
   };
 
+  const handleEditCurrentDashboard = useCallback(() => {
+    if (!selectedDashboard) return;
+    resetDashboardBuilder();
+    setBuilderDashboardId(selectedDashboard.id);
+    setBuilderTitle(selectedDashboard.title || '');
+    setBuilderType(selectedDashboard.type || 'public');
+    setBuilderGroupIds(Array.isArray(selectedDashboard.group_ids) ? selectedDashboard.group_ids : []);
+    const builderWidgets = dashboardWidgets.map((w) => {
+      const grid = getWidgetGrid(w);
+      return {
+        key: w.key,
+        title: w.title,
+        widget_type: w.widget_type,
+        spec_json: w.spec_json,
+        layout: {
+          i: w.key,
+          x: Number.isFinite(grid.x) ? grid.x : 0,
+          y: Number.isFinite(grid.y) ? grid.y : 0,
+          w: Number.isFinite(grid.w) ? grid.w : DASHBOARD_GRID_DEFAULT_W,
+          h: Number.isFinite(grid.h) ? grid.h : DASHBOARD_GRID_DEFAULT_H,
+          minW: Number.isFinite(grid.minW) ? grid.minW : 2,
+          minH: Number.isFinite(grid.minH) ? grid.minH : 3,
+        },
+      };
+    });
+    setBuilderCanvasWidgets(builderWidgets);
+    setDashboardBuilderOpen(true);
+  }, [
+    selectedDashboard,
+    dashboardWidgets,
+    resetDashboardBuilder,
+    setBuilderDashboardId,
+    setBuilderTitle,
+    setBuilderType,
+    setBuilderGroupIds,
+    setBuilderCanvasWidgets,
+  ]);
+
   const handleCloseDashboardBuilder = () => {
     setDashboardBuilderOpen(false);
     resetDashboardBuilder();
@@ -533,6 +582,9 @@ export default function UserDashboardPage({ onUseAsScreen } = {}) {
     notifyDashboardListChanged();
     loadDashboardList(savedId);
     if (savedId) setDashboardId(savedId);
+    // 같은 dashboardId 로 덮어쓰기(편집)한 경우엔 useEffect deps 가 안 바뀌어
+    // 재조회가 안 됨 — reload key 를 올려 강제 재조회 트리거.
+    setDashboardReloadKey((k) => k + 1);
   };
 
   const handleWidgetBuilderClick = () => {
@@ -591,6 +643,19 @@ export default function UserDashboardPage({ onUseAsScreen } = {}) {
                       onClick={handleOpenDashboardBuilder}>
                 {transLangKey('대시보드 생성')}
               </Button>
+              <Tooltip title={hasSelectedDashboard ? '' : '먼저 대시보드를 선택하세요'}>
+                <span>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<DashboardCustomizeIcon fontSize="small" />}
+                    disabled={!hasSelectedDashboard || dashboardLoading || Boolean(dashboardError)}
+                    onClick={handleEditCurrentDashboard}
+                  >
+                    {transLangKey('현재 대시보드 편집')}
+                  </Button>
+                </span>
+              </Tooltip>
             </>
           )}
 

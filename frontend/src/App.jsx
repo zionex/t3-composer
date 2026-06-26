@@ -15,6 +15,8 @@ import SchemaIcon from '@mui/icons-material/Schema';
 
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
+import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
+import { PALETTE } from './theme';
 import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
@@ -23,7 +25,6 @@ import T3Dashboard from './view/util/t3dashboard/T3Dashboard';
 import T3Mockup from './view/util/t3mockup/T3Mockup';
 import OntologyPage from './view/util/t3composer/ontology/OntologyPage';
 import PreviewLoader from './view/util/preview/PreviewLoader';
-import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
 import { ShowMessageHost } from '@wingui/common/imports';
 
 /**
@@ -101,17 +102,15 @@ function TabbedHome() {
 
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'row' }}>
-            {/* ===== 좌측 Layer — 로고 + 리본 메뉴 (접이식 사이드바) ===== */}
+            {/* ===== 좌측 Layer — 로고 + 리본 메뉴 (접이식 사이드바) — A시안 흰 톤 ===== */}
             <Box
                 component="nav"
                 sx={{
                     width: collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W,
                     flexShrink: 0,
                     display: 'flex', flexDirection: 'column',
-                    bgcolor: 'rgba(255,255,255,0.62)',
-                    backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                    borderRight: '1px solid', borderColor: 'divider',
-                    boxShadow: '4px 0 16px -12px rgba(58,74,99,0.30)',
+                    bgcolor: '#FFFFFF',
+                    borderRight: `1px solid ${PALETTE.panelBorder}`,
                     transition: 'width 0.2s ease',
                     overflow: 'hidden',
                 }}
@@ -133,10 +132,10 @@ function TabbedHome() {
                             display: 'flex', alignItems: 'center', gap: 1,
                             px: collapsed ? 0 : 1.5, py: 1.2, minHeight: 52,
                             justifyContent: collapsed ? 'center' : 'flex-start',
-                            borderBottom: '1px solid', borderColor: 'divider',
+                            borderBottom: `1px solid ${PALETTE.panelBorder}`,
                             cursor: 'pointer',
                             transition: 'background-color .15s ease',
-                            '&:hover': { bgcolor: 'rgba(124,167,224,0.10)' },
+                            '&:hover': { bgcolor: PALETTE.primarySoft },
                             '&:focus-visible': {
                                 outline: '2px solid',
                                 outlineColor: 'primary.main',
@@ -171,7 +170,7 @@ function TabbedHome() {
                 {collapsed && (
                     <Box sx={{
                         display: 'flex', justifyContent: 'center', py: 0.4,
-                        borderBottom: '1px solid', borderColor: 'divider',
+                        borderBottom: `1px solid ${PALETTE.panelBorder}`,
                     }}>
                         <Tooltip title="메뉴 펼치기" placement="right">
                             <IconButton size="small" onClick={() => setCollapsed(false)}
@@ -182,12 +181,22 @@ function TabbedHome() {
                     </Box>
                 )}
 
-                {/* 리본 메뉴 — 아이콘 + 라벨 */}
+                {/* 리본 메뉴 — A시안: MENU eyebrow + 활성 #E8F2F6 + #2d8ba8 */}
                 <Box sx={{
                     flex: 1, overflowY: 'auto', overflowX: 'hidden',
                     py: 1, px: collapsed ? 0.6 : 1,
-                    display: 'flex', flexDirection: 'column', gap: 0.4,
+                    display: 'flex', flexDirection: 'column', gap: 0.2,
                 }}>
+                    {!collapsed && (
+                        <Typography sx={{
+                            fontFamily: '"JetBrains Mono","Roboto Mono",monospace',
+                            fontSize: 10, fontWeight: 600,
+                            letterSpacing: '0.12em', color: PALETTE.textMuted,
+                            px: 1.2, pt: 1, pb: 0.6,
+                        }}>
+                            MENU
+                        </Typography>
+                    )}
                     {MENU_ITEMS.map((m) => {
                         const isActive = activeKey === m.key && openTabs.includes(m.key);
                         const Icon = m.Icon;
@@ -203,23 +212,24 @@ function TabbedHome() {
                                     onClick={() => openTab(m.key)}
                                     sx={{
                                         display: 'flex', alignItems: 'center', gap: 1.2,
-                                        px: collapsed ? 0 : 1.2, py: 0.9,
+                                        px: collapsed ? 0 : 1.2,
+                                        height: 37,
                                         justifyContent: collapsed ? 'center' : 'flex-start',
-                                        borderRadius: 2, cursor: 'pointer',
-                                        color: isActive ? 'primary.dark' : 'text.secondary',
-                                        bgcolor: isActive ? 'rgba(124,167,224,0.20)' : 'transparent',
-                                        fontWeight: isActive ? 700 : 500,
+                                        borderRadius: '9px', cursor: 'pointer',
+                                        color: isActive ? PALETTE.primary : '#5B6573',
+                                        bgcolor: isActive ? PALETTE.primarySoft : 'transparent',
+                                        fontWeight: isActive ? 600 : 500,
                                         transition: 'background-color .15s ease, color .15s ease',
                                         '&:hover': {
-                                            bgcolor: isActive ? 'rgba(124,167,224,0.26)' : 'rgba(124,167,224,0.10)',
-                                            color: 'primary.dark',
+                                            bgcolor: isActive ? PALETTE.primarySoft : 'rgba(45,139,168,0.06)',
+                                            color: PALETTE.primary,
                                         },
                                     }}
                                 >
-                                    <Icon fontSize="small" />
+                                    <Icon sx={{ fontSize: 20 }} />
                                     {!collapsed && (
                                         <Typography sx={{
-                                            fontSize: '0.8rem', fontWeight: 'inherit',
+                                            fontSize: '0.84rem', fontWeight: 'inherit',
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
                                             {label}
@@ -234,15 +244,11 @@ function TabbedHome() {
 
             {/* ===== 우측 — Tab 헤더 + 콘텐츠 ===== */}
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                {/* Tab 헤더 — 글래스 보드 + 입체 탭 칩 */}
+                {/* Tab 헤더 — A시안: 회색 베이스 + 흰 활성 탭 + 상단 티얼 인디케이터 */}
                 <Box sx={{
                     flex: '0 0 auto',
-                    px: 1, pt: 0.9,
-                    bgcolor: 'rgba(255,255,255,0.52)',
-                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                    borderBottom: '1px solid', borderColor: 'divider',
-                    boxShadow: '0 6px 16px -10px rgba(58,74,99,0.30), '
-                             + '0 1px 0 rgba(255,255,255,0.75) inset',
+                    px: 1, pt: '4px',
+                    bgcolor: '#EEF0F3',
                     display: 'flex', alignItems: 'flex-end',
                 }}>
                     <Tabs
@@ -252,63 +258,76 @@ function TabbedHome() {
                         scrollButtons="auto"
                         sx={{
                             flex: 1, minWidth: 0,
-                            minHeight: 38,
-                            // 입체 탭이라 하단 인디케이터 라인은 숨김
+                            minHeight: 33,
                             '& .MuiTabs-indicator': { display: 'none' },
                             '& .MuiTab-root': {
-                                minHeight: 34, py: 0, px: 1.8, mr: 0.6,
+                                minHeight: 33, py: 0, px: 1.8, mr: 0.4,
                                 borderRadius: '9px 9px 0 0',
-                                border: '1px solid rgba(124,167,224,0.30)',
-                                borderBottom: 'none',
-                                bgcolor: 'rgba(255,255,255,0.42)',
-                                boxShadow: '0 -1px 0 rgba(255,255,255,0.5) inset',
-                                transition: 'all .15s ease',
-                                '&:hover': { bgcolor: 'rgba(255,255,255,0.68)' },
+                                border: 'none',
+                                bgcolor: 'transparent',
+                                color: PALETTE.textSecondary,
+                                fontSize: '0.78rem', fontWeight: 500,
+                                transition: 'background-color .15s ease, color .15s ease',
+                                '&:hover': {
+                                    bgcolor: 'rgba(255,255,255,0.55)',
+                                    color: PALETTE.textPrimary,
+                                },
                             },
-                            // 활성 탭 — 보드 위로 솟은 입체감
+                            // 활성 탭 — A시안: 흰 배경 + 상단 2px 티얼 인디케이터
                             '& .MuiTab-root.Mui-selected': {
-                                color: 'primary.dark',
-                                bgcolor: 'rgba(255,255,255,0.94)',
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 -4px 12px -3px rgba(58,74,99,0.22), '
-                                         + '0 1px 0 rgba(255,255,255,0.95) inset',
+                                color: PALETTE.textPrimary,
+                                bgcolor: '#FFFFFF',
+                                fontWeight: 600,
+                                boxShadow: `inset 0 2px 0 ${PALETTE.primary}`,
                             },
                         }}
                     >
                         {openTabs.map((key) => {
                             const m = findMenu(key);
                             if (!m) return null;
-                            const isLast = openTabs.length === 1;
+                            const isLast   = openTabs.length === 1;
+                            const isActive = activeKey === key;
+                            const TabIcon  = m.Icon;
+                            // A시안: 활성 탭은 X 숨김 (마지막 탭도 X 숨김), 비활성 탭은 X 표시
+                            const showClose = !isActive && !isLast;
                             return (
                                 <Tab
                                     key={key}
                                     value={key}
                                     label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <TabIcon sx={{
+                                                fontSize: 16,
+                                                color: isActive ? PALETTE.primary : '#A6AEB8',
+                                            }} />
                                             <span>{t(m.labelKey)}</span>
-                                            <IconButton
-                                                component="div"
-                                                role="button"
-                                                tabIndex={0}
-                                                size="small"
-                                                disabled={isLast}
-                                                onClick={(e) => { e.stopPropagation(); closeTab(key); }}
-                                                sx={{
-                                                    p: 0.2, ml: 0.5,
-                                                    visibility: isLast ? 'hidden' : 'visible',
-                                                    '&:hover': { bgcolor: 'rgba(124,167,224,0.18)' },
-                                                }}
-                                            >
-                                                <CloseIcon sx={{ fontSize: 14 }} />
-                                            </IconButton>
+                                            {showClose && (
+                                                <IconButton
+                                                    component="div"
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    size="small"
+                                                    onClick={(e) => { e.stopPropagation(); closeTab(key); }}
+                                                    sx={{
+                                                        p: 0.2, ml: 0.3,
+                                                        color: '#9AA3AF',
+                                                        '&:hover': {
+                                                            bgcolor: 'rgba(45,139,168,0.12)',
+                                                            color: PALETTE.primary,
+                                                        },
+                                                    }}
+                                                >
+                                                    <CloseIcon sx={{ fontSize: 14 }} />
+                                                </IconButton>
+                                            )}
                                         </Box>
                                     }
                                 />
                             );
                         })}
                     </Tabs>
-                    <Box sx={{ flex: '0 0 auto', pb: 0.6 }}>
-                        <LanguageSwitcher />
+                    <Box sx={{ flex: '0 0 auto', pl: 2.5, pr: 2, alignSelf: 'center' }}>
+                        <LanguageSwitcher variant="chip" />
                     </Box>
                 </Box>
 

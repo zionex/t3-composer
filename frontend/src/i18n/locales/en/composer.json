@@ -1,7 +1,15 @@
 {
   "landing": {
     "title": "T³Composer",
-    "subtitle": "AI-powered Screen Generation"
+    "subtitle": "AI-powered Screen Generation",
+    "heroTitle": "What would you like to build?",
+    "heroDesc": "Create a new screen or modify an existing one.",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "Various Inputs",
+      "mid": "ScreenSpec",
+      "output": "Screen Artifact"
+    }
   },
   "category": {
     "newDev": "New Development",

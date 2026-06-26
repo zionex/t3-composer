@@ -1,7 +1,15 @@
 {
   "landing": {
     "title": "T³Composer",
-    "subtitle": "基於 AI 的畫面自動生成"
+    "subtitle": "基於 AI 的畫面自動生成",
+    "heroTitle": "您想建立什麼?",
+    "heroDesc": "建立新畫面或修改既有畫面。",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "多種輸入",
+      "mid": "ScreenSpec",
+      "output": "畫面產物"
+    }
   },
   "category": {
     "newDev": "新增開發",

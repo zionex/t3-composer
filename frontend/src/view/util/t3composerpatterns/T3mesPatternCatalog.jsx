@@ -36,6 +36,8 @@ import ClearIcon      from '@mui/icons-material/Clear';
 import DashboardIcon  from '@mui/icons-material/Dashboard';
 
 import { ContentInner, WorkArea } from '@wingui/common/imports';
+import PageHeader from '../t3composer/PageHeader';
+import { PALETTE } from '../../../theme';
 
 import tabsByFile from './_data/t3mes-tabs.json';
 import tabLabelEn from './_data/tab-label-en.json';
@@ -387,67 +389,35 @@ function T3mesPatternCatalog() {
   // ─── 카탈로그 뷰 ───
   return (
     <ContentInner>
+      <PageHeader
+        title={t('common:app.menu.uiPattern')}
+        caption={t('common:app.menuHint.uiPattern')}
+        right={
+          <Stack direction="row" spacing={1}>
+            {[
+              { label: t('uiPattern.stats.total'), val: stats.total },
+              { label: 'MES',                      val: stats.byMes },
+              { label: 'SCM',                      val: stats.byScm },
+              { label: t('uiPattern.stats.files'), val: stats.fileCount },
+            ].map((s) => (
+              <Box key={s.label} sx={{
+                display: 'inline-flex', alignItems: 'center', gap: 0.6,
+                height: 26, px: 1.1, borderRadius: 1.2,
+                bgcolor: '#FFFFFF',
+                border: `1px solid ${PALETTE.panelBorder}`,
+                color: PALETTE.textSecondary,
+                fontSize: 11.5, fontWeight: 500,
+              }}>
+                <span style={{ color: PALETTE.textMuted, fontSize: 10.5 }}>{s.label}</span>
+                <span style={{ color: PALETTE.primary, fontWeight: 700 }}>{s.val}</span>
+              </Box>
+            ))}
+          </Stack>
+        }
+      />
       <WorkArea>
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
                    bgcolor: 'transparent', p: 1.2, gap: 1.2 }}>
-
-          {/* Hero — 파스텔 글래스 */}
-          <Paper elevation={0} sx={{
-            p: 2, borderRadius: 3, flexShrink: 0, position: 'relative', overflow: 'hidden',
-            background: 'linear-gradient(135deg, rgba(169,199,238,0.62) 0%, '
-                      + 'rgba(143,196,212,0.42) 52%, rgba(157,143,212,0.42) 100%)',
-            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-            border: '1px solid rgba(255,255,255,0.65)',
-            boxShadow: '0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 24px -10px rgba(58,74,99,0.26)',
-            color: '#3A4A63',
-          }}>
-            <Box sx={{ position: 'absolute', top: -40, right: -20, width: 200, height: 200,
-                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.30)' }} />
-            <Box sx={{ position: 'absolute', bottom: -50, left: 100, width: 180, height: 180,
-                       borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.16)' }} />
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'relative' }}>
-              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.78)', color: '#5683C0',
-                            width: 56, height: 56,
-                            border: '1px solid rgba(255,255,255,0.85)',
-                            boxShadow: '0 4px 12px -4px rgba(58,74,99,0.30)' }}>
-                <DashboardIcon sx={{ fontSize: 30 }} />
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: '#3A4A63',
-                                               textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}>
-                  {t('uiPattern.heroTitle')}
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#5A6B85', mt: 0.3 }}>
-                  {t('uiPattern.heroSubtitle')}
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={1}>
-                {[
-                  { label: t('uiPattern.stats.total'),  val: stats.total },
-                  { label: 'MES',                       val: stats.byMes },
-                  { label: 'SCM',                       val: stats.byScm },
-                  { label: t('uiPattern.stats.files'),  val: stats.fileCount },
-                ].map((s) => (
-                  <Box key={s.label} sx={{
-                    minWidth: 86, textAlign: 'center',
-                    bgcolor: 'rgba(255,255,255,0.55)',
-                    backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255,255,255,0.70)',
-                    boxShadow: '0 2px 8px -5px rgba(58,74,99,0.22)',
-                    borderRadius: 2, px: 1.2, py: 0.8,
-                  }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#5A6B85' }}>
-                      {s.label}
-                    </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 0.2,
-                                                   color: '#3A4A63' }}>
-                      {s.val}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </Stack>
-          </Paper>
 
           {/* Toolbar — 파스텔 글래스 */}
           <Paper elevation={0} sx={{

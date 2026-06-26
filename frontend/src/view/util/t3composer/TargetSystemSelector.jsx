@@ -67,11 +67,11 @@ export default function TargetSystemSelector({ darkMode = true }) {
   const current = getCurrentTarget();
   const label   = current?.targetName || (loading ? t('targetSystem.loading') : t('targetSystem.pickTarget'));
 
-  const onDark = darkMode;
-  const bg     = onDark ? 'rgba(255,255,255,0.18)' : 'rgba(67,56,202,0.08)';
-  const border = onDark ? 'rgba(255,255,255,0.32)' : 'rgba(67,56,202,0.32)';
-  const color  = onDark ? '#fff' : '#4338ca';
-  const hover  = onDark ? 'rgba(255,255,255,0.28)' : 'rgba(67,56,202,0.14)';
+  // A시안 .chip 룩 — 흰 배경 + #ECEEF1 보더 + #4B5563 텍스트. darkMode prop 은 deprecated.
+  const bg     = '#FFFFFF';
+  const border = '#ECEEF1';
+  const color  = '#4B5563';
+  const hover  = '#F7FAFB';
 
   const snapChip = (st) => {
     if (!st) return null;
@@ -106,21 +106,24 @@ export default function TargetSystemSelector({ darkMode = true }) {
           disabled={loading || targets.length === 0}
           onClick={openMenu}
           icon={loading
-            ? <CircularProgress size={12} sx={{ ml: 0.6, color: color + '!important' }} />
-            : <LanguageIcon sx={{ fontSize: 14, color: color + '!important' }} />}
+            ? <CircularProgress size={14} sx={{ ml: 0.7, color: color + '!important' }} />
+            : <StorageIcon sx={{ fontSize: 16, color: color + '!important' }} />}
           label={label}
-          deleteIcon={<ExpandMoreIcon sx={{ fontSize: 14 }} />}
+          deleteIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} />}
           onDelete={openMenu}
           sx={{
-            height: 24,
-            fontSize: 11.5,
-            fontWeight: 700,
+            height: 32,
+            borderRadius: '12px',
+            fontSize: 12.5,
+            fontWeight: 500,
             bgcolor: bg,
             border: `1px solid ${border}`,
             color,
-            backdropFilter: 'blur(8px)',
-            '& .MuiChip-deleteIcon': { color: color + '!important', mr: 0.3 },
-            '&:hover': { bgcolor: hover },
+            px: 0.4,
+            '& .MuiChip-icon':       { ml: 0.6, mr: -0.2 },
+            '& .MuiChip-label':      { px: 0.9 },
+            '& .MuiChip-deleteIcon': { color: color + '!important', mr: 0.4 },
+            '&:hover':               { bgcolor: hover, borderColor: '#CFE3EB' },
           }}
         />
       </Tooltip>

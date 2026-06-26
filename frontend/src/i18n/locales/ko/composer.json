@@ -1,7 +1,15 @@
 {
   "landing": {
     "title": "T³Composer",
-    "subtitle": "AI 기반 화면 자동 생성"
+    "subtitle": "AI 기반 화면 자동 생성",
+    "heroTitle": "무엇을 만드시겠어요?",
+    "heroDesc": "신규 화면을 생성하거나 기존 화면을 수정합니다.",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "다양한 입력",
+      "mid": "ScreenSpec",
+      "output": "화면 산출물"
+    }
   },
   "category": {
     "newDev": "신규 개발",

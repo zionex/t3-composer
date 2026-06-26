@@ -6,7 +6,6 @@ import {
   Box,
   Paper,
   Stack,
-  Typography,
   Button,
   IconButton,
   Chip,
@@ -35,10 +34,10 @@ import CheckCircleIcon   from '@mui/icons-material/CheckCircle';
 import ArchiveIcon       from '@mui/icons-material/Archive';
 import RestoreIcon       from '@mui/icons-material/Restore';
 import DeleteIcon        from '@mui/icons-material/Delete';
-import HistoryIcon       from '@mui/icons-material/History';
 import SearchIcon        from '@mui/icons-material/Search';
 
 import { ContentInner, WorkArea } from '@wingui/common/imports';
+import PageHeader from '../t3composer/PageHeader';
 
 import {
   listSessions,
@@ -53,10 +52,11 @@ const STATUS_FILTERS = [
   { value: 'ARCHIVED',  labelKey: 'history.filter.archived',  color: 'default' },
 ];
 
+// 상태 배지 — 옅은 톤 배경 + 진한 텍스트 (border 없는 soft chip)
 const STATUS_CHIP = {
-  ACTIVE:    { labelKey: 'history.status.active',    color: 'primary' },
-  COMPLETED: { labelKey: 'history.status.completed', color: 'success' },
-  ARCHIVED:  { labelKey: 'history.status.archived',  color: 'default' },
+  ACTIVE:    { labelKey: 'history.status.active',    sx: { bgcolor: '#dbeafe', color: '#1e40af' } },
+  COMPLETED: { labelKey: 'history.status.completed', sx: { bgcolor: '#dcfce7', color: '#15803d' } },
+  ARCHIVED:  { labelKey: 'history.status.archived',  sx: { bgcolor: '#f1f5f9', color: '#475569' } },
 };
 
 // Target System 별 색상 — 한눈에 어느 시스템 작업인지 구분
@@ -67,6 +67,26 @@ const TARGET_CHIP_SX = {
 };
 function targetChipSx(cd) {
   return TARGET_CHIP_SX[cd] || { bgcolor: '#f1f5f9', color: '#475569', borderColor: '#94a3b8' };
+}
+
+// 모델명 추출 — 'claude-opus-4-7' → 'Opus', 'claude-sonnet-4-6' → 'Sonnet' 등
+function modelLabel(name) {
+  if (!name) return null;
+  const s = String(name).toLowerCase();
+  if (s.includes('opus'))   return 'Opus';
+  if (s.includes('sonnet')) return 'Sonnet';
+  if (s.includes('haiku'))  return 'Haiku';
+  if (s.includes('fable'))  return 'Fable';
+  return name;
+}
+const MODEL_CHIP_SX = {
+  Opus:   { bgcolor: '#f3e8ff', color: '#6b21a8' },
+  Sonnet: { bgcolor: '#cffafe', color: '#0e7490' },
+  Haiku:  { bgcolor: '#fce7f3', color: '#9d174d' },
+  Fable:  { bgcolor: '#fef3c7', color: '#92400e' },
+};
+function modelChipSx(label) {
+  return MODEL_CHIP_SX[label] || { bgcolor: '#f1f5f9', color: '#475569' };
 }
 
 // 컴팩트 ISO 포맷 — yyyy-MM-dd HH:mm:ss (한 줄 표시, locale 무관 고정 폭)
@@ -175,67 +195,115 @@ function T3ComposerHistory() {
 
   return (
     <ContentInner>
+      <PageHeader
+        title={t('common:app.menu.history')}
+        caption={t('common:app.menuHint.history')}
+        right={(
+          <>
+            <ToggleButtonGroup
+              exclusive size="small"
+              value={filter}
+              onChange={(_, v) => { if (v) setFilter(v); }}
+              sx={{
+                '& .MuiToggleButton-root': {
+                  height: 28, textTransform: 'none', px: 1.2, fontSize: 12,
+                  border: '1px solid #ECEEF1',
+                  color: '#6B7280',
+                  '&.Mui-selected': {
+                    bgcolor: '#E8F2F6', color: '#1F6680',
+                    borderColor: '#CFE3EB',
+                    '&:hover': { bgcolor: '#E8F2F6' },
+                  },
+                },
+              }}
+            >
+              {STATUS_FILTERS.map((f) => (
+                <ToggleButton key={f.value} value={f.value}>
+                  {t(f.labelKey)}
+                  <Box component="span" sx={{ ml: 0.6, fontSize: 10.5, color: '#9AA3AF', fontWeight: 600 }}>
+                    {counts[f.value] ?? 0}
+                  </Box>
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+            <TextField
+              size="small"
+              placeholder={t('history.searchPlaceholder')}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: '#9AA3AF' }} />,
+                sx: { height: 28, fontSize: 12, bgcolor: '#FFFFFF' },
+              }}
+              sx={{
+                width: 240,
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#ECEEF1' },
+              }}
+            />
+            <Tooltip title={t('history.refresh')}>
+              <IconButton size="small" onClick={reload} disabled={loading}>
+                {loading ? <CircularProgress size={16} /> : <RefreshIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
+      />
       <WorkArea>
-        <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {/* Header */}
-          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <HistoryIcon color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {t('history.title')}
-              </Typography>
-              <Box sx={{ flex: 1 }} />
-              <TextField
-                size="small"
-                placeholder={t('history.searchPlaceholder')}
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                InputProps={{ startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} /> }}
-                sx={{ width: 280 }}
-              />
-              <Tooltip title={t('history.refresh')}>
-                <IconButton size="small" onClick={reload} disabled={loading}>
-                  {loading ? <CircularProgress size={18} /> : <RefreshIcon />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Stack direction="row" spacing={0} sx={{ mt: 1.2 }}>
-              <ToggleButtonGroup
-                exclusive size="small"
-                value={filter}
-                onChange={(_, v) => { if (v) setFilter(v); }}
+        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {error && <Alert severity="error" sx={{ borderRadius: 1 }}>{error}</Alert>}
+          {/* 단일 카드 — 그림자 없는 깔끔한 outline */}
+          <Paper
+            elevation={0}
+            sx={{
+              flex: 1, minHeight: 0,
+              borderRadius: '12px',
+              border: '1px solid #ECEEF1',
+              boxShadow: '0 1px 3px rgba(16,24,40,.04)',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            <TableContainer sx={{ flex: 1, minHeight: 0 }}>
+              <Table
+                stickyHeader size="small"
+                sx={{
+                  // 양쪽 여백 — 첫/마지막 셀에 24px, 중간은 12px
+                  '& thead th, & tbody td': { px: '12px' },
+                  '& thead th:first-of-type, & tbody td:first-of-type': { pl: '24px' },
+                  '& thead th:last-of-type,  & tbody td:last-of-type':  { pr: '24px' },
+                  // 행 보더 옅게
+                  '& tbody td':  { borderBottom: '1px solid #F0F1F4' },
+                  '& tbody tr:last-of-type td': { borderBottom: 'none' },
+                  // hover — 매우 옅은 회색
+                  '& tbody tr:hover': { bgcolor: '#F7F9FB' },
+                  // sticky 헤더 흰 배경 + 시안 톤
+                  '& thead th': {
+                    bgcolor: '#FFFFFF',
+                    color: '#9AA3AF',
+                    fontSize: 10.5, fontWeight: 600,
+                    letterSpacing: '0.05em', textTransform: 'uppercase',
+                    borderBottom: '1px solid #F0F1F4',
+                    py: 1.3,
+                  },
+                  // 본문 셀
+                  '& tbody td': {
+                    color: '#1A2330',
+                    fontSize: 13,
+                    py: 1.4,
+                  },
+                }}
               >
-                {STATUS_FILTERS.map((f) => (
-                  <ToggleButton key={f.value} value={f.value} sx={{ textTransform: 'none', px: 1.5 }}>
-                    {t(f.labelKey)}
-                    <Chip
-                      size="small" variant="outlined"
-                      label={counts[f.value] ?? 0}
-                      sx={{ ml: 0.8, height: 18, fontSize: 10 }}
-                    />
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-            </Stack>
-          </Paper>
-
-          {error && <Alert severity="error">{error}</Alert>}
-
-          {/* Table */}
-          <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, borderRadius: 2, overflow: 'hidden' }}>
-            <TableContainer sx={{ height: '100%' }}>
-              <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 700, width: 110, whiteSpace: 'nowrap' }}>{t('history.col.target')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90,  whiteSpace: 'nowrap' }}>{t('history.col.mode')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, minWidth: 240 }}>{t('history.col.title')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 180, whiteSpace: 'nowrap' }}>{t('history.col.menuCd')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 130, whiteSpace: 'nowrap' }}>{t('history.col.model')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90,  whiteSpace: 'nowrap' }}>{t('history.col.status')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 100, whiteSpace: 'nowrap', textAlign: 'right' }}>{t('history.col.tokens')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 170, whiteSpace: 'nowrap' }}>{t('history.col.createdAt')}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 280, whiteSpace: 'nowrap', textAlign: 'center' }}>{t('history.col.actions')}</TableCell>
+                    <TableCell sx={{ width: 110, whiteSpace: 'nowrap' }}>{t('history.col.target')}</TableCell>
+                    <TableCell sx={{ width: 90,  whiteSpace: 'nowrap' }}>{t('history.col.mode')}</TableCell>
+                    <TableCell sx={{ minWidth: 240 }}>{t('history.col.title')}</TableCell>
+                    <TableCell sx={{ width: 180, whiteSpace: 'nowrap' }}>{t('history.col.menuCd')}</TableCell>
+                    <TableCell sx={{ width: 130, whiteSpace: 'nowrap' }}>{t('history.col.model')}</TableCell>
+                    <TableCell sx={{ width: 90,  whiteSpace: 'nowrap' }}>{t('history.col.status')}</TableCell>
+                    <TableCell sx={{ width: 100, whiteSpace: 'nowrap', textAlign: 'right !important' }}>{t('history.col.tokens')}</TableCell>
+                    <TableCell sx={{ width: 170, whiteSpace: 'nowrap' }}>{t('history.col.createdAt')}</TableCell>
+                    <TableCell sx={{ width: 280, whiteSpace: 'nowrap', textAlign: 'center !important' }}>{t('history.col.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -286,11 +354,25 @@ function T3ComposerHistory() {
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>
                           {s.targetMenuCd || '-'}
                         </TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>
-                          {s.modelName || <Box component="span" sx={{ color: 'text.secondary' }}>default</Box>}
+                        <TableCell>
+                          {(() => {
+                            const ml = modelLabel(s.modelName);
+                            if (!ml) return <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>default</Box>;
+                            return (
+                              <Chip
+                                size="small"
+                                label={ml}
+                                sx={{ height: 22, fontWeight: 600, ...modelChipSx(ml) }}
+                              />
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
-                          <Chip size="small" label={t(chip.labelKey)} color={chip.color} sx={{ height: 22, fontWeight: 600 }} />
+                          <Chip
+                            size="small"
+                            label={t(chip.labelKey)}
+                            sx={{ height: 22, fontWeight: 600, ...chip.sx }}
+                          />
                         </TableCell>
                         <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 12 }}>
                           {tokens ? tokens.toLocaleString() : '-'}

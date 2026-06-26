@@ -10,21 +10,17 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
-  Avatar,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
 } from '@mui/material';
-import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
-import DescriptionIcon       from '@mui/icons-material/Description';
 import ContentCopyIcon       from '@mui/icons-material/ContentCopy';
 import ChatIcon              from '@mui/icons-material/Chat';
 import BorderColorIcon       from '@mui/icons-material/BorderColor';
 import AddCircleOutlineIcon  from '@mui/icons-material/AddCircleOutline';
-import SettingsIcon          from '@mui/icons-material/Settings';
-import CheckCircleIcon       from '@mui/icons-material/CheckCircle';
+import VpnKeyIcon            from '@mui/icons-material/VpnKey';
 import WarningAmberIcon      from '@mui/icons-material/WarningAmber';
 import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
@@ -47,8 +43,9 @@ import ModeNewStep       from './ModeNewStep';
 import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
+import PageHeader from './PageHeader';
 import { useTargetStore } from './targetStore';
-import { glassPanel } from '../../../theme';
+import { PALETTE } from '../../../theme';
 
 const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
@@ -64,316 +61,314 @@ const CATEGORY_NEW = {
   titleKey: 'category.newDev',
   subtitle: 'New Development',
   icon: AddCircleOutlineIcon,
-  accent: '#7CA7E0',
-  hint: '자연어 · 기존 화면 복사 · 설계서 기반으로 새 화면을 생성합니다',
+  isAccent: true,    // A시안: 신규 개발 카테고리 헤더는 티얼 강조
 };
 const CATEGORY_MODIFY = {
   key: 'MODIFY',
   titleKey: 'category.modifyExisting',
   subtitle: 'Modify Existing',
   icon: BorderColorIcon,
-  accent: '#E6C079',
-  hint: '기존 화면의 소스를 불러와 자연어 또는 단계별로 수정합니다',
+  isAccent: false,
 };
 
 // ===== 신규 개발 하위 카드 ===== (key = 진입 MODE)
 //
-// 2026-06-11: 9-Step Wizard (StepByStepWizard) 사용 모드는 진입점 숨김.
-//   · NEW_FROM_DESIGN 카드 제외 — 소스는 ModeNewFromDesign 으로 보존 (향후 부활 가능)
-//   · NEW_NL 모드 안의 "Step 별 선택 생성" 서브카드도 별도 제거 (ModeNewGeneral)
-//   현재 활성 진입: NL · 단계별 생성 (4-step) · 기존 화면 복사 (4-step).
+// 색상 토큰은 통합(티얼) — 모든 카드 동일 default + hover 시 티얼 강조.
 const NEW_MODE_OPTIONS = [
-  { key: MODE.NEW_NL,          step: 1, titleKey: 'mode.newNl.title',        subKey: 'mode.newNl.sub',        hintKey: 'mode.newNl.hint',        icon: ChatIcon,        color: '#8FC4D4' },
-  { key: MODE.NEW_STEP,        step: 2, titleKey: 'mode.newStep.title',      subKey: 'mode.newStep.sub',      hintKey: 'mode.newStep.hint',      icon: ViewQuiltIcon,   color: '#9D8FD4' },
-  { key: MODE.NEW_FROM_COPY,   step: 3, titleKey: 'mode.newFromCopy.title',  subKey: 'mode.newFromCopy.sub',  hintKey: 'mode.newFromCopy.hint',  icon: ContentCopyIcon, color: '#86C7A8' },
+  { key: MODE.NEW_NL,        titleKey: 'mode.newNl.title',       subKey: 'mode.newNl.sub',       hintKey: 'mode.newNl.hint',       icon: ChatIcon },
+  { key: MODE.NEW_STEP,      titleKey: 'mode.newStep.title',     subKey: 'mode.newStep.sub',     hintKey: 'mode.newStep.hint',     icon: ViewQuiltIcon },
+  { key: MODE.NEW_FROM_COPY, titleKey: 'mode.newFromCopy.title', subKey: 'mode.newFromCopy.sub', hintKey: 'mode.newFromCopy.hint', icon: ContentCopyIcon },
 ];
 
 // ===== 기존 화면 수정 하위 2종 ===== (key = ModeExistingModify 의 startWith)
 const MODIFY_MODE_OPTIONS = [
-  { key: 'NL',   step: 1, titleKey: 'mode.modifyNl.title',   subKey: 'mode.modifyNl.sub',   hintKey: 'mode.modifyNl.hint',   icon: ChatIcon,             color: '#8FC4D4' },
-  { key: 'STEP', step: 2, titleKey: 'mode.modifyStep.title', subKey: 'mode.modifyStep.sub', hintKey: 'mode.modifyStep.hint', icon: PlaylistAddCheckIcon, color: '#86C7A8' },
+  { key: 'NL',   titleKey: 'mode.modifyNl.title',   subKey: 'mode.modifyNl.sub',   hintKey: 'mode.modifyNl.hint',   icon: ChatIcon },
+  { key: 'STEP', titleKey: 'mode.modifyStep.title', subKey: 'mode.modifyStep.sub', hintKey: 'mode.modifyStep.hint', icon: PlaylistAddCheckIcon },
 ];
 
-/**
- * 입체 보더 스타일 (재사용).
- * theme 의 glassPanel(파스텔 글래스모피즘) 재사용.
- */
-function embossedPaper(accent, hovered = false) {
-  return { position: 'relative', ...glassPanel(accent, hovered) };
+// =====================================================================
+// 모드 선택 — A시안 (정돈된 2분할)
+//   상단 hero: 큰 타이틀 + 우측 chip 들 (Target / API Key / LLM / Settings)
+//   본문 2-grid: 좌(신규 개발 3개) / 우(기존 화면 수정 2개 + PIPELINE)
+//   - 흰 패널 + #ECEEF1 보더, 첫 카드(hot=true)는 #2d8ba8 강조
+// =====================================================================
+const TEAL          = PALETTE.primary;        // #2d8ba8
+const TEAL_SOFT     = PALETTE.primarySoft;    // #E8F2F6
+const TEAL_BORDER   = PALETTE.primaryBorder;  // #CFE3EB
+const PANEL_BORDER  = PALETTE.panelBorder;    // #ECEEF1
+const TXT_PRIMARY   = PALETTE.textPrimary;    // #1A2330
+const TXT_SECONDARY = PALETTE.textSecondary;  // #6B7280
+const TXT_MUTED     = PALETTE.textMuted;      // #9AA3AF
+
+// 패널 (흰 카드) — A시안의 .panel { border-radius: 12px; padding: 18px }
+function flatPanel(extra = {}) {
+  return {
+    bgcolor: '#ffffff',
+    border: `1px solid ${PANEL_BORDER}`,
+    borderRadius: '12px',
+    backdropFilter: 'none',
+    WebkitBackdropFilter: 'none',
+    boxShadow: '0 1px 3px rgba(16,24,40,.04)',
+    ...extra,
+  };
 }
 
-// =====================================================================
-// 모드 선택 — 통합 단일 화면
-//   상위 2 카테고리(신규 개발 / 기존 화면 수정) 를 클릭하면
-//   하위 모드 카드가 펼쳐지고, 하위 카드를 누르면 해당 모드로 진입.
-// =====================================================================
+// Eyebrow (작은 대문자 라벨) — A시안의 .ey { font-size:10px; letter-spacing:.09em; color:#9aa3af; font-weight:600 }
+const eyebrowSx = {
+  fontFamily: '"JetBrains Mono","Roboto Mono",monospace',
+  fontSize: 10,
+  fontWeight: 600,
+  letterSpacing: '0.09em',
+  color: TXT_MUTED,
+  textTransform: 'uppercase',
+  lineHeight: 1.2,
+};
+
 function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend }) {
   const { t } = useTranslation('composer');
   const [hovered, setHovered] = useState(null);
 
+  // 신규 개발 / 기존 화면 수정 카드 렌더 — A시안 .act { padding:13px; gap:14px; border-radius:11px }
+  // hover 시에만 티얼 강조 (시안의 초록 보더는 hover 상태)
+  const renderCard = (cat, opt) => {
+    const Icon = opt.icon;
+    const key  = `${cat.key}-${opt.key}`;
+    const isHover = hovered === key;
+    return (
+      <Paper
+        key={opt.key}
+        elevation={0}
+        onClick={() => onPickMode(cat.key, opt.key)}
+        onMouseEnter={() => setHovered(key)}
+        onMouseLeave={() => setHovered(null)}
+        sx={{
+          bgcolor: '#ffffff',
+          border: `1px solid ${isHover ? TEAL : PANEL_BORDER}`,
+          borderRadius: '11px',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+          boxShadow: isHover
+            ? `0 0 0 1px ${TEAL}, 0 6px 16px rgba(45,139,168,.13)`
+            : '0 1px 2px rgba(16,24,40,.03)',
+          cursor: 'pointer',
+          transition: 'box-shadow .18s ease, border-color .18s ease',
+          p: '20px',
+          display: 'flex', alignItems: 'center', gap: '16px',
+          flex: 1, minHeight: 112,
+        }}
+      >
+        <Box sx={{
+          width: 38, height: 38, flexShrink: 0,
+          borderRadius: '10px',
+          bgcolor: TEAL_SOFT, color: TEAL,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon sx={{ fontSize: 21 }} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={eyebrowSx}>{t(opt.subKey)}</Typography>
+          <Typography sx={{
+            color: TXT_PRIMARY, fontSize: 14, fontWeight: 700, lineHeight: 1.3, mt: 0.3,
+          }}>
+            {t(opt.titleKey)}
+          </Typography>
+          <Typography sx={{
+            color: TXT_SECONDARY, fontSize: 12.5, lineHeight: 1.5, mt: 0.3,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {t(opt.hintKey)}
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  };
+
+  // A시안 .chip 룩 — 흰 배경 + 회색 보더
+  const chipBase = {
+    display: 'inline-flex', alignItems: 'center', gap: 0.7,
+    height: 32, px: 1.4, borderRadius: 1.5,
+    bgcolor: '#FFFFFF',
+    border: `1px solid ${PANEL_BORDER}`,
+    color: '#4B5563',
+    fontSize: 12.5, fontWeight: 500,
+    transition: 'background-color .15s, border-color .15s, color .15s',
+  };
+
   return (
     <Box sx={{
       flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-      bgcolor: 'transparent',
-      backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(124,167,224,0.14), transparent 55%), radial-gradient(circle at 80% 100%, rgba(230,192,121,0.12), transparent 55%)',
-      p: 2, gap: 2, overflow: 'auto',
+      bgcolor: '#F6F7F9',                  // A시안 main 배경
+      overflow: 'auto',
     }}>
-      {/* ===== Hero ===== */}
-      <Paper
-        elevation={0}
-        sx={{
-          ...embossedPaper('#7CA7E0'),
-          flexShrink: 0,
-          overflow: 'hidden',
-          background: 'linear-gradient(135deg, rgba(169,199,238,0.55) 0%, rgba(157,180,212,0.50) 55%, rgba(183,174,221,0.50) 100%)',
-          color: '#3A4A63',
-          px: 3, py: 2,
-        }}
-      >
-        <Box sx={{ position: 'absolute', top: -30, right: -10, width: 140, height: 140,
-                   borderRadius: '50%', bgcolor: 'rgba(124,167,224,0.18)' }} />
-        <Box sx={{ position: 'absolute', bottom: -40, left: 140, width: 120, height: 120,
-                   borderRadius: '50%', bgcolor: 'rgba(124,167,224,0.12)' }} />
+      {/* ===== 공통 PageHeader — title + AI 뱃지 + 캡션 / 우측 chip 들 ===== */}
+      <PageHeader
+        title="Composer"
+        badge="AI"
+        caption={t('landing.subtitle')}
+        right={
+          <>
+            <TargetSystemSelector />
 
-        <Stack direction="row" alignItems="center" spacing={0.8} sx={{ position: 'relative' }}>
-          <Avatar sx={{
-            bgcolor: 'rgba(255,255,255,0.60)', color: '#5683C0',
-            width: 50, height: 50, border: '2px solid rgba(255,255,255,0.75)',
-            boxShadow: '0 4px 14px -4px rgba(58,74,99,0.25)',
-          }}>
-            <AutoAwesomeIcon sx={{ fontSize: 26 }} />
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Tooltip title="AI 화면 생성기 — 신규 개발 또는 기존 화면 수정을 선택하세요">
-                <Typography variant="h4" sx={{ lineHeight: 1.1, letterSpacing: -0.5, cursor: 'default' }}>
-                  {t('landing.title')}
-                </Typography>
-              </Tooltip>
-              <Chip label="AI" size="small" sx={{
-                height: 19, fontSize: 10, fontWeight: 800,
-                bgcolor: 'rgba(124,167,224,0.30)', color: '#5683C0',
-                border: '1px solid rgba(124,167,224,0.45)',
-              }} />
-            </Stack>
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.2, display: 'block' }}>
-              {t('landing.subtitle')}
-            </Typography>
-          </Box>
-
-          <TargetSystemSelector />
-
-          <Tooltip title={apiKeyRegistered ? t('header.apiKey.registeredTooltip') : t('header.apiKey.unregisteredTooltip')}>
-            <Box
-              onClick={onOpenSettings}
-              sx={{
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                px: 1.2, py: 0.6, borderRadius: 5,
-                bgcolor: apiKeyRegistered ? 'rgba(110,200,160,0.55)' : 'rgba(245,180,90,0.62)',
-                border: `1px solid ${apiKeyRegistered ? 'rgba(80,170,130,0.85)' : 'rgba(220,150,55,0.85)'}`,
-                boxShadow: apiKeyRegistered
-                  ? '0 2px 6px -2px rgba(80,170,130,0.45), 0 1px 0 rgba(255,255,255,0.55) inset'
-                  : '0 2px 6px -2px rgba(220,150,55,0.50), 0 1px 0 rgba(255,255,255,0.55) inset',
-                backdropFilter: 'blur(8px)',
-                transition: 'all 0.2s',
-                '&:hover': { transform: 'scale(1.03)' },
-              }}
-            >
-              {apiKeyRegistered
-                ? <CheckCircleIcon sx={{ fontSize: 16, color: '#1F6B49' }} />
-                : <WarningAmberIcon sx={{ fontSize: 16, color: '#8A5410' }} />}
-              <Typography variant="caption" sx={{ fontWeight: 700, color: apiKeyRegistered ? '#1F6B49' : '#7A4A0E' }}>
+            <Tooltip title={apiKeyRegistered ? t('header.apiKey.registeredTooltip') : t('header.apiKey.unregisteredTooltip')}>
+              <Box
+                onClick={onOpenSettings}
+                sx={{
+                  ...chipBase,
+                  cursor: 'pointer',
+                  bgcolor: apiKeyRegistered ? '#F0F9F3' : '#FDF2E0',
+                  border: `1px solid ${apiKeyRegistered ? '#BFE3CD' : '#F4D9A3'}`,
+                  color:   apiKeyRegistered ? '#157347' : '#B76E00',
+                  fontWeight: 600,
+                  '&:hover': { filter: 'brightness(0.98)' },
+                }}
+              >
+                {apiKeyRegistered
+                  ? <VpnKeyIcon sx={{ fontSize: 15 }} />
+                  : <WarningAmberIcon sx={{ fontSize: 16 }} />}
                 {apiKeyRegistered ? t('header.apiKey.registeredLabel') : t('header.apiKey.unregisteredLabel')}
-              </Typography>
-            </Box>
-          </Tooltip>
+              </Box>
+            </Tooltip>
 
-          {/* LLM Backend 모드 칩 — .env 의 LLM_BACKEND 값. cli=구독 OAuth, api=HTTP API */}
-          <Tooltip title={
-            llmBackend === 'cli'
-              ? t('header.llmBackend.cliTooltip')
-              : t('header.llmBackend.apiTooltip')
-          }>
-            <Box
-              sx={{
-                display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                px: 1.2, py: 0.6, borderRadius: 5,
-                bgcolor: llmBackend === 'cli' ? 'rgba(150,125,225,0.55)' : 'rgba(100,175,215,0.55)',
-                border: `1px solid ${llmBackend === 'cli' ? 'rgba(120,95,200,0.85)' : 'rgba(70,150,195,0.85)'}`,
-                boxShadow: llmBackend === 'cli'
-                  ? '0 2px 6px -2px rgba(120,95,200,0.45), 0 1px 0 rgba(255,255,255,0.55) inset'
-                  : '0 2px 6px -2px rgba(70,150,195,0.45), 0 1px 0 rgba(255,255,255,0.55) inset',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {llmBackend === 'cli'
-                ? <TerminalIcon sx={{ fontSize: 16, color: '#4A3580' }} />
-                : <CloudOutlinedIcon sx={{ fontSize: 16, color: '#1F5A78' }} />}
-              <Typography variant="caption" sx={{ fontWeight: 700, color: llmBackend === 'cli' ? '#4A3580' : '#1F5A78' }}>
+            <Tooltip title={
+              llmBackend === 'cli'
+                ? t('header.llmBackend.cliTooltip')
+                : t('header.llmBackend.apiTooltip')
+            }>
+              <Box sx={{
+                ...chipBase,
+                bgcolor: llmBackend === 'cli' ? '#F3EEFB' : TEAL_SOFT,
+                border: `1px solid ${llmBackend === 'cli' ? '#DCC9F2' : TEAL_BORDER}`,
+                color:   llmBackend === 'cli' ? '#7B5BD6' : TEAL,
+                fontWeight: 600,
+              }}>
+                {llmBackend === 'cli'
+                  ? <TerminalIcon sx={{ fontSize: 16 }} />
+                  : <CloudOutlinedIcon sx={{ fontSize: 16 }} />}
                 {llmBackend === 'cli' ? 'CLI' : 'API'}
-              </Typography>
-            </Box>
-          </Tooltip>
-          <Tooltip title={t('header.settings')}>
-            <IconButton size="small" onClick={onOpenSettings}
-                        sx={{ color: 'primary.dark', bgcolor: 'rgba(124,167,224,0.16)',
-                              '&:hover': { bgcolor: 'rgba(124,167,224,0.30)' } }}>
-              <SettingsIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Paper>
+              </Box>
+            </Tooltip>
+          </>
+        }
+      />
 
-      {/* ===== 좌(신규 개발 6) : 우(기존 화면 수정 4) Layer Board — 화면을 가득 채움 ===== */}
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', gap: 2 }}>
+      {/* ===== main 영역 — A시안 padding 24px + gap 20px ===== */}
+      <Box sx={{
+        flex: 1, minHeight: 0,
+        display: 'flex', flexDirection: 'column',
+        p: 3, gap: 2.5,
+      }}>
+      {/* ===== 무엇을 만드시겠어요? ===== */}
+      <Box sx={{ flexShrink: 0 }}>
+        <Typography sx={{
+          fontSize: 22, fontWeight: 800, color: TXT_PRIMARY,
+          letterSpacing: '-0.02em', lineHeight: 1.2,
+        }}>
+          {t('landing.heroTitle')}
+        </Typography>
+        <Typography sx={{
+          color: TXT_SECONDARY, fontSize: 12.5, lineHeight: 1.5, mt: 0.5,
+        }}>
+          {t('landing.heroDesc')}
+        </Typography>
+      </Box>
+
+      {/* ===== 2-grid: 신규 개발 / 기존 화면 수정 — 남은 세로 공간을 꽉 채움 ===== */}
+      <Box sx={{
+        flex: 1, minHeight: 0,
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5,
+      }}>
         {[
-          { cat: CATEGORY_NEW,    options: NEW_MODE_OPTIONS,    grow: 5 },
-          { cat: CATEGORY_MODIFY, options: MODIFY_MODE_OPTIONS, grow: 5 },
-        ].map(({ cat, options, grow }) => {
+          { cat: CATEGORY_NEW,    options: NEW_MODE_OPTIONS,    withPipeline: false },
+          { cat: CATEGORY_MODIFY, options: MODIFY_MODE_OPTIONS, withPipeline: true  },
+        ].map(({ cat, options, withPipeline }) => {
           const CatIcon = cat.icon;
           return (
             <Paper
               key={cat.key}
               elevation={0}
-              sx={{
-                ...embossedPaper(cat.accent),
-                flex: grow, minWidth: 0,
-                display: 'flex', flexDirection: 'column',
-                p: 1.6, gap: 1.2,
-                borderTop: `3px solid ${cat.accent}`,
-                borderRadius: '5px',
-              }}
+              sx={flatPanel({
+                p: '22px', display: 'flex', flexDirection: 'column', gap: '22px',
+                minHeight: 0,
+              })}
             >
-              {/* 보드 헤더 */}
-              <Stack direction="row" alignItems="center" spacing={1.2} sx={{ flexShrink: 0 }}>
-                <Avatar sx={{
-                  width: 38, height: 38,
-                  bgcolor: `${cat.accent}26`, color: cat.accent,
-                  border: `1px solid ${cat.accent}66`,
+              {/* 보드 헤더 — A시안 .colhead { gap:11px } */}
+              <Stack direction="row" alignItems="center" spacing="11px" sx={{ flexShrink: 0 }}>
+                <Box sx={{
+                  width: 38, height: 38, borderRadius: '10px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  bgcolor: cat.isAccent ? TEAL_SOFT : '#EEF0F3',
+                  color:   cat.isAccent ? TEAL      : '#7A828D',
                 }}>
-                  <CatIcon sx={{ fontSize: 20 }} />
-                </Avatar>
+                  <CatIcon sx={{ fontSize: 21 }} />
+                </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.15 }}>
-                    {t(cat.titleKey)}
-                  </Typography>
-                  <Typography variant="caption" sx={{
-                    color: cat.accent, fontWeight: 800, letterSpacing: 1.2,
-                    textTransform: 'uppercase', fontSize: 9.5,
+                  <Typography sx={eyebrowSx}>{cat.subtitle}</Typography>
+                  <Typography sx={{
+                    fontSize: 15, fontWeight: 700, color: TXT_PRIMARY,
+                    lineHeight: 1.25, mt: 0.2,
                   }}>
-                    {cat.subtitle}
+                    {t(cat.titleKey)}
                   </Typography>
                 </Box>
               </Stack>
 
-              {/* 하위 모드 카드 — 보드를 세로로 가득 채움 */}
-              <Stack spacing={1.2} sx={{ flex: 1, minHeight: 0 }}>
-                {options.map((opt) => {
-                  const Icon = opt.icon;
-                  const isHover = hovered === `${cat.key}-${opt.key}`;
-                  return (
-                    <Tooltip key={opt.key} title={t(opt.hintKey)} placement="top">
-                      <Paper
-                        elevation={0}
-                        onClick={() => onPickMode(cat.key, opt.key)}
-                        onMouseEnter={() => setHovered(`${cat.key}-${opt.key}`)}
-                        onMouseLeave={() => setHovered(null)}
-                        sx={{
-                          ...embossedPaper(opt.color, isHover),
-                          cursor: 'pointer', overflow: 'hidden',
-                          flex: 1, minHeight: 92,
-                          display: 'flex', alignItems: 'stretch',
-                          transform: isHover ? 'translateX(3px)' : 'none',
-                        }}
-                      >
-                        {/* 좌측 컬러 바 */}
-                        <Box sx={{
-                          width: 7, flexShrink: 0,
-                          background: `linear-gradient(180deg, ${opt.color} 0%, ${opt.color}aa 100%)`,
-                        }} />
-                        {/* 카드 본문 — 가로 배치 */}
-                        <Box sx={{
-                          flex: 1, minWidth: 0,
-                          display: 'flex', alignItems: 'center', gap: 1.8,
-                          px: 2, py: 1.2,
-                        }}>
-                          <Avatar sx={{
-                            width: 48, height: 48, flexShrink: 0,
-                            bgcolor: `${opt.color}14`, color: opt.color,
-                            border: `2px solid ${opt.color}33`,
-                            boxShadow: `0 5px 14px -4px ${opt.color}55, 0 1px 0 rgba(255,255,255,0.9) inset`,
-                          }}>
-                            <Icon sx={{ fontSize: 26 }} />
-                          </Avatar>
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="caption" sx={{
-                              color: opt.color, fontWeight: 800, letterSpacing: 1.2,
-                              textTransform: 'uppercase', fontSize: 9.5,
-                            }}>
-                              {t(opt.subKey)}
-                            </Typography>
-                            <Typography variant="h6" sx={{ color: 'text.primary', lineHeight: 1.2 }}>
-                              {t(opt.titleKey)}
-                            </Typography>
-                            <Typography variant="caption" sx={{
-                              color: 'text.secondary', mt: 0.2,
-                              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}>
-                              {t(opt.hintKey)}
-                            </Typography>
-                          </Box>
-                          <Stack direction="row" alignItems="center" spacing={0.4} sx={{
-                            flexShrink: 0, color: opt.color, fontWeight: 700, fontSize: 13,
-                          }}>
-                            시작
-                            <ArrowForwardIcon fontSize="small" />
-                          </Stack>
-                        </Box>
-                      </Paper>
-                    </Tooltip>
-                  );
-                })}
-                {/* 부족한 단 — 기존 화면 수정 보드 3단 빈 영역에 ScreenSpec 개념도 삽입 */}
-                {Array.from({ length: Math.max(0, 3 - options.length) }).map((_, i) => (
-                  <Box key={`spacer-${i}`} sx={{ flex: 1, minHeight: 92, display: 'flex' }}>
-                    {cat.key === CATEGORY_MODIFY.key && (
+              {/* 카드 적층 — 남은 세로 공간 채우기 (각 카드 flex:1 균등 분배) */}
+              <Stack spacing="14px" sx={{ flex: 1, minHeight: 0 }}>
+                {options.map((opt) => renderCard(cat, opt))}
+
+                {/* 기존 화면 수정 패널 — 하단 PIPELINE 다이어그램 (카드들과 동일 높이로 stretch) */}
+                {withPipeline && (
+                  <Box sx={{
+                    flex: 1, minHeight: 0,
+                    display: 'flex', flexDirection: 'column',
+                  }}>
+                    <Typography sx={{ ...eyebrowSx, mb: '8px', flexShrink: 0 }}>
+                      {t('landing.pipeline.eyebrow')}
+                    </Typography>
+                    <Box sx={{
+                      flex: 1, minHeight: 0,
+                      display: 'flex', alignItems: 'stretch', gap: '12px',
+                      bgcolor: '#F7F9FB',
+                      border: `1px dashed ${TEAL_BORDER}`,
+                      borderRadius: '10px',
+                      p: '16px',
+                    }}>
                       <Box sx={{
-                        flex: 1, minWidth: 0, minHeight: 0,
-                        display: 'flex', flexDirection: 'column', gap: 0.6,
-                        p: 1.4, borderRadius: 2,
-                        bgcolor: 'rgba(255,255,255,0.6)',
-                        border: `1px solid ${cat.accent}3a`,
-                        boxShadow: '0 1px 0 rgba(255,255,255,0.85) inset, '
-                                 + '0 6px 16px -12px rgba(58,74,99,0.30)',
-                      }}>
-                        <Box sx={{
-                          flex: 1, minHeight: 0, width: '100%',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <Box
-                            component="img"
-                            src="/t3composer-concept.png"
-                            alt={t('conceptDiagram.alt')}
-                            sx={{ maxWidth: '100%', maxHeight: '100%',
-                                  objectFit: 'contain', display: 'block',
-                                  opacity: 0.4 }}
-                          />
-                        </Box>
-                        <Typography variant="caption" sx={{
-                          flexShrink: 0, textAlign: 'center',
-                          color: 'text.secondary', fontSize: 9.5, letterSpacing: 0.2,
-                        }}>
-                          {t('conceptDiagram.caption')}
-                        </Typography>
+                        flex: 1, fontSize: 13.5, fontWeight: 600,
+                        color: TXT_SECONDARY,
+                        bgcolor: '#ffffff', border: `1px solid ${PANEL_BORDER}`,
+                        borderRadius: '9px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>{t('landing.pipeline.input')}</Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <ArrowForwardIcon sx={{ fontSize: 22, color: '#B6BFC7' }} />
                       </Box>
-                    )}
+                      <Box sx={{
+                        flex: 1, fontSize: 13.5, fontWeight: 700,
+                        color: TEAL,
+                        bgcolor: TEAL_SOFT, border: `1px solid ${TEAL_BORDER}`,
+                        borderRadius: '9px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>{t('landing.pipeline.mid')}</Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <ArrowForwardIcon sx={{ fontSize: 22, color: '#B6BFC7' }} />
+                      </Box>
+                      <Box sx={{
+                        flex: 1, fontSize: 13.5, fontWeight: 600,
+                        color: TXT_SECONDARY,
+                        bgcolor: '#ffffff', border: `1px solid ${PANEL_BORDER}`,
+                        borderRadius: '9px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>{t('landing.pipeline.output')}</Box>
+                    </Box>
                   </Box>
-                ))}
+                )}
               </Stack>
             </Paper>
           );
         })}
+      </Box>
       </Box>
     </Box>
   );

@@ -1,7 +1,15 @@
 {
   "landing": {
     "title": "T³Composer",
-    "subtitle": "AI ベースの画面自動生成"
+    "subtitle": "AI ベースの画面自動生成",
+    "heroTitle": "何を作りますか?",
+    "heroDesc": "新規画面を生成、または既存画面を修正します。",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "多様な入力",
+      "mid": "ScreenSpec",
+      "output": "画面成果物"
+    }
   },
   "category": {
     "newDev": "新規開発",

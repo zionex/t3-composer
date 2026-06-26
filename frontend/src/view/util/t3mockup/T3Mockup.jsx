@@ -15,6 +15,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { ContentInner } from '@wingui/common/imports';
+import PageHeader from '../t3composer/PageHeader';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
 import MockupPressPreview from './MockupPressPreview';
 import mockupLabelEn from './_data/mockup-label-en.json';
@@ -161,13 +162,10 @@ export default function T3Mockup() {
   // 인덱스 화면
   return (
     <ContentInner>
-      {/* 헤더 — 제목 + 부제 (간결) */}
-      <Box sx={{ px: 2, pt: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
-        <Stack direction="row" alignItems="baseline" spacing={1.5} flexWrap="wrap" rowGap={0.5}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>SCM UI Mockup</Typography>
-          <Typography variant="body2" color="text.secondary">{t('mockup.subtitle')}</Typography>
-        </Stack>
-      </Box>
+      <PageHeader
+        title={t('common:app.menu.scmUiMockup')}
+        caption={t('common:app.menuHint.scmUiMockup')}
+      />
 
       {/* 필터바 — 단일 줄 sticky (Product Line · Category · Layout · 검색 · view 모드 · 카운트) */}
       <Box sx={{

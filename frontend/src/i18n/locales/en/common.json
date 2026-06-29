@@ -6,7 +6,8 @@
       "scmUiMockup": "SCM UI Mockup",
       "uiPattern":   "UI Pattern",
       "ontology":    "Ontology",
-      "dashboard":   "Dashboard"
+      "dashboard":   "Dashboard",
+      "userGuide":   "User Guide"
     },
     "menuHint": {
       "composer":    "AI screen generation — Natural language / Copy / Design-based new or modify existing screens",

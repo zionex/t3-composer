@@ -6,7 +6,8 @@
       "scmUiMockup": "SCM UI 原型",
       "uiPattern":   "UI 模式",
       "ontology":    "本体",
-      "dashboard":   "仪表盘"
+      "dashboard":   "仪表盘",
+      "userGuide":   "用户指南"
     },
     "menuHint": {
       "composer":    "AI 画面生成 — 基于自然语言・复制・设计文档的新建 / 现有画面修改",

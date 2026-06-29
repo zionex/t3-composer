@@ -12,6 +12,7 @@ import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import SchemaOutlinedIcon from '@mui/icons-material/SchemaOutlined';
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
@@ -239,6 +240,46 @@ function TabbedHome() {
                             </Tooltip>
                         );
                     })}
+                </Box>
+
+                {/* 사이드바 하단 — 사용자 가이드 (T3Composer-User-Guide.html 새 창 열기) */}
+                <Box sx={{
+                    flexShrink: 0,
+                    borderTop: `1px solid ${PALETTE.panelBorder}`,
+                    py: 1, px: collapsed ? 0.6 : 1,
+                }}>
+                    <Tooltip title={collapsed ? t('app.menu.userGuide', '사용자 가이드') : ''} placement="right">
+                        <Box
+                            component="a"
+                            href="/T3Composer-User-Guide.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                display: 'flex', alignItems: 'center', gap: 1.2,
+                                px: collapsed ? 0 : 1.2,
+                                height: 37,
+                                justifyContent: collapsed ? 'center' : 'flex-start',
+                                borderRadius: '9px', cursor: 'pointer',
+                                color: '#5B6573', textDecoration: 'none',
+                                fontWeight: 500,
+                                transition: 'background-color .15s ease, color .15s ease',
+                                '&:hover': {
+                                    bgcolor: 'rgba(45,139,168,0.06)',
+                                    color: PALETTE.primary,
+                                },
+                            }}
+                        >
+                            <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />
+                            {!collapsed && (
+                                <Typography sx={{
+                                    fontSize: '0.84rem', fontWeight: 'inherit',
+                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                }}>
+                                    {t('app.menu.userGuide', '사용자 가이드')}
+                                </Typography>
+                            )}
+                        </Box>
+                    </Tooltip>
                 </Box>
             </Box>
 

@@ -6,7 +6,8 @@
       "scmUiMockup": "SCM UI Mockup",
       "uiPattern":   "UI Pattern",
       "ontology":    "Ontology",
-      "dashboard":   "Dashboard"
+      "dashboard":   "Dashboard",
+      "userGuide":   "사용자 가이드"
     },
     "menuHint": {
       "composer":    "AI 화면 생성 — 자연어·복사·설계서 기반 신규 / 기존 화면 수정",

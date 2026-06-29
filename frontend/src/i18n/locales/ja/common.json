@@ -6,7 +6,8 @@
       "scmUiMockup": "SCM UI モックアップ",
       "uiPattern":   "UI パターン",
       "ontology":    "オントロジー",
-      "dashboard":   "ダッシュボード"
+      "dashboard":   "ダッシュボード",
+      "userGuide":   "ユーザーガイド"
     },
     "menuHint": {
       "composer":    "AI 画面生成 — 自然言語・コピー・設計書ベースで新規 / 既存画面の修正",

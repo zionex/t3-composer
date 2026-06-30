@@ -354,9 +354,14 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             // eslint-disable-next-line no-console
             console.info('[PreviewEmbed] iframe setup 진입 · targetCd=' + (targetCd || '(없음)')
                        + ' · CSS link inject 시작');
+            // 매 setup 마다 cache-buster — 브라우저 캐시에 깨진/빈 응답이 박혀
+            //   계속 같은 응답을 가져오는 사고 회피 (2026-06-30). CSS link 와 UMD fetch 둘 다 적용.
+            const cacheBust = '_=' + Date.now();
             let cssOutcome = 'unknown';
             try {
-                const url = '/composer/preview/css' + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
+                const url = '/composer/preview/css'
+                          + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) + '&' + cacheBust
+                                      : '?' + cacheBust);
                 const linkEl = doc.createElement('link');
                 linkEl.setAttribute('data-preview-bundle', 'true');
                 linkEl.rel = 'stylesheet';
@@ -409,9 +414,12 @@ function PreviewIframe({ Component, targetCd, onReport }) {
             //   license check 발동. window.realGrid2Lic 가 먼저 set 되어 있어야 통과.
             try {
                 const umdUrl = '/composer/preview/realgrid-umd'
-                             + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) : '');
+                             + (targetCd ? '?targetCd=' + encodeURIComponent(targetCd) + '&' + cacheBust
+                                         : '?' + cacheBust);
                 const umdStart = performance.now();
-                const umdRes = await fetch(umdUrl, { cache: 'force-cache' });
+                // cache: 'no-store' — 이전엔 'force-cache' 라 한번 500/빈 응답 캐싱되면 5분간 같은 응답.
+                //   no-store 로 매 setup 마다 fresh fetch (cache-buster 와 이중 안전망).
+                const umdRes = await fetch(umdUrl, { cache: 'no-store' });
                 if (cancelled) return;
                 // eslint-disable-next-line no-console
                 console.info('[PreviewEmbed] RealGrid UMD fetch status=' + umdRes.status

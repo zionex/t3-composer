@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -14,7 +15,13 @@ import {
   InputAdornment,
   Checkbox,
   FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -25,7 +32,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
-import { collectSourceForLlm, checkMenuExists, prefillFromSource } from './api';
+import { collectSourceForLlm, checkMenuExists, prefillFromSource, getTargetSourceResolved } from './api';
+import TargetDbConnectionDialog from './TargetDbConnectionDialog';
 import {
   createInitialSpecFromSource,
   mergeAiSpecIntoBaseSpec,
@@ -51,6 +59,7 @@ import { useTargetStore } from './targetStore';
  *   - 단일 LLM 호출 → 4단계 구조화 Spec 기반 호출 (토큰 절감 + 단계별 검토 가능)
  */
 function ModeNewFromCopy({ onBack }) {
+  const { t } = useTranslation('composer');
   // 활성 Target System (운영 DB 직접 조회용)
   const activeTargetCd = useTargetStore((s) => s.currentTargetCd);
 
@@ -72,15 +81,40 @@ function ModeNewFromCopy({ onBack }) {
   const [useAiPrefill, setUseAiPrefill]   = useState(true);   // 기본 ON — 사용자가 끌 수 있음
   const [aiInfo, setAiInfo]               = useState(null);   // { modelName, mergedFields[] }
 
+  // Target source path 미설정 경고 + Storage 다이얼로그
+  //   - sourceMissing: { sourceRefPath, pendingMenuNode }  (null 이면 정상)
+  //   - storageOpen: TargetDbConnectionDialog open 여부
+  const [sourceMissing, setSourceMissing] = useState(null);
+  const [storageOpen, setStorageOpen]     = useState(false);
+
   const handleSelect = async (menuNode) => {
     setSelectedMenu(menuNode);
     setSourceBundle(null);
     setError(null);
     // 1단계 — sync 즉시 표시 (UI 가 비어있지 않게)
     setNewMenuCd(suggestNewMenuCd(menuNode.id));
-    setNewTitle(`${menuNode.id} 복사본`);
+    setNewTitle(t('modeNewFromCopy.copySuffix', { id: menuNode.id }));
     setMenuCdCheck(null);
     if (!menuNode.id) return;
+
+    // ★ 사전 가드 — Target source path 가 미설정/미해석이면 collectSourceForLlm 호출 전에 차단.
+    //   convention 마운트 (/workspace/targets/<CD>/wingui) 도 backend 가 함께 검증하므로 false-positive 없음.
+    if (activeTargetCd) {
+      try {
+        const r = await getTargetSourceResolved(activeTargetCd);
+        if (r?.data && r.data.resolved === false) {
+          setSourceMissing({
+            sourceRefPath: r.data.sourceRefPath || '',
+            pendingMenuNode: menuNode,
+          });
+          return;   // collectSourceForLlm 호출하지 않음 — 사용자가 Storage 설정 후 재선택
+        }
+      } catch (e) {
+        // resolve 체크 자체가 실패하면 차단하지 않고 진행 (기존 동작 유지) — 에러는 collectSourceForLlm 에서 잡힘
+        console.warn('[ModeNewFromCopy] source-resolved 체크 실패 — 진행:', e?.message || e);
+      }
+    }
+
     // 2단계 — async 로 운영 DB collision 회피한 next available 코드 검색 (parallel with source)
     //         activeTargetCd 전달 — checkMenuExists 가 운영 wingui DB (MSSQL) 검사 (composer-db 폴백 X)
     findNextAvailableMenuCd(menuNode.id, activeTargetCd).then((avail) => {
@@ -91,33 +125,67 @@ function ModeNewFromCopy({ onBack }) {
       const res = await collectSourceForLlm(menuNode.id, activeTargetCd);
       setSourceBundle(res.data);
     } catch (e) {
-      setError('소스 수집 실패: ' + (e?.response?.data?.error || e?.message || ''));
+      setError(t('modeNewFromCopy.errors.sourceFailed', { detail: e?.response?.data?.error || e?.message || '' }));
     } finally {
       setLoadingSource(false);
     }
   };
 
+  // Storage 다이얼로그 저장 후 — 보류 중인 메뉴 선택을 자동 재시도 (있으면)
+  const handleStorageSaved = () => {
+    setStorageOpen(false);
+    const pending = sourceMissing?.pendingMenuNode;
+    setSourceMissing(null);
+    if (pending) {
+      handleSelect(pending);
+    }
+  };
+
+  // 진입 시 Target source path 사전 체크 — activeTargetCd 변경 시에도 재검증
+  //   resolved=false 면 메뉴 선택 전에 미리 경고 Dialog 표시.
+  //   pendingMenuNode 는 null (진입 직후이므로 보류 메뉴 없음 — Storage 저장 후 그대로 종료)
+  useEffect(() => {
+    if (!activeTargetCd) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await getTargetSourceResolved(activeTargetCd);
+        if (cancelled) return;
+        if (r?.data && r.data.resolved === false) {
+          setSourceMissing({
+            sourceRefPath: r.data.sourceRefPath || '',
+            pendingMenuNode: null,
+          });
+        }
+      } catch (e) {
+        if (cancelled) return;
+        console.warn('[ModeNewFromCopy] 진입 시 source-resolved 체크 실패:', e?.message || e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeTargetCd]);
+
   const validateMenuCd = async () => {
     if (!newMenuCd.trim()) {
-      setMenuCdCheck({ ok: false, msg: '메뉴 코드를 입력하세요' });
+      setMenuCdCheck({ ok: false, msg: t('modeNewFromCopy.menuCdValidation.empty') });
       return false;
     }
     if (newMenuCd === selectedMenu?.id) {
-      setMenuCdCheck({ ok: false, msg: '원본과 동일한 메뉴 코드는 사용할 수 없습니다' });
+      setMenuCdCheck({ ok: false, msg: t('modeNewFromCopy.menuCdValidation.sameAsOrigin') });
       return false;
     }
     try {
       const res = await checkMenuExists(newMenuCd, activeTargetCd);
       const exists = !!res?.data?.exists;
       if (exists) {
-        setMenuCdCheck({ ok: false, exists: true, msg: '이미 존재하는 메뉴 코드입니다' });
+        setMenuCdCheck({ ok: false, exists: true, msg: t('modeNewFromCopy.menuCdValidation.exists') });
         return false;
       }
-      setMenuCdCheck({ ok: true, msg: '✓ 사용 가능한 메뉴 코드입니다' });
+      setMenuCdCheck({ ok: true, msg: t('modeNewFromCopy.menuCdValidation.ok') });
       return true;
     } catch {
       // checkMenuExists 실패해도 Wizard 진입 후 사용자가 수정 가능하므로 진행
-      setMenuCdCheck({ ok: true, msg: '(사용 가능 여부 확인 건너뜀)' });
+      setMenuCdCheck({ ok: true, msg: t('modeNewFromCopy.menuCdValidation.skipped') });
       return true;
     }
   };
@@ -125,7 +193,7 @@ function ModeNewFromCopy({ onBack }) {
   const handleStartWizard = async () => {
     if (!selectedMenu) return;
     if (!newMenuCd.trim()) {
-      setError('신규 메뉴 코드를 입력해주세요.');
+      setError(t('modeNewFromCopy.errors.newMenuCdRequired'));
       return;
     }
     setError(null);
@@ -187,9 +255,9 @@ function ModeNewFromCopy({ onBack }) {
         }
       } catch (e) {
         // AI 실패해도 baseSpec 으로 진행 — 사용자에게 경고만
-        const msg = e?.response?.data?.message || e?.message || 'AI 분석 실패';
+        const msg = e?.response?.data?.message || e?.message || 'AI prefill failed';
         console.warn('[Composer] AI prefill 실패 — 정규식 결과로 진행:', msg);
-        setError(`AI 분석 실패 (정규식 결과로 진행): ${msg}`);
+        setError(t('modeNewFromCopy.errors.aiFailed', { detail: msg }));
       } finally {
         setAiPrefilling(false);
       }
@@ -223,7 +291,7 @@ function ModeNewFromCopy({ onBack }) {
         px: 2, py: 1.2, bgcolor: '#fff', borderBottom: '1px solid #e2e8f0',
       }}>
         <Button startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} size="small">
-          모드 선택
+          {t('modeNewFromCopy.header.back')}
         </Button>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
           <Box sx={{
@@ -235,10 +303,10 @@ function ModeNewFromCopy({ onBack }) {
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: '#0f172a' }}>
-              기존 화면 복사 — 4단계 Wizard
+              {t('modeNewFromCopy.header.title')}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b' }}>
-              Copy from Existing · 원본 선택 후 단계별 검토·생성
+              {t('modeNewFromCopy.header.subtitle')}
             </Typography>
           </Box>
         </Stack>
@@ -251,10 +319,10 @@ function ModeNewFromCopy({ onBack }) {
                    display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1.5, py: 1, borderBottom: '1px solid #e2e8f0' }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: '#0f172a' }}>
-              1. 복사할 원본 화면 선택
+              {t('modeNewFromCopy.leftPanel.title')}
             </Typography>
             {selectedMenu && (
-              <Chip label="선택됨" size="small" sx={{ height: 18, fontSize: 10, bgcolor: '#dcfce7', color: '#15803d' }} />
+              <Chip label={t('modeNewFromCopy.leftPanel.selected')} size="small" sx={{ height: 18, fontSize: 10, bgcolor: '#dcfce7', color: '#15803d' }} />
             )}
           </Stack>
           <MenuTreeBrowser onSelect={handleSelect} selectedMenuCd={selectedMenu?.id} activeTargetCd={activeTargetCd} />
@@ -268,7 +336,7 @@ function ModeNewFromCopy({ onBack }) {
               <Stack alignItems="center" spacing={1.5}>
                 <SourceIcon sx={{ fontSize: 48, color: '#cbd5e1' }} />
                 <Typography variant="body2" sx={{ color: '#64748b' }}>
-                  좌측에서 복사할 원본 화면을 선택하세요.
+                  {t('modeNewFromCopy.middlePanel.placeholder')}
                 </Typography>
               </Stack>
             </Box>
@@ -294,7 +362,7 @@ function ModeNewFromCopy({ onBack }) {
                 <Box sx={{ p: 4, textAlign: 'center' }}>
                   <CircularProgress size={28} />
                   <Typography variant="body2" sx={{ color: '#64748b', mt: 2 }}>
-                    원본 소스 수집 중...
+                    {t('modeNewFromCopy.middlePanel.loading')}
                   </Typography>
                 </Box>
               )}
@@ -305,7 +373,7 @@ function ModeNewFromCopy({ onBack }) {
                   <SourceBundleAnalysisPanel bundle={sourceBundle} />
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    수집된 원본 소스 번들 — Wizard 4단계에 자동 prefill 됩니다
+                    {t('modeNewFromCopy.middlePanel.hint')}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
                   <SourceBundlePreview bundle={sourceBundle} />
@@ -322,7 +390,7 @@ function ModeNewFromCopy({ onBack }) {
             px: 1.8, py: 1, borderBottom: '1px solid #e2e8f0',
           }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: '#0f172a' }}>
-              2. 신규 화면 기본 정보
+              {t('modeNewFromCopy.rightPanel.title')}
             </Typography>
           </Stack>
 
@@ -333,7 +401,7 @@ function ModeNewFromCopy({ onBack }) {
                 p: 1.2, borderRadius: 1.5, bgcolor: '#f1f5f9',
                 border: '1px solid #e2e8f0',
               }}>
-                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>원본</Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>{t('modeNewFromCopy.rightPanel.originLabel')}</Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a', mt: 0.2 }}>
                   {selectedMenu.id}
                 </Typography>
@@ -343,12 +411,12 @@ function ModeNewFromCopy({ onBack }) {
             {/* New menu code */}
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5 }}>
-                신규 메뉴 코드 <span style={{ color: '#ef4444' }}>*</span>
+                {t('modeNewFromCopy.rightPanel.newMenuCdLabel')} <span style={{ color: '#ef4444' }}>*</span>
               </Typography>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="예: UI_DP_MONTHLY_PLAN_V2"
+                placeholder={t('modeNewFromCopy.rightPanel.newMenuCdPlaceholder')}
                 value={newMenuCd}
                 onChange={(e) => { setNewMenuCd(e.target.value.toUpperCase()); setMenuCdCheck(null); }}
                 InputProps={{
@@ -356,7 +424,7 @@ function ModeNewFromCopy({ onBack }) {
                   endAdornment: (
                     <InputAdornment position="end">
                       <Button size="small" onClick={validateMenuCd} disabled={!newMenuCd.trim()}>
-                        확인
+                        {t('modeNewFromCopy.rightPanel.newMenuCdCheck')}
                       </Button>
                     </InputAdornment>
                   ),
@@ -375,21 +443,19 @@ function ModeNewFromCopy({ onBack }) {
             {/* Title */}
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', display: 'block', mb: 0.5 }}>
-                신규 화면 제목
+                {t('modeNewFromCopy.rightPanel.newTitleLabel')}
               </Typography>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="예: DP 월간 계획 V2"
+                placeholder={t('modeNewFromCopy.rightPanel.newTitlePlaceholder')}
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
               />
             </Box>
 
             <Alert severity="info" sx={{ bgcolor: '#f0f9ff' }}>
-              상세한 변경 사항(컬럼 추가·검색조건 변경 등)은 4단계 Wizard
-              (① Canvas / ② 데이터·검색조건 / ③ 메타·메뉴 / ④ 화면 생성) 의 각 단계에서 입력합니다.
-              자유 텍스트 형태의 추가 요청은 마지막 단계(④ 화면 생성) 에서 입력 가능합니다.
+              {t('modeNewFromCopy.rightPanel.infoAlert')}
             </Alert>
 
             {/* AI 자동 분석 옵션 — sourceBundle 을 LLM 으로 분석해 4단계 spec 정확히 prefill */}
@@ -408,11 +474,10 @@ function ModeNewFromCopy({ onBack }) {
                   label={
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 700, color: '#7e22ce' }}>
-                        AI 자동 분석으로 4단계 prefill (권장)
+                        {t('modeNewFromCopy.rightPanel.ai.label')}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Layer 별 SP (조회/CUD), FilterBar, 컴포넌트, Entity 까지 정확히 추출.
-                        OFF 면 정규식 분석만 사용.
+                        {t('modeNewFromCopy.rightPanel.ai.desc')}
                       </Typography>
                     </Box>
                   }
@@ -423,13 +488,13 @@ function ModeNewFromCopy({ onBack }) {
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
                   <CircularProgress size={16} sx={{ color: '#a855f7' }} />
                   <Typography variant="caption" color="text.secondary">
-                    Claude 가 sourceBundle 을 분석 중입니다 (5~15초)...
+                    {t('modeNewFromCopy.rightPanel.ai.analyzing')}
                   </Typography>
                 </Stack>
               )}
               {aiInfo && !aiPrefilling && (
                 <Typography variant="caption" sx={{ color: '#16a34a', mt: 0.5, display: 'block' }}>
-                  ✓ AI 분석 완료 — {aiInfo.modelName} · {aiInfo.stepCount}/8 단계 보강됨
+                  {t('modeNewFromCopy.rightPanel.ai.done', { modelName: aiInfo.modelName, stepCount: aiInfo.stepCount })}
                 </Typography>
               )}
             </Paper>
@@ -437,7 +502,7 @@ function ModeNewFromCopy({ onBack }) {
             {error && <Alert severity="error">{error}</Alert>}
             {!selectedMenu && (
               <Alert severity="warning" sx={{ bgcolor: '#fefce8' }}>
-                먼저 좌측에서 복사할 원본 화면을 선택하세요.
+                {t('modeNewFromCopy.rightPanel.warnNoSelection')}
               </Alert>
             )}
 
@@ -449,12 +514,12 @@ function ModeNewFromCopy({ onBack }) {
                 startIcon={<RefreshIcon />}
                 onClick={() => {
                   setNewMenuCd(selectedMenu ? suggestNewMenuCd(selectedMenu.id) : '');
-                  setNewTitle(selectedMenu ? `${selectedMenu.id} 복사본` : '');
+                  setNewTitle(selectedMenu ? t('modeNewFromCopy.copySuffix', { id: selectedMenu.id }) : '');
                   setMenuCdCheck(null);
                 }}
                 disabled={!selectedMenu}
               >
-                초기화
+                {t('modeNewFromCopy.rightPanel.reset')}
               </Button>
               <Button
                 variant="contained"
@@ -468,12 +533,61 @@ function ModeNewFromCopy({ onBack }) {
                   '&:hover': { bgcolor: '#059669' },
                 }}
               >
-                {aiPrefilling ? 'AI 분석 중...' : (useAiPrefill ? 'AI 분석 + 4단계 Wizard' : '다음 — 4단계 Wizard')}
+                {aiPrefilling ? t('modeNewFromCopy.rightPanel.aiAnalyzing') : (useAiPrefill ? t('modeNewFromCopy.rightPanel.aiSubmit') : t('modeNewFromCopy.rightPanel.plainSubmit'))}
               </Button>
             </Stack>
           </Box>
         </Box>
       </Box>
+
+      {/* ===== Target source path 미설정 경고 ===== */}
+      <Dialog
+        open={!!sourceMissing}
+        onClose={() => setSourceMissing(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#b45309' }}>
+          <WarningAmberIcon sx={{ color: '#f59e0b' }} />
+          {t('modeNewFromCopy.sourceMissing.title')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: '#334155' }}>
+            {t('modeNewFromCopy.sourceMissing.description', {
+              targetCd: activeTargetCd || t('modeNewFromCopy.sourceMissing.targetUnselected'),
+            })}
+          </DialogContentText>
+          <Box sx={{ mt: 1.5, p: 1.2, bgcolor: '#fffbeb', border: '1px solid #fde68a', borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ color: '#92400e', fontWeight: 600 }}>
+              {t('modeNewFromCopy.sourceMissing.currentLabel')}
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#78350f', mt: 0.3 }}>
+              {sourceMissing?.sourceRefPath
+                ? sourceMissing.sourceRefPath
+                : t('modeNewFromCopy.sourceMissing.currentEmpty', { targetCd: activeTargetCd || '<CD>' })}
+            </Typography>
+          </Box>
+          <DialogContentText sx={{ color: '#475569', mt: 1.5, fontSize: 13 }}>
+            {t('modeNewFromCopy.sourceMissing.hint')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSourceMissing(null)} color="inherit">
+            {t('modeNewFromCopy.sourceMissing.cancel')}
+          </Button>
+          <Button onClick={() => setStorageOpen(true)} variant="contained" color="warning">
+            {t('modeNewFromCopy.sourceMissing.openStorage')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* TargetDbConnectionDialog 는 DB 연결 + source/backend/database ref path 편집을 함께 제공 */}
+      <TargetDbConnectionDialog
+        open={storageOpen}
+        targetCd={activeTargetCd}
+        onClose={() => setStorageOpen(false)}
+        onSaved={handleStorageSaved}
+      />
     </Box>
   );
 }

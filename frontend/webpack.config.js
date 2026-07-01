@@ -10,6 +10,8 @@ module.exports = (env, argv) => {
   const isDev = argv.mode !== 'production';
   const apiBase = process.env.COMPOSER_API_BASE || 'http://localhost:8090';
   const insightApiBase = process.env.INSIGHT_API_BASE || 'http://localhost:9160';
+  // INSIGHT_ENABLED — false 시 Dashboard 메뉴/Insight AI 탭 숨김. 기본 false.
+  const insightEnabled = String(process.env.INSIGHT_ENABLED || 'false').toLowerCase() === 'true';
 
   return {
     entry: './src/index.jsx',
@@ -71,6 +73,7 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin({
         'process.env.COMPOSER_API_BASE': JSON.stringify(apiBase),
         'process.env.INSIGHT_API_BASE': JSON.stringify(insightApiBase),
+        'process.env.INSIGHT_ENABLED': JSON.stringify(insightEnabled ? 'true' : 'false'),
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       }),
       // _preview 격리 안전망 — 어떤 형태의 import / require 든 _preview 경로를 가리키면
@@ -114,7 +117,16 @@ module.exports = (env, argv) => {
           // 그 외 (XHR — Accept: application/json 등) 모든 요청은 backend 로 proxy.
           // 개별 prefix 화이트리스트 (/composer /auth /util /demandplan ...) 를 명시하지 않고
           // bypass 로 SPA route 만 분기 — 산출물이 만드는 모든 모듈 endpoint 자동 지원.
-          context: () => true,
+          // context: false 를 반환하면 proxy 자체를 skip — webpack-dev-server static 이 처리.
+          context: (pathname, req) => {
+            // 정적 HTML (T3Composer-User-Guide.html 등) — proxy 통과시키지 않고 public/ 에서 서빙
+            if (req && req.method === 'GET'
+                && /\.html(\?.*)?$/i.test(pathname || '')
+                && pathname !== '/index.html') {
+              return false;
+            }
+            return true;
+          },
           target: apiBase,
           changeOrigin: true,
           secure: false,
@@ -128,9 +140,9 @@ module.exports = (env, argv) => {
             if (req.url.startsWith('/t3mes/') || req.url.startsWith('/t3mes-split/')) {
               return req.url;
             }
-            // 사용자 매뉴얼 HTML — docs/manual 을 public/manual 로 마운트, /manual/ 경로로 서빙.
-            // SPA fallback 에 걸리면 매뉴얼 대신 index.html 이 나오므로 여기서 명시적으로 통과.
-            if (req.url.startsWith('/manual/')) {
+            // 정적 HTML 파일 (사용자 가이드 등) — SPA fallback 금지, 그대로 서빙
+            //   예: /T3Composer-User-Guide.html · 별도 매뉴얼/문서 HTML 추가 시 자동 적용
+            if (req.method === 'GET' && /\.html(\?.*)?$/i.test(req.url) && req.url !== '/index.html') {
               return req.url;
             }
             // SPA route — HTML GET 만 fallback

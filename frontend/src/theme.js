@@ -1,5 +1,9 @@
 // =============================================================================
-// T3Composer 중앙 테마 — 파스텔 블루 글래스모피즘 (Round 1 · 2026-05-15)
+// T3Composer 중앙 테마 — 티얼 글래스모피즘 (Round 2 · 2026-06-26 · A시안 적용)
+//
+// Round 2 색 전환:
+//   primary  #7CA7E0 (sky-blue) → #2d8ba8 (teal) — 모든 강조/링크/탭 라인/버튼/뱃지
+//   rgba(124,167,224,...) (sky RGB) → rgba(45,139,168,...) (teal RGB)
 //
 // 옛 hex → 새 테마 토큰 매핑 (다음 Round 기계적 치환용):
 //   blues/indigo/purple  #2563eb #3b82f6 #1d4ed8 #4338ca #7c3aed → primary
@@ -20,28 +24,32 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 // 평면 hex 맵 — 하드코딩 sx 색을 점진 치환할 때 import 해서 사용
 export const PALETTE = {
-  primary:       '#7CA7E0',
-  primaryLight:  '#A9C7EE',
-  primaryDark:   '#5683C0',
+  primary:       '#2d8ba8',        // teal — A시안 메인 컬러
+  primaryLight:  '#7FB9D0',
+  primaryDark:   '#1F6680',
+  primarySoft:   '#E8F2F6',        // A시안 활성 메뉴/뱃지 배경 (가장 라이트한 티얼)
+  primaryBorder: '#CFE3EB',        // A시안 뱃지 보더 톤
   secondary:     '#9DB4D4',
   success:       '#86C7A8',
   warning:       '#E6C079',
   error:         '#E0989A',
   info:          '#8FC4D4',
-  textPrimary:   '#3A4A63',
-  textSecondary: '#6E7E96',
-  bgDefault:     '#EEF3FA',
+  textPrimary:   '#1A2330',        // A시안 본문 텍스트 (기존 #3A4A63 보다 진해서 가독성 ↑)
+  textSecondary: '#6B7280',
+  textMuted:     '#9AA3AF',        // A시안 eyebrow/캡션
+  bgDefault:     '#F6F7F9',        // A시안 main 배경 (옅은 슬레이트)
+  panelBorder:   '#ECEEF1',        // A시안 패널 보더
 };
 
-// 글래스모피즘 토큰
+// 글래스모피즘 토큰 (티얼 RGB 45,139,168 적용)
 export const GLASS = {
   bg:          'rgba(255,255,255,0.72)',
   bgStrong:    'rgba(255,255,255,0.90)',   // 드롭다운 등 가독성 필요한 표면
   border:      '1px solid rgba(255,255,255,0.55)',
   blur:        'blur(14px)',
-  shadow:      '0 1px 0 rgba(255,255,255,0.85) inset, 0 -1px 0 rgba(124,167,224,0.10) inset, '
-             + '0 6px 16px -6px rgba(58,74,99,0.14), 0 14px 36px -18px rgba(58,74,99,0.20)',
-  shadowHover: '0 0 0 4px rgba(124,167,224,0.16), 0 18px 44px -14px rgba(124,167,224,0.45), '
+  shadow:      '0 1px 0 rgba(255,255,255,0.85) inset, 0 -1px 0 rgba(45,139,168,0.10) inset, '
+             + '0 6px 16px -6px rgba(26,35,48,0.10), 0 14px 36px -18px rgba(26,35,48,0.16)',
+  shadowHover: '0 0 0 4px rgba(45,139,168,0.16), 0 18px 44px -14px rgba(45,139,168,0.40), '
              + '0 1px 0 rgba(255,255,255,0.9) inset',
 };
 
@@ -96,7 +104,7 @@ const theme = createTheme({
     info:       { main: PALETTE.info,      light: '#BBDEE7', dark: '#6BA0B0', contrastText: '#ffffff' },
     background: { default: PALETTE.bgDefault, paper: GLASS.bg },
     text:       { primary: PALETTE.textPrimary, secondary: PALETTE.textSecondary, disabled: '#A6B2C4' },
-    divider:    'rgba(124,167,224,0.28)',
+    divider:    'rgba(45,139,168,0.22)',
   },
   shape: { borderRadius: 10 },
   typography: {
@@ -117,7 +125,7 @@ const theme = createTheme({
         'html, body, #root': { height: '100%' },
         body: {
           margin: 0,
-          background: 'linear-gradient(135deg, #EEF3FA 0%, #E4ECF7 50%, #EAF0F8 100%)',
+          background: 'linear-gradient(135deg, #F6F7F9 0%, #EEF3F5 50%, #F2F4F6 100%)',
           backgroundAttachment: 'fixed',
         },
       },
@@ -155,8 +163,8 @@ const theme = createTheme({
           backgroundImage: 'none',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          borderBottom: '1px solid rgba(124,167,224,0.25)',
-          boxShadow: '0 4px 16px -10px rgba(58,74,99,0.25)',
+          borderBottom: '1px solid rgba(45,139,168,0.22)',
+          boxShadow: '0 4px 16px -10px rgba(26,35,48,0.22)',
           color: PALETTE.textPrimary,
         },
       },

@@ -54,7 +54,9 @@ public class ComposerPromptBuilder {
 
     public String buildSystemPrompt(ComposerSession session) {
         // ruleScope 전달 — 이 wrapper 로 호출돼도 화면 생성 rule 선별이 적용되도록.
-        return buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope()) + buildSessionSystemPrompt(session);
+        // uiLanguage 전달 — Claude 응답 언어 제어 (Phase 6 i18n).
+        return buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope(), session.getUiLanguage())
+                + buildSessionSystemPrompt(session);
     }
 
     /**
@@ -70,6 +72,103 @@ public class ComposerPromptBuilder {
     /** ruleScope 기반 정적 블록 — 화면 생성 시 필요한 rule 만 포함. */
     public String buildStaticSystemPrompt(String targetCd, String ruleScope) {
         return composer.compose(targetCd, ruleScope);
+    }
+
+    /**
+     * ruleScope + uiLanguage 기반 정적 블록 — 화면 생성 rule + Claude 응답 언어 지침 포함.
+     * Phase 6 i18n. uiLanguage 미지정/null/'ko' 면 한국어, 'en' 이면 영어 응답.
+     * 산출물 코드는 항상 한국어 라벨/문자열 보존 (운영 배포 환경이 한국어).
+     */
+    public String buildStaticSystemPrompt(String targetCd, String ruleScope, String uiLanguage) {
+        return composer.compose(targetCd, ruleScope) + "\n\n" + buildLanguageInstruction(uiLanguage);
+    }
+
+    /**
+     * Claude 응답 언어 지침 블록.
+     *
+     * uiLanguage 지원: 'en' · 'ja' · 'zh-CN' · 'zh-TW' · 'ko' (default).
+     *
+     * 공통 정책 (모든 locale):
+     *   - 사용자 응답 + 산출물의 주석 / 로그 / 디버그 메시지 → 선택 locale 의 언어
+     *   - 사용자 화면에 노출되는 라벨 / UI 텍스트 → 한국어 (또는 i18n 키) 그대로 보존
+     *     (산출물 자체에 다국어 코드 구조를 강제하지 않음 — 주석 언어만 locale 따라감)
+     */
+    public String buildLanguageInstruction(String uiLanguage) {
+        String l = uiLanguage == null ? "" : uiLanguage.toLowerCase();
+        if ("en".equals(l)) {
+            return commentLangBlock(
+                "English",
+                "Respond to user messages in English. Tone: professional, concise.",
+                "English"
+            );
+        }
+        if ("ja".equals(l)) {
+            return commentLangBlock(
+                "日本語",
+                "ユーザーへの応答は日本語で。トーンはプロフェッショナルかつ簡潔に。",
+                "Japanese (日本語)"
+            );
+        }
+        if ("zh-cn".equals(l)) {
+            return commentLangBlock(
+                "简体中文",
+                "请用简体中文回复用户消息。语气专业、简洁。",
+                "Simplified Chinese (简体中文)"
+            );
+        }
+        if ("zh-tw".equals(l)) {
+            return commentLangBlock(
+                "繁體中文",
+                "請以繁體中文回覆使用者訊息。語氣專業、簡潔。",
+                "Traditional Chinese (繁體中文)"
+            );
+        }
+        // default — ko
+        return """
+            ## 응답 언어
+            사용자에게 한국어로 응답하세요. 톤은 전문적이고 간결하게.
+
+            ## 산출물 코드 — 주석 / 로그 / 디버그 메시지
+            산출물 (===FILE: blocks) 안의 주석·JSDoc·`console.log`·`log.info` 등 개발자 노출
+            텍스트는 한국어로 작성. 사용자 화면 라벨 / UI 텍스트는 평소대로 (한국어 또는 i18n 키).
+            """;
+    }
+
+    /**
+     * EN/JA/ZH 공통 — locale 별 응답 언어 + 주석/로그 언어 지침 블록.
+     *
+     * @param langDisplay     사용자에게 보이는 언어명 (예: "English", "日本語")
+     * @param responseInstr   해당 언어로 적은 "사용자 응답 지침" 한 줄
+     * @param englishLabel    영어 metadata 라벨 (예: "Japanese (日本語)")
+     */
+    private static String commentLangBlock(String langDisplay, String responseInstr, String englishLabel) {
+        return """
+            ## Response Language (%s)
+            %s
+
+            ## Code Artifact — Comment / Log / Debug Language (%s)
+            Inside generated code artifacts (===FILE: blocks), the following MUST be written in %s:
+              - Line comments and block comments (`//`, `/* */`, `#`, `--` for SQL)
+              - JSDoc / Javadoc / Python docstrings
+              - `console.log` · `console.warn` · `console.error` · `log.info` · `log.debug` debug messages
+              - `System.out.println` debug messages (rare — prefer logger)
+              - Commit-message style descriptions, README sections, CHANGELOG entries
+
+            ## Code Artifact — UI Text / Labels (PRESERVE AS-IS)
+            The following are **user-visible strings**, NOT comments. Do NOT translate them.
+            Keep them in Korean (or as i18n keys) exactly as the existing codebase does:
+              - JSX: `<Typography>저장</Typography>` · `<Chip label="신규" />` · `headerText: '사용자명'`
+              - Java: `new ResponseMessage(HttpStatus.OK.value(), "저장 완료")` · validation messages
+              - `showMessage('확인', '저장하시겠습니까?', ...)` arguments
+              - Grid column headers · button labels · placeholder text · error toasts shown to end users
+              - MENU registration (TB_AD_MENU / TB_AD_LANG_PACK) — Korean translations stay Korean,
+                `transLangKey('...')` keys stay as-is
+            The operational deployment is Korean — translating UI strings would break production.
+
+            ## Rule of thumb
+              %s → developer-facing text (anything a developer reads while editing the file)
+              Korean   → end-user-facing text (anything an end user sees in the running app)
+            """.formatted(langDisplay, responseInstr, englishLabel, englishLabel, englishLabel);
     }
 
     /**

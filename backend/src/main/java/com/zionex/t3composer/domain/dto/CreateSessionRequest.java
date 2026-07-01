@@ -32,4 +32,11 @@ public class CreateSessionRequest {
      * 예: "backend,filter" / "backend" / "" (core only). 미지정(null)이면 전체 rule.
      */
     private String ruleScope;
+
+    /**
+     * UI 언어 — Claude 응답 언어 (Phase 6 i18n).
+     * 'ko' (한국어, 기본) | 'en' (English). 미지정 시 'ko'.
+     * 산출물 코드는 system prompt 강제로 한국어 라벨/문자열 보존.
+     */
+    private String lang;
 }

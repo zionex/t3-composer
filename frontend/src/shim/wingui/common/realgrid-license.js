@@ -11,14 +11,7 @@
 // =============================================================================
 
 const LICENSE_KEY =
-    'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+ws'
-  + 'jsVaW+79bLriz7QxQTIvWJvcDXO3chRj25yed7QIxafkNUHcDQ8IDUTr6y7OTHzv/JRNgHmr/h6'
-  + '6SlJ7LsZeix80htOeIbW0W/3cCMFie2LmoOVpJP8D35C81IfSGP7H6v80fIe/jjSOxVpb7v1sux'
-  + 'e5DMqHa0KYm9wNc7dyFGNg19BHZrvb8V6P/IFYXS5lROvrLs5MfO1MsMnuoGM+fHzvgzqdRMZRK'
-  + 'bfpoA4HIooXrgkjTpMw/uag5Wkk/wPdBvDowZRLdHdqb125xwqNHI7FWlvu/Wy4frG8hWSW2iCb'
-  + '3A1zt3IUYH2aEFwqRVUJg6IScl5gAm1E6+suzkx87ElaO8xXkKUBSPI2VCqhSAjRFl4MzNJ6Jil'
-  + 'zYmMoeKmzBLUOYmvKS+YrKGExjV+QgNTakk0yR9UcKS69Wn2kI83Uszabo3mU0IebAMvwuf7/54'
-  + 'd2tHsx3AJz8Ro6kcFL1moeJMu9csUs=';
+  'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+wth2fQ5LJrC3RVTZ62jVWZFJNZENFVQgg22H1Tb8tWrEsUCJ0sjTY+V1bTAmKPP6lDBU7lwk4QZcWfDWTh/cnw0fxio2AHaC0du3lmUGY5TVg==';
 
 // main window 에도 set — RealGrid module 을 main bundle 에 직접 import 하는 케이스 대비
 // (현재는 그렇게 import 하지 않지만 향후 변경 안전망).

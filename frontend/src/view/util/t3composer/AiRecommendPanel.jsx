@@ -6,7 +6,9 @@ import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import AutoAwesomeIcon  from '@mui/icons-material/AutoAwesome';
 import CloudUploadIcon  from '@mui/icons-material/CloudUpload';
 import PhotoFilterIcon  from '@mui/icons-material/PhotoFilter';
+import { useTranslation } from 'react-i18next';
 
+import useUiLanguage from './useUiLanguage';
 import { MOCKUP_ENTRIES } from '../t3mockup';
 import { buildMockupCandidates, scoreMockupCandidates, mergeAiPrefillIntoSpec } from './mockupRecommend';
 import { specFromMockup, specFromSynthesized, specFromImageDerived } from './wizardState';
@@ -35,7 +37,17 @@ const SYNTH_ACCENT_SOFT  = '#c4b5fd'; // purple-300 — card border
 const THUMB_W = 1400;   // mockup 컴포넌트 가상 폭
 const THUMB_H = 900;
 
-const EXAMPLES = ['거래처별 단가 관리', '공급계획 시뮬레이션', '재고 현황 조회'];
+/**
+ * 자연어 예시 — 5 locale (ko/en/ja/zh-CN/zh-TW) 별 placeholder 텍스트 배열.
+ *   현재 locale 키가 없으면 en → ko 순 폴백.
+ */
+const EXAMPLES_BY_LNG = {
+  'ko':    ['거래처별 단가 관리', '공급계획 시뮬레이션', '재고 현황 조회'],
+  'en':    ['Per-customer unit price management', 'Supply plan simulation', 'Inventory status browse'],
+  'ja':    ['取引先別単価管理', '供給計画シミュレーション', '在庫状況照会'],
+  'zh-CN': ['按客户的单价管理', '供应计划模拟', '库存状况查询'],
+  'zh-TW': ['依客戶的單價管理', '供應計畫模擬', '庫存狀況查詢'],
+};
 
 /**
  * AI 추천 진입 화면 (B 레이아웃).
@@ -89,6 +101,9 @@ const buildAttachPayload = (atts) => ({
 });
 
 function AiRecommendPanel({ onBack, onStart, targetCd }) {
+  const { t } = useTranslation('composer');
+  const lng   = useUiLanguage();                                                    // 'ko'|'en'|'ja'|'zh-CN'|'zh-TW'
+  const EXAMPLES = EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
   const [nl, setNl] = useState('');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
   const [fillingIdx, setFillingIdx] = useState(null); // 선택 후 prefill 중 (카드 인덱스)
@@ -109,18 +124,18 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     setAttachError(null);
     const room = MAX_ATTACH - attachments.length;
     if (room <= 0) {
-      setAttachError(`참조 파일은 최대 ${MAX_ATTACH}개까지 첨부할 수 있습니다.`);
+      setAttachError(t('aiRecommend.attach.maxItemsError', { max: MAX_ATTACH }));
       return;
     }
     const take = arr.slice(0, room);
     if (arr.length > room) {
-      setAttachError(`최대 ${MAX_ATTACH}개 — ${take.length}개만 추가했습니다.`);
+      setAttachError(t('aiRecommend.attach.partialAddedError', { max: MAX_ATTACH, n: take.length }));
     }
     for (const file of take) {
       try {
         const sizeKb = Math.round(file.size / 1024);
         if (file.size > MAX_FILE_BYTES) {
-          setAttachError(`파일이 너무 큽니다 (${sizeKb}KB > 5MB): ${file.name}`);
+          setAttachError(t('aiRecommend.attach.fileTooBig', { sizeKb, name: file.name }));
           continue;
         }
         if (isTextFile(file)) {
@@ -137,7 +152,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           }]);
         }
       } catch (err) {
-        setAttachError(`파일 읽기 실패: ${file?.name || ''}: ${err?.message || err}`);
+        setAttachError(t('aiRecommend.attach.fileReadFailed', { name: file?.name || '', message: err?.message || err }));
       }
     }
   };
@@ -275,8 +290,8 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
       cards.push({
         kind: 'placeholder',
         message: cards.length === 0
-          ? '관련 템플릿을 찾지 못했습니다. 다른 표현으로 다시 시도해보세요.'
-          : 'AI 가 적절한 추가 템플릿을 찾지 못했습니다.',
+          ? t('aiRecommend.errors.noResults')
+          : t('aiRecommend.errors.noMore'),
       });
     }
 
@@ -298,7 +313,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
     const attachPayload = buildAttachPayload(attachments);
 
     if (item.kind === 'imageDerived') {
-      const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : '내 설계';
+      const baseTitle = (nl && nl.trim().length > 0) ? nl.trim().slice(0, 40) : t('aiRecommend.image.defaultTitle');
       try {
         // 분석 진행 중이면 promise 대기 — 캐시 있으면 즉시.
         let aiSpec = imageDerivedSpec;
@@ -319,7 +334,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
 
     if (item.kind === 'existing') {
       const entry = item.entry;
-      const base = specFromMockup(entry, { title: entry.patternLabel || '새 화면', menuCd: '' });
+      const base = specFromMockup(entry, { title: entry.patternLabel || t('aiRecommend.cards.defaultScreenTitle'), menuCd: '' });
       try {
         const res = await prefillFromMockup({
           nl,
@@ -423,33 +438,33 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                             flexDirection: 'column', gap: 1, color: SYNTH_ACCENT_DARK }}>
                   {imageDerivedLoading
                     ? <><CircularProgress size={28} sx={{ color: SYNTH_ACCENT }} />
-                        <Typography sx={{ fontSize: 10.5, fontWeight: 700 }}>AI 분석 중…</Typography></>
+                        <Typography sx={{ fontSize: 10.5, fontWeight: 700 }}>{t('aiRecommend.image.analyzingStatus')}</Typography></>
                     : <><PhotoFilterIcon sx={{ fontSize: 36, color: SYNTH_ACCENT_DARK }} />
                         <Typography sx={{ fontSize: 10, color: SYNTH_ACCENT_TEXT }}>
-                          {ready ? '분석 결과가 비어있습니다' : '대기 중'}
+                          {ready ? t('aiRecommend.image.emptyAnalysis') : t('aiRecommend.image.waiting')}
                         </Typography></>}
                 </Box>
               )}
           </Box>
           <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
-            <Chip label="📷 내 설계" size="small"
+            <Chip label={t('aiRecommend.image.badge')} size="small"
                   sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
                         bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
             <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>
-              내 설계 그대로 만들기
+              {t('aiRecommend.image.title')}
             </Typography>
             <Typography sx={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>
               {ready
                 ? (layerCount > 0
-                  ? `이미지에서 ${layerCount}개 layer (KPI·차트·그리드·필터) 위치 추론 완료`
-                  : '구조가 모호합니다 — 시작 후 Layout 단계에서 직접 보강')
-                : 'Claude vision 이 이미지의 layout 을 분석하고 있습니다'}
+                  ? t('aiRecommend.image.layersInferred', { n: layerCount })
+                  : t('aiRecommend.image.structureAmbiguous'))
+                : t('aiRecommend.image.analyzingDesc')}
             </Typography>
             <Button variant="contained" size="small" onClick={() => onPick(item, idx)}
                     disabled={busy}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
                           bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER } }}>
-              {fillingIdx === idx ? '진입 중…' : (imageDerivedLoading ? '분석 중…' : '이 설계로 시작 →')}
+              {fillingIdx === idx ? t('aiRecommend.image.entering') : (imageDerivedLoading ? t('aiRecommend.image.analyzingBtn') : t('aiRecommend.image.startDesign'))}
             </Button>
           </Box>
         </Box>
@@ -496,7 +511,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           </Box>
           <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
             {item.relevance != null && (
-              <Chip label={`관련도 ${item.relevance}%`} size="small"
+              <Chip label={t('aiRecommend.cards.relevanceChip', { relevance: item.relevance })} size="small"
                     sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
                           bgcolor: ACCENT_CHIP, color: ACCENT_DARK }} />
             )}
@@ -514,7 +529,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                     disabled={fillingIdx !== null}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
                           bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER } }}>
-              {fillingIdx === idx ? '분석 중…' : '이 템플릿으로 시작 →'}
+              {fillingIdx === idx ? t('aiRecommend.cards.analyzing') : t('aiRecommend.cards.startTemplate')}
             </Button>
           </Box>
         </Box>
@@ -538,7 +553,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
             <SynthesizedMockupPreview layers={synth.layers} />
           </Box>
           <Box sx={{ p: 1.2, display: 'flex', flexDirection: 'column', gap: 0.4, minHeight: 130 }}>
-            <Chip label="🪄 AI 재조합" size="small"
+            <Chip label={t('aiRecommend.synth.badge')} size="small"
                   sx={{ alignSelf: 'flex-start', height: 18, fontSize: 10, fontWeight: 700,
                         bgcolor: SYNTH_ACCENT_CHIP, color: SYNTH_ACCENT_DARK }} />
             <Typography sx={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{synth.label}</Typography>
@@ -564,7 +579,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
                     disabled={fillingIdx !== null}
                     sx={{ mt: 'auto', fontWeight: 700, fontSize: 11,
                           bgcolor: SYNTH_ACCENT, '&:hover': { bgcolor: SYNTH_ACCENT_HOVER } }}>
-              {fillingIdx === idx ? '분석 중…' : '이 재조합으로 시작 →'}
+              {fillingIdx === idx ? t('aiRecommend.cards.analyzing') : t('aiRecommend.synth.startSynth')}
             </Button>
           </Box>
         </Box>
@@ -580,11 +595,11 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
       <Stack direction="row" alignItems="center" spacing={1}
              sx={{ p: 1.2, borderBottom: `1px solid ${ACCENT_BORDER}`,
                    background: `linear-gradient(135deg,${ACCENT_BG},${ACCENT_BG2})`, flexShrink: 0 }}>
-        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: ACCENT_DARK }}>뒤로</Button>
-        <Typography sx={{ fontWeight: 800, color: ACCENT_DARK }}>✨ AI 추천으로 화면 시작</Typography>
+        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: ACCENT_DARK }}>{t('aiRecommend.back')}</Button>
+        <Typography sx={{ fontWeight: 800, color: ACCENT_DARK }}>{t('aiRecommend.title')}</Typography>
         <Chip label="Beta" size="small" sx={{ height: 18, fontSize: 10, bgcolor: ACCENT_CHIP, color: ACCENT_DARK }} />
         <Box sx={{ flexGrow: 1 }} />
-        {targetCd && <Typography variant="caption" sx={{ color: '#94a3b8' }}>Target: <b>{targetCd}</b></Typography>}
+        {targetCd && <Typography variant="caption" sx={{ color: '#94a3b8' }}>{t('aiRecommend.targetLabel')} <b>{targetCd}</b></Typography>}
       </Stack>
 
       {/* 본문 */}
@@ -592,10 +607,10 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
         {/* 좌측 입력 */}
         <Box sx={{ flex: '0 0 32%', display: 'flex', flexDirection: 'column', gap: 1.2,
                    bgcolor: '#fff', border: '1px solid #e2e8f0', borderRadius: 2, p: 1.8 }}>
-          <Typography sx={{ fontWeight: 700, color: ACCENT_DARK, fontSize: 13 }}>무엇을 만들까요?</Typography>
+          <Typography sx={{ fontWeight: 700, color: ACCENT_DARK, fontSize: 13 }}>{t('aiRecommend.inputTitle')}</Typography>
           <TextField
             multiline minRows={5} value={nl} onChange={(e) => setNl(e.target.value)}
-            placeholder="예: 수요계획 입력 화면을 만들고 싶어. 월별로 판매계획을 입력하고 실적과 비교했으면 좋겠어."
+            placeholder={t('aiRecommend.placeholder')}
             sx={{ '& textarea': { fontSize: 13 } }}
           />
           <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.5 }}>
@@ -635,12 +650,12 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
             <Stack alignItems="center" spacing={0.3}>
               <CloudUploadIcon sx={{ fontSize: 24, color: dragOver ? ACCENT : ACCENT_SOFT }} />
               <Typography sx={{ fontWeight: 700, color: ACCENT_DARK, fontSize: 11.5 }}>
-                참조 파일 첨부 — 설계서 이미지 · SQL 등
+                {t('aiRecommend.attach.title')}
               </Typography>
-              <Tooltip title="설계서 이미지·캡처·SQL 등을 최대 5개(파일당 5MB) 첨부. 텍스트는 prompt 에 inline, 이미지/PDF 는 multimodal 로 전송. AI 추천·prefill·최종 화면 생성 단계 모두에 활용됩니다.">
+              <Tooltip title={t('aiRecommend.attach.tooltip')}>
                 <Typography sx={{ fontSize: 10, color: '#94a3b8', cursor: 'help',
                                     borderBottom: '1px dotted', borderColor: 'divider' }}>
-                  끌어다 놓거나 클릭 · 최대 {MAX_ATTACH}개
+                  {t('aiRecommend.attach.hint', { max: MAX_ATTACH })}
                   {attachments.length > 0 && `  (${attachments.length}/${MAX_ATTACH})`}
                 </Typography>
               </Tooltip>
@@ -678,13 +693,13 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           <Button variant="contained" onClick={onSearch} disabled={!nl.trim() || loading}
                   startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />}
                   sx={{ bgcolor: ACCENT, '&:hover': { bgcolor: ACCENT_HOVER }, fontWeight: 700 }}>
-            {loading ? '추천 찾는 중…' : '추천 템플릿 찾기'}
+            {loading ? t('aiRecommend.search.searching') : t('aiRecommend.search.button')}
           </Button>
           {results && (
             <Box sx={{ p: 1.2, bgcolor: ACCENT_BG, border: `1px solid ${ACCENT_BORDER}`, borderRadius: 1.5,
                        fontSize: 11, color: ACCENT_TEXT }}>
-              🔎 관련 mockup {results.filter((c) => c.kind !== 'placeholder').length}개 추천
-              {mode === 'fallback' && <Chip label="키워드 매칭" size="small"
+              {t('aiRecommend.search.summaryCount', { n: results.filter((c) => c.kind !== 'placeholder').length })}
+              {mode === 'fallback' && <Chip label={t('aiRecommend.search.keywordMatching')} size="small"
                 sx={{ ml: 0.6, height: 16, fontSize: 9, bgcolor: '#e2e8f0' }} />}
             </Box>
           )}
@@ -694,7 +709,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {!results && (
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-              <Typography variant="body2">자연어로 만들고 싶은 화면을 적고 "추천 템플릿 찾기" 를 누르세요.</Typography>
+              <Typography variant="body2">{t('aiRecommend.emptyHint')}</Typography>
             </Box>
           )}
           {results && (
@@ -711,7 +726,7 @@ function AiRecommendPanel({ onBack, onStart, targetCd }) {
           )}
           {results && results.some((c) => c.kind !== 'placeholder') && (
             <Typography sx={{ fontSize: 10.5, color: '#94a3b8', textAlign: 'center' }}>
-              선택 후 → ① Layout ② 데이터·검색조건 ③ 메타·메뉴 ④ 생성 <b style={{ color: ACCENT_DARK }}>(AI 자동 prefill)</b>
+              <span dangerouslySetInnerHTML={{ __html: t('aiRecommend.footerSteps', { accentColor: ACCENT_DARK }) }} />
             </Typography>
           )}
         </Box>

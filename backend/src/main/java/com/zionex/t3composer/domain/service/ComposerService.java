@@ -95,6 +95,9 @@ public class ComposerService {
             "모든 파일이 완성되면 끝에 실행 체크리스트를 추가합니다."
     );
 
+    /** Streaming(ComposerStreamingService) 의 continuation 흐름에서 동일 prompt 사용. */
+    public static final String CONTINUE_PROMPT_PUBLIC = CONTINUE_PROMPT;
+
     private final ComposerSessionRepository  sessionRepo;
     private final ComposerMessageRepository  messageRepo;
     private final ComposerArtifactRepository artifactRepo;
@@ -135,6 +138,7 @@ public class ComposerService {
                 .title(req.getTitle() != null ? req.getTitle() : defaultTitle(req))
                 .modelName(req.getModelName() != null ? req.getModelName() : DEFAULT_MODEL)
                 .status(ComposerSession.STATUS_ACTIVE)
+                .uiLanguage("en".equalsIgnoreCase(req.getLang()) ? "en" : "ko")
                 .totalInTokens(0)
                 .totalOutTokens(0)
                 .build();
@@ -610,14 +614,14 @@ public class ComposerService {
 
     // ---- Helpers ----
 
-    MessagesRequest buildRequest(ComposerSession session) {
+    public MessagesRequest buildRequest(ComposerSession session) {
         return buildRequest(session, null);
     }
 
     /**
      * @param attachmentsForLastUserMsg 마지막 user message 에 부착할 binary 첨부 — null/empty 면 plain text
      */
-    MessagesRequest buildRequest(ComposerSession session, List<Attachment> attachmentsForLastUserMsg) {
+    public MessagesRequest buildRequest(ComposerSession session, List<Attachment> attachmentsForLastUserMsg) {
         List<ComposerMessage> history = messageRepo.findBySessionIdOrderByTurnSeqAsc(session.getId());
 
         // 마지막 user message 의 index 찾기 — auto-continuation 시 "계속" 도 user 이므로 마지막 user 가 정답
@@ -652,7 +656,7 @@ public class ComposerService {
         // 정적 블록 (TB_CMP_TARGET_RULE + TB_CMP_TARGET_HOOK 의 content 합본) 에
         // cache_control 부착 → 같은 target 의 후속 호출은 5분 TTL 안에서 input token
         // 비용 90% 절감 (Anthropic Prompt Caching). targetCd 별로 캐시 키 자연 분리.
-        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope());
+        String staticPart  = promptBuilder.buildStaticSystemPrompt(session.getTargetCd(), session.getRuleScope(), session.getUiLanguage());
         String sessionPart = promptBuilder.buildSessionSystemPrompt(session);
 
         List<SystemBlock> systemBlocks = new ArrayList<>();
@@ -747,6 +751,11 @@ public class ComposerService {
     private int nextTurnSeq(String sessionId) {
         Integer max = messageRepo.findMaxTurnSeqBySessionId(sessionId);
         return (max == null ? 0 : max) + 1;
+    }
+
+    /** Streaming 흐름이 동일 시퀀스 계산 사용 — public 위임. */
+    public int nextTurnSeqPublic(String sessionId) {
+        return nextTurnSeq(sessionId);
     }
 
     private void validateMode(String mode) {

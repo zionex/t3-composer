@@ -16,6 +16,7 @@
  *   Plan: docs/superpowers/plans/2026-05-22-composer-canvas-phase2e1.md (Task 2)
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Button, Stack, Typography, Snackbar, Alert } from '@mui/material';
 import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -26,10 +27,10 @@ import MetaStep          from './MetaStep';
 import GenerateStep      from './GenerateStep';
 
 const STEPS = [
-  { id: 'LAYOUT',   label: '① Layout',         color: '#16a34a', bg: '#f0fdf4', border: '#16a34a' },
-  { id: 'DATA',     label: '② 데이터·검색조건', color: '#713f12', bg: '#fef9c3', border: '#facc15' },
-  { id: 'META',     label: '③ 메타·메뉴',      color: '#1e40af', bg: '#eff6ff', border: '#2563eb' },
-  { id: 'GENERATE', label: '④ 화면 생성',      color: '#5b21b6', bg: '#f5f3ff', border: '#9D8FD4' },
+  { id: 'LAYOUT',   labelKey: 'stepper.layout',   shortKey: 'stepper.layoutShort',   color: '#16a34a', bg: '#f0fdf4', border: '#16a34a' },
+  { id: 'DATA',     labelKey: 'stepper.data',     shortKey: 'stepper.dataShort',     color: '#713f12', bg: '#fef9c3', border: '#facc15' },
+  { id: 'META',     labelKey: 'stepper.meta',     shortKey: 'stepper.metaShort',     color: '#1e40af', bg: '#eff6ff', border: '#2563eb' },
+  { id: 'GENERATE', labelKey: 'stepper.generate', shortKey: 'stepper.generateShort', color: '#5b21b6', bg: '#f5f3ff', border: '#9D8FD4' },
 ];
 
 /**
@@ -42,6 +43,7 @@ const STEPS = [
  *   onBack       뒤로 콜백
  */
 function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP', targetCd, onBack }) {
+  const { t } = useTranslation('wizard');
   // mode 를 spec.meta 에 보존 — 이후 Generate step 의 specToInitialPrompt 가 활용.
   const [spec, setSpec] = useState(() => {
     if (!initialSpec) return initialSpec;
@@ -63,7 +65,7 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
       const items = spec?.filterBar?.items || [];
       const blanks = items.filter((it) => !(it.label || '').trim());
       if (blanks.length > 0) {
-        return `FilterBar 필드 ${blanks.length}개에 라벨이 비어있습니다. 입력 후 다음으로 진행하세요.`;
+        return t('validation.filterBarBlankLabels', { count: blanks.length });
       }
       // Phase 2D-2a — Layer 관계의 orphan 검사 (존재하지 않는 layer 참조 차단)
       const layerKeys = new Set((spec?.layers || []).map((l) => l.key));
@@ -72,14 +74,14 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
         !layerKeys.has(r.source?.layerKey) || !layerKeys.has(r.target?.layerKey)
       );
       if (orphans.length > 0) {
-        return `Layer 관계 ${orphans.length}개의 source/target layer 가 존재하지 않습니다. 정리 후 다음으로 진행.`;
+        return t('validation.orphanRelations', { count: orphans.length });
       }
     }
     if (stepId === 'META') {
       // 부모 메뉴 필수 — 메뉴 등록 시 PARENT_ID lookup 필요. 누락 시 Claude 가 추론하면
       // 실제 운영 메뉴에 없는 코드를 만들어 backend apply 실패.
       if (!(spec?.meta?.parentMenuCd || '').trim()) {
-        return '부모 메뉴를 선택하세요. [메뉴 선택] 으로 등록 위치를 지정해야 합니다.';
+        return t('validation.parentMenuRequired');
       }
     }
     return null;
@@ -100,12 +102,12 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
       <Stack direction="row" alignItems="center" spacing={1}
              sx={{ p: 1, borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
         <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>
-          패턴 다시 선택
+          {t('buttons.backPicker')}
         </Button>
         <Typography variant="caption" sx={{ color: '#64748b', ml: 1 }}>
-          pattern: <b>{spec?.meta?.pattern || 'BLANK'}</b>
+          {t('header.patternHint')} <b>{spec?.meta?.pattern || 'BLANK'}</b>
           {spec?.meta?.menuCd && (
-            <> · menu: <b>{spec.meta.menuCd}</b></>
+            <> · {t('header.menuHint')} <b>{spec.meta.menuCd}</b></>
           )}
         </Typography>
       </Stack>
@@ -131,7 +133,7 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
                   '&:hover': active ? {} : { bgcolor: '#f1f5f9', borderColor: '#94a3b8' },
                 }}
               >
-                {s.label}
+                {t(s.labelKey)}
               </Box>
               {i < STEPS.length - 1 && (
                 <Box sx={{ color: '#cbd5e1', flexShrink: 0 }}>›</Box>
@@ -183,7 +185,7 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
             startIcon={<ArrowBackIcon fontSize="small" />}
             onClick={goPrev} disabled={isFirst}
           >
-            이전
+            {t('buttons.previous')}
           </Button>
           <Button
             size="small" variant="contained"
@@ -195,7 +197,9 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
               fontWeight: 700,
             }}
           >
-            다음: {STEPS[curIdx + 1]?.label.replace(/^[①②③④]\s*/, '') || '끝'}
+            {STEPS[curIdx + 1]
+              ? t('buttons.next', { label: t(STEPS[curIdx + 1].shortKey) })
+              : t('buttons.nextLast')}
           </Button>
         </Stack>
       )}

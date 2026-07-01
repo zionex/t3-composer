@@ -1,0 +1,644 @@
+{
+  "landing": {
+    "title": "T³Composer",
+    "subtitle": "基于 AI 的画面自动生成",
+    "heroTitle": "您想构建什么?",
+    "heroDesc": "创建新画面或修改现有画面。",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "多种输入",
+      "mid": "ScreenSpec",
+      "output": "画面产物"
+    }
+  },
+  "category": {
+    "newDev": "新建开发",
+    "modifyExisting": "现有画面修改"
+  },
+  "mode": {
+    "newNl": {
+      "title": "自然语言生成",
+      "sub": "Natural Lang.",
+      "hint": "用自然语言描述需求后,Claude 会生成模式与代码"
+    },
+    "newStep": {
+      "title": "分步生成",
+      "sub": "Pattern + Visual",
+      "hint": "选择模式后用可视化编辑填入数据"
+    },
+    "newFromCopy": {
+      "title": "复制现有画面",
+      "sub": "Copy Existing",
+      "hint": "复制现有画面后用分步向导修改"
+    },
+    "modifyNl": {
+      "title": "自然语言修改",
+      "sub": "NL Modify",
+      "hint": "把当前画面源码提供给 Claude,用自然语言对话请求修改"
+    },
+    "modifyStep": {
+      "title": "分步修改",
+      "sub": "Step Modify",
+      "hint": "把现有画面分解成 Spec 后仅修改需要变更的部分"
+    }
+  },
+  "modeNewNl": {
+    "header": {
+      "back": "选择模式",
+      "titleNl": "基于自然语言的新建生成",
+      "titleStep": "分步生成",
+      "titleGeneral": "新建开发 — 通用生成",
+      "restart": "从头开始",
+      "exit": "退出"
+    },
+    "submode": {
+      "intro": "请选择生成方式。",
+      "nl": {
+        "title": "基于自然语言的生成",
+        "subtitle": "Natural Language",
+        "description": "用自然语言描述需求后,Claude 会一次性决定模式、规格和代码。快速灵活,但 token 使用量大。",
+        "pros": [
+          "快速开始",
+          "灵活的表达",
+          "设计未确定时适用"
+        ],
+        "cons": [
+          "token 使用量大",
+          "结果解释成本",
+          "反复修改时成本累积"
+        ]
+      }
+    },
+    "module": {
+      "title": "选择模块",
+      "hint": "请选择待生成画面所属的模块。系统会按模块的命名规范和公共表自动注入到 Claude。"
+    },
+    "promptPanel": {
+      "title": "输入需求",
+      "changeModule": "更改模块",
+      "placeholderTemplate": "例: {{example}}\n\n💡 参考文件请拖放到下方 \"附加参考文件\" 区域",
+      "fallbackExample": "请输入希望的画面描述... (提到 TB_AD_USER 等表名时会自动检查是否存在)",
+      "dropHere": "请把文件拖放到此处",
+      "aiEngine": "AI 引擎:",
+      "currentSel": "✓ 当前选择",
+      "selectedChip": "已选 · {{label}}"
+    },
+    "options": {
+      "title": "可选项 — 在 SCM UI 原型 · UI 模式 中选 1 个 (互斥) · 文件附加单独 (下方区域 · 最多 5 个)",
+      "scmMockup": "SCM UI 原型",
+      "uiPattern": "UI 模式",
+      "kpiChart": "KPI / Chart",
+      "scmMockupSelect": "选择 SCM UI 原型",
+      "scmMockupSelected": "Mockup: {{code}}",
+      "uiPatternSelect": "选择 UI 模式",
+      "uiPatternSelected": "Pattern: {{label}}",
+      "kpiChartSelect": "选择 KPI / Chart 词典项",
+      "kpiChartSelected": "KPI {{kpis}} · Chart {{charts}}",
+      "clear": "解除",
+      "tooltip3DMockup": "勾选 3D 时 — 点击 [选择 SCM UI 原型] 会以全屏 3D 画廊(JARVIS 风格)按类别排列 mockup,可拖拽移动、滚轮缩放浏览。未勾选时为普通列表 POPUP。",
+      "tooltip3DUiPattern": "勾选 3D 时 — 点击 [选择 UI 模式] 会以全屏 3D 画廊(JARVIS 风格)按组排列模式,可拖拽旋转、滚轮缩放浏览。未勾选时为普通列表 POPUP。"
+    },
+    "attach": {
+      "title": "附加参考文件 — SQL · 设计文档图像等 (拖放或点击)",
+      "limit": "最多 {{max}} 个 · 单文件 5MB — SQL · 图像 · 设计文档等",
+      "limitCount": "  (当前 {{n}}/{{max}})",
+      "tooltip": "可附加最多 5 个必要的 SQL 文件、设计文档图像、截图、源码等。文本(.sql 等)以 inline 加入 prompt,图像/PDF/二进制以附件发送(单文件最大 5MB)。可与 SCM UI 原型、UI 模式选择一起使用。"
+    },
+    "dataSource": {
+      "select": "选择 Data Source",
+      "selectedChip": "Data Source — 已选 {{n}} 个",
+      "hint": "通过星座图从 Target DB 表·SP · T3Insight 本体 · 自定义查询中选择,指定画面读取/写入的数据(可选 · 与 Mockup/UI 模式独立 · 可多选)。",
+      "clearAll": "全部解除"
+    },
+    "submit": {
+      "moduleHint": "Claude 会按模块规范 (TB_{{code}}_ / SP_UI_{{code}}_) 生成。",
+      "creating": "正在创建会话...",
+      "submit": "向 Claude 请求生成"
+    },
+    "tableLookup": {
+      "title": "自动检查表存在 (T3SMARTSCM.dbo)",
+      "explain": "在后端 DB 直接查询 prompt 中的 <code>TB_*</code> 表名 — 存在则用已有列做 Entity 映射,不存在则作为新的 SQL_DDL 成果物生成。结果会自动附加到 Claude prompt 上下文。",
+      "noTables": "(prompt 中未发现 <code>TB_*</code> 模式 — 如有要使用的表名请输入)",
+      "notExists": "不存在 — 将作为新的 SQL_DDL 成果物生成 (允许 NEW_NL 模式)",
+      "moreCols": " · 其他 {{n}} 个"
+    },
+    "examples": {
+      "title": "新建生成示例",
+      "show": "查看示例",
+      "hide": "隐藏示例",
+      "collapsedHint": "点击 [查看示例] 可展开模块示例及按输入方式分类的示例。",
+      "moduleSection": "{{code}} 模块示例",
+      "byInputTitle": "新建生成示例 — 按输入方式",
+      "clickToPrompt": "点击 → 写入 prompt"
+    },
+    "modelOptions": {
+      "sonnet": { "sub": "Sonnet 4.6 — 快速",            "desc": "速度·成本·质量平衡。需要快速生成时使用。" },
+      "opus":   { "sub": "Opus 4.7 — 默认 (高质量)",      "desc": "适合复杂逻辑·高难度画面。输出过多 (16K+) 时响应可能需要 3~5 分钟以上。" }
+    },
+    "examplePrompts": {
+      "DP": ["按客户的月度需求计划录入画面 — 交叉透视。P06 模式", "需求计划与实绩分析 — 上方网格 + 下方趋势图。P05 模式"],
+      "MP": ["资源利用率甘特图 — 可调时间桶。P09 模式", "MP 模拟结果摘要·明细标签。P03 模式"],
+      "FP": ["FP 作业指令监控仪表盘 — KPI + 图表。P01 模式", "按资源的生产计划甘特图。P09 模式"],
+      "RP": ["补货订单确定查询 — 搜索 + 单一网格。P02 模式", "补货计划透视录入。P06 模式"],
+      "BF": ["预测准确性分析 — 网格 + 趋势图。P05 模式", "BF 控制板·版本管理。P07 模式"],
+      "IM": ["安全库存·目标库存策略管理 — 搜索 + 网格。P02 模式", "ABC/XYZ 分析图表 + 列表。P05 模式"],
+      "SA": ["S&OP 会议议题管理。P01 模式", "销售实绩汇总仪表盘。P01 模式"],
+      "SO": ["销售订单查询。P02 模式"],
+      "CM": ["品目主数据管理 — 搜索 + 单一网格。P02 模式", "据点/仓库层级 — 水平分割。P04 模式"],
+      "AD": ["用户管理 — 搜索 + 网格 + 角色分配。P04 模式", "菜单管理 — 树 + 详情。P04 模式"],
+      "UT": ["公告管理 — 搜索 + 网格。P02 模式", "问题管理仪表盘。P01 模式"]
+    },
+    "creationExamples": {
+      "promptOnly": {
+        "group": "仅输入 prompt",
+        "items": [
+          { "tag": "已有表·有 SP",     "kind": "prompt", "text": "使用 TB_AD_USER 表和 SP_UI_AD_01_Q1 / _S1 / _D1 存储过程创建用户列表查询·保存·删除画面。" },
+          { "tag": "已有表·无 SP",     "kind": "prompt", "text": "基于已有 TB_CM_ITEM_MST 表的品目主数据管理 (CRUD) 画面。请新建查询/保存/删除 SP。" },
+          { "tag": "直接指定查询",      "kind": "prompt", "text": "查询 VW_INVENTORY_PLAN_CONFIRMED 视图的库存状况画面 — 搜索条件为据点·品目,结果为网格。" },
+          { "tag": "无表·新设计",       "kind": "prompt", "text": "设计管理公告的新表并创建公告登记·编辑·删除画面。" }
+        ]
+      },
+      "mockup": {
+        "group": "选择 SCM UI 原型",
+        "items": [
+          { "tag": "Mockup + prompt", "kind": "info", "text": "通过上方的 [选择 SCM UI 原型] 选定画面原型,Claude 会参考其布局骨架。prompt 中只需描述数据需求即可。(与 UI 模式互斥)" }
+        ]
+      },
+      "uiPattern": {
+        "group": "选择 UI 模式",
+        "items": [
+          { "tag": "UI 模式 + prompt", "kind": "info", "text": "通过上方的 [选择 UI 模式] 选定 T3MES 模式,Claude 会参考其画面标记进行生成。(与 SCM UI 原型互斥)" }
+        ]
+      },
+      "fileAttach": {
+        "group": "文件附加 (D&D)",
+        "items": [
+          { "tag": "SQL · 设计图像附加", "kind": "info", "text": "在下方的 [附加参考文件] 区域拖放最多 5 个 SQL 文件·设计文档图像·截图等以一起参考。可与 Mockup / UI 模式选择一起使用。" }
+        ]
+      }
+    },
+    "errors": {
+      "promptRequired": "请输入需求。",
+      "sessionFailed": "会话创建失败"
+    }
+  },
+  "modeExistingModify": {
+    "header": {
+      "backToSub": "选择子模式",
+      "backToMode": "选择模式",
+      "title": "现有画面修改",
+      "subModeNl": "自然语言修改",
+      "subModeStep": "分步修改"
+    },
+    "submode": {
+      "intro": "请选择修改现有画面的方式。两种方式都需要先从菜单树选择画面后再进行。",
+      "nl": {
+        "title": "自然语言修改",
+        "subtitle": "Natural Language",
+        "description": "把当前源码提供给 Claude,用自然语言对话传达变更请求。快速灵活,但 token 使用量大。",
+        "pros": [
+          "快速开始",
+          "自由的变更请求",
+          "适合复合变更"
+        ],
+        "cons": [
+          "token 成本高",
+          "结果需等响应后确认"
+        ]
+      },
+      "step": {
+        "title": "分步修改",
+        "subtitle": "Step-by-step Wizard",
+        "description": "把现有画面分解成 9 步 Spec 并分步显示,只修改希望变更的部分后调用 Claude。节省 token + 变更范围明确。",
+        "pros": [
+          "节省 token",
+          "变更区域明确",
+          "可对每个 Step 微调"
+        ],
+        "cons": [
+          "输入步骤多",
+          "不适合完全替换为新模式"
+        ]
+      }
+    },
+    "rightPanel": {
+      "loading": "正在收集源码 (insight-apicall/screen-metadata/collect-source-for-llm)...",
+      "hintNl": "已收集的源码束 (开始修改会话时会作为 Claude 的初始上下文传递)",
+      "hintStep": "已收集的源码束 (会自动 prefill 到 Wizard 的 9 步 Spec — 只需修改想变更的步骤)",
+      "placeholderTitle": "请选择要修改的画面",
+      "placeholderHint": "在左侧菜单树点击想要修改的画面,右侧会显示原始源码预览。"
+    },
+    "buttons": {
+      "exit": "退出",
+      "starting": "正在开始...",
+      "startNl": "开始修改会话",
+      "startStep": "开始分步 Wizard"
+    },
+    "errors": {
+      "sourceFailed": "源码收集失败: {{detail}}",
+      "sessionFailed": "会话创建失败",
+      "specFailed": "Spec 创建失败: {{detail}}"
+    },
+    "prompt": {
+      "sessionTitleSuffix": "{{id}} 修改"
+    }
+  },
+  "modeNewFromCopy": {
+    "header": {
+      "back": "选择模式",
+      "title": "复制现有画面 — 4 步 Wizard",
+      "subtitle": "Copy from Existing · 选择原画面后分步查看·生成"
+    },
+    "leftPanel": {
+      "title": "1. 选择要复制的原画面",
+      "selected": "已选"
+    },
+    "middlePanel": {
+      "placeholder": "请从左侧选择要复制的原画面。",
+      "loading": "正在收集原始源码...",
+      "hint": "已收集的原始源码束 — 会自动 prefill 到 Wizard 的 4 步"
+    },
+    "rightPanel": {
+      "title": "2. 新画面基本信息",
+      "originLabel": "原画面",
+      "newMenuCdLabel": "新菜单代码",
+      "newMenuCdPlaceholder": "例: UI_DP_MONTHLY_PLAN_V2",
+      "newMenuCdCheck": "确认",
+      "newTitleLabel": "新画面标题",
+      "newTitlePlaceholder": "例: DP 月度计划 V2",
+      "infoAlert": "详细的变更事项(增加列、修改搜索条件等)在 4 步 Wizard(① Canvas / ② 数据·搜索条件 / ③ 元数据·菜单 / ④ 画面生成)的每一步输入。自由文本形式的额外请求可在最后一步(④ 画面生成)输入。",
+      "ai": {
+        "label": "AI 自动分析进行 4 步 prefill (推荐)",
+        "desc": "精准提取每个 Layer 的 SP(读取/CUD)、FilterBar、组件、Entity。OFF 时仅使用正则分析。",
+        "analyzing": "Claude 正在分析 sourceBundle (5~15 秒)...",
+        "done": "✓ AI 分析完成 — {{modelName}} · 已强化 {{stepCount}}/8 步"
+      },
+      "warnNoSelection": "请先在左侧选择要复制的原画面。",
+      "reset": "重置",
+      "aiAnalyzing": "AI 分析中...",
+      "aiSubmit": "AI 分析 + 4 步 Wizard",
+      "plainSubmit": "下一步 — 4 步 Wizard"
+    },
+    "menuCdValidation": {
+      "empty": "请输入菜单代码",
+      "sameAsOrigin": "不能使用与原画面相同的菜单代码",
+      "exists": "菜单代码已存在",
+      "ok": "✓ 菜单代码可用",
+      "skipped": "(跳过可用性确认)"
+    },
+    "errors": {
+      "sourceFailed": "源码收集失败: {{detail}}",
+      "newMenuCdRequired": "请输入新菜单代码。",
+      "aiFailed": "AI 分析失败 (以正则结果继续): {{detail}}"
+    },
+    "copySuffix": "{{id}} 副本",
+    "sourceMissing": {
+      "title": "Target Source 路径未设置",
+      "description": "复制现有画面需要从 Target System {{targetCd}} 的原始源码文件夹直接读取 JSX·Java 文件。当前 Target 的 sourceRefPath 未设置,或在已设置的路径中未找到实际源码树(例: packages/wingui/src · src/pages)。",
+      "targetUnselected": "(未选择)",
+      "currentLabel": "当前保存的 sourceRefPath",
+      "currentEmpty": "(空 — 挂载约定 /workspace/targets/{{targetCd}}/wingui 也不可用)",
+      "hint": "请点击 [打开 Storage 设置] 指定容器内 source 文件夹的绝对路径(例: /workspace/projects/<repo>)。",
+      "cancel": "取消",
+      "openStorage": "打开 Storage 设置"
+    }
+  },
+  "modeNewStep": {
+    "title": "分步画面生成 (Beta) — 选择模式",
+    "hint": "请选择画面的起始骨架。选择后会通过 4 步 Wizard 按 Layout / 数据·搜索条件 / 元数据·菜单 / 画面生成的顺序进行。",
+    "back": "返回",
+    "dashboardTitle": "从 Dashboard 开始 — 选择仪表盘",
+    "newScreenDefault": "新画面",
+    "pattern": {
+      "aiSuggest": {
+        "title": "✨ AI 推荐",
+        "desc": "用自然语言写下意图,会推荐 3 个相关 SCM UI 原型 + 4 步 AI 自动 prefill"
+      },
+      "mockup": {
+        "title": "SCM UI 原型",
+        "desc": "Product Line · 类别过滤 — 自动 prefill 原型的实际 layer 结构"
+      },
+      "uiPattern": {
+        "title": "T3MES UI 模式",
+        "desc": "T3MES 发布模式 — 保留单一 layer + 模式标识符"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc": "选择一个现有仪表盘,自动 prefill 小部件布局"
+      },
+      "blank": {
+        "title": "空画布 (P02 — 搜索 + 单一网格)",
+        "desc": "以最常见的主数据 CRUD 模式开始"
+      }
+    }
+  },
+  "picker": {
+    "mockup": {
+      "title": "选择 SCM UI 原型",
+      "caption": "(可选 — Claude 会参考所选 mockup 的布局骨架 · 右侧显示预览)",
+      "searchPlaceholder": "代码 · 标签 · 描述搜索",
+      "productLineLabel": "Product",
+      "categoryLabel": "Category",
+      "all": "全部",
+      "allWithCount": "全部 · {{n}}",
+      "emptyHint": "无搜索结果。",
+      "previewEmpty": "从左侧列表选择 mockup 后将显示预览。",
+      "clearSelection": "清除选择",
+      "cancel": "取消",
+      "apply": "应用此 Mockup"
+    },
+    "uiPattern": {
+      "title": "选择 UI 模式",
+      "caption": "(可选 — Claude 会参考所选模式的轻量标记 · 右侧显示预览)",
+      "filterAll": "全部",
+      "countChip": "{{n}} 个",
+      "searchPlaceholder": "区段 · 组 · 文件 · 模式标签搜索",
+      "emptyHint": "无搜索结果。",
+      "layerChipTitle": "此模式将自动拆分为 {{n}} 个 layer",
+      "previewEmpty": "从左侧列表选择 UI 模式后将显示预览。",
+      "clearSelection": "清除选择",
+      "cancel": "取消",
+      "apply": "应用此模式"
+    },
+    "dataSource": {
+      "title": "选择 Data Source — 神经星座图",
+      "targetChip": "Target · {{cd}}",
+      "targetNone": "未选择 Target",
+      "close": "关闭",
+      "tab": {
+        "dbEntity": "DB Entity",
+        "ontology": "Ontology",
+        "queryInline": "Query Inline"
+      },
+      "basketCount": "已选 {{n}}",
+      "emptyHint": "在选项卡中选择表·SP·本体·查询后会添加到此处。",
+      "clearAll": "全部解除",
+      "cancel": "取消",
+      "apply": "应用 ({{n}})",
+      "kind": {
+        "TABLE": "表",
+        "SP": "SP",
+        "ONTOLOGY_QA": "Q&A",
+        "ONTOLOGY_INTENT": "意图",
+        "ONTOLOGY_SP": "UI SP",
+        "INLINE_QUERY": "查询"
+      }
+    }
+  },
+  "moduleSelector": {
+    "intro": "请选择待生成画面所属的模块。各模块的表/SP 命名规范与公共模式不同。"
+  },
+  "apiKeyDialog": {
+    "title": "Anthropic API 密钥",
+    "description": "T3Composer 通过 Claude API 生成画面、SP、表。请注册个人 Anthropic API 密钥。密钥会在服务器加密保存 (TB_IS_EXTRNLAPIKEY, Jasypt PBE)。",
+    "consoleLink": "→ 在 Anthropic Console 获取密钥",
+    "apiKeyLabel": "API Key",
+    "descriptionLabel": "说明 (可选)",
+    "defaultDescription": "Personal key",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中...",
+    "errors": {
+      "empty": "请输入 API 密钥。",
+      "invalidPrefix": "Anthropic API 密钥必须以 sk-ant- 开头。",
+      "saveFailed": "保存时发生错误。"
+    }
+  },
+  "header": {
+    "apiKey": {
+      "registeredLabel": "API Key",
+      "unregisteredLabel": "需要 API Key",
+      "registeredTooltip": "API 密钥已注册 — 所有模式可用",
+      "unregisteredTooltip": "API 密钥未注册 — 点击注册"
+    },
+    "llmBackend": {
+      "cliTooltip": "CLI 模式 — 使用主机 ~/.claude OAuth 登录 (Claude 订阅)",
+      "apiTooltip": "API 模式 — 使用 Anthropic HTTP API + ANTHROPIC_API_KEY"
+    },
+    "settings": "设置"
+  },
+  "aiRecommend": {
+    "back": "返回",
+    "title": "✨ 用 AI 推荐开始画面",
+    "targetLabel": "Target:",
+    "inputTitle": "要创建什么?",
+    "placeholder": "例: 想做一个需求计划录入画面。按月录入销售计划并与实绩对比。",
+    "emptyHint": "请用自然语言写下想做的画面,然后点击 \"查找推荐模板\"。",
+    "footerSteps": "选择后 → ① Layout ② 数据·搜索条件 ③ 元数据·菜单 ④ 生成 <b style=\"color:{{accentColor}}\">(AI 自动 prefill)</b>",
+    "attach": {
+      "title": "附加参考文件 — 设计文档图像 · SQL 等",
+      "tooltip": "可附加最多 5 个(单文件 5MB)设计文档图像、截图、SQL 等。文本以 inline 加入 prompt,图像/PDF 以 multimodal 发送。所有 AI 推荐、prefill、最终画面生成步骤都会使用。",
+      "hint": "拖放或点击 · 最多 {{max}} 个",
+      "maxItemsError": "参考文件最多可附加 {{max}} 个。",
+      "partialAddedError": "最多 {{max}} 个 — 仅添加了 {{n}} 个。",
+      "fileTooBig": "文件过大 ({{sizeKb}}KB > 5MB): {{name}}",
+      "fileReadFailed": "文件读取失败: {{name}}: {{message}}"
+    },
+    "search": {
+      "searching": "正在查找推荐…",
+      "button": "查找推荐模板",
+      "summaryCount": "🔎 推荐相关 mockup {{n}} 个",
+      "keywordMatching": "关键词匹配"
+    },
+    "errors": {
+      "noResults": "未找到相关模板。请换一种表达再试。",
+      "noMore": "AI 未能找到合适的额外模板。"
+    },
+    "cards": {
+      "defaultScreenTitle": "新画面",
+      "relevanceChip": "相关度 {{relevance}}%",
+      "analyzing": "分析中…",
+      "startTemplate": "用此模板开始 →"
+    },
+    "synth": {
+      "badge": "🪄 AI 重组",
+      "startSynth": "用此重组开始 →"
+    },
+    "image": {
+      "badge": "📷 自有设计",
+      "title": "按自有设计原样创建",
+      "defaultTitle": "自有设计",
+      "layersInferred": "已从图像推断 {{n}} 个 layer (KPI·图表·网格·过滤器) 的位置",
+      "structureAmbiguous": "结构模糊 — 开始后在 Layout 步骤直接补强",
+      "analyzingDesc": "Claude vision 正在分析图像布局",
+      "analyzingStatus": "AI 分析中…",
+      "emptyAnalysis": "分析结果为空",
+      "waiting": "等待中",
+      "entering": "正在进入…",
+      "analyzingBtn": "分析中…",
+      "startDesign": "用此设计开始 →"
+    }
+  },
+  "conceptDiagram": {
+    "alt": "T³Composer — ScreenSpec 概念图",
+    "caption": "多样输入 → ScreenSpec → 画面成果物"
+  },
+  "menuTree": {
+    "title": "菜单树",
+    "screenCount": "画面 {{n}}",
+    "refreshTooltip": "刷新菜单树",
+    "searchPlaceholder": "菜单代码·名称·路径搜索",
+    "loading": "正在加载 Target DB 菜单树...",
+    "emptyMenu": "Target DB 的 TB_AD_MENU 中没有已注册的菜单。",
+    "noResults": "无搜索结果。",
+    "loadError": "Target 菜单树查询失败",
+    "langPackMissing": "{{id}} — LangPack 未注册"
+  },
+  "targetSystem": {
+    "loading": "加载中...",
+    "pickTarget": "选择 Target",
+    "tooltipCurrent": "Target: {{name}} ({{dbType}} · {{grid}})",
+    "tooltipEmpty": "选择 Target System",
+    "noTargets": "无已注册的 Target",
+    "dbConnectedTooltip": "已连接运营 DB: {{url}}",
+    "governanceSnapshotTooltip": "治理设置快照 / 恢复",
+    "dbConnectionTooltip": "运营 DB 接入信息设置",
+    "snapshot": {
+      "none": "无快照",
+      "inSync": "已同步",
+      "changeCount": "{{n}} 项变更"
+    },
+    "restoreDialog": {
+      "title": "{{targetCd}} — 治理设置恢复",
+      "mismatch": "已保存的快照与当前磁盘不同。要切换到此 Target,需要将快照恢复到磁盘。",
+      "preview": "恢复后将重新生成缺失 {{missing}} 个 · 还原变更 {{modified}} 个 · 删除多余 {{extra}} 个。恢复前的当前状态会自动备份。",
+      "failed": "恢复失败",
+      "completed": "恢复完成 — {{summary}}",
+      "busy": "恢复中...",
+      "cancel": "取消",
+      "switchWithout": "不恢复直接切换",
+      "restoreAndSwitch": "恢复后切换",
+      "close": "关闭"
+    }
+  },
+  "targetDb": {
+    "title": "Target DB 接入信息 — {{name}}",
+    "loadFailed": "对象加载失败: {{message}}",
+    "saveSuccess": "已保存 — 下次菜单树/源码查询起生效",
+    "saveFailed": "保存失败: {{message}}",
+    "infoConnection": "直接连接运营 wingui DB 后,NEW_FROM_COPY / EXISTING_MODIFY 会实时获取菜单·LangPack·SP 数据。留空则回退使用本地 target-mssql synced 数据。",
+    "driverClassLabel": "Driver Class (可选)",
+    "connectionSuccess": "连接成功 — {{product}} {{version}} ({{elapsedMs}}ms)",
+    "connectionFailure": "连接失败 — {{error}}",
+    "sourcePathTitle": "Target source path",
+    "sourcePathInfo": "请输入容器内绝对路径(或使用右侧<strong>浏览</strong>按钮)。<strong> source</strong> 是 frontend root,<strong>backend</strong> 是 backend root(仅当不是 monorepo 时单独指定,如 PLANNEL — 留空则假定与 source 相同)。留空则使用 docker-compose 的 <code>/workspace/targets/{{targetCd}}/wingui</code> 作为 fallback。",
+    "sourceFolderLabel": "source 文件夹路径",
+    "sourceFolderPlaceholder": "(未设置 — 自动使用容器内 /workspace/targets/{{targetCd}}/wingui)",
+    "backendFolderLabel": "backend 文件夹路径 (仅分离结构时)",
+    "backendFolderPlaceholder": "(未设置 — 假定与 source 相同 root。如 PLANNEL 分离则指定 backend root)",
+    "folderBrowse": "浏览文件夹",
+    "close": "关闭",
+    "testConnection": "测试连接",
+    "save": "保存",
+    "pickerSource": "选择 source 文件夹",
+    "pickerBackend": "选择 backend 文件夹"
+  },
+  "history": {
+    "title": "Composer 工作历史",
+    "searchPlaceholder": "标题 / 菜单代码 / 模式 / Target 搜索",
+    "refresh": "刷新",
+    "emptyAll": "无历史 — 请从 Composer 主页开始会话。",
+    "emptyFiltered": "无符合条件的会话",
+    "untitled": "(无标题)",
+    "deleted": "已删除: {{name}}",
+    "filter": {
+      "all": "全部",
+      "active": "进行中",
+      "completed": "已完成",
+      "archived": "已归档"
+    },
+    "status": {
+      "active": "进行中",
+      "completed": "已完成",
+      "archived": "已归档"
+    },
+    "col": {
+      "target": "Target",
+      "mode": "模式",
+      "title": "标题",
+      "menuCd": "菜单代码",
+      "model": "模型",
+      "status": "状态",
+      "tokens": "Token",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "action": {
+      "resume": "继续",
+      "markActive": "切换为进行中",
+      "markCompleted": "完成",
+      "markArchived": "归档",
+      "delete": "删除"
+    },
+    "deleteDialog": {
+      "title": "删除会话",
+      "body": "将永久删除会话 \"{{name}}\"。消息和成果物也会一同删除。是否继续?",
+      "cancel": "取消",
+      "confirm": "删除"
+    },
+    "errors": {
+      "loadList": "会话列表加载失败",
+      "statusChange": "状态变更失败: {{message}}",
+      "deleteFailed": "删除失败: {{message}}"
+    }
+  },
+  "workspace": {
+    "exit": "退出"
+  },
+  "mockup": {
+    "subtitle": "UI 模式原型库",
+    "searchPlaceholder": "代码/标签/描述/菜单搜索",
+    "countDisplay": "{{n}} 个",
+    "empty": "无符合的原型。",
+    "mappedMenusTooltip": "已映射的运营菜单 {{n}} 个",
+    "backToList": "返回全部原型列表",
+    "usedMenus": "使用菜单 {{n}} 个",
+    "menuListSummary": "映射到此 mockup 的 T3SmartSCM 运营菜单 — 共 {{total}} 个",
+    "menuListMatched": "{{n}} 个匹配",
+    "menuSearchPlaceholder": "菜单 ID / 菜单名 / 路径搜索",
+    "filter": {
+      "all": "全部 {{n}}"
+    },
+    "category": {
+      "all": "All",
+      "core": "正规 {{n}}",
+      "domain": "域 {{n}}",
+      "dashboard": "Dashboard {{n}}",
+      "controlboard": "CB {{n}}",
+      "meta": "元 {{n}}"
+    },
+    "layout": {
+      "all": "Layout — 全部"
+    },
+    "menuTable": {
+      "id": "菜单 ID",
+      "name": "菜单名",
+      "path": "路径 (filePath)",
+      "reason": "映射依据",
+      "noName": "(无名称)",
+      "noMatch": "无与 \"{{query}}\" 匹配的菜单",
+      "noMapped": "无已映射菜单"
+    }
+  },
+  "uiPattern": {
+    "backToList": "返回列表",
+    "openLite": "打开 AI 参考用轻量文件 (lite)",
+    "openFull": "在新窗口打开此画面 (full)",
+    "openInNewWindow": "在新窗口打开",
+    "heroTitle": "UI Pattern 汇总",
+    "heroSubtitle": "按 MES / SCM 域划分的 UI 模式 — 选择各 TabPage 后,正文会立即以激活状态显示对应模式。",
+    "stats": {
+      "total": "全部模式",
+      "files": "文件"
+    },
+    "filter": {
+      "all": "全部"
+    },
+    "allGroups": "全部组",
+    "searchPlaceholder": "区段 · 组 · 文件 · TabPage 标签搜索",
+    "reset": "重置",
+    "resultCount": "结果 {{n}} 个",
+    "noResults": "无符合搜索条件的模式。",
+    "resetFilters": "重置过滤器"
+  }
+}

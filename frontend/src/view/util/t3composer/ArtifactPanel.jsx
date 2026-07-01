@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -36,9 +37,9 @@ const TYPE_LABEL = {
   SQL_SP:            { label: 'SP',         color: '#fa7d5b' },
   MENU_SQL:          { label: 'Menu SQL',   color: '#ffb100' },
   MENUS_JS_PATCH:    { label: 'menus.js',   color: '#ffb100' },
-  DESIGN_DOC_UPLOAD: { label: '설계서',     color: '#bface2' },
-  SOURCE_SNAPSHOT:   { label: '소스',       color: '#a7afa2' },
-  OTHER:             { label: '기타',       color: '#a7afa2' },
+  DESIGN_DOC_UPLOAD: { labelKey: 'artifactPanel.typeLabel.designDoc', color: '#bface2' },
+  SOURCE_SNAPSHOT:   { labelKey: 'artifactPanel.typeLabel.source',    color: '#a7afa2' },
+  OTHER:             { labelKey: 'artifactPanel.typeLabel.other',     color: '#a7afa2' },
 };
 
 function typeMeta(t) {
@@ -54,15 +55,15 @@ function typeMeta(t) {
  *   📂 기타
  */
 const ARTIFACT_GROUPS = [
-  { key: 'screen',  label: '화면',       icon: '🖥', accent: '#5281b3',
+  { key: 'screen',  labelKey: 'artifactPanel.group.screen',  icon: '🖥', accent: '#5281b3',
     types: ['SCREEN_JSX'] },
-  { key: 'backend', label: '백엔드',    icon: '⚙️', accent: '#2a9d8f',
+  { key: 'backend', labelKey: 'artifactPanel.group.backend', icon: '⚙️', accent: '#2a9d8f',
     types: ['JAVA_ENTITY', 'JAVA_REPOSITORY', 'JAVA_SERVICE', 'JAVA_CONTROLLER'] },
-  { key: 'sql',     label: 'SQL',        icon: '🗄', accent: '#fa7d5b',
+  { key: 'sql',     labelKey: 'artifactPanel.group.sql',     icon: '🗄', accent: '#fa7d5b',
     types: ['SQL_DDL', 'SQL_SP'] },
-  { key: 'menu',    label: '메뉴 등록',  icon: '📋', accent: '#ffb100',
+  { key: 'menu',    labelKey: 'artifactPanel.group.menu',    icon: '📋', accent: '#ffb100',
     types: ['MENU_SQL', 'MENUS_JS_PATCH'] },
-  { key: 'other',   label: '기타',       icon: '📎', accent: '#a7afa2',
+  { key: 'other',   labelKey: 'artifactPanel.group.other',   icon: '📎', accent: '#a7afa2',
     types: ['DESIGN_DOC_UPLOAD', 'SOURCE_SNAPSHOT', 'OTHER'] },
 ];
 
@@ -81,6 +82,7 @@ function groupArtifacts(items) {
  * 산출물 목록 + 선택된 산출물 상세 미리보기 패널.
  */
 function ArtifactPanel({ sessionId, refreshKey }) {
+  const { t } = useTranslation('wizard');
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -125,8 +127,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
 
   const handleCleanup = async () => {
     if (!sessionId || supersededCount === 0) return;
-    if (!window.confirm(
-      `이전 버전 ${supersededCount}개를 영구 삭제합니다. (DB hard delete · 복원 불가) 진행할까요?`)) return;
+    if (!window.confirm(t('artifactPanel.cleanupConfirm', { n: supersededCount }))) return;
     setCleaning(true);
     try {
       await cleanupSupersededArtifacts(sessionId);
@@ -190,14 +191,16 @@ function ArtifactPanel({ sessionId, refreshKey }) {
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.2 }}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
-              📁 산출물 ({items.length})
+              📁 {t('artifactPanel.title', { n: items.length })}
             </Typography>
             {supersededCount > 0 && (
-              <Tooltip title={`이전 버전(supersede) ${supersededCount}개 — 클릭해서 표시 토글`}>
+              <Tooltip title={t('artifactPanel.supersededToggleTooltip', { n: supersededCount })}>
                 <Chip
                   size="small"
                   icon={<HistoryIcon sx={{ fontSize: 12 }} />}
-                  label={includeHistory ? `이전 ${supersededCount}` : `+${supersededCount}`}
+                  label={includeHistory
+                    ? t('artifactPanel.supersededShown', { n: supersededCount })
+                    : t('artifactPanel.supersededHiddenBadge', { n: supersededCount })}
                   onClick={() => setIncludeHistory((v) => !v)}
                   sx={{
                     height: 18, fontSize: 10, ml: 0.5,
@@ -211,7 +214,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
           </Stack>
           <Stack direction="row" spacing={0.3}>
             {supersededCount > 0 && (
-              <Tooltip title={`이전 버전 ${supersededCount}개 영구 삭제 (DB hard delete)`}>
+              <Tooltip title={t('artifactPanel.cleanupTooltip', { n: supersededCount })}>
                 <span>
                   <IconButton size="small" onClick={handleCleanup} disabled={cleaning}>
                     <CleaningServicesIcon fontSize="small" sx={{ color: '#dc2626' }} />
@@ -219,7 +222,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                 </span>
               </Tooltip>
             )}
-            <Tooltip title="새로고침">
+            <Tooltip title={t('artifactPanel.refresh')}>
               <IconButton size="small" onClick={reload} disabled={loading}>
                 <RefreshIcon fontSize="small" />
               </IconButton>
@@ -231,7 +234,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
           {items.length === 0 && (
             <Box sx={{ p: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                아직 생성된 파일이 없습니다. Claude 가 응답하면 파일이 여기에 나타납니다.
+                {t('artifactPanel.empty')}
               </Typography>
             </Box>
           )}
@@ -258,7 +261,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                     ? <FolderOpenIcon sx={{ fontSize: 18, color: g.accent }} />
                     : <FolderIcon sx={{ fontSize: 18, color: g.accent }} />}
                   <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', flex: 1 }}>
-                    {g.label}
+                    {t(g.labelKey)}
                   </Typography>
                   <Chip size="small" label={list.length}
                         sx={{ height: 18, fontSize: 10, bgcolor: `${g.accent}22`, color: g.accent, fontWeight: 700 }} />
@@ -305,7 +308,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                                       bgcolor: '#dcfce7', color: '#15803d', flexShrink: 0 }} />
                         )}
                         {isSuperseded && (
-                          <Chip label="이전" size="small"
+                          <Chip label={t('artifactPanel.supersededChip')} size="small"
                                 sx={{ height: 16, fontSize: 9, bgcolor: '#e2e8f0', color: '#64748b', flexShrink: 0 }} />
                         )}
                       </Box>
@@ -344,7 +347,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                   onClick={handleCopy}
                   variant="outlined"
                 >
-                  복사
+                  {t('artifactPanel.copy')}
                 </Button>
                 <Button
                   size="small"
@@ -352,7 +355,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
                   onClick={handleDownload}
                   variant="outlined"
                 >
-                  다운로드
+                  {t('artifactPanel.download')}
                 </Button>
               </Stack>
             </Stack>
@@ -381,7 +384,7 @@ function ArtifactPanel({ sessionId, refreshKey }) {
             <Stack alignItems="center" spacing={1.5}>
               <DescriptionIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
               <Typography variant="body2" color="text.secondary">
-                좌측에서 파일을 선택하면 여기에 표시됩니다.
+                {t('artifactPanel.pickFromLeft')}
               </Typography>
             </Stack>
           </Box>
@@ -402,6 +405,7 @@ export default ArtifactPanel;
  * props: sessionId, refreshKey, selectedId, onSelect(id)
  */
 export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }) {
+  const { t } = useTranslation('wizard');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [includeHistory, setIncludeHistory] = useState(false);
@@ -434,7 +438,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
 
   const handleCleanup = async () => {
     if (!sessionId || supersededCount === 0) return;
-    if (!window.confirm(`이전 버전 ${supersededCount}개를 영구 삭제합니다. 진행할까요?`)) return;
+    if (!window.confirm(t('artifactPanel.cleanupConfirmShort', { n: supersededCount }))) return;
     setCleaning(true);
     try { await cleanupSupersededArtifacts(sessionId); await reload(); }
     catch (e) { console.error('[Composer] cleanup 실패:', e?.message); }
@@ -450,12 +454,14 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.2 }}>
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
-            📁 산출물 ({items.length})
+            📁 {t('artifactPanel.title', { n: items.length })}
           </Typography>
           {supersededCount > 0 && (
-            <Tooltip title={`이전 버전 ${supersededCount}개`}>
+            <Tooltip title={t('artifactPanel.supersededShortTooltip', { n: supersededCount })}>
               <Chip size="small" icon={<HistoryIcon sx={{ fontSize: 12 }} />}
-                    label={includeHistory ? `이전 ${supersededCount}` : `+${supersededCount}`}
+                    label={includeHistory
+                      ? t('artifactPanel.supersededShown', { n: supersededCount })
+                      : t('artifactPanel.supersededHiddenBadge', { n: supersededCount })}
                     onClick={() => setIncludeHistory((v) => !v)}
                     sx={{ height: 18, fontSize: 10, ml: 0.5,
                           bgcolor: includeHistory ? '#fde68a' : '#e2e8f0',
@@ -465,13 +471,13 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
         </Stack>
         <Stack direction="row" spacing={0.3}>
           {supersededCount > 0 && (
-            <Tooltip title={`이전 버전 ${supersededCount}개 영구 삭제`}>
+            <Tooltip title={t('artifactPanel.cleanupShortTooltip', { n: supersededCount })}>
               <span><IconButton size="small" onClick={handleCleanup} disabled={cleaning}>
                 <CleaningServicesIcon fontSize="small" sx={{ color: '#dc2626' }} />
               </IconButton></span>
             </Tooltip>
           )}
-          <Tooltip title="새로고침">
+          <Tooltip title={t('artifactPanel.refresh')}>
             <IconButton size="small" onClick={reload} disabled={loading}>
               <RefreshIcon fontSize="small" />
             </IconButton>
@@ -483,7 +489,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
         {items.length === 0 && (
           <Box sx={{ p: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              아직 생성된 파일이 없습니다.
+              {t('artifactPanel.emptyShort')}
             </Typography>
           </Box>
         )}
@@ -509,7 +515,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
                   ? <FolderOpenIcon sx={{ fontSize: 18, color: g.accent }} />
                   : <FolderIcon sx={{ fontSize: 18, color: g.accent }} />}
                 <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', flex: 1 }}>
-                  {g.label}
+                  {t(g.labelKey)}
                 </Typography>
                 <Chip size="small" label={list.length}
                       sx={{ height: 18, fontSize: 10, bgcolor: `${g.accent}22`, color: g.accent, fontWeight: 700 }} />
@@ -553,7 +559,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
                                     bgcolor: '#dcfce7', color: '#15803d', flexShrink: 0 }} />
                       )}
                       {isSuperseded && (
-                        <Chip label="이전" size="small"
+                        <Chip label={t('artifactPanel.supersededChip')} size="small"
                               sx={{ height: 16, fontSize: 9, bgcolor: '#e2e8f0', color: '#64748b', flexShrink: 0 }} />
                       )}
                     </Box>
@@ -572,6 +578,7 @@ export function ArtifactTreeView({ sessionId, refreshKey, selectedId, onSelect }
  * 산출물 코드 미리보기 — controlled (selectedId 만 받음, 자체 fetch).
  */
 export function ArtifactCodeView({ selectedId }) {
+  const { t } = useTranslation('wizard');
   const [selected, setSelected] = useState(null);
   const [loading, setLoading]   = useState(false);
   const [err, setErr]           = useState(null);
@@ -589,7 +596,7 @@ export function ArtifactCodeView({ selectedId }) {
         if (!cancelled) {
           setSelected(null);
           setLoading(false);
-          setErr(e?.response?.data?.message || e?.message || '산출물 소스를 불러오지 못했습니다.');
+          setErr(e?.response?.data?.message || e?.message || t('artifactPanel.sourceLoadFailed'));
         }
       }
     })();
@@ -627,7 +634,7 @@ export function ArtifactCodeView({ selectedId }) {
       <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
         <Stack alignItems="center" spacing={1.5}>
           <CircularProgress size={28} />
-          <Typography variant="body2" color="text.secondary">산출물 소스 불러오는 중...</Typography>
+          <Typography variant="body2" color="text.secondary">{t('artifactPanel.sourceLoading')}</Typography>
         </Stack>
       </Box>
     );
@@ -650,7 +657,7 @@ export function ArtifactCodeView({ selectedId }) {
         <Stack alignItems="center" spacing={1.5}>
           <DescriptionIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
           <Typography variant="body2" color="text.secondary">
-            산출물 트리에서 파일을 선택하세요.
+            {t('artifactPanel.pickFromTree')}
           </Typography>
         </Stack>
       </Box>
@@ -671,9 +678,9 @@ export function ArtifactCodeView({ selectedId }) {
         </Box>
         <Stack direction="row" spacing={0.5}>
           <Button size="small" startIcon={<ContentCopyIcon fontSize="small" />}
-                  onClick={handleCopy} variant="outlined">복사</Button>
+                  onClick={handleCopy} variant="outlined">{t('artifactPanel.copy')}</Button>
           <Button size="small" startIcon={<DownloadIcon fontSize="small" />}
-                  onClick={handleDownload} variant="outlined">다운로드</Button>
+                  onClick={handleDownload} variant="outlined">{t('artifactPanel.download')}</Button>
         </Stack>
       </Stack>
       {/* flex item 안의 <pre> 는 content 가 intrinsic height 를 키워 overflow:auto 가

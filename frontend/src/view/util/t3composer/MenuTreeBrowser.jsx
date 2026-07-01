@@ -24,6 +24,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { transLangKey } from '@zionex/wingui-core/lang/i18n-func';
+import { useTranslation } from 'react-i18next';
 import { loadTargetMenuTree } from './api';
 
 /**
@@ -52,6 +53,14 @@ const C = {
 };
 
 function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
+  const { t, i18n } = useTranslation('composer');
+  // wingui LangPack lookup 용 — TB_AD_LANG_PACK.LANG_CD 는 4종 ko/en/ja/zh standard.
+  //   'zh-CN' / 'zh-TW' 는 base 'zh' 로 변환해 전달 (LangPack 미보유 시 backend 가 자동 fallback).
+  const cur = (i18n.language || '').toLowerCase();
+  const lang = cur.startsWith('ja') ? 'ja'
+             : cur.startsWith('zh') ? 'zh'
+             : cur.startsWith('en') ? 'en'
+             : 'ko';
   const [menus, setMenus]     = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -63,16 +72,16 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    loadTargetMenuTree('ko', activeTargetCd)
+    loadTargetMenuTree(lang, activeTargetCd)
       .then((res) => { if (!cancelled) setMenus(res.data); })
       .catch((e) => {
         if (!cancelled) {
-          setError(e?.response?.data?.message || e?.message || 'Target 메뉴 트리 조회 실패');
+          setError(e?.response?.data?.message || e?.message || t('menuTree.loadError'));
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [reloadKey, activeTargetCd]);
+  }, [reloadKey, activeTargetCd, lang]);
 
   const rootItems = menus?.items || [];
 
@@ -146,7 +155,7 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
           <Stack direction="row" spacing={0.8} alignItems="center" sx={{ minWidth: 0 }}>
             <AccountTreeIcon sx={{ fontSize: 18, color: C.primaryDk }} />
             <Typography sx={{ fontWeight: 800, fontSize: 13, color: C.text, letterSpacing: 0.2 }}>
-              메뉴 트리
+              {t('menuTree.title')}
             </Typography>
             {activeTargetCd && (
               <Chip
@@ -159,12 +168,12 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
             )}
             {screenCount > 0 && (
               <Typography sx={{ fontSize: 10.5, color: C.textSub, whiteSpace: 'nowrap' }}>
-                화면 {screenCount}
+                {t('menuTree.screenCount', { n: screenCount })}
               </Typography>
             )}
           </Stack>
           <Stack direction="row" spacing={0.2}>
-            <Tooltip title="메뉴 트리 새로고침">
+            <Tooltip title={t('menuTree.refreshTooltip')}>
               <span>
                 <IconButton
                   size="small" onClick={() => setReloadKey((k) => k + 1)} disabled={loading}
@@ -181,7 +190,7 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
         <TextField
           fullWidth
           size="small"
-          placeholder="메뉴 코드·명칭·경로 검색"
+          placeholder={t('menuTree.searchPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           InputProps={{
@@ -206,7 +215,7 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
           <Stack alignItems="center" spacing={1} sx={{ py: 5 }}>
             <CircularProgress size={22} sx={{ color: C.primary }} />
             <Typography variant="caption" sx={{ color: C.textSub }}>
-              Target DB 메뉴 트리 로딩...
+              {t('menuTree.loading')}
             </Typography>
           </Stack>
         )}
@@ -218,14 +227,14 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
         {!loading && !error && rootItems.length === 0 && (
           <Box sx={{ p: 1.5 }}>
             <Alert severity="info" sx={{ fontSize: 12, borderRadius: 1.5 }}>
-              Target DB 의 TB_AD_MENU 에 등록된 메뉴가 없습니다.
+              {t('menuTree.emptyMenu')}
             </Alert>
           </Box>
         )}
         {!loading && !error && rootItems.length > 0 && filteredTree.length === 0 && (
           <Typography variant="caption" sx={{ display: 'block', textAlign: 'center',
                       color: C.textSub, py: 4 }}>
-            검색 결과가 없습니다.
+            {t('menuTree.noResults')}
           </Typography>
         )}
         {!loading && !error && filteredTree.length > 0 && (
@@ -244,6 +253,7 @@ function MenuTreeBrowser({ onSelect, selectedMenuCd, activeTargetCd }) {
 }
 
 function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd, parentMenuCd = '' }) {
+  const { t } = useTranslation('composer');
   if (!nodes || nodes.length === 0) return null;
   return (
     <List dense disablePadding>
@@ -299,7 +309,7 @@ function TreeList({ nodes, level, expanded, onToggle, onSelect, selectedMenuCd, 
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography
                     component="div"
-                    title={node.hasLangPack ? undefined : `${node.id} — LangPack 미등록`}
+                    title={node.hasLangPack ? undefined : t('menuTree.langPackMissing', { id: node.id })}
                     sx={{
                       fontSize: 12.5,
                       fontWeight: hasChildren ? 700 : 600,

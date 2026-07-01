@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box, Stepper, Step, StepLabel, StepContent, Button, Typography, Stack, Chip, Alert,
 } from '@mui/material';
@@ -48,6 +49,7 @@ function StepByStepWizard({
   prefilledSpec = null,
   sourceBundle = null,
 }) {
+  const { t } = useTranslation('composer');
   const currentTargetCd = useTargetStore((s) => s.currentTargetCd);
   const initialSpec = prefilledSpec || createInitialSpec(initialModuleCode);
   // prefill 모드는 모듈을 자동 추론해 prefilledSpec.moduleCode 로 들어옴 → 모듈선택 단계 skip
@@ -137,7 +139,7 @@ function StepByStepWizard({
         initialPrompt={initialPrompt}
         extraHeader={
           <Button size="small" startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} sx={{ mr: 1 }}>
-            종료
+            {t('workspace.exit')}
           </Button>
         }
       />

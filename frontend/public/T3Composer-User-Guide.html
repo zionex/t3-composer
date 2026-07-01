@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>T³Composer User Guide</title>
+<style>
+  :root {
+    --primary:        #7CA7E0;
+    --primary-dark:   #5683C0;
+    --accent:         #9D8FD4;
+    --accent-dark:    #6D28D9;
+    --success:        #86C7A8;
+    --warn:           #E6C079;
+    --danger:         #E0989A;
+    --info:           #8FC4D4;
+    --text:           #3A4A63;
+    --text-2:         #6E7E96;
+    --text-3:         #94a3b8;
+    --bg:             #f7faff;
+    --bg-2:           #fff7ed;
+    --panel:          rgba(255,255,255,0.72);
+    --panel-2:        rgba(255,255,255,0.92);
+    --border:         rgba(124,167,224,0.28);
+    --border-strong:  rgba(124,167,224,0.55);
+    --shadow:         0 4px 20px -8px rgba(58,74,99,0.18);
+    --shadow-soft:    0 2px 10px -4px rgba(58,74,99,0.12);
+    --radius:         12px;
+    --radius-sm:      8px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "Noto Sans KR", "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 20% -5%, rgba(124,167,224,0.14), transparent 55%),
+      radial-gradient(circle at 90% 100%, rgba(230,192,121,0.10), transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, #fffdf8 100%);
+    background-attachment: fixed;
+    line-height: 1.65;
+    font-size: 14px;
+  }
+  a { color: var(--primary-dark); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: "JetBrains Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+         background: rgba(124,167,224,0.12); padding: 1px 6px; border-radius: 4px;
+         font-size: 0.92em; color: var(--primary-dark); }
+  pre {
+    font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+    background: rgba(15,23,42,0.92); color: #e2e8f0;
+    padding: 14px 16px; border-radius: var(--radius-sm);
+    overflow-x: auto; font-size: 12.5px; line-height: 1.6;
+    border: 1px solid rgba(124,167,224,0.2);
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  /* ── i18n: 한 문서에 ko + en 동시 포함, body[data-lang] 으로 토글 ── */
+  body[data-lang="ko"] .en, body[data-lang="en"] .ko { display: none; }
+  /* inline (span) 텍스트 토글 — block 요소는 같은 패턴으로 자동 */
+  .ko, .en { }
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  .app { display: flex; min-height: 100vh; }
+  nav.toc {
+    width: 290px; flex-shrink: 0;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--panel-2); backdrop-filter: blur(14px);
+    border-right: 1px solid var(--border);
+    padding: 22px 16px 28px;
+  }
+  nav.toc .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 4px 14px; border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  nav.toc .brand-logo {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, #A9C7EE, var(--primary));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+    box-shadow: 0 4px 14px -4px rgba(86,131,192,0.45);
+  }
+  nav.toc .brand-text { font-weight: 800; font-size: 15px; color: var(--primary-dark); letter-spacing: -0.3px; }
+  nav.toc .brand-text .ver { font-size: 10px; color: var(--text-3); margin-left: 4px; font-weight: 600; }
+  nav.toc .brand-sub { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+
+  /* ── Lang toggle ─────────────────────────────────────────────── */
+  .lang-toggle {
+    display: inline-flex; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px; box-shadow: var(--shadow-soft);
+    margin: 12px 4px 16px;
+  }
+  .lang-toggle button {
+    border: 0; background: transparent; padding: 5px 14px;
+    font-family: inherit; font-size: 11.5px; font-weight: 700;
+    color: var(--text-2); cursor: pointer; border-radius: 999px;
+    transition: all .15s ease;
+  }
+  .lang-toggle button.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; box-shadow: 0 2px 6px -2px rgba(86,131,192,0.45);
+  }
+  .lang-toggle button:hover:not(.active) { background: rgba(124,167,224,0.10); color: var(--text); }
+
+  nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: section; }
+  nav.toc li { margin: 0; }
+  nav.toc > ol > li > a { font-weight: 700; color: var(--text); font-size: 13.5px; }
+  nav.toc a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 6px;
+    color: var(--text); transition: background-color .15s;
+  }
+  nav.toc a:hover { background: rgba(124,167,224,0.12); text-decoration: none; }
+  nav.toc a.active { background: rgba(124,167,224,0.20); color: var(--primary-dark); font-weight: 800; }
+  nav.toc a svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--accent); }
+  nav.toc a.active svg { color: var(--primary-dark); }
+  nav.toc ol ol { padding-left: 20px; margin-top: 2px; border-left: 2px solid rgba(124,167,224,0.18); }
+  nav.toc ol ol a { font-size: 12.5px; color: var(--text-2); padding: 4px 10px; }
+  nav.toc ol ol a svg { display: none; }
+  nav.toc ol ol a.active { color: var(--accent-dark); background: rgba(157,143,212,0.14); }
+  nav.toc .footer { margin-top: 18px; padding: 10px 4px 0; border-top: 1px solid var(--border);
+                    font-size: 11px; color: var(--text-3); }
+
+  main { flex: 1; min-width: 0; padding: 28px 40px 80px; max-width: 980px; }
+
+  /* ── Hero ────────────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, rgba(169,199,238,0.55) 0%, rgba(157,180,212,0.40) 55%, rgba(183,174,221,0.45) 100%);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.6);
+    border-radius: 18px;
+    padding: 28px 30px; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before { content: ''; position: absolute; top: -30px; right: -10px; width: 160px; height: 160px;
+                  border-radius: 50%; background: rgba(124,167,224,0.20); }
+  .hero h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.7px; position: relative; color: var(--text); }
+  .hero p { margin: 0; color: var(--text-2); font-size: 14.5px; max-width: 700px; position: relative; }
+  .hero .tag { display: inline-block; padding: 3px 9px; border-radius: 999px;
+               background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.65);
+               color: var(--primary-dark); font-weight: 700; font-size: 11px; margin-right: 6px; }
+
+  /* ── Section ─────────────────────────────────────────────────── */
+  section { margin-bottom: 44px; }
+  h2 { font-size: 22px; margin: 0 0 14px; padding-bottom: 8px;
+       border-bottom: 2px solid var(--border); color: var(--text);
+       display: flex; align-items: center; gap: 12px;
+       letter-spacing: -0.4px; scroll-margin-top: 20px; }
+  h2 .icon-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; flex-shrink: 0;
+    box-shadow: 0 4px 12px -4px rgba(86,131,192,0.45);
+  }
+  h2 .icon-badge svg { width: 18px; height: 18px; }
+  /* 섹션별 색 변주 — 의미 구분 */
+  h2.s-setup    .icon-badge { background: linear-gradient(135deg, #B5C8E8, var(--primary-dark)); }
+  h2.s-start    .icon-badge { background: linear-gradient(135deg, #A9C7EE, var(--primary)); }
+  h2.s-composer .icon-badge { background: linear-gradient(135deg, #BFB0E8, var(--accent)); }
+  h2.s-history  .icon-badge { background: linear-gradient(135deg, #A0BDDE, #6F90C0); }
+  h2.s-mockup   .icon-badge { background: linear-gradient(135deg, #B8DEC8, var(--success)); }
+  h2.s-pattern  .icon-badge { background: linear-gradient(135deg, #C0E0C8, #5FA88A); }
+  h2.s-gallery  .icon-badge { background: linear-gradient(135deg, #FCD9A2, var(--warn)); }
+  h2.s-ontology .icon-badge { background: linear-gradient(135deg, #C0D8E0, var(--info)); }
+  h2.s-dashboard .icon-badge { background: linear-gradient(135deg, #F0B8BA, var(--danger)); }
+  h2.s-appendix .icon-badge { background: linear-gradient(135deg, #C9C9D0, #8b95a3); }
+
+  h3 { font-size: 16px; margin: 22px 0 10px; color: var(--primary-dark);
+       display: flex; align-items: center; gap: 6px; scroll-margin-top: 20px; }
+  h3::before { content: '▸'; color: var(--accent); font-size: 14px; }
+  h4 { font-size: 14px; margin: 16px 0 6px; color: var(--text); font-weight: 700; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 4px 0; }
+
+  /* ── Cards / Panels ──────────────────────────────────────────── */
+  .panel {
+    background: var(--panel); backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-soft);
+    margin: 12px 0;
+  }
+  .panel.note { border-left: 4px solid var(--info); background: rgba(143,196,212,0.10); }
+  .panel.warn { border-left: 4px solid var(--warn); background: rgba(230,192,121,0.12); }
+  .panel.tip  { border-left: 4px solid var(--success); background: rgba(134,199,168,0.10); }
+  .panel.danger { border-left: 4px solid var(--danger); background: rgba(224,152,154,0.10); }
+  .panel-title { font-weight: 800; color: var(--text); font-size: 13.5px; margin-bottom: 4px; }
+
+  /* ── Table ──────────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px;
+          background: var(--panel-2); border-radius: var(--radius-sm); overflow: hidden;
+          box-shadow: var(--shadow-soft); }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { background: rgba(124,167,224,0.14); color: var(--primary-dark); font-weight: 700; font-size: 12.5px; }
+  tr:last-child td { border-bottom: none; }
+  td code { font-size: 0.9em; }
+
+  /* ── Sidebar Mock ───────────────────────────────────────────── */
+  .sidebar-mock { display: flex; gap: 12px; margin: 14px 0; align-items: stretch; }
+  .sidebar-mock .bar {
+    flex-shrink: 0; width: 200px;
+    background: var(--panel-2); backdrop-filter: blur(14px);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 8px; box-shadow: var(--shadow-soft);
+  }
+  .sidebar-mock .logo-row {
+    display: flex; align-items: center; gap: 8px; padding: 4px 6px 12px;
+    border-bottom: 1px solid var(--border); margin-bottom: 8px;
+  }
+  .sidebar-mock .logo-row .logo {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, #A9C7EE, var(--primary));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800;
+  }
+  .sidebar-mock .logo-row .wordmark { font-size: 13px; font-weight: 800; color: var(--primary-dark); }
+  .sidebar-mock .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 6px;
+    color: var(--text); font-size: 12.5px; font-weight: 600; margin: 1px 0;
+    cursor: default;
+  }
+  .sidebar-mock .item.active { background: rgba(124,167,224,0.18); color: var(--primary-dark); font-weight: 800; }
+  .sidebar-mock .item:hover:not(.active) { background: rgba(124,167,224,0.10); }
+  .sidebar-mock .item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .sidebar-mock .explain { flex: 1; padding-top: 6px; font-size: 12.5px; color: var(--text-2); }
+  .sidebar-mock .explain table { font-size: 12px; }
+
+  /* ── Mode card grid ──────────────────────────────────────────── */
+  .mode-board { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .mode-cat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow-soft);
+  }
+  .mode-cat.new    { border-top: 3px solid var(--primary); }
+  .mode-cat.modify { border-top: 3px solid var(--warn); }
+  .mode-cat .cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .mode-cat .cat-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: white;
+  }
+  .mode-cat.new    .cat-icon { background: var(--primary); }
+  .mode-cat.modify .cat-icon { background: var(--warn); }
+  .mode-cat .cat-title { font-weight: 800; font-size: 15px; }
+  .mode-cat .cat-sub { font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+                        text-transform: uppercase; color: var(--text-3); }
+  .mode-cat .opt {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 11px; margin: 6px 0;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .mode-cat .opt-icon {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(124,167,224,0.18); color: var(--primary-dark);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .mode-cat .opt-icon svg { width: 13px; height: 13px; }
+  .mode-cat .opt-title { font-weight: 700; font-size: 13px; }
+  .mode-cat .opt-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+
+  /* ── Flow / Stepper ──────────────────────────────────────────── */
+  .flow { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+  .flow .step {
+    flex: 1 1 0; min-width: 130px;
+    background: var(--panel-2); border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; position: relative;
+  }
+  .flow .step.active { border-color: var(--primary); background: rgba(124,167,224,0.12); }
+  .flow .step .step-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--primary); color: white;
+    margin-right: 6px;
+  }
+  .flow .step .step-icon svg { width: 12px; height: 12px; }
+  .flow .step .step-t { font-weight: 700; font-size: 12.5px; }
+  .flow .step .step-d { font-size: 11.5px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
+  .flow .arrow { display: flex; align-items: center; color: var(--text-3); font-size: 18px; }
+
+  /* ── Recommendation cards mock ───────────────────────────────── */
+  .reco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .reco-card {
+    background: var(--panel-2); border: 2px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden;
+    display: flex; flex-direction: column; min-height: 180px;
+  }
+  .reco-card.image-derived { border-color: var(--accent); box-shadow: 0 2px 10px rgba(157,143,212,0.18); }
+  .reco-card.synth { border-color: rgba(157,143,212,0.55); }
+  .reco-card .thumb { flex: 1; min-height: 80px; padding: 8px;
+                       background: linear-gradient(135deg, rgba(255,247,237,0.6), rgba(245,243,255,0.6));
+                       position: relative; }
+  .reco-card .thumb-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; height: 100%; }
+  .reco-card .tile {
+    border: 1px solid; border-radius: 2px;
+    font-size: 7px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; overflow: hidden; padding: 1px; text-align: center;
+  }
+  .reco-card .tile.kpi   { background: rgba(230,192,121,0.20); border-color: var(--warn); color: #b45309; }
+  .reco-card .tile.chart { background: rgba(157,143,212,0.20); border-color: var(--accent); color: var(--accent-dark); }
+  .reco-card .tile.grid  { background: rgba(134,199,168,0.20); border-color: var(--success); color: #065f46; }
+  .reco-card .body { padding: 8px 10px 10px; border-top: 1px solid var(--border); background: white; }
+  .reco-card .body .chip { display: inline-block; padding: 1px 6px; border-radius: 9px;
+                              font-size: 9px; font-weight: 700; margin-bottom: 4px; }
+  .reco-card.image-derived .chip { background: rgba(157,143,212,0.18); color: var(--accent-dark); }
+  .reco-card.existing      .chip { background: rgba(230,192,121,0.18); color: #b45309; }
+  .reco-card.synth         .chip { background: rgba(157,143,212,0.14); color: var(--accent-dark); }
+  .reco-card .body .title { font-weight: 700; font-size: 11px; line-height: 1.3; }
+  .reco-card .body .desc  { font-size: 10px; color: var(--text-2); margin-top: 2px; }
+  .reco-card .body .btn   {
+    margin-top: 6px; padding: 4px 8px; border-radius: 4px; font-size: 10px;
+    background: var(--primary); color: white; text-align: center; font-weight: 700;
+  }
+  .reco-card.image-derived .body .btn { background: var(--accent); }
+  .reco-card.synth         .body .btn { background: var(--accent); }
+
+  /* ── Dialog mock (API key · Target DB) ──────────────────────── */
+  .dialog-mock {
+    background: var(--panel-2); backdrop-filter: blur(14px);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 12px 36px -12px rgba(58,74,99,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+    padding: 16px 18px; margin: 14px 0;
+    max-width: 580px;
+  }
+  .dialog-mock .dlg-head {
+    display: flex; align-items: center; gap: 8px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .dialog-mock .dlg-head svg { width: 18px; height: 18px; color: var(--primary-dark); }
+  .dialog-mock .dlg-title { font-weight: 800; font-size: 14px; color: var(--text); }
+  .dialog-mock .dlg-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 6px;
+    background: rgba(124,167,224,0.18); color: var(--primary-dark);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .dialog-mock .dlg-info {
+    background: rgba(143,196,212,0.10); border: 1px solid rgba(143,196,212,0.3);
+    border-radius: 8px; padding: 8px 12px; font-size: 11.5px; color: var(--text-2);
+    margin-bottom: 12px;
+  }
+  .dialog-mock .field {
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    padding: 4px 12px 8px; margin: 8px 0; background: rgba(255,255,255,0.55);
+    position: relative;
+  }
+  .dialog-mock .field-label {
+    position: absolute; top: -7px; left: 10px; padding: 0 4px;
+    background: linear-gradient(180deg, transparent 0%, transparent 38%, white 38%, white 100%);
+    font-size: 10.5px; color: var(--text-2); font-weight: 600;
+  }
+  .dialog-mock .field-value {
+    font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+    font-size: 12px; color: var(--text); padding-top: 6px;
+    word-break: break-all;
+  }
+  .dialog-mock .field-value.placeholder { color: var(--text-3); font-style: italic; }
+  .dialog-mock .field-row { display: flex; gap: 10px; }
+  .dialog-mock .field-row > .field { flex: 1; }
+  .dialog-mock .dlg-actions {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .dialog-mock .dlg-btn {
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    border: 1px solid var(--border-strong);
+    background: var(--panel-2); color: var(--text-2); cursor: default;
+  }
+  .dialog-mock .dlg-btn.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border: 0;
+    box-shadow: 0 2px 8px -2px rgba(86,131,192,0.45);
+  }
+  .dialog-mock .dlg-btn.test { background: rgba(134,199,168,0.18); color: #065f46; border-color: var(--success); }
+
+  /* ── D&D area mock ───────────────────────────────────────────── */
+  .dnd {
+    border: 2px dashed var(--border-strong);
+    background: rgba(124,167,224,0.06);
+    border-radius: var(--radius-sm);
+    padding: 18px; text-align: center; margin: 12px 0;
+  }
+  .dnd .dnd-icon { width: 32px; height: 32px; margin: 0 auto 4px; color: var(--text-3); }
+  .dnd .dnd-title { font-weight: 700; font-size: 13px; color: var(--text); }
+  .dnd .dnd-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+  .dnd .chips { display: flex; gap: 6px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+  .dnd .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 12px; font-size: 11px;
+    background: rgba(124,167,224,0.14); color: var(--primary-dark);
+  }
+
+  /* ── Keyboard ────────────────────────────────────────────────── */
+  kbd {
+    background: var(--panel-2); border: 1px solid var(--border-strong);
+    border-bottom-width: 2px; border-radius: 5px;
+    padding: 1px 7px; font-family: "SF Mono", monospace; font-size: 11px;
+    color: var(--text); box-shadow: 0 1px 0 rgba(58,74,99,0.08);
+  }
+
+  /* ── Mobile ──────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .app { flex-direction: column; }
+    nav.toc { width: auto; height: auto; position: relative; border-right: none;
+              border-bottom: 1px solid var(--border); }
+    main { padding: 22px 18px 60px; }
+    .mode-board { grid-template-columns: 1fr; }
+    .reco-grid { grid-template-columns: 1fr 1fr; }
+    .sidebar-mock { flex-direction: column; }
+    .sidebar-mock .bar { width: auto; }
+  }
+</style>
+</head>
+<body data-lang="ko">
+
+<!-- =========================================================
+     Reusable inline SVG icons via <svg><use> sprite
+     ========================================================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Section icons (h2 badges) -->
+    <symbol id="ic-setup" viewBox="0 0 24 24"><path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.5 7.5 0 0 0-1.69-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.49.42l-.38 2.65c-.61.25-1.18.58-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64L4.57 11c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.51.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.49.42h4c.24 0 .45-.18.49-.42l.38-2.65a7.5 7.5 0 0 0 1.69-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></symbol>
+    <symbol id="ic-start" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7L8 5z"/></symbol>
+    <symbol id="ic-composer" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></symbol>
+    <symbol id="ic-history" viewBox="0 0 24 24"><path fill="currentColor" d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8z"/></symbol>
+    <symbol id="ic-mockup" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-12h5v5h-5zM5 7h5v3H5zm0 5h5v7H5zm7 7v-5h5v5z"/></symbol>
+    <symbol id="ic-pattern" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18h5v-6h-5v6zm-6 0h5V6H4v12zm12 0h4V6h-4v12zM4 4h16v2H4V4z"/></symbol>
+    <symbol id="ic-gallery" viewBox="0 0 24 24"><path fill="currentColor" d="M16 8h-3V3h-2v5H8l4 4 4-4zm-9 8.5h10v-1H7v1zm0 3h10v-1H7v1zm0-6h10v-1H7v1z"/></symbol>
+    <symbol id="ic-ontology" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7v10l10 5 10-5V7l-10-5zm0 2.18L19.39 8 12 11.82 4.61 8 12 4.18zM4 9.5l7 3.5v7l-7-3.5v-7zm9 10.5v-7l7-3.5v7l-7 3.5z"/></symbol>
+    <symbol id="ic-dashboard" viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></symbol>
+    <symbol id="ic-appendix" viewBox="0 0 24 24"><path fill="currentColor" d="M18 6V4H6v2H4v14h16V6h-2zm0 12H6V8h12v10zM8 10h8v2H8zm0 4h8v2H8z"/></symbol>
+    <!-- Mode option icons -->
+    <symbol id="ic-chat" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></symbol>
+    <symbol id="ic-grid-edit" viewBox="0 0 24 24"><path fill="currentColor" d="M14 17h7v-7h-7v7zm-4-7H3v7h7v-7zm0-8H3v7h7V2zm4 0v7h7V2h-7z"/></symbol>
+    <symbol id="ic-copy" viewBox="0 0 24 24"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></symbol>
+    <symbol id="ic-edit" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+    <symbol id="ic-arrow-right" viewBox="0 0 24 24"><path fill="currentColor" d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-plus" viewBox="0 0 24 24"><path stroke="white" stroke-width="2.5" stroke-linecap="round" d="M12 4v16m-8-8h16"/></symbol>
+    <symbol id="ic-upload" viewBox="0 0 24 24"><path fill="currentColor" d="M19.35 10.04A7.49 7.49 0 0 0 12 4a7.5 7.5 0 0 0-6.93 4.61A5.5 5.5 0 0 0 6 19h13a4.5 4.5 0 0 0 .35-8.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></symbol>
+    <!-- Step number icons (1/2/3/4 as dots, not numerals) -->
+    <symbol id="ic-step-1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+    <symbol id="ic-step-2" viewBox="0 0 24 24"><circle cx="8" cy="12" r="3" fill="currentColor"/><circle cx="16" cy="12" r="3" fill="currentColor"/></symbol>
+    <symbol id="ic-step-3" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5" fill="currentColor"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><circle cx="19" cy="12" r="2.5" fill="currentColor"/></symbol>
+    <symbol id="ic-step-4" viewBox="0 0 24 24"><circle cx="6" cy="9" r="2.2" fill="currentColor"/><circle cx="18" cy="9" r="2.2" fill="currentColor"/><circle cx="6" cy="15" r="2.2" fill="currentColor"/><circle cx="18" cy="15" r="2.2" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- ============ Left TOC ============ -->
+  <nav class="toc" id="toc">
+    <div class="brand">
+      <div class="brand-logo">T³</div>
+      <div>
+        <div class="brand-text">T³Composer<span class="ver">v1.0</span></div>
+        <div class="brand-sub">
+          <span class="ko">사용자 가이드</span>
+          <span class="en">User Guide</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang-btn="ko" class="active">한국어</button>
+      <button type="button" data-lang-btn="en">English</button>
+    </div>
+
+    <ol>
+      <li><a href="#s0"><svg><use href="#ic-setup"/></svg>
+        <span class="ko">설치</span><span class="en">Installation</span></a>
+        <ol>
+          <li><a href="#s0-1"><span class="ko">사전 요구사항</span><span class="en">Prerequisites</span></a></li>
+          <li><a href="#s0-2"><span class="ko">4-step 설치</span><span class="en">4-step Setup</span></a></li>
+          <li><a href="#s0-3"><span class="ko">첫 설정 (UI)</span><span class="en">First-time Setup (UI)</span></a></li>
+          <li><a href="#s0-4"><span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></a></li>
+          <li><a href="#s0-5"><span class="ko">.env 영구 설정 (선택)</span><span class="en">.env Permanent Config (optional)</span></a></li>
+        </ol>
+      </li>
+      <li><a href="#s1"><svg><use href="#ic-start"/></svg>
+        <span class="ko">시작하기</span><span class="en">Getting Started</span></a></li>
+      <li><a href="#s2"><svg><use href="#ic-composer"/></svg>Composer
+        <span class="ko"> (메인)</span><span class="en"> (Main)</span></a>
+        <ol>
+          <li><a href="#s2-1"><span class="ko">자연어 생성</span><span class="en">Natural Language</span></a></li>
+          <li><a href="#s2-2"><span class="ko">단계별 생성 (AI 추천)</span><span class="en">Step-by-step (AI Recommend)</span></a></li>
+          <li><a href="#s2-3"><span class="ko">기존 화면 복사</span><span class="en">Copy Existing</span></a></li>
+          <li><a href="#s2-4"><span class="ko">기존 화면 수정</span><span class="en">Modify Existing</span></a></li>
+        </ol>
+      </li>
+      <li><a href="#s3"><svg><use href="#ic-history"/></svg>History</a></li>
+      <li><a href="#s4"><svg><use href="#ic-mockup"/></svg>SCM UI Mockup</a></li>
+      <li><a href="#s5"><svg><use href="#ic-pattern"/></svg>UI Pattern</a></li>
+      <li><a href="#s6"><svg><use href="#ic-gallery"/></svg>Gallery</a></li>
+      <li><a href="#s7"><svg><use href="#ic-ontology"/></svg>Ontology</a></li>
+      <li><a href="#s8"><svg><use href="#ic-dashboard"/></svg>Dashboard</a></li>
+      <li><a href="#s9"><svg><use href="#ic-appendix"/></svg>
+        <span class="ko">부록</span><span class="en">Appendix</span></a>
+        <ol>
+          <li><a href="#s9-1"><span class="ko">Target 전환</span><span class="en">Target Switching</span></a></li>
+          <li><a href="#s9-2"><span class="ko">API 키 등록</span><span class="en">API Key Setup</span></a></li>
+          <li><a href="#s9-3"><span class="ko">첨부 파일</span><span class="en">Attachments</span></a></li>
+          <li><a href="#s9-4"><span class="ko">단축키 / 팁</span><span class="en">Shortcuts / Tips</span></a></li>
+        </ol>
+      </li>
+    </ol>
+    <div class="footer">
+      <div>v1.0 · 2026-06-17</div>
+      <div style="margin-top: 4px;">© T³Composer</div>
+    </div>
+  </nav>
+
+  <!-- ============ Main ============ -->
+  <main>
+    <div class="hero">
+      <h1>
+        <span class="ko">T³Composer 사용자 가이드</span>
+        <span class="en">T³Composer User Guide</span>
+      </h1>
+      <p>
+        <span class="tag">AI</span>
+        <span class="tag">No-code</span>
+        <span class="tag">React + Spring</span>
+        <span class="ko">자연어 · 설계서 · 기존 화면을 입력으로 받아 운영 가능한 화면(JSX + Java + SP + 메뉴 SQL)을 한 번에 생성·수정하는 AI 도구입니다. 본 가이드는 설치부터 7개 메뉴 사용까지 한눈에 안내합니다.</span>
+        <span class="en">An AI tool that generates and modifies production-ready screens (JSX + Java + SP + menu SQL) from natural language, design documents, or existing screens. This guide covers installation through usage of all 7 menus at a glance.</span>
+      </p>
+    </div>
+
+    <!-- ===== §0 Setup ===== -->
+    <section id="s0">
+      <h2 class="s-setup">
+        <span class="icon-badge"><svg><use href="#ic-setup"/></svg></span>
+        <span class="ko">설치</span><span class="en">Installation</span>
+      </h2>
+
+      <h3 id="s0-1">
+        <span class="ko">사전 요구사항</span><span class="en">Prerequisites</span>
+      </h3>
+      <table>
+        <tr><th style="width:160px"><span class="ko">항목</span><span class="en">Item</span></th>
+            <th><span class="ko">요구사항</span><span class="en">Requirement</span></th>
+            <th><span class="ko">비고</span><span class="en">Notes</span></th></tr>
+        <tr><td>OS</td><td>macOS · Windows · Linux</td>
+            <td><span class="ko">Docker 가 동작하는 환경</span><span class="en">Any environment where Docker runs</span></td></tr>
+        <tr><td>Docker</td><td>Docker Desktop 4.x+ <br/>or Docker Engine 24+</td>
+            <td><span class="ko">Compose v2 (<code>docker compose</code>) 사용</span><span class="en">Uses Compose v2 (<code>docker compose</code>)</span></td></tr>
+        <tr><td><span class="ko">메모리</span><span class="en">Memory</span></td>
+            <td><span class="ko">최소 8GB · 권장 16GB</span><span class="en">Min 8GB · Recommended 16GB</span></td>
+            <td><span class="ko">composer-backend (mvn) + target-mssql 동시 기동</span><span class="en">Runs composer-backend (mvn) + target-mssql simultaneously</span></td></tr>
+        <tr><td><span class="ko">디스크</span><span class="en">Disk</span></td>
+            <td><span class="ko">여유 10GB 이상</span><span class="en">10GB+ free space</span></td>
+            <td><span class="ko">이미지 + Maven 캐시 + DB 볼륨</span><span class="en">Images + Maven cache + DB volumes</span></td></tr>
+        <tr><td>Anthropic API Key</td>
+            <td><span class="ko"><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> 에서 발급</span>
+                <span class="en">Issued at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></span></td>
+            <td><span class="ko">화면 생성 시 Claude 호출에 필수</span><span class="en">Required for Claude calls during screen generation</span></td></tr>
+        <tr><td><span class="ko">네트워크 포트</span><span class="en">Network Ports</span></td>
+            <td>5173 (frontend) · 8090 (backend) · 11433 (composer-db) · 14433 (target-mssql)</td>
+            <td><span class="ko">충돌 시 docker-compose.yml 에서 변경</span><span class="en">Change in docker-compose.yml if conflicts occur</span></td></tr>
+      </table>
+
+      <h3 id="s0-2"><span class="ko">4-step 설치 흐름</span><span class="en">4-step Setup Flow</span></h3>
+      <div class="flow">
+        <div class="step active">
+          <div><span class="step-icon"><svg><use href="#ic-step-1"/></svg></span><span class="step-t">
+            <span class="ko">소스 받기</span><span class="en">Clone source</span></span></div>
+          <div class="step-d">
+            <span class="ko"><code>git clone</code> 후 프로젝트 루트로 이동</span>
+            <span class="en"><code>git clone</code> then move to project root</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-2"/></svg></span><span class="step-t">
+            <span class="ko">컨테이너 기동</span><span class="en">Start containers</span></span></div>
+          <div class="step-d">
+            <span class="ko"><code>docker compose up -d</code> — 약 1~2분 대기</span>
+            <span class="en"><code>docker compose up -d</code> — wait ~1-2 min</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-3"/></svg></span><span class="step-t">
+            <span class="ko">접속</span><span class="en">Access</span></span></div>
+          <div class="step-d">
+            <span class="ko">브라우저 <code>http://localhost:5173</code> → 사이드바 Composer 클릭</span>
+            <span class="en">Browser to <code>http://localhost:5173</code> → click Composer in sidebar</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-4"/></svg></span><span class="step-t">
+            <span class="ko">UI 첫 설정</span><span class="en">First-time UI setup</span></span></div>
+          <div class="step-d">
+            <span class="ko">상단에서 API 키 + Target DB 입력 (다음 절 §0-3)</span>
+            <span class="en">Enter API key + Target DB at the top bar (next section §0-3)</span></div>
+        </div>
+      </div>
+
+      <h4><span class="ko">실제 명령어</span><span class="en">Actual commands</span></h4>
+<pre><code><span class="ko"># 1) 소스 받기</span><span class="en"># 1) Clone source</span>
+git clone &lt;repo-url&gt; t3-composer
+cd t3-composer
+
+<span class="ko"># 2) 컨테이너 기동 (백그라운드)</span><span class="en"># 2) Start containers (background)</span>
+docker compose up -d
+
+<span class="ko"># 상태 확인</span><span class="en"># Check status</span>
+docker compose ps
+<span class="ko">#   composer-backend    Up (healthy)</span><span class="en">#   composer-backend    Up (healthy)</span>
+<span class="ko">#   composer-db         Up (healthy)</span><span class="en">#   composer-db         Up (healthy)</span>
+<span class="ko">#   composer-frontend   Up</span><span class="en">#   composer-frontend   Up</span>
+<span class="ko">#   target-mssql        Up (healthy)</span><span class="en">#   target-mssql        Up (healthy)</span>
+
+<span class="ko"># 3) 브라우저로 접속 — 이후 API 키·Target DB 는 UI 에서 입력 (§0-3)</span><span class="en"># 3) Access via browser — enter API key + Target DB via UI (§0-3)</span>
+<span class="ko">#   http://localhost:5173</span><span class="en">#   http://localhost:5173</span>
+</code></pre>
+
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">.env 파일은 필수가 아닙니다</span><span class="en">.env file is not required</span></div>
+        <p>
+          <span class="ko">기본 흐름에서 <code>.env</code> 작성은 <strong>건너뛸 수 있습니다</strong>. API 키와 Target DB 정보는 UI 다이얼로그에서 입력하면 composer-db 에 영구 저장됩니다. <code>.env</code> 는 다중 환경(개발/스테이징/운영)·CI·자동화 같은 케이스에서만 선택적으로 사용 (§0-5).</span>
+          <span class="en">You can <strong>skip writing <code>.env</code></strong> in the default flow. API key and Target DB info entered via UI dialogs persist to composer-db. <code>.env</code> is optional and used only for multi-environment (dev/staging/prod), CI, or automation cases (§0-5).</span></p>
+      </div>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">💡 첫 기동 시간</span><span class="en">💡 First-time startup</span></div>
+        <p>
+          <span class="ko">최초 <code>docker compose up</code> 은 backend 의 Maven 의존성 다운로드 (수백 MB) 때문에 5~10분 걸릴 수 있습니다. 이후 기동은 30초 내. backend 가 healthy 상태가 되면 frontend 도 자동 작동합니다.</span>
+          <span class="en">The first <code>docker compose up</code> may take 5–10 minutes due to backend Maven dependency download (several hundred MB). Subsequent starts take under 30 seconds. Once backend is healthy, frontend works automatically.</span></p>
+      </div>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ 포트 충돌</span><span class="en">⚠️ Port conflicts</span></div>
+        <p>
+          <span class="ko">5173 · 8090 · 11433 · 14433 중 이미 사용 중인 포트가 있으면 기동 실패. <code>docker-compose.yml</code> 의 해당 서비스 <code>ports:</code> 매핑을 변경하거나 기존 프로세스를 종료하세요. <code>lsof -i :5173</code> 또는 <code>netstat -ano | findstr 5173</code> (Windows) 로 확인 가능.</span>
+          <span class="en">Startup fails if any of 5173 · 8090 · 11433 · 14433 are in use. Change the <code>ports:</code> mapping in <code>docker-compose.yml</code> or stop the conflicting process. Check with <code>lsof -i :5173</code> or <code>netstat -ano | findstr 5173</code> (Windows).</span></p>
+      </div>
+
+      <h3 id="s0-3">
+        <span class="ko">첫 설정 — UI 에서 API 키 + Target DB</span>
+        <span class="en">First-time Setup — API Key + Target DB via UI</span></h3>
+      <p>
+        <span class="ko">컨테이너 기동 후 <code>http://localhost:5173</code> 접속 → 상단 우측의 두 영역에서 입력합니다. <strong>가장 권장되는 방법</strong> — 입력값은 composer-db 에 영구 저장되어 다음 접속에도 유지됩니다.</span>
+        <span class="en">After containers start and you open <code>http://localhost:5173</code>, enter values in the two top-right areas. <strong>This is the recommended approach</strong> — entries are persisted to composer-db and survive across visits.</span></p>
+
+      <h4>
+        <span class="ko">1) Anthropic API 키 등록</span>
+        <span class="en">1) Register Anthropic API key</span></h4>
+      <p>
+        <span class="ko">상단 우측의 색상 뱃지 (녹색 = 등록됨 · 주황 = 미등록) 클릭 → API Key Dialog 가 열립니다.</span>
+        <span class="en">Click the colored badge at the top-right (green = registered · orange = unregistered) → API Key Dialog opens.</span></p>
+
+      <div class="dialog-mock">
+        <div class="dlg-head">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+          <div class="dlg-title">
+            <span class="ko">Anthropic API 키 등록</span>
+            <span class="en">Register Anthropic API Key</span></div>
+        </div>
+        <div class="dlg-info">
+          <span class="ko">T3Composer 는 Claude API 로 화면·SP·테이블을 생성합니다. 개인 Anthropic API 키를 등록해 주세요. 키는 서버에서 암호화되어 저장됩니다.</span>
+          <span class="en">T3Composer uses the Claude API to generate screens, SPs, and tables. Register your personal Anthropic API key. The key is stored encrypted on the server.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">API Key</div>
+          <div class="field-value placeholder">sk-ant-...</div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">설명 (옵션)</span><span class="en">Description (optional)</span></div>
+          <div class="field-value">Personal key</div>
+        </div>
+        <div class="dlg-actions">
+          <div class="dlg-btn"><span class="ko">취소</span><span class="en">Cancel</span></div>
+          <div class="dlg-btn primary"><span class="ko">저장</span><span class="en">Save</span></div>
+        </div>
+      </div>
+
+      <ol>
+        <li><span class="ko"><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> 에서 키 발급</span>
+            <span class="en">Issue a key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></span></li>
+        <li><span class="ko">API Key 입력란에 <code>sk-ant-...</code> 붙여넣기 — <strong>80자 이상</strong> 필수 (짧으면 거부)</span>
+            <span class="en">Paste <code>sk-ant-...</code> into the API Key field — must be <strong>≥80 characters</strong> (shorter is rejected)</span></li>
+        <li><span class="ko">설명에는 식별용 메모 ("Personal key", "Team key" 등)</span>
+            <span class="en">Description: an identifying note ("Personal key", "Team key", etc.)</span></li>
+        <li><span class="ko">[저장] → 자동 검증 후 상단 뱃지가 녹색으로 변경</span>
+            <span class="en">Click [Save] → auto-verified, top badge turns green</span></li>
+      </ol>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ 키 보안</span><span class="en">⚠️ Key security</span></div>
+        <p>
+          <span class="ko">키는 <code>TB_IS_EXTRNLAPIKEY</code> 테이블에 Jasypt PBE 로 암호화되어 저장됩니다. 로그/스냅샷에는 prefix(12자) + suffix(4자) + SHA-256 prefix(8자) 만 노출되며, 키 전체는 다시 표시되지 않으므로 별도 안전한 곳에 백업하세요.</span>
+          <span class="en">The key is stored encrypted with Jasypt PBE in the <code>TB_IS_EXTRNLAPIKEY</code> table. Logs and snapshots only show prefix (12 chars) + suffix (4 chars) + SHA-256 prefix (8 chars). The full key is never re-displayed — back it up safely elsewhere.</span></p>
+      </div>
+
+      <h4>
+        <span class="ko">2) Target DB 연결 (운영 wingui DB)</span>
+        <span class="en">2) Target DB Connection (production wingui DB)</span></h4>
+      <p>
+        <span class="ko">운영 wingui DB (예: T3SmartSCM) 에 연결하면 NEW_FROM_COPY · EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다. <strong>연결 없이도 docker 내장 <code>target-mssql</code> 의 기본 데이터로 작업 가능</strong>합니다.</span>
+        <span class="en">Connecting to the production wingui DB (e.g., T3SmartSCM) lets NEW_FROM_COPY and EXISTING_MODIFY pull live menu / LangPack / SP data. <strong>Without it, you can still work with the bundled <code>target-mssql</code> data.</strong></span></p>
+      <p>
+        <span class="ko">상단 Target Selector dropdown → <strong>💾 Storage</strong> 버튼 클릭 → Target DB 다이얼로그:</span>
+        <span class="en">Top Target Selector dropdown → click <strong>💾 Storage</strong> → Target DB dialog:</span></p>
+
+      <div class="dialog-mock">
+        <div class="dlg-head">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4z"/></svg>
+          <div class="dlg-title">
+            <span class="ko">Target DB 접속 정보 — T3Series</span>
+            <span class="en">Target DB Connection — T3Series</span></div>
+          <span class="dlg-badge">MSSQL</span>
+        </div>
+        <div class="dlg-info">
+          <span class="ko">운영 wingui DB 에 직접 연결하면 NEW_FROM_COPY · EXISTING_MODIFY 가 실시간 메뉴·LangPack·SP 데이터를 가져옵니다. 비워두면 로컬 target-mssql synced 데이터를 폴백 사용합니다.</span>
+          <span class="en">Connecting to the production wingui DB lets NEW_FROM_COPY / EXISTING_MODIFY fetch live menu / LangPack / SP data. Leave blank to fall back to the local target-mssql synced data.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">JDBC URL</div>
+          <div class="field-value">jdbc:sqlserver://&lt;host&gt;:21433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Username</div>
+            <div class="field-value">education1</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Password</div>
+            <div class="field-value">••••••••••••••••</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">Driver Class (선택)</span><span class="en">Driver Class (optional)</span></div>
+          <div class="field-value">com.microsoft.sqlserver.jdbc.SQLServerDriver</div>
+        </div>
+        <div style="margin-top:12px;font-weight:700;font-size:13px;color:var(--text);">
+          <span class="ko">📁 Target source path</span><span class="en">📁 Target source path</span></div>
+        <div class="dlg-info" style="margin-top:6px;">
+          <span class="ko">컨테이너 안 절대경로로 입력. <strong>source</strong> 는 frontend root, <strong>backend</strong> 는 backend root (PLANNEL 처럼 monorepo 가 아닌 경우만 별도 지정 — 비우면 source 와 동일). 비워두면 docker-compose 의 <code>/workspace/targets/T3SERIES/wingui</code> fallback.</span>
+          <span class="en">Use absolute paths inside the container. <strong>source</strong> = frontend root, <strong>backend</strong> = backend root (specify separately only for non-monorepo cases like PLANNEL; leave blank to use source). Leave blank to fall back to <code>/workspace/targets/T3SERIES/wingui</code> from docker-compose.</span>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">source 폴더 경로</span><span class="en">source folder path</span></div>
+          <div class="field-value">/workspace/projects/t3series-lxma/t3series-wingui</div>
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span class="ko">backend 폴더 경로 (분리 구조일 때만)</span>
+            <span class="en">backend folder path (split layout only)</span></div>
+          <div class="field-value placeholder">
+            <span class="ko">(비워두면 source 와 동일)</span><span class="en">(blank = same as source)</span></div>
+        </div>
+        <div class="dlg-actions">
+          <div class="dlg-btn"><span class="ko">닫기</span><span class="en">Close</span></div>
+          <div class="dlg-btn test">▶ <span class="ko">연결 테스트</span><span class="en">Test connection</span></div>
+          <div class="dlg-btn primary">💾 <span class="ko">저장</span><span class="en">Save</span></div>
+        </div>
+      </div>
+
+      <ol>
+        <li><span class="ko">JDBC URL 입력 — SSL 옵션 <code>encrypt=true;trustServerCertificate=true</code> 누락 시 MSSQL JDBC 12+ 가 연결 거부하므로 그대로 복사 권장</span>
+            <span class="en">Enter JDBC URL — MSSQL JDBC 12+ rejects connections without <code>encrypt=true;trustServerCertificate=true</code>; copy as shown</span></li>
+        <li><span class="ko">Username / Password — DB 계정 정보</span>
+            <span class="en">Username / Password — DB account</span></li>
+        <li><span class="ko">source 폴더 경로 — 컨테이너 안에 mount 된 wingui 소스 root (예: <code>/workspace/projects/t3series-lxma/t3series-wingui</code>)</span>
+            <span class="en">source folder path — wingui source root mounted inside the container (e.g., <code>/workspace/projects/t3series-lxma/t3series-wingui</code>)</span></li>
+        <li><span class="ko">[▶ 연결 테스트] 클릭 → 성공 시 녹색 메시지, 실패 시 원인 표시</span>
+            <span class="en">Click [▶ Test connection] → green message on success, error reason on failure</span></li>
+        <li><span class="ko">[💾 저장] → composer-db 의 <code>tb_cmp_target_system</code> 에 영구 저장. 다음 startup 에도 유지됨.</span>
+            <span class="en">Click [💾 Save] → persisted in composer-db <code>tb_cmp_target_system</code>. Survives next startup.</span></li>
+      </ol>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">💡 다중 Target</span><span class="en">💡 Multiple Targets</span></div>
+        <p>
+          <span class="ko">T3SERIES 외 PLANNEL · LGES_NEXTSCM 등 다른 Target 도 같은 방식 — Target Selector 에서 다른 Target 선택 후 💾 Storage 입력. localStorage 에 현재 선택만 저장되고 각 Target 별 DB 설정은 composer-db 에 따로 저장.</span>
+          <span class="en">Other Targets like PLANNEL or LGES_NEXTSCM work the same way — switch in the Target Selector, then 💾 Storage to enter that Target's info. Only the current selection lives in localStorage; each Target's DB config is stored separately in composer-db.</span></p>
+      </div>
+
+      <h3 id="s0-4">
+        <span class="ko">Insight LLM (선택)</span><span class="en">Insight LLM (optional)</span></h3>
+      <p>
+        <span class="ko">Insight LLM 은 자연어 질의·온톨로지 답변용 별도 서비스로 호스트 포트 9160 에 직접 기동해야 합니다. <strong>기본은 비활성</strong> — <code>.env</code> 의 <code>INSIGHT_ENABLED=false</code> (기본값) 상태에서는 Insight 의존 UI 가 모두 숨겨지고, T3Composer 의 화면 생성 기능은 정상 동작합니다.</span>
+        <span class="en">Insight LLM is a separate service for natural-language queries and ontology answers, running directly on host port 9160. <strong>Disabled by default</strong> — with <code>INSIGHT_ENABLED=false</code> (default) in <code>.env</code>, all Insight-dependent UI is hidden and T3Composer's screen generation still works normally.</span></p>
+      <ul>
+        <li><span class="ko">활성화 방법: <code>.env</code> 에서 <code>INSIGHT_ENABLED=true</code> + insight-llm 호스트 기동 + <code>docker compose up -d --force-recreate composer-frontend</code> 재기동 (frontend 빌드 플래그라 backend 재기동 불필요)</span>
+            <span class="en">To enable: set <code>INSIGHT_ENABLED=true</code> in <code>.env</code>, start insight-llm on the host, then <code>docker compose up -d --force-recreate composer-frontend</code> (it's a frontend build flag; no backend restart needed)</span></li>
+        <li><span class="ko">설치 안내: 별도 insight-llm 저장소 참조 (사내 위키 또는 관리자 문의)</span>
+            <span class="en">Setup: refer to the separate insight-llm repository (internal wiki or contact admin)</span></li>
+        <li><span class="ko">대안: 기본 Composer 흐름은 Anthropic API 만으로 충분 — Insight 는 자연어 SQL 질의·온톨로지 답변 같은 부가 기능</span>
+            <span class="en">Alternative: the basic Composer flow runs fine with just the Anthropic API — Insight is for add-on features like NL SQL queries and ontology answers</span></li>
+      </ul>
+
+      <h3 id="s0-5">
+        <span class="ko">.env 영구 설정 (선택)</span>
+        <span class="en">.env Permanent Config (optional)</span></h3>
+      <p>
+        <span class="ko">대부분의 사용자는 §0-3 의 UI 입력만으로 충분합니다. <code>.env</code> 사용은 다음 케이스에서만 권장:</span>
+        <span class="en">For most users, the UI entries in §0-3 are sufficient. <code>.env</code> is recommended only for:</span></p>
+      <ul>
+        <li><span class="ko"><strong>다중 환경</strong> — 개발/스테이징/운영을 분리 운영 (각 환경별 별도 <code>.env</code>)</span>
+            <span class="en"><strong>Multi-environment</strong> — separating dev/staging/prod (different <code>.env</code> per environment)</span></li>
+        <li><span class="ko"><strong>CI / 자동화</strong> — 사람이 UI 를 직접 못 만지는 자동화 파이프라인</span>
+            <span class="en"><strong>CI / automation</strong> — pipelines where no human can touch the UI</span></li>
+        <li><span class="ko"><strong>비밀 외부 관리</strong> — DB 가 아닌 secrets manager (Vault 등) 에서 키를 주입</span>
+            <span class="en"><strong>External secrets</strong> — injecting keys from a secrets manager (Vault, etc.) instead of the DB</span></li>
+      </ul>
+
+      <h4>
+        <span class="ko">설정 예시</span><span class="en">Configuration example</span></h4>
+<pre><code><span class="ko"># .env</span><span class="en"># .env</span>
+<span class="ko"># Anthropic API 키 — UI 입력 대신 startup 시 자동 주입</span><span class="en"># Anthropic API key — auto-injected at startup (instead of UI input)</span>
+ANTHROPIC_API_KEY=sk-ant-...
+
+<span class="ko"># Target DB — UI 입력 대신 startup 시 자동 주입</span><span class="en"># Target DB — auto-injected at startup (instead of UI input)</span>
+TARGET_T3SERIES_DB_URL=jdbc:sqlserver://&lt;host&gt;:1433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true
+TARGET_T3SERIES_DB_USERNAME=sa
+TARGET_T3SERIES_DB_PASSWORD=&lt;password&gt;
+TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
+</code></pre>
+
+      <p>
+        <span class="ko">변경 후 backend 재기동: <code>docker compose up -d --force-recreate composer-backend</code></span>
+        <span class="en">After changes, restart backend: <code>docker compose up -d --force-recreate composer-backend</code></span></p>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ .env 우선순위</span><span class="en">⚠️ .env precedence</span></div>
+        <p>
+          <span class="ko"><code>.env</code> 의 <code>TARGET_*_DB_*</code> 값이 채워져 있으면 매 backend 기동 시 그 값이 DB 의 UI 입력값을 <strong>덮어씁니다</strong>. UI 에서 일회성으로 바꿔도 다음 재기동 시 <code>.env</code> 값으로 되돌아갑니다 — 두 곳을 혼용하지 말 것.</span>
+          <span class="en">When <code>TARGET_*_DB_*</code> in <code>.env</code> is set, the backend <strong>overwrites</strong> the DB's UI-entered values at every startup. Even if you change them via UI for a one-off, they revert to the <code>.env</code> values on next restart — don't mix the two.</span></p>
+      </div>
+
+      <div class="panel danger">
+        <div class="panel-title">
+          <span class="ko">🔒 .env 보안</span><span class="en">🔒 .env security</span></div>
+        <p>
+          <span class="ko"><code>.env</code> 는 <code>.gitignore</code> 됩니다 (절대 commit 금지). API 키와 DB 비밀번호가 평문으로 들어가니 파일 권한 (<code>chmod 600</code>) 과 호스트 접근 통제 필요.</span>
+          <span class="en"><code>.env</code> is <code>.gitignore</code>'d (never commit). API keys and DB passwords are stored in plaintext — protect with file permissions (<code>chmod 600</code>) and host-level access control.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §1 Getting Started ===== -->
+    <section id="s1">
+      <h2 class="s-start">
+        <span class="icon-badge"><svg><use href="#ic-start"/></svg></span>
+        <span class="ko">시작하기 — 사이드바 한눈에 보기</span>
+        <span class="en">Getting Started — Sidebar at a Glance</span>
+      </h2>
+      <p>
+        <span class="ko">http://localhost:5173 으로 접속하면 좌측에 7개 메뉴 사이드바가 보입니다. 클릭하면 우측 영역에 탭으로 열리고, 같은 메뉴를 다시 클릭하면 활성화만 됩니다. 한 번 열린 탭은 × 로 닫기 전까지 상태 유지 (세션 보존).</span>
+        <span class="en">Open http://localhost:5173 — the left sidebar shows 7 menus. Clicking opens each as a tab on the right; re-clicking the same menu just re-activates the tab. Once opened, a tab persists state until closed with × (session preserved).</span>
+      </p>
+
+      <div class="sidebar-mock">
+        <div class="bar">
+          <div class="logo-row">
+            <div class="logo">T³</div>
+            <div class="wordmark">T³Composer<span style="font-size:9px; color:var(--text-3); margin-left:4px; font-weight:600;">v1.0</span></div>
+          </div>
+          <div class="item active"><svg><use href="#ic-composer"/></svg>Composer</div>
+          <div class="item"><svg><use href="#ic-history"/></svg>History</div>
+          <div class="item"><svg><use href="#ic-mockup"/></svg>SCM UI Mockup</div>
+          <div class="item"><svg><use href="#ic-pattern"/></svg>UI Pattern</div>
+          <div class="item"><svg><use href="#ic-gallery"/></svg>Gallery</div>
+          <div class="item"><svg><use href="#ic-ontology"/></svg>Ontology</div>
+          <div class="item"><svg><use href="#ic-dashboard"/></svg>Dashboard</div>
+        </div>
+        <div class="explain">
+          <table>
+            <tr><th style="width:130px"><span class="ko">메뉴</span><span class="en">Menu</span></th>
+                <th><span class="ko">이 메뉴는 …</span><span class="en">This menu …</span></th></tr>
+            <tr><td><strong>Composer</strong></td><td>
+              <span class="ko">AI 로 화면을 새로 만들거나 기존 화면을 수정합니다 (메인)</span>
+              <span class="en">Creates new or modifies existing screens with AI (main)</span></td></tr>
+            <tr><td><strong>History</strong></td><td>
+              <span class="ko">이전 작업 세션을 다시 열어 이어서 작업합니다</span>
+              <span class="en">Reopens previous sessions to continue work</span></td></tr>
+            <tr><td><strong>SCM UI Mockup</strong></td><td>
+              <span class="ko">54개 운영 화면 mockup 갤러리 — Composer 의 출발점 템플릿</span>
+              <span class="en">Gallery of 54 production-screen mockups — starting templates for Composer</span></td></tr>
+            <tr><td><strong>UI Pattern</strong></td><td>
+              <span class="ko">T3MES 퍼블리싱 730개 TabPage 패턴 카탈로그</span>
+              <span class="en">Catalog of 730 T3MES TabPage patterns</span></td></tr>
+            <tr><td><strong>Gallery</strong></td><td>
+              <span class="ko">Grid / Chart / KPI 152개 사전 — 위젯 선택지</span>
+              <span class="en">Dictionary of Grid / Chart / KPI (152) — widget options</span></td></tr>
+            <tr><td><strong>Ontology</strong></td><td>
+              <span class="ko">Q&A · Entity · View · Process 4영역 비즈니스 의미 사전</span>
+              <span class="en">Q&A · Entity · View · Process — 4-area business-semantics dictionary</span></td></tr>
+            <tr><td><strong>Dashboard</strong></td><td>
+              <span class="ko">위젯 기반 사용자 대시보드 빌더/뷰어</span>
+              <span class="en">Widget-based user dashboard builder/viewer</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">팁 — 사이드바 접기</span><span class="en">Tip — Collapsing the sidebar</span></div>
+        <p>
+          <span class="ko">로고 옆 <kbd>«</kbd> 버튼으로 사이드바를 축소하면 아이콘만 남아 화면을 더 넓게 쓸 수 있습니다. 마우스를 올리면 메뉴 이름이 Tooltip 으로 표시됩니다.</span>
+          <span class="en">Click <kbd>«</kbd> next to the logo to collapse the sidebar to icons only, giving more screen space. Hover over icons to see menu names as tooltips.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §2 Composer ===== -->
+    <section id="s2">
+      <h2 class="s-composer">
+        <span class="icon-badge"><svg><use href="#ic-composer"/></svg></span>
+        <span class="ko">Composer (메인) — 모드 선택</span>
+        <span class="en">Composer (Main) — Mode Selection</span>
+      </h2>
+      <p>
+        <span class="ko">Composer 메인 화면에는 <strong>신규 개발</strong> 과 <strong>기존 화면 수정</strong> 두 카테고리가 있고, 각 카테고리 안에 사용 시나리오별 모드 카드가 펼쳐져 있습니다.</span>
+        <span class="en">The Composer main screen has two categories — <strong>New Development</strong> and <strong>Modify Existing</strong> — each containing mode cards for different scenarios.</span></p>
+
+      <div class="mode-board">
+        <div class="mode-cat new">
+          <div class="cat-head">
+            <div class="cat-icon"><svg width="18" height="18" viewBox="0 0 24 24"><use href="#ic-plus"/></svg></div>
+            <div>
+              <div class="cat-title"><span class="ko">신규 개발</span><span class="en">New Development</span></div>
+              <div class="cat-sub">NEW DEVELOPMENT</div>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-icon"><svg><use href="#ic-chat"/></svg></div>
+            <div>
+              <div class="opt-title"><span class="ko">자연어 생성</span><span class="en">Natural Language</span></div>
+              <div class="opt-sub">
+                <span class="ko">요구사항을 자연어로 설명하면 Claude 가 패턴·코드를 생성</span>
+                <span class="en">Describe requirements in natural language; Claude generates patterns and code</span></div>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-icon"><svg><use href="#ic-grid-edit"/></svg></div>
+            <div>
+              <div class="opt-title"><span class="ko">단계별 생성</span><span class="en">Step-by-step</span></div>
+              <div class="opt-sub">
+                <span class="ko">패턴 선택 + 시각 편집으로 데이터를 채움 · AI 추천 지원</span>
+                <span class="en">Pick a pattern and fill data via visual editor · AI Recommendations supported</span></div>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-icon"><svg><use href="#ic-copy"/></svg></div>
+            <div>
+              <div class="opt-title"><span class="ko">기존 화면 복사</span><span class="en">Copy Existing</span></div>
+              <div class="opt-sub">
+                <span class="ko">기존 운영 화면을 골라 4단계 마법사로 수정</span>
+                <span class="en">Pick a production screen and modify via the 4-step wizard</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mode-cat modify">
+          <div class="cat-head">
+            <div class="cat-icon"><svg><use href="#ic-edit"/></svg></div>
+            <div>
+              <div class="cat-title"><span class="ko">기존 화면 수정</span><span class="en">Modify Existing</span></div>
+              <div class="cat-sub">MODIFY EXISTING</div>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-icon"><svg><use href="#ic-chat"/></svg></div>
+            <div>
+              <div class="opt-title"><span class="ko">자연어 수정</span><span class="en">NL Modify</span></div>
+              <div class="opt-sub">
+                <span class="ko">현재 화면 소스를 Claude 에 제공하고 대화로 수정 요청</span>
+                <span class="en">Provide current screen source to Claude and request changes via chat</span></div>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-icon"><svg><use href="#ic-check"/></svg></div>
+            <div>
+              <div class="opt-title"><span class="ko">단계별 수정</span><span class="en">Step Modify</span></div>
+              <div class="opt-sub">
+                <span class="ko">기존 화면을 Spec 으로 분해해 수정할 부분만 변경</span>
+                <span class="en">Decompose existing screen into a Spec and change only the parts you need</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">상단 막대 — Target System / API 키 상태</span>
+          <span class="en">Top bar — Target System / API key status</span></div>
+        <p>
+          <span class="ko">모드 선택 화면 상단에는 현재 <strong>활성 Target System</strong> (예: T3SERIES) 과 <strong>API 키 등록 상태</strong> (녹색=등록됨 · 주황=미등록) 가 표시됩니다. API 키가 미등록이면 화면 생성 시 오류 — 우측 아이콘 클릭 또는 부록 §9-2 참조.</span>
+          <span class="en">The top bar shows the active Target System (e.g., T3SERIES) and API key status (green = registered · orange = unregistered). Without a key, screen generation fails — click the right-side icon or see Appendix §9-2.</span></p>
+      </div>
+
+      <!-- ── 2-1 ── -->
+      <h3 id="s2-1">
+        <span class="ko">자연어 생성 (Natural Lang.)</span>
+        <span class="en">Natural Language Generation</span></h3>
+      <p>
+        <span class="ko"><strong>가장 자유로운 방식</strong>입니다. 만들고 싶은 화면을 한국어 문장으로 적으면 Claude 가 화면 패턴·데이터 바인딩·SP·메뉴 SQL 까지 한꺼번에 생성합니다.</span>
+        <span class="en"><strong>The most flexible mode.</strong> Write your screen requirements as natural-language sentences, and Claude generates the pattern, data binding, SP, and menu SQL together.</span></p>
+
+      <h4><span class="ko">흐름</span><span class="en">Flow</span></h4>
+      <ol>
+        <li><span class="ko">모드 선택 → "자연어 생성" 클릭</span>
+            <span class="en">In mode selection, click "Natural Language"</span></li>
+        <li><span class="ko">큰 textarea 에 요구사항 작성 (예: "사용자별 부서/직위 관리 화면을 만들어 줘. 검색조건은 부서·사용자명, 그리드에 코드·이름·이메일")</span>
+            <span class="en">Type requirements in the large textarea (e.g., "Create a user-by-department/position management screen. Filters: department, user name. Grid: code, name, email.")</span></li>
+        <li><span class="ko">선택사항 — 아래 4가지 중 하나 또는 여러 개 사용 가능:</span>
+            <span class="en">Optional — choose one or several of these:</span>
+          <ul>
+            <li><span class="ko"><strong>SCM UI Mockup 선택</strong> — 운영 화면 mockup 1개를 참조 템플릿으로 (mockup ↔ UI Pattern 상호 배타)</span>
+                <span class="en"><strong>Pick SCM UI Mockup</strong> — one production mockup as reference (mockup ↔ UI Pattern are mutually exclusive)</span></li>
+            <li><span class="ko"><strong>UI Pattern 선택</strong> — T3MES 패턴 1개를 참조 마크업으로</span>
+                <span class="en"><strong>Pick UI Pattern</strong> — one T3MES pattern as reference markup</span></li>
+            <li><span class="ko"><strong>참조 파일 첨부</strong> — SQL · 설계서 이미지 · 캡처 (최대 5개, 파일당 5MB · 텍스트는 prompt inline · 이미지는 Anthropic vision)</span>
+                <span class="en"><strong>Attach reference files</strong> — SQL, design images, screenshots (up to 5, 5MB each · text inlined into prompt · images use Anthropic vision)</span></li>
+            <li><span class="ko"><strong>Data Source 선택</strong> — DB Entity (별자리 맵에서 테이블/SP 선택) · Ontology Q&A · 인라인 쿼리</span>
+                <span class="en"><strong>Pick Data Source</strong> — DB Entity (pick table/SP from constellation map) · Ontology Q&A · inline query</span></li>
+          </ul>
+        </li>
+        <li><span class="ko">[화면 생성 시작] 클릭 → Composer 작업공간이 열리며 Claude 가 ===FILE: 마커로 산출물 6~8종 출력</span>
+            <span class="en">Click [Start Generation] → Composer workspace opens; Claude emits 6–8 artifacts marked with ===FILE:</span></li>
+        <li><span class="ko">우측 [실행 화면 LIVE] 탭에서 자동으로 화면 미리보기 확인</span>
+            <span class="en">The right [Screen LIVE] tab automatically shows the preview</span></li>
+        <li><span class="ko">오류 시 자동보완 ON 으로 두면 Claude 가 자체적으로 1회 수정 시도</span>
+            <span class="en">With "auto-fix on error" ON, Claude attempts one self-fix automatically</span></li>
+      </ol>
+
+      <div class="dnd">
+        <svg class="dnd-icon"><use href="#ic-upload"/></svg>
+        <div class="dnd-title">
+          <span class="ko">참조 파일 첨부 — SQL · 설계서 이미지 등</span>
+          <span class="en">Attach reference files — SQL · design images, etc.</span></div>
+        <div class="dnd-sub">
+          <span class="ko">끌어다 놓거나 클릭 · 최대 5개 · 파일당 5MB</span>
+          <span class="en">Drag-drop or click · max 5 files · 5MB per file</span></div>
+        <div class="chips">
+          <span class="chip">📄 schema.sql (12KB)</span>
+          <span class="chip">🖼️ design.png (340KB)</span>
+        </div>
+      </div>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">💡 데이터 소스를 명시할수록 정확도 ↑</span>
+          <span class="en">💡 More explicit data sources → higher accuracy</span></div>
+        <p>
+          <span class="ko">"TB_AD_USER" 처럼 실제 테이블명을 prompt 에 적으면 Composer 가 자동으로 운영 DB 의 컬럼을 조회해 프롬프트에 주입합니다 (Target DB 가 연결돼 있어야 함). Data Source 별자리 맵에서 직접 선택하면 더 강한 강제력 — Claude 가 이름이 비슷한 다른 테이블로 임의 대체하지 않습니다.</span>
+          <span class="en">If you write a real table name like "TB_AD_USER" in the prompt, Composer auto-queries production DB columns and injects them into the prompt (Target DB must be connected). Picking from the Data Source constellation map enforces this more strongly — Claude won't substitute with a similarly-named table.</span></p>
+      </div>
+
+      <!-- ── 2-2 ── -->
+      <h3 id="s2-2">
+        <span class="ko">단계별 생성 (Pattern + Visual)</span>
+        <span class="en">Step-by-step Generation (Pattern + Visual)</span></h3>
+      <p>
+        <span class="ko">자연어가 어렵거나 layout 을 시각적으로 직접 짜고 싶을 때. <strong>4-step Wizard</strong> 로 한 단계씩 진행합니다. 자연어 모드에 비해 정확한 layer 배치·검색조건·메뉴 메타를 명시 가능.</span>
+        <span class="en">When natural language is hard to write or you want to visually design the layout. Proceeds through a <strong>4-step Wizard</strong>. Compared to NL mode, you can explicitly specify layer positions, filters, and menu metadata.</span></p>
+
+      <h4>
+        <span class="ko">1) 패턴 선택 (Wizard 진입 전)</span>
+        <span class="en">1) Pick a pattern (before entering Wizard)</span></h4>
+      <p>
+        <span class="ko">4가지 시작점 중 하나를 고릅니다:</span>
+        <span class="en">Choose one of 4 starting points:</span></p>
+      <ul>
+        <li><span class="ko"><strong>✨ AI 추천</strong> — 자연어 + 첨부 이미지로 6개 카드 추천 (가장 강력 — 아래 상세)</span>
+            <span class="en"><strong>✨ AI Recommend</strong> — recommends 6 cards based on NL + attached images (most powerful — detailed below)</span></li>
+        <li><span class="ko"><strong>SCM UI Mockup</strong> — 카테고리 필터로 mockup 1개 선택, 실제 layer 구조 자동 prefill</span>
+            <span class="en"><strong>SCM UI Mockup</strong> — pick one mockup via category filter; actual layer structure auto-prefilled</span></li>
+        <li><span class="ko"><strong>T3MES UI Pattern</strong> — 단일 layer + 패턴 식별자 보존</span>
+            <span class="en"><strong>T3MES UI Pattern</strong> — single layer + pattern identifier preserved</span></li>
+        <li><span class="ko"><strong>빈 캔버스</strong> — P02 (검색+그리드) 마스터 CRUD 기본 패턴</span>
+            <span class="en"><strong>Blank canvas</strong> — P02 (search + grid) master-CRUD default pattern</span></li>
+      </ul>
+
+      <h4>
+        <span class="ko">2) AI 추천 결과 — 6개 카드 grid</span>
+        <span class="en">2) AI Recommend results — 6-card grid</span></h4>
+      <p>
+        <span class="ko">자연어 입력 + (선택) 이미지 첨부 후 "추천 템플릿 찾기" 를 누르면 6개 카드가 나타납니다. 이미지가 첨부돼 있으면 <strong>첫 카드</strong>는 항상 "내 설계 그대로 만들기" (vision 분석 기반):</span>
+        <span class="en">After entering NL + (optionally) attaching images and clicking "Find templates", 6 cards appear. If an image is attached, the <strong>first card</strong> is always "Build my design as-is" (vision-based):</span></p>
+
+      <div class="reco-grid">
+        <div class="reco-card image-derived">
+          <div class="thumb">
+            <div class="thumb-grid">
+              <div class="tile kpi"    style="grid-column: 1 / span 3; grid-row: 1 / span 2;">KPI</div>
+              <div class="tile kpi"    style="grid-column: 4 / span 3; grid-row: 1 / span 2;">KPI</div>
+              <div class="tile kpi"    style="grid-column: 7 / span 3; grid-row: 1 / span 2;">KPI</div>
+              <div class="tile kpi"    style="grid-column: 10 / span 3; grid-row: 1 / span 2;">KPI</div>
+              <div class="tile chart"  style="grid-column: 1 / span 6; grid-row: 3 / span 4;">CHART</div>
+              <div class="tile chart"  style="grid-column: 7 / span 6; grid-row: 3 / span 4;">CHART</div>
+            </div>
+          </div>
+          <div class="body">
+            <span class="chip"><span class="ko">📷 내 설계</span><span class="en">📷 My design</span></span>
+            <div class="title"><span class="ko">내 설계 그대로 만들기</span><span class="en">Build my design as-is</span></div>
+            <div class="desc">
+              <span class="ko">이미지에서 6개 layer 위치 추론 완료</span>
+              <span class="en">6 layer positions inferred from image</span></div>
+            <div class="btn">
+              <span class="ko">이 설계로 시작 →</span><span class="en">Start with this design →</span></div>
+          </div>
+        </div>
+        <div class="reco-card existing">
+          <div class="thumb" style="display:flex; align-items:center; justify-content:center; color:#b45309; font-weight:700; font-size:10px;">
+            <span class="ko">운영 mockup<br/>미리보기</span>
+            <span class="en">Production mockup<br/>preview</span></div>
+          <div class="body">
+            <span class="chip"><span class="ko">관련도 92%</span><span class="en">Relevance 92%</span></span>
+            <div class="title">DP Master Dashboard</div>
+            <div class="desc"><span class="ko">수요계획 마스터 대시보드</span><span class="en">Demand plan master dashboard</span></div>
+            <div class="btn"><span class="ko">이 템플릿으로 시작 →</span><span class="en">Start with this template →</span></div>
+          </div>
+        </div>
+        <div class="reco-card existing">
+          <div class="thumb" style="display:flex; align-items:center; justify-content:center; color:#b45309; font-weight:700; font-size:10px;">
+            <span class="ko">운영 mockup<br/>미리보기</span><span class="en">Production mockup<br/>preview</span></div>
+          <div class="body">
+            <span class="chip"><span class="ko">관련도 84%</span><span class="en">Relevance 84%</span></span>
+            <div class="title">User Management</div>
+            <div class="desc"><span class="ko">사용자 관리 마스터</span><span class="en">User management master</span></div>
+            <div class="btn"><span class="ko">이 템플릿으로 시작 →</span><span class="en">Start with this template →</span></div>
+          </div>
+        </div>
+        <div class="reco-card existing">
+          <div class="thumb" style="display:flex; align-items:center; justify-content:center; color:#b45309; font-weight:700; font-size:10px;">
+            <span class="ko">운영 mockup<br/>미리보기</span><span class="en">Production mockup<br/>preview</span></div>
+          <div class="body">
+            <span class="chip"><span class="ko">관련도 71%</span><span class="en">Relevance 71%</span></span>
+            <div class="title">Admin Settings</div>
+            <div class="desc"><span class="ko">관리자 설정 화면</span><span class="en">Admin settings screen</span></div>
+            <div class="btn"><span class="ko">이 템플릿으로 시작 →</span><span class="en">Start with this template →</span></div>
+          </div>
+        </div>
+        <div class="reco-card existing">
+          <div class="thumb" style="display:flex; align-items:center; justify-content:center; color:#b45309; font-weight:700; font-size:10px;">
+            <span class="ko">운영 mockup<br/>미리보기</span><span class="en">Production mockup<br/>preview</span></div>
+          <div class="body">
+            <span class="chip"><span class="ko">관련도 65%</span><span class="en">Relevance 65%</span></span>
+            <div class="title">Permission Group</div>
+            <div class="desc"><span class="ko">권한 그룹 관리</span><span class="en">Permission group management</span></div>
+            <div class="btn"><span class="ko">이 템플릿으로 시작 →</span><span class="en">Start with this template →</span></div>
+          </div>
+        </div>
+        <div class="reco-card synth">
+          <div class="thumb" style="display:flex; align-items:center; justify-content:center; color:var(--accent-dark); font-weight:700; font-size:10px;">
+            <span class="ko">🪄 AI 재조합<br/>레이아웃</span><span class="en">🪄 AI Remix<br/>layout</span></div>
+          <div class="body">
+            <span class="chip"><span class="ko">🪄 AI 재조합</span><span class="en">🪄 AI Remix</span></span>
+            <div class="title"><span class="ko">재조합 layout</span><span class="en">Remixed layout</span></div>
+            <div class="desc">
+              <span class="ko">기존 2개 mockup 의 layer 를 재조합</span>
+              <span class="en">Layers remixed from 2 existing mockups</span></div>
+            <div class="btn">
+              <span class="ko">이 재조합으로 시작 →</span><span class="en">Start with this remix →</span></div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size: 11px; color: var(--text-3); text-align: center; margin-top: -2px;">
+        <span class="ko">※ 보라색 카드(image-derived) 는 이미지 첨부 시에만 표시. 클릭 즉시 캐시된 spec 으로 Wizard 진입.</span>
+        <span class="en">※ The purple (image-derived) card appears only when an image is attached. Clicking immediately enters the Wizard with the cached spec.</span>
+      </p>
+
+      <h4>
+        <span class="ko">3) 4-step Wizard 흐름</span>
+        <span class="en">3) 4-step Wizard flow</span></h4>
+      <div class="flow">
+        <div class="step active">
+          <div><span class="step-icon"><svg><use href="#ic-step-1"/></svg></span><span class="step-t">Layout</span></div>
+          <div class="step-d">
+            <span class="ko">12-col grid 에 layer 배치 · SplitBar · FilterBar 토글</span>
+            <span class="en">Arrange layers on a 12-col grid · SplitBar · FilterBar toggle</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-2"/></svg></span><span class="step-t">
+            <span class="ko">데이터·검색조건</span><span class="en">Data · Filters</span></span></div>
+          <div class="step-d">
+            <span class="ko">Layer 별 dataSource (테이블/SP/Entity/SQL/NL) + 검색조건 fields</span>
+            <span class="en">Per-layer dataSource (Table/SP/Entity/SQL/NL) + filter fields</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-3"/></svg></span><span class="step-t">
+            <span class="ko">메타·메뉴</span><span class="en">Meta · Menu</span></span></div>
+          <div class="step-d">
+            <span class="ko">화면 제목 · MENU_CD · 부모 메뉴 위치 · 파일 경로</span>
+            <span class="en">Screen title · MENU_CD · parent menu · file path</span></div>
+        </div>
+        <div class="arrow">▶</div>
+        <div class="step">
+          <div><span class="step-icon"><svg><use href="#ic-step-4"/></svg></span><span class="step-t">
+            <span class="ko">화면 생성</span><span class="en">Generate</span></span></div>
+          <div class="step-d">
+            <span class="ko">Claude 호출 → ComposerWorkspace 임베드 · 자유 채팅으로 보완 가능</span>
+            <span class="en">Calls Claude → embeds ComposerWorkspace · refine via free chat</span></div>
+        </div>
+      </div>
+
+      <!-- ── 2-3 ── -->
+      <h3 id="s2-3">
+        <span class="ko">기존 화면 복사 (Copy Existing)</span>
+        <span class="en">Copy Existing</span></h3>
+      <p>
+        <span class="ko">이미 운영 중인 화면을 복사해서 새 메뉴로 만들 때 사용. Composer 가 원본 JSX·Java·SP 를 통째로 가져와 세션 아티팩트로 import 한 뒤, 사용자가 자연어로 변경분만 요청합니다.</span>
+        <span class="en">For creating a new menu by copying an existing production screen. Composer imports the original JSX, Java, and SP into the session as artifacts, then you request only the changes via natural language.</span></p>
+      <ol>
+        <li><span class="ko">"기존 화면 복사" 클릭</span><span class="en">Click "Copy Existing"</span></li>
+        <li><span class="ko">운영 메뉴 트리에서 복사할 원본 메뉴 선택</span><span class="en">Pick the source menu from the production menu tree</span></li>
+        <li><span class="ko">신규 메뉴 코드/경로 입력 (예: <code>UI_AD_USER_MGMT_V2</code>)</span>
+            <span class="en">Enter the new menu code/path (e.g., <code>UI_AD_USER_MGMT_V2</code>)</span></li>
+        <li><span class="ko">SourceBundle 분석 패널에서 원본의 SP / URL / Entity 확인</span>
+            <span class="en">Inspect the original SP / URL / Entity in the SourceBundle analysis panel</span></li>
+        <li><span class="ko">"AI 자동 분석" ON (기본) → 4-step Wizard 에 spec 자동 prefill</span>
+            <span class="en">Toggle "AI auto-analyze" ON (default) → spec auto-prefilled into the 4-step Wizard</span></li>
+        <li><span class="ko">Wizard 진행 + 변경 요청 → 새 산출물 생성</span>
+            <span class="en">Proceed through the wizard, request changes → new artifacts generated</span></li>
+      </ol>
+      <div class="panel note">
+        <div class="panel-title">V2 distinction</div>
+        <p>
+          <span class="ko">MENU_CD 에 <code>_V2</code> 접미어를 붙여도 zAxios URL · Controller · Service · Entity · Table · SP 등 <strong>백엔드 자원은 원본과 공유</strong>합니다 (단일 자원 공유 기본). v 접미어는 메뉴 코드 한정.</span>
+          <span class="en">Adding a <code>_V2</code> suffix to MENU_CD <strong>still shares the backend resources</strong> (zAxios URL, Controller, Service, Entity, Table, SP) with the original (single-resource sharing by default). The v suffix is menu-code only.</span></p>
+      </div>
+
+      <!-- ── 2-4 ── -->
+      <h3 id="s2-4">
+        <span class="ko">기존 화면 수정 (Modify Existing)</span>
+        <span class="en">Modify Existing</span></h3>
+      <p>
+        <span class="ko">운영 화면을 그대로 두고 일부만 변경할 때.</span>
+        <span class="en">For changing only parts of a production screen while leaving the rest intact.</span></p>
+      <ul>
+        <li><span class="ko"><strong>자연어 수정 (NL Modify)</strong> — 현재 화면 소스를 Claude 에 제공하고 대화로 수정 요청. 가장 빠르고 직관적. 작은 변경 (필드 추가/이동, 라벨 변경, 검색조건 추가 등) 에 적합.</span>
+            <span class="en"><strong>NL Modify</strong> — provide current source to Claude and request changes via chat. Fastest and most intuitive. Best for small changes (add/move fields, label changes, new filters).</span></li>
+        <li><span class="ko"><strong>단계별 수정 (Step Modify)</strong> — 기존 화면을 spec 으로 분해해 수정할 부분만 변경. 구조적 큰 변경 (layer 추가, 마스터-디테일 분리 등) 에 적합.</span>
+            <span class="en"><strong>Step Modify</strong> — decompose existing screen into a spec, change only target parts. Best for structural changes (add a layer, split master-detail).</span></li>
+      </ul>
+      <p>
+        <span class="ko">두 방식 모두 <strong>EXISTING_MODIFY 모드</strong>로 진입하며, 진입 시 원본 메뉴를 선택하면 그 화면의 모든 소스 (JSX, Java 4종, SP) 를 세션 아티팩트로 import 합니다. 사용자가 요청한 변경분만 새 버전으로 생성되고, 미변경 파일은 baseline 유지.</span>
+        <span class="en">Both enter <strong>EXISTING_MODIFY mode</strong>. When you select the source menu, all its sources (JSX, 4 Java files, SP) are imported as session artifacts. Only the parts you ask to change get a new version; unchanged files keep the baseline.</span></p>
+    </section>
+
+    <!-- ===== §3 History ===== -->
+    <section id="s3">
+      <h2 class="s-history">
+        <span class="icon-badge"><svg><use href="#ic-history"/></svg></span>
+        <span class="ko">History — 작업 이력</span>
+        <span class="en">History — Work Sessions</span>
+      </h2>
+      <p>
+        <span class="ko">이전에 진행한 모든 Composer 세션을 조회·이어하기 할 수 있습니다.</span>
+        <span class="en">Browse and resume all previous Composer sessions.</span></p>
+      <ul>
+        <li><span class="ko">상태별 필터: <strong>ACTIVE</strong> (진행 중) · <strong>COMPLETED</strong> (메뉴등록+적용 완료) · <strong>ARCHIVED</strong> (보관)</span>
+            <span class="en">Status filters: <strong>ACTIVE</strong> (in progress) · <strong>COMPLETED</strong> (menu registered + applied) · <strong>ARCHIVED</strong></span></li>
+        <li><span class="ko">각 세션 카드에는 — 모드 · 제목 · 마지막 메시지 · Target · 생성일 · 산출물 카운트가 표시됨</span>
+            <span class="en">Each session card shows — mode · title · last message · Target · created date · artifact count</span></li>
+        <li><span class="ko">[이어하기] 클릭 → Composer 의 ComposerWorkspace 가 해당 세션으로 열림 (메시지 기록·산출물 그대로 복원)</span>
+            <span class="en">Click [Resume] → ComposerWorkspace opens with that session (message history and artifacts fully restored)</span></li>
+        <li><span class="ko">[보관] 클릭 → ARCHIVED 로 전환 (영구 삭제 아님 — 필요 시 ACTIVE 로 되돌릴 수 있음)</span>
+            <span class="en">Click [Archive] → transitions to ARCHIVED (not deleted — can be reverted to ACTIVE later)</span></li>
+      </ul>
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">자동 COMPLETED 전이</span><span class="en">Auto COMPLETED transition</span></div>
+        <p>
+          <span class="ko">세션이 ① 메뉴 등록 (MENU_SQL 적용) <strong>AND</strong> ② 아티팩트 적용 (JSX/Java/SP 중 1개 이상) 이 모두 완료되면 서버가 자동으로 COMPLETED 로 전이합니다. 수동으로 ACTIVE 로 되돌리면 다시 수정 가능.</span>
+          <span class="en">When a session has both ① menu registered (MENU_SQL applied) <strong>AND</strong> ② at least one artifact (JSX/Java/SP) applied, the server auto-transitions to COMPLETED. Revert to ACTIVE manually to edit again.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §4 SCM UI Mockup ===== -->
+    <section id="s4">
+      <h2 class="s-mockup">
+        <span class="icon-badge"><svg><use href="#ic-mockup"/></svg></span>
+        <span class="ko">SCM UI Mockup — 갤러리</span>
+        <span class="en">SCM UI Mockup — Gallery</span>
+      </h2>
+      <p>
+        <span class="ko">T3SmartSCM 의 54개 운영 화면 mockup 을 카테고리 별로 모은 갤러리입니다. Composer 의 "단계별 생성" 에서 출발점 템플릿으로 사용.</span>
+        <span class="en">A gallery of 54 T3SmartSCM production-screen mockups organized by category. Used as starting templates in Composer's "Step-by-step Generation".</span></p>
+      <ul>
+        <li><span class="ko"><strong>5개 카테고리</strong> — Core (12) · Domain (13) · Dashboard (16) · ControlBoard (4) · Meta (9)</span>
+            <span class="en"><strong>5 categories</strong> — Core (12) · Domain (13) · Dashboard (16) · ControlBoard (4) · Meta (9)</span></li>
+        <li><span class="ko"><strong>productLine 필터</strong> — T3SmartSCM · PlaNEL · 전체</span>
+            <span class="en"><strong>productLine filter</strong> — T3SmartSCM · PlaNEL · All</span></li>
+        <li><span class="ko"><strong>검색바</strong> — 코드 · 라벨 · 설명 · 메뉴 ID · 메뉴명 · 경로 전체 텍스트 검색</span>
+            <span class="en"><strong>Search bar</strong> — full-text search across code / label / description / menu ID / menu name / path</span></li>
+        <li><span class="ko"><strong>매핑 메뉴 보기</strong> — 각 mockup 카드의 [사용 메뉴 N개] 클릭 → 해당 mockup 을 사용하는 운영 메뉴 263개 매핑 테이블 펼침</span>
+            <span class="en"><strong>View mapped menus</strong> — click [N menus] on each card → expands a table of 263 production menus using this mockup</span></li>
+        <li><span class="ko"><strong>브라우저 뒤로가기</strong> — Mockup 안에서 한 단계씩 이동 (다른 탭으로 빠지지 않음)</span>
+            <span class="en"><strong>Browser back</strong> — steps within Mockup (doesn't navigate to other tabs)</span></li>
+      </ul>
+    </section>
+
+    <!-- ===== §5 UI Pattern ===== -->
+    <section id="s5">
+      <h2 class="s-pattern">
+        <span class="icon-badge"><svg><use href="#ic-pattern"/></svg></span>
+        <span class="ko">UI Pattern — T3MES 패턴 카탈로그</span>
+        <span class="en">UI Pattern — T3MES Pattern Catalog</span>
+      </h2>
+      <p>
+        <span class="ko">T3MES 퍼블리싱 산출물 29개 HTML 파일에서 분리한 730개 TabPage 패턴 카탈로그.</span>
+        <span class="en">A catalog of 730 TabPage patterns split from 29 T3MES publishing HTML files.</span></p>
+      <ul>
+        <li><span class="ko"><strong>트리 구조</strong> — Section (SCM/MES) → Group → File → TabPage</span>
+            <span class="en"><strong>Tree</strong> — Section (SCM/MES) → Group → File → TabPage</span></li>
+        <li><span class="ko"><strong>iframe 미리보기</strong> — TabPage 클릭 → 우측에 원본 HTML 그대로 렌더 (auto-activate 부트스트랩 주입돼 선택한 패널만 활성)</span>
+            <span class="en"><strong>iframe preview</strong> — Click a TabPage → original HTML renders on the right (auto-activate bootstrap injected, only the selected panel active)</span></li>
+        <li><span class="ko"><strong>Composer 연동</strong> — UI Pattern Picker Dialog 로도 호출 가능 (자연어 생성·단계별 생성에서 참조)</span>
+            <span class="en"><strong>Composer integration</strong> — also callable via UI Pattern Picker Dialog (referenced in NL / Step-by-step generation)</span></li>
+      </ul>
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">분리본 재생성</span><span class="en">Regenerating split files</span></div>
+        <p>
+          <span class="ko">원본 <code>frontend/public/t3mes/*.html</code> 가 변경되면 <code>node scripts/split-t3mes-tabs.cjs</code> 재실행 → <code>full/</code> (iframe 용) + <code>lite/</code> (AI 참조 용) + <code>_data/t3mes-tabs.json</code> 일괄 재생성.</span>
+          <span class="en">When the originals in <code>frontend/public/t3mes/*.html</code> change, rerun <code>node scripts/split-t3mes-tabs.cjs</code> → regenerates <code>full/</code> (for iframe), <code>lite/</code> (for AI reference), and <code>_data/t3mes-tabs.json</code> together.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §6 Gallery ===== -->
+    <section id="s6">
+      <h2 class="s-gallery">
+        <span class="icon-badge"><svg><use href="#ic-gallery"/></svg></span>
+        <span class="ko">Gallery — Composer 위젯 사전</span>
+        <span class="en">Gallery — Composer Widget Dictionary</span>
+      </h2>
+      <p>
+        <span class="ko">화면 생성 시 사용할 수 있는 Grid · Chart · KPI 위젯을 모은 사전. Composer 가 spec 을 만들 때 여기 등록된 위젯에서 선택합니다.</span>
+        <span class="en">A dictionary of Grid, Chart, and KPI widgets available during screen generation. Composer picks from these widgets when assembling specs.</span></p>
+      <table>
+        <tr><th><span class="ko">탭</span><span class="en">Tab</span></th>
+            <th><span class="ko">건수</span><span class="en">Count</span></th>
+            <th><span class="ko">내용</span><span class="en">Contents</span></th></tr>
+        <tr><td>Grid Type</td><td>10+</td><td>
+          <span class="ko">RealGrid2 / TreeGrid / Pivot 등 그리드 유형별 옵션</span>
+          <span class="en">Grid-type options — RealGrid2 / TreeGrid / Pivot, etc.</span></td></tr>
+        <tr><td>Chart Type</td><td>60+</td><td>
+          <span class="ko">Chart.js 기반 line/bar/pie/donut/area/scatter/polarArea/radar 등 60+ 변형</span>
+          <span class="en">60+ Chart.js variants — line/bar/pie/donut/area/scatter/polarArea/radar, etc.</span></td></tr>
+        <tr><td>KPI Dict</td><td>152</td><td>
+          <span class="ko">S&OP 40개 + SCM 기반 56개 + 확장 56개 — CHART1/CHART2 메타 포함</span>
+          <span class="en">40 S&OP + 56 SCM core + 56 extensions — includes CHART1/CHART2 metadata</span></td></tr>
+      </table>
+    </section>
+
+    <!-- ===== §7 Ontology ===== -->
+    <section id="s7">
+      <h2 class="s-ontology">
+        <span class="icon-badge"><svg><use href="#ic-ontology"/></svg></span>
+        <span class="ko">Ontology — 비즈니스 의미 사전</span>
+        <span class="en">Ontology — Business Semantics Dictionary</span>
+      </h2>
+      <p>
+        <span class="ko">SCM 도메인의 비즈니스 의미를 4개 영역으로 정리한 사전. 자연어 질의·Composer 의 데이터 바인딩 추론에 사용.</span>
+        <span class="en">A 4-area dictionary of SCM-domain business semantics. Used for natural-language queries and Composer's data-binding inference.</span></p>
+      <table>
+        <tr><th><span class="ko">영역</span><span class="en">Area</span></th>
+            <th><span class="ko">역할</span><span class="en">Role</span></th></tr>
+        <tr><td><strong>Q&A</strong></td><td>
+          <span class="ko">"실적과 계획을 비교하고 싶다" 같은 자연어 → SP/SQL 변환 사전</span>
+          <span class="en">Maps natural language ("I want to compare actuals to plan") → SP/SQL</span></td></tr>
+        <tr><td><strong>Entity</strong></td><td>
+          <span class="ko">비즈니스 엔티티 (Demand · Supply · Inventory · Plan 등) 와 그 속성·관계</span>
+          <span class="en">Business entities (Demand, Supply, Inventory, Plan, etc.) with attributes and relations</span></td></tr>
+        <tr><td><strong>View</strong></td><td>
+          <span class="ko">화면 의도 (월별 수요계획 입력 · 시뮬레이션 비교 · 재고 현황 등) 사전</span>
+          <span class="en">Screen-intent dictionary (monthly demand input, simulation comparison, inventory status, etc.)</span></td></tr>
+        <tr><td><strong>Process</strong></td><td>
+          <span class="ko">S&OP 프로세스 단계 (Demand Planning · Capacity Check · Approval 등)</span>
+          <span class="en">S&OP process stages (Demand Planning, Capacity Check, Approval, etc.)</span></td></tr>
+      </table>
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">상태 (status) 와 신뢰도</span><span class="en">Status and confidence</span></div>
+        <p>
+          <span class="ko">각 항목은 <code>DRAFT</code> (초안) · <code>CONFIRMED</code> (확정) · <code>MERGED</code> (병합) · <code>DEPRECATED</code> (폐기) 상태를 가집니다. Composer 와 자연어 질의 시 자동으로 <code>CONFIRMED</code> 만 사용 — DRAFT 는 사용자가 확인해 승격해야 적용됩니다.</span>
+          <span class="en">Each entry has a status — <code>DRAFT</code>, <code>CONFIRMED</code>, <code>MERGED</code>, or <code>DEPRECATED</code>. Composer and NL queries automatically use only <code>CONFIRMED</code>; <code>DRAFT</code> must be promoted by a user before being applied.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §8 Dashboard ===== -->
+    <section id="s8">
+      <h2 class="s-dashboard">
+        <span class="icon-badge"><svg><use href="#ic-dashboard"/></svg></span>
+        <span class="ko">Dashboard — 위젯 빌더</span>
+        <span class="en">Dashboard — Widget Builder</span>
+      </h2>
+      <p>
+        <span class="ko">위젯 기반 사용자 대시보드 — 미리 정의된 위젯 (KPI · Chart · Grid) 을 react-grid-layout 위에 배치해 자신만의 대시보드를 구성합니다.</span>
+        <span class="en">A widget-based user dashboard — arrange predefined widgets (KPI · Chart · Grid) on react-grid-layout to build your own dashboard.</span></p>
+      <ul>
+        <li><span class="ko"><strong>위젯 카탈로그</strong> — Gallery 의 Grid/Chart/KPI 사전이 위젯 후보</span>
+            <span class="en"><strong>Widget catalog</strong> — the Grid/Chart/KPI dictionary in Gallery provides the candidate widgets</span></li>
+        <li><span class="ko"><strong>편집 모드</strong> — 드래그·리사이즈로 12-col grid 위에 배치</span>
+            <span class="en"><strong>Edit mode</strong> — drag-and-resize on a 12-col grid</span></li>
+        <li><span class="ko"><strong>뷰어 모드</strong> — 편집 영역 숨기고 데이터만 실시간 표시 (Viewer Mode Toggle)</span>
+            <span class="en"><strong>Viewer mode</strong> — hides edit controls and shows data in real-time (Viewer Mode Toggle)</span></li>
+        <li><span class="ko"><strong>저장</strong> — 사용자별로 영구 저장, 다음 접속 시 자동 복원</span>
+            <span class="en"><strong>Save</strong> — persisted per user, auto-restored on next visit</span></li>
+      </ul>
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">Insight LLM 연동 (선택)</span>
+          <span class="en">Insight LLM integration (optional)</span></div>
+        <p>
+          <span class="ko">Insight LLM 이 호스트 port 9160 에 기동돼 있으면 위젯 데이터를 자연어 질의로 동적 조회 가능 (예: "최근 3개월 매출 추이 보여줘"). 미기동 시 사전 정의 위젯만 사용 가능.</span>
+          <span class="en">If Insight LLM is running on host port 9160, widget data can be queried dynamically via natural language (e.g., "Show me sales trend for the past 3 months"). Without it, only predefined widgets are available.</span></p>
+      </div>
+      <div class="panel note">
+        <div class="panel-title">
+          <span class="ko">메뉴가 안 보인다면?</span>
+          <span class="en">Menu not showing?</span></div>
+        <p>
+          <span class="ko">사이드바에 <strong>Dashboard</strong> 메뉴가 없다면 <code>.env</code> 의 <code>INSIGHT_ENABLED</code> 가 <code>false</code> (기본값) 입니다. 활성화 방법은 <a href="#s0-4">설치 §0-4 Insight LLM</a> 참조.</span>
+          <span class="en">If the <strong>Dashboard</strong> menu is missing from the sidebar, <code>INSIGHT_ENABLED</code> in <code>.env</code> is <code>false</code> (default). See <a href="#s0-4">Install §0-4 Insight LLM</a> to enable.</span></p>
+      </div>
+    </section>
+
+    <!-- ===== §9 Appendix ===== -->
+    <section id="s9">
+      <h2 class="s-appendix">
+        <span class="icon-badge"><svg><use href="#ic-appendix"/></svg></span>
+        <span class="ko">부록</span><span class="en">Appendix</span>
+      </h2>
+
+      <h3 id="s9-1">
+        <span class="ko">Target System 전환</span><span class="en">Target System Switching</span></h3>
+      <p>
+        <span class="ko">여러 운영 시스템 (T3SERIES · PLANNEL · LGES_NEXTSCM 등) 을 다룬다면 상단 Target Selector dropdown 으로 전환. 각 Target 의 DB 첫 연결 절차는 <a href="#s0-3">설치 §0-3</a> 참조. 선택한 Target 에 따라:</span>
+        <span class="en">If you work with multiple production systems (T3SERIES, PLANNEL, LGES_NEXTSCM, etc.), switch via the top Target Selector dropdown. For first-time DB connection of each Target see <a href="#s0-3">Install §0-3</a>. Depending on the selected Target:</span></p>
+      <ul>
+        <li><span class="ko">운영 DB 가 자동 라우팅 (메뉴 트리·LangPack·소스 코드 조회)</span>
+            <span class="en">Production DB is auto-routed (menu tree, LangPack, source code lookup)</span></li>
+        <li><span class="ko">적용되는 룰·hook 이 달라짐 (T3SERIES = wingui-core · MSSQL · ChartJs / PLANNEL = AG-Grid · PostgreSQL 등)</span>
+            <span class="en">Applied rules and hooks differ (T3SERIES = wingui-core · MSSQL · Chart.js / PLANNEL = AG-Grid · PostgreSQL, etc.)</span></li>
+        <li><span class="ko">산출물의 패키지·import·코딩 컨벤션이 Target 에 맞춰 생성됨</span>
+            <span class="en">Artifact packages, imports, and coding conventions are generated to match the Target</span></li>
+      </ul>
+      <p>
+        <span class="ko">설정은 localStorage 에 저장되어 다음 접속 시에도 유지됩니다.</span>
+        <span class="en">The selection persists in localStorage across visits.</span></p>
+
+      <h3 id="s9-2">
+        <span class="ko">API 키 등록 / 변경</span><span class="en">API Key Setup / Change</span></h3>
+      <p>
+        <span class="ko">상단 우측의 색상 뱃지 (녹색 = 등록됨 · 주황 = 미등록) 클릭 → API Key Dialog. 첫 등록 절차는 <a href="#s0-3">설치 §0-3</a> 참조.</span>
+        <span class="en">Click the colored badge in the top-right (green = registered · orange = unregistered) → API Key Dialog. For first-time setup see <a href="#s0-3">Install §0-3</a>.</span></p>
+      <ul>
+        <li><span class="ko"><strong>키 변경</strong> — 같은 dialog 에서 새 키를 입력해 덮어쓰기 (이전 키는 즉시 무효화)</span>
+            <span class="en"><strong>Changing the key</strong> — overwrite with a new key in the same dialog (the old key is immediately invalidated)</span></li>
+        <li><span class="ko"><strong>키 삭제</strong> — 입력란을 비우고 저장하면 등록 해제 (뱃지가 주황으로 복귀)</span>
+            <span class="en"><strong>Removing the key</strong> — leave the field empty and save (badge turns orange)</span></li>
+        <li><span class="ko"><strong>키 확인</strong> — 한번 저장된 키 전체는 다시 표시되지 않음. UI 에는 prefix + suffix 만 노출 (예: <code>sk-ant-xxxx...XXXX</code>)</span>
+            <span class="en"><strong>Verifying the key</strong> — full keys are never re-displayed; only prefix + suffix appear in UI (e.g., <code>sk-ant-xxxx...XXXX</code>)</span></li>
+      </ul>
+
+      <h3 id="s9-3">
+        <span class="ko">첨부 파일 — 타입별 처리 방식</span>
+        <span class="en">Attachments — Processing by Type</span></h3>
+      <table>
+        <tr><th><span class="ko">파일 타입</span><span class="en">File type</span></th>
+            <th><span class="ko">처리</span><span class="en">Handling</span></th>
+            <th><span class="ko">비고</span><span class="en">Notes</span></th></tr>
+        <tr>
+          <td><span class="ko">텍스트 (.sql/.json/.md/.txt/.csv ...)</span>
+              <span class="en">Text (.sql / .json / .md / .txt / .csv …)</span></td>
+          <td><span class="ko">prompt 본문에 inline (파일당 12K자 cap)</span>
+              <span class="en">Inlined into the prompt (12K chars per file)</span></td>
+          <td><span class="ko">코드 펜스로 감싸 Claude 에 전달</span>
+              <span class="en">Wrapped in code fences and passed to Claude</span></td>
+        </tr>
+        <tr>
+          <td><span class="ko">이미지 (.png/.jpg/.gif/.svg ...)</span>
+              <span class="en">Images (.png / .jpg / .gif / .svg …)</span></td>
+          <td>Anthropic multimodal vision blocks</td>
+          <td><span class="ko">설계서 / 캡처 / 와이어프레임 / mockup 모두 지원</span>
+              <span class="en">Supports design docs, screenshots, wireframes, mockups</span></td>
+        </tr>
+        <tr>
+          <td>PDF</td>
+          <td>Anthropic document block</td>
+          <td><span class="ko">다중 페이지 PDF — 첫 페이지부터 순차 분석</span>
+              <span class="en">Multi-page PDF — analyzed sequentially from the first page</span></td>
+        </tr>
+        <tr>
+          <td><span class="ko">그 외 binary (.xlsx/.zip ...)</span>
+              <span class="en">Other binary (.xlsx / .zip …)</span></td>
+          <td><span class="ko">document block 시도 (Anthropic 가 거부할 수도 있음)</span>
+              <span class="en">Tried as a document block (Anthropic may reject)</span></td>
+          <td><span class="ko">일반적으로는 텍스트 추출 후 inline 권장</span>
+              <span class="en">Generally extract text first and inline it</span></td>
+        </tr>
+      </table>
+      <p>
+        <span class="ko"><strong>크기/개수 제한</strong>: 최대 5개 · 파일당 5MB. 초과 시 화면에 안내 메시지.</span>
+        <span class="en"><strong>Size/count limits</strong>: max 5 files · 5MB each. Exceeding shows an on-screen message.</span></p>
+
+      <h3 id="s9-4">
+        <span class="ko">단축키 / 팁</span><span class="en">Shortcuts / Tips</span></h3>
+      <table>
+        <tr><th style="width:140px"><span class="ko">단축키</span><span class="en">Shortcut</span></th>
+            <th><span class="ko">동작</span><span class="en">Action</span></th></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>
+          <span class="ko">본 매뉴얼 페이지 내 검색 (브라우저 기본)</span>
+          <span class="en">Search within this manual (browser default)</span></td></tr>
+        <tr><td><kbd>Enter</kbd> (<span class="ko">검색바</span><span class="en">in search bar</span>)</td><td>
+          <span class="ko">옵션 picker 의 검색 즉시 실행</span>
+          <span class="en">Run the option-picker search immediately</span></td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>
+          <span class="ko">대부분의 Dialog 닫기</span><span class="en">Close most dialogs</span></td></tr>
+        <tr><td><span class="ko">로고 클릭</span><span class="en">Click logo</span></td><td>
+          <span class="ko">Composer 홈 (모드 선택 화면) 으로 이동</span>
+          <span class="en">Go to Composer home (mode-selection screen)</span></td></tr>
+      </table>
+
+      <h4><span class="ko">일반 팁</span><span class="en">General tips</span></h4>
+      <ul>
+        <li><span class="ko"><strong>오류 시 자동보완</strong> 체크박스 ON 으로 두면 화면 실행 오류 시 Claude 가 1회 자동 수정</span>
+            <span class="en">With <strong>auto-fix on error</strong> checked, Claude makes one self-fix attempt on preview errors</span></li>
+        <li><span class="ko"><strong>화면 자동 실행</strong> — JSX 산출물이 추가되면 우측 [실행 화면 LIVE] 가 자동으로 미리보기. 수동 [화면 실행] 불필요</span>
+            <span class="en"><strong>Auto-preview</strong> — when a JSX artifact appears, the right [Screen LIVE] tab auto-previews. No need to click [Run].</span></li>
+        <li><span class="ko"><strong>아티팩트 소스 보기</strong> — 좌측 트리에서 파일 클릭 → 우측 [아티팩트 소스] 탭에 코드 표시</span>
+            <span class="en"><strong>View artifact source</strong> — click a file in the left tree → code shows in the right [Artifact Source] tab</span></li>
+        <li><span class="ko"><strong>변경 후 sync</strong> — Composer 산출물을 wingui 본 환경에 적용하려면 별도 sync 스크립트 (관리자 전용)</span>
+            <span class="en"><strong>Sync after changes</strong> — applying Composer artifacts to the production wingui env uses a separate sync script (admin only)</span></li>
+        <li><span class="ko"><strong>긴 작업 세션</strong> — Composer 는 자동 세션 저장 — 브라우저 닫아도 History 에서 이어하기 가능</span>
+            <span class="en"><strong>Long sessions</strong> — Composer auto-saves sessions; close the browser and resume from History</span></li>
+      </ul>
+
+      <div class="panel tip">
+        <div class="panel-title">
+          <span class="ko">자주 묻는 질문</span><span class="en">Frequently Asked Questions</span></div>
+        <ul style="margin: 4px 0; padding-left: 18px;">
+          <li><span class="ko"><strong>Q. 생성된 화면이 wingui sync 후 동작 안 함</strong><br/>→ preview runtime 의 graceful-degradation mock 으로 화면 실행은 통과했지만 wingui 본 환경 컴파일 실패. 룰/hook 이 잡지 못한 케이스 → 관리자에게 문의.</span>
+              <span class="en"><strong>Q. Generated screen doesn't work after wingui sync</strong><br/>→ The preview runtime's graceful-degradation mock let it pass, but the production wingui env fails compilation. A case rules/hooks didn't catch — contact admin.</span></li>
+          <li><span class="ko"><strong>Q. AI 추천 카드가 0개</strong><br/>→ 자연어가 너무 짧거나 키워드가 카탈로그와 안 맞음. 더 구체적 문장으로 재시도 또는 mockup picker 사용.</span>
+              <span class="en"><strong>Q. AI Recommend returns 0 cards</strong><br/>→ Your NL is too short or keywords don't match the catalog. Try a more specific sentence or use the mockup picker.</span></li>
+          <li><span class="ko"><strong>Q. Target DB 미연결 — 메뉴 트리에 'source: local' 표시</strong><br/>→ §0-4 절차로 Target DB 연결 또는 docker 내장 target-mssql 의 기본 데이터로 작업 가능.</span>
+              <span class="en"><strong>Q. Target DB not connected — menu tree shows 'source: local'</strong><br/>→ Follow §0-4 to connect the Target DB, or work with the bundled target-mssql's default data.</span></li>
+          <li><span class="ko"><strong>Q. 인터넷 차단된 사내망 — 매뉴얼 어떻게 봐요?</strong><br/>→ 본 HTML 은 외부 CDN/웹폰트 의존성 0. 더블클릭으로 오프라인 열람 가능.</span>
+              <span class="en"><strong>Q. How do I read this on an internal network with no internet?</strong><br/>→ This HTML has zero external CDN/web-font dependencies. Double-click to open offline.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <p style="text-align: center; color: var(--text-3); font-size: 11px; margin-top: 50px; padding-top: 24px;
+              border-top: 1px solid var(--border);">
+      T³Composer <span class="ko">사용자 가이드</span><span class="en">User Guide</span> · v1.0 · 2026-06-17 · <a href="https://github.com/zionex/t3-composer">GitHub</a>
+    </p>
+  </main>
+</div>
+
+<script>
+  // ── Language toggle ──────────────────────────────────────────
+  (function () {
+    var STORE = 't3c-manual-lang';
+    var body = document.body;
+    var buttons = document.querySelectorAll('[data-lang-btn]');
+
+    function apply(lang) {
+      if (lang !== 'ko' && lang !== 'en') lang = 'ko';
+      body.setAttribute('data-lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      buttons.forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-lang-btn') === lang);
+      });
+      try { localStorage.setItem(STORE, lang); } catch (e) {}
+    }
+
+    // Initial — saved > browser language > 'ko'
+    var saved = null;
+    try { saved = localStorage.getItem(STORE); } catch (e) {}
+    var initial = saved
+      || ((navigator.language || 'ko').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en');
+    apply(initial);
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-lang-btn')); });
+    });
+  })();
+
+  // ── ToC active highlight on scroll ───────────────────────────
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var targets = Array.prototype.map.call(links, function (a) {
+      var id = a.getAttribute('href').slice(1);
+      return { link: a, el: document.getElementById(id) };
+    }).filter(function (t) { return t.el; });
+
+    function update() {
+      var scroll = window.scrollY + 80;
+      var active = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].el.offsetTop <= scroll) active = targets[i];
+        else break;
+      }
+      links.forEach(function (a) { a.classList.remove('active'); });
+      if (active) active.link.classList.add('active');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('hashchange', update);
+    update();
+  })();
+</script>
+
+</body>
+</html>

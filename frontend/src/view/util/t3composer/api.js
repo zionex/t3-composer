@@ -1,4 +1,5 @@
 import { zAxios } from '@wingui/common/imports';
+import { getUiLanguage } from './useUiLanguage';
 
 /**
  * T3Composer 백엔드 (/composer/**) 호출 래퍼.
@@ -53,9 +54,12 @@ export const deleteApiKey = () =>
 
 // ---- Sessions ----
 
-export const createSession = ({ mode, targetMenuCd, title, modelName, targetCd, ruleScope }) =>
+export const createSession = ({ mode, targetMenuCd, title, modelName, targetCd, ruleScope, lang }) =>
   zAxios.post('composer/sessions',
-    { mode, targetMenuCd, title, modelName, targetCd, ruleScope }, composerReq());
+    // lang: Claude 응답 언어 ('ko'|'en'). 미지정 시 현재 UI 언어 자동 첨부.
+    //   산출물 코드는 system prompt 강제로 한국어 라벨 유지 (운영 환경 한국어).
+    { mode, targetMenuCd, title, modelName, targetCd, ruleScope, lang: lang || getUiLanguage() },
+    composerReq());
 
 export const listSessions = () =>
   zAxios.get('composer/sessions', composerReq());
@@ -88,7 +92,8 @@ export const sendChat = (sessionId, message, attachmentArtifactIds, attachments)
     `composer/sessions/${sessionId}/chat`,
     // attachments: D&D 로 받은 binary 파일 [{name, mediaType, base64}, ...]
     //   backend 가 Anthropic vision/document content block 으로 변환
-    { message, attachmentArtifactIds, attachments },
+    // lang: 현재 UI 언어 자동 첨부 — Claude 응답 언어 동기화 (산출물 코드는 한국어 유지)
+    { message, attachmentArtifactIds, attachments, lang: getUiLanguage() },
     // max_tokens=100K + 서버 auto-continuation(최대 5회) 까지 커버. 40분.
     // 서버 Mono 체인은 client 가 끊어도 계속 진행되어 최종 결과는 DB 에 저장됨.
     // 40분을 넘는 경우 사용자가 리로드하면 listMessages 로 최종 상태 조회 가능.
@@ -148,6 +153,14 @@ export const pingTargetDbConnection = (targetCd) =>
 /** Target System 별 source / backend / database 폴더 경로 저장 — payload: { sourceRefPath, backendRefPath, databaseRefPath } */
 export const updateTargetRefPaths = (targetCd, payload) =>
   zAxios.put(`composer/targets/${encodeURIComponent(targetCd)}/ref-paths`, payload, composerReq());
+
+/**
+ * Target source 폴더 해석 가능 여부 사전 체크. NEW_FROM_COPY / EXISTING_MODIFY 진입 가드.
+ * 응답: { targetCd, sourceRefPath, resolved, resolvedPath }
+ *   resolved=false → sourceRefPath 미설정 + convention 마운트도 비어있음 → 산출물 수집 불가.
+ */
+export const getTargetSourceResolved = (targetCd) =>
+  zAxios.get(`composer/targets/${encodeURIComponent(targetCd)}/source-resolved`, composerReq());
 
 /**
  * Workspace 폴더 한 단계 listing (UI 폴더 picker 용).

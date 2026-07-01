@@ -17,6 +17,7 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import { useTranslation } from 'react-i18next';
 
 import { saveApiKey } from './api';
 
@@ -28,8 +29,9 @@ import { saveApiKey } from './api';
  * - 저장 성공 시 onSaved 콜백
  */
 function ApiKeyDialog({ open, onClose, onSaved }) {
+  const { t } = useTranslation('composer');
   const [apiKey, setApiKey] = useState('');
-  const [description, setDescription] = useState('Personal key');
+  const [description, setDescription] = useState(t('apiKeyDialog.defaultDescription'));
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -37,11 +39,11 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
   const handleSave = async () => {
     const trimmed = apiKey.trim();
     if (!trimmed) {
-      setError('API 키를 입력해주세요.');
+      setError(t('apiKeyDialog.errors.empty'));
       return;
     }
     if (!trimmed.startsWith('sk-ant-')) {
-      setError('Anthropic API 키는 sk-ant- 로 시작해야 합니다.');
+      setError(t('apiKeyDialog.errors.invalidPrefix'));
       return;
     }
     setSaving(true);
@@ -52,7 +54,7 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
       if (onSaved) onSaved();
     } catch (e) {
       const data = e?.response?.data || {};
-      setError(data.message || data.error || e?.message || '저장 중 오류가 발생했습니다.');
+      setError(data.message || data.error || e?.message || t('apiKeyDialog.errors.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -62,12 +64,11 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <VpnKeyIcon color="primary" />
-        Anthropic API 키 등록
+        {t('apiKeyDialog.title')}
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          T3Composer 는 Claude API 로 화면·SP·테이블을 생성합니다. 개인 Anthropic API 키를 등록해 주세요.
-          키는 서버에서 암호화되어 저장됩니다 (TB_IS_EXTRNLAPIKEY, Jasypt PBE).
+          {t('apiKeyDialog.description')}
         </Typography>
         <Box sx={{ mb: 2 }}>
           <Link
@@ -76,14 +77,14 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
             rel="noopener noreferrer"
             variant="body2"
           >
-            → Anthropic Console 에서 키 발급
+            {t('apiKeyDialog.consoleLink')}
           </Link>
         </Box>
 
         <TextField
           autoFocus
           fullWidth
-          label="API Key"
+          label={t('apiKeyDialog.apiKeyLabel')}
           placeholder="sk-ant-..."
           type={showKey ? 'text' : 'password'}
           value={apiKey}
@@ -101,7 +102,7 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
         />
         <TextField
           fullWidth
-          label="설명 (옵션)"
+          label={t('apiKeyDialog.descriptionLabel')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           sx={{ mb: 1 }}
@@ -110,9 +111,9 @@ function ApiKeyDialog({ open, onClose, onSaved }) {
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={saving}>취소</Button>
+        <Button onClick={onClose} disabled={saving}>{t('apiKeyDialog.cancel')}</Button>
         <Button onClick={handleSave} variant="contained" disabled={saving}>
-          {saving ? '저장 중...' : '저장'}
+          {saving ? t('apiKeyDialog.saving') : t('apiKeyDialog.save')}
         </Button>
       </DialogActions>
     </Dialog>

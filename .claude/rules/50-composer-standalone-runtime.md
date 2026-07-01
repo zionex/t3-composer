@@ -940,13 +940,25 @@ displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 
 - 사고: ComposerWorkspace 우측 Tab 컨테이너 Box 에 `minHeight:0` 누락 → 산출물 소스가
   길어도 스크롤 없이 잘림.
 
-### 14.6 디자인 일관성 — 파스텔 글래스 (theme.js)
+### 14.6 디자인 일관성 — 티얼 + 파스텔 글래스 (theme.js · 2026-06-26 A시안 적용)
 
-- **모든 화면** (Composer · History · UI Pattern · Gallery · picker 다이얼로그) 은
-  `theme.js` 파스텔 글래스 룩 적용. **다크 그라데이션 헤더/히어로 금지**.
-  - 히어로: 반투명 파스텔 그라데이션 (`rgba(169,199,238,…)` 계열) + `backdrop-filter:blur`
-    + 흰 반투명 보더 + inset 하이라이트 + 깊이 그림자. 글자는 `#3A4A63` 파스텔 다크.
-  - 팔레트: primary `#7CA7E0` · 성공 `#86C7A8` · 정보 `#8FC4D4` · 강조 `#9D8FD4`.
+> **2026-06-26**: 메인 컬러를 `#7CA7E0` (sky-blue 파스텔) → **`#2d8ba8` (티얼)** 로 전환.
+> 사용자 디자인 A시안 (Composer 개선.dc.html) 적용. 두 가지 룩이 병행한다:
+
+| 룩 | 적용 화면 | 표면 |
+|---|---|---|
+| **A. 흰 패널 (A시안)** | Composer landing (`T3Composer.jsx ModeSelector`) | 흰 배경 `#F6F7F9` + 흰 패널 `#fff` + 보더 `#ECEEF1` + 메인 컬러 `#2d8ba8` 강조. backdrop-filter 사용 안 함. eyebrow 는 JetBrains Mono 9.5px uppercase `#9AA3AF`. 추천 카드(hot) 는 티얼 보더 + 그림자. |
+| **B. 파스텔 글래스** | History · UI Pattern · Gallery · picker 다이얼로그 · ComposerWorkspace | `theme.js` 의 `GLASS` 토큰 (`rgba(255,255,255,0.72)` + `backdrop-filter:blur(14px)` + 흰 반투명 보더). 강조는 티얼. |
+
+- **공통 규칙**: **다크 그라데이션 헤더/히어로 금지** (이 규칙은 두 룩 모두 적용).
+- **`theme.js PALETTE`**: primary `#2d8ba8` · primaryLight `#7FB9D0` · primaryDark `#1F6680` ·
+  primarySoft `#E8F2F6` (활성 메뉴/뱃지 배경) · primaryBorder `#CFE3EB` · 성공 `#86C7A8` ·
+  정보 `#8FC4D4` · 강조 `#9D8FD4` · textPrimary `#1A2330` · textSecondary `#6B7280` ·
+  textMuted `#9AA3AF` (eyebrow/캡션) · panelBorder `#ECEEF1` · bgDefault `#F6F7F9`.
+- **GLASS 그림자 토큰**: 티얼 RGB `45,139,168` 적용 (이전 sky `124,167,224` 폐기).
+- **신규 화면 디자인 선택 기준**:
+  - 정보 밀도가 높고 데이터 도구형 → **A. 흰 패널** (landing · 빠른 시작 · 통계 카드)
+  - 부유감/유리감 강조 + 배경 컨텐츠와 어울림 필요 → **B. 파스텔 글래스** (다이얼로그 · 워크스페이스)
 - `MockupPickerDialog` 미리보기 — **고정 scale 금지**. `ResizeObserver` 로 패널 폭 측정 →
   `배율 = 패널폭 / 원본폭(1400)` 동적 산정 → 우측 검은 여백 제거 + 세로 스크롤.
 - 엔진 선택(`ModeNewGeneral`) — 선택 엔진은 **단색 채움 + 흰 글자 + 체크 아이콘 + 확인 칩**

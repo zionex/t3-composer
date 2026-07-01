@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { ContentInner } from '@wingui/common/imports';
+import { useTranslation } from 'react-i18next';
+import PageHeader from '../PageHeader';
 
 import { useTargetStore } from '../targetStore';
 import { fetchOntologyTree } from '../api';
@@ -21,6 +23,7 @@ const STORAGE_KEY = 'composer.ontology.treeWidth';
  * 좌 트리 너비는 사용자가 드래그로 조절 (localStorage 영속).
  */
 function OntologyPage() {
+  const { t } = useTranslation('composer');
   const targetCd = useTargetStore((s) => s.currentTargetCd);
   const [tree, setTree] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -95,6 +98,10 @@ function OntologyPage() {
 
   return (
     <ContentInner>
+      <PageHeader
+        title={t('common:app.menu.ontology')}
+        caption={t('common:app.menuHint.ontology')}
+      />
       <Box ref={splitContainerRef} sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <OntologyTree
           width={treeWidth}

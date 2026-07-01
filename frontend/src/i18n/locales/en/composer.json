@@ -1,0 +1,644 @@
+{
+  "landing": {
+    "title": "T³Composer",
+    "subtitle": "AI-powered Screen Generation",
+    "heroTitle": "What would you like to build?",
+    "heroDesc": "Create a new screen or modify an existing one.",
+    "pipeline": {
+      "eyebrow": "PIPELINE",
+      "input": "Various Inputs",
+      "mid": "ScreenSpec",
+      "output": "Screen Artifact"
+    }
+  },
+  "category": {
+    "newDev": "New Development",
+    "modifyExisting": "Modify Existing Screen"
+  },
+  "mode": {
+    "newNl": {
+      "title": "Natural Language",
+      "sub": "Natural Lang.",
+      "hint": "Describe requirements in natural language; Claude generates patterns and code"
+    },
+    "newStep": {
+      "title": "Step-by-Step",
+      "sub": "Pattern + Visual",
+      "hint": "Pick a pattern, then fill in data with visual editing"
+    },
+    "newFromCopy": {
+      "title": "Copy Existing",
+      "sub": "Copy Existing",
+      "hint": "Copy an existing screen and modify with the step-by-step wizard"
+    },
+    "modifyNl": {
+      "title": "NL Modify",
+      "sub": "NL Modify",
+      "hint": "Send current screen source to Claude and modify via natural-language conversation"
+    },
+    "modifyStep": {
+      "title": "Step Modify",
+      "sub": "Step Modify",
+      "hint": "Decompose existing screen into a Spec and modify only what's needed"
+    }
+  },
+  "modeNewNl": {
+    "header": {
+      "back": "Mode Selection",
+      "titleNl": "NL-based New Creation",
+      "titleStep": "Step-by-Step Creation",
+      "titleGeneral": "New Development — General Creation",
+      "restart": "Start over",
+      "exit": "Exit"
+    },
+    "submode": {
+      "intro": "Choose a generation approach.",
+      "nl": {
+        "title": "NL-based Creation",
+        "subtitle": "Natural Language",
+        "description": "Describe requirements in natural language; Claude determines pattern, spec, and code in one shot. Fast and flexible but token-heavy.",
+        "pros": [
+          "Quick start",
+          "Flexible expression",
+          "Suited for undecided designs"
+        ],
+        "cons": [
+          "High token usage",
+          "Cost of interpreting results",
+          "Cost accumulates with iterations"
+        ]
+      }
+    },
+    "module": {
+      "title": "Module Selection",
+      "hint": "Pick the module the screen belongs to. Per-module naming conventions and common tables are auto-injected to Claude."
+    },
+    "promptPanel": {
+      "title": "Requirement Input",
+      "changeModule": "Change Module",
+      "placeholderTemplate": "e.g. {{example}}\n\n💡 Drop reference files in the \"Attach Reference Files\" area below",
+      "fallbackExample": "Describe the screen you want... (mention table names like TB_AD_USER to auto-check existence)",
+      "dropHere": "Drop files here",
+      "aiEngine": "AI Engine:",
+      "currentSel": "✓ Current selection",
+      "selectedChip": "Selected · {{label}}"
+    },
+    "options": {
+      "title": "Options — Pick one of SCM UI Mockup · UI Pattern (mutually exclusive) · File attach is separate (bottom · max 5)",
+      "scmMockup": "SCM UI Mockup",
+      "uiPattern": "UI Pattern",
+      "kpiChart": "KPI / Chart",
+      "scmMockupSelect": "Select SCM UI Mockup",
+      "scmMockupSelected": "Mockup: {{code}}",
+      "uiPatternSelect": "Select UI Pattern",
+      "uiPatternSelected": "Pattern: {{label}}",
+      "kpiChartSelect": "Select KPI / Chart entries",
+      "kpiChartSelected": "KPI {{kpis}} · Chart {{charts}}",
+      "clear": "Clear",
+      "tooltip3DMockup": "When 3D is checked — clicking [Select SCM UI Mockup] opens a full-screen 3D gallery (JARVIS style) that lays out mockups by category; drag to pan, wheel to zoom. Unchecked uses the regular list popup.",
+      "tooltip3DUiPattern": "When 3D is checked — clicking [Select UI Pattern] opens a full-screen 3D gallery (JARVIS style) that lays out patterns by group; drag to rotate, wheel to zoom. Unchecked uses the regular list popup."
+    },
+    "attach": {
+      "title": "Attach Reference Files — SQL · design images, etc. (drop or click)",
+      "limit": "Max {{max}} files · 5MB each — SQL · images · design docs, etc.",
+      "limitCount": "  (current {{n}}/{{max}})",
+      "tooltip": "Attach up to 5 SQL files / design images / captures / source files. Text files (.sql etc.) are inlined in the prompt; images/PDF/binary are sent as attachments (max 5MB each). Can be used alongside SCM UI Mockup / UI Pattern selection."
+    },
+    "dataSource": {
+      "select": "Select Data Source",
+      "selectedChip": "Data Source — {{n}} selected",
+      "hint": "Pick Target DB tables / SPs · T3Insight ontology · direct queries from a constellation map to specify what data the screen reads/writes (optional · independent of Mockup/UI Pattern · multi-select).",
+      "clearAll": "Clear all"
+    },
+    "submit": {
+      "moduleHint": "Claude generates following the module convention (TB_{{code}}_ / SP_UI_{{code}}_).",
+      "creating": "Creating session...",
+      "submit": "Send to Claude"
+    },
+    "tableLookup": {
+      "title": "Auto Table Existence Check (T3SMARTSCM.dbo)",
+      "explain": "Looks up <code>TB_*</code> table names in your prompt directly against the backend DB — if it exists, Entity is mapped to existing columns; otherwise a new SQL_DDL artifact is generated. The result is auto-attached to the Claude prompt context.",
+      "noTables": "(no <code>TB_*</code> pattern found in prompt — enter a table name if you want to use one)",
+      "notExists": "Does not exist — a new SQL_DDL artifact will be generated (allowed in NEW_NL mode)",
+      "moreCols": " · and {{n}} more"
+    },
+    "examples": {
+      "title": "New Creation Examples",
+      "show": "Show examples",
+      "hide": "Hide examples",
+      "collapsedHint": "Press [Show examples] to expand module examples and examples per input style.",
+      "moduleSection": "{{code}} Module Examples",
+      "byInputTitle": "New Creation Examples — by Input Style",
+      "clickToPrompt": "Click → fill prompt"
+    },
+    "modelOptions": {
+      "sonnet": { "sub": "Sonnet 4.6 — Fast",                     "desc": "Balanced speed, cost and quality. Choose for fast generation." },
+      "opus":   { "sub": "Opus 4.7 — Default (high quality)",     "desc": "Best for complex logic and demanding screens. Very large outputs (16K+) may take 3–5+ minutes." }
+    },
+    "examplePrompts": {
+      "DP": ["Monthly demand plan entry by customer — crosstab pivot. P06", "Demand plan vs actual analysis — top grid + bottom trend chart. P05"],
+      "MP": ["Resource utilization Gantt — adjustable time bucket. P09", "MP simulation result summary + detail tabs. P03"],
+      "FP": ["FP work order monitoring dashboard — KPI + charts. P01", "Resource-wise production plan Gantt. P09"],
+      "RP": ["Confirmed replenishment orders — search + single grid. P02", "Replenishment plan pivot entry. P06"],
+      "BF": ["Forecast accuracy analysis — grid + trend chart. P05", "BF control board · version management. P07"],
+      "IM": ["Safety / target inventory policy — search + grid. P02", "ABC/XYZ analysis chart + list. P05"],
+      "SA": ["S&OP meeting agenda management. P01", "Sales aggregation dashboard. P01"],
+      "SO": ["Sales order browse. P02"],
+      "CM": ["Item master management — search + single grid. P02", "Location / warehouse hierarchy — horizontal split. P04"],
+      "AD": ["User management — search + grid + role assignment. P04", "Menu management — tree + detail. P04"],
+      "UT": ["Notice management — search + grid. P02", "Issue management dashboard. P01"]
+    },
+    "creationExamples": {
+      "promptOnly": {
+        "group": "Prompt only",
+        "items": [
+          { "tag": "Existing table · with SP",  "kind": "prompt", "text": "Build a user list view/save/delete screen using the TB_AD_USER table and SP_UI_AD_01_Q1 / _S1 / _D1 procedures." },
+          { "tag": "Existing table · no SP",    "kind": "prompt", "text": "Item master CRUD screen on the existing TB_CM_ITEM_MST table. Generate read/save/delete SPs as needed." },
+          { "tag": "Direct query",              "kind": "prompt", "text": "Inventory status screen querying the VW_INVENTORY_PLAN_CONFIRMED view — search by location and item, results in a grid." },
+          { "tag": "No table · new design",     "kind": "prompt", "text": "Design a new table for notices and build screens to create/edit/delete notices." }
+        ]
+      },
+      "mockup": {
+        "group": "SCM UI Mockup",
+        "items": [
+          { "tag": "Mockup + prompt", "kind": "info", "text": "Pick a mockup via [Select SCM UI Mockup] above and Claude will reference its layout skeleton. Just describe the data requirements in the prompt. (Exclusive with UI Pattern.)" }
+        ]
+      },
+      "uiPattern": {
+        "group": "UI Pattern",
+        "items": [
+          { "tag": "UI Pattern + prompt", "kind": "info", "text": "Pick a T3MES pattern via [Select UI Pattern] above and Claude will reference its markup. (Exclusive with SCM UI Mockup.)" }
+        ]
+      },
+      "fileAttach": {
+        "group": "File attach (D&D)",
+        "items": [
+          { "tag": "SQL · design image attach", "kind": "info", "text": "Drop up to 5 SQL files / design images / captures into the [Reference file attach] area below to include them as references. Can be combined with Mockup / UI Pattern selection." }
+        ]
+      }
+    },
+    "errors": {
+      "promptRequired": "Please enter a requirement.",
+      "sessionFailed": "Session creation failed"
+    }
+  },
+  "modeExistingModify": {
+    "header": {
+      "backToSub": "Sub-mode Selection",
+      "backToMode": "Mode Selection",
+      "title": "Modify Existing Screen",
+      "subModeNl": "NL Modify",
+      "subModeStep": "Step Modify"
+    },
+    "submode": {
+      "intro": "Choose how to modify the existing screen. Both paths start by picking a screen from the menu tree.",
+      "nl": {
+        "title": "NL Modify",
+        "subtitle": "Natural Language",
+        "description": "Provide current source to Claude and request changes via natural-language conversation. Fast and flexible but high in token usage.",
+        "pros": [
+          "Quick start",
+          "Free-form change requests",
+          "Suited for compound changes"
+        ],
+        "cons": [
+          "Higher token cost",
+          "Result visible only after response"
+        ]
+      },
+      "step": {
+        "title": "Step Modify",
+        "subtitle": "Step-by-step Wizard",
+        "description": "Decomposes the current screen into a 9-step Spec, shows each step, and calls Claude only after you modify the parts you want. Token-efficient + scope is clear.",
+        "pros": [
+          "Token savings",
+          "Clear change scope",
+          "Fine-tuning per step"
+        ],
+        "cons": [
+          "Many input steps",
+          "Not ideal for wholly new pattern changes"
+        ]
+      }
+    },
+    "rightPanel": {
+      "loading": "Collecting source (insight-apicall/screen-metadata/collect-source-for-llm)...",
+      "hintNl": "Collected source bundle (delivered as initial context to Claude when the modify session starts)",
+      "hintStep": "Collected source bundle (auto-prefills the 9-step Wizard Spec — modify only the steps you need)",
+      "placeholderTitle": "Select a screen to modify",
+      "placeholderHint": "Click a screen in the left menu tree to preview its source on the right."
+    },
+    "buttons": {
+      "exit": "Exit",
+      "starting": "Starting...",
+      "startNl": "Start Modify Session",
+      "startStep": "Start Step-by-Step Wizard"
+    },
+    "errors": {
+      "sourceFailed": "Source collection failed: {{detail}}",
+      "sessionFailed": "Session creation failed",
+      "specFailed": "Spec creation failed: {{detail}}"
+    },
+    "prompt": {
+      "sessionTitleSuffix": "{{id}} modify"
+    }
+  },
+  "modeNewFromCopy": {
+    "header": {
+      "back": "Mode Selection",
+      "title": "Copy Existing Screen — 4-Step Wizard",
+      "subtitle": "Copy from Existing · Pick a source then review·generate step by step"
+    },
+    "leftPanel": {
+      "title": "1. Select source screen to copy",
+      "selected": "Selected"
+    },
+    "middlePanel": {
+      "placeholder": "Pick a source screen from the left to copy.",
+      "loading": "Collecting source bundle...",
+      "hint": "Collected source bundle — will auto-prefill the 4 Wizard steps"
+    },
+    "rightPanel": {
+      "title": "2. New screen basics",
+      "originLabel": "Origin",
+      "newMenuCdLabel": "New Menu Code",
+      "newMenuCdPlaceholder": "e.g. UI_DP_MONTHLY_PLAN_V2",
+      "newMenuCdCheck": "Check",
+      "newTitleLabel": "New Screen Title",
+      "newTitlePlaceholder": "e.g. DP Monthly Plan V2",
+      "infoAlert": "Detailed changes (added columns, filter conditions, etc.) are entered in each step of the 4-step Wizard (① Canvas / ② Data·Filters / ③ Meta·Menu / ④ Generate). Free-form additional requests can be entered in the last step (④ Generate).",
+      "ai": {
+        "label": "AI Auto-analysis for 4-step prefill (recommended)",
+        "desc": "Accurately extracts SPs per layer (read/CUD), FilterBar, components, and Entity. When OFF only regex analysis is used.",
+        "analyzing": "Claude is analyzing the sourceBundle (5-15 sec)...",
+        "done": "✓ AI analysis complete — {{modelName}} · {{stepCount}}/8 steps enhanced"
+      },
+      "warnNoSelection": "Please select a source screen on the left first.",
+      "reset": "Reset",
+      "aiAnalyzing": "AI analyzing...",
+      "aiSubmit": "AI Analyze + 4-Step Wizard",
+      "plainSubmit": "Next — 4-Step Wizard"
+    },
+    "menuCdValidation": {
+      "empty": "Please enter a menu code",
+      "sameAsOrigin": "Menu code cannot be the same as the source",
+      "exists": "This menu code already exists",
+      "ok": "✓ Menu code is available",
+      "skipped": "(availability check skipped)"
+    },
+    "errors": {
+      "sourceFailed": "Source collection failed: {{detail}}",
+      "newMenuCdRequired": "Please enter a new menu code.",
+      "aiFailed": "AI analysis failed (proceeding with regex result): {{detail}}"
+    },
+    "copySuffix": "{{id}} Copy",
+    "sourceMissing": {
+      "title": "Target source path not set",
+      "description": "Copying an existing screen reads JSX·Java files directly from the source folder of Target System {{targetCd}}. This Target's sourceRefPath is not set, or no source tree (e.g. packages/wingui/src · src/pages) was found at the configured path.",
+      "targetUnselected": "(none selected)",
+      "currentLabel": "Currently stored sourceRefPath",
+      "currentEmpty": "(empty — mount convention /workspace/targets/{{targetCd}}/wingui is also unusable)",
+      "hint": "Click [Open Storage Settings] and provide the absolute path inside the container (e.g. /workspace/projects/<repo>).",
+      "cancel": "Cancel",
+      "openStorage": "Open Storage Settings"
+    }
+  },
+  "modeNewStep": {
+    "title": "Step-by-Step Screen Creation (Beta) — Pattern Selection",
+    "hint": "Choose a starting skeleton for your screen. The 4-step Wizard will then guide you through Layout / Data·Filter / Meta·Menu / Generate.",
+    "back": "Back",
+    "dashboardTitle": "Start from Dashboard — Pick a Dashboard",
+    "newScreenDefault": "New Screen",
+    "pattern": {
+      "aiSuggest": {
+        "title": "✨ AI Suggestion",
+        "desc": "Describe your intent in natural language — get 3 related SCM UI Mockup suggestions + 4-step AI auto prefill"
+      },
+      "mockup": {
+        "title": "SCM UI Mockup",
+        "desc": "Product Line · Category filter — the mockup's actual layer structure is auto-prefilled"
+      },
+      "uiPattern": {
+        "title": "T3MES UI Pattern",
+        "desc": "T3MES publishing patterns — single layer + pattern identifier preserved"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc": "Pick one of the existing dashboards to auto-prefill widget layout"
+      },
+      "blank": {
+        "title": "Blank Canvas (P02 — Search + Single Grid)",
+        "desc": "Start with the most common master CRUD pattern"
+      }
+    }
+  },
+  "picker": {
+    "mockup": {
+      "title": "Select SCM UI Mockup",
+      "caption": "(optional — Claude references the chosen mockup's layout skeleton · preview on the right)",
+      "searchPlaceholder": "Search by code · label · description",
+      "productLineLabel": "Product",
+      "categoryLabel": "Category",
+      "all": "All",
+      "allWithCount": "All · {{n}}",
+      "emptyHint": "No results.",
+      "previewEmpty": "Pick a mockup from the list to see its preview.",
+      "clearSelection": "Clear selection",
+      "cancel": "Cancel",
+      "apply": "Apply this Mockup"
+    },
+    "uiPattern": {
+      "title": "Select UI Pattern",
+      "caption": "(optional — Claude references the chosen pattern's lite markup · preview on the right)",
+      "filterAll": "All",
+      "countChip": "{{n}}",
+      "searchPlaceholder": "Search by section · group · file · pattern label",
+      "emptyHint": "No results.",
+      "layerChipTitle": "This pattern is auto-split into {{n}} layers",
+      "previewEmpty": "Pick a UI Pattern from the list to see its preview.",
+      "clearSelection": "Clear selection",
+      "cancel": "Cancel",
+      "apply": "Apply this Pattern"
+    },
+    "dataSource": {
+      "title": "Select Data Source — Neural Constellation Map",
+      "targetChip": "Target · {{cd}}",
+      "targetNone": "No Target selected",
+      "close": "Close",
+      "tab": {
+        "dbEntity": "DB Entity",
+        "ontology": "Ontology",
+        "queryInline": "Query Inline"
+      },
+      "basketCount": "Selected {{n}}",
+      "emptyHint": "Picked tables · SPs · ontology entries · queries will appear here.",
+      "clearAll": "Clear all",
+      "cancel": "Cancel",
+      "apply": "Apply ({{n}})",
+      "kind": {
+        "TABLE": "Table",
+        "SP": "SP",
+        "ONTOLOGY_QA": "Q&A",
+        "ONTOLOGY_INTENT": "Intent",
+        "ONTOLOGY_SP": "UI SP",
+        "INLINE_QUERY": "Query"
+      }
+    }
+  },
+  "moduleSelector": {
+    "intro": "Pick the module the screen belongs to. Per-module naming conventions and common patterns differ."
+  },
+  "apiKeyDialog": {
+    "title": "Anthropic API Key",
+    "description": "T3Composer uses the Claude API to generate screens, SPs and tables. Please register your personal Anthropic API key. The key is encrypted on the server (TB_IS_EXTRNLAPIKEY, Jasypt PBE).",
+    "consoleLink": "→ Issue a key from the Anthropic Console",
+    "apiKeyLabel": "API Key",
+    "descriptionLabel": "Description (optional)",
+    "defaultDescription": "Personal key",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "errors": {
+      "empty": "Please enter an API key.",
+      "invalidPrefix": "Anthropic API keys must start with sk-ant-.",
+      "saveFailed": "An error occurred while saving."
+    }
+  },
+  "header": {
+    "apiKey": {
+      "registeredLabel": "API Key",
+      "unregisteredLabel": "API Key Required",
+      "registeredTooltip": "API key registered — all modes available",
+      "unregisteredTooltip": "API key not registered — click to register"
+    },
+    "llmBackend": {
+      "cliTooltip": "CLI mode — uses host ~/.claude OAuth login (Claude subscription)",
+      "apiTooltip": "API mode — Anthropic HTTP API + ANTHROPIC_API_KEY"
+    },
+    "settings": "Settings"
+  },
+  "aiRecommend": {
+    "back": "Back",
+    "title": "✨ Start with AI Suggestion",
+    "targetLabel": "Target:",
+    "inputTitle": "What would you like to build?",
+    "placeholder": "e.g. I want a demand plan entry screen. Allow monthly sales plan entry and compare with actuals.",
+    "emptyHint": "Describe the screen you want in natural language and press \"Find Suggested Templates\".",
+    "footerSteps": "After picking → ① Layout ② Data & Filter ③ Meta & Menu ④ Generate <b style=\"color:{{accentColor}}\">(AI auto-prefill)</b>",
+    "attach": {
+      "title": "Attach Reference Files — Design images · SQL etc.",
+      "tooltip": "Attach up to 5 files (max 5MB each) such as design captures, images, or SQL. Text is inlined into the prompt; images/PDFs are sent as multimodal content. Used across AI suggestion, prefill and final generation.",
+      "hint": "Drag & drop or click · up to {{max}}",
+      "maxItemsError": "You can attach at most {{max}} reference files.",
+      "partialAddedError": "Limit {{max}} — only {{n}} added.",
+      "fileTooBig": "File too large ({{sizeKb}}KB > 5MB): {{name}}",
+      "fileReadFailed": "Failed to read file: {{name}}: {{message}}"
+    },
+    "search": {
+      "searching": "Searching…",
+      "button": "Find Suggested Templates",
+      "summaryCount": "🔎 {{n}} related mockups suggested",
+      "keywordMatching": "Keyword match"
+    },
+    "errors": {
+      "noResults": "No related templates found. Try a different wording.",
+      "noMore": "AI could not find additional suitable templates."
+    },
+    "cards": {
+      "defaultScreenTitle": "New screen",
+      "relevanceChip": "Relevance {{relevance}}%",
+      "analyzing": "Analyzing…",
+      "startTemplate": "Start with this template →"
+    },
+    "synth": {
+      "badge": "🪄 AI synthesized",
+      "startSynth": "Start with this composition →"
+    },
+    "image": {
+      "badge": "📷 My design",
+      "title": "Build exactly from my design",
+      "defaultTitle": "My design",
+      "layersInferred": "Inferred {{n}} layers from the image (KPI · Chart · Grid · Filter)",
+      "structureAmbiguous": "Structure is ambiguous — refine in Layout step after starting",
+      "analyzingDesc": "Claude vision is analyzing the image layout",
+      "analyzingStatus": "AI analyzing…",
+      "emptyAnalysis": "Analysis result is empty",
+      "waiting": "Waiting",
+      "entering": "Entering…",
+      "analyzingBtn": "Analyzing…",
+      "startDesign": "Start with this design →"
+    }
+  },
+  "conceptDiagram": {
+    "alt": "T³Composer — ScreenSpec concept diagram",
+    "caption": "Various inputs → ScreenSpec → Screen artifacts"
+  },
+  "menuTree": {
+    "title": "Menu Tree",
+    "screenCount": "{{n}} screens",
+    "refreshTooltip": "Refresh menu tree",
+    "searchPlaceholder": "Search by menu code · name · path",
+    "loading": "Loading Target DB menu tree...",
+    "emptyMenu": "No menus registered in Target DB TB_AD_MENU.",
+    "noResults": "No search results.",
+    "loadError": "Failed to load Target menu tree",
+    "langPackMissing": "{{id}} — LangPack not registered"
+  },
+  "targetSystem": {
+    "loading": "Loading...",
+    "pickTarget": "Pick Target",
+    "tooltipCurrent": "Target: {{name}} ({{dbType}} · {{grid}})",
+    "tooltipEmpty": "Pick Target System",
+    "noTargets": "No registered targets",
+    "dbConnectedTooltip": "Production DB connected: {{url}}",
+    "governanceSnapshotTooltip": "Governance config snapshot / restore",
+    "dbConnectionTooltip": "Production DB connection settings",
+    "snapshot": {
+      "none": "No snapshot",
+      "inSync": "In sync",
+      "changeCount": "{{n}} changes"
+    },
+    "restoreDialog": {
+      "title": "{{targetCd}} — Restore governance config",
+      "mismatch": "the stored snapshot differs from the current disk. To switch to this Target, the snapshot must be restored to disk.",
+      "preview": "Restoring will recreate {{missing}} missing · revert {{modified}} modified · delete {{extra}} extra files. The current state is automatically backed up just before restoring.",
+      "failed": "Restore failed",
+      "completed": "Restore completed — {{summary}}",
+      "busy": "Restoring...",
+      "cancel": "Cancel",
+      "switchWithout": "Switch without restoring",
+      "restoreAndSwitch": "Restore and switch",
+      "close": "Close"
+    }
+  },
+  "targetDb": {
+    "title": "Target DB Connection — {{name}}",
+    "loadFailed": "Failed to load target: {{message}}",
+    "saveSuccess": "Saved — will apply on next menu tree / source query",
+    "saveFailed": "Save failed: {{message}}",
+    "infoConnection": "Connecting directly to the production wingui DB lets NEW_FROM_COPY / EXISTING_MODIFY pull live menu, LangPack and SP data. If left empty, the local target-mssql synced data is used as fallback.",
+    "driverClassLabel": "Driver Class (optional)",
+    "connectionSuccess": "Connected — {{product}} {{version}} ({{elapsedMs}}ms)",
+    "connectionFailure": "Connection failed — {{error}}",
+    "sourcePathTitle": "Target source path",
+    "sourcePathInfo": "Enter an absolute path inside the container (or click <strong>Browse</strong> on the right). <strong> source</strong> is the frontend root, <strong>backend</strong> is the backend root (only specify separately for non-monorepo cases like PLANNEL — leave empty to assume same as source). If left empty, docker-compose <code>/workspace/targets/{{targetCd}}/wingui</code> is used as fallback.",
+    "sourceFolderLabel": "Source folder path",
+    "sourceFolderPlaceholder": "(unset — auto-use /workspace/targets/{{targetCd}}/wingui inside the container)",
+    "backendFolderLabel": "Backend folder path (separate structure only)",
+    "backendFolderPlaceholder": "(unset — assume same root as source. Specify backend root only when separated, like PLANNEL)",
+    "folderBrowse": "Browse folder",
+    "close": "Close",
+    "testConnection": "Test Connection",
+    "save": "Save",
+    "pickerSource": "Pick source folder",
+    "pickerBackend": "Pick backend folder"
+  },
+  "history": {
+    "title": "Composer Work History",
+    "searchPlaceholder": "Search title / menu code / mode / Target",
+    "refresh": "Refresh",
+    "emptyAll": "No history — start a session from the Composer main screen.",
+    "emptyFiltered": "No sessions match the filter",
+    "untitled": "(no title)",
+    "deleted": "Deleted: {{name}}",
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "completed": "Completed",
+      "archived": "Archived"
+    },
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "archived": "Archived"
+    },
+    "col": {
+      "target": "Target",
+      "mode": "Mode",
+      "title": "Title",
+      "menuCd": "Menu Code",
+      "model": "Model",
+      "status": "Status",
+      "tokens": "Tokens",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "action": {
+      "resume": "Resume",
+      "markActive": "Mark as Active",
+      "markCompleted": "Mark as Completed",
+      "markArchived": "Archive",
+      "delete": "Delete"
+    },
+    "deleteDialog": {
+      "title": "Delete Session",
+      "body": "Permanently delete session \"{{name}}\". Messages and artifacts will be removed as well. Continue?",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "errors": {
+      "loadList": "Failed to load session list",
+      "statusChange": "Failed to change status: {{message}}",
+      "deleteFailed": "Failed to delete: {{message}}"
+    }
+  },
+  "workspace": {
+    "exit": "Exit"
+  },
+  "mockup": {
+    "subtitle": "UI Pattern Mockup Gallery",
+    "searchPlaceholder": "Search by code / label / description / menu",
+    "countDisplay": "{{n}} items",
+    "empty": "No mockups found.",
+    "mappedMenusTooltip": "{{n}} mapped production menu(s)",
+    "backToList": "Back to mockup list",
+    "usedMenus": "{{n}} used menu(s)",
+    "menuListSummary": "T3SmartSCM production menus mapped to this mockup — {{total}} total",
+    "menuListMatched": "{{n}} matched",
+    "menuSearchPlaceholder": "Search by menu ID / name / path",
+    "filter": {
+      "all": "All {{n}}"
+    },
+    "category": {
+      "all": "All",
+      "core": "Core {{n}}",
+      "domain": "Domain {{n}}",
+      "dashboard": "Dashboard {{n}}",
+      "controlboard": "CB {{n}}",
+      "meta": "Meta {{n}}"
+    },
+    "layout": {
+      "all": "Layout — All"
+    },
+    "menuTable": {
+      "id": "Menu ID",
+      "name": "Menu Name",
+      "path": "Path (filePath)",
+      "reason": "Mapping Reason",
+      "noName": "(unnamed)",
+      "noMatch": "No menus match \"{{query}}\"",
+      "noMapped": "No mapped menus"
+    }
+  },
+  "uiPattern": {
+    "backToList": "Back to List",
+    "openLite": "Open lite file (for AI reference)",
+    "openFull": "Open full screen in new window",
+    "openInNewWindow": "Open in new window",
+    "heroTitle": "UI Pattern Collection",
+    "heroSubtitle": "MES / SCM domain UI patterns — select a TabPage to display the pattern instantly activated in the body.",
+    "stats": {
+      "total": "Total Patterns",
+      "files": "Files"
+    },
+    "filter": {
+      "all": "All"
+    },
+    "allGroups": "All Groups",
+    "searchPlaceholder": "Search section · group · file · TabPage label",
+    "reset": "Reset",
+    "resultCount": "{{n}} results",
+    "noResults": "No patterns match the search filters.",
+    "resetFilters": "Reset Filters"
+  }
+}

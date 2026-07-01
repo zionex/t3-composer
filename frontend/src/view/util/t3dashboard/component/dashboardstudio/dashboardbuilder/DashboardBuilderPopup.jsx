@@ -90,7 +90,7 @@ export default function DashboardBuilderPopup({ open, onClose, onSaved, embedded
       });
 
       setSaveResult(res);
-      setSaveSnack({ open: true, severity: 'success', message: `저장 완료! (대시보드 ID: ${res.dashboard_id})` });
+      setSaveSnack({ open: true, severity: 'success', message: '저장되었습니다.' });
       if (onSaved) onSaved(res);
     } catch (e) {
       setSaveSnack({ open: true, severity: 'error', message: '저장 실패: ' + (e?.message || String(e)) });
@@ -154,7 +154,9 @@ export default function DashboardBuilderPopup({ open, onClose, onSaved, embedded
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <LayoutIcon color="primary" />
-            <Typography variant="h6">Dashboard Builder</Typography>
+            <Typography variant="h6">
+              {dashboardId ? '대시보드 편집' : 'Dashboard Builder'}
+            </Typography>
             {canvasWidgets.length > 0 && (
               <Chip size="small" label={`${canvasWidgets.length}개 위젯`} color="primary" />
             )}

@@ -38,6 +38,7 @@ import SearchIcon        from '@mui/icons-material/Search';
 
 import { ContentInner, WorkArea } from '@wingui/common/imports';
 import PageHeader from '../t3composer/PageHeader';
+import { PALETTE } from '../../../theme';
 
 import {
   listSessions,
@@ -207,12 +208,12 @@ function T3ComposerHistory() {
               sx={{
                 '& .MuiToggleButton-root': {
                   height: 28, textTransform: 'none', px: 1.2, fontSize: 12,
-                  border: '1px solid #ECEEF1',
-                  color: '#6B7280',
+                  border: `1px solid ${PALETTE.panelBorder}`,
+                  color: PALETTE.textSecondary,
                   '&.Mui-selected': {
-                    bgcolor: '#E8F2F6', color: '#1F6680',
-                    borderColor: '#CFE3EB',
-                    '&:hover': { bgcolor: '#E8F2F6' },
+                    bgcolor: PALETTE.primarySoft, color: PALETTE.primaryDark,
+                    borderColor: PALETTE.primaryBorder,
+                    '&:hover': { bgcolor: PALETTE.primarySoft },
                   },
                 },
               }}
@@ -220,7 +221,7 @@ function T3ComposerHistory() {
               {STATUS_FILTERS.map((f) => (
                 <ToggleButton key={f.value} value={f.value}>
                   {t(f.labelKey)}
-                  <Box component="span" sx={{ ml: 0.6, fontSize: 10.5, color: '#9AA3AF', fontWeight: 600 }}>
+                  <Box component="span" sx={{ ml: 0.6, fontSize: 10.5, color: PALETTE.textMuted, fontWeight: 600 }}>
                     {counts[f.value] ?? 0}
                   </Box>
                 </ToggleButton>
@@ -232,12 +233,12 @@ function T3ComposerHistory() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: '#9AA3AF' }} />,
+                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 0.5, color: PALETTE.textMuted }} />,
                 sx: { height: 28, fontSize: 12, bgcolor: '#FFFFFF' },
               }}
               sx={{
                 width: 240,
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#ECEEF1' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: PALETTE.panelBorder },
               }}
             />
             <Tooltip title={t('history.refresh')}>
@@ -257,7 +258,7 @@ function T3ComposerHistory() {
             sx={{
               flex: 1, minHeight: 0,
               borderRadius: '12px',
-              border: '1px solid #ECEEF1',
+              border: `1px solid ${PALETTE.panelBorder}`,
               boxShadow: '0 1px 3px rgba(16,24,40,.04)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
@@ -279,7 +280,7 @@ function T3ComposerHistory() {
                   // sticky 헤더 흰 배경 + 시안 톤
                   '& thead th': {
                     bgcolor: '#FFFFFF',
-                    color: '#9AA3AF',
+                    color: PALETTE.textMuted,
                     fontSize: 10.5, fontWeight: 600,
                     letterSpacing: '0.05em', textTransform: 'uppercase',
                     borderBottom: '1px solid #F0F1F4',
@@ -287,7 +288,7 @@ function T3ComposerHistory() {
                   },
                   // 본문 셀
                   '& tbody td': {
-                    color: '#1A2330',
+                    color: PALETTE.textPrimary,
                     fontSize: 13,
                     py: 1.4,
                   },

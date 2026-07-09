@@ -17,7 +17,7 @@ import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
 import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
-import { PALETTE } from './theme';
+import { PALETTE, TYPOGRAPHY } from './theme';
 import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
@@ -182,7 +182,7 @@ function TabbedHome() {
                     </Box>
                 )}
 
-                {/* 리본 메뉴 — A시안: MENU eyebrow + 활성 #E8F2F6 + #2d8ba8 */}
+                {/* 리본 메뉴 — A시안: MENU eyebrow + 활성 PALETTE.primarySoft + PALETTE.primary (aqua-60) */}
                 <Box sx={{
                     flex: 1, overflowY: 'auto', overflowX: 'hidden',
                     py: 1, px: collapsed ? 0.6 : 1,
@@ -190,7 +190,6 @@ function TabbedHome() {
                 }}>
                     {!collapsed && (
                         <Typography sx={{
-                            fontFamily: '"JetBrains Mono","Roboto Mono",monospace',
                             fontSize: 10, fontWeight: 600,
                             letterSpacing: '0.12em', color: PALETTE.textMuted,
                             px: 1.2, pt: 1, pb: 0.6,
@@ -222,7 +221,7 @@ function TabbedHome() {
                                         fontWeight: isActive ? 600 : 500,
                                         transition: 'background-color .15s ease, color .15s ease',
                                         '&:hover': {
-                                            bgcolor: isActive ? PALETTE.primarySoft : 'rgba(45,139,168,0.06)',
+                                            bgcolor: isActive ? PALETTE.primarySoft : 'rgba(10,136,168,0.06)',
                                             color: PALETTE.primary,
                                         },
                                     }}
@@ -230,7 +229,7 @@ function TabbedHome() {
                                     <Icon sx={{ fontSize: 20 }} />
                                     {!collapsed && (
                                         <Typography sx={{
-                                            fontSize: '0.84rem', fontWeight: 'inherit',
+                                            ...TYPOGRAPHY.body4, fontWeight: 'inherit',
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
                                             {label}
@@ -264,7 +263,7 @@ function TabbedHome() {
                                 fontWeight: 500,
                                 transition: 'background-color .15s ease, color .15s ease',
                                 '&:hover': {
-                                    bgcolor: 'rgba(45,139,168,0.06)',
+                                    bgcolor: 'rgba(10,136,168,0.06)',
                                     color: PALETTE.primary,
                                 },
                             }}
@@ -272,7 +271,7 @@ function TabbedHome() {
                             <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />
                             {!collapsed && (
                                 <Typography sx={{
-                                    fontSize: '0.84rem', fontWeight: 'inherit',
+                                    ...TYPOGRAPHY.body4, fontWeight: 'inherit',
                                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                 }}>
                                     {t('app.menu.userGuide', '사용자 가이드')}
@@ -307,7 +306,7 @@ function TabbedHome() {
                                 border: 'none',
                                 bgcolor: 'transparent',
                                 color: PALETTE.textSecondary,
-                                fontSize: '0.78rem', fontWeight: 500,
+                                ...TYPOGRAPHY.body5, fontWeight: 500,
                                 transition: 'background-color .15s ease, color .15s ease',
                                 '&:hover': {
                                     bgcolor: 'rgba(255,255,255,0.55)',
@@ -351,9 +350,9 @@ function TabbedHome() {
                                                     onClick={(e) => { e.stopPropagation(); closeTab(key); }}
                                                     sx={{
                                                         p: 0.2, ml: 0.3,
-                                                        color: '#9AA3AF',
+                                                        color: PALETTE.textMuted,
                                                         '&:hover': {
-                                                            bgcolor: 'rgba(45,139,168,0.12)',
+                                                            bgcolor: 'rgba(10,136,168,0.12)',
                                                             color: PALETTE.primary,
                                                         },
                                                     }}

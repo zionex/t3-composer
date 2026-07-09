@@ -4,13 +4,13 @@
 //
 // Props:
 //   title    string  좌측 큰 텍스트 (15px / 700)
-//   badge    string  title 옆 작은 모노 폰트 뱃지 라벨 (옵션, 예: 'AI')
+//   badge    string  title 옆 작은 뱃지 라벨 (옵션, 예: 'AI') — Pretendard JP · uppercase
 //   caption  string  뱃지 또는 title 옆 짧은 설명 (12px · #9AA3AF)
 //   right    React   우측 영역 — chip 들 또는 actions
 // =============================================================================
 import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
-import { PALETTE } from '../../../theme';
+import { PALETTE, TYPOGRAPHY } from '../../../theme';
 
 const TEAL          = PALETTE.primary;
 const TEAL_SOFT     = PALETTE.primarySoft;
@@ -30,15 +30,11 @@ export default function PageHeader({ title, badge, caption, right }) {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     }}>
       <Stack direction="row" alignItems="center" spacing={1}>
-        <Typography sx={{
-          fontSize: 15, fontWeight: 700, color: TXT_PRIMARY,
-          lineHeight: 1.2,
-        }}>
+        <Typography sx={{ ...TYPOGRAPHY.title3, color: TXT_PRIMARY }}>
           {title}
         </Typography>
         {badge && (
           <Box sx={{
-            fontFamily: '"JetBrains Mono","Roboto Mono",monospace',
             fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
             color: TEAL, bgcolor: TEAL_SOFT,
             border: `1px solid ${TEAL_BORDER}`,
@@ -50,7 +46,7 @@ export default function PageHeader({ title, badge, caption, right }) {
         )}
         {caption && (
           <Typography sx={{
-            fontSize: 12, color: TXT_MUTED,
+            ...TYPOGRAPHY.body5, color: TXT_MUTED,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {caption}

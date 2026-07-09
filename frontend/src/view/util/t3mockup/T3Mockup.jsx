@@ -35,7 +35,7 @@ function localizeDescription(desc, isEn) {
 // 카테고리 → 파스텔 톤 (A시안 PALETTE 계열 · 채도 낮은 약한 색 차이)
 function catColor(cat) {
   switch (cat) {
-    case 'core':         return '#7FB9D0';   // teal light  — 핵심 패턴
+    case 'core':         return PALETTE.primaryLight;   // aqua-70 — 핵심 패턴
     case 'domain':       return '#B9A8D4';   // lavender    — 도메인 화면
     case 'dashboard':    return '#8FC4D4';   // soft cyan   — 대시보드
     case 'controlboard': return '#E6C079';   // pastel amber — control board
@@ -62,13 +62,13 @@ function stripProductLinePrefix(label, productLine) {
 // ToggleButtonGroup 공통 sx — A시안 selected 룩 (회색 → 티얼 soft)
 const TOGGLE_GROUP_SX = {
   '& .MuiToggleButton-root': {
-    color: '#6B7280',
-    border: '1px solid #ECEEF1',
+    color: PALETTE.textSecondary,
+    border: `1px solid ${PALETTE.panelBorder}`,
     fontSize: 12, py: 0.5,
     '&.Mui-selected': {
-      bgcolor: '#E8F2F6', color: '#1F6680',
-      borderColor: '#CFE3EB',
-      '&:hover': { bgcolor: '#E8F2F6' },
+      bgcolor: PALETTE.primarySoft, color: PALETTE.primaryDark,
+      borderColor: PALETTE.primaryBorder,
+      '&:hover': { bgcolor: PALETTE.primarySoft },
     },
     '&.Mui-disabled': { color: '#C4CDD5', borderColor: '#F0F1F4' },
   },
@@ -185,7 +185,7 @@ export default function T3Mockup() {
 
       {/* 필터바 — 단일 줄 sticky (Product Line · Category · Layout · 검색 · view 모드 · 카운트) */}
       <Box sx={{
-        px: 2, py: 1, borderBottom: '1px solid #ECEEF1',
+        px: 2, py: 1, borderBottom: `1px solid ${PALETTE.panelBorder}`,
         backgroundColor: '#FFFFFF',
         position: 'sticky', top: 0, zIndex: 2,
       }}>

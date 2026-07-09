@@ -91,7 +91,7 @@ export default function LanguageSwitcher({ variant = 'select' }) {
           pr: '28px !important',
         },
         '& .MuiOutlinedInput-notchedOutline': {
-          borderColor: 'rgba(45,139,168,0.35)',
+          borderColor: 'rgba(10,136,168,0.35)',
         },
       }}
     >

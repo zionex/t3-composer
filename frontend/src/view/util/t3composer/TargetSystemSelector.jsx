@@ -24,6 +24,7 @@ import { useTargetStore, getCurrentTarget } from './targetStore';
 import { getTargetSnapshotStatus } from './api';
 import TargetDbConnectionDialog from './TargetDbConnectionDialog';
 import TargetSnapshotDialog from './TargetSnapshotDialog';
+import { PALETTE, TYPOGRAPHY } from '../../../theme';
 
 export default function TargetSystemSelector({ darkMode = true }) {
   const { t } = useTranslation('composer');
@@ -67,9 +68,9 @@ export default function TargetSystemSelector({ darkMode = true }) {
   const current = getCurrentTarget();
   const label   = current?.targetName || (loading ? t('targetSystem.loading') : t('targetSystem.pickTarget'));
 
-  // A시안 .chip 룩 — 흰 배경 + #ECEEF1 보더 + #4B5563 텍스트. darkMode prop 은 deprecated.
+  // A시안 .chip 룩 — 흰 배경 + panelBorder + 진회색 텍스트. darkMode prop 은 deprecated.
   const bg     = '#FFFFFF';
-  const border = '#ECEEF1';
+  const border = PALETTE.panelBorder;
   const color  = '#4B5563';
   const hover  = '#F7FAFB';
 
@@ -114,8 +115,7 @@ export default function TargetSystemSelector({ darkMode = true }) {
           sx={{
             height: 32,
             borderRadius: '9px',
-            fontSize: 12.5,
-            fontWeight: 500,
+            ...TYPOGRAPHY.label3,
             bgcolor: bg,
             border: `1px solid ${border}`,
             color,
@@ -123,7 +123,7 @@ export default function TargetSystemSelector({ darkMode = true }) {
             '& .MuiChip-icon':       { ml: 0.6, mr: -0.2 },
             '& .MuiChip-label':      { px: 0.9 },
             '& .MuiChip-deleteIcon': { color: color + '!important', mr: 0.4 },
-            '&:hover':               { bgcolor: hover, borderColor: '#CFE3EB' },
+            '&:hover':               { bgcolor: hover, borderColor: PALETTE.primaryBorder },
           }}
         />
       </Tooltip>

@@ -940,22 +940,82 @@ displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 
 - 사고: ComposerWorkspace 우측 Tab 컨테이너 Box 에 `minHeight:0` 누락 → 산출물 소스가
   길어도 스크롤 없이 잘림.
 
-### 14.6 디자인 일관성 — 티얼 + 파스텔 글래스 (theme.js · 2026-06-26 A시안 적용)
+### 14.6 디자인 일관성 — Aqua + 파스텔 글래스 (style/ + theme.js)
 
-> **2026-06-26**: 메인 컬러를 `#7CA7E0` (sky-blue 파스텔) → **`#2d8ba8` (티얼)** 로 전환.
-> 사용자 디자인 A시안 (Composer 개선.dc.html) 적용. 두 가지 룩이 병행한다:
+> **파일 구조**:
+> ```
+> frontend/src/style/
+>   ├── atomicColors.js   — Figma aqua ladder (14단계) + opacity + CSS variable dict
+>   ├── semanticTokens.js — PALETTE + colorToken(cat,key) 헬퍼
+>   ├── typography.js     — TYPOGRAPHY + FONT_FAMILY (Pretendard JP)
+>   ├── glass.js          — GLASS + AI_GRADIENT + glassPanel + InfoDot
+>   ├── cssVariables.js   — registerCssVariables() — :root 에 --color-aqua-* 등 주입
+>   └── index.js          — barrel export
+> frontend/src/theme.js   — createTheme + component overrides + 하위호환 re-export
+> frontend/src/index.jsx  — registerCssVariables() 1회 호출 (ThemeProvider 렌더 전)
+> ```
+>
+> **하위호환 원칙**: 화면 파일은 `import { PALETTE, TYPOGRAPHY } from '../../../theme'` 로 계속
+> 동작 (theme.js 가 style/ 에서 re-export). 신규 화면은 `../../../style` 직접 사용 권장.
+> `PALETTE.*` → `theme.palette.*.main` 마이그레이션은 별도 대응 (커스텀 슬롯 primarySoft/
+> primaryBorder/panelBorder/textMuted 는 MUI 표준에 없어 대량 churn 필요).
+>
+> **CSS variables — Figma 정본 100% 정합**: `registerCssVariables()` 가 3개 dict 을 `:root` 에 주입.
+> 화면 CSS/sx 에서 Figma 스펙 이름 그대로 CSS 변수 참조 가능:
+>
+> | 층 | dict | Figma 정본 네이밍 | 예 |
+> |---|---|---|---|
+> | Atomic 색상 | `atomicColors.variable` | `color-aqua-{step}` | `var(--color-aqua-60)` |
+> | Semantic 색상 | `paletteVariables` (`semanticTokens.js`) | `palette-*` | `var(--palette-primary)` · `var(--palette-text-muted)` |
+> | Typography | `typographyVariables` (`typography.js`) | `Title-1 / Body-3 / Label-2 / Caption-1` | `var(--typography-title-1-size)` · `var(--typography-body-3-line-height)` |
+>
+> **원칙**: Figma 는 semantic 층(`palette-*`) 을 규칙으로 강제. 화면 CSS 에서 색 참조는
+> `var(--palette-*)` 우선, atomic 은 semantic 미커버 케이스 한정. Typography 는 축별 분해
+> (`-size` · `-line-height` · `-letter-spacing` · `-font-weight`) 로 자유 조합.
+> JS 에서는 `PALETTE.*` · `TYPOGRAPHY.title1` 관례 유지 (JS UPPER_CASE constant + camelCase key).
+>
+> 두 가지 룩이 계속 병행한다:
 
 | 룩 | 적용 화면 | 표면 |
 |---|---|---|
-| **A. 흰 패널 (A시안)** | Composer landing (`T3Composer.jsx ModeSelector`) | 흰 배경 `#F6F7F9` + 흰 패널 `#fff` + 보더 `#ECEEF1` + 메인 컬러 `#2d8ba8` 강조. backdrop-filter 사용 안 함. eyebrow 는 JetBrains Mono 9.5px uppercase `#9AA3AF`. 추천 카드(hot) 는 티얼 보더 + 그림자. |
-| **B. 파스텔 글래스** | History · UI Pattern · Gallery · picker 다이얼로그 · ComposerWorkspace | `theme.js` 의 `GLASS` 토큰 (`rgba(255,255,255,0.72)` + `backdrop-filter:blur(14px)` + 흰 반투명 보더). 강조는 티얼. |
+| **A. 흰 패널 (A시안)** | Composer landing (`T3Composer.jsx ModeSelector`) | 흰 배경 `#F6F7F9` + 흰 패널 `#fff` + 보더 `#ECEEF1` + 메인 컬러 `#42BED6` 강조. backdrop-filter 사용 안 함. eyebrow 는 Pretendard JP 10px uppercase letter-spacing `0.09em` `#9AA3AF` (2026-07-08: 이전 JetBrains Mono → Figma v1.0 정본 · Design System v2.0 어느 쪽에도 근거 없어 Pretendard JP 로 통일). 추천 카드(hot) 는 aqua 보더 + 그림자. |
+| **B. 파스텔 글래스** | History · UI Pattern · Gallery · picker 다이얼로그 · ComposerWorkspace | `theme.js` 의 `GLASS` 토큰 (`rgba(255,255,255,0.72)` + `backdrop-filter:blur(14px)` + 흰 반투명 보더). 강조는 aqua. |
 
-- **공통 규칙**: **다크 그라데이션 헤더/히어로 금지** (이 규칙은 두 룩 모두 적용).
-- **`theme.js PALETTE`**: primary `#2d8ba8` · primaryLight `#7FB9D0` · primaryDark `#1F6680` ·
-  primarySoft `#E8F2F6` (활성 메뉴/뱃지 배경) · primaryBorder `#CFE3EB` · 성공 `#86C7A8` ·
-  정보 `#8FC4D4` · 강조 `#9D8FD4` · textPrimary `#1A2330` · textSecondary `#6B7280` ·
-  textMuted `#9AA3AF` (eyebrow/캡션) · panelBorder `#ECEEF1` · bgDefault `#F6F7F9`.
-- **GLASS 그림자 토큰**: 티얼 RGB `45,139,168` 적용 (이전 sky `124,167,224` 폐기).
+- **공통 규칙**: **다크 그라데이션 헤더/히어로 금지** (두 룩 모두).
+- **토큰 계층**:
+  - `atomicColors.color.aqua[99..10]` — Figma 원본 hex ladder (14단계, `style/atomicColors.js`).
+    **화면 코드에서 직접 참조 금지**. 코드는 반드시 `PALETTE.*` semantic 을 경유.
+    Figma 규칙 명문: "palette-\* semantic 토큰만 사용, atomic 직접 참조 금지."
+  - `PALETTE.*` (`style/semanticTokens.js`) — semantic 토큰. atomic 을 감싼다.
+    theme.js 에서 하위호환 re-export.
+  - `colorToken(cat, key)` (`style/semanticTokens.js`) — createTheme 팔레트 매핑 헬퍼.
+    예: `colorToken('primary','main')` → `PALETTE.primary`.
+  - `TYPOGRAPHY.*` (`style/typography.js`) — 13단계 typography scale.
+  - `AI_GRADIENT` (`style/glass.js`) — `linear-gradient(135deg, aqua-70 → aqua-50 → aqua-30)` — Composer AI 표면 전용.
+  - `GLASS` (`style/glass.js`) — bg / bgStrong / border / blur / shadow / shadowHover.
+  - `glassPanel(accent, hovered)` + `InfoDot({title,sx})` (`style/glass.js`) — 공용 헬퍼.
+  - `registerCssVariables()` (`style/cssVariables.js`) — atomic 을 `:root` 에 CSS 변수로 주입.
+    `index.jsx` 진입점에서 1회 호출.
+- **`ATOMIC.aqua` (Figma v1.0 정본, 참조용)**:
+  `99:#FAFEFF · 95:#F2FCFD · 93:#EAF9FB · 90:#DDF6FA · 85:#C8EFF6 · 80:#A5E3EF · 70:#6FD0E2 ·
+  60:#42BED6★ · 50:#0FA8CC · 40:#0C97B7 · 30:#0A88A8 · 20:#07697F · 15:#055362 · 10:#043B49`
+- **`PALETTE`** (semantic — 이거만 코드에서 참조): `primary #42BED6` (aqua-60 ★) ·
+  `primaryLight #6FD0E2` (aqua-70) · `primaryDark #0A88A8` (aqua-30) ·
+  `primarySoft #EAF9FB` (aqua-93 · 활성 메뉴/뱃지 배경) · `primaryBorder #C8EFF6` (aqua-85) ·
+  `success #86C7A8` · `warning #E6C079` · `error #E0989A` · `info #8FC4D4` ·
+  `secondary #9DB4D4` · `textPrimary #1A2330` · `textSecondary #6B7280` ·
+  `textMuted #9AA3AF` (eyebrow/캡션) · `panelBorder #ECEEF1` · `bgDefault #F6F7F9`.
+- **GLASS 그림자 tint**: `rgba(10,136,168,...)` (aqua-30 = primaryDark 기반). 이전
+  `rgba(45,139,168,...)` (teal `#2d8ba8`) · `rgba(124,167,224,...)` (sky `#7CA7E0`) 모두 폐기.
+- **`TYPOGRAPHY`** (Figma v1.0 정본 · Pretendard JP · line-height 120% 기본):
+  - Title (Bold 600, letter-spacing 음수): `title1 24px/-0.48 · title2 20px/-0.4 · title3 16px/-0.32`
+  - Body (Regular 400): `body1 18 · body2 16 · body3 14 · body4 13 · body5 12`
+  - Label (Medium 500): `label1 14 · label2 13 · label3 12`
+  - Caption (line-height 100%): `caption1 13 · caption2 12`
+  - 폰트: `Pretendard JP → Pretendard → Noto Sans KR → Malgun Gothic → …` fallback chain.
+    실제 Pretendard JP 파일이 static 에 없으면 fallback 이 자동 대체 — `@font-face` 없어도 안전.
+  - **MUI 기본 slot** (h4/h5/body2 등) 은 회귀 방지를 위해 **그대로 유지**. 신규 컴포넌트만
+    `sx={{ ...TYPOGRAPHY.title2 }}` 방식으로 점진 채용.
 - **신규 화면 디자인 선택 기준**:
   - 정보 밀도가 높고 데이터 도구형 → **A. 흰 패널** (landing · 빠른 시작 · 통계 카드)
   - 부유감/유리감 강조 + 배경 컨텐츠와 어울림 필요 → **B. 파스텔 글래스** (다이얼로그 · 워크스페이스)
@@ -963,6 +1023,10 @@ displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 
   `배율 = 패널폭 / 원본폭(1400)` 동적 산정 → 우측 검은 여백 제거 + 세로 스크롤.
 - 엔진 선택(`ModeNewGeneral`) — 선택 엔진은 **단색 채움 + 흰 글자 + 체크 아이콘 + 확인 칩**
   (미선택은 흰 바탕·흐린 회색) 으로 명확히 대비.
+
+**하드코딩 hex 예외** — `T3mesPatternCatalog.jsx:57, 65` 의 `#7FB9D0` 은 **도메인 카테고리
+팔레트** (MES/SCM 그룹 구분) 로 primary 계열이 아니다. aqua-70 으로 교체 시 primary 강조와
+도메인 컬러가 뒤섞이므로 별도 유지.
 
 ### 14.7 Anti-patterns
 

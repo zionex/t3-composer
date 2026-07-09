@@ -45,7 +45,7 @@ import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
 import PageHeader from './PageHeader';
 import { useTargetStore } from './targetStore';
-import { PALETTE } from '../../../theme';
+import { PALETTE, TYPOGRAPHY } from '../../../theme';
 
 const MODE = {
   NEW_FROM_DESIGN: 'NEW_FROM_DESIGN',
@@ -90,11 +90,12 @@ const MODIFY_MODE_OPTIONS = [
 // 모드 선택 — A시안 (정돈된 2분할)
 //   상단 hero: 큰 타이틀 + 우측 chip 들 (Target / API Key / LLM / Settings)
 //   본문 2-grid: 좌(신규 개발 3개) / 우(기존 화면 수정 2개 + PIPELINE)
-//   - 흰 패널 + #ECEEF1 보더, 첫 카드(hot=true)는 #2d8ba8 강조
+//   - 흰 패널 + #ECEEF1 보더, 첫 카드(hot=true)는 #42BED6 강조
 // =====================================================================
-const TEAL          = PALETTE.primary;        // #2d8ba8
-const TEAL_SOFT     = PALETTE.primarySoft;    // #E8F2F6
-const TEAL_BORDER   = PALETTE.primaryBorder;  // #CFE3EB
+// TEAL/TEAL_* alias 는 Figma aqua 팔레트 전환 후에도 legacy 변수명 그대로 유지 (참조 호환)
+const TEAL          = PALETTE.primary;        // #42BED6 (aqua-60)
+const TEAL_SOFT     = PALETTE.primarySoft;    // #EAF9FB (aqua-93)
+const TEAL_BORDER   = PALETTE.primaryBorder;  // #C8EFF6 (aqua-85)
 const PANEL_BORDER  = PALETTE.panelBorder;    // #ECEEF1
 const TXT_PRIMARY   = PALETTE.textPrimary;    // #1A2330
 const TXT_SECONDARY = PALETTE.textSecondary;  // #6B7280
@@ -113,9 +114,8 @@ function flatPanel(extra = {}) {
   };
 }
 
-// Eyebrow (작은 대문자 라벨) — A시안의 .ey { font-size:10px; letter-spacing:.09em; color:#9aa3af; font-weight:600 }
+// Eyebrow (작은 대문자 라벨)
 const eyebrowSx = {
-  fontFamily: '"JetBrains Mono","Roboto Mono",monospace',
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: '0.09em',
@@ -148,7 +148,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
           backdropFilter: 'none',
           WebkitBackdropFilter: 'none',
           boxShadow: isHover
-            ? `0 0 0 1px ${TEAL}, 0 6px 16px rgba(45,139,168,.13)`
+            ? `0 0 0 1px ${TEAL}, 0 6px 16px rgba(10,136,168,.13)`
             : '0 1px 2px rgba(16,24,40,.03)',
           cursor: 'pointer',
           transition: 'box-shadow .18s ease, border-color .18s ease',
@@ -167,13 +167,11 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={eyebrowSx}>{t(opt.subKey)}</Typography>
-          <Typography sx={{
-            color: TXT_PRIMARY, fontSize: 14, fontWeight: 700, lineHeight: 1.3, mt: 0.3,
-          }}>
+          <Typography sx={{ ...TYPOGRAPHY.title3, color: TXT_PRIMARY, mt: 0.3 }}>
             {t(opt.titleKey)}
           </Typography>
           <Typography sx={{
-            color: TXT_SECONDARY, fontSize: 12.5, lineHeight: 1.5, mt: 0.3,
+            ...TYPOGRAPHY.body5, color: TXT_SECONDARY, mt: 0.3, lineHeight: 1.4,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
           }}>
@@ -191,14 +189,14 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
     bgcolor: '#FFFFFF',
     border: `1px solid ${PANEL_BORDER}`,
     color: '#4B5563',
-    fontSize: 12.5, fontWeight: 500,
+    ...TYPOGRAPHY.label3,
     transition: 'background-color .15s, border-color .15s, color .15s',
   };
 
   return (
     <Box sx={{
       flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-      bgcolor: '#F6F7F9',                  // A시안 main 배경
+      bgcolor: PALETTE.bgDefault,          // A시안 main 배경
       overflow: 'auto',
     }}>
       {/* ===== 공통 PageHeader — title + AI 뱃지 + 캡션 / 우측 chip 들 ===== */}
@@ -260,14 +258,11 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
       }}>
       {/* ===== 무엇을 만드시겠어요? ===== */}
       <Box sx={{ flexShrink: 0 }}>
-        <Typography sx={{
-          fontSize: 22, fontWeight: 800, color: TXT_PRIMARY,
-          letterSpacing: '-0.02em', lineHeight: 1.2,
-        }}>
+        <Typography sx={{ ...TYPOGRAPHY.title1, color: TXT_PRIMARY }}>
           {t('landing.heroTitle')}
         </Typography>
         <Typography sx={{
-          color: TXT_SECONDARY, fontSize: 12.5, lineHeight: 1.5, mt: 0.5,
+          ...TYPOGRAPHY.body4, color: TXT_SECONDARY, lineHeight: 1.5, mt: 0.5,
         }}>
           {t('landing.heroDesc')}
         </Typography>
@@ -305,8 +300,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={eyebrowSx}>{cat.subtitle}</Typography>
                   <Typography sx={{
-                    fontSize: 15, fontWeight: 700, color: TXT_PRIMARY,
-                    lineHeight: 1.25, mt: 0.2,
+                    ...TYPOGRAPHY.title3, color: TXT_PRIMARY, mt: 0.2,
                   }}>
                     {t(cat.titleKey)}
                   </Typography>
@@ -335,7 +329,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                       p: '16px',
                     }}>
                       <Box sx={{
-                        flex: 1, fontSize: 13.5, fontWeight: 600,
+                        ...TYPOGRAPHY.label2, flex: 1, fontWeight: 600,
                         color: TXT_SECONDARY,
                         bgcolor: '#ffffff', border: `1px solid ${PANEL_BORDER}`,
                         borderRadius: '9px',
@@ -345,7 +339,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                         <ArrowForwardIcon sx={{ fontSize: 22, color: '#B6BFC7' }} />
                       </Box>
                       <Box sx={{
-                        flex: 1, fontSize: 13.5, fontWeight: 700,
+                        ...TYPOGRAPHY.label2, flex: 1, fontWeight: 700,
                         color: TEAL,
                         bgcolor: TEAL_SOFT, border: `1px solid ${TEAL_BORDER}`,
                         borderRadius: '9px',
@@ -355,7 +349,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
                         <ArrowForwardIcon sx={{ fontSize: 22, color: '#B6BFC7' }} />
                       </Box>
                       <Box sx={{
-                        flex: 1, fontSize: 13.5, fontWeight: 600,
+                        ...TYPOGRAPHY.label2, flex: 1, fontWeight: 600,
                         color: TXT_SECONDARY,
                         bgcolor: '#ffffff', border: `1px solid ${PANEL_BORDER}`,
                         borderRadius: '9px',

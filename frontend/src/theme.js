@@ -1,114 +1,102 @@
 // =============================================================================
-// T3Composer 중앙 테마 — 티얼 글래스모피즘 (Round 2 · 2026-06-26 · A시안 적용)
+// T3Composer MUI Theme — createTheme + component overrides 만 (얇음).
 //
-// Round 2 색 전환:
-//   primary  #7CA7E0 (sky-blue) → #2d8ba8 (teal) — 모든 강조/링크/탭 라인/버튼/뱃지
-//   rgba(124,167,224,...) (sky RGB) → rgba(45,139,168,...) (teal RGB)
+// 색·타이포·글래스 토큰 정의는 style/ 폴더로 분리:
+//   style/atomicColors.js   — Figma aqua ladder + opacity + CSS variable dict
+//   style/semanticTokens.js — PALETTE + colorToken(cat,key)
+//   style/typography.js     — TYPOGRAPHY + FONT_FAMILY
+//   style/glass.js          — GLASS + AI_GRADIENT + glassPanel + InfoDot
+//   style/cssVariables.js   — registerCssVariables (:root 주입)
+//   style/index.js          — barrel
 //
-// 옛 hex → 새 테마 토큰 매핑 (다음 Round 기계적 치환용):
-//   blues/indigo/purple  #2563eb #3b82f6 #1d4ed8 #4338ca #7c3aed → primary
-//   teals/green          #059669 #10b981 #2a9d8f #0d9488         → success
-//   amber                #f59e0b #ffb100                         → warning
-//   red                  #ef4444 #dc2626                         → error
-//   cyan                 #06b6d4 #0ea5e9                         → info
-//   slate text           #0f172a #1e293b #334155 #475569 #64748b → text.primary/secondary
-//   slate divider/bg     #e2e8f0 #cbd5e1 → divider · #f1f5f9 #f8fafc #fafafa → background
+// 이 파일은:
+//   1) style/ 토큰을 이용해 MUI theme (palette · typography · components) 구성
+//   2) 하위 호환용 re-export — 화면들이 `import { PALETTE, TYPOGRAPHY } from '../../../theme'`
+//      로 계속 동작하도록 (신규 화면은 `../../../style` 직접 권장)
 //
-// 텍스트 최소화 컨벤션: 1줄을 넘는 설명 텍스트는 화면에서 빼고, 가까운 요소의
-//   <Tooltip> title 로 옮긴다. 짧은 라벨 옆에는 <InfoDot title={...}/> 를 둔다.
+// 대표 컬러 (Figma "T3Composer 디자인 가이드 v1.0" 정본):
+//   primary #42BED6 (aqua-60 ★), primaryDark #0A88A8 (aqua-30 · shadow tint)
+//
+// 텍스트 최소화 컨벤션: 1줄 초과 설명은 화면에서 빼고 <InfoDot title={...}/> 대체.
 // =============================================================================
-import React from 'react';
+
 import { createTheme } from '@mui/material/styles';
-import Tooltip from '@mui/material/Tooltip';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
-// 평면 hex 맵 — 하드코딩 sx 색을 점진 치환할 때 import 해서 사용
-export const PALETTE = {
-  primary:       '#2d8ba8',        // teal — A시안 메인 컬러
-  primaryLight:  '#7FB9D0',
-  primaryDark:   '#1F6680',
-  primarySoft:   '#E8F2F6',        // A시안 활성 메뉴/뱃지 배경 (가장 라이트한 티얼)
-  primaryBorder: '#CFE3EB',        // A시안 뱃지 보더 톤
-  secondary:     '#9DB4D4',
-  success:       '#86C7A8',
-  warning:       '#E6C079',
-  error:         '#E0989A',
-  info:          '#8FC4D4',
-  textPrimary:   '#1A2330',        // A시안 본문 텍스트 (기존 #3A4A63 보다 진해서 가독성 ↑)
-  textSecondary: '#6B7280',
-  textMuted:     '#9AA3AF',        // A시안 eyebrow/캡션
-  bgDefault:     '#F6F7F9',        // A시안 main 배경 (옅은 슬레이트)
-  panelBorder:   '#ECEEF1',        // A시안 패널 보더
+import { PALETTE, colorToken } from './style/semanticTokens';
+import { FONT_FAMILY, TYPOGRAPHY } from './style/typography';
+import { GLASS, AI_GRADIENT, glassPanel, InfoDot } from './style/glass';
+import { atomicColors } from './style/atomicColors';
+
+// -----------------------------------------------------------------------------
+// 하위 호환 re-export — 기존 화면들은 './theme' 에서 계속 import 가능.
+// 신규 화면은 './style' 직접 사용 권장.
+// -----------------------------------------------------------------------------
+export {
+  PALETTE, colorToken,
+  FONT_FAMILY, TYPOGRAPHY,
+  GLASS, AI_GRADIENT, glassPanel, InfoDot,
+  atomicColors,
 };
 
-// 글래스모피즘 토큰 (티얼 RGB 45,139,168 적용)
-export const GLASS = {
-  bg:          'rgba(255,255,255,0.72)',
-  bgStrong:    'rgba(255,255,255,0.90)',   // 드롭다운 등 가독성 필요한 표면
-  border:      '1px solid rgba(255,255,255,0.55)',
-  blur:        'blur(14px)',
-  shadow:      '0 1px 0 rgba(255,255,255,0.85) inset, 0 -1px 0 rgba(45,139,168,0.10) inset, '
-             + '0 6px 16px -6px rgba(26,35,48,0.10), 0 14px 36px -18px rgba(26,35,48,0.16)',
-  shadowHover: '0 0 0 4px rgba(45,139,168,0.16), 0 18px 44px -14px rgba(45,139,168,0.40), '
-             + '0 1px 0 rgba(255,255,255,0.9) inset',
-};
+// ATOMIC 별칭 — 하위 호환.
+export const ATOMIC = { aqua: atomicColors.color.aqua };
 
-/**
- * 글래스 패널 sx 생성 — accent 강조 + 3D 깊이 그림자.
- * 기존 화면의 embossedPaper() 대체용. hovered=true 시 강조 그림자.
- */
-export function glassPanel(accent = PALETTE.primary, hovered = false) {
-  return {
-    borderRadius: 3,
-    bgcolor: GLASS.bg,
-    backdropFilter: GLASS.blur,
-    WebkitBackdropFilter: GLASS.blur,
-    border: GLASS.border,
-    boxShadow: hovered
-      ? `0 0 0 4px ${accent}24, ${GLASS.shadowHover}`
-      : GLASS.shadow,
-    transition: 'box-shadow .18s ease, transform .18s ease',
-  };
-}
-
-/**
- * 짧은 라벨 옆에 두는 도움말 점 — 호버 시 Tooltip 으로 설명 노출.
- * 장문 설명 텍스트를 화면에서 빼고 이 컴포넌트로 대체한다.
- */
-export function InfoDot({ title, sx }) {
-  return (
-    <Tooltip title={title}>
-      <HelpOutlineIcon
-        sx={{
-          fontSize: 14,
-          color: PALETTE.textSecondary,
-          cursor: 'help',
-          verticalAlign: 'middle',
-          opacity: 0.7,
-          '&:hover': { opacity: 1 },
-          ...sx,
-        }}
-      />
-    </Tooltip>
-  );
-}
-
+// -----------------------------------------------------------------------------
+// MUI createTheme — palette / typography / components
+// -----------------------------------------------------------------------------
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary:    { main: PALETTE.primary,   light: PALETTE.primaryLight, dark: PALETTE.primaryDark, contrastText: '#ffffff' },
-    secondary:  { main: PALETTE.secondary, light: '#C4D2E6', dark: '#6F87AA', contrastText: '#ffffff' },
-    success:    { main: PALETTE.success,   light: '#B5DEC8', dark: '#5E9E81', contrastText: '#ffffff' },
-    warning:    { main: PALETTE.warning,   light: '#F0D6A4', dark: '#C49C53', contrastText: '#3A4A63' },
-    error:      { main: PALETTE.error,     light: '#EDBEBF', dark: '#C0696B', contrastText: '#ffffff' },
-    info:       { main: PALETTE.info,      light: '#BBDEE7', dark: '#6BA0B0', contrastText: '#ffffff' },
-    background: { default: PALETTE.bgDefault, paper: GLASS.bg },
-    text:       { primary: PALETTE.textPrimary, secondary: PALETTE.textSecondary, disabled: '#A6B2C4' },
-    divider:    'rgba(45,139,168,0.22)',
+    primary: {
+      main:  colorToken('primary', 'main'),
+      light: colorToken('primary', 'light'),
+      dark:  colorToken('primary', 'dark'),
+      contrastText: '#ffffff',
+    },
+    secondary: {
+      main:  colorToken('secondary', 'main'),
+      light: colorToken('secondary', 'light'),
+      dark:  colorToken('secondary', 'dark'),
+      contrastText: '#ffffff',
+    },
+    success: {
+      main:  colorToken('success', 'main'),
+      light: colorToken('success', 'light'),
+      dark:  colorToken('success', 'dark'),
+      contrastText: '#ffffff',
+    },
+    warning: {
+      main:  colorToken('warning', 'main'),
+      light: colorToken('warning', 'light'),
+      dark:  colorToken('warning', 'dark'),
+      contrastText: '#3A4A63',
+    },
+    error: {
+      main:  colorToken('error', 'main'),
+      light: colorToken('error', 'light'),
+      dark:  colorToken('error', 'dark'),
+      contrastText: '#ffffff',
+    },
+    info: {
+      main:  colorToken('info', 'main'),
+      light: colorToken('info', 'light'),
+      dark:  colorToken('info', 'dark'),
+      contrastText: '#ffffff',
+    },
+    background: {
+      default: colorToken('bg', 'default'),
+      paper:   GLASS.bg,
+    },
+    text: {
+      primary:   colorToken('text', 'primary'),
+      secondary: colorToken('text', 'secondary'),
+      disabled:  colorToken('text', 'disabled'),
+    },
+    divider: 'rgba(10,136,168,0.22)', // aqua-30 tint
   },
   shape: { borderRadius: 10 },
   typography: {
-    fontFamily: '"Noto Sans KR","Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+    fontFamily: FONT_FAMILY,
     fontSize: 13,
     h4:        { fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.3px', lineHeight: 1.2 },
     h5:        { fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.25 },
@@ -122,6 +110,19 @@ const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        // Pretendard JP Variable — self-hosted (frontend/public/fonts/). 한국어+일본어+라틴
+        // superset 을 한 파일로 커버하므로 대표 폰트로 사용. weight range 45~920 로
+        // Regular(400)/Medium(500)/SemiBold(600) 모두 한 파일. font-display:swap 으로
+        // 폰트 로드 전에도 fallback 이 즉시 렌더 (FOUT 최소화).
+        '@font-face': [
+          {
+            fontFamily: 'Pretendard JP',
+            fontStyle: 'normal',
+            fontWeight: '45 920',
+            fontDisplay: 'swap',
+            src: 'url("/fonts/PretendardJPVariable.woff2") format("woff2-variations")',
+          },
+        ],
         'html, body, #root': { height: '100%' },
         body: {
           margin: 0,
@@ -163,7 +164,7 @@ const theme = createTheme({
           backgroundImage: 'none',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          borderBottom: '1px solid rgba(45,139,168,0.22)',
+          borderBottom: '1px solid rgba(10,136,168,0.22)', // aqua-30 tint
           boxShadow: '0 4px 16px -10px rgba(26,35,48,0.22)',
           color: PALETTE.textPrimary,
         },

@@ -37,6 +37,7 @@ import DashboardIcon  from '@mui/icons-material/Dashboard';
 
 import { ContentInner, WorkArea } from '@wingui/common/imports';
 import PageHeader from '../t3composer/PageHeader';
+import iconStacksFill from '../../../assets/icons/stacks-fill.svg';
 import { PALETTE } from '../../../theme';
 
 import tabsByFile from './_data/t3mes-tabs.json';
@@ -407,6 +408,7 @@ function T3mesPatternCatalog() {
     <ContentInner>
       <PageHeader
         title={t('common:app.menu.uiPattern')}
+        icon={iconStacksFill}
         caption={t('common:app.menuHint.uiPattern')}
         right={
           <Stack direction="row" spacing={1}>

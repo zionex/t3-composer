@@ -43,6 +43,21 @@ export const PALETTE = {
   // 배경 · 보더 (A시안)
   bgDefault:     '#F6F7F9', // main 배경 (옅은 슬레이트)
   panelBorder:   '#ECEEF1', // 패널 보더
+
+  // Sidebar — aqua teal 배경 + 흰 텍스트/아이콘. 비활성 row 는 opacity 0.8
+  sidebarBg:           A[40],
+  sidebarActive:       'rgba(255,255,255,0.24)',  // 흰 24% 오버레이 (aqua-40 위 밝은 청록)
+  sidebarOnBg:         '#FFFFFF',
+  sidebarHeaderBorder: A[50],
+
+  // Tab Header — 회색 스트립 + 활성 탭 흰 배경
+  headerBg:          '#F2F2F2',
+  headerActiveTabBg: '#FFFFFF',
+  headerTextActive:  '#222222',
+  headerTextMuted:   '#999999',
+  headerIconActive:  A[40],
+  headerIconMuted:   '#444444',
+  headerCloseIcon:   '#B2B2B2',
 };
 
 // -----------------------------------------------------------------------------
@@ -78,6 +93,21 @@ const TOKEN_MAP = {
   panel: {
     border: PALETTE.panelBorder,
   },
+  sidebar: {
+    bg:           PALETTE.sidebarBg,
+    active:       PALETTE.sidebarActive,
+    onBg:         PALETTE.sidebarOnBg,
+    headerBorder: PALETTE.sidebarHeaderBorder,
+  },
+  header: {
+    bg:          PALETTE.headerBg,
+    activeTabBg: PALETTE.headerActiveTabBg,
+    textActive:  PALETTE.headerTextActive,
+    textMuted:   PALETTE.headerTextMuted,
+    iconActive:  PALETTE.headerIconActive,
+    iconMuted:   PALETTE.headerIconMuted,
+    closeIcon:   PALETTE.headerCloseIcon,
+  },
 };
 
 export function colorToken(category, key) {
@@ -106,4 +136,19 @@ export const paletteVariables = {
   '--palette-text-muted':     PALETTE.textMuted,
   '--palette-bg-default':     PALETTE.bgDefault,
   '--palette-panel-border':   PALETTE.panelBorder,
+
+  // Sidebar
+  '--palette-sidebar-bg':            PALETTE.sidebarBg,
+  '--palette-sidebar-active':        PALETTE.sidebarActive,
+  '--palette-sidebar-on-bg':         PALETTE.sidebarOnBg,
+  '--palette-sidebar-header-border': PALETTE.sidebarHeaderBorder,
+
+  // Tab Header
+  '--palette-header-bg':             PALETTE.headerBg,
+  '--palette-header-active-tab-bg':  PALETTE.headerActiveTabBg,
+  '--palette-header-text-active':    PALETTE.headerTextActive,
+  '--palette-header-text-muted':     PALETTE.headerTextMuted,
+  '--palette-header-icon-active':    PALETTE.headerIconActive,
+  '--palette-header-icon-muted':     PALETTE.headerIconMuted,
+  '--palette-header-close-icon':     PALETTE.headerCloseIcon,
 };

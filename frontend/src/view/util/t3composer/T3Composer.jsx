@@ -44,6 +44,7 @@ import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
 import TargetSystemSelector from './TargetSystemSelector';
 import PageHeader from './PageHeader';
+import iconAiStarFill from '../../../assets/icons/ai-star-fill.svg';
 import { useTargetStore } from './targetStore';
 import { PALETTE, TYPOGRAPHY } from '../../../theme';
 
@@ -202,6 +203,7 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
       {/* ===== 공통 PageHeader — title + AI 뱃지 + 캡션 / 우측 chip 들 ===== */}
       <PageHeader
         title="Composer"
+        icon={iconAiStarFill}
         badge="AI"
         caption={t('landing.subtitle')}
         right={

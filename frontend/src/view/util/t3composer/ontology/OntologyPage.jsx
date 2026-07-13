@@ -3,6 +3,7 @@ import { Box, Typography, Alert } from '@mui/material';
 import { ContentInner } from '@wingui/common/imports';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '../PageHeader';
+import iconSitemap from '../../../../assets/icons/sitemap.svg';
 
 import { useTargetStore } from '../targetStore';
 import { fetchOntologyTree } from '../api';
@@ -100,6 +101,7 @@ function OntologyPage() {
     <ContentInner>
       <PageHeader
         title={t('common:app.menu.ontology')}
+        icon={iconSitemap}
         caption={t('common:app.menuHint.ontology')}
       />
       <Box ref={splitContainerRef} sx={{ display: 'flex', flex: 1, minHeight: 0 }}>

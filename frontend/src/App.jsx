@@ -2,22 +2,24 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Typography, Tabs, Tab, IconButton, Tooltip } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
-import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
-import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
-import SchemaOutlinedIcon from '@mui/icons-material/SchemaOutlined';
-import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 
 import Logo from './Logo';
-import t3ComposerWordmark from './assets/T3Composer_logo_b.png';
+import t3ComposerWordmark from './assets/T3Composer_logo_w.svg';
+import iconAiStar          from './assets/icons/ai-star.svg';
+import iconAiStarFill      from './assets/icons/ai-star-fill.svg';
+import iconHistory         from './assets/icons/history.svg';
+import iconTemplate        from './assets/icons/template.svg';
+import iconStacksFill      from './assets/icons/stacks-fill.svg';
+import iconSitemap         from './assets/icons/sitemap.svg';
+import iconFileDefault     from './assets/icons/file-default.svg';
+import iconArrowLeft       from './assets/icons/double-arrow-left.svg';
+import iconArrowRight      from './assets/icons/double-arrow-right.svg';
+import iconDeleteS         from './assets/icons/Delete-S.svg';
 import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
 import { PALETTE, TYPOGRAPHY } from './theme';
+import { FONT_FAMILY } from './style/typography';
+import SvgIcon from './style/SvgIcon';
 import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
@@ -44,19 +46,29 @@ import { ShowMessageHost } from '@wingui/common/imports';
 const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
 
 const MENU_ITEMS = [
-    { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    Icon: AutoAwesomeOutlinedIcon,  Component: T3Composer },
-    { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     Icon: HistoryOutlinedIcon,      Component: T3ComposerHistory },
-    { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', Icon: GridViewOutlinedIcon,     Component: T3Mockup },
-    { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   Icon: DashboardOutlinedIcon,    Component: T3mesPatternCatalog },
+    { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    iconLine: iconAiStar,     iconFill: iconAiStarFill, Component: T3Composer },
+    { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     iconLine: iconHistory,    Component: T3ComposerHistory },
+    { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', iconLine: iconTemplate,   Component: T3Mockup },
+    { key: 'patterns', labelKey: 'app.menu.uiPattern',   hintKey: 'app.menuHint.uiPattern',   iconLine: iconStacksFill, Component: T3mesPatternCatalog },
     // { key: 'dict',     labelKey: 'app.menu.gallery',     hintKey: 'app.menuHint.gallery',     Icon: WidgetsOutlinedIcon,    Component: T3ComposerDict },
-    { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    Icon: SchemaOutlinedIcon,       Component: OntologyPage },
+    { key: 'ontology', labelKey: 'app.menu.ontology',    hintKey: 'app.menuHint.ontology',    iconLine: iconSitemap,    Component: OntologyPage },
     ...(INSIGHT_ENABLED ? [
-    { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   Icon: InsertChartOutlinedIcon,  Component: T3Dashboard },
+    { key: 'dashboard', labelKey: 'app.menu.dashboard',  hintKey: 'app.menuHint.dashboard',   iconLine: InsertChartOutlinedIcon, Component: T3Dashboard },
     ] : []),
 ];
 
-const SIDEBAR_W           = 212;
-const SIDEBAR_W_COLLAPSED = 56;
+// iconLine/iconFill 이 문자열이면 SVG URL, 아니면 MUI 컴포넌트로 취급.
+function MenuIcon({ item, isActive, size = 20, color }) {
+    const src = (isActive && item.iconFill) ? item.iconFill : item.iconLine;
+    if (typeof src === 'string') {
+        return <SvgIcon src={src} size={size} color={color} />;
+    }
+    const IconComp = src;
+    return <IconComp sx={{ fontSize: size, color: color || 'inherit' }} />;
+}
+
+const SIDEBAR_W           = 220;
+const SIDEBAR_W_COLLAPSED = 52;
 
 function findMenu(key) { return MENU_ITEMS.find((m) => m.key === key); }
 
@@ -103,103 +115,129 @@ function TabbedHome() {
 
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'row' }}>
-            {/* ===== 좌측 Layer — 로고 + 리본 메뉴 (접이식 사이드바) — A시안 흰 톤 ===== */}
+            {/* ===== 좌측 Layer — 로고 + 리본 메뉴 (접이식 사이드바) ===== */}
             <Box
                 component="nav"
                 sx={{
                     width: collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W,
                     flexShrink: 0,
                     display: 'flex', flexDirection: 'column',
-                    bgcolor: '#FFFFFF',
-                    borderRight: `1px solid ${PALETTE.panelBorder}`,
+                    bgcolor: PALETTE.sidebarBg,
                     transition: 'width 0.2s ease',
                     overflow: 'hidden',
                 }}
             >
-                {/* 로고 + 프로그램명 + 접기 토글 */}
-                <Tooltip title="Composer 홈으로 — 모드 선택 화면" placement="right">
-                    <Box
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Composer 홈으로"
-                        onClick={handleLogoClick}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                handleLogoClick();
-                            }
-                        }}
-                        sx={{
-                            display: 'flex', alignItems: 'center', gap: 1,
-                            px: collapsed ? 0 : 1.5, py: 1.2, minHeight: 52,
-                            justifyContent: collapsed ? 'center' : 'flex-start',
-                            borderBottom: `1px solid ${PALETTE.panelBorder}`,
-                            cursor: 'pointer',
-                            transition: 'background-color .15s ease',
-                            '&:hover': { bgcolor: PALETTE.primarySoft },
-                            '&:focus-visible': {
-                                outline: '2px solid',
-                                outlineColor: 'primary.main',
-                                outlineOffset: '-2px',
-                            },
-                        }}
-                    >
-                        <Box sx={{ display: 'flex' }}>
-                            <Logo size={collapsed ? 30 : 28} />
-                        </Box>
-                        {!collapsed && (
-                            <>
-                                <Box
-                                    component="img"
-                                    src={t3ComposerWordmark}
-                                    alt="T³Composer"
-                                    sx={{ flex: 1, height: 17, width: 'auto', objectFit: 'contain', objectPosition: 'left center', display: 'block' }}
-                                />
-                                <Tooltip title="메뉴 접기">
-                                    <IconButton
-                                        size="small"
-                                        onClick={(e) => { e.stopPropagation(); setCollapsed(true); }}
-                                        sx={{ color: 'text.secondary' }}
-                                    >
-                                        <KeyboardDoubleArrowLeftIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </>
-                        )}
-                    </Box>
-                </Tooltip>
-                {collapsed && (
-                    <Box sx={{
-                        display: 'flex', justifyContent: 'center', py: 0.4,
-                        borderBottom: `1px solid ${PALETTE.panelBorder}`,
-                    }}>
-                        <Tooltip title="메뉴 펼치기" placement="right">
-                            <IconButton size="small" onClick={() => setCollapsed(false)}
-                                        sx={{ color: 'text.secondary' }}>
-                                <KeyboardDoubleArrowRightIcon fontSize="small" />
-                            </IconButton>
+                {/* 로고 헤더 */}
+                <Box sx={{
+                    height: 48, flexShrink: 0,
+                    borderBottom: `1px solid ${PALETTE.sidebarHeaderBorder}`,
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'space-between',
+                    px: collapsed ? 0 : '12px',
+                }}>
+                    {collapsed ? (
+                        // Hover 시 로고 → 화살표 스왑
+                        <Tooltip title={t('app.menu.expand', '메뉴 펼치기')} placement="right">
+                            <Box
+                                role="button"
+                                tabIndex={0}
+                                aria-label={t('app.menu.expand', '메뉴 펼치기')}
+                                onClick={() => setCollapsed(false)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setCollapsed(false);
+                                    }
+                                }}
+                                sx={{
+                                    width: 36, height: 36,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    borderRadius: '6px', cursor: 'pointer',
+                                    bgcolor: 'transparent',
+                                    transition: 'background-color .15s ease',
+                                    '& .collapsed-logo-hover': { display: 'none' },
+                                    '&:hover, &:focus-visible': {
+                                        bgcolor: 'rgba(255,255,255,0.16)',
+                                        '& .collapsed-logo-default': { display: 'none' },
+                                        '& .collapsed-logo-hover':   { display: 'flex' },
+                                    },
+                                    '&:focus-visible': {
+                                        outline: '2px solid',
+                                        outlineColor: PALETTE.sidebarOnBg,
+                                        outlineOffset: '2px',
+                                    },
+                                }}
+                            >
+                                <Box className="collapsed-logo-default" sx={{ display: 'flex' }}>
+                                    <Logo size={28} />
+                                </Box>
+                                <Box className="collapsed-logo-hover">
+                                    <SvgIcon src={iconArrowRight} size={16} color={PALETTE.sidebarOnBg} />
+                                </Box>
+                            </Box>
                         </Tooltip>
-                    </Box>
-                )}
+                    ) : (
+                        <>
+                            <Tooltip title="Composer 홈으로 — 모드 선택 화면" placement="right">
+                                <Box
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Composer 홈으로"
+                                    onClick={handleLogoClick}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleLogoClick();
+                                        }
+                                    }}
+                                    sx={{
+                                        display: 'flex', alignItems: 'center', gap: '8px',
+                                        cursor: 'pointer', minWidth: 0,
+                                        '&:focus-visible': {
+                                            outline: '2px solid',
+                                            outlineColor: PALETTE.sidebarOnBg,
+                                            outlineOffset: '2px',
+                                            borderRadius: '4px',
+                                        },
+                                    }}
+                                >
+                                    <Logo size={28} />
+                                    <Box
+                                        component="img"
+                                        src={t3ComposerWordmark}
+                                        alt="T³Composer"
+                                        sx={{
+                                            height: 14, width: 'auto', display: 'block',
+                                            objectFit: 'contain', objectPosition: 'left center',
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                </Box>
+                            </Tooltip>
+                            <Tooltip title="메뉴 접기">
+                                <IconButton
+                                    onClick={() => setCollapsed(true)}
+                                    sx={{
+                                        width: 26, height: 26, p: '5px',
+                                        borderRadius: '6px',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.16)' },
+                                    }}
+                                >
+                                    <SvgIcon src={iconArrowLeft} size={16} color={PALETTE.sidebarOnBg} />
+                                </IconButton>
+                            </Tooltip>
+                        </>
+                    )}
+                </Box>
 
-                {/* 리본 메뉴 — A시안: MENU eyebrow + 활성 PALETTE.primarySoft + PALETTE.primary (aqua-60) */}
+                {/* 메뉴 컨테이너 */}
                 <Box sx={{
                     flex: 1, overflowY: 'auto', overflowX: 'hidden',
-                    py: 1, px: collapsed ? 0.6 : 1,
-                    display: 'flex', flexDirection: 'column', gap: 0.2,
+                    p: '8px',
+                    display: 'flex', flexDirection: 'column', gap: '3px',
                 }}>
-                    {!collapsed && (
-                        <Typography sx={{
-                            fontSize: 10, fontWeight: 600,
-                            letterSpacing: '0.12em', color: PALETTE.textMuted,
-                            px: 1.2, pt: 1, pb: 0.6,
-                        }}>
-                            MENU
-                        </Typography>
-                    )}
                     {MENU_ITEMS.map((m) => {
                         const isActive = activeKey === m.key && openTabs.includes(m.key);
-                        const Icon = m.Icon;
                         const label = t(m.labelKey);
                         const hint  = t(m.hintKey);
                         return (
@@ -211,25 +249,27 @@ function TabbedHome() {
                                 <Box
                                     onClick={() => openTab(m.key)}
                                     sx={{
-                                        display: 'flex', alignItems: 'center', gap: 1.2,
-                                        px: collapsed ? 0 : 1.2,
-                                        height: 37,
+                                        display: 'flex', alignItems: 'center', gap: '10px',
+                                        p: '8px',
+                                        width: collapsed ? 'auto' : '100%',
                                         justifyContent: collapsed ? 'center' : 'flex-start',
-                                        borderRadius: '9px', cursor: 'pointer',
-                                        color: isActive ? PALETTE.primary : '#5B6573',
-                                        bgcolor: isActive ? PALETTE.primarySoft : 'transparent',
-                                        fontWeight: isActive ? 600 : 500,
-                                        transition: 'background-color .15s ease, color .15s ease',
+                                        borderRadius: '6px', cursor: 'pointer',
+                                        color: PALETTE.sidebarOnBg,
+                                        bgcolor: isActive ? PALETTE.sidebarActive : 'transparent',
+                                        opacity: isActive ? 1 : 0.8,
+                                        transition: 'background-color .15s ease, opacity .15s ease',
                                         '&:hover': {
-                                            bgcolor: isActive ? PALETTE.primarySoft : 'rgba(10,136,168,0.06)',
-                                            color: PALETTE.primary,
+                                            bgcolor: isActive ? PALETTE.sidebarActive : 'rgba(255,255,255,0.12)',
+                                            opacity: 1,
                                         },
                                     }}
                                 >
-                                    <Icon sx={{ fontSize: 20 }} />
+                                    <MenuIcon item={m} isActive={isActive} size={20} color={PALETTE.sidebarOnBg} />
                                     {!collapsed && (
                                         <Typography sx={{
-                                            ...TYPOGRAPHY.body4, fontWeight: 'inherit',
+                                            fontFamily: FONT_FAMILY,
+                                            fontSize: 13, fontWeight: 700,
+                                            letterSpacing: '-0.36px',
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         }}>
                                             {label}
@@ -244,8 +284,9 @@ function TabbedHome() {
                 {/* 사이드바 하단 — 사용자 가이드 (T3Composer-User-Guide.html 새 창 열기) */}
                 <Box sx={{
                     flexShrink: 0,
-                    borderTop: `1px solid ${PALETTE.panelBorder}`,
-                    py: 1, px: collapsed ? 0.6 : 1,
+                    py: '16px',
+                    px: collapsed ? 0 : '20px',
+                    display: 'flex', justifyContent: collapsed ? 'center' : 'flex-start',
                 }}>
                     <Tooltip title={collapsed ? t('app.menu.userGuide', '사용자 가이드') : ''} placement="right">
                         <Box
@@ -254,24 +295,19 @@ function TabbedHome() {
                             target="_blank"
                             rel="noopener noreferrer"
                             sx={{
-                                display: 'flex', alignItems: 'center', gap: 1.2,
-                                px: collapsed ? 0 : 1.2,
-                                height: 37,
-                                justifyContent: collapsed ? 'center' : 'flex-start',
-                                borderRadius: '9px', cursor: 'pointer',
-                                color: '#5B6573', textDecoration: 'none',
-                                fontWeight: 500,
-                                transition: 'background-color .15s ease, color .15s ease',
-                                '&:hover': {
-                                    bgcolor: 'rgba(10,136,168,0.06)',
-                                    color: PALETTE.primary,
-                                },
+                                display: 'flex', alignItems: 'center', gap: '10px',
+                                cursor: 'pointer', textDecoration: 'none',
+                                color: PALETTE.sidebarOnBg,
+                                transition: 'opacity .15s ease',
+                                '&:hover': { opacity: 0.8 },
                             }}
                         >
-                            <MenuBookOutlinedIcon sx={{ fontSize: 20 }} />
+                            <SvgIcon src={iconFileDefault} size={18} color={PALETTE.sidebarOnBg} />
                             {!collapsed && (
                                 <Typography sx={{
-                                    ...TYPOGRAPHY.body4, fontWeight: 'inherit',
+                                    fontFamily: FONT_FAMILY,
+                                    fontSize: 13, fontWeight: 700,
+                                    letterSpacing: '-0.36px',
                                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                 }}>
                                     {t('app.menu.userGuide', '사용자 가이드')}
@@ -284,41 +320,45 @@ function TabbedHome() {
 
             {/* ===== 우측 — Tab 헤더 + 콘텐츠 ===== */}
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                {/* Tab 헤더 — A시안: 회색 베이스 + 흰 활성 탭 + 상단 티얼 인디케이터 */}
+                {/* Tab 헤더 */}
                 <Box sx={{
                     flex: '0 0 auto',
-                    px: 1, pt: '4px',
-                    bgcolor: '#EEF0F3',
-                    display: 'flex', alignItems: 'flex-end',
+                    pl: 0, pr: 0, height: 32,
+                    bgcolor: PALETTE.headerBg,
+                    display: 'flex', alignItems: 'stretch',
                 }}>
                     <Tabs
                         value={activeKey}
                         onChange={(_e, v) => setActiveKey(v)}
                         variant="scrollable"
                         scrollButtons="auto"
+                        TabIndicatorProps={{ sx: { top: 0, bottom: 'auto' } }}
                         sx={{
                             flex: 1, minWidth: 0,
-                            minHeight: 33,
-                            '& .MuiTabs-indicator': { display: 'none' },
+                            minHeight: 32,
+                            '& .MuiTabs-indicator': {
+                                height: 3,
+                                bgcolor: PALETTE.headerIconActive,
+                            },
                             '& .MuiTab-root': {
-                                minHeight: 33, py: 0, px: 1.8, mr: 0.4,
-                                borderRadius: '9px 9px 0 0',
+                                minHeight: 32, py: 0, px: '12px',
                                 border: 'none',
                                 bgcolor: 'transparent',
-                                color: PALETTE.textSecondary,
-                                ...TYPOGRAPHY.body5, fontWeight: 500,
+                                color: PALETTE.headerTextMuted,
+                                fontSize: 13, fontWeight: 500,
+                                fontFamily: FONT_FAMILY,
+                                letterSpacing: '-0.36px',
+                                lineHeight: 'normal',
+                                textTransform: 'none',
                                 transition: 'background-color .15s ease, color .15s ease',
                                 '&:hover': {
-                                    bgcolor: 'rgba(255,255,255,0.55)',
-                                    color: PALETTE.textPrimary,
+                                    color: PALETTE.headerTextActive,
                                 },
                             },
-                            // 활성 탭 — A시안: 흰 배경 + 상단 2px 티얼 인디케이터
                             '& .MuiTab-root.Mui-selected': {
-                                color: PALETTE.textPrimary,
-                                bgcolor: '#FFFFFF',
-                                fontWeight: 600,
-                                boxShadow: `inset 0 2px 0 ${PALETTE.primary}`,
+                                color: PALETTE.headerTextActive,
+                                bgcolor: PALETTE.headerActiveTabBg,
+                                fontWeight: 700,
                             },
                         }}
                     >
@@ -327,38 +367,56 @@ function TabbedHome() {
                             if (!m) return null;
                             const isLast   = openTabs.length === 1;
                             const isActive = activeKey === key;
-                            const TabIcon  = m.Icon;
-                            // A시안: 활성 탭은 X 숨김 (마지막 탭도 X 숨김), 비활성 탭은 X 표시
-                            const showClose = !isActive && !isLast;
+                            // 마지막 하나 남은 탭만 X 숨김
+                            const showClose = !isLast;
                             return (
                                 <Tab
                                     key={key}
                                     value={key}
                                     label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <TabIcon sx={{
-                                                fontSize: 16,
-                                                color: isActive ? PALETTE.primary : '#A6AEB8',
-                                            }} />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <MenuIcon
+                                                item={m}
+                                                isActive={isActive}
+                                                size={14}
+                                                color={PALETTE.headerIconMuted}
+                                            />
                                             <span>{t(m.labelKey)}</span>
                                             {showClose && (
-                                                <IconButton
-                                                    component="div"
+                                                // SvgIcon 은 mask mode 에서 display:inline-block 을 inline style 로 붙여
+                                                // CSS :hover 로 override 불가 → 각각 Box wrapper 로 감싸 display 스왑.
+                                                <Box
                                                     role="button"
                                                     tabIndex={0}
-                                                    size="small"
+                                                    aria-label="탭 닫기"
                                                     onClick={(e) => { e.stopPropagation(); closeTab(key); }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            closeTab(key);
+                                                        }
+                                                    }}
                                                     sx={{
-                                                        p: 0.2, ml: 0.3,
-                                                        color: PALETTE.textMuted,
-                                                        '&:hover': {
-                                                            bgcolor: 'rgba(10,136,168,0.12)',
-                                                            color: PALETTE.primary,
+                                                        width: 12, height: 12, position: 'relative',
+                                                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                                        cursor: 'pointer',
+                                                        '&:focus-visible': {
+                                                            outline: '2px solid',
+                                                            outlineColor: PALETTE.headerIconActive,
+                                                            outlineOffset: '2px',
                                                         },
+                                                        '& .close-hover':          { display: 'none' },
+                                                        '&:hover .close-default':  { display: 'none' },
+                                                        '&:hover .close-hover':    { display: 'inline-flex' },
                                                     }}
                                                 >
-                                                    <CloseIcon sx={{ fontSize: 14 }} />
-                                                </IconButton>
+                                                    <Box className="close-default" sx={{ display: 'inline-flex' }}>
+                                                        <SvgIcon src={iconDeleteS} size={12} color={PALETTE.headerCloseIcon} />
+                                                    </Box>
+                                                    <Box className="close-hover">
+                                                        <SvgIcon src={iconDeleteS} size={12} color={PALETTE.headerIconActive} />
+                                                    </Box>
+                                                </Box>
                                             )}
                                         </Box>
                                     }
@@ -366,7 +424,7 @@ function TabbedHome() {
                             );
                         })}
                     </Tabs>
-                    <Box sx={{ flex: '0 0 auto', pl: 2.5, pr: 2, alignSelf: 'center' }}>
+                    <Box sx={{ flex: '0 0 auto', alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
                         <LanguageSwitcher variant="chip" />
                     </Box>
                 </Box>

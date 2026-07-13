@@ -10,3 +10,4 @@ export { PALETTE, colorToken, paletteVariables } from './semanticTokens';
 export { FONT_FAMILY, TYPOGRAPHY, typographyVariables } from './typography';
 export { GLASS, AI_GRADIENT, glassPanel, InfoDot } from './glass';
 export { registerCssVariables } from './cssVariables';
+export { default as SvgIcon } from './SvgIcon';

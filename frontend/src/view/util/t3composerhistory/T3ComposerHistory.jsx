@@ -38,6 +38,7 @@ import SearchIcon        from '@mui/icons-material/Search';
 
 import { ContentInner, WorkArea } from '@wingui/common/imports';
 import PageHeader from '../t3composer/PageHeader';
+import iconHistory from '../../../assets/icons/history.svg';
 import { PALETTE } from '../../../theme';
 
 import {
@@ -198,6 +199,7 @@ function T3ComposerHistory() {
     <ContentInner>
       <PageHeader
         title={t('common:app.menu.history')}
+        icon={iconHistory}
         caption={t('common:app.menuHint.history')}
         right={(
           <>

@@ -1,8 +1,10 @@
 import React from 'react';
 import { MenuItem, Select } from '@mui/material';
-import LanguageIcon from '@mui/icons-material/Language';
 import { useTranslation } from 'react-i18next';
 import { PALETTE } from '../../../theme';
+import { FONT_FAMILY } from '../../../style/typography';
+import iconGlobal from '../../../assets/icons/global.svg';
+import SvgIcon from '../../../style/SvgIcon';
 
 const LANGUAGES = [
   { code: 'ko',    label: 'KO',    title: '한국어' },
@@ -27,7 +29,7 @@ function normalizeLng(raw) {
 /**
  * variant:
  *   'select' (기본) — 기존 Select 룩 (탭스트립 우측 등)
- *   'chip'           — A시안 .chip 룩 (globe 아이콘 + 짧은 라벨 + 흰 배경 + 회색 보더, height 32px)
+ *   'chip'         — globe 아이콘 + 짧은 라벨 (투명 배경, height 32px)
  */
 export default function LanguageSwitcher({ variant = 'select' }) {
   const { i18n } = useTranslation();
@@ -39,27 +41,43 @@ export default function LanguageSwitcher({ variant = 'select' }) {
         size="small"
         value={current}
         onChange={(e) => i18n.changeLanguage(e.target.value)}
-        IconComponent={() => null}            // 우측 chevron 숨김 (A시안 chip 은 globe + 라벨만)
+        IconComponent={() => null}
+        MenuProps={{
+          anchorOrigin:    { vertical: 'bottom', horizontal: 'right' },
+          transformOrigin: { vertical: 'top',    horizontal: 'right' },
+          marginThreshold: 0,
+          slotProps: {
+            paper: { sx: { minWidth: 64 } },
+          },
+          MenuListProps: {
+            sx: { py: 0 },
+          },
+        }}
         renderValue={(val) => (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <LanguageIcon sx={{ fontSize: 14, color: '#4B5563' }} />
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <SvgIcon src={iconGlobal} size={18} color={PALETTE.headerIconMuted} />
             {LANGUAGES.find((l) => l.code === val)?.label || val}
           </span>
         )}
         sx={{
-          height: 28, borderRadius: '9px',
-          bgcolor: '#FFFFFF',
-          fontSize: 11, fontWeight: 500, color: '#4B5563',
-          '& .MuiSelect-select': {
-            display: 'flex', alignItems: 'center',
-            py: 0, px: 1.2,
-            minHeight: 'unset !important',
+          width: 64, minWidth: 64,
+          height: 32, borderRadius: '6px',
+          bgcolor: 'transparent',
+          fontSize: 14, fontWeight: 700,
+          fontFamily: FONT_FAMILY,
+          lineHeight: 'normal',
+          color: PALETTE.headerTextActive,
+          '& .MuiSelect-select.MuiSelect-select': {
+            display: 'flex !important', alignItems: 'center', justifyContent: 'center',
+            padding: '7px 10px !important',
+            minHeight: 'unset',
+            boxSizing: 'border-box',
           },
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: PALETTE.panelBorder,
+            border: 'none',
           },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: PALETTE.primaryBorder,
+          '&:hover': {
+            bgcolor: 'rgba(0,0,0,0.04)',
           },
         }}
       >

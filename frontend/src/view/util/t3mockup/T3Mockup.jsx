@@ -16,6 +16,7 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import { ContentInner } from '@wingui/common/imports';
 import PageHeader from '../t3composer/PageHeader';
+import iconTemplate from '../../../assets/icons/template.svg';
 import { PALETTE } from '../../../theme';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
 import MockupPressPreview from './MockupPressPreview';
@@ -180,6 +181,7 @@ export default function T3Mockup() {
     <ContentInner>
       <PageHeader
         title={t('common:app.menu.scmUiMockup')}
+        icon={iconTemplate}
         caption={t('common:app.menuHint.scmUiMockup')}
       />
 

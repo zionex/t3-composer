@@ -6,6 +6,8 @@ import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 
 import Logo from './Logo';
 import t3ComposerWordmark from './assets/T3Composer_logo_w.svg';
+import iconHomeLine       from './assets/icons/home-line.svg';
+import iconHomeFill       from './assets/icons/home-fill.svg';
 import iconAiStar          from './assets/icons/ai-star.svg';
 import iconAiStarFill      from './assets/icons/ai-star-fill.svg';
 import iconHistory         from './assets/icons/history.svg';
@@ -20,6 +22,7 @@ import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
 import { PALETTE, TYPOGRAPHY } from './theme';
 import { FONT_FAMILY } from './style/typography';
 import SvgIcon from './style/SvgIcon';
+import T3Home from './view/util/t3home/T3Home';
 import T3Composer from './view/util/t3composer/T3Composer';
 import T3mesPatternCatalog from './view/util/t3composerpatterns/T3mesPatternCatalog';
 import T3ComposerDict from './view/util/t3composerdict/T3ComposerDict';
@@ -46,6 +49,7 @@ import { ShowMessageHost } from '@wingui/common/imports';
 const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
 
 const MENU_ITEMS = [
+    { key: 'home',     labelKey: 'app.menu.home',        hintKey: 'app.menuHint.home',        iconLine: iconHomeLine,   iconFill: iconHomeFill,   Component: T3Home },
     { key: 'composer', labelKey: 'app.menu.composer',    hintKey: 'app.menuHint.composer',    iconLine: iconAiStar,     iconFill: iconAiStarFill, Component: T3Composer },
     { key: 'history',  labelKey: 'app.menu.history',     hintKey: 'app.menuHint.history',     iconLine: iconHistory,    Component: T3ComposerHistory },
     { key: 'mockup',   labelKey: 'app.menu.scmUiMockup', hintKey: 'app.menuHint.scmUiMockup', iconLine: iconTemplate,   Component: T3Mockup },
@@ -84,13 +88,6 @@ function TabbedHome() {
         setOpenTabs((prev) => (prev.includes(key) ? prev : [...prev, key]));
         setActiveKey(key);
     }, []);
-
-    const handleLogoClick = useCallback(() => {
-        // Composer Tab 활성화 — 닫혀 있으면 열고, 열려 있으면 active 만 전환
-        openTab('composer');
-        // T3Composer 에 reset 신호 전달 — listener 가 mode !== null 이면 confirm
-        window.dispatchEvent(new CustomEvent('t3composer:resetToHome'));
-    }, [openTab]);
 
     // 외부에서 Tab 활성화 요청 — 이력의 [이어하기] 등이 dispatch
     useEffect(() => {
@@ -178,42 +175,19 @@ function TabbedHome() {
                         </Tooltip>
                     ) : (
                         <>
-                            <Tooltip title="Composer 홈으로 — 모드 선택 화면" placement="right">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                                <Logo size={28} />
                                 <Box
-                                    role="button"
-                                    tabIndex={0}
-                                    aria-label="Composer 홈으로"
-                                    onClick={handleLogoClick}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            handleLogoClick();
-                                        }
-                                    }}
+                                    component="img"
+                                    src={t3ComposerWordmark}
+                                    alt="T³Composer"
                                     sx={{
-                                        display: 'flex', alignItems: 'center', gap: '8px',
-                                        cursor: 'pointer', minWidth: 0,
-                                        '&:focus-visible': {
-                                            outline: '2px solid',
-                                            outlineColor: PALETTE.sidebarOnBg,
-                                            outlineOffset: '2px',
-                                            borderRadius: '4px',
-                                        },
+                                        height: 14, width: 'auto', display: 'block',
+                                        objectFit: 'contain', objectPosition: 'left center',
+                                        flexShrink: 0,
                                     }}
-                                >
-                                    <Logo size={28} />
-                                    <Box
-                                        component="img"
-                                        src={t3ComposerWordmark}
-                                        alt="T³Composer"
-                                        sx={{
-                                            height: 14, width: 'auto', display: 'block',
-                                            objectFit: 'contain', objectPosition: 'left center',
-                                            flexShrink: 0,
-                                        }}
-                                    />
-                                </Box>
-                            </Tooltip>
+                                />
+                            </Box>
                             <Tooltip title="메뉴 접기">
                                 <IconButton
                                     onClick={() => setCollapsed(true)}

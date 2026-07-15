@@ -1,6 +1,7 @@
 {
   "app": {
     "menu": {
+      "home":        "Home",
       "composer":    "Composer",
       "history":     "History",
       "scmUiMockup": "SCM UI Mockup",
@@ -10,6 +11,7 @@
       "userGuide":   "User Guide"
     },
     "menuHint": {
+      "home":        "Home",
       "composer":    "AI screen generation — Natural language / Copy / Design-based new or modify existing screens",
       "history":     "Work history — Browse and resume active, completed, or archived sessions",
       "scmUiMockup": "SCM UI Mockup pattern gallery — Screen mockup catalog",

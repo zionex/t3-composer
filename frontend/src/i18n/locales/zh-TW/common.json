@@ -1,6 +1,7 @@
 {
   "app": {
     "menu": {
+      "home":        "Home",
       "composer":    "Composer",
       "history":     "歷史記錄",
       "scmUiMockup": "SCM UI 原型",
@@ -10,6 +11,7 @@
       "userGuide":   "使用者指南"
     },
     "menuHint": {
+      "home":        "首頁",
       "composer":    "AI 畫面生成 — 基於自然語言・複製・設計文件的新增 / 既有畫面修改",
       "history":     "工作歷史 — 進行中・已完成・已封存工作階段的查看與繼續",
       "scmUiMockup": "SCM UI 原型庫 — 畫面原型目錄",

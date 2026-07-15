@@ -1,6 +1,7 @@
 {
   "app": {
     "menu": {
+      "home":        "Home",
       "composer":    "Composer",
       "history":     "History",
       "scmUiMockup": "SCM UI Mockup",
@@ -10,6 +11,7 @@
       "userGuide":   "사용자 가이드"
     },
     "menuHint": {
+      "home":        "홈",
       "composer":    "AI 화면 생성 — 자연어·복사·설계서 기반 신규 / 기존 화면 수정",
       "history":     "작업 이력 — 진행·완료·보관 세션 조회 및 이어하기",
       "scmUiMockup": "SCM UI Mockup 패턴 갤러리 — 화면 목업 카탈로그",

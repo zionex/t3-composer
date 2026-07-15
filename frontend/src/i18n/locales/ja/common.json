@@ -1,6 +1,7 @@
 {
   "app": {
     "menu": {
+      "home":        "Home",
       "composer":    "Composer",
       "history":     "履歴",
       "scmUiMockup": "SCM UI モックアップ",
@@ -10,6 +11,7 @@
       "userGuide":   "ユーザーガイド"
     },
     "menuHint": {
+      "home":        "ホーム",
       "composer":    "AI 画面生成 — 自然言語・コピー・設計書ベースで新規 / 既存画面の修正",
       "history":     "作業履歴 — 進行・完了・保管セッションの確認と再開",
       "scmUiMockup": "SCM UI モックアップギャラリー — 画面モックアップカタログ",

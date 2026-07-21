@@ -770,10 +770,12 @@ function ModeNewGeneral({ onBack, startWith = null }) {
               fullWidth
               multiline
               minRows={6}
+              maxRows={6}
               placeholder={t('modeNewNl.promptPanel.placeholderTemplate', { example: examples[0] || t('modeNewNl.promptPanel.fallbackExample') })}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               autoFocus
+              sx={{ '& textarea': { overflowY: 'auto !important' } }}
             />
             {dragOver && (
               <Box sx={{

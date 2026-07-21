@@ -45,7 +45,7 @@ export default function MockShell({ patternCode, patternLabel, layoutCategory, d
       <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
         <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
           <Chip label="MOCKUP" size="small" color="warning" sx={{ fontWeight: 700 }} />
-          <Chip label={patternCode} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+          <Chip label={patternCode} size="small" variant="outlined" />
           <Chip label={layoutCategory} size="small" color={layoutColor} variant="outlined" />
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{patternLabel}</Typography>
         </Stack>

@@ -354,7 +354,7 @@ function T3ComposerHistory() {
                         >
                           {s.title || <Box component="span" sx={{ color: 'text.secondary' }}>{t('history.untitled')}</Box>}
                         </TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>
+                        <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>
                           {s.targetMenuCd || '-'}
                         </TableCell>
                         <TableCell>
@@ -377,10 +377,10 @@ function T3ComposerHistory() {
                             sx={{ height: 22, fontWeight: 600, ...chip.sx }}
                           />
                         </TableCell>
-                        <TableCell sx={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 12 }}>
+                        <TableCell sx={{ textAlign: 'right', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
                           {tokens ? tokens.toLocaleString() : '-'}
                         </TableCell>
-                        <TableCell sx={{ fontSize: 12, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{fmtDt(s.createDttm)}</TableCell>
+                        <TableCell sx={{ fontSize: 12, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{fmtDt(s.createDttm)}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>
                           <Stack direction="row" spacing={0.5} justifyContent="center">
                             <Tooltip title={t('history.action.resume')}>

@@ -142,7 +142,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               value={form.dbUrl}
               onChange={(e) => setForm({ ...form, dbUrl: e.target.value })}
               placeholder={placeholder}
-              InputProps={{ sx: { fontFamily: 'monospace', fontSize: 13 } }}
+              InputProps={{ sx: { fontSize: 13 } }}
             />
             <Stack direction="row" spacing={1}>
               <TextField
@@ -160,7 +160,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               label={t('targetDb.driverClassLabel')} size="small" fullWidth
               value={form.dbDriverClass}
               onChange={(e) => setForm({ ...form, dbDriverClass: e.target.value })}
-              InputProps={{ sx: { fontFamily: 'monospace', fontSize: 12 } }}
+              InputProps={{ sx: { fontSize: 12 } }}
             />
 
             {testResult && (
@@ -192,7 +192,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               onChange={(e) => setForm({ ...form, sourceRefPath: e.target.value })}
               placeholder={t('targetDb.sourceFolderPlaceholder', { targetCd })}
               InputProps={{
-                sx: { fontFamily: 'monospace', fontSize: 12 },
+                sx: { fontSize: 12 },
                 endAdornment: (
                   <InputAdornment position="end">
                     <Tooltip title={t('targetDb.folderBrowse')}>
@@ -210,7 +210,7 @@ export default function TargetDbConnectionDialog({ open, targetCd, onClose, onSa
               onChange={(e) => setForm({ ...form, backendRefPath: e.target.value })}
               placeholder={t('targetDb.backendFolderPlaceholder')}
               InputProps={{
-                sx: { fontFamily: 'monospace', fontSize: 12 },
+                sx: { fontSize: 12 },
                 endAdornment: (
                   <InputAdornment position="end">
                     <Tooltip title={t('targetDb.folderBrowse')}>

@@ -297,7 +297,7 @@ export default function T3Mockup() {
                               }}
                             />
                             <Chip size="small" label={e.patternCode}
-                                  sx={{ fontFamily: 'monospace', fontSize: 11, height: 22, minWidth: 0,
+                                  sx={{ fontSize: 11, height: 22, minWidth: 0,
                                         '& .MuiChip-label': { px: 0.75, overflow: 'hidden', textOverflow: 'ellipsis' } }} />
                           </Stack>
                           {menuCount > 0 && (
@@ -358,7 +358,7 @@ export default function T3Mockup() {
                     sx={{ cursor: 'pointer', userSelect: 'none' }}
                   >
                     <Box sx={{ p: 1.25, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, width: 240, color: 'text.secondary', flexShrink: 0 }} noWrap>
+                      <Typography sx={{ fontSize: 12, width: 240, color: 'text.secondary', flexShrink: 0 }} noWrap>
                         {e.patternCode}
                       </Typography>
                       <Chip
@@ -376,7 +376,7 @@ export default function T3Mockup() {
                       <Typography sx={{ width: 140, fontSize: 11, color: accent, fontWeight: 600, textAlign: 'left', flexShrink: 0 }} noWrap>
                         {e.layoutCategory}
                       </Typography>
-                      <Typography sx={{ width: 56, fontFamily: 'monospace', fontSize: 12, textAlign: 'right', color: menuCount > 0 ? 'text.primary' : 'text.disabled', flexShrink: 0 }}>
+                      <Typography sx={{ width: 56, fontSize: 12, textAlign: 'right', color: menuCount > 0 ? 'text.primary' : 'text.disabled', flexShrink: 0 }}>
                         📋 {menuCount}
                       </Typography>
                       <Typography sx={{ flex: 1.5, fontSize: 12, color: 'text.secondary', minWidth: 0 }} noWrap>
@@ -427,7 +427,7 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
           <Button size="small" startIcon={<ArrowBackIcon />} onClick={closeMockup}>
             {t('mockup.backToList')}
           </Button>
-          <Chip size="small" label={activeEntry?.patternCode} sx={{ fontFamily: 'monospace' }} />
+          <Chip size="small" label={activeEntry?.patternCode} />
           <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
             {localizePatternLabel(activeEntry?.patternLabel, isEn)}
           </Typography>
@@ -487,9 +487,9 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
                     {filteredMenus.map((m, i) => (
                       <TableRow key={m.menuId} hover>
                         <TableCell sx={{ color: 'text.secondary' }}>{i + 1}</TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{m.menuId}</TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{m.menuId}</TableCell>
                         <TableCell sx={{ fontSize: 13, fontWeight: 500 }}>{m.menuNm || <em style={{ color: '#999' }}>{t('mockup.menuTable.noName')}</em>}</TableCell>
-                        <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>{m.filePath}</TableCell>
+                        <TableCell sx={{ fontSize: 11, color: 'text.secondary' }}>{m.filePath}</TableCell>
                         <TableCell sx={{ fontSize: 11, color: 'text.secondary' }}>{m.reason}</TableCell>
                       </TableRow>
                     ))}

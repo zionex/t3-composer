@@ -2765,6 +2765,12 @@ export function specFromPattern(patternCode, baseMeta = {}) {
     base.filterBar.items = [];  // 사용자가 FilterBarInlinePanel (DataAndFilterStep 우측) 에서 채움
     base.filterBar.affects = { mainGrid: [] };
     // layers 는 createComposerSpec 의 mainGrid 그대로
+  } else if (patternCode === 'P06') {
+    // 크로스탭 피벗 입력 (rules/42-pivot-cross-tab.md 정본)
+    base.layers[0].title   = '피벗 그리드';
+    base.layers[0].subtype = 'GRID_CROSSTAB';
+    base.filterBar.items = [];
+    base.filterBar.affects = { mainGrid: [] };
   }
   // 'BLANK' = createComposerSpec 의 기본 단일 layer 그대로
   return base;
@@ -3131,6 +3137,27 @@ function synthesizedContextText(synth, layer, sourceEntry) {
 }
 
 /**
+ * AI/이미지-추론 백엔드가 내려주는 subtype 은 자유형식 문자열(예: 'pivot', 'cross-tab',
+ * 'PivotTable')일 수 있다 — canonical enum('GRID_PIVOT'/'GRID_CROSSTAB')과 정확히 일치하지
+ * 않으면 computeRuleScope(GenerateStep.jsx)·renderLayer 의 피벗 힌트 트리거가 모두 조용히
+ * 미발화 → rules/42-pivot-cross-tab.md 가 system prompt 에서 통째로 빠진 채 생성됨
+ * specFromSynthesized/specFromImageDerived/specFromUiPattern 등 외부 판단값을 받는 지점에서
+ * 이 함수로 정규화 후 저장
+ */
+function canonicalizeLayerSubtype(type, rawSubtype) {
+  if (!rawSubtype) return rawSubtype || null;
+  if (rawSubtype === 'GRID_PIVOT' || rawSubtype === 'GRID_CROSSTAB') return rawSubtype;
+  const isGridish = !type || type === LAYER_TYPES.GRID;
+  if (isGridish) {
+    const s = String(rawSubtype).toUpperCase().replace(/[\s-]/g, '_');
+    if (s.includes('PIVOT') || s.includes('CROSSTAB') || s.includes('CROSS_TAB')) {
+      return s.includes('CROSS') ? 'GRID_CROSSTAB' : 'GRID_PIVOT';
+    }
+  }
+  return rawSubtype;
+}
+
+/**
  * Synthesized 카드 선택 시 Wizard 로 넘기는 베이스 spec 생성.
  * specFromMockup 과 동일한 shape 의 ComposerSpec 을 만들되:
  *   - pattern = 'SYNTHESIZED'
@@ -3153,7 +3180,7 @@ export function specFromSynthesized(synth, baseMeta = {}) {
       key: d.key,
       title: d.title,
       type: d.type,
-      subtype: d.subtype || null,
+      subtype: canonicalizeLayerSubtype(d.type, d.subtype),
       position: d.position,
       dataSource: {
         mode: 'NL',
@@ -3195,7 +3222,7 @@ export function specFromImageDerived(aiSpec, baseMeta = {}) {
       key,
       title: d.title || `위젯 ${idx + 1}`,
       type: d.type || 'GRID',
-      subtype: d.subtype || null,
+      subtype: canonicalizeLayerSubtype(d.type || 'GRID', d.subtype),
       position: d.position || { x: 0, y: idx * 4, w: 12, h: 4 },
       dataSource: {
         mode: 'NL',
@@ -3275,7 +3302,7 @@ export function specFromUiPattern(entry, baseMeta = {}) {
     key: d.key,
     title: d.title || d.key,
     type: d.type,
-    subtype: d.subtype || null,
+    subtype: canonicalizeLayerSubtype(d.type, d.subtype),
     position: d.position,
     dataSource: {
       mode: 'NL',
@@ -3502,6 +3529,14 @@ export function specToInitialPrompt(spec) {
     lines.push('');
     lines.push(`${pad}${indent === 0 ? `${idx + 1}.` : '- 자식:'} layer '${l.key}' — title:"${l.title || ''}"`);
     lines.push(`${pad}   type: ${l.type}${l.subtype ? ` · subtype: ${l.subtype}` : ''}`);
+    // ★ subtype 트리거 힌트 — GRID_PIVOT / GRID_CROSSTAB 이면 rules/42 정본 참조 지시.
+    if (l.subtype === 'GRID_PIVOT' || l.subtype === 'GRID_CROSSTAB') {
+      lines.push(`${pad}   ★ 크로스탭·피벗 (P06) — rules/42-pivot-cross-tab.md 정본 그대로 따를 것 (이 layer 는 해당 확정).`);
+      lines.push(`${pad}     · pivot(그룹핑·시간버킷 추출·행→열 변환)은 백엔드 Service 에서 PivotUtil.pivotData(...) 로 처리 —`);
+      lines.push(`${pad}       프론트에서 동일 로직 구현 금지.`);
+      lines.push(`${pad}     · 산출물 코드 주석에 rule 번호·CT 태그·"§3.1 템플릿" 같은 근거 인용을 남기지 말 것 — 평범한 코드로.`);
+      lines.push(`${pad}     · 참조: t3mockup/pivot_table/PivotTableMockup.jsx · _oron/mp_mrp_psi/OronMpMrpPsiMockup.jsx`);
+    }
     if (l.position && indent === 0) {
       const { x, y, w, h } = l.position;
       lines.push(`${pad}   position: x=${x} y=${y} w=${w} h=${h}  (RGL 12-col grid)`);
@@ -3737,6 +3772,15 @@ function mapStep4ToDataSource(db4) {
  */
 function mapComponentTypeToLayerType(componentType) {
   const ct = String(componentType || '').toUpperCase();
+  // ★ PIVOT/CROSSTAB 을 CONTAINER/TAB 체크보다 먼저 — 'PIVOT_TABLE' 문자열이
+  //   'TABLE' 안에 'TAB' 부분 문자열을 우연히 포함해 아래 CONTAINER 분기에 잘못
+  //   걸리던 버그 수정
+  if (ct.includes('PIVOT') || ct.includes('CROSSTAB') || ct.includes('CROSS_TAB')) {
+    return {
+      type: LAYER_TYPES.GRID,
+      subtype: ct.includes('CROSS') ? 'GRID_CROSSTAB' : 'GRID_PIVOT',
+    };
+  }
   if (ct.includes('CONTAINER') || ct.includes('TAB')) {
     return { type: LAYER_TYPES.CONTAINER, subtype: ct || 'CONTAINER_TAB' };
   }

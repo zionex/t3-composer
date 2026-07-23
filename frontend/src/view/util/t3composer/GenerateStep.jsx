@@ -14,9 +14,10 @@ import ComposerWorkspace from './ComposerWorkspace';
 import { specToInitialPrompt } from './wizardState';
 import { createSession } from './api';
 
-// spec → system prompt rule 선별 scope 문자열 ("backend,filter" 등).
+// spec → system prompt rule 선별 scope 문자열 ("backend,filter,pivot" 등).
 //   backend: 신규 생성 모드이거나 layer 가 SP/ENTITY 데이터소스를 씀 → Java/SP/DB rule 필요.
 //   filter:  filterBar 항목이 있거나 cascade 가 정의됨 → 위젯/필터 rule 필요.
+//   pivot:   layer.subtype ∈ {GRID_PIVOT, GRID_CROSSTAB} → 크로스탭·피벗 rule (42) 필요.
 function computeRuleScope(spec) {
   const layers = Array.isArray(spec?.layers) ? spec.layers : [];
   const mode = spec?.meta?.mode || 'NEW_STEP';
@@ -25,7 +26,9 @@ function computeRuleScope(spec) {
     || layers.some((l) => ['SP', 'ENTITY'].includes(l?.dataSource?.mode));
   const hasFilter = (spec?.filterBar?.items?.length > 0)
     || layers.some((l) => l?.cascade && Object.keys(l.cascade).length > 0);
-  return [hasBackend && 'backend', hasFilter && 'filter'].filter(Boolean).join(',');
+  const hasPivot = layers.some((l) => ['GRID_PIVOT', 'GRID_CROSSTAB'].includes(l?.subtype));
+  return [hasBackend && 'backend', hasFilter && 'filter', hasPivot && 'pivot']
+    .filter(Boolean).join(',');
 }
 
 // AI 추천에서 받아온 텍스트 첨부 — Claude prompt 본문에 inline. 파일당 12K자 cap.

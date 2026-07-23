@@ -46,16 +46,21 @@ public class SystemPromptComposer {
             "41b-composer-java", "30-database-schema", "31-stored-procedures");
     private static final Set<String> FILTER_RULES = Set.of(
             "41c-composer-widgets", "22-filter-bar");
+    // 크로스탭·피벗 화면 (P06 · subtype=GRID_PIVOT|GRID_CROSSTAB) 전용.
+    //   GenerateStep.computeRuleScope 가 pivot 감지 시 scope 에 "pivot" 추가.
+    private static final Set<String> PIVOT_RULES = Set.of(
+            "42-pivot-cross-tab");
 
     /**
      * ruleScope 문자열(예: "backend,filter") 로 포함할 rule_code 집합 계산.
-     * core 는 항상 포함, backend/filter 토큰이 있으면 해당 set 추가.
+     * core 는 항상 포함, backend/filter/pivot 토큰이 있으면 해당 set 추가.
      */
     static Set<String> screenGenRuleCodes(String ruleScope) {
         Set<String> codes = new HashSet<>(CORE_RULES);
         if (ruleScope != null) {
             if (ruleScope.contains("backend")) codes.addAll(BACKEND_RULES);
             if (ruleScope.contains("filter"))  codes.addAll(FILTER_RULES);
+            if (ruleScope.contains("pivot"))   codes.addAll(PIVOT_RULES);
         }
         return codes;
     }

@@ -186,6 +186,14 @@ function valueGeneratorFor(col) {
     // 그 외 — inferValueForKey 위임. dataType 으로 boolean 등은 명시적 처리
     const dt = String(col.dataType || 'text').toLowerCase();
     if (dt === 'boolean') return (i) => det(i, name.length) > 0.5;
+    if (dt === 'number') {
+        // dataType 이 number 인 컬럼은 항상 숫자를 반환하도록 보정 (rules/42 §4.3).
+        return (i) => {
+            const inferred = inferValueForKey(name, i);
+            if (typeof inferred === 'number') return inferred;
+            return Math.round(det(i, name.length + 7) * 9000) + 100;
+        };
+    }
     return (i) => inferValueForKey(name, i);
 }
 

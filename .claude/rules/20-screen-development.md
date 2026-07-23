@@ -182,7 +182,7 @@ MENU_FILE_PATH `/util/UserInfoMgmt` → `view/util/userinfomgmt/UserInfoMgmt.jsx
 | P02 | 검색 + 단일 그리드 (마스터 CRUD) | `41a` 전체 + Users.jsx 참조 |
 | P03 | 검색 + 탭 (Summary/Detail) | `21 §2` TabContainer |
 | P04 | 수평/수직 스플릿 마스터-디테일 | `21 §2` SplitPanel + `41a §4.2.1` flex chain |
-| P06 | 크로스탭 피벗 입력 (시간 버킷 동적 컬럼) | `41a §4.3` iteration |
+| P06 | 크로스탭 피벗 입력 (시간 버킷 동적 컬럼 · 지표 measure 확장 · unpivot 저장) | **`42-pivot-cross-tab.md` 정본** (PivotSpec + `PivotUtil.pivotData` + `addGridItems` + `getUpdatedCells` unpivot). 참조 원본: `t3mockup/pivot_table/PivotTableMockup.jsx` · `t3mockup/_oron/mp_mrp_psi/OronMpMrpPsiMockup.jsx` |
 
 ⛔ 표 외 자유 패턴 작명 금지. 상세 코드 예시는 `t3series-wingui/packages/wingui/src/view/util/userinfomgmt/UserInfoMgmt.jsx` 같은 운영 화면을 Read 해서 복제.
 

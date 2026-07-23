@@ -210,6 +210,17 @@ ko/en/ja/zh 4언어 INSERT + 형제 메뉴 권한 복사 (TB_AD_PERMISSION_GROUP
 - [ ] 공통코드 `<InputField type="select">` (CommonCodeSelect import 금지)
 - [ ] useForm 있으면 `useFieldCascade` · 그리드면 `applyGridCascade`
 
+**크로스탭·피벗 화면인 경우 추가 확인**:
+자연어 요청이나 참조 이미지에 시간 버킷 동적 컬럼(주차/월별 반복 컬럼) · 지표 measure 확장 · 크로스탭/피벗이라는
+표현이 있으면, 아래 항목을 반드시 확인 (정본: `42-pivot-cross-tab.md`):
+- [ ] 백엔드: `com.zionex.t3series.web.util.data.PivotUtil.pivotData(...)` 표준 경로 사용 (또는 §3.6 fallback + shape 계약 유지)
+- [ ] 백엔드 응답이 `{header, data}` shape (List<Entity> 등 raw 반환 금지)
+- [ ] 프론트: `<BaseGrid dynamic={true}>` 명시
+- [ ] 프론트: `grid.addGridItems(items, recreate)` 표준 시그니처로 동적 컬럼 재구성 (`gridView.setColumns()` 직접 호출 금지)
+- [ ] 저장 시 `dataProvider.getUpdatedCells` 로 변경 셀만 unpivot (전체 row 저장 금지)
+- [ ] 프론트에 자체 `PivotUtil` 객체 재정의 없음
+- [ ] `useForm` 은 `react-hook-form` 에서 정상 import (props.useForm/window.useForm/require(...) 등 ambient 전역 취급 금지)
+
 ---
 
 ## §13. 예외 — 엔진 경유 화면 (BF/DP/MP/FP 계산)

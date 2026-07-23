@@ -11,6 +11,9 @@
 //   - grid.dataProvider  → fillJsonData(rows) · getAllStateRows() · getJsonRow(idx) ·
 //                          getRowCount … (RealGrid LocalDataProvider 메서드 전부 통과)
 //   - grid.commit/cancel/refresh/addRow/removeRow
+//   - grid.getGridItems() / grid.addGridItems(newItems, recreate) → 동적 컬럼 재구성
+//     (wingui-core 표준 시그니처 그대로: recreate=true 면 newItems 로 전체 교체,
+//      false/미지정이면 기존 items 뒤에 newItems 를 concat. rules/42 크로스탭 §4.3 대상.)
 //   - grid._view / grid._dataProvider → RealGrid2 raw 객체
 //
 // items 의 column field:
@@ -136,6 +139,10 @@ function wrapGridApi(raw, overrides) {
 function BaseGrid({ id, items = [], afterGridCreate, height }) {
     const containerRef = useRef(null);
     const gridRef = useRef(null);
+    // ★ 마운트 시점 items 의 클로저 스냅샷 — addGridItems 가 컬럼을 재구성할 때마다
+    //   이 ref 를 갱신. fillJsonData override·sample fallback timeout 모두 여기를 참조해야
+    //   동적 컬럼 추가 이후에도 최신 컬럼 기준으로 sample 을 채운다
+    const itemsRef = useRef(items);
 
     useEffect(() => {
         if (!containerRef.current) return undefined;
@@ -170,8 +177,9 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
             fillJsonData: (data) => {
                 let arr = Array.isArray(data) ? data : [];
                 // [Sample 데이터] sample 모드 + 응답이 빈 경우 — 컬럼 메타로 자동 주입
+                //   ★ itemsRef.current — addGridItems 로 컬럼이 바뀐 뒤에도 최신 컬럼 반영
                 if (arr.length === 0 && isSampleModeEnabled()) {
-                    arr = generateSampleRowsFromItems(items, 10);
+                    arr = generateSampleRowsFromItems(itemsRef.current, 10);
                 }
                 dp.fillJsonData(arr);
             },
@@ -212,6 +220,24 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
             removeRow: (idx) => {
                 try { dp.removeRow(idx); } catch { /* no-op */ }
             },
+            // ── 동적 컬럼 재구성 — (rules/42 §4.3) ──
+            //   getGridItems() → 현재 컬럼 메타. addGridItems(newItems, recreate):
+            //     recreate=true  → newItems 로 전체 교체 (예: static.concat(dynamic) 를
+            //                       호출자가 미리 만들어 넘기는 크로스탭 표준 패턴)
+            //     recreate=false/미지정 → 기존 컬럼 뒤에 newItems 를 concat (append)
+            getGridItems: () => itemsRef.current,
+            addGridItems: (newItems, recreate) => {
+                try {
+                    const current = itemsRef.current || [];
+                    const finalItems = recreate
+                        ? [...(newItems || [])]
+                        : current.concat(newItems || []);
+                    itemsRef.current = finalItems;
+                    dp.clearRows && dp.clearRows();
+                    dp.setFields(buildFields(finalItems));
+                    view.setColumns(buildColumns(finalItems));
+                } catch (_e) { /* no-op */ }
+            },
             // RealGrid2 raw 객체도 노출 — 사용자가 원하면 직접 호출 가능
             _view: view,
             _dataProvider: dp,
@@ -235,7 +261,7 @@ function BaseGrid({ id, items = [], afterGridCreate, height }) {
                 if (!isSampleModeEnabled()) return;
                 const rowCount = typeof dp.getRowCount === 'function' ? dp.getRowCount() : 0;
                 if (rowCount > 0) return;
-                const rows = generateSampleRowsFromItems(items, 10);
+                const rows = generateSampleRowsFromItems(itemsRef.current, 10);
                 if (rows.length > 0) dp.fillJsonData(rows);
             } catch (_e) { /* no-op */ }
         }, 600);

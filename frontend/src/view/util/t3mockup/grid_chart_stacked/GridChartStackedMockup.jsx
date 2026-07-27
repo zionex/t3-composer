@@ -25,15 +25,17 @@ function MultiLineChart({ series, width = 800, height = 220 }) {
       {series.map((s, si) => {
         const data = s.data;
         const dx = width / (data.length - 1 || 1);
-        const segs = [];
         let path = '';
+        let pendingMove = true;
         data.forEach((v, i) => {
-          if (v == null) { path += ' M'; return; }
+          if (v == null) { pendingMove = true; return; }
           const x = i * dx;
           const y = height - ((v - min) / range) * (height - 30) - 15;
-          path += (path && !path.endsWith('M') ? ' L ' : ' ') + `${x.toFixed(1)},${y.toFixed(1)}`;
+          const cmd = pendingMove ? 'M' : 'L';
+          path += `${path ? ' ' : ''}${cmd} ${x.toFixed(1)},${y.toFixed(1)}`;
+          pendingMove = false;
         });
-        return <path key={si} d={path.replace(/^\s*M\s*/, 'M ')} fill="none" stroke={colors[si % colors.length]} strokeWidth={2.5} strokeDasharray={s.dashed ? '6 4' : 'none'} />;
+        return <path key={si} d={path} fill="none" stroke={colors[si % colors.length]} strokeWidth={2.5} strokeDasharray={s.dashed ? '6 4' : 'none'} />;
       })}
       {series.map((s, si) => s.data.map((v, i) => {
         if (v == null) return null;

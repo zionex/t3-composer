@@ -571,8 +571,18 @@ function T3Composer() {
   };
 
   // 하위 모드 카드 클릭 — 카테고리별로 진입 모드 결정
-  const onPickMode = (catKey, optKey) => {
+  // extras: { subStage?, initialNl?, mockupCode? } — Home Quick Question chip / 홈 템플릿 위젯 등 외부 진입에서
+  //   nested 단계로 진입할 때 사용. mockupCode: NEW_STEP 진입 시 특정 mockup 을 자동 적용해 WIZARD 로 직행.
+  const pendingSubStageRef = useRef(null);
+  const pendingInitialNlRef = useRef('');
+  const pendingInitialMockupRef = useRef(null);
+  const [navToken, setNavToken] = useState(0);
+  const onPickMode = (catKey, optKey, extras) => {
     requireKeyAndDbThen(() => navigate(() => {
+      pendingSubStageRef.current  = extras?.subStage  || null;
+      pendingInitialNlRef.current = extras?.initialNl || '';
+      pendingInitialMockupRef.current = extras?.mockupCode || null;
+      if (extras?.subStage || extras?.initialNl || extras?.mockupCode) setNavToken((n) => n + 1);
       if (catKey === 'NEW') {
         setMode(optKey);                       // NEW_NL / NEW_FROM_COPY / NEW_FROM_DESIGN
       } else {
@@ -581,6 +591,41 @@ function T3Composer() {
       }
     }));
   };
+
+  // External [Home 빠른 시작] 등에서 특정 모드로 진입
+  const onPickModeRef = useRef(null);
+  onPickModeRef.current = onPickMode;
+  const apiKeyRegisteredRef = useRef(apiKeyRegistered);
+  apiKeyRegisteredRef.current = apiKeyRegistered;
+  const pendingPickModeRef = useRef(null);
+  useEffect(() => {
+    const h = (e) => {
+      const catKey = e?.detail?.catKey;
+      const optKey = e?.detail?.optKey;
+      if (!catKey || !optKey) return;
+      const extras = {
+        subStage:   e?.detail?.subStage,
+        initialNl:  e?.detail?.initialNl,
+        mockupCode: e?.detail?.mockupCode,
+      };
+      setResumeSession(null);
+      setResumeError(null);
+      if (apiKeyRegisteredRef.current === null) {
+        pendingPickModeRef.current = { catKey, optKey, extras };
+        return;
+      }
+      onPickModeRef.current?.(catKey, optKey, extras);
+    };
+    window.addEventListener('t3composer:pickMode', h);
+    return () => window.removeEventListener('t3composer:pickMode', h);
+  }, []);
+  useEffect(() => {
+    if (apiKeyRegistered === null) return;
+    const p = pendingPickModeRef.current;
+    if (!p) return;
+    pendingPickModeRef.current = null;
+    onPickModeRef.current?.(p.catKey, p.optKey, p.extras);
+  }, [apiKeyRegistered]);
 
   // 로딩
   if (apiKeyRegistered === null || resumeLoading) {
@@ -659,7 +704,15 @@ function T3Composer() {
         {mode === MODE.NEW_FROM_DESIGN && <ModeNewFromDesign  onBack={backToLanding} />}
         {mode === MODE.NEW_FROM_COPY   && <ModeNewFromCopy    onBack={backToLanding} />}
         {mode === MODE.NEW_NL          && <ModeNewGeneral     onBack={backToLanding} startWith="NL" />}
-        {mode === MODE.NEW_STEP        && <ModeNewStep        onBack={backToLanding} />}
+        {mode === MODE.NEW_STEP        && (() => {
+          const initialStage       = pendingSubStageRef.current;
+          const initialNl          = pendingInitialNlRef.current;
+          const initialMockupCode  = pendingInitialMockupRef.current;
+          pendingSubStageRef.current      = null;
+          pendingInitialNlRef.current     = '';
+          pendingInitialMockupRef.current = null;
+          return <ModeNewStep key={navToken} onBack={backToLanding} initialStage={initialStage} initialNl={initialNl} initialMockupCode={initialMockupCode} />;
+        })()}
         {mode === MODE.EXISTING_MODIFY && (
           <ModeExistingModify onBack={backToLanding} startWith={modifyStartWith} />
         )}

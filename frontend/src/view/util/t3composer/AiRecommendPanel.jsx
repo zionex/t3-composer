@@ -41,7 +41,7 @@ const THUMB_H = 900;
  * 자연어 예시 — 5 locale (ko/en/ja/zh-CN/zh-TW) 별 placeholder 텍스트 배열.
  *   현재 locale 키가 없으면 en → ko 순 폴백.
  */
-const EXAMPLES_BY_LNG = {
+export const EXAMPLES_BY_LNG = {
   'ko':    ['거래처별 단가 관리', '공급계획 시뮬레이션', '재고 현황 조회'],
   'en':    ['Per-customer unit price management', 'Supply plan simulation', 'Inventory status browse'],
   'ja':    ['取引先別単価管理', '供給計画シミュレーション', '在庫状況照会'],
@@ -100,11 +100,11 @@ const buildAttachPayload = (atts) => ({
     .map(({ name, mediaType, base64 }) => ({ name, mediaType, base64 })),
 });
 
-function AiRecommendPanel({ onBack, onStart, targetCd }) {
+function AiRecommendPanel({ onBack, onStart, targetCd, initialNl = '' }) {
   const { t } = useTranslation('composer');
   const lng   = useUiLanguage();                                                    // 'ko'|'en'|'ja'|'zh-CN'|'zh-TW'
   const EXAMPLES = EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
-  const [nl, setNl] = useState('');
+  const [nl, setNl] = useState(initialNl || '');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
   const [fillingIdx, setFillingIdx] = useState(null); // 선택 후 prefill 중 (카드 인덱스)
   const [results, setResults] = useState(null);        // Array<existing | synthesized | placeholder>

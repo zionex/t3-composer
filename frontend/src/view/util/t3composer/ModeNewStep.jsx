@@ -29,15 +29,21 @@ import UiPatternPickerDialog from './UiPatternPickerDialog';
 import AiRecommendPanel from './AiRecommendPanel';
 import { specFromPattern, specFromMockup, specFromUiPattern, specFromDashboard } from './wizardState';
 import { useTargetStore } from './targetStore';
+import { findMockup } from '../t3mockup';
 
 // INSIGHT_ENABLED — false 시 [Dashboard] 패턴 카드 숨김
 const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
 
-function ModeNewStep({ onBack }) {
+function ModeNewStep({ onBack, initialStage, initialNl = '', initialMockupCode = null }) {
   const { t } = useTranslation('composer');
+  const bootstrappedEntry = initialMockupCode ? findMockup(initialMockupCode) : null;
   // 단계: 'PICK' (패턴 선택) | 'WIZARD' (4단계 Wizard)
-  const [stage, setStage] = useState('PICK');
-  const [spec, setSpec]   = useState(null);
+  const [stage, setStage] = useState(bootstrappedEntry ? 'WIZARD' : (initialStage || 'PICK'));
+  const [spec, setSpec]   = useState(
+    bootstrappedEntry
+      ? specFromMockup(bootstrappedEntry, { title: t('modeNewStep.newScreenDefault'), menuCd: '' })
+      : null
+  );
   // AI 추천에서 받은 참조 파일 첨부 — GenerateStep 까지 흘려보내 Claude 가 참조.
   const [attachments, setAttachments] = useState([]);
   const [mockupPickerOpen, setMockupPickerOpen] = useState(false);
@@ -53,6 +59,7 @@ function ModeNewStep({ onBack }) {
     return (
       <AiRecommendPanel
         targetCd={currentTargetCd}
+        initialNl={initialNl}
         onBack={() => setStage('PICK')}
         onStart={(s, atts) => { setSpec(s); setAttachments(atts || []); setStage('WIZARD'); }}
       />

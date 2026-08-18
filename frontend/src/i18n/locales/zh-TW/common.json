@@ -37,5 +37,53 @@
     "loading": "載入中...",
     "empty":   "無結果",
     "error":   "發生錯誤"
+  },
+  "home": {
+    "hero": {
+      "greeting": "您好 👋",
+      "desc":     "使用 AI Composer 更快、更精準地建立畫面。",
+      "guide":    "查看指南"
+    },
+    "templates": {
+      "title":   "範本使用範例",
+      "viewAll": "檢視全部範本",
+      "use":     "使用此範本",
+      "badge": {
+        "mostUsed": "最常用",
+        "popular":  "熱門"
+      }
+    },
+    "quickStart": {
+      "title":         "快速開始",
+      "quickQuestion": "Quick Question",
+      "nlCreate":      { "title": "以自然語言建立", "desc": "描述需求,AI 自動生成" },
+      "patternStart":  { "title": "從模式開始",     "desc": "選擇經過驗證的 UI 模式" },
+      "copyDesc":      "複製畫面快速開始",
+      "nlModify":      { "title": "以自然語言修改", "desc": "描述修改內容,AI 自動反映" },
+      "stepDesc":      "檢視規格後,僅變更需要的部分"
+    },
+    "continue": {
+      "title":    "繼續工作",
+      "viewAll":  "檢視全部",
+      "empty":    "沒有進行中的工作。",
+      "untitled": "無標題"
+    },
+    "activity": {
+      "title":         "最近活動",
+      "emptyAll":      "沒有最近活動。",
+      "emptyFiltered": "沒有符合條件的活動。",
+      "filter":        { "all": "全部",   "create": "建立",     "modify": "修改"     },
+      "status":        { "active": "進行中", "completed": "已完成", "archived": "已封存" }
+    },
+    "mode": { "newFromDesign": "基於設計書" },
+    "time": {
+      "justNow":    "剛剛",
+      "minutesAgo": "{{n}} 分鐘前",
+      "hoursAgo":   "{{n}} 小時前",
+      "yesterday":  "昨天",
+      "daysAgo":    "{{n}} 天前",
+      "weeksAgo":   "{{n}} 週前",
+      "monthsAgo":  "{{n}} 個月前"
+    }
   }
 }

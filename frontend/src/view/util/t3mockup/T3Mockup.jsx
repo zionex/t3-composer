@@ -20,18 +20,7 @@ import iconTemplate from '../../../assets/icons/template.svg';
 import { PALETTE } from '../../../theme';
 import { MOCKUP_ENTRIES, CATEGORY_LABEL, PRODUCT_LINE_LABEL, MOCK_STATS } from './index';
 import MockupPressPreview from './MockupPressPreview';
-import mockupLabelEn from './_data/mockup-label-en.json';
-
-// 한국어 patternLabel → 영어 lookup. 미존재 시 원본 그대로.
-function localizePatternLabel(label, isEn) {
-  if (!isEn || !label) return label;
-  return mockupLabelEn.patternLabel[label] || label;
-}
-// description 동일.
-function localizeDescription(desc, isEn) {
-  if (!isEn || !desc) return desc;
-  return mockupLabelEn.description[desc] || desc;
-}
+import { localizePatternLabel, localizeDescription } from './mockupLabel';
 
 // 카테고리 → 파스텔 톤 (A시안 PALETTE 계열 · 채도 낮은 약한 색 차이)
 function catColor(cat) {

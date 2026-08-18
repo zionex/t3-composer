@@ -3,9 +3,10 @@ import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 import { listSessions } from '../t3composer/api';
-import { EXAMPLES_BY_LNG } from '../t3composer/AiRecommendPanel';
+import { getExamples } from '../t3composer/AiRecommendPanel';
 import useUiLanguage from '../t3composer/useUiLanguage';
 import { findMockup } from '../t3mockup';
+import { localizePatternLabel, localizeDescription, useIsEnLocale } from '../t3mockup/mockupLabel';
 
 import iconHomeFill from '../../../assets/icons/home-fill.svg';
 import iconRedo from '../../../assets/icons/redo.svg';
@@ -48,7 +49,7 @@ const CARD_SX = {
 function CardHead({ icon, title, action, size = 'sm' }) {
     const spec = size === 'md'
         ? { py: '14px', px: '20px', fontSize: 14, height: '54px', lineHeight: '21px', borderColor: '#F2F4F7' }
-        : { py: '12px', px: '18px', fontSize: 13, height: '45px', lineHeight: '19.5px', borderColor: '#E8E8E8' };
+        : { py: '12px', px: '18px', fontSize: 13, height: '45px', lineHeight: '19.5px', borderColor: PALETTE.panelBorder };
     return (
         <Box sx={{
             px: spec.px, py: spec.py, height: spec.height,
@@ -116,6 +117,7 @@ function Pill({ variant, children }) {
 // =============================================================================
 
 function HeroCard() {
+    const { t } = useTranslation();
     return (
         <Box sx={{
             position: 'relative', overflow: 'hidden',
@@ -133,7 +135,7 @@ function HeroCard() {
                     letterSpacing: '-0.66px',
                     lineHeight: '100%',
                 }}>
-                    안녕하세요 👋
+                    {t('home.hero.greeting')}
                 </Typography>
                 <Typography sx={{
                     fontFamily: TYPOGRAPHY.fontFamily,
@@ -141,7 +143,7 @@ function HeroCard() {
                     color: '#666666',
                     lineHeight: '100%',
                 }}>
-                    AI Composer로 더 빠르고 정확하게 화면을 만들어보세요.
+                    {t('home.hero.desc')}
                 </Typography>
             </Box>
 
@@ -170,14 +172,14 @@ function HeroCard() {
                     },
                 }}
             >
-                가이드 더보기
+                {t('home.hero.guide')}
             </Button>
 
             {/* TODO: 가이드 카드 — 내용 미정 */}
             {/* <Box sx={{
                 height: '60%',
                 bgcolor: '#FFFFFF',
-                border: '1px solid #E8E8E8',
+                border: `1px solid ${PALETTE.panelBorder}`,
                 borderRadius: '12px',
                 p: '16px',
                 display: 'flex', flexDirection: 'column', gap: '8px',
@@ -244,10 +246,12 @@ function TemplatePreview({ entry }) {
 }
 
 function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse }) {
+    const { t } = useTranslation();
+    const iconColor = badge ? (badgeVariant === 'new' ? '#7C5CFC' : AQUA_40) : '#10B981';
     return (
         <Box sx={{
             p: '16px', display: 'flex', flexDirection: 'column', gap: '10px',
-            borderRight: '1px solid #E8E8E8',
+            borderRight: `1px solid ${PALETTE.panelBorder}`,
             '&:last-child': { borderRight: 'none' },
         }}>
             <Box sx={{
@@ -265,7 +269,7 @@ function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse
                         bgcolor: '#F3F3F3', borderRadius: '6px',
                         p: '4px', display: 'inline-flex', flexShrink: 0,
                     }}>
-                        <SvgIcon src={iconSrc} size={13} />
+                        <SvgIcon src={iconSrc} size={13} color={iconColor} />
                     </Box>
                     <Typography sx={{
                         fontSize: 14, fontWeight: 800, color: '#000000',
@@ -302,7 +306,7 @@ function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse
                         '&:hover': { textDecoration: 'underline' },
                     }}
                 >
-                    이 템플릿 사용하기
+                    {t('home.templates.use')}
                     <SvgIcon src={iconRedo} size={10} color={AQUA_40} />
                 </Box>
             </Box>
@@ -313,16 +317,16 @@ function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse
 // T3SmartSCM 표준 기준 mockup 매핑 top 3개만 노출 (domain 2개, dashboard 1개)
 // 순서 = 카드 슬롯 순서. iconSrc / badge / badgeVariant 는 슬롯별 고정 · 이름·설명·미리보기는 entry 에서.
 const TEMPLATE_SLOTS = [
-    { patternCode: 'search_grid',  iconSrc: iconGridTable, badge: '가장 많이 사용', badgeVariant: 'done' },
-    { patternCode: 'dash_overview', iconSrc: iconBarChart1, badge: '인기',           badgeVariant: 'new'  },
-    { patternCode: 'v2_dual_grid', iconSrc: iconMenuHid,   badge: null,             badgeVariant: null   },
+    { patternCode: 'search_grid',   iconSrc: iconGridTable, badgeKey: 'mostUsed', badgeVariant: 'done' },
+    { patternCode: 'dash_overview', iconSrc: iconBarChart1, badgeKey: 'popular',  badgeVariant: 'new'  },
+    { patternCode: 'v2_dual_grid',  iconSrc: iconMenuHid,   badgeKey: null,       badgeVariant: null   },
 ];
 
 function TemplatesCard() {
-    const slots = useMemo(
-        () => TEMPLATE_SLOTS.map((s) => ({ ...s, entry: findMockup(s.patternCode) })).filter((s) => s.entry),
-        []
-    );
+    const { t } = useTranslation();
+    // 'ko' 이외 언어면 T3Mockup 갤러리와 동일한 정적 사전으로 patternLabel/description 을 영어 매핑.
+    const isEn = useIsEnLocale();
+    const slots = useMemo(() => TEMPLATE_SLOTS.map((s) => ({ ...s, entry: findMockup(s.patternCode) })).filter((s) => s.entry), []);
     // "전체 템플릿 보기" — SCM UI Mockup 탭으로 이동
     const openMockupTab = () => {
         window.dispatchEvent(new CustomEvent('t3composer:openTab', { detail: { key: 'mockup' } }));
@@ -335,8 +339,8 @@ function TemplatesCard() {
         <Box sx={CARD_SX}>
             <CardHead
                 icon={<SvgIcon src={iconAiStarFill} size={16} color={AQUA_40} />}
-                title="템플릿 사용 예시"
-                action={<LinkAction onClick={openMockupTab}>전체 템플릿 보기</LinkAction>}
+                title={t('home.templates.title')}
+                action={<LinkAction onClick={openMockupTab}>{t('home.templates.viewAll')}</LinkAction>}
             />
             <Box sx={{
                 flex: 1, minHeight: 0,
@@ -346,11 +350,11 @@ function TemplatesCard() {
                     <TemplateCard
                         key={s.patternCode}
                         iconSrc={s.iconSrc}
-                        title={s.entry.patternLabel}
-                        badge={s.badge}
+                        title={localizePatternLabel(s.entry.patternLabel, isEn)}
+                        badge={s.badgeKey ? t(`home.templates.badge.${s.badgeKey}`) : null}
                         badgeVariant={s.badgeVariant}
                         mockup={<TemplatePreview entry={s.entry} />}
-                        desc={s.entry.description}
+                        desc={localizeDescription(s.entry.description, isEn)}
                         onUse={() => useTemplate(s.patternCode)}
                     />
                 ))}
@@ -373,7 +377,7 @@ function QsCard({ iconSrc, title, desc, onClick }) {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); }
             }}
             sx={{
-                border: '1px solid #E8E8E8',
+                border: `1px solid ${PALETTE.panelBorder}`,
                 borderRadius: '12px',
                 p: '14px', bgcolor: '#FFFFFF',
                 display: 'flex', flexDirection: 'column', gap: '16px',
@@ -430,7 +434,7 @@ function QuickStartCard() {
     const { t } = useTranslation();
     const lng = useUiLanguage();
     // AiRecommendPanel 의 자연어 예시 (locale 별 3개) 를 그대로 노출 — 클릭 시 그 nl 로 AI 추천 화면 진입.
-    const chips = EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
+    const chips = getExamples(lng);
     return (
         <Box sx={{
             bgcolor: '#FFFFFF',
@@ -442,14 +446,14 @@ function QuickStartCard() {
             {/* Section 1 — Header */}
             <Box sx={{
                 px: '20px', py: '16px',
-                borderBottom: '1px solid #E8E8E8',
+                borderBottom: `1px solid ${PALETTE.panelBorder}`,
             }}>
                 <Typography sx={{
                     fontFamily: TYPOGRAPHY.fontFamily,
                     fontSize: 14, fontWeight: 800,
                     color: '#000000', lineHeight: '21px',
                 }}>
-                    빠른 시작
+                    {t('home.quickStart.title')}
                 </Typography>
             </Box>
 
@@ -458,22 +462,22 @@ function QuickStartCard() {
                 p: '16px',
                 display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px',
             }}>
-                <QsCard iconSrc={iconChatLine}   title="자연어로 생성" desc="요구사항을 설명하면 AI가 생성"
+                <QsCard iconSrc={iconChatLine}   title={t('home.quickStart.nlCreate.title')}     desc={t('home.quickStart.nlCreate.desc')}
                         onClick={() => goToComposerMode('NEW', 'NEW_NL')} />
-                <QsCard iconSrc={iconGrid}       title="패턴으로 시작" desc="검증된 UI 패턴 선택"
+                <QsCard iconSrc={iconGrid}       title={t('home.quickStart.patternStart.title')} desc={t('home.quickStart.patternStart.desc')}
                         onClick={() => goToComposerMode('NEW', 'NEW_STEP')} />
-                <QsCard iconSrc={iconCopyRight}  title={t('composer:mode.newFromCopy.title')} desc="화면을 복사해 빠르게 시작"
+                <QsCard iconSrc={iconCopyRight}  title={t('composer:mode.newFromCopy.title')}    desc={t('home.quickStart.copyDesc')}
                         onClick={() => goToComposerMode('NEW', 'NEW_FROM_COPY')} />
-                <QsCard iconSrc={iconCopyRight}  title="자연어로 수정" desc="수정 내용을 설명하면 AI가 반영"
+                <QsCard iconSrc={iconCopyRight}  title={t('home.quickStart.nlModify.title')}     desc={t('home.quickStart.nlModify.desc')}
                         onClick={() => goToComposerMode('MODIFY', 'NL')} />
-                <QsCard iconSrc={iconStacksFill} title={t('composer:mode.modifyStep.title')}   desc="스펙 확인 후 필요한 부분만 변경"
+                <QsCard iconSrc={iconStacksFill} title={t('composer:mode.modifyStep.title')}     desc={t('home.quickStart.stepDesc')}
                         onClick={() => goToComposerMode('MODIFY', 'STEP')} />
             </Box>
 
             {/* Section 3 — Quick Question label + prompt chips */}
             <Box sx={{
                 p: '20px',
-                borderTop: '1px solid #E8E8E8',
+                borderTop: `1px solid ${PALETTE.panelBorder}`,
                 boxShadow: '0 6px 18px rgba(16,24,40,0.04)',
                 display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '14px',
                 alignItems: 'center',
@@ -484,7 +488,7 @@ function QuickStartCard() {
                     color: '#222222', lineHeight: 'normal',
                     whiteSpace: 'nowrap',
                 }}>
-                    Quick Question
+                    {t('home.quickStart.quickQuestion')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {chips.map((c) => (
@@ -503,7 +507,7 @@ function QuickStartCard() {
                                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                                 minHeight: 36, px: '20px', pt: '10px', pb: '11px',
                                 borderRadius: '10px',
-                                border: '1px solid #E8E8E8',
+                                border: `1px solid ${PALETTE.panelBorder}`,
                                 bgcolor: '#F8F8F8', color: '#222222',
                                 fontFamily: TYPOGRAPHY.fontFamily,
                                 fontSize: 13.3, fontWeight: 700, lineHeight: 'normal',
@@ -585,20 +589,20 @@ function ContinueItem({ title, step, code, time, iconSrc, onClick }) {
     );
 }
 
-function formatRelativeTime(dttm) {
+function formatRelativeTime(dttm, t) {
     if (!dttm) return '';
     const then = new Date(dttm).getTime();
     if (Number.isNaN(then)) return '';
     const diffMin = Math.floor((Date.now() - then) / 60000);
-    if (diffMin < 1)      return '방금 전';
-    if (diffMin < 60)     return `${diffMin}분 전`;
+    if (diffMin < 1)      return t('home.time.justNow');
+    if (diffMin < 60)     return t('home.time.minutesAgo', { n: diffMin });
     const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24)       return `${diffH}시간 전`;
+    if (diffH < 24)       return t('home.time.hoursAgo', { n: diffH });
     const diffD = Math.floor(diffH / 24);
-    if (diffD === 1)      return '어제';
-    if (diffD < 7)        return `${diffD}일 전`;
-    if (diffD < 30)       return `${Math.floor(diffD / 7)}주 전`;
-    return `${Math.floor(diffD / 30)}달 전`;
+    if (diffD === 1)      return t('home.time.yesterday');
+    if (diffD < 7)        return t('home.time.daysAgo',  { n: diffD });
+    if (diffD < 30)       return t('home.time.weeksAgo', { n: Math.floor(diffD / 7) });
+    return t('home.time.monthsAgo', { n: Math.floor(diffD / 30) });
 }
 
 function resumeSession(sessionId) {
@@ -612,18 +616,42 @@ function openHistoryTab() {
     window.dispatchEvent(new CustomEvent('t3composer:openTab', { detail: { key: 'history' } }));
 }
 
-function ContinueCard() {
-    const { t } = useTranslation();
+// Composer 세션 목록 fetch — ContinueCard / ActivityCard 공용.
+function useComposerSessions() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        let alive = true;
+        listSessions()
+            .then((res) => {
+                if (!alive) return;
+                const list = (Array.isArray(res.data) ? res.data : [])
+                    .sort((a, b) => (b.createDttm || '').localeCompare(a.createDttm || ''));
+                setItems(list);
+            })
+            .catch(() => { if (alive) setItems([]); })
+            .finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
+    }, []);
+    return { items, loading };
+}
 
-    const modeLabel = useMemo(() => ({
+// 세션 mode → 화면에 표시할 라벨 매핑 (i18n).
+function useModeLabelMap() {
+    const { t } = useTranslation();
+    return useMemo(() => ({
         NEW_NL:          t('composer:mode.newNl.title'),
         NEW_STEP:        t('composer:mode.newStep.title'),
         NEW_FROM_COPY:   t('composer:mode.newFromCopy.title'),
-        NEW_FROM_DESIGN: '설계서 기반',
-        EXISTING_MODIFY: t('composer:main.modifyExisting'),
+        NEW_FROM_DESIGN: t('home.mode.newFromDesign'),
+        EXISTING_MODIFY: t('composer:category.modifyExisting'),
     }), [t]);
+}
+
+function ContinueCard() {
+    const { t } = useTranslation();
+    const modeLabel = useModeLabelMap();
+    const { items: allItems, loading } = useComposerSessions();
 
     // 빠른 시작 위젯의 아이콘과 매핑 (QsCard 참조)
     const modeIconSrc = {
@@ -634,27 +662,16 @@ function ContinueCard() {
         EXISTING_MODIFY: iconEdit,
     };
 
-    useEffect(() => {
-        let alive = true;
-        listSessions()
-            .then((res) => {
-                if (!alive) return;
-                const list = (Array.isArray(res.data) ? res.data : [])
-                    .filter((s) => (s.status || 'ACTIVE') === 'ACTIVE')
-                    .sort((a, b) => (b.createDttm || '').localeCompare(a.createDttm || ''))
-                    .slice(0, 10);
-                setItems(list);
-            })
-            .catch(() => { if (alive) setItems([]); })
-            .finally(() => { if (alive) setLoading(false); });
-        return () => { alive = false; };
-    }, []);
+    const items = useMemo(
+        () => allItems.filter((s) => (s.status || 'ACTIVE') === 'ACTIVE').slice(0, 10),
+        [allItems],
+    );
 
     return (
         <Box sx={{ ...CARD_SX, minHeight: 0 }}>
             <CardHead
                 size="md"
-                title="이어서 작업하기"
+                title={t('home.continue.title')}
                 action={
                     <Typography
                         role="button"
@@ -666,7 +683,7 @@ function ContinueCard() {
                             '&:hover': { textDecoration: 'underline' },
                         }}
                     >
-                        전체 보기
+                        {t('home.continue.viewAll')}
                     </Typography>
                 }
             />
@@ -680,17 +697,17 @@ function ContinueCard() {
                         fontSize: 12, color: PALETTE.textMuted,
                         fontFamily: TYPOGRAPHY.fontFamily,
                     }}>
-                        진행 중인 작업이 없습니다.
+                        {t('home.continue.empty')}
                     </Box>
                 )}
                 {items.map((s) => (
                     <ContinueItem
                         key={s.id}
                         iconSrc={modeIconSrc[s.mode] || iconGrid}
-                        title={s.title || '제목 없음'}
+                        title={s.title || t('home.continue.untitled')}
                         step={modeLabel[s.mode] || s.mode || '-'}
                         code={s.targetMenuCd || s.targetCd || '-'}
-                        time={formatRelativeTime(s.createDttm)}
+                        time={formatRelativeTime(s.createDttm, t)}
                         onClick={() => resumeSession(s.id)}
                     />
                 ))}
@@ -731,15 +748,16 @@ function FilterChip({ on, onClick, children }) {
 }
 
 const STATUS_BADGE = {
-    ACTIVE:    { label: '진행중', bg: PALETTE.primarySoft, fg: AQUA_40   },
-    COMPLETED: { label: '완료',   bg: '#F3FBF0', fg: '#10B981' },
-    ARCHIVED:  { label: '보관',   bg: '#F2F2F2', fg: '#666666' },
+    ACTIVE:    { labelKey: 'active',    bg: PALETTE.primarySoft, fg: AQUA_40   },
+    COMPLETED: { labelKey: 'completed', bg: '#F3FBF0',           fg: '#10B981' },
+    ARCHIVED:  { labelKey: 'archived',  bg: '#F2F2F2',           fg: '#666666' },
 };
 
 function FeedItem({ kind, title, meta, time, status, onClick }) {
+    const { t } = useTranslation();
     const kindMap = {
-        create: { bg: PALETTE.primarySoft, fg: AQUA_40,   iconSrc: iconAlertCheck },
-        modify: { bg: '#F2F2F2', fg: '#666666', iconSrc: iconEdit       },
+        create: { bg: '#F3FBF0', fg: '#03BB00', iconSrc: iconAlertCheck },
+        modify: { bg: '#F2F2F2', fg: '#444444', iconSrc: iconEdit       },
     };
     const k = kindMap[kind] || kindMap.create;
     const badge = status ? STATUS_BADGE[status] : null;
@@ -804,7 +822,7 @@ function FeedItem({ kind, title, meta, time, status, onClick }) {
                     fontSize: 10, fontWeight: 700, lineHeight: '14px',
                     whiteSpace: 'nowrap', flexShrink: 0,
                 }}>
-                    {badge.label}
+                    {t(`home.activity.status.${badge.labelKey}`)}
                 </Box>
             )}
             <Box component="p" sx={{
@@ -820,9 +838,9 @@ function FeedItem({ kind, title, meta, time, status, onClick }) {
 }
 
 const ACTIVITY_FILTERS = [
-    { key: 'ALL',    label: '전체' },
-    { key: 'CREATE', label: '생성' },  // mode ∈ NEW_*
-    { key: 'MODIFY', label: '수정' },  // mode = EXISTING_MODIFY
+    { key: 'ALL',    labelKey: 'all'    },
+    { key: 'CREATE', labelKey: 'create' },  // mode ∈ NEW_*
+    { key: 'MODIFY', labelKey: 'modify' },  // mode = EXISTING_MODIFY
 ];
 
 function sessionKind(mode) {
@@ -831,31 +849,9 @@ function sessionKind(mode) {
 
 function ActivityCard() {
     const { t } = useTranslation();
-    const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const modeLabel = useModeLabelMap();
+    const { items, loading } = useComposerSessions();
     const [filter, setFilter] = useState('ALL');
-
-    const modeLabel = useMemo(() => ({
-        NEW_NL:          t('composer:mode.newNl.title'),
-        NEW_STEP:        t('composer:mode.newStep.title'),
-        NEW_FROM_COPY:   t('composer:mode.newFromCopy.title'),
-        NEW_FROM_DESIGN: '설계서 기반',
-        EXISTING_MODIFY: t('composer:main.modifyExisting'),
-    }), [t]);
-
-    useEffect(() => {
-        let alive = true;
-        listSessions()
-            .then((res) => {
-                if (!alive) return;
-                const list = (Array.isArray(res.data) ? res.data : [])
-                    .sort((a, b) => (b.createDttm || '').localeCompare(a.createDttm || ''));
-                setItems(list);
-            })
-            .catch(() => { if (alive) setItems([]); })
-            .finally(() => { if (alive) setLoading(false); });
-        return () => { alive = false; };
-    }, []);
 
     const filtered = useMemo(() => {
         const matched = items.filter((s) => {
@@ -870,7 +866,7 @@ function ActivityCard() {
         <Box sx={{ ...CARD_SX, minHeight: 0 }}>
             <CardHead
                 size="md"
-                title="최근 활동"
+                title={t('home.activity.title')}
                 action={
                     <Box sx={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
                         {ACTIVITY_FILTERS.map((f) => (
@@ -879,7 +875,7 @@ function ActivityCard() {
                                 on={filter === f.key}
                                 onClick={() => setFilter(f.key)}
                             >
-                                {f.label}
+                                {t(`home.activity.filter.${f.labelKey}`)}
                             </FilterChip>
                         ))}
                     </Box>
@@ -895,16 +891,16 @@ function ActivityCard() {
                         fontSize: 12, color: PALETTE.textMuted,
                         fontFamily: TYPOGRAPHY.fontFamily,
                     }}>
-                        {filter === 'ALL' ? '최근 활동이 없습니다.' : '해당 조건의 활동이 없습니다.'}
+                        {filter === 'ALL' ? t('home.activity.emptyAll') : t('home.activity.emptyFiltered')}
                     </Box>
                 )}
                 {filtered.map((s) => (
                     <FeedItem
                         key={s.id}
                         kind={sessionKind(s.mode)}
-                        title={s.title || '제목 없음'}
+                        title={s.title || t('home.continue.untitled')}
                         meta={`${modeLabel[s.mode] || s.mode || '-'} · ${s.targetMenuCd || s.targetCd || '-'}`}
-                        time={formatRelativeTime(s.createDttm)}
+                        time={formatRelativeTime(s.createDttm, t)}
                         status={s.status || 'ACTIVE'}
                         onClick={() => resumeSession(s.id)}
                     />
@@ -930,7 +926,7 @@ export default function T3Home() {
                     display: 'flex', alignItems: 'center',
                     px: '16px', py: '10px',
                     bgcolor: '#FFFFFF',
-                    borderBottom: '1px solid #E8E8E8',
+                    borderBottom: `1px solid ${PALETTE.panelBorder}`,
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>

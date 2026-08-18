@@ -37,5 +37,53 @@
     "loading": "Loading...",
     "empty":   "No results",
     "error":   "An error occurred"
+  },
+  "home": {
+    "hero": {
+      "greeting": "Hello 👋",
+      "desc":     "Build screens faster and more accurately with AI Composer.",
+      "guide":    "See Guide"
+    },
+    "templates": {
+      "title":   "Template Examples",
+      "viewAll": "View All Templates",
+      "use":     "Use this template",
+      "badge": {
+        "mostUsed": "Most Used",
+        "popular":  "Popular"
+      }
+    },
+    "quickStart": {
+      "title":         "Quick Start",
+      "quickQuestion": "Quick Question",
+      "nlCreate":      { "title": "Create with NL",      "desc": "Describe requirements — AI generates it" },
+      "patternStart":  { "title": "Start from Pattern",  "desc": "Pick a proven UI pattern" },
+      "copyDesc":      "Copy a screen for a quick start",
+      "nlModify":      { "title": "Modify with NL",      "desc": "Describe changes — AI applies them" },
+      "stepDesc":      "Review the spec, then change only what you need"
+    },
+    "continue": {
+      "title":    "Continue Working",
+      "viewAll":  "View All",
+      "empty":    "No work in progress.",
+      "untitled": "Untitled"
+    },
+    "activity": {
+      "title":         "Recent Activity",
+      "emptyAll":      "No recent activity.",
+      "emptyFiltered": "No activity matches this filter.",
+      "filter":        { "all": "All",    "create": "Create",    "modify": "Modify"   },
+      "status":        { "active": "Active", "completed": "Completed", "archived": "Archived" }
+    },
+    "mode": { "newFromDesign": "From Design" },
+    "time": {
+      "justNow":    "Just now",
+      "minutesAgo": "{{n}} min ago",
+      "hoursAgo":   "{{n}} hr ago",
+      "yesterday":  "Yesterday",
+      "daysAgo":    "{{n}} day(s) ago",
+      "weeksAgo":   "{{n}} week(s) ago",
+      "monthsAgo":  "{{n}} month(s) ago"
+    }
   }
 }

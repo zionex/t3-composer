@@ -37,5 +37,53 @@
     "loading": "불러오는 중...",
     "empty":   "결과 없음",
     "error":   "오류가 발생했습니다"
+  },
+  "home": {
+    "hero": {
+      "greeting": "안녕하세요 👋",
+      "desc":     "AI Composer로 더 빠르고 정확하게 화면을 만들어보세요.",
+      "guide":    "가이드 더보기"
+    },
+    "templates": {
+      "title":   "템플릿 사용 예시",
+      "viewAll": "전체 템플릿 보기",
+      "use":     "이 템플릿 사용하기",
+      "badge": {
+        "mostUsed": "가장 많이 사용",
+        "popular":  "인기"
+      }
+    },
+    "quickStart": {
+      "title":         "빠른 시작",
+      "quickQuestion": "Quick Question",
+      "nlCreate":      { "title": "자연어로 생성", "desc": "요구사항을 설명하면 AI가 생성" },
+      "patternStart":  { "title": "패턴으로 시작", "desc": "검증된 UI 패턴 선택" },
+      "copyDesc":      "화면을 복사해 빠르게 시작",
+      "nlModify":      { "title": "자연어로 수정", "desc": "수정 내용을 설명하면 AI가 반영" },
+      "stepDesc":      "스펙 확인 후 필요한 부분만 변경"
+    },
+    "continue": {
+      "title":    "이어서 작업하기",
+      "viewAll":  "전체 보기",
+      "empty":    "진행 중인 작업이 없습니다.",
+      "untitled": "제목 없음"
+    },
+    "activity": {
+      "title":         "최근 활동",
+      "emptyAll":      "최근 활동이 없습니다.",
+      "emptyFiltered": "해당 조건의 활동이 없습니다.",
+      "filter":        { "all": "전체",   "create": "생성",   "modify": "수정"   },
+      "status":        { "active": "진행중", "completed": "완료", "archived": "보관" }
+    },
+    "mode": { "newFromDesign": "설계서 기반" },
+    "time": {
+      "justNow":    "방금 전",
+      "minutesAgo": "{{n}}분 전",
+      "hoursAgo":   "{{n}}시간 전",
+      "yesterday":  "어제",
+      "daysAgo":    "{{n}}일 전",
+      "weeksAgo":   "{{n}}주 전",
+      "monthsAgo":  "{{n}}달 전"
+    }
   }
 }

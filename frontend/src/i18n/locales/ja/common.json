@@ -37,5 +37,53 @@
     "loading": "読み込み中...",
     "empty":   "結果なし",
     "error":   "エラーが発生しました"
+  },
+  "home": {
+    "hero": {
+      "greeting": "こんにちは 👋",
+      "desc":     "AI Composer で、より速く正確に画面を作りましょう。",
+      "guide":    "ガイドを見る"
+    },
+    "templates": {
+      "title":   "テンプレート使用例",
+      "viewAll": "すべてのテンプレートを見る",
+      "use":     "このテンプレートを使う",
+      "badge": {
+        "mostUsed": "最もよく使う",
+        "popular":  "人気"
+      }
+    },
+    "quickStart": {
+      "title":         "クイックスタート",
+      "quickQuestion": "Quick Question",
+      "nlCreate":      { "title": "自然言語で生成",  "desc": "要件を説明すると AI が生成" },
+      "patternStart":  { "title": "パターンから開始", "desc": "検証済みの UI パターンを選択" },
+      "copyDesc":      "画面をコピーして素早く開始",
+      "nlModify":      { "title": "自然言語で修正",  "desc": "修正内容を説明すると AI が反映" },
+      "stepDesc":      "仕様を確認し、必要な部分だけ変更"
+    },
+    "continue": {
+      "title":    "作業を続ける",
+      "viewAll":  "すべて表示",
+      "empty":    "進行中の作業はありません。",
+      "untitled": "タイトルなし"
+    },
+    "activity": {
+      "title":         "最近のアクティビティ",
+      "emptyAll":      "最近のアクティビティはありません。",
+      "emptyFiltered": "条件に一致するアクティビティはありません。",
+      "filter":        { "all": "すべて", "create": "作成",   "modify": "修正"     },
+      "status":        { "active": "進行中", "completed": "完了", "archived": "アーカイブ" }
+    },
+    "mode": { "newFromDesign": "設計書ベース" },
+    "time": {
+      "justNow":    "たった今",
+      "minutesAgo": "{{n}}分前",
+      "hoursAgo":   "{{n}}時間前",
+      "yesterday":  "昨日",
+      "daysAgo":    "{{n}}日前",
+      "weeksAgo":   "{{n}}週間前",
+      "monthsAgo":  "{{n}}か月前"
+    }
   }
 }

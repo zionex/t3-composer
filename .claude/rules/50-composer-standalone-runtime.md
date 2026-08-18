@@ -978,7 +978,7 @@ displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 
 
 | 룩 | 적용 화면 | 표면 |
 |---|---|---|
-| **A. 흰 패널 (A시안)** | Composer landing (`T3Composer.jsx ModeSelector`) | 흰 배경 `#F6F7F9` + 흰 패널 `#fff` + 보더 `#ECEEF1` + 메인 컬러 `#42BED6` 강조. backdrop-filter 사용 안 함. eyebrow 는 Pretendard JP 10px uppercase letter-spacing `0.09em` `#9AA3AF` (2026-07-08: 이전 JetBrains Mono → Figma v1.0 정본 · Design System v2.0 어느 쪽에도 근거 없어 Pretendard JP 로 통일). 추천 카드(hot) 는 aqua 보더 + 그림자. |
+| **A. 흰 패널 (A시안)** | Composer landing (`T3Composer.jsx ModeSelector`) | 흰 배경 `#F6F7F9` + 흰 패널 `#fff` + 보더 `#E8E8E8` + 메인 컬러 `#42BED6` 강조. backdrop-filter 사용 안 함. eyebrow 는 Pretendard JP 10px uppercase letter-spacing `0.09em` `#9AA3AF` (2026-07-08: 이전 JetBrains Mono → Figma v1.0 정본 · Design System v2.0 어느 쪽에도 근거 없어 Pretendard JP 로 통일). 추천 카드(hot) 는 aqua 보더 + 그림자. |
 | **B. 파스텔 글래스** | History · UI Pattern · Gallery · picker 다이얼로그 · ComposerWorkspace | `theme.js` 의 `GLASS` 토큰 (`rgba(255,255,255,0.72)` + `backdrop-filter:blur(14px)` + 흰 반투명 보더). 강조는 aqua. |
 
 - **공통 규칙**: **다크 그라데이션 헤더/히어로 금지** (두 룩 모두).
@@ -1004,7 +1004,7 @@ displayOptions·컬럼 메타 §13.12)은 모두 wingui 표면과 1:1 이어야 
   `primarySoft #EAF9FB` (aqua-93 · 활성 메뉴/뱃지 배경) · `primaryBorder #C8EFF6` (aqua-85) ·
   `success #86C7A8` · `warning #E6C079` · `error #E0989A` · `info #8FC4D4` ·
   `secondary #9DB4D4` · `textPrimary #1A2330` · `textSecondary #6B7280` ·
-  `textMuted #9AA3AF` (eyebrow/캡션) · `panelBorder #ECEEF1` · `bgDefault #F6F7F9`.
+  `textMuted #9AA3AF` (eyebrow/캡션) · `panelBorder #E8E8E8` · `bgDefault #F6F7F9`.
 - **GLASS 그림자 tint**: `rgba(10,136,168,...)` (aqua-30 = primaryDark 기반). 이전
   `rgba(45,139,168,...)` (teal `#2d8ba8`) · `rgba(124,167,224,...)` (sky `#7CA7E0`) 모두 폐기.
 - **`TYPOGRAPHY`** (Figma v1.0 정본 · Pretendard JP · line-height 120% 기본):

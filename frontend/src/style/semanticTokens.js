@@ -42,7 +42,7 @@ export const PALETTE = {
 
   // 배경 · 보더 (A시안)
   bgDefault:     '#F6F7F9', // main 배경 (옅은 슬레이트)
-  panelBorder:   '#ECEEF1', // 패널 보더
+  panelBorder:   '#E8E8E8', // 패널 보더
 
   // Sidebar — aqua teal 배경 + 흰 텍스트/아이콘. 비활성 row 는 opacity 0.8
   sidebarBg:           A[40],

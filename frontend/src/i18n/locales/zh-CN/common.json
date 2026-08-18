@@ -37,5 +37,53 @@
     "loading": "加载中...",
     "empty":   "无结果",
     "error":   "发生错误"
+  },
+  "home": {
+    "hero": {
+      "greeting": "您好 👋",
+      "desc":     "使用 AI Composer 更快、更精准地创建画面。",
+      "guide":    "查看指南"
+    },
+    "templates": {
+      "title":   "模板使用示例",
+      "viewAll": "查看全部模板",
+      "use":     "使用此模板",
+      "badge": {
+        "mostUsed": "最常用",
+        "popular":  "热门"
+      }
+    },
+    "quickStart": {
+      "title":         "快速开始",
+      "quickQuestion": "Quick Question",
+      "nlCreate":      { "title": "自然语言生成", "desc": "描述需求,AI 自动生成" },
+      "patternStart":  { "title": "从模式开始",   "desc": "选择经过验证的 UI 模式" },
+      "copyDesc":      "复制画面快速开始",
+      "nlModify":      { "title": "自然语言修改", "desc": "描述修改内容,AI 自动反映" },
+      "stepDesc":      "查看规格后,仅更改需要的部分"
+    },
+    "continue": {
+      "title":    "继续工作",
+      "viewAll":  "查看全部",
+      "empty":    "没有正在进行的工作。",
+      "untitled": "无标题"
+    },
+    "activity": {
+      "title":         "最近活动",
+      "emptyAll":      "没有最近活动。",
+      "emptyFiltered": "没有符合条件的活动。",
+      "filter":        { "all": "全部",   "create": "创建",     "modify": "修改"     },
+      "status":        { "active": "进行中", "completed": "已完成", "archived": "已归档" }
+    },
+    "mode": { "newFromDesign": "基于设计书" },
+    "time": {
+      "justNow":    "刚刚",
+      "minutesAgo": "{{n}} 分钟前",
+      "hoursAgo":   "{{n}} 小时前",
+      "yesterday":  "昨天",
+      "daysAgo":    "{{n}} 天前",
+      "weeksAgo":   "{{n}} 周前",
+      "monthsAgo":  "{{n}} 个月前"
+    }
   }
 }

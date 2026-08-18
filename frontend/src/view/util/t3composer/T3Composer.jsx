@@ -91,13 +91,13 @@ const MODIFY_MODE_OPTIONS = [
 // 모드 선택 — A시안 (정돈된 2분할)
 //   상단 hero: 큰 타이틀 + 우측 chip 들 (Target / API Key / LLM / Settings)
 //   본문 2-grid: 좌(신규 개발 3개) / 우(기존 화면 수정 2개 + PIPELINE)
-//   - 흰 패널 + #ECEEF1 보더, 첫 카드(hot=true)는 #42BED6 강조
+//   - 흰 패널 + #E8E8E8 보더, 첫 카드(hot=true)는 #42BED6 강조
 // =====================================================================
 // TEAL/TEAL_* alias 는 Figma aqua 팔레트 전환 후에도 legacy 변수명 그대로 유지 (참조 호환)
 const TEAL          = PALETTE.primary;        // #42BED6 (aqua-60)
 const TEAL_SOFT     = PALETTE.primarySoft;    // #EAF9FB (aqua-93)
 const TEAL_BORDER   = PALETTE.primaryBorder;  // #C8EFF6 (aqua-85)
-const PANEL_BORDER  = PALETTE.panelBorder;    // #ECEEF1
+const PANEL_BORDER  = PALETTE.panelBorder;    // #E8E8E8
 const TXT_PRIMARY   = PALETTE.textPrimary;    // #1A2330
 const TXT_SECONDARY = PALETTE.textSecondary;  // #6B7280
 const TXT_MUTED     = PALETTE.textMuted;      // #9AA3AF

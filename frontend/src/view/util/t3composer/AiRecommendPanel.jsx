@@ -49,6 +49,9 @@ export const EXAMPLES_BY_LNG = {
   'zh-TW': ['依客戶的單價管理', '供應計畫模擬', '庫存狀況查詢'],
 };
 
+// locale 별 예시 배열 lookup + en → ko 폴백. AiRecommendPanel · T3Home 등에서 공유.
+export const getExamples = (lng) => EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
+
 /**
  * AI 추천 진입 화면 (B 레이아웃).
  * props:
@@ -103,7 +106,7 @@ const buildAttachPayload = (atts) => ({
 function AiRecommendPanel({ onBack, onStart, targetCd, initialNl = '' }) {
   const { t } = useTranslation('composer');
   const lng   = useUiLanguage();                                                    // 'ko'|'en'|'ja'|'zh-CN'|'zh-TW'
-  const EXAMPLES = EXAMPLES_BY_LNG[lng] || EXAMPLES_BY_LNG.en || EXAMPLES_BY_LNG.ko;
+  const EXAMPLES = getExamples(lng);
   const [nl, setNl] = useState(initialNl || '');
   const [loading, setLoading] = useState(false);      // 추천 검색 중
   const [fillingIdx, setFillingIdx] = useState(null); // 선택 후 prefill 중 (카드 인덱스)

@@ -22,9 +22,9 @@ const A = atomicColors.color.aqua;
 // PALETTE — semantic 토큰. 화면 코드에서 유일한 색 참조 원천.
 export const PALETTE = {
   // Primary (aqua ladder)
-  primary:       A[60], // #42BED6 — 대표 (★)
-  primaryLight:  A[70], // #6FD0E2
-  primaryDark:   A[30], // #0A88A8 — hover/active · shadow tint 베이스
+  primary:       A[40], // #0C97B7 — 대표 (★)
+  primaryLight:  A[60], // #42BED6 — hover-light (이전 primary 재활용)
+  primaryDark:   A[20], // #07697F — hover/active · shadow tint 베이스
   primarySoft:   A[93], // #EAF9FB — 활성 메뉴/뱃지 배경
   primaryBorder: A[85], // #C8EFF6 — 뱃지/카드 보더
 

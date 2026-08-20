@@ -13,7 +13,7 @@
 
 export const atomicColors = {
   color: {
-    // aqua — 14단계 ladder (대표 60 = #42BED6)
+    // aqua — 14단계 ladder. semantic 매핑(대표/hover/border 등)은 style/semanticTokens.js 참조.
     aqua: {
       99: '#FAFEFF',
       95: '#F2FCFD',
@@ -22,10 +22,10 @@ export const atomicColors = {
       85: '#C8EFF6',
       80: '#A5E3EF',
       70: '#6FD0E2',
-      60: '#42BED6', // ★ 대표 컬러 (primary)
+      60: '#42BED6',
       50: '#0FA8CC',
       40: '#0C97B7',
-      30: '#0A88A8', // primaryDark · hover/active · shadow tint 베이스
+      30: '#0A88A8',
       20: '#07697F',
       15: '#055362',
       10: '#043B49',
@@ -51,7 +51,7 @@ export const atomicColors = {
   },
   variable: {
     // --color-aqua-<step>: registerCssVariables() 가 :root 에 세팅.
-    // 화면에서는 var(--color-aqua-60) 로 참조 가능 (semantic 경유 권장).
+    // 화면에서는 var(--color-aqua-<step>) 로 참조 가능 (semantic 경유 권장).
     '--color-aqua-99': '#FAFEFF',
     '--color-aqua-95': '#F2FCFD',
     '--color-aqua-93': '#EAF9FB',

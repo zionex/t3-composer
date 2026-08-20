@@ -12,8 +12,8 @@
 //   import SvgIcon from '../../style/SvgIcon';
 //   import iconHistory from '../../assets/icons/history.svg';
 //
-//   <SvgIcon src={iconHistory} size={20} />                       // 사이드바 (원본 흰색)
-//   <SvgIcon src={iconHistory} size={14} color="#0C97B7" />       // 탭 헤더 활성
+//   <SvgIcon src={iconHistory} size={20} />                                 // 사이드바 (원본 흰색)
+//   <SvgIcon src={iconHistory} size={14} color={PALETTE.primary} />         // 탭 헤더 활성
 //   <SvgIcon src={iconHistory} size={14} color={PALETTE.headerIconMuted} /> // 탭 헤더 비활성
 // =============================================================================
 

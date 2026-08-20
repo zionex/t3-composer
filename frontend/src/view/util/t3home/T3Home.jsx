@@ -26,8 +26,6 @@ import { PALETTE, TYPOGRAPHY } from '../../../theme';
 // -----------------------------------------------------------------------------
 // 로컬 토큰
 // -----------------------------------------------------------------------------
-const AQUA_40 = '#0C97B7';
-
 const CARD_ELEVATION = {
     border: '1px solid var(--color-aqua-95, #F2FCFD)',
     boxShadow: '0 2px 8px 0 rgba(16,24,40,0.005)',
@@ -80,21 +78,21 @@ function LinkAction({ children, onClick }) {
             onClick={onClick}
             sx={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px', height: '16px',
-                fontSize: 13, fontWeight: 500, color: AQUA_40,
+                fontSize: 13, fontWeight: 500, color: PALETTE.primary,
                 fontFamily: TYPOGRAPHY.fontFamily, cursor: 'pointer',
                 lineHeight: '100%',
                 '&:hover': { textDecoration: 'underline' },
             }}
         >
             {children}
-            <SvgIcon src={iconRedo} size={14} color={AQUA_40} />
+            <SvgIcon src={iconRedo} size={14} color={PALETTE.primary} />
         </Box>
     );
 }
 
 function Pill({ variant, children }) {
     const map = {
-        done: { bg: '#E8F7FB', fg: AQUA_40   },
+        done: { bg: '#E8F7FB', fg: PALETTE.primary   },
         new:  { bg: '#F0EBFF', fg: '#7C5CFC' },
     };
     const c = map[variant] || map.new;
@@ -153,12 +151,12 @@ function HeroCard() {
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="outlined"
-                endIcon={<SvgIcon src={iconRedo} size={14} color={AQUA_40} />}
+                endIcon={<SvgIcon src={iconRedo} size={14} color={PALETTE.primary} />}
                 sx={{
                     alignSelf: 'flex-start',
                     height: 28,
-                    borderColor: AQUA_40,
-                    color: AQUA_40,
+                    borderColor: PALETTE.primary,
+                    color: PALETTE.primary,
                     bgcolor: 'transparent',
                     fontFamily: TYPOGRAPHY.fontFamily,
                     fontSize: 12, fontWeight: 700,
@@ -167,7 +165,7 @@ function HeroCard() {
                     '& .MuiButton-endIcon': { ml: '4px', mr: 0 },
                     '&:hover': {
                         bgcolor: 'rgba(12,151,183,0.06)',
-                        borderColor: AQUA_40,
+                        borderColor: PALETTE.primary,
                         textDecoration: 'none',
                     },
                 }}
@@ -175,15 +173,59 @@ function HeroCard() {
                 {t('home.hero.guide')}
             </Button>
 
-            {/* TODO: 가이드 카드 — 내용 미정 */}
-            {/* <Box sx={{
-                height: '60%',
+            <Box sx={{
+                height: 203, flexShrink: 0,
                 bgcolor: '#FFFFFF',
                 border: `1px solid ${PALETTE.panelBorder}`,
                 borderRadius: '12px',
-                p: '16px',
+                overflow: 'hidden',
+            }}>
+              <Box sx={{
+                height: '100%',
+                p: '17px',
                 display: 'flex', flexDirection: 'column', gap: '8px',
-            }} /> */}
+                overflow: 'auto',
+              }}>
+                <Typography sx={{
+                    fontFamily: TYPOGRAPHY.fontFamily,
+                    fontSize: 13, fontWeight: 700,
+                    color: '#000000',
+                    lineHeight: 'normal',
+                }}>
+                    ‘자연어 생성’ 가이드라인
+                </Typography>
+                <Box sx={{
+                    fontFamily: TYPOGRAPHY.fontFamily,
+                    fontSize: 13, fontWeight: 500,
+                    color: '#666666',
+                    lineHeight: '16.5px',
+                    '& p': { m: 0, lineHeight: '16.5px' },
+                    '& ol': { pl: '19.5px', m: 0, listStyle: 'decimal' },
+                    '& ul': { pl: '19.5px', m: 0, listStyle: 'disc' },
+                    '& li': { m: 0 },
+                }}>
+                    <p>자연어 생성 (Natural Lang.)</p>
+                    <p>가장 자유로운 방식입니다. 만들고 싶은 화면을 한국어 문장으로 적으면 Claude 가 화면 패턴·데이터 바인딩·SP·메뉴 SQL 까지 한꺼번에 생성합니다.</p>
+                    <p>흐름</p>
+                    <ol>
+                        <li>모드 선택 → “자연어 생성” 클릭</li>
+                        <li>큰 textarea 에 요구사항 작성 (예: “사용자별 부서/직위 관리 화면을 만들어 줘. 검색조건은 부서·사용자명, 그리드에 코드·이름·이메일”)</li>
+                        <li>
+                            선택사항 — 아래 4가지 중 하나 또는 여러 개 사용 가능:
+                            <ul>
+                                <li>SCM UI Mockup 선택 — 운영 화면 mockup 1개를 참조 템플릿으로 (mockup ↔ UI Pattern 상호 배타)</li>
+                                <li>UI Pattern 선택 — T3MES 패턴 1개를 참조 마크업으로</li>
+                                <li>참조 파일 첨부 — SQL · 설계서 이미지 · 캡처 (최대 5개, 파일당 5MB · 텍스트는 prompt inline · 이미지는 Anthropic vision)</li>
+                                <li>Data Source 선택 — DB Entity (별자리 맵에서 테이블/SP 선택) · Ontology Q&A · 인라인 쿼리</li>
+                            </ul>
+                        </li>
+                        <li>[화면 생성 시작] 클릭 → Composer 작업공간이 열리며 Claude 가 ===FILE: 마커로 산출물 6~8종 출력</li>
+                        <li>우측 [실행 화면 LIVE] 탭에서 자동으로 화면 미리보기 확인</li>
+                        <li>오류 시 자동보완 ON 으로 두면 Claude 가 자체적으로 1회 수정 시도</li>
+                    </ol>
+                </Box>
+              </Box>
+            </Box>
         </Box>
     );
 }
@@ -194,7 +236,7 @@ function HeroCard() {
 
 const PREVIEW_W = 1400;
 const PREVIEW_H = 900;
-const HEADER_SKIP = 100;
+const HEADER_SKIP = 60;
 
 function TemplatePreview({ entry }) {
     const ref = useRef(null);
@@ -247,7 +289,7 @@ function TemplatePreview({ entry }) {
 
 function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse }) {
     const { t } = useTranslation();
-    const iconColor = badge ? (badgeVariant === 'new' ? '#7C5CFC' : AQUA_40) : '#10B981';
+    const iconColor = badge ? (badgeVariant === 'new' ? '#7C5CFC' : PALETTE.primary) : '#10B981';
     return (
         <Box sx={{
             p: '16px', display: 'flex', flexDirection: 'column', gap: '10px',
@@ -301,13 +343,13 @@ function TemplateCard({ iconSrc, title, badge, badgeVariant, mockup, desc, onUse
                     sx={{
                         display: 'inline-flex', alignItems: 'center', gap: '4px',
                         fontFamily: TYPOGRAPHY.fontFamily,
-                        fontSize: 12, fontWeight: 700, color: AQUA_40,
+                        fontSize: 12, fontWeight: 700, color: PALETTE.primary,
                         lineHeight: 'normal', cursor: 'pointer',
                         '&:hover': { textDecoration: 'underline' },
                     }}
                 >
                     {t('home.templates.use')}
-                    <SvgIcon src={iconRedo} size={10} color={AQUA_40} />
+                    <SvgIcon src={iconRedo} size={10} color={PALETTE.primary} />
                 </Box>
             </Box>
         </Box>
@@ -338,7 +380,7 @@ function TemplatesCard() {
     return (
         <Box sx={CARD_SX}>
             <CardHead
-                icon={<SvgIcon src={iconAiStarFill} size={16} color={AQUA_40} />}
+                icon={<SvgIcon src={iconAiStarFill} size={16} color={PALETTE.primary} />}
                 title={t('home.templates.title')}
                 action={<LinkAction onClick={openMockupTab}>{t('home.templates.viewAll')}</LinkAction>}
             />
@@ -396,7 +438,7 @@ function QsCard({ iconSrc, title, desc, onClick }) {
                 bgcolor: PALETTE.primarySoft,
                 display: 'grid', placeItems: 'center', flexShrink: 0,
             }}>
-                <SvgIcon src={iconSrc} size={18} color={AQUA_40} />
+                <SvgIcon src={iconSrc} size={18} color={PALETTE.primary} />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Typography sx={{
@@ -515,7 +557,7 @@ function QuickStartCard() {
                                 '&:hover': {
                                     borderColor: PALETTE.primaryBorder,
                                     bgcolor: '#E8F7FB',
-                                    color: AQUA_40,
+                                    color: PALETTE.primary,
                                 },
                                 '&:focus-visible': {
                                     outline: `2px solid ${PALETTE.primary}`, outlineOffset: '2px',
@@ -557,7 +599,7 @@ function ContinueItem({ title, step, code, time, iconSrc, onClick }) {
                 bgcolor: PALETTE.primarySoft,
                 display: 'grid', placeItems: 'center', flexShrink: 0,
             }}>
-                <SvgIcon src={iconSrc || iconGrid} size={15} color={AQUA_40} />
+                <SvgIcon src={iconSrc || iconGrid} size={15} color={PALETTE.primary} />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography sx={{
@@ -574,7 +616,7 @@ function ContinueItem({ title, step, code, time, iconSrc, onClick }) {
                     fontSize: 13, lineHeight: 'normal',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                    <Box component="span" sx={{ color: AQUA_40, fontWeight: 600 }}>{step}</Box>
+                    <Box component="span" sx={{ color: PALETTE.primary, fontWeight: 600 }}>{step}</Box>
                     <Box component="span" sx={{ color: '#999999' }}>{` · ${code}`}</Box>
                 </Box>
             </Box>
@@ -732,7 +774,7 @@ function FilterChip({ on, onClick, children }) {
             sx={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 px: '9px', py: '4px', borderRadius: '999px',
-                bgcolor: on ? AQUA_40 : 'transparent',
+                bgcolor: on ? PALETTE.primary : 'transparent',
                 color: on ? '#FFFFFF' : '#999999',
                 fontFamily: TYPOGRAPHY.fontFamily,
                 fontSize: 11, fontWeight: 700, lineHeight: '17.5px',
@@ -748,7 +790,7 @@ function FilterChip({ on, onClick, children }) {
 }
 
 const STATUS_BADGE = {
-    ACTIVE:    { labelKey: 'active',    bg: PALETTE.primarySoft, fg: AQUA_40   },
+    ACTIVE:    { labelKey: 'active',    bg: PALETTE.primarySoft, fg: PALETTE.primary   },
     COMPLETED: { labelKey: 'completed', bg: '#F3FBF0',           fg: '#10B981' },
     ARCHIVED:  { labelKey: 'archived',  bg: '#F2F2F2',           fg: '#666666' },
 };

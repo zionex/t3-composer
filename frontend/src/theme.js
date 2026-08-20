@@ -14,8 +14,7 @@
 //   2) 하위 호환용 re-export — 화면들이 `import { PALETTE, TYPOGRAPHY } from '../../../theme'`
 //      로 계속 동작하도록 (신규 화면은 `../../../style` 직접 권장)
 //
-// 대표 컬러 (Figma "T3Composer 디자인 가이드 v1.0" 정본):
-//   primary #42BED6 (aqua-60 ★), primaryDark #0A88A8 (aqua-30 · shadow tint)
+// 대표 컬러: aqua ladder 기반 semantic 슬롯. 실제 hex 는 style/semanticTokens.js 를 진실 저장소로 참조.
 //
 // 텍스트 최소화 컨벤션: 1줄 초과 설명은 화면에서 빼고 <InfoDot title={...}/> 대체.
 // =============================================================================

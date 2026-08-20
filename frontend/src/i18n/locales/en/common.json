@@ -42,7 +42,23 @@
     "hero": {
       "greeting": "Hello 👋",
       "desc":     "Build screens faster and more accurately with AI Composer.",
-      "guide":    "See Guide"
+      "guide":    "See Guide",
+      "guideCard": {
+        "title":      "‘Natural Language Generation’ Guide",
+        "intro":      "Natural Language Generation",
+        "desc":       "The most flexible mode. Write your screen requirements as natural-language sentences, and Claude generates the pattern, data binding, SP, and menu SQL together.",
+        "flowLabel":  "Flow",
+        "step1":      "In mode selection, click “Natural Language”",
+        "step2":      "Type requirements in the large textarea (e.g., “Create a user-by-department/position management screen. Filters: department, user name. Grid: code, name, email.”)",
+        "step3":      "Optional — choose one or several of these:",
+        "sub1":       "Pick SCM UI Mockup — one production mockup as reference (mockup ↔ UI Pattern are mutually exclusive)",
+        "sub2":       "Pick UI Pattern — one T3MES pattern as reference markup",
+        "sub3":       "Attach reference files — SQL, design images, screenshots (up to 5, 5MB each · text inlined into prompt · images use Anthropic vision)",
+        "sub4":       "Pick Data Source — DB Entity (pick table/SP from constellation map) · Ontology Q&A · inline query",
+        "step4":      "Click [Start Generation] → Composer workspace opens; Claude emits 6–8 artifacts marked with ===FILE:",
+        "step5":      "The right [Screen LIVE] tab automatically shows the preview",
+        "step6":      "With ‘auto-fix on error’ ON, Claude attempts one self-fix automatically"
+      }
     },
     "templates": {
       "title":   "Template Examples",

@@ -192,7 +192,7 @@ function HeroCard() {
                     color: '#000000',
                     lineHeight: 'normal',
                 }}>
-                    ‘자연어 생성’ 가이드라인
+                    {t('home.hero.guideCard.title')}
                 </Typography>
                 <Box sx={{
                     fontFamily: TYPOGRAPHY.fontFamily,
@@ -204,24 +204,24 @@ function HeroCard() {
                     '& ul': { pl: '19.5px', m: 0, listStyle: 'disc' },
                     '& li': { m: 0 },
                 }}>
-                    <p>자연어 생성 (Natural Lang.)</p>
-                    <p>가장 자유로운 방식입니다. 만들고 싶은 화면을 한국어 문장으로 적으면 Claude 가 화면 패턴·데이터 바인딩·SP·메뉴 SQL 까지 한꺼번에 생성합니다.</p>
-                    <p>흐름</p>
+                    <p>{t('home.hero.guideCard.intro')}</p>
+                    <p>{t('home.hero.guideCard.desc')}</p>
+                    <p>{t('home.hero.guideCard.flowLabel')}</p>
                     <ol>
-                        <li>모드 선택 → “자연어 생성” 클릭</li>
-                        <li>큰 textarea 에 요구사항 작성 (예: “사용자별 부서/직위 관리 화면을 만들어 줘. 검색조건은 부서·사용자명, 그리드에 코드·이름·이메일”)</li>
+                        <li>{t('home.hero.guideCard.step1')}</li>
+                        <li>{t('home.hero.guideCard.step2')}</li>
                         <li>
-                            선택사항 — 아래 4가지 중 하나 또는 여러 개 사용 가능:
+                            {t('home.hero.guideCard.step3')}
                             <ul>
-                                <li>SCM UI Mockup 선택 — 운영 화면 mockup 1개를 참조 템플릿으로 (mockup ↔ UI Pattern 상호 배타)</li>
-                                <li>UI Pattern 선택 — T3MES 패턴 1개를 참조 마크업으로</li>
-                                <li>참조 파일 첨부 — SQL · 설계서 이미지 · 캡처 (최대 5개, 파일당 5MB · 텍스트는 prompt inline · 이미지는 Anthropic vision)</li>
-                                <li>Data Source 선택 — DB Entity (별자리 맵에서 테이블/SP 선택) · Ontology Q&A · 인라인 쿼리</li>
+                                <li>{t('home.hero.guideCard.sub1')}</li>
+                                <li>{t('home.hero.guideCard.sub2')}</li>
+                                <li>{t('home.hero.guideCard.sub3')}</li>
+                                <li>{t('home.hero.guideCard.sub4')}</li>
                             </ul>
                         </li>
-                        <li>[화면 생성 시작] 클릭 → Composer 작업공간이 열리며 Claude 가 ===FILE: 마커로 산출물 6~8종 출력</li>
-                        <li>우측 [실행 화면 LIVE] 탭에서 자동으로 화면 미리보기 확인</li>
-                        <li>오류 시 자동보완 ON 으로 두면 Claude 가 자체적으로 1회 수정 시도</li>
+                        <li>{t('home.hero.guideCard.step4')}</li>
+                        <li>{t('home.hero.guideCard.step5')}</li>
+                        <li>{t('home.hero.guideCard.step6')}</li>
                     </ol>
                 </Box>
               </Box>

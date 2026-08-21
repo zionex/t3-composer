@@ -17,6 +17,18 @@ const AQ = atomicColors.color.aqua;
 const DANGER_BORDER = '#FF6365';
 const DANGER_TEXT   = '#FF4649';
 
+// 인증키 검증 — 유효 키 = COMPOSER_AUTH_KEY_PREFIX + 오늘 YYYYMMDD.
+// prefix 는 .env 의 COMPOSER_AUTH_KEY_PREFIX (webpack DefinePlugin) — 미설정 시 'zjavhwj'.
+// 날짜 부분은 매일 자동 변경되므로 별도 env 갱신 불필요.
+const AUTH_KEY_PREFIX = process.env.COMPOSER_AUTH_KEY_PREFIX || 'zjavhwj';
+function todayYYYYMMDD() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}`;
+}
+
 // 우측 배경 — Figma 원본 radial gradient SVG 그대로
 const RIGHT_BG_SVG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 960 1080' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'>" +
@@ -50,12 +62,15 @@ export default function Login({ onPass }) {
             setError('인증키를 입력해 주세요.');
             return;
         }
-        // TODO: 인증키 검증 로직을 여기에 삽입.
-        //   - 검증 실패 시:   setError('발급받은 인증키를 다시 확인해주세요.'); return;
-        //   - 검증 성공 시:   아래 onPass 호출을 그대로 진행 (remember 값에 따라 저장 여부 결정)
+        // 인증키 검증 — 유효 키 = AUTH_KEY_PREFIX + 오늘 날짜(YYYYMMDD).
+        const validKey = `${AUTH_KEY_PREFIX}${todayYYYYMMDD()}`;
+        if (trimmed !== validKey) {
+            setError('발급받은 인증키를 다시 확인해주세요.');
+            return;
+        }
         setError('');
-        // TODO: remember=true 면 통과 키를 저장소(localStorage 등)에 보관하는 처리는
-        //   호출측(App.jsx Root)에서 수행. 여기서는 값과 옵션만 전달.
+        // remember=true 면 통과 키를 저장소(localStorage 등)에 보관하는 처리는
+        // 호출측(App.jsx Root)에서 수행. 여기서는 값과 옵션만 전달.
         onPass?.(trimmed, { remember });
     };
 

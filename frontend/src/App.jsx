@@ -31,6 +31,7 @@ import T3Dashboard from './view/util/t3dashboard/T3Dashboard';
 import T3Mockup from './view/util/t3mockup/T3Mockup';
 import OntologyPage from './view/util/t3composer/ontology/OntologyPage';
 import PreviewLoader from './view/util/preview/PreviewLoader';
+import Login from './view/util/login/Login';
 import { ShowMessageHost } from '@wingui/common/imports';
 
 /**
@@ -47,6 +48,10 @@ import { ShowMessageHost } from '@wingui/common/imports';
 
 // INSIGHT_ENABLED — false 시 Dashboard 메뉴 숨김
 const INSIGHT_ENABLED = process.env.INSIGHT_ENABLED === 'true';
+
+// SHOW_LOGIN_PAGE — true 시 최초 진입에 로그인 화면 노출.
+// TODO: 특정 환경에서만 true 가 되도록 로직 삽입.
+const SHOW_LOGIN_PAGE = false;
 
 const MENU_ITEMS = [
     { key: 'home',     labelKey: 'app.menu.home',        hintKey: 'app.menuHint.home',        iconLine: iconHomeLine,   iconFill: iconHomeFill,   Component: T3Home },
@@ -428,12 +433,25 @@ function TabbedHome() {
     );
 }
 
+// Root — 게이트 상수가 true 면 로그인 화면을 먼저 보여준 뒤 통과 시 TabbedHome.
+function Root() {
+    // TODO: passed 초기값 — 유효한 통과 키가 있으면 true 로 시작.
+    //   현재는 매 새로고침마다 SHOW_LOGIN_PAGE 만 보고 재판정 (지속성 없음). -> 추후 sessionStorage에서 통과 키 확인 후 기억 필요.
+    const [passed, setPassed] = useState(!SHOW_LOGIN_PAGE);
+    if (!passed) {
+        // TODO: onPass(key, { remember }) — remember=true 이면 통과 키를 저장소에 보관해
+        //   다음 진입 시 위 passed 초기값 복원에 사용. 현재는 통과만 처리.
+        return <Login onPass={() => setPassed(true)} />;
+    }
+    return <TabbedHome />;
+}
+
 export default function App() {
     return (
         <Box sx={{ height: '100%' }}>
             <Switch>
                 <Route path="/preview/" component={PreviewLoader} />
-                <Route path="/" component={TabbedHome} />
+                <Route path="/" component={Root} />
             </Switch>
             <ShowMessageHost />
         </Box>

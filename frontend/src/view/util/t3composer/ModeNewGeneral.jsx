@@ -43,6 +43,7 @@ import useUiLanguage from './useUiLanguage';
 import { useTargetStore } from './targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
+import PageHeader from './PageHeader';
 import MockupPickerDialog    from './MockupPickerDialog';
 import { getMockupSource }   from '../t3mockup/_data/mockup-sources';
 import Mockup3DGallery       from './Mockup3DGallery';
@@ -281,8 +282,9 @@ function ModeNewGeneral({ onBack, startWith = null }) {
   ]);
 
   // prompt 변경 시 600ms 디바운스 후 자동 테이블 lookup (NEW_NL 모드 진입 단계)
+  // ★ prompt 안에 TB_* 패턴이 있을 때만 API 호출 — 없으면 lookup 패널 자체가 뜨지 않아 깜빡임 방지
   useEffect(() => {
-    if (subMode !== 'NL' || !prompt || !prompt.trim()) {
+    if (subMode !== 'NL' || !prompt || !prompt.trim() || !/\bTB_[A-Z][A-Z0-9_]*\b/.test(prompt)) {
       setTableLookup({ extracted: [], results: {}, formattedForPrompt: '' });
       return undefined;
     }
@@ -649,31 +651,43 @@ function ModeNewGeneral({ onBack, startWith = null }) {
 
   // ----- 공용 헤더 -----
   const Header = (
-    <Stack direction="row" alignItems="center" sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-      <Button startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} size="small">
-        {t('modeNewNl.header.back')}
-      </Button>
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
-        <AutoAwesomeIcon sx={{ color: startWith === 'STEP' ? '#7c3aed' : '#059669' }} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          {startWith === 'NL'   ? t('modeNewNl.header.titleNl')
-           : startWith === 'STEP' ? t('modeNewNl.header.titleStep')
-           : t('modeNewNl.header.titleGeneral')}
-        </Typography>
-      </Stack>
-      {subMode && module && (
-        <Chip
-          label={`${module.code} · ${localizedModuleName(module, lng)}`}
-          size="small"
-          sx={{ ml: 2, bgcolor: `${module.color}22`, color: module.color, fontWeight: 500 }}
-        />
-      )}
-      {subMode === 'NL' && (
-        <Button size="small" onClick={reset} sx={{ ml: 'auto' }}>
+    <PageHeader
+      onBack={onBack}
+      backLabel={t('modeNewNl.header.back')}
+      icon={AutoAwesomeIcon}
+      iconColor={startWith === 'STEP' ? '#7c3aed' : '#059669'}
+      title={
+        startWith === 'NL'   ? t('modeNewNl.header.titleNl')
+        : startWith === 'STEP' ? t('modeNewNl.header.titleStep')
+        : t('modeNewNl.header.titleGeneral')
+      }
+      right={subMode === 'NL' && (
+        <Button size="small" onClick={reset}>
           {t('modeNewNl.header.restart')}
         </Button>
       )}
-    </Stack>
+    >
+      {subMode && module && (
+        <>
+          <Typography sx={{
+            fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+            fontWeight: 700, fontSize: 16, color: '#222',
+          }}>/</Typography>
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center',
+            bgcolor: '#f2f2f2', borderRadius: '4px', px: '6px', py: '4px',
+          }}>
+            <Typography sx={{
+              fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+              fontWeight: 500, fontSize: 14, color: '#222',
+              whiteSpace: 'nowrap', lineHeight: 1,
+            }}>
+              {`${module.code} · ${localizedModuleName(module, lng)}`}
+            </Typography>
+          </Box>
+        </>
+      )}
+    </PageHeader>
   );
 
   // ----- Phase 1: 서브모드 선택 -----

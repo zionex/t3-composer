@@ -29,7 +29,6 @@ import {
   ToggleButtonGroup,
 } from '@mui/material';
 
-import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 import OpenInNewIcon  from '@mui/icons-material/OpenInNew';
 import SearchIcon     from '@mui/icons-material/Search';
 import ClearIcon      from '@mui/icons-material/Clear';
@@ -299,62 +298,12 @@ function T3mesPatternCatalog() {
     return (
       <ContentInner>
         <WorkArea>
-          <Box sx={{
-            p: 0.9, flexShrink: 0,
-            bgcolor: '#FFFFFF',
-            borderBottom: `1px solid ${PALETTE.panelBorder}`,
-          }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Button
-                size="small" variant="outlined" startIcon={<ArrowBackIcon />}
-                onClick={closeEntry}
-              >
-                {t('uiPattern.backToList')}
-              </Button>
-              <Divider orientation="vertical" flexItem />
-              <Chip
-                size="small"
-                label={active.section}
-                sx={{
-                  height: 20, fontSize: 11, fontWeight: 700,
-                  bgcolor: `${active.sectionColor}1A`, color: active.sectionColor,
-                  border: `1px solid ${active.sectionColor}55`,
-                }}
-              />
-              <Typography variant="caption" sx={{ color: PALETTE.textSecondary }}>
-                {isEn ? (active.groupEn || active.group) : active.group}
-              </Typography>
-              <Box component="span" sx={{ color: PALETTE.textMuted }}>›</Box>
-              {active.tabLabel ? (
-                <>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: PALETTE.textPrimary }}>
-                    {localizeLabel(active.tabLabel, isEn)}
-                  </Typography>
-                  <Chip
-                    size="small"
-                    label={`#${active.tabIndex + 1}`}
-                    sx={{
-                      fontFamily: 'monospace', fontSize: 10, height: 18,
-                      bgcolor: PALETTE.primarySoft, color: PALETTE.primary,
-                      border: `1px solid ${PALETTE.primaryBorder}`,
-                    }}
-                  />
-                </>
-              ) : (
-                <Typography variant="body2" sx={{ fontWeight: 700, color: PALETTE.textPrimary }}>
-                  {isEn ? (active.fileLabelEn || active.fileLabel) : active.fileLabel}
-                </Typography>
-              )}
-              <Chip
-                size="small"
-                label={active.srcUrl.replace(/^\//, '')}
-                sx={{
-                  fontFamily: 'monospace', fontSize: 10, height: 18,
-                  bgcolor: '#F4F6F8', color: PALETTE.textSecondary,
-                  border: `1px solid ${PALETTE.panelBorder}`,
-                }}
-              />
-              <Box sx={{ flex: 1 }} />
+          <PageHeader
+            onBack={closeEntry}
+            backLabel={t('uiPattern.backToList')}
+            icon={iconStacksFill}
+            title={t('common:app.menu.uiPattern')}
+            right={<>
               {active.liteUrl && (
                 <Tooltip title={t('uiPattern.openLite')}>
                   <Button
@@ -374,8 +323,55 @@ function T3mesPatternCatalog() {
                   <OpenInNewIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-            </Stack>
-          </Box>
+            </>}
+          >
+            <Typography sx={{
+              fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+              fontWeight: 700, fontSize: 16, color: '#222',
+            }}>/</Typography>
+            <Chip
+              size="small"
+              label={active.section}
+              sx={{
+                height: 20, fontSize: 11, fontWeight: 700,
+                bgcolor: `${active.sectionColor}1A`, color: active.sectionColor,
+                border: `1px solid ${active.sectionColor}55`,
+              }}
+            />
+            <Typography variant="caption" sx={{ color: PALETTE.textSecondary }}>
+              {isEn ? (active.groupEn || active.group) : active.group}
+            </Typography>
+            <Box component="span" sx={{ color: PALETTE.textMuted }}>›</Box>
+            {active.tabLabel ? (
+              <>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: PALETTE.textPrimary }}>
+                  {localizeLabel(active.tabLabel, isEn)}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`#${active.tabIndex + 1}`}
+                  sx={{
+                    fontFamily: 'monospace', fontSize: 10, height: 18,
+                    bgcolor: PALETTE.primarySoft, color: PALETTE.primary,
+                    border: `1px solid ${PALETTE.primaryBorder}`,
+                  }}
+                />
+              </>
+            ) : (
+              <Typography variant="body2" sx={{ fontWeight: 700, color: PALETTE.textPrimary }}>
+                {isEn ? (active.fileLabelEn || active.fileLabel) : active.fileLabel}
+              </Typography>
+            )}
+            <Chip
+              size="small"
+              label={active.srcUrl.replace(/^\//, '')}
+              sx={{
+                fontFamily: 'monospace', fontSize: 10, height: 18,
+                bgcolor: '#F4F6F8', color: PALETTE.textSecondary,
+                border: `1px solid ${PALETTE.panelBorder}`,
+              }}
+            />
+          </PageHeader>
           <Box sx={{ flex: 1, minHeight: 0, position: 'relative', bgcolor: '#1e293b' }}>
             {/*
               분리본 부트스트랩 setTimeout(go, 120ms) 직후 fade-in — 30ms 여유.

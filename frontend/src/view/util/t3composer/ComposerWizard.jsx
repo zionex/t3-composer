@@ -21,6 +21,7 @@ import { Box, Button, Stack, Typography, Snackbar, Alert } from '@mui/material';
 import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
+import PageHeader        from './PageHeader';
 import LayoutStep        from './LayoutStep';
 import DataAndFilterStep from './DataAndFilterStep';
 import MetaStep          from './MetaStep';
@@ -99,18 +100,22 @@ function ComposerWizard({ initialSpec, initialAttachments = [], mode = 'NEW_STEP
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
       {/* ── 상단 헤더 (뒤로 + 현재 spec 메타 hint) ── */}
-      <Stack direction="row" alignItems="center" spacing={1}
-             sx={{ p: 1, borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
-        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>
-          {t('buttons.backPicker')}
-        </Button>
-        <Typography variant="caption" sx={{ color: '#64748b', ml: 1 }}>
+      <PageHeader
+        onBack={onBack}
+        backLabel={t('buttons.backPicker')}
+      >
+        <Typography sx={{
+          fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+          fontWeight: 400, fontSize: 13, color: '#64748b',
+          whiteSpace: 'nowrap',
+          '& b': { fontWeight: 700, color: '#222' },
+        }}>
           {t('header.patternHint')} <b>{spec?.meta?.pattern || 'BLANK'}</b>
           {spec?.meta?.menuCd && (
             <> · {t('header.menuHint')} <b>{spec.meta.menuCd}</b></>
           )}
         </Typography>
-      </Stack>
+      </PageHeader>
 
       {/* ── Stepper ── */}
       <Box sx={{ p: 1.2, borderBottom: '1px solid #e2e8f0', flexShrink: 0,

@@ -14,8 +14,7 @@
  */
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Button, Stack, Paper } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, Typography, Stack, Paper } from '@mui/material';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import ViewQuiltIcon          from '@mui/icons-material/ViewQuilt';
 import EditOutlinedIcon       from '@mui/icons-material/EditOutlined';
@@ -23,6 +22,7 @@ import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
 import DashboardIcon         from '@mui/icons-material/Dashboard';
 
 import ComposerWizard from './ComposerWizard';
+import PageHeader from './PageHeader';
 import T3Dashboard from '../../util/t3dashboard/T3Dashboard';
 import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
@@ -68,15 +68,15 @@ function ModeNewStep({ onBack, initialStage, initialNl = '', initialMockupCode =
 
   if (stage === 'DASHBOARD') {
     return (
-      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-          <Button size="small" startIcon={<ArrowBackIcon />} onClick={() => setStage('PICK')}>{t('modeNewStep.back')}</Button>
-          <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800 }}>
-            {t('modeNewStep.dashboardTitle')}
-          </Typography>
-        </Stack>
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <PageHeader
+          onBack={() => setStage('PICK')}
+          backLabel={t('modeNewStep.back')}
+          title={t('modeNewStep.dashboardTitle')}
+        />
         <Box sx={{ flex: 1, minHeight: 0 }}>
           <T3Dashboard
+            showHeader={false}
             onUseAsScreen={(dashboard) => {
               if (!dashboard) return;
               setSpec(specFromDashboard(dashboard, { title: dashboard.name || dashboard.title || t('modeNewStep.newScreenDefault'), menuCd: '' }));
@@ -102,14 +102,14 @@ function ModeNewStep({ onBack, initialStage, initialNl = '', initialMockupCode =
   // stage === 'PICK'
   return (
     <>
-    <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <Button size="small" startIcon={<ArrowBackIcon />} onClick={onBack}>{t('modeNewStep.back')}</Button>
-        <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 800 }}>
-          {t('modeNewStep.title')}
-        </Typography>
-      </Stack>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <PageHeader
+        onBack={onBack}
+        backLabel={t('modeNewStep.back')}
+        title={t('modeNewStep.title')}
+      />
 
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 3 }}>
       <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
         {t('modeNewStep.hint')}
       </Typography>
@@ -201,6 +201,7 @@ function ModeNewStep({ onBack, initialStage, initialNl = '', initialMockupCode =
         </Paper>
 
       </Stack>
+      </Box>
     </Box>
 
     <MockupPickerDialog

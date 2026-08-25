@@ -14,15 +14,17 @@ import PageHeader from '../t3composer/PageHeader';
  *   x-user-id 헤더 자동 주입 (serviceCall.js). ENABLE_AUTH=true 시 access_token 도 주입.
  * - 레이아웃: 공용 PageHeader + 콘텐츠 영역 (다른 페이지들과 동일 골격)
  */
-export default function T3Dashboard({ onUseAsScreen } = {}) {
+export default function T3Dashboard({ onUseAsScreen, showHeader = true } = {}) {
   const { t } = useTranslation();
   return (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <PageHeader
-        title={t('common:app.menu.dashboard')}
-        icon={InsertChartOutlinedIcon}
-        caption={t('common:app.menuHint.dashboard')}
-      />
+      {showHeader && (
+        <PageHeader
+          title={t('common:app.menu.dashboard')}
+          icon={InsertChartOutlinedIcon}
+          caption={t('common:app.menuHint.dashboard')}
+        />
+      )}
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
         <Suspense
           fallback={

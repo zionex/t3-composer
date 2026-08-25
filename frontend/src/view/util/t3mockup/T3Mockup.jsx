@@ -3,10 +3,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Box, Card, CardContent, Typography, Chip, Stack, TextField, MenuItem,
   ToggleButton, ToggleButtonGroup, Grid, CircularProgress, Button, Tooltip,
-  Collapse, IconButton, Table, TableHead, TableBody, TableRow, TableCell,
+  Collapse, Table, TableHead, TableBody, TableRow, TableCell,
   InputAdornment,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -411,17 +410,14 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
   return (
     <ContentInner>
       {/* 헤더 (상단 한 줄) */}
-      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', backgroundColor: 'background.default' }}>
-        <Stack direction="row" alignItems="center" sx={{ p: 0.75, gap: 1 }}>
-          <Button size="small" startIcon={<ArrowBackIcon />} onClick={closeMockup}>
-            {t('mockup.backToList')}
-          </Button>
-          <Chip size="small" label={activeEntry?.patternCode} />
-          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-            {localizePatternLabel(activeEntry?.patternLabel, isEn)}
-          </Typography>
-          <Box sx={{ flex: 1 }} />
-          {mappedMenus.length > 0 && (
+      <Box sx={{ bgcolor: '#ffffff', borderBottom: '1px solid #e8e8e8', flexShrink: 0 }}>
+        <PageHeader
+          noBorder
+          onBack={closeMockup}
+          backLabel={t('mockup.backToList')}
+          icon={iconTemplate}
+          title={t('common:app.menu.scmUiMockup')}
+          right={mappedMenus.length > 0 && (
             <Button
               size="small"
               startIcon={<ListAltIcon fontSize="small" />}
@@ -434,7 +430,31 @@ function ActiveView({ active, ActiveComp, closeMockup }) {
               {t('mockup.usedMenus', { n: mappedMenus.length })}
             </Button>
           )}
-        </Stack>
+        >
+          <Typography sx={{
+            fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+            fontWeight: 700, fontSize: 16, color: '#222',
+          }}>/</Typography>
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center',
+            bgcolor: '#f2f2f2', borderRadius: '4px', px: '6px', py: '4px',
+          }}>
+            <Typography sx={{
+              fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+              fontWeight: 500, fontSize: 14, color: '#222',
+              whiteSpace: 'nowrap', lineHeight: 1,
+            }}>
+              {activeEntry?.patternCode}
+            </Typography>
+          </Box>
+          <Typography sx={{
+            fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+            fontWeight: 400, fontSize: 13, color: '#64748b',
+            whiteSpace: 'nowrap',
+          }}>
+            {localizePatternLabel(activeEntry?.patternLabel, isEn)}
+          </Typography>
+        </PageHeader>
 
         {/* Collapsible 메뉴 목록 */}
         {mappedMenus.length > 0 && (

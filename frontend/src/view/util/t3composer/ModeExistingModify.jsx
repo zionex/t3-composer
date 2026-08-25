@@ -22,6 +22,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 import MenuTreeBrowser from './MenuTreeBrowser';
+import PageHeader from './PageHeader';
 import ComposerWorkspace from './ComposerWorkspace';
 import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
@@ -202,32 +203,34 @@ function ModeExistingModify({ onBack, startWith = null }) {
   // 공통 헤더
   // ─────────────────────────────────────────────────────────────────
   const Header = (
-    <Stack direction="row" alignItems="center" sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-      <Button
-        startIcon={<ArrowBackIcon fontSize="small" />}
-        onClick={() => {
-          // startWith 으로 진입한 경우 내부 서브모드 선택을 건너뛰었으므로 바로 onBack
-          if (subMode && !startWith) { reset(); setSubMode(null); } else { onBack?.(); }
-        }}
-        size="small"
-      >
-        {(subMode && !startWith) ? t('modeExistingModify.header.backToSub') : t('modeExistingModify.header.backToMode')}
-      </Button>
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
-        <BorderColorIcon sx={{ color: '#fa7d5b' }} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          {t('modeExistingModify.header.title')}
-          {subMode && (
-            <Chip
-              label={subMode === 'NL' ? t('modeExistingModify.header.subModeNl') : t('modeExistingModify.header.subModeStep')}
-              size="small"
-              sx={{ ml: 1, bgcolor: subMode === 'NL' ? '#fef3c7' : '#dbeafe',
-                    color:   subMode === 'NL' ? '#92400e' : '#1e40af', fontWeight: 600 }}
-            />
-          )}
-        </Typography>
-      </Stack>
-    </Stack>
+    <PageHeader
+      onBack={() => {
+        if (subMode && !startWith) { reset(); setSubMode(null); } else { onBack?.(); }
+      }}
+      backLabel={(subMode && !startWith)
+        ? t('modeExistingModify.header.backToSub')
+        : t('modeExistingModify.header.backToMode')}
+      icon={BorderColorIcon}
+      iconColor="#fa7d5b"
+      title={t('modeExistingModify.header.title')}
+    >
+      {subMode && (
+        <Box sx={{
+          display: 'inline-flex', alignItems: 'center',
+          bgcolor: subMode === 'NL' ? '#fef3c7' : '#dbeafe',
+          borderRadius: '4px', px: '6px', py: '4px',
+        }}>
+          <Typography sx={{
+            fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+            fontWeight: 500, fontSize: 14,
+            color: subMode === 'NL' ? '#92400e' : '#1e40af',
+            whiteSpace: 'nowrap', lineHeight: 1,
+          }}>
+            {subMode === 'NL' ? t('modeExistingModify.header.subModeNl') : t('modeExistingModify.header.subModeStep')}
+          </Typography>
+        </Box>
+      )}
+    </PageHeader>
   );
 
   // ─────────────────────────────────────────────────────────────────

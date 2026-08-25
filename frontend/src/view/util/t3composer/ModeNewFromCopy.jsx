@@ -22,7 +22,6 @@ import {
   DialogActions,
 } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ArrowBackIcon  from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SourceIcon     from '@mui/icons-material/Source';
@@ -31,6 +30,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import MenuTreeBrowser from './MenuTreeBrowser';
 import ComposerWizard from './ComposerWizard';
+import PageHeader from './PageHeader';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { collectSourceForLlm, checkMenuExists, prefillFromSource, getTargetSourceResolved } from './api';
 import TargetDbConnectionDialog from './TargetDbConnectionDialog';
@@ -287,30 +287,21 @@ function ModeNewFromCopy({ onBack }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, bgcolor: '#eef2f7' }}>
       {/* ===== Header bar ===== */}
-      <Stack direction="row" alignItems="center" sx={{
-        px: 2, py: 1.2, bgcolor: '#fff', borderBottom: '1px solid #e2e8f0',
-      }}>
-        <Button startIcon={<ArrowBackIcon fontSize="small" />} onClick={onBack} size="small">
-          {t('modeNewFromCopy.header.back')}
-        </Button>
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 2 }}>
-          <Box sx={{
-            width: 32, height: 32, borderRadius: 1.5,
-            bgcolor: '#10b98122', color: '#10b981',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <ContentCopyIcon />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: '#0f172a' }}>
-              {t('modeNewFromCopy.header.title')}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b' }}>
-              {t('modeNewFromCopy.header.subtitle')}
-            </Typography>
-          </Box>
-        </Stack>
-      </Stack>
+      <PageHeader
+        onBack={onBack}
+        backLabel={t('modeNewFromCopy.header.back')}
+        icon={ContentCopyIcon}
+        iconColor="#10b981"
+        title={t('modeNewFromCopy.header.title')}
+      >
+        <Typography sx={{
+          fontFamily: '"Pretendard JP", Pretendard, sans-serif',
+          fontWeight: 400, fontSize: 13, color: '#64748b',
+          whiteSpace: 'nowrap',
+        }}>
+          {t('modeNewFromCopy.header.subtitle')}
+        </Typography>
+      </PageHeader>
 
       {/* ===== Body: 3 columns ===== */}
       <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>

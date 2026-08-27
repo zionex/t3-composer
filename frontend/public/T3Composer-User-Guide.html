@@ -424,6 +424,7 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <!-- Section icons (h2 badges) -->
+    <symbol id="ic-home" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
     <symbol id="ic-setup" viewBox="0 0 24 24"><path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.5 7.5 0 0 0-1.69-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.49.42l-.38 2.65c-.61.25-1.18.58-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64L4.57 11c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.51.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.49.42h4c.24 0 .45-.18.49-.42l.38-2.65a7.5 7.5 0 0 0 1.69-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></symbol>
     <symbol id="ic-start" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7L8 5z"/></symbol>
     <symbol id="ic-composer" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></symbol>
@@ -457,7 +458,7 @@
     <div class="brand">
       <div class="brand-logo">T³</div>
       <div>
-        <div class="brand-text">T³Composer<span class="ver">v1.0</span></div>
+        <div class="brand-text">T³Composer<span class="ver">v1.1</span></div>
         <div class="brand-sub">
           <span class="ko">사용자 가이드</span>
           <span class="en">User Guide</span>
@@ -505,11 +506,12 @@
           <li><a href="#s9-2"><span class="ko">API 키 등록</span><span class="en">API Key Setup</span></a></li>
           <li><a href="#s9-3"><span class="ko">첨부 파일</span><span class="en">Attachments</span></a></li>
           <li><a href="#s9-4"><span class="ko">단축키 / 팁</span><span class="en">Shortcuts / Tips</span></a></li>
+          <li><a href="#s9-5"><span class="ko">로그인 화면 (선택)</span><span class="en">Login Screen (optional)</span></a></li>
         </ol>
       </li>
     </ol>
     <div class="footer">
-      <div>v1.0 · 2026-06-17</div>
+      <div>v1.1 · 2026-08-27</div>
       <div style="margin-top: 4px;">© T³Composer</div>
     </div>
   </nav>
@@ -858,21 +860,21 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
         <span class="en">Getting Started — Sidebar at a Glance</span>
       </h2>
       <p>
-        <span class="ko">http://localhost:5173 으로 접속하면 좌측에 7개 메뉴 사이드바가 보입니다. 클릭하면 우측 영역에 탭으로 열리고, 같은 메뉴를 다시 클릭하면 활성화만 됩니다. 한 번 열린 탭은 × 로 닫기 전까지 상태 유지 (세션 보존).</span>
-        <span class="en">Open http://localhost:5173 — the left sidebar shows 7 menus. Clicking opens each as a tab on the right; re-clicking the same menu just re-activates the tab. Once opened, a tab persists state until closed with × (session preserved).</span>
+        <span class="ko">http://localhost:5173 으로 접속하면 좌측에 7개 메뉴 사이드바가 보입니다. 첫 진입 시 <strong>Home</strong> 탭이 자동으로 활성화됩니다. 클릭하면 우측 영역에 탭으로 열리고, 같은 메뉴를 다시 클릭하면 활성화만 됩니다. 한 번 열린 탭은 × 로 닫기 전까지 상태 유지 (세션 보존).</span>
+        <span class="en">Open http://localhost:5173 — the left sidebar shows 7 menus. On first visit the <strong>Home</strong> tab is auto-activated. Clicking opens each as a tab on the right; re-clicking the same menu just re-activates the tab. Once opened, a tab persists state until closed with × (session preserved).</span>
       </p>
 
       <div class="sidebar-mock">
         <div class="bar">
           <div class="logo-row">
             <div class="logo">T³</div>
-            <div class="wordmark">T³Composer<span style="font-size:9px; color:var(--text-3); margin-left:4px; font-weight:600;">v1.0</span></div>
+            <div class="wordmark">T³Composer<span style="font-size:9px; color:var(--text-3); margin-left:4px; font-weight:600;">v1.1</span></div>
           </div>
-          <div class="item active"><svg><use href="#ic-composer"/></svg>Composer</div>
+          <div class="item active"><svg><use href="#ic-home"/></svg>Home</div>
+          <div class="item"><svg><use href="#ic-composer"/></svg>Composer</div>
           <div class="item"><svg><use href="#ic-history"/></svg>History</div>
           <div class="item"><svg><use href="#ic-mockup"/></svg>SCM UI Mockup</div>
           <div class="item"><svg><use href="#ic-pattern"/></svg>UI Pattern</div>
-          <div class="item"><svg><use href="#ic-gallery"/></svg>Gallery</div>
           <div class="item"><svg><use href="#ic-ontology"/></svg>Ontology</div>
           <div class="item"><svg><use href="#ic-dashboard"/></svg>Dashboard</div>
         </div>
@@ -880,6 +882,9 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
           <table>
             <tr><th style="width:130px"><span class="ko">메뉴</span><span class="en">Menu</span></th>
                 <th><span class="ko">이 메뉴는 …</span><span class="en">This menu …</span></th></tr>
+            <tr><td><strong>Home</strong></td><td>
+              <span class="ko">첫 진입 시 활성화되는 홈 화면</span>
+              <span class="en">The home screen shown on first visit</span></td></tr>
             <tr><td><strong>Composer</strong></td><td>
               <span class="ko">AI 로 화면을 새로 만들거나 기존 화면을 수정합니다 (메인)</span>
               <span class="en">Creates new or modifies existing screens with AI (main)</span></td></tr>
@@ -887,14 +892,11 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
               <span class="ko">이전 작업 세션을 다시 열어 이어서 작업합니다</span>
               <span class="en">Reopens previous sessions to continue work</span></td></tr>
             <tr><td><strong>SCM UI Mockup</strong></td><td>
-              <span class="ko">54개 운영 화면 mockup 갤러리 — Composer 의 출발점 템플릿</span>
-              <span class="en">Gallery of 54 production-screen mockups — starting templates for Composer</span></td></tr>
+              <span class="ko">181개 운영 화면 mockup 갤러리 — Composer 의 출발점 템플릿</span>
+              <span class="en">Gallery of 181 production-screen mockups — starting templates for Composer</span></td></tr>
             <tr><td><strong>UI Pattern</strong></td><td>
               <span class="ko">T3MES 퍼블리싱 730개 TabPage 패턴 카탈로그</span>
               <span class="en">Catalog of 730 T3MES TabPage patterns</span></td></tr>
-            <tr><td><strong>Gallery</strong></td><td>
-              <span class="ko">Grid / Chart / KPI 152개 사전 — 위젯 선택지</span>
-              <span class="en">Dictionary of Grid / Chart / KPI (152) — widget options</span></td></tr>
             <tr><td><strong>Ontology</strong></td><td>
               <span class="ko">Q&A · Entity · View · Process 4영역 비즈니스 의미 사전</span>
               <span class="en">Q&A · Entity · View · Process — 4-area business-semantics dictionary</span></td></tr>
@@ -1289,13 +1291,13 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
         <span class="en">SCM UI Mockup — Gallery</span>
       </h2>
       <p>
-        <span class="ko">T3SmartSCM 의 54개 운영 화면 mockup 을 카테고리 별로 모은 갤러리입니다. Composer 의 "단계별 생성" 에서 출발점 템플릿으로 사용.</span>
-        <span class="en">A gallery of 54 T3SmartSCM production-screen mockups organized by category. Used as starting templates in Composer's "Step-by-step Generation".</span></p>
+        <span class="ko">T3SmartSCM 의 181개 운영 화면 mockup 을 카테고리 별로 모은 갤러리입니다. Composer 의 "단계별 생성" 에서 출발점 템플릿으로 사용.</span>
+        <span class="en">A gallery of 181 T3SmartSCM production-screen mockups organized by category. Used as starting templates in Composer's "Step-by-step Generation".</span></p>
       <ul>
-        <li><span class="ko"><strong>5개 카테고리</strong> — Core (12) · Domain (13) · Dashboard (16) · ControlBoard (4) · Meta (9)</span>
-            <span class="en"><strong>5 categories</strong> — Core (12) · Domain (13) · Dashboard (16) · ControlBoard (4) · Meta (9)</span></li>
-        <li><span class="ko"><strong>productLine 필터</strong> — T3SmartSCM · PlaNEL · 전체</span>
-            <span class="en"><strong>productLine filter</strong> — T3SmartSCM · PlaNEL · All</span></li>
+        <li><span class="ko"><strong>5개 카테고리</strong> — Core (14) · Domain (110) · Dashboard (30) · ControlBoard (11) · Meta (16)</span>
+            <span class="en"><strong>5 categories</strong> — Core (14) · Domain (110) · Dashboard (30) · ControlBoard (11) · Meta (16)</span></li>
+        <li><span class="ko"><strong>productLine 필터</strong> — T3SmartSCM · PlaNEL · KT&G · Orion · CJ Bio · 전체</span>
+            <span class="en"><strong>productLine filter</strong> — T3SmartSCM · PlaNEL · KT&G · Orion · CJ Bio · All</span></li>
         <li><span class="ko"><strong>검색바</strong> — 코드 · 라벨 · 설명 · 메뉴 ID · 메뉴명 · 경로 전체 텍스트 검색</span>
             <span class="en"><strong>Search bar</strong> — full-text search across code / label / description / menu ID / menu name / path</span></li>
         <li><span class="ko"><strong>매핑 메뉴 보기</strong> — 각 mockup 카드의 [사용 메뉴 N개] 클릭 → 해당 mockup 을 사용하는 운영 메뉴 263개 매핑 테이블 펼침</span>
@@ -1313,8 +1315,8 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
         <span class="en">UI Pattern — T3MES Pattern Catalog</span>
       </h2>
       <p>
-        <span class="ko">T3MES 퍼블리싱 산출물 29개 HTML 파일에서 분리한 730개 TabPage 패턴 카탈로그.</span>
-        <span class="en">A catalog of 730 TabPage patterns split from 29 T3MES publishing HTML files.</span></p>
+        <span class="ko">T3MES 퍼블리싱 산출물 30개 HTML 파일에서 분리한 730개 TabPage 패턴 카탈로그.</span>
+        <span class="en">A catalog of 730 TabPage patterns split from 30 T3MES publishing HTML files.</span></p>
       <ul>
         <li><span class="ko"><strong>트리 구조</strong> — Section (SCM/MES) → Group → File → TabPage</span>
             <span class="en"><strong>Tree</strong> — Section (SCM/MES) → Group → File → TabPage</span></li>
@@ -1339,6 +1341,16 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
         <span class="ko">Gallery — Composer 위젯 사전</span>
         <span class="en">Gallery — Composer Widget Dictionary</span>
       </h2>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ 현재 사이드바 미노출 (숨김 상태)</span>
+          <span class="en">⚠️ Currently hidden from the sidebar</span></div>
+        <p>
+          <span class="ko">Gallery 메뉴는 현재 <strong>사이드바에서 숨겨져 있는</strong> 상태입니다. 컴포넌트와 폴더 (<code>frontend/src/view/util/t3composerdict/</code>) 는 그대로 보존되어 있어, <code>frontend/src/App.jsx</code> 의 <code>MENU_ITEMS</code> 배열에서 <code>dict</code> 항목 주석 (<code>//</code>) 만 해제하면 즉시 재활성화됩니다.</span>
+          <span class="en">The Gallery menu is currently <strong>hidden from the sidebar</strong>. The component and folder (<code>frontend/src/view/util/t3composerdict/</code>) are preserved as-is — uncomment the <code>dict</code> entry (<code>//</code>) in the <code>MENU_ITEMS</code> array of <code>frontend/src/App.jsx</code> to instantly re-enable.</span></p>
+      </div>
+
       <p>
         <span class="ko">화면 생성 시 사용할 수 있는 Grid · Chart · KPI 위젯을 모은 사전. Composer 가 spec 을 만들 때 여기 등록된 위젯에서 선택합니다.</span>
         <span class="en">A dictionary of Grid, Chart, and KPI widgets available during screen generation. Composer picks from these widgets when assembling specs.</span></p>
@@ -1523,9 +1535,6 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
           <span class="en">Run the option-picker search immediately</span></td></tr>
         <tr><td><kbd>Esc</kbd></td><td>
           <span class="ko">대부분의 Dialog 닫기</span><span class="en">Close most dialogs</span></td></tr>
-        <tr><td><span class="ko">로고 클릭</span><span class="en">Click logo</span></td><td>
-          <span class="ko">Composer 홈 (모드 선택 화면) 으로 이동</span>
-          <span class="en">Go to Composer home (mode-selection screen)</span></td></tr>
       </table>
 
       <h4><span class="ko">일반 팁</span><span class="en">General tips</span></h4>
@@ -1556,11 +1565,59 @@ TARGET_T3SERIES_DB_DRIVER_CLASS=com.microsoft.sqlserver.jdbc.SQLServerDriver
               <span class="en"><strong>Q. How do I read this on an internal network with no internet?</strong><br/>→ This HTML has zero external CDN/web-font dependencies. Double-click to open offline.</span></li>
         </ul>
       </div>
+
+      <h3 id="s9-5">
+        <span class="ko">로그인 화면 (선택)</span><span class="en">Login Screen (optional)</span></h3>
+      <p>
+        <span class="ko"><strong>기본은 비활성</strong>입니다. 기본 배포판은 로컬 환경에서 <code>http://localhost:5173</code> 접속 시 곧바로 홈 화면이 열리며 로그인 절차가 없습니다. 특정 환경 (사내 배포·데모 등) 에서만 첫 진입에 인증키 입력 화면을 노출하고 싶을 때 사용합니다.</span>
+        <span class="en"><strong>Disabled by default.</strong> In a local environment, the default build opens directly into the Home screen at <code>http://localhost:5173</code> with no login step. Enable this only for specific environments (internal deployments, demos, etc.) where a first-time auth-key screen is desired.</span></p>
+
+      <h4>
+        <span class="ko">인증키 규약</span><span class="en">Auth key convention</span></h4>
+      <div class="panel note">
+        <p style="margin: 0 0 6px 0;">
+          <span class="ko"><strong>유효 키 = prefix + 오늘 날짜(YYYYMMDD)</strong> — 매일 자동 갱신되므로 별도 환경변수 업데이트 불필요합니다.</span>
+          <span class="en"><strong>Valid key = prefix + today's date (YYYYMMDD)</strong> — auto-rotates daily, no env update needed.</span></p>
+        <p style="margin: 6px 0 0 0;">
+          <span class="ko">예: prefix 가 <code>zjavhwj</code> 이고 오늘이 2026-08-27 이면 유효 키 = <code>zjavhwj20260827</code></span>
+          <span class="en">Example: with prefix <code>zjavhwj</code> and today being 2026-08-27, the valid key is <code>zjavhwj20260827</code></span></p>
+      </div>
+
+      <h4>
+        <span class="ko">prefix 설정 (선택)</span><span class="en">Set prefix (optional)</span></h4>
+      <div class="panel">
+        <p style="margin: 0 0 8px 0;">
+          <span class="ko">기본 prefix (<code>zjavhwj</code>) 를 그대로 쓰거나 <code>.env</code> 에서 변경:</span>
+          <span class="en">Keep the default prefix (<code>zjavhwj</code>) or override in <code>.env</code>:</span></p>
+<pre><code># .env — 미설정 시 기본값 'zjavhwj'
+COMPOSER_AUTH_KEY_PREFIX=&lt;your-prefix&gt;</code></pre>
+        <p style="margin: 8px 0 0 0; font-size: 13px; color: #6E7E96;">
+          <span class="ko">webpack DefinePlugin 이 build/serve 시 주입 → frontend 재기동 필요 (<code>docker compose up -d --force-recreate composer-frontend</code>).</span>
+          <span class="en">Injected at build/serve time via webpack DefinePlugin — restart the frontend (<code>docker compose up -d --force-recreate composer-frontend</code>).</span></p>
+      </div>
+
+      <h4>
+        <span class="ko">활성화 — 로그인 화면 켜기</span><span class="en">Enable — turn the login screen on</span></h4>
+      <div class="panel">
+        <p style="margin: 0 0 8px 0;">
+          <span class="ko"><code>frontend/src/App.jsx</code> 상단의 상수를 <code>true</code> 로 변경:</span>
+          <span class="en">Flip the top-level constant in <code>frontend/src/App.jsx</code> to <code>true</code>:</span></p>
+<pre><code>const SHOW_LOGIN_PAGE = true;   // 기본 false → true</code></pre>
+      </div>
+
+      <div class="panel warn">
+        <div class="panel-title">
+          <span class="ko">⚠️ 보안 등급 — 임시 인증</span>
+          <span class="en">⚠️ Security level — temporary check</span></div>
+        <p>
+          <span class="ko">본 로그인 화면은 <strong>frontend 전용 상수 대조</strong>로 서버 인증이 아닙니다. 유효 키 규칙 (prefix + 날짜) 이 frontend 번들에 노출되므로 실질적인 보안 경계로 사용하지 마세요. 정식 인증 (JWT · OAuth 등) 은 별도 백엔드 구현이 필요합니다.</span>
+          <span class="en">This login screen is a <strong>frontend-only constant check</strong>, not server-side authentication. The rule (prefix + date) ships in the frontend bundle, so it is not a real security boundary. Proper auth (JWT, OAuth, etc.) requires a separate backend implementation.</span></p>
+      </div>
     </section>
 
     <p style="text-align: center; color: var(--text-3); font-size: 11px; margin-top: 50px; padding-top: 24px;
               border-top: 1px solid var(--border);">
-      T³Composer <span class="ko">사용자 가이드</span><span class="en">User Guide</span> · v1.0 · 2026-06-17 · <a href="https://github.com/zionex/t3-composer">GitHub</a>
+      T³Composer <span class="ko">사용자 가이드</span><span class="en">User Guide</span> · v1.1 · 2026-08-27 · <a href="https://github.com/zionex/t3-composer">GitHub</a>
     </p>
   </main>
 </div>

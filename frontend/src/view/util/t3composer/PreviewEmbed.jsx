@@ -245,6 +245,9 @@ const PREVIEW_THEME = createTheme({
     components: {
         MuiButton: { defaultProps: { disableElevation: true } },
         MuiButtonBase: { defaultProps: { disableRipple: false } },
+        MuiModal:   { defaultProps: { disableScrollLock: true } },
+        MuiPopover: { defaultProps: { disableScrollLock: true } },
+        MuiMenu:    { defaultProps: { disableScrollLock: true } },
     },
 });
 

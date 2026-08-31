@@ -11,7 +11,7 @@ import { Box, Paper, Popper } from '@mui/material';
  *  - 마우스 떼거나 영역 이탈 → popper 즉시 닫힘. 이 경우 click 은 발화하지 않음.
  *
  * 분리본 부트스트랩의 default 탭 깜빡임 완화:
- *  - Paper bgcolor 어두운 회색 (#1e293b) — iframe 로드 전/중 빈 화면이 그대로 비치는 것 차단.
+ *  - Paper bgcolor 라이트 배경 (#f6f7f9, theme.css --bg 와 일치) — iframe 로드 전/중 빈 화면이 그대로 비치는 것 차단.
  *  - iframe 의 opacity 를 onLoad + rAF×2 후에 0 → 1 으로 fade-in (120ms).
  *  - 매 mouseDown 마다 iframe 강제 remount (key 증가) — 캐시된 default 잔상 제거.
  *
@@ -124,7 +124,7 @@ function PressPreview({ srcUrl, onClick, children, sx }) {
               overflow: 'hidden',
               border: '1px solid #cbd5e1',
               borderRadius: 1.5,
-              bgcolor: '#1e293b',   // 로드 중 default 탭이 비치는 것을 가리는 어두운 placeholder
+              bgcolor: '#f6f7f9',   // 로드 중 default 탭이 비치는 것을 가리는 placeholder
               pointerEvents: 'none',
             }}
           >
@@ -132,7 +132,7 @@ function PressPreview({ srcUrl, onClick, children, sx }) {
               <Box sx={{
                 position: 'absolute', inset: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#94a3b8', fontSize: 12, fontFamily: 'monospace',
+                color: '#6b7280', fontSize: 12, fontFamily: 'monospace',
                 letterSpacing: 0.4,
                 userSelect: 'none',
               }}>

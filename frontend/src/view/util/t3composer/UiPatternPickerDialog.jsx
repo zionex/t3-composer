@@ -186,7 +186,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
           </Box>
 
           {/* ── 우측 — 실제 UI Pattern 화면 미리보기 (iframe) ── */}
-          <Box sx={{ flex: 1, minWidth: 0, bgcolor: '#0f1117', position: 'relative' }}>
+          <Box sx={{ flex: 1, minWidth: 0, bgcolor: '#f6f7f9', position: 'relative' }}>
             {!selectedEntry && (
               <Box sx={{
                 position: 'absolute', inset: 0, display: 'flex',
@@ -200,7 +200,7 @@ function UiPatternPickerDialog({ open, onClose, currentValue, onConfirm }) {
                 key={selectedEntry.srcUrl}
                 title={selectedEntry.tabLabel || selectedEntry.fileLabel}
                 src={selectedEntry.srcUrl}
-                style={{ width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: '#0f1117' }}
+                style={{ width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: '#f6f7f9' }}
               />
             )}
           </Box>

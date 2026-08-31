@@ -335,7 +335,7 @@ function T3mesPatternCatalog() {
               sx={{
                 height: 20, fontSize: 11, fontWeight: 700,
                 bgcolor: `${active.sectionColor}1A`, color: active.sectionColor,
-                border: `1px solid ${active.sectionColor}55`,
+                border: `1px solid ${active.sectionColor}55`, lineHeight: 'normal',
               }}
             />
             <Typography variant="caption" sx={{ color: PALETTE.textSecondary }}>
@@ -372,7 +372,7 @@ function T3mesPatternCatalog() {
               }}
             />
           </PageHeader>
-          <Box sx={{ flex: 1, minHeight: 0, position: 'relative', bgcolor: '#1e293b' }}>
+          <Box sx={{ flex: 1, minHeight: 0, position: 'relative', bgcolor: '#f6f7f9' }}>
             {/*
               분리본 부트스트랩 setTimeout(go, 120ms) 직후 fade-in — 30ms 여유.
               그 사이엔 어두운 placeholder 만 보이고 default(0번) 탭은 안 비침.

@@ -19,7 +19,7 @@
 
     <div class="grid3">
       <div class="card" style="border-color:var(--cyan)">
-        <div class="card-title" style="color:var(--cyan)">엔진 종합 제어 (Control)<span class="link-btn" onclick="goTab(2)">병렬설정 ➔</span></div>
+        <div class="card-title" style="color:var(--cyan)">엔진 종합 제어 (Control)<span class="link-btn">병렬설정 ➔</span></div>
         <div style="background:var(--surface3);padding:16px;border-radius:8px;text-align:center;margin-bottom:16px">
           <div style="font-size:11px;color:var(--text2)">현재 엔진 상태</div>
           <div style="font-size:24px;font-weight:700;color:var(--green);margin-top:4px;font-family:var(--mono)">RUNNING (45%)</div>
@@ -37,7 +37,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">실시간 파이프라인 단계<span class="link-btn" onclick="goTab(8)">진척상세 ➔</span></div>
+        <div class="card-title">실시간 파이프라인 단계<span class="link-btn">진척상세 ➔</span></div>
         <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
           <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>1. I/F Data Extract</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
           <div class="step-item"><div class="step-circle step-done">✓</div><div style="flex:1"><div>2. Master Data Check</div><div class="progress-bg"><div class="progress-bar" style="width:100%;background:var(--green)"></div></div></div></div>
@@ -48,7 +48,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">노드 리소스 현황<span class="link-btn" onclick="goTab(10)">관제화면 ➔</span></div>
+        <div class="card-title">노드 리소스 현황<span class="link-btn">관제화면 ➔</span></div>
         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
           <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster CPU Avg</span><span style="color:var(--amber)">78%</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:78%;background:var(--amber)"></div></div></div>
           <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Cluster Memory</span><span style="color:var(--red)">92% (118GB/128GB)</span></div><div class="progress-bg" style="height:12px"><div class="progress-bar" style="width:92%;background:var(--red)"></div></div></div>
@@ -62,7 +62,7 @@
 
     <div class="grid3">
       <div class="card">
-        <div class="card-title">최근 엔진 구동 이력<span class="link-btn" onclick="goTab(24)">결과비교 ➔</span></div>
+        <div class="card-title">최근 엔진 구동 이력<span class="link-btn">결과비교 ➔</span></div>
         <div class="tbl-wrap" style="max-height:220px;border:none">
           <table class="tbl">
             <thead><tr><th>Job ID</th><th>소요시간</th><th>상태</th></tr></thead>
@@ -72,7 +72,7 @@
       </div>
 
       <div class="card" style="border-color:var(--red)">
-        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)<span class="link-btn" style="color:var(--red)" onclick="goTab(12)">오류전체 ➔</span></div>
+        <div class="card-title" style="color:var(--red)">치명적 예외 및 오류 (Top 5)<span class="link-btn" style="color:var(--red)">오류전체 ➔</span></div>
         <div class="tbl-wrap" style="max-height:220px;border:none">
           <table class="tbl">
             <thead><tr><th>모듈</th><th>에러 내용</th></tr></thead>
@@ -82,7 +82,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Live Terminal (실시간 로그)<span class="link-btn" onclick="goTab(8)">로그상세 ➔</span></div>
+        <div class="card-title">Live Terminal (실시간 로그)<span class="link-btn">로그상세 ➔</span></div>
         <div class="terminal" id="dash-terminal" style="font-size:10px;height:100%;min-height:200px"></div>
       </div>
     </div>

@@ -145,6 +145,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 #toast.show{opacity:1}
 @keyframes pulse{0%{opacity:1;box-shadow:0 0 0 0 var(--amber-dim)}50%{opacity:0.5;box-shadow:0 0 0 10px transparent}100%{opacity:1;box-shadow:0 0 0 0 transparent}}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 </head>
 <body>
 
@@ -764,7 +765,7 @@ function genP24(){
 function genP25(){
   let h=''; for(let i=1;i<=20;i++){
     const r=i%5===0;
-    h+=`<tr><td style="font-family:var(--mono)">SO-AI-${i}</td><td>미국 LA 물류센터</td><td style="color:var(--purple);font-weight:700;font-size:14px">11/${rInt(10,30)}</td><td class="num">${rInt(80,99)}%</td><td style="color:var(--${r?'red':'text2'})">${r?'항만 파업 위험 감지':'특이사항 없음'}</td></tr>`;
+    h+=`<tr><td style="font-family:var(--mono)">SO-AI-${i}</td><td>미국 LA 물류센터</td><td style="color:var(--purple);font-weight:700;font-size:14px">11/${rInt(10,30)}</td><td style="font-family:var(--mono)">${rInt(80,99)}%</td><td style="color:var(--${r?'red':'text2'})">${r?'항만 파업 위험 감지':'특이사항 없음'}</td></tr>`;
   } $('tb25').innerHTML=h;
 }
 

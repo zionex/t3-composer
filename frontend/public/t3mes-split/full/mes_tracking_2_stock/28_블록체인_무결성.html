@@ -113,6 +113,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 #toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--cyan);color:var(--cyan);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;box-shadow:0 10px 20px rgba(0,0,0,.5)}
 #toast.show{opacity:1}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 <style>/* T3MES split — hide tab nav + no-flash panel activation */.tab-nav,#tab-nav{display:none !important;}.panel{visibility:hidden;}.panel.t3split-target{visibility:visible;}html.t3split-fallback .panel.active{visibility:visible;}</style>
 </head>
 <body>
@@ -198,7 +199,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
       <div class="rack-3d">
         <div style="position:absolute;width:200%;height:200%;background:repeating-linear-gradient(45deg, #111 0, #111 20px, #222 20px, #222 40px);opacity:0.3;transform:rotateX(60deg) scaleY(2)"></div>
         <div style="position:relative;z-index:2;width:120px;height:180px;background:var(--cyan-dim);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 20px var(--cyan);cursor:pointer" onclick="showToast('해당 랙의 재고 상세 리스트 오픈')">
-          <div style="font-weight:700;color:var(--cyan);font-size:14px">Rack A-05</div><div style="font-size:11px;margin-top:10px">OLED 패널<br>5,000 EA 적재됨</div>
+          <div style="font-weight:700;color:var(--cyan);font-size:14px">Rack A-05</div><div style="font-size:11px;margin-top:10px;color:#fff">OLED 패널<br>5,000 EA 적재됨</div>
         </div>
       </div>
       <div class="card" style="margin:0;display:flex;flex-direction:column"><div class="card-title">선택된 로케이션 재고 명세</div><div class="tbl-wrap" style="flex:1;border:none"><table class="tbl"><thead><tr><th>품목</th><th>LOT</th><th>수량</th></tr></thead><tbody id="tb9"></tbody></table></div><button class="btn btn-cyan" style="padding:16px;margin-top:16px" onclick="showToast('지게차 터미널로 위치 전송 완료')">이 위치로 지게차 작업 지시 ➔</button></div>
@@ -399,7 +400,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
         </div>
         <div class="tbl-wrap" style="flex:1">
           <table class="tbl">
-            <thead><tr><th>재고 LOT</th><th>품목명</th><th style="text-align:right">현재고</th><th style="color:var(--cyan)">재고실명(영업담당)</th><th>보유기간</th></tr></thead>
+            <thead><tr><th>재고 LOT</th><th>품목명</th><th style="text-align:right">현재고</th><th>수주번호</th><th style="color:var(--cyan)">재고실명(영업담당)</th><th>보유기간</th></tr></thead>
             <tbody id="tb30_master"></tbody>
           </table>
         </div>

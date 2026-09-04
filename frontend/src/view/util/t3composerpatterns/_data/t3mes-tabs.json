@@ -13109,31 +13109,19 @@
           "position": {
             "x": 0,
             "y": 0,
-            "w": 4,
+            "w": 6,
             "h": 12
           }
         },
         {
-          "key": "grid2",
-          "title": "그리드 2",
-          "type": "GRID",
-          "subtype": "GRID_BASE",
+          "key": "chart1",
+          "title": "차트 1",
+          "type": "CHART",
+          "subtype": "CHART_LINE",
           "position": {
-            "x": 4,
+            "x": 6,
             "y": 0,
-            "w": 4,
-            "h": 12
-          }
-        },
-        {
-          "key": "card1",
-          "title": "카드 영역 1",
-          "type": "GRID",
-          "subtype": "CARD_LIST",
-          "position": {
-            "x": 8,
-            "y": 0,
-            "w": 4,
+            "w": 6,
             "h": 12
           }
         }

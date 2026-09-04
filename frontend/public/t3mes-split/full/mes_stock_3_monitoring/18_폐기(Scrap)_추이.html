@@ -81,6 +81,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .map-bin{position:absolute;border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .2s;opacity:0.8}
 .map-bin:hover{border-color:var(--text);z-index:10;transform:scale(1.2);opacity:1}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 <style>/* T3MES split — hide tab nav + no-flash panel activation */.tab-nav,#tab-nav{display:none !important;}.panel{visibility:hidden;}.panel.t3split-target{visibility:visible;}html.t3split-fallback .panel.active{visibility:visible;}</style>
 </head>
 <body>
@@ -181,7 +182,7 @@ function g0() {
     let p=[98, 45, 20, 35][i]; let c=['green','blue','amber','cyan'][i]; let v=[125.4, 45.2, 20.1, 60.1][i];
     h+=cardTpl(t, `<div class="gauge-wrap" style="--c:var(--${c});--p:${p}"><div class="gauge-inner"><span class="val-lg live-num" style="--c:var(--${c})">${v}</span><span style="font-size:11px;color:var(--text2)">억 KRW</span></div></div><div style="text-align:center;margin-top:16px;font-weight:700;color:var(--text2)">목표 대비 ${p}% 수준</div>`, 'text-align:center');
   });
-  getEl('v0').innerHTML = `<div class="grid4">${h}</div>` + cardTpl('일별 재고 가치 변동 추이 (최근 30일)', `<div style="height:250px;background:var(--surface3);border-radius:8px;padding:10px">${sparkTpl('blue')}</div>`);
+  getEl('v0').innerHTML = `<div class="grid4">${h}</div>` + cardTpl('일별 재고 가치 변동 추이 (최근 30일)', (()=>{let p='';for(let i=0;i<=20;i++)p+=`${i*5},${rInt(10,40)} `;return `<div style="height:250px;background:var(--surface3);border-radius:8px;padding:10px"><svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none"><polyline points="${p}" fill="none" stroke="var(--blue)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div>`;})());
 }
 function g1() {
   let h = `<div style="position:relative;width:100%;height:600px;background:var(--surface3);border-radius:8px;border:1px solid var(--border);background-image:linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);background-size:30px 30px;">`;
@@ -200,7 +201,7 @@ function g2() {
 }
 function g3() {
   let h=''; for(let i=0;i<100;i++){ let p=rInt(1,100); let c=p>85?'red':p>60?'amber':p>20?'green':'surface3'; h+=`<div style="background:var(--${c});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">${p}%</div>`; }
-  getEl('v3').innerHTML = cardTpl('결품 위험 품목 히트맵 (안전재고 대비 현재고 비율)', `<div style="display:grid;grid-template-columns:repeat(10,1fr);grid-auto-rows:40px;gap:8px;height:450px">${h}</div>`);
+  getEl('v3').innerHTML = cardTpl('결품 위험 품목 히트맵 (안전재고 대비 현재고 비율)', `<div style="display:grid;grid-template-columns:repeat(10,1fr);grid-auto-rows:40px;gap:8px">${h}</div>`);
 }
 function g4() {
   let rows=[]; for(let i=1;i<=100;i++){ let d=rInt(90,700); let c=d>365?'red':d>180?'amber':'text'; rows.push(`<tr><td style="font-family:var(--mono);color:var(--blue)">RM-${rInt(10000,99999)}</td><td>${getRand(materials)}</td><td class="num">${formatNum(rInt(100,50000))}</td><td class="num" style="color:var(--${c});font-weight:700">${d} 일</td><td>${getRand(locations)}</td><td><span class="badge" style="background:var(--${c}-dim);color:var(--${c})">${d>365?'악성재고':'주의'}</span></td></tr>`); }
@@ -251,7 +252,7 @@ function g12() {
   </ul>`);
 }
 function g13() {
-  let rows=[]; for(let i=1;i<=100;i++){ let st=rInt(1,3); rows.push(`<tr><td style="font-family:var(--mono)">RCV-2410-${String(i).padStart(3,'0')}</td><td>${getRand(suppliers)}</td><td>${getRand(materials)} 외 ${rInt(1,5)}종</td><td><span class="badge" style="background:var(--${st===1?'cyan':st===2?'amber':'border2'});color:var(--${st===1?'#fff':st===2?'#000':'text2'})">${st===1?'검수중':st===2?'하차대기':'도착예정'}</span></td><td>${rInt(1,5)} 시간</td></tr>`); }
+  let rows=[]; for(let i=1;i<=100;i++){ let st=rInt(1,3); rows.push(`<tr><td style="font-family:var(--mono)">RCV-2410-${String(i).padStart(3,'0')}</td><td>${getRand(suppliers)}</td><td>${getRand(materials)} 외 ${rInt(1,5)}종</td><td><span class="badge" style="background:var(--${st===1?'cyan':st===2?'amber':'border2'});color:${st===1?'#fff':st===2?'#000':'var(--text)'}">${st===1?'검수중':st===2?'하차대기':'도착예정'}</span></td><td>${rInt(1,5)} 시간</td></tr>`); }
   getEl('v13').innerHTML = cardTpl('입고 데크(Dock) 트럭 하차 및 검수 대기열', tblTpl(['입고문서번호','공급사','품목 요약','진행 상태','예상 체류시간'], rows));
 }
 function g14() {
@@ -267,7 +268,7 @@ function g16() {
 }
 function g17() {
   let pts='0,250 '; for(let i=0;i<=20;i++) pts+=`${i*5},${250 - rInt(10,150)} `; pts+='100,250';
-  getEl('v17').innerHTML = cardTpl('월간 폐기(Scrap) 및 손실 재고 가치 발생 추이', `<div style="height:350px;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--red-dim)"/><polyline points="${pts.replace(/0,250 |100,250/g,'')}" fill="none" stroke="var(--red)" stroke-width="2"/></svg></div>`);
+  getEl('v17').innerHTML = cardTpl('월간 폐기(Scrap) 및 손실 재고 가치 발생 추이', `<div style="height:350px;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" viewBox="0 0 100 250" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--red-dim)"/><polyline points="${pts.replace(/0,250 |100,250/g,'')}" fill="none" stroke="var(--red)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div>`);
 }
 function g18() {
   let rows=[]; for(let i=1;i<=50;i++){ rows.push(`<tr class="blink-row"><td>WO-2410-${rInt(1000,9999)}</td><td>${getRand(products)}</td><td>${getRand(materials)}</td><td class="num" style="color:var(--red);font-weight:700">${rInt(10,500)} EA</td><td style="color:var(--amber)">입고 지연</td></tr>`); }
@@ -292,7 +293,7 @@ function g22() {
   getEl('v22').innerHTML = cardTpl('크로스도킹 (입고 즉시 출고/투입) 현황', tblTpl(['품목명','수량','도착처(입고)','목적지(출고)','상태'], rows));
 }
 function g23() {
-  let rows=[]; for(let i=1;i<=50;i++){ let st=rInt(1,3); rows.push(`<tr><td>RMA-24-${rInt(1000,9999)}</td><td>${getRand(products)}</td><td>고객사 ${rInt(1,99)}</td><td class="num">${rInt(1,10)} EA</td><td><span class="badge" style="background:var(--${st===1?'amber':st===2?'red':'border2'});color:var(--${st===1?'#000':st===2?'red':'text2'})">${st===1?'검사대기':st===2?'폐기확정':'수리완료'}</span></td></tr>`); }
+  let rows=[]; for(let i=1;i<=50;i++){ let st=rInt(1,3); rows.push(`<tr><td>RMA-24-${rInt(1000,9999)}</td><td>${getRand(products)}</td><td>고객사 ${rInt(1,99)}</td><td class="num">${rInt(1,10)} EA</td><td><span class="badge" style="background:var(--${st===1?'amber':st===2?'red':'border2'});color:${st===1?'#000':st===2?'#fff':'var(--text)'}">${st===1?'검사대기':st===2?'폐기확정':'수리완료'}</span></td></tr>`); }
   getEl('v23').innerHTML = cardTpl('고객 반품 (RMA) 입고 재고 처리 상태', tblTpl(['RMA 접수번호','제품명','고객사','수량','품질 판정 상태'], rows));
 }
 function g24() {
@@ -359,7 +360,7 @@ function g38() {
 }
 function g39() {
   let pts=''; for(let i=0;i<=50;i++) pts+=`${i*20},${150 - rInt(20,100)} `;
-  getEl('v39').innerHTML = cardTpl('냉동/항온 창고 실시간 전력 및 에너지 사용 트렌드 (kW)', `<div style="height:300px;background:var(--surface3);border-radius:8px;position:relative;border:1px solid var(--border)"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2"/></svg></div>`);
+  getEl('v39').innerHTML = cardTpl('냉동/항온 창고 실시간 전력 및 에너지 사용 트렌드 (kW)', `<div style="height:300px;background:var(--surface3);border-radius:8px;position:relative;border:1px solid var(--border)"><svg width="100%" height="100%" viewBox="0 0 1000 150" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div>`);
 }
 
 // Group 5: 로그 & Admin (Purple)
@@ -376,7 +377,7 @@ function g42() {
   getEl('v42').innerHTML = cardTpl('창고 작업자(Picker) 개인별 피킹 생산성(UPH) 랭킹', tblTpl(['작업자 명','금일 누적 피킹(라인 수)','시간당 처리량(UPH)','생산성 게이지'], rows));
 }
 function g43() {
-  let rows=[]; for(let i=1;i<=30;i++){ let st=rInt(1,3); rows.push(`<tr><td>${getRand(locations)} 라인 전체</td><td>A 등급 (주 1회)</td><td>2024-10-${rInt(25,31)}</td><td><span class="badge" style="background:var(--${st===1?'purple':st===2?'green':'surface3'});color:var(--${st===1?'#fff':st===2?'green':'text2'})">${st===1?'진행중':st===2?'완료됨':'예정'}</span></td></tr>`); }
+  let rows=[]; for(let i=1;i<=30;i++){ let st=rInt(1,3); rows.push(`<tr><td>${getRand(locations)} 라인 전체</td><td>A 등급 (주 1회)</td><td>2024-10-${rInt(25,31)}</td><td><span class="badge" style="background:var(--${st===1?'purple':st===2?'green':'surface3'});color:${st===1?'#fff':st===2?'#fff':'var(--text)'}">${st===1?'진행중':st===2?'완료됨':'예정'}</span></td></tr>`); }
   getEl('v43').innerHTML = cardTpl('시스템 자동 생성 사이클 카운팅(재고 실사) 스케줄', tblTpl(['대상 구역/품목','카운팅 정책 (ABC)','예정 일자','진행 상태'], rows));
 }
 function g44() {

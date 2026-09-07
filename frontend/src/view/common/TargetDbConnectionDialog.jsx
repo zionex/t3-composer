@@ -18,7 +18,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 import {
   getTarget, updateTargetDbConnection, testTargetDbConnection, updateTargetRefPaths,
-} from './api';
+} from '../util/t3composer/api';
 import FolderPickerDialog from './FolderPickerDialog';
 
 const DRIVER_BY_DBTYPE = {

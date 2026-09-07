@@ -19,6 +19,7 @@ import iconArrowLeft       from './assets/icons/double-arrow-left.svg';
 import iconArrowRight      from './assets/icons/double-arrow-right.svg';
 import iconDeleteS         from './assets/icons/Delete-S.svg';
 import LanguageSwitcher from './view/util/t3composer/LanguageSwitcher';
+import AppHeaderChips  from './view/common/AppHeaderChips';
 import { PALETTE, TYPOGRAPHY } from './theme';
 import { FONT_FAMILY } from './style/typography';
 import SvgIcon from './style/SvgIcon';
@@ -403,7 +404,8 @@ function TabbedHome() {
                             );
                         })}
                     </Tabs>
-                    <Box sx={{ flex: '0 0 auto', alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ flex: '0 0 auto', alignSelf: 'stretch', display: 'flex', alignItems: 'center', gap: 0.75, pr: 0.5 }}>
+                        <AppHeaderChips />
                         <LanguageSwitcher variant="chip" />
                     </Box>
                 </Box>

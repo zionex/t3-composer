@@ -28,7 +28,7 @@ import MockupPickerDialog from './MockupPickerDialog';
 import UiPatternPickerDialog from './UiPatternPickerDialog';
 import AiRecommendPanel from './AiRecommendPanel';
 import { specFromPattern, specFromMockup, specFromUiPattern, specFromDashboard } from './wizardState';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 import { findMockup } from '../t3mockup';
 
 // INSIGHT_ENABLED — false 시 [Dashboard] 패턴 카드 숨김

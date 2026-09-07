@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '../PageHeader';
 import iconSitemap from '../../../../assets/icons/sitemap.svg';
 
-import { useTargetStore } from '../targetStore';
+import { useTargetStore } from '../../../common/targetStore';
 import { fetchOntologyTree } from '../api';
 import OntologyTree from './OntologyTree';
 import OntologyImportDialog from './OntologyImportDialog';

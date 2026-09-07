@@ -19,7 +19,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { useTranslation } from 'react-i18next';
 
-import { saveApiKey } from './api';
+import { saveApiKey } from '../util/t3composer/api';
 
 /**
  * Anthropic API Key 등록 다이얼로그.

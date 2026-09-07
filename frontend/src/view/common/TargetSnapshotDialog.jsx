@@ -19,7 +19,7 @@ import RefreshIcon       from '@mui/icons-material/Refresh';
 import {
   getTargetSnapshotStatus, listTargetSnapshots, captureTargetSnapshot,
   restoreTargetSnapshot, deleteTargetSnapshot,
-} from './api';
+} from '../util/t3composer/api';
 
 const KIND_LABEL = { MANUAL: '수동', AUTO_BACKUP: '자동백업', SEED: '최초' };
 

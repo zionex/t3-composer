@@ -10,7 +10,7 @@ import { getModule, getPattern } from './constants';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import { createSession } from './api';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 
 import {
   WIZARD_STEPS, createInitialSpec, canProceedStep, invalidateDownstream, toLlmPayload,

@@ -40,7 +40,7 @@ import HubIcon from '@mui/icons-material/Hub';
 import { createSession, extractAndLookupTables, fetchQaBulk, fetchEntityBulk } from './api';
 import { getModule, localizedModuleName } from './constants';
 import useUiLanguage from './useUiLanguage';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 import ModuleSelector from './ModuleSelector';
 import ComposerWorkspace from './ComposerWorkspace';
 import PageHeader from './PageHeader';

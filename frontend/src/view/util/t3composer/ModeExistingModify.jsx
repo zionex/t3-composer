@@ -28,7 +28,7 @@ import ComposerWizard from './ComposerWizard';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { createSession, collectSourceForLlm, importSourceArtifacts } from './api';
 import { createInitialSpecFromSource, convertStep9SpecToWizardSpec } from './wizardState';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 
 /**
  * 기존 화면 수정 모드.

@@ -1,5 +1,6 @@
 // =============================================================================
-// TargetSystemSelector — Composer Landing 헤더에 노출되는 Target 전환 dropdown.
+// TargetSystemSelector — 앱 전역 헤더(App.jsx tab strip 우측) 의 Target 전환 dropdown.
+// AppHeaderChips 안에 mount 되어 모든 화면에서 접근 가능.
 // 사용자가 선택한 Target 은 localStorage 영속화 + zustand store 에 반영되어
 // Phase 3 의 chat / wizard 호출에 자동 전달된다.
 //
@@ -14,19 +15,18 @@ import {
   Tooltip, Typography, Stack, IconButton,
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert,
 } from '@mui/material';
-import LanguageIcon       from '@mui/icons-material/Language';
 import ExpandMoreIcon     from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon    from '@mui/icons-material/CheckCircle';
 import StorageIcon        from '@mui/icons-material/Storage';
 import CameraAltIcon      from '@mui/icons-material/CameraAlt';
 
 import { useTargetStore, getCurrentTarget } from './targetStore';
-import { getTargetSnapshotStatus } from './api';
+import { getTargetSnapshotStatus } from '../util/t3composer/api';
 import TargetDbConnectionDialog from './TargetDbConnectionDialog';
 import TargetSnapshotDialog from './TargetSnapshotDialog';
-import { PALETTE, TYPOGRAPHY } from '../../../theme';
+import { PALETTE, TYPOGRAPHY } from '../../theme';
 
-export default function TargetSystemSelector({ darkMode = true }) {
+export default function TargetSystemSelector() {
   const { t } = useTranslation('composer');
   const targets         = useTargetStore((s) => s.targets);
   const loading         = useTargetStore((s) => s.loading);
@@ -68,7 +68,7 @@ export default function TargetSystemSelector({ darkMode = true }) {
   const current = getCurrentTarget();
   const label   = current?.targetName || (loading ? t('targetSystem.loading') : t('targetSystem.pickTarget'));
 
-  // A시안 .chip 룩 — 흰 배경 + panelBorder + 진회색 텍스트. darkMode prop 은 deprecated.
+  // A시안 .chip 룩 — 흰 배경 + panelBorder + 진회색 텍스트.
   const bg     = '#FFFFFF';
   const border = PALETTE.panelBorder;
   const color  = '#4B5563';
@@ -113,7 +113,7 @@ export default function TargetSystemSelector({ darkMode = true }) {
           deleteIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} />}
           onDelete={openMenu}
           sx={{
-            height: 32,
+            height: 26,
             borderRadius: '9px',
             ...TYPOGRAPHY.label3,
             bgcolor: bg,
@@ -134,7 +134,16 @@ export default function TargetSystemSelector({ darkMode = true }) {
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{ sx: { minWidth: 320, mt: 0.5 } }}
+        marginThreshold={0}
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: 320,
+              borderRadius: '8px',
+              boxShadow: '0 8px 24px rgba(16,24,40,.12)',
+            },
+          },
+        }}
       >
         <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
           <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, letterSpacing: 1 }}>

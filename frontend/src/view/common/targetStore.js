@@ -4,7 +4,7 @@
 //   · Phase 3 에서 chat / wizard 호출에 targetCd 가 함께 전달되도록 확장
 // =============================================================================
 import { create } from 'zustand';
-import { listTargets, getTargetSnapshotStatus, restoreCurrentTargetSnapshot } from './api';
+import { listTargets, getTargetSnapshotStatus, restoreCurrentTargetSnapshot } from '../util/t3composer/api';
 
 const STORAGE_KEY = 't3composer.targetCd';
 

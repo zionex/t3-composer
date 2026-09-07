@@ -33,13 +33,13 @@ import ComposerWizard from './ComposerWizard';
 import PageHeader from './PageHeader';
 import { SourceBundleAnalysisPanel, SourceBundlePreview } from './SourceBundleSection';
 import { collectSourceForLlm, checkMenuExists, prefillFromSource, getTargetSourceResolved } from './api';
-import TargetDbConnectionDialog from './TargetDbConnectionDialog';
+import TargetDbConnectionDialog from '../../common/TargetDbConnectionDialog';
 import {
   createInitialSpecFromSource,
   mergeAiSpecIntoBaseSpec,
   convertStep9SpecToWizardSpec,
 } from './wizardState';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 
 /**
  * 기존 화면 복사 모드 (NEW_FROM_COPY).

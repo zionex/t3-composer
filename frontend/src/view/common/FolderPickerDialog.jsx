@@ -44,7 +44,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import FolderIcon from '@mui/icons-material/Folder';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-import { browseFs } from './api';
+import { browseFs } from '../util/t3composer/api';
 
 
 export default function FolderPickerDialog({

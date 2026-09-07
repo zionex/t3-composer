@@ -12,7 +12,7 @@ import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { loadPreviewComponent } from '../../../preview/runtime';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
 
 // RealGrid license key — main bundle 에 RealGrid module 자체는 끌어오지 않음.
 // (cross-document global handler 회피 — BaseGrid shim 도 top-level import 제거).

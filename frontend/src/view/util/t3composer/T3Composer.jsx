@@ -6,9 +6,6 @@ import {
   Typography,
   Button,
   Stack,
-  Chip,
-  IconButton,
-  Tooltip,
   CircularProgress,
   Dialog,
   DialogTitle,
@@ -20,32 +17,27 @@ import ContentCopyIcon       from '@mui/icons-material/ContentCopy';
 import ChatIcon              from '@mui/icons-material/Chat';
 import BorderColorIcon       from '@mui/icons-material/BorderColor';
 import AddCircleOutlineIcon  from '@mui/icons-material/AddCircleOutline';
-import VpnKeyIcon            from '@mui/icons-material/VpnKey';
-import WarningAmberIcon      from '@mui/icons-material/WarningAmber';
 import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon         from '@mui/icons-material/ArrowBack';
 import PlaylistAddCheckIcon  from '@mui/icons-material/PlaylistAddCheck';
 import ViewQuiltIcon         from '@mui/icons-material/ViewQuilt';
-import CloudOutlinedIcon     from '@mui/icons-material/CloudOutlined';
-import TerminalIcon          from '@mui/icons-material/Terminal';
 
 import { useLocation, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { ContentInner, WorkArea, showMessage } from '@wingui/common/imports';
 
-import { getApiKeyStatus, getSession, pingTargetDbConnection } from './api';
-import ApiKeyDialog from './ApiKeyDialog';
+import { getSession, pingTargetDbConnection } from './api';
 import ModeNewGeneral    from './ModeNewGeneral';
 import ModeNewFromDesign from './ModeNewFromDesign';
 import ModeNewFromCopy   from './ModeNewFromCopy';
 import ModeNewStep       from './ModeNewStep';
 import ModeExistingModify from './ModeExistingModify';
 import ComposerWorkspace from './ComposerWorkspace';
-import TargetSystemSelector from './TargetSystemSelector';
 import PageHeader from './PageHeader';
 import iconAiStarFill from '../../../assets/icons/ai-star-fill.svg';
-import { useTargetStore } from './targetStore';
+import { useTargetStore } from '../../common/targetStore';
+import { useApiKeyStore } from '../../common/apiKeyStore';
 import { PALETTE, TYPOGRAPHY } from '../../../theme';
 
 const MODE = {
@@ -89,7 +81,9 @@ const MODIFY_MODE_OPTIONS = [
 
 // =====================================================================
 // 모드 선택 — A시안 (정돈된 2분할)
-//   상단 hero: 큰 타이틀 + 우측 chip 들 (Target / API Key / LLM / Settings)
+//   상단 hero: PageHeader (title + AI 뱃지 + 캡션)
+//     ※ 우측 chip 들 (Target / API Key / LLM) 은 2026-09 로 App.jsx 헤더의
+//        AppHeaderChips 로 승격 → 모든 화면 공통.
 //   본문 2-grid: 좌(신규 개발 3개) / 우(기존 화면 수정 2개 + PIPELINE)
 //   - 흰 패널 + panelBorder, 첫 카드(hot=true)는 primary 강조
 // =====================================================================
@@ -125,7 +119,7 @@ const eyebrowSx = {
   lineHeight: 1.2,
 };
 
-function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend }) {
+function ModeSelector({ onPickMode }) {
   const { t } = useTranslation('composer');
   const [hovered, setHovered] = useState(null);
 
@@ -183,73 +177,18 @@ function ModeSelector({ onPickMode, onOpenSettings, apiKeyRegistered, llmBackend
     );
   };
 
-  // A시안 .chip 룩 — 흰 배경 + 회색 보더 + radius 9px
-  const chipBase = {
-    display: 'inline-flex', alignItems: 'center', gap: 0.7,
-    height: 32, px: 1.4, borderRadius: '9px',
-    bgcolor: '#FFFFFF',
-    border: `1px solid ${PANEL_BORDER}`,
-    color: '#4B5563',
-    ...TYPOGRAPHY.label3,
-    transition: 'background-color .15s, border-color .15s, color .15s',
-  };
-
   return (
     <Box sx={{
       flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
       bgcolor: PALETTE.bgDefault,          // A시안 main 배경
       overflow: 'auto',
     }}>
-      {/* ===== 공통 PageHeader — title + AI 뱃지 + 캡션 / 우측 chip 들 ===== */}
+      {/* ===== 공통 PageHeader — title + AI 뱃지 + 캡션 ===== */}
       <PageHeader
         title="Composer"
         icon={iconAiStarFill}
         badge="AI"
         caption={t('landing.subtitle')}
-        right={
-          <>
-            <TargetSystemSelector />
-
-            <Tooltip title={apiKeyRegistered ? t('header.apiKey.registeredTooltip') : t('header.apiKey.unregisteredTooltip')}>
-              <Box
-                onClick={onOpenSettings}
-                sx={{
-                  ...chipBase,
-                  cursor: 'pointer',
-                  bgcolor: apiKeyRegistered ? '#F0F9F3' : '#FDF2E0',
-                  border: `1px solid ${apiKeyRegistered ? '#BFE3CD' : '#F4D9A3'}`,
-                  color:   apiKeyRegistered ? '#157347' : '#B76E00',
-                  fontWeight: 600,
-                  '&:hover': { filter: 'brightness(0.98)' },
-                }}
-              >
-                {apiKeyRegistered
-                  ? <VpnKeyIcon sx={{ fontSize: 15 }} />
-                  : <WarningAmberIcon sx={{ fontSize: 16 }} />}
-                {apiKeyRegistered ? t('header.apiKey.registeredLabel') : t('header.apiKey.unregisteredLabel')}
-              </Box>
-            </Tooltip>
-
-            <Tooltip title={
-              llmBackend === 'cli'
-                ? t('header.llmBackend.cliTooltip')
-                : t('header.llmBackend.apiTooltip')
-            }>
-              <Box sx={{
-                ...chipBase,
-                bgcolor: llmBackend === 'cli' ? '#F3EEFB' : TEAL_SOFT,
-                border: `1px solid ${llmBackend === 'cli' ? '#DCC9F2' : TEAL_BORDER}`,
-                color:   llmBackend === 'cli' ? '#7B5BD6' : TEAL,
-                fontWeight: 600,
-              }}>
-                {llmBackend === 'cli'
-                  ? <TerminalIcon sx={{ fontSize: 16 }} />
-                  : <CloudOutlinedIcon sx={{ fontSize: 16 }} />}
-                {llmBackend === 'cli' ? 'CLI' : 'API'}
-              </Box>
-            </Tooltip>
-          </>
-        }
       />
 
       {/* ===== main 영역 — A시안 padding 24px + gap 20px ===== */}
@@ -377,9 +316,9 @@ function T3Composer() {
   const { t } = useTranslation('composer');
   const [mode, setMode] = useState(null);                   // 선택된 실행 모드
   const [modifyStartWith, setModifyStartWith] = useState(null);  // 기존 화면 수정 서브모드 ('NL'|'STEP')
-  const [apiKeyRegistered, setApiKeyReg]    = useState(null);
-  const [llmBackend, setLlmBackend]         = useState('api');
-  const [apiKeyDialogOpen, setApiKeyDialog] = useState(false);
+  // API Key / LLM backend 상태는 apiKeyStore (zustand) 로 앱 전역 관리 — 여기서는
+  // loading gate + requireKeyAndDbThen 게이팅에만 참조 (registered === null == 초기 미확인)
+  const apiKeyRegistered = useApiKeyStore((s) => s.apiKeyRegistered);
   const [confirmHomeOpen, setConfirmHomeOpen] = useState(false);
 
   // ─────────────────────────────────────────
@@ -468,17 +407,8 @@ function T3Composer() {
   // 히스토리 화면의 "이어하기" 로 진입 시 state 로 세션을 넘겨받아 ComposerWorkspace 를 바로 렌더
   // (location/history/resumeSession state 선언은 위로 이동 — home reset useEffect deps TDZ 회피)
 
-  const checkApiKey = async () => {
-    try {
-      const res = await getApiKeyStatus();
-      setApiKeyReg(!!res?.data?.registered);
-      setLlmBackend(res?.data?.llmBackend === 'cli' ? 'cli' : 'api');
-    } catch {
-      setApiKeyReg(false);
-    }
-  };
-
-  useEffect(() => { checkApiKey(); }, []);
+  // API Key 등록 상태는 AppHeaderChips 가 mount 시 apiKeyStore.refresh() 로 이미 조회.
+  // T3Composer 는 store 를 구독만 (line above) — 별도 fetch 불필요.
 
   // location.state.resumeSessionId 감지 → 세션 객체 로드 후 ComposerWorkspace 렌더
   useEffect(() => {
@@ -534,7 +464,11 @@ function T3Composer() {
   const dbPingCacheRef = useRef({ targetCd: null, ok: false, timestamp: 0 });
 
   const requireKeyAndDbThen = async (fn) => {
-    if (!apiKeyRegistered) { setApiKeyDialog(true); return; }
+    // AppHeaderChips 의 ApiKeyDialog 를 열도록 이벤트 발화 (다이얼로그가 이 컴포넌트를 벗어남).
+    if (!useApiKeyStore.getState().apiKeyRegistered) {
+      window.dispatchEvent(new CustomEvent('apikey:openDialog'));
+      return;
+    }
     const targetCd = useTargetStore.getState().currentTargetCd;
     const confirmContinue = () => {
       const label = targetCd ? `Target [${targetCd}] 의 ` : '';
@@ -565,11 +499,6 @@ function T3Composer() {
     }
   };
 
-  const handleApiKeySaved = async () => {
-    setApiKeyDialog(false);
-    await checkApiKey();
-  };
-
   // 하위 모드 카드 클릭 — 카테고리별로 진입 모드 결정
   // extras: { subStage?, initialNl?, mockupCode? } — Home Quick Question chip / 홈 템플릿 위젯 등 외부 진입에서
   //   nested 단계로 진입할 때 사용. mockupCode: NEW_STEP 진입 시 특정 mockup 을 자동 적용해 WIZARD 로 직행.
@@ -595,8 +524,6 @@ function T3Composer() {
   // External [Home 빠른 시작] 등에서 특정 모드로 진입
   const onPickModeRef = useRef(null);
   onPickModeRef.current = onPickMode;
-  const apiKeyRegisteredRef = useRef(apiKeyRegistered);
-  apiKeyRegisteredRef.current = apiKeyRegistered;
   const pendingPickModeRef = useRef(null);
   useEffect(() => {
     const h = (e) => {
@@ -610,7 +537,8 @@ function T3Composer() {
       };
       setResumeSession(null);
       setResumeError(null);
-      if (apiKeyRegisteredRef.current === null) {
+      // apiKeyStore 가 아직 초기 미확인 (null) 이면 큐잉 후 확인 완료 시 flush
+      if (useApiKeyStore.getState().apiKeyRegistered === null) {
         pendingPickModeRef.current = { catKey, optKey, extras };
         return;
       }
@@ -693,12 +621,7 @@ function T3Composer() {
     <ContentInner>
       <WorkArea>
         {mode === null && (
-          <ModeSelector
-            onPickMode={onPickMode}
-            onOpenSettings={() => setApiKeyDialog(true)}
-            apiKeyRegistered={apiKeyRegistered}
-            llmBackend={llmBackend}
-          />
+          <ModeSelector onPickMode={onPickMode} />
         )}
 
         {mode === MODE.NEW_FROM_DESIGN && <ModeNewFromDesign  onBack={backToLanding} />}
@@ -717,12 +640,6 @@ function T3Composer() {
           <ModeExistingModify onBack={backToLanding} startWith={modifyStartWith} />
         )}
       </WorkArea>
-
-      <ApiKeyDialog
-        open={apiKeyDialogOpen}
-        onClose={() => setApiKeyDialog(false)}
-        onSaved={handleApiKeySaved}
-      />
 
       {confirmHomeDialog}
     </ContentInner>

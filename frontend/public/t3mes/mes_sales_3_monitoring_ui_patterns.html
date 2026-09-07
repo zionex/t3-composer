@@ -89,6 +89,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 /* Funnel */
 .funnel-stage{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;margin:0 auto 4px;height:40px;background:var(--c);border-radius:4px;transition:width 0.3s}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 </head>
 <body>
 
@@ -126,8 +127,8 @@ const tblTpl = (head, rows) => `<div class="tbl-wrap"><table class="tbl"><thead>
 const cardTpl = (t, c, st='') => `<div class="card" style="${st}"><div class="card-title">${t}</div>${c}</div>`;
 const progTpl = (p, c) => `<div class="prog-bg"><div class="prog-fill" style="width:${p}%;--c:var(--${c})"></div></div>`;
 const gaugeTpl = (p, c, label) => `<div class="gauge-wrap" style="--c:var(--${c});--p:${p}"><div class="gauge-inner"><span class="val live-val" style="--c:var(--${c})">${p}</span><span style="font-size:11px;color:var(--text2)">%</span></div></div><div style="text-align:center;margin-top:12px;font-weight:700">${label}</div>`;
-const svgLine = (c) => { let pts=''; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(10,90)} `; return `<svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--${c})" stroke-width="2"/></svg>`; };
-const svgArea = (c) => { let pts='0,100 '; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(20,80)} `; pts+='100,100'; return `<svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--${c}-dim)"/><polyline points="${pts.replace(/0,100 |100,100/g,'')}" fill="none" stroke="var(--${c})" stroke-width="2"/></svg>`; };
+const svgLine = (c) => { let pts=''; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(10,90)} `; return `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--${c})" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`; };
+const svgArea = (c) => { let pts='0,100 '; for(let i=0;i<=10;i++) pts+=`${i*10},${rInt(20,80)} `; pts+='100,100'; return `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--${c}-dim)"/><polyline points="${pts.replace(/0,100 |100,100/g,'')}" fill="none" stroke="var(--${c})" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`; };
 
 // --- Initialize App ---
 function initTabs() {
@@ -276,7 +277,7 @@ function g19() {
 // --- Group 3: Product & Channel (Orange) ---
 function g20() {
   let pts='0,250 '; for(let i=0;i<=10;i++) pts+=`${i*10},${250 - (i*20)} `; pts+='100,200';
-  getEl('v20').innerHTML = cardTpl('제품별 매출 파레토 차트 (Top 20% 품목 확인)', `<div class="chart-box" style="height:300px"><svg width="100%" height="100%" preserveAspectRatio="none" style="position:absolute;top:0;left:0;z-index:2"><polyline points="${pts.replace(/0,250 |100,200/g,'')}" fill="none" stroke="var(--orange)" stroke-width="3"/></svg>${[10,9,8,7,6,5,4,3,2,1].map(v=>`<div class="chart-bar-v" style="height:${v*10}%;--c:var(--surface3);border:1px solid var(--border)"></div>`).join('')}</div>`);
+  getEl('v20').innerHTML = cardTpl('제품별 매출 파레토 차트 (Top 20% 품목 확인)', `<div class="chart-box" style="height:300px"><svg width="100%" height="100%" viewBox="0 0 100 250" preserveAspectRatio="none" style="position:absolute;top:0;left:0;z-index:2"><polyline points="${pts.replace(/0,250 |100,200/g,'')}" fill="none" stroke="var(--orange)" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>${[10,9,8,7,6,5,4,3,2,1].map(v=>`<div class="chart-bar-v" style="height:${v*10}%;--c:var(--orange-dim);border:1px solid var(--border)"></div>`).join('')}</div>`);
 }
 function g21() {
   let rows=[]; for(let i=1;i<=20;i++){ let p=rInt(10,100); rows.push(`<tr><td>신규 런칭 모델 24-0${i}</td><td class="num">₩ ${fNum(rInt(1,50)*1000000)}</td><td class="num">${p}%</td><td>${progTpl(p,'orange')}</td></tr>`); }
@@ -360,7 +361,7 @@ function g40() {
 }
 function g41() {
   let pts1='', pts2=''; for(let i=0;i<24;i++){ pts1+=`${i*40},${180-rInt(20,50)} `; pts2+=`${i*40},${180-rInt(30,60)} `; }
-  getEl('v41').innerHTML = cardTpl('AI 머신러닝 기반 차월 매출 / 수요 예측 트렌드', `<div class="chart-box" style="height:350px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="3"/><polyline points="${pts2}" fill="none" stroke="var(--text3)" stroke-width="2" stroke-dasharray="5,5"/></svg></div><div style="text-align:center;margin-top:10px"><span style="color:var(--purple);font-weight:700">── AI 예측선</span> &nbsp;&nbsp; <span style="color:var(--text3)">- - - 과거 평균선</span></div>`);
+  getEl('v41').innerHTML = cardTpl('AI 머신러닝 기반 차월 매출 / 수요 예측 트렌드', `<div class="chart-box" style="height:350px"><svg width="100%" height="100%" viewBox="0 0 920 180" preserveAspectRatio="none"><polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="3" vector-effect="non-scaling-stroke"/><polyline points="${pts2}" fill="none" stroke="var(--text3)" stroke-width="2" stroke-dasharray="5,5" vector-effect="non-scaling-stroke"/></svg></div><div style="text-align:center;margin-top:10px"><span style="color:var(--purple);font-weight:700">── AI 예측선</span> &nbsp;&nbsp; <span style="color:var(--text3)">- - - 과거 평균선</span></div>`);
 }
 function g42() {
   let rows=[]; for(let i=1;i<=15;i++){ let r=rInt(80,99); rows.push(`<tr><td>${customers[i%customers.length]}</td><td class="num val" style="font-size:14px;--c:var(--red)">${r}%</td><td style="color:var(--red)">최근 6개월 수주 없음 & 접속 뜸함</td><td><button class="btn btn-purple btn-sm">Win-back 캠페인</button></td></tr>`); }

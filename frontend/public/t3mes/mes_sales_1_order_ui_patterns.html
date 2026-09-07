@@ -91,6 +91,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 #toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--blue);color:var(--blue);padding:14px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
 #toast.show{opacity:1}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 </head>
 <body>
 
@@ -208,8 +209,8 @@ SK온	알루미늄 파우치 필름	15000	2024-12-01
   <div class="sec-hdr"><div><h3>⑪ CPQ (Configure, Price, Quote) 맞춤형 수주</h3><span class="tip">옵션 선택에 따라 가격이 자동 계산됩니다.</span></div></div>
   <div class="grid2" style="grid-template-columns: 1fr 300px">
     <div>
-      <div class="label">1. 베이스 서버</div><div class="grid2" style="margin-bottom:16px"><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R750 (+500만)</div><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R840 (+800만)</div></div>
-      <div class="label">2. 메모리</div><div class="grid3" style="margin-bottom:16px"><div style="border:1px solid var(--cyan);background:var(--cyan-dim);padding:10px;border-radius:8px;cursor:pointer">64GB (+0)</div><div style="border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer">128GB (+150만)</div></div>
+      <div class="label">1. 베이스 서버</div><div class="grid2" style="margin-bottom:16px"><div style="border:1px solid var(--border);background:#fff;padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R750 (+500만)</div><div style="border:1px solid var(--border);background:#fff;padding:10px;border-radius:8px;cursor:pointer" onclick="showToast('옵션변경됨')">Dell R840 (+800만)</div></div>
+      <div class="label">2. 메모리</div><div class="grid3" style="margin-bottom:16px"><div style="border:1px solid var(--cyan);background:var(--cyan-dim);padding:10px;border-radius:8px;cursor:pointer">64GB (+0)</div><div style="border:1px solid var(--border);background:#fff;padding:10px;border-radius:8px;cursor:pointer">128GB (+150만)</div></div>
     </div>
     <div class="card" style="margin:0;background:var(--surface2)"><div class="card-title">견적 요약</div><div style="font-size:24px;font-weight:700;color:var(--cyan);margin:20px 0">₩ 5,000,000</div><button class="btn btn-cyan" style="width:100%" onclick="showToast('맞춤 수주 생성 완료')">맞춤 수주 등록</button></div>
   </div>
@@ -294,7 +295,7 @@ SK온	알루미늄 파우치 필름	15000	2024-12-01
 
 <div class="panel" id="p22">
   <div class="sec-hdr"><div><h3>㉓ 모바일 바코드 스캐너 앱</h3><span class="tip">창고에서 스마트폰 카메라로 박스를 찍어 모바일 수주를 넣습니다.</span></div></div>
-  <div class="mobile-frame"><div style="height:150px;background:#000;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer" onclick="doScan()">📷 (클릭시 가상 스캔)</div><div id="scan-list" style="padding:16px;height:300px;overflow-y:auto"></div><div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-orange" style="width:100%;padding:16px" onclick="showToast('수주 전송 완료')">전송하기</button></div></div>
+  <div class="mobile-frame"><div style="height:150px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer" onclick="doScan()">📷 (클릭시 가상 스캔)</div><div id="scan-list" style="padding:16px;height:300px;overflow-y:auto"></div><div style="position:absolute;bottom:0;width:100%;padding:16px;background:var(--surface)"><button class="btn btn-orange" style="width:100%;padding:16px" onclick="showToast('수주 전송 완료')">전송하기</button></div></div>
 </div>
 
 <div class="panel" id="p23">

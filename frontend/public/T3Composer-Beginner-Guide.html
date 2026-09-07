@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T³Composer 처음 사용자 가이드 / Beginner Guide</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     팔레트 — T³Composer 앱의 실제 토큰(frontend/src/style/semanticTokens.js)과 1:1
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --primary:        #0C97B7;   /* aqua-40 · PALETTE.primary */
+    --primary-light:  #42BED6;   /* aqua-60 · PALETTE.primaryLight */
+    --primary-dark:   #07697F;   /* aqua-20 · PALETTE.primaryDark */
+    --primary-soft:   #EAF9FB;   /* aqua-93 · PALETTE.primarySoft */
+    --primary-border: #C8EFF6;   /* aqua-85 · PALETTE.primaryBorder */
+    --text:           #1A2330;
+    --text-secondary: #6B7280;
+    --text-muted:     #9AA3AF;
+    --bg:             #F6F7F9;
+    --panel:          #FFFFFF;
+    --border:         #E8E8E8;
+    --chip-text:      #4B5563;
+    --key-ok-bg:      #F0F9F3;  --key-ok-border:   #BFE3CD;  --key-ok-text:   #157347;
+    --key-no-bg:      #FDF2E0;  --key-no-border:   #F4D9A3;  --key-no-text:   #B76E00;
+    --warn-bg:        #FFF7E6;
+    --warn-border:    #F2C572;
+    --danger-bg:      #FFF1F1;
+    --danger-border:  #F3A6A6;
+    --ok-bg:          #EAFBF3;
+    --ok-border:      #8FDDB8;
+    --radius: 12px;
+    --shadow:      0 4px 20px -8px rgba(58,74,99,0.18);
+    --shadow-soft: 0 2px 10px -4px rgba(58,74,99,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  a { color: var(--primary-dark); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── i18n: 한 문서에 ko + en 동시 포함, body[data-lang] 으로 토글 ── */
+  body[data-lang="ko"] .en, body[data-lang="en"] .ko { display: none; }
+
+  /* ── Layout: 좌측 고정 TOC + 본문 ── */
+  .app { display: flex; min-height: 100vh; }
+  nav.toc {
+    width: 280px; flex-shrink: 0;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: #FFFFFF;
+    border-right: 1px solid var(--border);
+    padding: 20px 14px 28px;
+  }
+  nav.toc .brand { display: flex; align-items: center; gap: 9px; padding: 0 6px 14px; }
+  nav.toc .brand-logo {
+    width: 30px; height: 30px; flex-shrink: 0; border-radius: 7px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 14px;
+  }
+  nav.toc .brand-text { font-weight: 800; font-size: 14.5px; color: var(--primary-dark); letter-spacing: -0.3px; }
+  nav.toc .brand-sub  { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; font-weight: 600; }
+
+  .lang-toggle {
+    display: flex; gap: 2px; margin: 0 6px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px;
+  }
+  .lang-toggle button {
+    flex: 1; border: 0; background: transparent; padding: 5px 10px;
+    font-family: inherit; font-size: 11.5px; font-weight: 700;
+    color: var(--text-secondary); cursor: pointer; border-radius: 999px;
+    transition: all .15s ease;
+  }
+  .lang-toggle button.active {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    color: #fff; box-shadow: 0 2px 6px -2px rgba(12,151,183,0.45);
+  }
+  .lang-toggle button:hover:not(.active) { background: var(--primary-soft); color: var(--primary-dark); }
+
+  nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: sec; }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 7px 10px; border-radius: 7px;
+    color: var(--text); font-size: 13px; line-height: 1.45;
+    transition: background-color .15s;
+  }
+  nav.toc a::before {
+    counter-increment: sec; content: counter(sec);
+    flex-shrink: 0; width: 19px; height: 19px; margin-top: 1px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; background: var(--primary-soft); color: var(--primary-dark);
+    font-size: 10.5px; font-weight: 800;
+  }
+  nav.toc a:hover { background: var(--primary-soft); text-decoration: none; }
+  nav.toc a.active { background: var(--primary-soft); color: var(--primary-dark); font-weight: 800; }
+  nav.toc a.active::before { background: var(--primary); color: #fff; }
+  nav.toc .toc-note { font-size: 10.5px; color: var(--text-muted); padding: 2px 10px 0 38px; }
+  nav.toc .foot {
+    margin-top: 18px; padding: 12px 8px 0; border-top: 1px solid var(--border);
+    font-size: 10.5px; color: var(--text-muted); line-height: 1.6;
+  }
+
+  main { flex: 1; min-width: 0; padding: 0 0 60px; }
+
+  /* ── Hero ── */
+  header.hero {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 36px 40px 30px;
+  }
+  header.hero .badge {
+    display: inline-block; background: rgba(255,255,255,0.22);
+    padding: 4px 14px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 12px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; }
+  header.hero p  { margin: 0; font-size: 15px; opacity: 0.95; }
+
+  .wrap { max-width: 940px; padding: 24px 40px 0; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    padding: 26px 30px;
+    margin-bottom: 22px;
+    scroll-margin-top: 16px;
+  }
+
+  .intro-box {
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 22px;
+  }
+  .intro-box p { margin: 0 0 10px; }
+  .intro-box p:last-child { margin-bottom: 0; }
+  .intro-box strong { color: var(--primary-dark); }
+
+  /* ── Headings ── */
+  h2.section {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 21px; margin: 0 0 18px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-border); color: var(--text);
+  }
+  h2.section .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 31px; height: 31px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    color: #fff; font-size: 15px; font-weight: 800; flex-shrink: 0;
+  }
+  h3 { font-size: 16.5px; margin: 24px 0 10px; color: var(--primary-dark); }
+  h3.sub { font-size: 15px; color: var(--text-secondary); margin: 18px 0 8px; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--primary-soft); color: var(--primary-dark); font-weight: 700; }
+  tr:nth-child(even) td { background: #FBFDFE; }
+
+  /* ── 터미널 명령 블록 ── */
+  pre.cmd {
+    background: #10202A; color: #DCE9F0; border-radius: 8px;
+    padding: 16px 18px; overflow-x: auto;
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+    font-size: 13px; line-height: 1.7; margin: 12px 0 18px;
+  }
+  pre.cmd .c { color: #7FA8BC; }
+  pre.cmd .k { color: #7FE3C4; font-weight: 700; }
+
+  /* ── 설치 단계 카드 ── */
+  .install-steps { display: grid; gap: 12px; margin: 16px 0 20px; }
+  .install-step {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: #fff; border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .install-step .sn {
+    flex: 0 0 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--primary); color: #fff; border-radius: 50%;
+    font-weight: 800; font-size: 13px;
+  }
+  .install-step .st { font-weight: 800; font-size: 14px; margin-bottom: 3px; }
+  .install-step .sd { font-size: 13px; color: var(--text-secondary); }
+
+  /* ── 방법 선택 카드 ── */
+  .method-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    margin: 14px 0; overflow: hidden; background: #fff;
+  }
+  .method-card > .mh {
+    background: var(--primary-soft); border-bottom: 1px solid var(--primary-border);
+    padding: 11px 16px; font-weight: 800; font-size: 14px; color: var(--primary-dark);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .method-card > .mh .tag {
+    margin-left: auto; background: var(--primary); color: #fff;
+    border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 800;
+  }
+  .method-card > .mh .tag.gray { background: var(--text-muted); }
+  .method-card > .mb { padding: 14px 18px; font-size: 14px; }
+  .method-card > .mb ol { margin: 0; padding-left: 20px; }
+  .method-card > .mb ol li { margin-bottom: 6px; }
+  .method-card > .mb ol li:last-child { margin-bottom: 0; }
+
+  .url-line {
+    display: block; background: #10202A; color: #9CE8CE;
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+    font-size: 13px; border-radius: 6px; padding: 9px 13px;
+    margin: 6px 0 10px; overflow-x: auto; white-space: nowrap;
+  }
+  .path-demo {
+    background: #10202A; color: #DCE9F0;
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+    font-size: 13px; border-radius: 6px; padding: 10px 14px; margin: 8px 0 12px;
+  }
+  .path-demo .ok { color: #7FE3C4; font-weight: 700; }
+  .path-demo .no { color: #FF9C9C; font-weight: 700; }
+
+  /* ── 실제 화면 스크린샷 ── */
+  .fig { margin: 14px 0 20px; }
+  .fig img {
+    display: block; width: 100%; height: auto; margin: 0 auto;
+    border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.10); background: #fff;
+  }
+  .fig.xs img { max-width: 380px; }
+  .fig.sm img { max-width: 560px; }
+  .fig.md img { max-width: 720px; }
+  .fig .cap {
+    margin-top: 8px; font-size: 12px; line-height: 1.6;
+    color: var(--text-secondary); text-align: center;
+  }
+  .fig .cap b { color: var(--primary-dark); }
+  .fig .cap .n {
+    display: inline-block; min-width: 17px; height: 17px; line-height: 17px;
+    border-radius: 50%; background: var(--primary); color: #fff;
+    font-size: 10.5px; font-weight: 800; text-align: center; margin-right: 5px;
+    vertical-align: 1px;
+  }
+  /* 나란히 두 장 (before / after) */
+  .fig-pair { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0 20px; }
+  .fig-pair > .fig { flex: 1; min-width: 240px; margin: 0; }
+  .fig-pair > .fig img { max-width: 100%; }
+
+  /* ── 앱 실제 아이콘 ── */
+  .ic { width: 16px; height: 16px; flex-shrink: 0; vertical-align: -3px; }
+
+  /* ── 앱 헤더 칩 ── */
+  .hchip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 10px; border-radius: 9px;
+    font-size: 11.5px; font-weight: 600;
+    background: #FFFFFF; border: 1px solid var(--border); color: var(--chip-text);
+    white-space: nowrap;
+  }
+  .hchip.key-ok { background: var(--key-ok-bg); border-color: var(--key-ok-border); color: var(--key-ok-text); }
+  .hchip.key-no { background: var(--key-no-bg); border-color: var(--key-no-border); color: var(--key-no-text); }
+  .hchip.llm    { background: var(--primary-soft); border-color: var(--primary-border); color: var(--primary); }
+  .hchip.lang   { background: transparent; border: none; color: var(--text-secondary); font-weight: 700; }
+
+  /* ── 모듈 선택 카드 ── */
+  .mod-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 10px; display: flex; flex-direction: column; gap: 1px;
+  }
+  .mod-card b    { font-size: 12.5px; color: var(--text); }
+  .mod-card span { font-size: 10.5px; color: var(--text-secondary); }
+  .mod-card i    { font-size: 9.5px; color: var(--text-muted); font-style: normal; margin-top: 3px; }
+  .mod-card.sel  { border: 1.5px solid var(--primary); background: var(--primary-soft); }
+  .mod-card.sel b { color: var(--primary-dark); }
+
+  /* ── AI 엔진 토글 ── */
+  .engine-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .engine-opt {
+    display: inline-flex; flex-direction: column; gap: 1px;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 14px; background: #fff; font-size: 12px;
+  }
+  .engine-opt b { font-size: 12.5px; color: var(--text); }
+  .engine-opt span { font-size: 10.5px; color: var(--text-muted); }
+  .engine-opt.sel { border: 1.5px solid #9D8FD4; background: #F7F5FC; }
+  .engine-opt.sel b { color: #6D4FC2; }
+
+  /* ── 다이얼로그 목업 ── */
+  .dlg-mock {
+    border: 1px solid var(--primary-border); border-radius: 12px; background: #fff;
+    box-shadow: 0 8px 26px rgba(16,24,40,0.10);
+    margin: 14px 0 20px; overflow: hidden; font-size: 13px;
+  }
+  .dlg-mock .dlg-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border);
+    font-weight: 800; font-size: 14.5px; color: var(--text);
+  }
+  .dlg-mock .dlg-head .badge-sm {
+    background: var(--primary-soft); color: var(--primary-dark);
+    border: 1px solid var(--primary-border); border-radius: 5px;
+    padding: 2px 8px; font-size: 11px; font-weight: 800; margin-left: 6px;
+  }
+  .dlg-mock .dlg-body { padding: 16px 18px; }
+  .dlg-mock .dlg-note {
+    background: var(--primary-soft); border: 1px solid var(--primary-border);
+    border-radius: 7px; padding: 10px 13px; font-size: 12.5px;
+    color: var(--text-secondary); line-height: 1.65; margin-bottom: 14px;
+  }
+  .fld {
+    position: relative; border: 1px solid var(--primary-border); border-radius: 7px;
+    padding: 13px 13px 10px; margin-bottom: 12px;
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+    font-size: 12.5px; color: var(--text); word-break: break-all; line-height: 1.5;
+  }
+  .fld > .lb {
+    position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 5px;
+    font-family: inherit; font-size: 11px; font-weight: 700; color: var(--primary-dark);
+  }
+  .fld.ph { color: var(--text-muted); font-style: italic; }
+  .fld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dlg-sub { font-weight: 800; font-size: 13px; color: var(--text); margin: 16px 0 10px; }
+  .dlg-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 12px 18px; border-top: 1px solid var(--border); background: #FBFDFE;
+  }
+
+  /* ── 작업 화면(워크스페이스) 목업 ── */
+  .ws { display: grid; grid-template-columns: 200px 1fr; gap: 0; background: var(--bg); }
+  .ws-left { border-right: 1px solid var(--border); background: #fff; }
+  .ws-pane { padding: 10px 12px; }
+  .ws-pane + .ws-pane { border-top: 1px solid var(--border); }
+  .ws-pane .ph {
+    font-size: 10.5px; font-weight: 800; color: var(--primary-dark);
+    margin-bottom: 7px; display: flex; align-items: center; gap: 5px;
+  }
+  .ws-file {
+    font-size: 10.5px; color: var(--text-secondary);
+    padding: 3px 0 3px 8px; border-left: 2px solid var(--primary-border);
+    margin-bottom: 3px; font-family: "Consolas", Menlo, monospace;
+  }
+  .ws-msg {
+    font-size: 10.5px; border-radius: 6px; padding: 5px 8px; margin-bottom: 5px; line-height: 1.5;
+  }
+  .ws-msg.me  { background: var(--primary-soft); color: var(--primary-dark); }
+  .ws-msg.ai  { background: #F4F5F7; color: var(--text-secondary); }
+  .ws-input {
+    border: 1.5px solid var(--primary); border-radius: 7px;
+    padding: 7px 9px; font-size: 10.5px; color: var(--text-muted); background: #fff;
+  }
+  .ws-right { display: flex; flex-direction: column; min-width: 0; }
+  .ws-tabs { display: flex; gap: 4px; padding: 8px 12px 0; border-bottom: 1px solid var(--border); background:#fff; }
+  .ws-tab {
+    font-size: 11px; font-weight: 700; padding: 6px 12px;
+    border-radius: 7px 7px 0 0; color: var(--text-muted); border: 1px solid transparent;
+  }
+  .ws-tab.on {
+    background: var(--primary-soft); color: var(--primary-dark);
+    border-color: var(--primary-border); border-bottom-color: var(--primary-soft);
+  }
+  .ws-canvas {
+    flex: 1; padding: 14px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 11.5px; text-align: center; line-height: 1.7;
+  }
+  .ws-callout { color: var(--primary); font-weight: 800; }
+  @media (max-width: 640px) { .ws { grid-template-columns: 1fr; } .ws-left { border-right: none; } }
+
+  /* ── Callout boxes ── */
+  .box { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 14.5px; }
+  .box.tip    { background: var(--primary-soft); border: 1px solid var(--primary-border); }
+  .box.warn   { background: var(--warn-bg);   border: 1px solid var(--warn-border); }
+  .box.danger { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+  .box.ok     { background: var(--ok-bg);     border: 1px solid var(--ok-border); }
+  .box strong { color: var(--primary-dark); }
+
+  /* ── Flow steps ── */
+  .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 16px 0 20px; }
+  .flow .step {
+    flex: 1 1 160px; background: var(--primary-soft);
+    border: 1px solid var(--primary-border); border-radius: 8px;
+    padding: 14px 16px; text-align: center;
+  }
+  .flow .step .n { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+  .flow .step .t { font-size: 13.5px; font-weight: 700; margin: 4px 0 2px; }
+  .flow .step .d { font-size: 12px; color: var(--text-muted); }
+  .flow .arrow { display: flex; align-items: center; font-size: 20px; color: var(--text-muted); }
+  .flow .step.danger { background: var(--danger-bg); border-color: var(--danger-border); }
+  .flow .step.danger .n { color: #C0392B; }
+
+  /* ── FAQ ── */
+  .qa { margin-bottom: 18px; }
+  .qa .q { font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .qa .q::before { content: "Q. "; color: var(--primary-dark); }
+  .qa .a { color: var(--text-secondary); }
+
+  /* ── 화면 목업 (앱 재현) ── */
+  .app-mock {
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    margin: 14px 0 20px; box-shadow: 0 6px 18px rgba(16,24,40,0.07); font-size: 13px;
+  }
+  .app-mock-topbar {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    color: #fff; padding: 10px 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .app-mock-topbar .lang { font-weight: 500; font-size: 12px; opacity: 0.9; }
+  .app-mock-topbar.alt { justify-content: flex-start; gap: 14px; }
+  .app-mock-topbar.alt .back { opacity: 0.85; font-size: 12px; }
+  .app-mock-topbar.alt .mid { font-weight: 800; }
+  .app-mock-body { display: flex; background: var(--bg); }
+  .app-mock-sidebar { width: 150px; flex-shrink: 0; background: var(--primary); padding: 10px 0; }
+  .mock-menu-item {
+    padding: 9px 14px; color: rgba(255,255,255,0.82);
+    font-weight: 600; font-size: 12.5px;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .mock-menu-item.active { background: rgba(255,255,255,0.24); color: #FFFFFF; font-weight: 800; }
+  .app-mock-main { flex: 1; padding: 18px 20px; min-width: 0; }
+  .mock-hello { font-weight: 800; font-size: 14.5px; margin-bottom: 14px; color: var(--text); }
+  .mock-qs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+  .mock-qs-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 6px; text-align: center; font-size: 11.5px; font-weight: 700;
+    color: var(--text-secondary); line-height: 1.5;
+  }
+  .mock-qs-card .ico { font-size: 18px; display: block; margin-bottom: 4px; }
+  .mock-qs-card.highlight {
+    background: var(--primary-soft); border: 1.5px solid var(--primary);
+    color: var(--primary-dark); box-shadow: 0 3px 10px rgba(12,151,183,0.18);
+  }
+  .mock-recent { border-top: 1px solid var(--border); padding-top: 12px; color: var(--text-muted); font-size: 12px; }
+  .mock-field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 12.5px; }
+  .mock-label { color: var(--text-muted); font-weight: 700; }
+  .mock-select { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-weight: 700; color: var(--primary-dark); }
+  .mock-textarea {
+    background: #fff; border: 1px dashed var(--primary-border); border-radius: 8px;
+    padding: 16px; color: var(--text-muted); font-size: 12.5px; line-height: 1.7; margin-bottom: 14px;
+  }
+  .mock-opt-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .mock-chip {
+    background: var(--primary-soft); border: 1px solid var(--primary-border);
+    color: var(--primary-dark); border-radius: 999px; padding: 5px 13px;
+    font-size: 11.5px; font-weight: 700;
+  }
+  .mock-btn-row { display: flex; }
+  .mock-btn-row.right { justify-content: flex-end; }
+  .mock-btn { display: inline-block; border-radius: 6px; padding: 7px 16px; font-weight: 800; font-size: 12px; }
+  .mock-btn.primary { background: var(--primary); color: #fff; }
+  .mock-btn.info    { background: #4C8DFF; color: #fff; }
+  .mock-btn.outline { background: #fff; border: 1px solid var(--primary-border); color: var(--primary-dark); }
+  .mock-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    background: #FBFDFE; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin: 14px 0 20px;
+  }
+  .mock-check { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+  .mock-check.on { color: var(--primary-dark); }
+  .mock-group {
+    position: relative; display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--primary-border); border-radius: 8px;
+    padding: 10px 10px 8px; margin-top: 6px; background: var(--primary-soft);
+  }
+  .mock-group-label {
+    position: absolute; top: -9px; left: 10px; background: #FBFDFE; padding: 0 6px;
+    font-size: 9.5px; font-weight: 800; color: var(--primary-dark); letter-spacing: 0.3px;
+  }
+  .menu-list-mock { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 14px 0 20px; background: #fff; }
+  .menu-list-row { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .menu-list-row:last-child { border-bottom: none; }
+  .menu-chip {
+    flex: 0 0 150px; font-weight: 800; color: var(--primary-dark);
+    background: var(--primary-soft); border-radius: 6px; padding: 5px 10px;
+    text-align: center; font-size: 12.5px;
+  }
+  .menu-arrow { color: var(--text-muted); }
+  .menu-desc { color: var(--text-secondary); font-size: 12.5px; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 20px; }
+  .cat-card { border: 1.5px solid var(--primary-border); border-radius: 10px; padding: 16px 18px; background: var(--primary-soft); }
+  .cat-card.alt { background: #F5F3FC; border-color: #D9D0F2; }
+  .cat-title {
+    font-weight: 800; font-size: 13.5px; color: var(--primary-dark);
+    margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--primary-border);
+  }
+  .cat-card.alt .cat-title { color: #6D4FC2; border-bottom-color: #D9D0F2; }
+  .cat-item {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; margin-bottom: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-secondary);
+  }
+  .cat-item:last-child { margin-bottom: 0; }
+
+  code { background: #EEF3F5; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; color: var(--primary-dark); }
+
+  footer { text-align: center; padding: 24px 20px 50px; color: var(--text-muted); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    nav.toc { display: none; }
+    .wrap { padding: 20px 18px 0; }
+    header.hero { padding: 28px 20px 24px; }
+    header.hero h1 { font-size: 23px; }
+    .card { padding: 20px 18px; }
+    .flow { flex-direction: column; }
+    .flow .arrow { justify-content: center; transform: rotate(90deg); }
+    .mock-qs-grid { grid-template-columns: repeat(2, 1fr); }
+    .cat-grid, .fld-row { grid-template-columns: 1fr; }
+    .app-mock-sidebar { width: 96px; }
+    .mock-menu-item { font-size: 10.5px; padding: 8px 8px; }
+  }
+</style>
+</head>
+<body data-lang="ko">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M11.1484 4.12109C11.4574 3.82684 11.943 3.82684 12.252 4.12109L21.252 12.6924C21.5716 12.9971 21.5839 13.5034 21.2793 13.8232C20.9747 14.143 20.4684 14.1549 20.1484 13.8506L18.5 12.2803V18.1289C18.4997 18.8466 17.9179 19.4286 17.2002 19.4287H6.2002C5.48238 19.4287 4.90064 18.8467 4.90039 18.1289V12.2803L3.25195 13.8506C2.93212 14.1551 2.42581 14.1428 2.12109 13.8232C1.81642 13.5033 1.82861 12.9971 2.14844 12.6924L4.7959 10.1709L11.1484 4.12109ZM6.5 10.7578V17.8291H10.9004V13.665C10.9004 13.2232 11.2584 12.8643 11.7002 12.8643C12.1419 12.8644 12.5 13.2233 12.5 13.665V17.8291H16.9004V10.7568L11.7002 5.80469L6.5 10.7578Z" fill="currentColor"/></symbol>
+  <symbol id="ic-composer" viewBox="0 0 24 24"><path d="M8.54432 9.00893C8.72148 8.61667 9.27852 8.61667 9.45568 9.00893L11.1001 12.65C11.1502 12.7609 11.2391 12.8498 11.35 12.8999L14.9911 14.5443C15.3833 14.7215 15.3833 15.2785 14.9911 15.4557L11.35 17.1001C11.2391 17.1502 11.1502 17.2391 11.1001 17.35L9.45568 20.9911C9.27852 21.3833 8.72148 21.3833 8.54432 20.9911L6.89985 17.35C6.84975 17.2391 6.76091 17.1502 6.64998 17.1001L3.00893 15.4557C2.61667 15.2785 2.61667 14.7215 3.00893 14.5443L6.64998 12.8999C6.76091 12.8498 6.84975 12.7609 6.89985 12.65L8.54432 9.00893Z" stroke="currentColor"/> <path d="M16.4532 3.21072C16.6658 2.74001 17.3342 2.74001 17.5468 3.21072L18.4623 5.23781C18.5225 5.37092 18.6291 5.47754 18.7622 5.53766L20.7893 6.45318C21.26 6.66578 21.26 7.33422 20.7893 7.54682L18.7622 8.46234C18.6291 8.52246 18.5225 8.62908 18.4623 8.76219L17.5468 10.7893C17.3342 11.26 16.6658 11.26 16.4532 10.7893L15.5377 8.76219C15.4775 8.62908 15.3709 8.52246 15.2378 8.46234L13.2107 7.54682C12.74 7.33422 12.74 6.66578 13.2107 6.45318L15.2378 5.53766C15.3709 5.47754 15.4775 5.37092 15.5377 5.23781L16.4532 3.21072Z" stroke="currentColor"/></symbol>
+  <symbol id="ic-history" viewBox="0 0 24 24"><path d="M12 3.2998C14.0715 3.29981 16.0752 4.03947 17.6504 5.38477C19.2253 6.73 20.2687 8.59293 20.5928 10.6387C20.9168 12.6847 20.5003 14.7797 19.418 16.5459C18.3356 18.312 16.6585 19.6343 14.6885 20.2744C12.7185 20.9145 10.5846 20.8307 8.6709 20.0381C6.75723 19.2454 5.18849 17.7957 4.24805 15.9502C3.30763 14.1045 3.05647 11.983 3.54004 9.96875C3.66801 9.43576 3.8633 8.82286 4.22266 8.15527L2.93066 7.03223L7.29785 5.52832L6.41699 10.0615L5.3125 9.10156C5.10692 9.53924 4.9868 9.94006 4.90137 10.2959C4.49566 11.986 4.70703 13.7658 5.49609 15.3145C6.28515 16.8628 7.60057 18.079 9.20605 18.7441C10.8119 19.4093 12.6028 19.4795 14.2559 18.9424C15.9089 18.4053 17.3165 17.2964 18.2246 15.8145C19.1327 14.3325 19.4818 12.575 19.21 10.8584C18.9381 9.14175 18.0628 7.57804 16.7412 6.44922C15.4195 5.32041 13.7381 4.7002 12 4.7002C11.6135 4.70013 11.2998 4.38655 11.2998 4C11.2998 3.61344 11.6135 3.29987 12 3.2998ZM12 7.2998C12.3866 7.29981 12.7002 7.6134 12.7002 8V11.7598L15.4902 14.501C15.766 14.7719 15.7699 15.2145 15.499 15.4902C15.2281 15.7659 14.7855 15.7699 14.5098 15.499L11.5098 12.5518L11.2998 12.3467V8C11.2998 7.61344 11.6135 7.29987 12 7.2998Z" fill="currentColor"/></symbol>
+  <symbol id="ic-mockup" viewBox="0 0 24 24"><path d="M10.0498 11C10.6021 11 11.0498 11.4477 11.0498 12V20L11.0449 20.1025C10.9936 20.6067 10.5675 21 10.0498 21H4.0498C3.53221 20.9999 3.10601 20.6066 3.05469 20.1025L3.0498 20V12C3.0498 11.4478 3.4976 11.0001 4.0498 11H10.0498ZM20.0996 19C20.5965 19 20.9998 19.4025 21 19.8994C21 20.3965 20.5967 20.7998 20.0996 20.7998H14.7002C14.2031 20.7998 13.7998 20.3965 13.7998 19.8994C13.8 19.4025 14.2033 19 14.7002 19H20.0996ZM4.64941 19.4004H9.4502V12.5996H4.64941V19.4004ZM20.0996 15C20.5967 15 21 15.4033 21 15.9004C20.9997 16.3972 20.5965 16.7998 20.0996 16.7998H14.7002C14.2033 16.7998 13.8001 16.3972 13.7998 15.9004C13.7998 15.4033 14.2031 15 14.7002 15H20.0996ZM20.0996 11C20.5967 11 21 11.4033 21 11.9004C20.9998 12.3973 20.5965 12.7998 20.0996 12.7998H14.7002C14.2033 12.7998 13.8 12.3973 13.7998 11.9004C13.7998 11.4033 14.2031 11 14.7002 11H20.0996ZM20.1025 3.00488C20.6067 3.05621 21 3.48232 21 4V8L20.9951 8.10254C20.9472 8.57297 20.573 8.94722 20.1025 8.99512L20 9H4C3.48232 9 3.05621 8.60667 3.00488 8.10254L3 8V4C3 3.44772 3.44772 3 4 3H20L20.1025 3.00488ZM4.59961 7.40039H19.4004V4.59961H4.59961V7.40039Z" fill="currentColor"/></symbol>
+  <symbol id="ic-pattern" viewBox="0 0 24 24"><g clip-path="url(#pattern_clip0_3407_266)"> <path d="M22.2895 16.2915L12.2035 21.4585L2.11758 16.2925L7.13907 13.7192L7.48087 13.5435L7.82266 13.7192L12.0844 15.9019L16.807 13.4839L22.2895 16.2915ZM12.4281 17.4126L12.0854 17.5874L7.48087 15.229L5.40665 16.2915L12.2025 19.7729L18.9984 16.2915L16.807 15.1694L12.4281 17.4126Z" fill="currentColor"/> <path d="M12.4534 13.5472L12.0855 13.7363L11.7177 13.5472L2.02719 8.58388L11.7177 3.62052L12.0855 3.43281L12.4534 3.62052L22.1438 8.58388L12.4534 13.5472ZM12.0855 5.08861L5.26184 8.58321L12.0855 12.0791L18.9092 8.58321L12.0855 5.08861Z" fill="currentColor"/> <path d="M17.0547 9.81641L22.1719 12.4385L12.4277 17.4277L12.0859 17.6035L11.7441 17.4277L2 12.4385L7.45703 9.64062L12.085 12.0117L16.7129 9.64062L17.0547 9.81641ZM12.4277 13.5225L12.0859 13.6982L11.7441 13.5225L7.45508 11.3262L5.28809 12.4365L12.0859 15.917L18.8818 12.4375L16.7119 11.3252L12.4277 13.5225Z" fill="currentColor"/> </g> <defs> <clipPath id="pattern_clip0_3407_266"> <rect width="24" height="24" fill="currentColor"/> </clipPath> </defs></symbol>
+  <symbol id="ic-ontology" viewBox="0 0 24 24"><path d="M8.625 3C9.24632 3 9.75 3.50368 9.75 4.125V5.58691H14.25V4.125C14.25 3.50368 14.7537 3 15.375 3H21C21.6213 3 22.125 3.50368 22.125 4.125V9.75C22.125 10.3324 21.6824 10.8114 21.1152 10.8691L21 10.875H15.375L15.2598 10.8691C14.7305 10.8153 14.3097 10.3945 14.2559 9.86523L14.25 9.75V7.16309H12.7881V16.5C12.7881 16.6864 12.9386 16.8369 13.125 16.8369H14.25V14.25C14.25 13.6287 14.7537 13.125 15.375 13.125H21C21.6213 13.125 22.125 13.6287 22.125 14.25V19.875C22.125 20.4574 21.6824 20.9364 21.1152 20.9941L21 21H15.375L15.2598 20.9941C14.7305 20.9403 14.3097 20.5195 14.2559 19.9902L14.25 19.875V18.4131H13.125C12.0688 18.4131 11.2119 17.5562 11.2119 16.5V7.16309H9.75V9.75C9.75 10.3324 9.30738 10.8114 8.74023 10.8691L8.625 10.875H3L2.88477 10.8691C2.35554 10.8153 1.93475 10.3945 1.88086 9.86523L1.875 9.75V4.125C1.875 3.50368 2.37868 3 3 3H8.625ZM15.8252 19.4248H20.5498V14.7002H15.8252V19.4248ZM3.4502 9.2998H8.1748V4.5752H3.4502V9.2998ZM15.8252 9.2998H20.5498V4.5752H15.8252V9.2998Z" fill="currentColor"/></symbol>
+</svg>
+
+<div class="app">
+
+  <!-- ══════════════ 좌측 목차 ══════════════ -->
+  <nav class="toc">
+    <div class="brand">
+      <div class="brand-logo">T³</div>
+      <div>
+        <div class="brand-text"><span class="ko">처음 사용자 가이드</span><span class="en">Beginner Guide</span></div>
+        <div class="brand-sub">T³Composer</div>
+      </div>
+    </div>
+
+    <div class="lang-toggle">
+      <button data-lang-btn="ko">한국어</button>
+      <button data-lang-btn="en">English</button>
+    </div>
+
+    <ol>
+      <li><a href="#s1"><span class="ko">설치 — 시작 전 준비</span><span class="en">Install — Before You Start</span></a>
+        <div class="toc-note"><span class="ko">이미 설치했으면 건너뛰기</span><span class="en">Skip if already installed</span></div></li>
+      <li><a href="#s2"><span class="ko">T³Composer가 뭔가요?</span><span class="en">What is T³Composer?</span></a></li>
+      <li><a href="#s3"><span class="ko">5분 안에 첫 화면 만들기</span><span class="en">Your First Screen in 5 Minutes</span></a></li>
+      <li><a href="#s4"><span class="ko">왼쪽 메뉴 둘러보기</span><span class="en">Sidebar Menu Tour</span></a></li>
+      <li><a href="#s5"><span class="ko">Composer 메뉴 자세히</span><span class="en">Composer Menu in Detail</span></a></li>
+      <li><a href="#s6"><span class="ko">만든 뒤 할 일 — 확인·등록</span><span class="en">After Building — Verify &amp; Register</span></a></li>
+      <li><a href="#s7"><span class="ko">Target 바꾸기</span><span class="en">Switching Target</span></a>
+        <div class="toc-note"><span class="ko">다른 프로젝트 화면 만들기</span><span class="en">Build for another project</span></div></li>
+      <li><a href="#s8"><span class="ko">API 키 바꾸기</span><span class="en">Changing the API Key</span></a>
+        <div class="toc-note"><span class="ko">만료 · 교체 · 새 PC</span><span class="en">Expired · replace · new PC</span></div></li>
+      <li><a href="#s9"><span class="ko">오류가 나면 어떻게 하나요?</span><span class="en">What If an Error Appears?</span></a></li>
+      <li><a href="#s10"><span class="ko">막혔을 때 스스로 푸는 법</span><span class="en">Getting Unstuck On Your Own</span></a></li>
+      <li><a href="#s11"><span class="ko">용어 사전</span><span class="en">Glossary</span></a></li>
+      <li><a href="#s12"><span class="ko">자주 묻는 질문 (FAQ)</span><span class="en">FAQ</span></a></li>
+      <li><a href="#s13"><span class="ko">부록 — 알아두면 편한 것들</span><span class="en">Appendix — Handy to Know</span></a>
+        <div class="toc-note"><span class="ko">첨부 파일 · 단축키 · 로그인 화면</span><span class="en">Files · shortcuts · login screen</span></div></li>
+    </ol>
+
+    <div class="foot">
+      <span class="ko">내부 배포용 · 언어 선택은 브라우저에 저장됩니다.</span>
+      <span class="en">Internal use · Your language choice is saved in this browser.</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════ 본문 ══════════════ -->
+  <main>
+
+  <header class="hero">
+    <span class="badge"><span class="ko">처음 사용자를 위한 가이드</span><span class="en">Guide for First-Time Users</span></span>
+    <h1><span class="ko">T³Composer 처음 사용자 가이드</span><span class="en">T³Composer Beginner Guide</span></h1>
+    <p><span class="ko">개발을 몰라도 화면을 만들어 볼 수 있습니다</span>
+       <span class="en">Build a screen yourself — no development background needed</span></p>
+  </header>
+
+  <div class="wrap">
+
+  <div class="intro-box">
+    <p><strong><span class="ko">이 가이드는 누구를 위한 것인가요?</span><span class="en">Who is this guide for?</span></strong><br>
+    <span class="ko">개발을 해본 적 없는 분 — 예를 들어 화면 요구사항을 문서(워드·엑셀·PPT)로만 작성해서
+    개발팀에 전달해 오신 컨설턴트·기획자 분들을 위해 썼습니다. "프로그래밍 용어를 하나도
+    몰라도 화면 하나를 직접 만들어 볼 수 있게" 하는 것이 목표입니다.</span>
+    <span class="en">People who have never written code — for example consultants and planners who used to
+    describe screen requirements in documents (Word, Excel, PowerPoint) and hand them to a development
+    team. The goal is simple: build one screen yourself without knowing a single programming term.</span></p>
+    <p><span class="ko">개발 용어가 나오면 그때그때 쉬운 말로 먼저 설명하고, 괄호 안에 원래 용어를 적어둡니다.</span>
+       <span class="en">Whenever a technical term appears, it is explained in plain language first, with the
+       original term in parentheses.</span></p>
+    <p><span class="ko">💡 이 문서를 다 읽을 필요는 없습니다. <strong>3장까지만 읽고 따라 하면</strong> 첫 화면을
+    만들어 볼 수 있습니다. 나머지는 필요할 때 찾아보는 사전처럼 쓰세요.</span>
+    <span class="en">💡 You do not need to read all of this. <strong>Follow along through Chapter 3</strong> and you
+    will have built your first screen. Use the rest as a reference when you need it.</span></p>
+    <p><span class="ko">🖥️ <strong>이미 T³Composer 를 설치해 두셨다면 1장은 건너뛰고 2장부터</strong> 보시면 됩니다.</span>
+       <span class="en">🖥️ <strong>If T³Composer is already installed, skip Chapter 1</strong> and start from Chapter 2.</span></p>
+  </div>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s1">
+    <h2 class="section"><span class="num">1</span>
+      <span class="ko">설치 — 시작하기 전에 준비할 것</span><span class="en">Install — What to Prepare</span></h2>
+
+    <div class="box tip">
+      <strong>🖥️ <span class="ko">이미 설치되어 있다면 이 장은 건너뛰세요.</span><span class="en">If it is already installed, skip this chapter.</span></strong><br>
+      <span style="color:var(--text-muted);">
+        <span class="ko">설치는 보통 한 번만 해두면 됩니다.</span>
+        <span class="en">Installation is normally a one-time task.</span></span>
+    </div>
+
+    <h3>1-1. <span class="ko">준비물 확인</span><span class="en">What you need</span></h3>
+    <p><span class="ko">설치에 필요한 것은 아래 세 가지입니다.</span>
+       <span class="en">Three things are required.</span></p>
+    <table>
+      <tr><th style="width:26%"><span class="ko">준비물</span><span class="en">Item</span></th>
+          <th><span class="ko">설명</span><span class="en">Description</span></th></tr>
+      <tr>
+        <td><strong>Docker Desktop</strong></td>
+        <td><span class="ko">프로그램을 통째로 담아 실행해주는 도구입니다 (설치 파일 하나로 여러 프로그램을 한 번에
+        띄워줌). <a href="https://www.docker.com/products/docker-desktop/" target="_blank">공식 사이트</a>에서
+        무료로 받을 수 있고, 설치 후 <strong>실행해 둔 상태</strong>여야 합니다.</span>
+        <span class="en">A tool that packages and runs whole programs (one install starts several programs at once).
+        Free from the <a href="https://www.docker.com/products/docker-desktop/" target="_blank">official site</a>;
+        it must be <strong>running</strong> after installation.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">PC 사양</span><span class="en">PC specs</span></strong></td>
+        <td><span class="ko">메모리 <strong>최소 8GB</strong> (권장 16GB) · 디스크 여유공간 <strong>10GB 이상</strong>.
+        일반 업무용 노트북이면 대부분 충족합니다.</span>
+        <span class="en"><strong>8GB RAM minimum</strong> (16GB recommended) · <strong>10GB+ free disk</strong>.
+        Most work laptops meet this.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">Anthropic API 키</span><span class="en">Anthropic API key</span></strong></td>
+        <td><span class="ko">AI(Claude)를 호출할 때 쓰는 "출입증" 같은 문자열입니다.
+        <strong>없으면 화면 생성이 안 됩니다</strong> — 개인 키를 사용하시거나
+        <strong>황금향 재무팀장님께 요청</strong>하세요.
+        현재는 <strong>선결제된 회사 API 키</strong>를 사용합니다.</span>
+        <span class="en">A string that acts like a pass when calling the AI (Claude).
+        <strong>Without it, screen generation will not work</strong> — use your personal key or
+        <strong>request one from Finance Team Lead Hwang Geum-hyang</strong>.
+        A <strong>prepaid company API key</strong> is currently in use.</span></td>
+      </tr>
+    </table>
+    <div class="box warn">
+      💡 <strong><span class="ko">"프로그램 소스"도 내려받아야 합니다.</span><span class="en">You also need the program source.</span></strong>
+      <span class="ko">저장소 주소는 <code>https://github.com/zionex/t3-composer.git</code> 이며, 받는 방법은
+      <strong>1-4</strong> 에 3가지로 안내되어 있습니다. GitHub 저장소가 열리지 않으면 접근 권한 신청이 필요합니다.</span>
+      <span class="en">The repository is <code>https://github.com/zionex/t3-composer.git</code>; three ways to get it
+      are described in <strong>1-4</strong>. If the repository does not open, you need access permission.</span>
+    </div>
+
+    <h3>1-2. <span class="ko">설치 5단계</span><span class="en">Five install steps</span></h3>
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="sn">1</div>
+        <div>
+          <div class="st"><span class="ko">Docker Desktop 설치</span><span class="en">Install Docker Desktop</span></div>
+          <div class="sd"><span class="ko">공식 사이트에서 무료로 내려받아 설치합니다. <strong>설치는 처음 한 번뿐</strong>이고,
+          이후에는 실행해 두기만 하면 됩니다 (1-3 참고).</span>
+          <span class="en">Download and install it free from the official site. <strong>You only install it once</strong>;
+          after that just leave it running (see 1-3).</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="sn">2</div>
+        <div>
+          <div class="st"><span class="ko">소스 내려받기</span><span class="en">Download the source</span></div>
+          <div class="sd"><span class="ko">GitHub 저장소에서 프로그램 파일을 내 PC에 복사합니다.
+          GitHub Desktop · SourceTree · 명령어 중 편한 방법 선택 (1-4 참고).</span>
+          <span class="en">Copy the program files from GitHub to your PC. Pick whichever is easiest —
+          GitHub Desktop, SourceTree, or the command line (see 1-4).</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="sn">3</div>
+        <div>
+          <div class="st"><span class="ko">프로그램 켜기</span><span class="en">Start the program</span></div>
+          <div class="sd"><span class="ko">명령어 한 줄이면 필요한 프로그램(화면·서버·데이터베이스)이 한꺼번에 켜집니다.
+          <br><span style="color:var(--text-muted);">※ 안내문에 나오는 <strong>"컨테이너"</strong> 는
+          Docker 가 프로그램을 담아두는 상자를 뜻합니다 — 그냥 "프로그램" 이라고 생각하시면 됩니다.</span></span>
+          <span class="en">A single command starts everything at once — UI, server, and database.
+          <br><span style="color:var(--text-muted);">※ A <strong>"container"</strong> is just the box Docker keeps a
+          program in — read it as "program".</span></span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="sn">4</div>
+        <div>
+          <div class="st"><span class="ko">브라우저로 접속</span><span class="en">Open in a browser</span></div>
+          <div class="sd"><span class="ko"><code>http://localhost:5173</code> 을 주소창에 입력하면 T³Composer 화면이 나타납니다.</span>
+          <span class="en">Enter <code>http://localhost:5173</code> in the address bar to see T³Composer.</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="sn">5</div>
+        <div>
+          <div class="st"><span class="ko">첫 설정 (API 키 + Target DB)</span><span class="en">First-time setup (API key + Target DB)</span></div>
+          <div class="sd"><span class="ko">화면 안에서 API 키와 데이터베이스 접속 정보를 한 번만 입력합니다 (1-8 참고).</span>
+          <span class="en">Enter the API key and database connection once, inside the app (see 1-8).</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>1-3. <span class="ko">Docker Desktop 설치</span><span class="en">Installing Docker Desktop</span></h3>
+    <p><span class="ko">T³Composer 는 화면·서버·데이터베이스 여러 프로그램이 함께 돌아갑니다.
+    그 여러 개를 <strong>하나씩 설치하지 않고 한꺼번에 켜주는 도구</strong>가 Docker Desktop 입니다.
+    아래 여섯 화면만 따라오시면 됩니다. <strong>설치는 처음 한 번뿐입니다.</strong></span>
+    <span class="en">T³Composer runs several programs together — UI, server, and database.
+    Docker Desktop is the tool that <strong>starts them all at once instead of installing each one</strong>.
+    Just follow the six screens below. <strong>You only do this once.</strong></span></p>
+
+    <h3 class="sub">① <span class="ko">내려받기 — 어떤 걸 받나요?</span><span class="en">Download — which one?</span></h3>
+    <p><span class="ko"><a href="https://www.docker.com/products/docker-desktop/" target="_blank">docker.com</a>
+    에서 <strong>Download Docker Desktop</strong> 버튼 옆 화살표를 누르면 목록이 펼쳐집니다.</span>
+    <span class="en">On <a href="https://www.docker.com/products/docker-desktop/" target="_blank">docker.com</a>,
+    click the arrow next to <strong>Download Docker Desktop</strong> to open the list.</span></p>
+
+    <div class="fig sm">
+      <img src="img/dk-01-download.png" alt="Docker Desktop download options">
+      <div class="cap"><span class="n">1</span>
+        <span class="ko">Windows 사용자는 <b>Download for Windows – AMD64</b></span>
+        <span class="en">On Windows choose <b>Download for Windows – AMD64</b></span></div>
+    </div>
+
+    <div class="box tip">
+      🖥️ <strong><span class="ko">"AMD64" 는 AMD CPU 전용이 아닙니다.</span><span class="en">"AMD64" is not only for AMD CPUs.</span></strong>
+      <span class="ko">Intel · AMD 를 모두 포함하는 이름이라 <strong>대부분의 업무용 노트북은 AMD64</strong> 입니다.
+      <br>확인하려면 <kbd>Win</kbd> + <kbd>Pause</kbd> → <strong>시스템 종류</strong> 를 보세요.
+      <code>x64 기반 프로세서</code> 면 AMD64, <code>ARM 기반</code> 이면 ARM64 입니다.</span>
+      <span class="en">It covers both Intel and AMD, so <strong>almost every work laptop uses AMD64</strong>.
+      <br>To check: <kbd>Win</kbd> + <kbd>Pause</kbd> → <strong>System type</strong>.
+      <code>x64-based processor</code> means AMD64; <code>ARM-based</code> means ARM64.</span>
+    </div>
+
+    <h3 class="sub">② <span class="ko">설치 옵션 — 그대로 두고 OK</span><span class="en">Install options — leave as-is, click OK</span></h3>
+    <div class="fig sm">
+      <img src="img/dk-02-installer.png" alt="Docker Desktop installer configuration">
+      <div class="cap"><span class="n">2</span>
+        <span class="ko">기본값이 이미 올바릅니다 — <b>아무것도 바꾸지 말고 [OK]</b></span>
+        <span class="en">The defaults are already correct — <b>change nothing, click [OK]</b></span></div>
+    </div>
+    <table>
+      <tr><th style="width:38%"><span class="ko">항목</span><span class="en">Option</span></th>
+          <th><span class="ko">왜 그대로 두나요?</span><span class="en">Why leave it?</span></th></tr>
+      <tr><td><strong>Per-user installation</strong> <span class="ko">(선택됨)</span><span class="en">(selected)</span></td>
+          <td><span class="ko">관리자 비밀번호가 필요 없고, 우리가 쓰는 방식(WSL 2)으로 설치됩니다</span>
+              <span class="en">No admin password needed, and it installs the way we need (WSL 2)</span></td></tr>
+      <tr><td><strong>Allow Windows Containers</strong> <span class="ko">(해제됨)</span><span class="en">(unchecked)</span></td>
+          <td><span class="ko">T³Composer 의 프로그램은 전부 Linux 방식이라 켤 필요가 없습니다</span>
+              <span class="en">Everything in T³Composer is Linux-based, so this is not needed</span></td></tr>
+      <tr><td><strong>Add shortcut to desktop</strong></td>
+          <td><span class="ko">취향 — 켜두면 바탕화면에서 바로 찾을 수 있습니다</span>
+              <span class="en">Optional — leave it on for a desktop icon</span></td></tr>
+    </table>
+
+    <h3 class="sub">③ <span class="ko">설치 완료 → PC 재시작</span><span class="en">Finished → restart your PC</span></h3>
+    <div class="fig sm">
+      <img src="img/dk-03-finish.png" alt="Docker Desktop installation succeeded">
+      <div class="cap"><span class="n">3</span>
+        <span class="ko"><b>[Close and restart]</b> 를 누르면 PC 가 다시 시작됩니다 — 저장하지 않은 작업이 있다면 먼저 저장하세요</span>
+        <span class="en"><b>[Close and restart]</b> reboots your PC — save any open work first</span></div>
+    </div>
+
+    <h3 class="sub">④ <span class="ko">약관 동의</span><span class="en">Accept the terms</span></h3>
+    <div class="fig md">
+      <img src="img/dk-04-terms.png" alt="Docker Subscription Service Agreement">
+      <div class="cap"><span class="n">4</span>
+        <span class="ko">재시작 후 처음 실행하면 나옵니다 — <b>[Accept]</b></span>
+        <span class="en">Appears on first launch after the restart — click <b>[Accept]</b></span></div>
+    </div>
+    <div class="box warn">
+      💼 <strong><span class="ko">회사에서 쓸 때 확인할 것</span><span class="en">One thing to check for company use</span></strong>
+      <span class="ko">화면에 적혀 있듯, <strong>직원 250명 초과 또는 연 매출 $1,000만 초과</strong> 기업이
+      업무용으로 쓰려면 유료 구독이 필요합니다. 사내 정책을 한 번 확인해 주세요.</span>
+      <span class="en">As stated on screen, companies with <strong>more than 250 employees or over $10M in annual
+      revenue</strong> need a paid subscription for commercial use. Please check your company policy.</span>
+    </div>
+
+    <h3 class="sub">⑤ <span class="ko">로그인은 건너뛰세요</span><span class="en">Skip the sign-in</span></h3>
+    <div class="fig">
+      <img src="img/dk-05-signin.png" alt="Docker sign-in screen with Skip link">
+      <div class="cap"><span class="n">5</span>
+        <span class="ko">오른쪽 위의 작은 <b>Skip</b> 을 클릭 — 계정을 만들 필요가 없습니다</span>
+        <span class="en">Click the small <b>Skip</b> at the top-right — no account needed</span></div>
+    </div>
+    <div class="box tip">
+      🙅 <strong><span class="ko">계정을 만들지 마세요.</span><span class="en">Do not create an account.</span></strong>
+      <span class="ko">가운데의 입력창 · <code>Continue</code> · Google · GitHub 버튼이 크게 보여서 꼭 해야 할 것 같지만,
+      <strong>T³Composer 를 쓰는 데 Docker 계정은 필요 없습니다.</strong>
+      위쪽 <code>Work</code> / <code>Personal</code> 탭도 고를 필요 없습니다.
+      <br>Skip 다음에 설문 화면이 한 번 더 나오면 그것도 건너뛰시면 됩니다.</span>
+      <span class="en">The input box, <code>Continue</code>, Google, and GitHub buttons look important, but
+      <strong>you do not need a Docker account to use T³Composer.</strong>
+      You also do not need to pick the <code>Work</code> / <code>Personal</code> tab.
+      <br>If a survey screen appears after Skip, skip that too.</span>
+    </div>
+
+    <h3 class="sub">⑥ <span class="ko">준비 완료 확인</span><span class="en">Confirm it is ready</span></h3>
+    <div class="fig">
+      <img src="img/dk-06-engine.png" alt="Docker Desktop main window with Engine running">
+      <div class="cap"><span class="n">6</span>
+        <span class="ko">왼쪽 아래에 <b>Engine running</b> 초록 글씨가 보이면 준비 끝입니다</span>
+        <span class="en">Green <b>Engine running</b> at the bottom-left means you are ready</span></div>
+    </div>
+    <div class="box ok">
+      ✅ <strong><span class="ko">목록이 비어 있어도 정상입니다.</span><span class="en">An empty list is normal.</span></strong>
+      <span class="ko">아직 아무 프로그램도 켜지 않았으니 당연히 비어 있습니다.
+      <strong>Engine running</strong> 초록 글씨 하나만 확인하면 됩니다 — 이게 "Docker 가 살아 있다" 는 신호입니다.</span>
+      <span class="en">Nothing has been started yet, so of course it is empty.
+      Just look for the green <strong>Engine running</strong> — that is the signal that Docker is alive.</span>
+    </div>
+
+    <div class="box warn">
+      🛡️ <strong><span class="ko">설치 중 "Windows 보안" 창이 뜨면 [허용]</span><span class="en">If a "Windows Security" alert appears, click [Allow]</span></strong>
+      <span class="ko">Docker 가 프로그램들끼리 통신하려면 필요합니다. <code>더 많이 표시</code> 를 눌러
+      <strong>개인 네트워크만</strong> 체크하면 더 안전합니다. 이 창은 처음 한 번만 나옵니다.
+      <br>실수로 [취소] 를 눌렀다면 — <code>Windows 보안 → 방화벽 및 네트워크 보호 → 방화벽을 통해 앱 허용</code>
+      에서 <code>Docker Desktop Backend</code> 를 찾아 체크하면 됩니다.</span>
+      <span class="en">Docker needs this so the programs can talk to each other. Click <code>More details</code>
+      and tick <strong>Private networks only</strong> for a safer setting. It appears only once.
+      <br>If you clicked [Cancel] by mistake — go to <code>Windows Security → Firewall &amp; network protection →
+      Allow an app through firewall</code> and tick <code>Docker Desktop Backend</code>.</span>
+    </div>
+
+    <h3>1-4. <span class="ko">소스 내려받기 — 3가지 방법 중 하나 선택</span><span class="en">Download the source — pick one of three ways</span></h3>
+    <p><span class="ko">먼저 프로그램 파일을 내 PC 로 복사해 옵니다. <strong>아래 3가지 중 편한 방법 하나만</strong>
+    하시면 됩니다. 결과는 모두 같습니다.</span>
+    <span class="en">First copy the program files to your PC. <strong>Choose just one</strong> of the three methods
+    below — the result is identical.</span></p>
+
+    <div class="method-card">
+      <div class="mh">🖱️ <span class="ko">방법 A — GitHub Desktop</span><span class="en">Method A — GitHub Desktop</span>
+        <span class="tag"><span class="ko">초보자 추천</span><span class="en">Recommended</span></span></div>
+      <div class="mb">
+        <p style="margin-top:0;"><span class="ko">클릭만으로 받을 수 있어 가장 쉽습니다.
+        <a href="https://desktop.github.com/" target="_blank">GitHub Desktop</a> 을 설치한 뒤:</span>
+        <span class="en">The easiest option — clicks only. After installing
+        <a href="https://desktop.github.com/" target="_blank">GitHub Desktop</a>:</span></p>
+        <ol>
+          <li><span class="ko">상단 메뉴 <strong>File → Clone repository…</strong> 클릭</span>
+              <span class="en">Click <strong>File → Clone repository…</strong></span></li>
+          <li><span class="ko"><strong>URL</strong> 탭 선택</span><span class="en">Select the <strong>URL</strong> tab</span></li>
+          <li><span class="ko">주소 칸에 아래를 붙여넣기</span><span class="en">Paste this into the URL field</span>
+            <code class="url-line">https://github.com/zionex/t3-composer.git</code>
+          </li>
+          <li><span class="ko"><strong>Local path</strong> 에 저장할 폴더 지정 (예: <code>D:\work</code>)</span>
+            <span class="en">Set <strong>Local path</strong> to a folder (e.g. <code>D:\work</code>)</span>
+            <br><span style="color:var(--text-muted);font-size:13px;">
+            <span class="ko">→ 실제로는 <code>D:\work\t3-composer</code> 폴더가 만들어집니다. 이 경로를 기억해 두세요.</span>
+            <span class="en">→ A <code>D:\work\t3-composer</code> folder is created. Remember this path.</span></span></li>
+          <li><span class="ko"><strong>Clone</strong> 버튼 클릭 → 다운로드 완료까지 대기</span>
+              <span class="en">Click <strong>Clone</strong> and wait for the download to finish</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="method-card">
+      <div class="mh">🌳 <span class="ko">방법 B — SourceTree</span><span class="en">Method B — SourceTree</span>
+        <span class="tag gray"><span class="ko">GUI 도구</span><span class="en">GUI tool</span></span></div>
+      <div class="mb">
+        <ol style="margin-top:0;">
+          <li><span class="ko">상단 <strong>[+ New] → Clone from URL</strong> 클릭</span>
+              <span class="en">Click <strong>[+ New] → Clone from URL</strong></span></li>
+          <li><span class="ko"><strong>Source Path / URL</strong> 에 아래를 붙여넣기</span>
+              <span class="en">Paste this into <strong>Source Path / URL</strong></span>
+            <code class="url-line">https://github.com/zionex/t3-composer.git</code>
+          </li>
+          <li><span class="ko"><strong>Destination Path</strong> 에 저장할 폴더 지정 (예: <code>D:\work\t3-composer</code>)</span>
+              <span class="en">Set <strong>Destination Path</strong> (e.g. <code>D:\work\t3-composer</code>)</span></li>
+          <li><span class="ko"><strong>Clone</strong> 버튼 클릭</span><span class="en">Click <strong>Clone</strong></span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="method-card">
+      <div class="mh">⌨️ <span class="ko">방법 C — 명령어</span><span class="en">Method C — Command line</span>
+        <span class="tag gray"><span class="ko">Git 설치 필요</span><span class="en">Git required</span></span></div>
+      <div class="mb">
+        <p style="margin-top:0;"><span class="ko">명령창을 열고 (여는 방법은 <strong>1-5</strong> 참고)
+        <strong>소스를 저장할 상위 폴더</strong>에서 아래 중 하나를 실행합니다.</span>
+        <span class="en">Open a command window (see <strong>1-5</strong>) in the <strong>parent folder</strong>
+        where you want the source, then run one of these.</span></p>
+<pre class="cmd" style="margin-top:8px;"><span class="c"># HTTPS <span class="ko">— 가장 무난 (아이디/토큰으로 인증)</span><span class="en">— simplest (ID / token auth)</span></span>
+<span class="k">git clone</span> https://github.com/zionex/t3-composer.git
+
+<span class="c"># SSH <span class="ko">— SSH 키를 미리 등록해 둔 분만</span><span class="en">— only if your SSH key is registered</span></span>
+<span class="k">git clone</span> git@github.com:zionex/t3-composer.git
+
+<span class="c"># GitHub CLI <span class="ko">— gh 를 설치해 둔 분만</span><span class="en">— only if gh is installed</span></span>
+<span class="k">gh repo clone</span> zionex/t3-composer</pre>
+      </div>
+    </div>
+
+    <div class="box tip">
+      💡 <strong><span class="ko">SSH 와 HTTPS 중 뭘 골라야 하나요?</span><span class="en">SSH or HTTPS?</span></strong><br>
+      <span class="ko">처음이라면 <strong>HTTPS</strong> 를 쓰세요. SSH 는 미리 "SSH 키"라는 것을 GitHub 에
+      등록해 둔 분만 동작합니다. 셋 중 무엇으로 받든 이후 과정은 완전히 동일합니다.</span>
+      <span class="en">If this is your first time, use <strong>HTTPS</strong>. SSH only works if you have already
+      registered an SSH key on GitHub. Whichever you use, everything afterwards is identical.</span>
+    </div>
+
+    <h3>1-5. <span class="ko">명령창 열기 — 어디에 명령어를 입력하나요?</span><span class="en">Opening a command window — where do commands go?</span></h3>
+    <p><span class="ko">다음 단계부터는 검은 명령창에 명령어를 입력합니다.
+    <strong>가장 중요한 건 "어느 폴더에서" 입력하느냐</strong>입니다 —
+    반드시 <strong>방금 내려받은 <code>t3-composer</code> 폴더 안</strong>이어야 합니다.</span>
+    <span class="en">From here on you type commands into a black command window.
+    <strong>What matters most is which folder you are in</strong> — it must be
+    <strong>inside the <code>t3-composer</code> folder you just downloaded</strong>.</span></p>
+
+    <h3 class="sub"><span class="ko">가장 쉬운 방법 — 탐색기에서 바로 열기 (추천)</span><span class="en">Easiest way — open from File Explorer (recommended)</span></h3>
+    <ol>
+      <li><span class="ko">파일 탐색기에서 <code>t3-composer</code> 폴더로 들어갑니다</span>
+        <span class="en">In File Explorer, open the <code>t3-composer</code> folder</span>
+        <br><span style="color:var(--text-muted);font-size:13px;">
+        <span class="ko">폴더 안에 <code>docker-compose.yml</code> 파일이 보이면 제대로 찾아온 것입니다.</span>
+        <span class="en">If you see <code>docker-compose.yml</code> inside, you are in the right place.</span></span></li>
+      <li><span class="ko">위쪽 <strong>주소 표시줄을 클릭</strong>해서 경로가 파랗게 선택되게 합니다</span>
+          <span class="en">Click the <strong>address bar</strong> so the path is highlighted</span></li>
+      <li><span class="ko">거기에 <strong><code>cmd</code></strong> 를 입력하고 <strong>Enter</strong></span>
+        <span class="en">Type <strong><code>cmd</code></strong> there and press <strong>Enter</strong></span>
+        <br><span style="color:var(--text-muted);font-size:13px;">
+        <span class="ko">→ 그 폴더 위치에서 검은 창이 바로 열립니다. 경로를 따로 입력할 필요가 없어 가장 실수가 적습니다.</span>
+        <span class="en">→ A command window opens already in that folder — no path typing, fewest mistakes.</span></span></li>
+    </ol>
+
+    <h3 class="sub"><span class="ko">다른 방법들</span><span class="en">Other ways</span></h3>
+    <table>
+      <tr><th style="width:26%"><span class="ko">도구</span><span class="en">Tool</span></th>
+          <th><span class="ko">여는 방법</span><span class="en">How to open</span></th></tr>
+      <tr>
+        <td><strong>VS Code</strong></td>
+        <td><span class="ko"><strong>File → Open Folder</strong> 로 <code>t3-composer</code> 폴더를 연 뒤,
+        <strong>Ctrl + `</strong> (숫자 1 왼쪽의 백틱 키) 를 누르면 아래쪽에 터미널이 열립니다.
+        이미 폴더 위치가 잡혀 있어 편합니다.</span>
+        <span class="en">Use <strong>File → Open Folder</strong> on <code>t3-composer</code>, then press
+        <strong>Ctrl + `</strong> (backtick, left of the 1 key) to open a terminal already in that folder.</span></td>
+      </tr>
+      <tr>
+        <td><strong>PowerShell</strong></td>
+        <td><span class="ko">시작 메뉴에서 <code>PowerShell</code> 검색 후 실행 → <code>cd D:\work\t3-composer</code>
+        처럼 <strong>직접 경로 이동이 필요</strong>합니다.</span>
+        <span class="en">Search <code>PowerShell</code> in the Start menu, then you must
+        <strong>navigate manually</strong>, e.g. <code>cd D:\work\t3-composer</code>.</span></td>
+      </tr>
+      <tr>
+        <td><strong>GitHub Desktop</strong></td>
+        <td><span class="ko">메뉴 <strong>Repository → Open in Command Prompt</strong> 를 누르면 해당 폴더에서 창이 열립니다.</span>
+        <span class="en">Use <strong>Repository → Open in Command Prompt</strong> to open a window in that folder.</span></td>
+      </tr>
+    </table>
+
+    <h3 class="sub"><span class="ko">위치가 맞는지 확인하는 법</span><span class="en">Checking you are in the right folder</span></h3>
+    <p><span class="ko">명령창 왼쪽에 <strong>현재 폴더 경로</strong>가 표시됩니다. 끝이
+    <code>t3-composer</code> 로 끝나야 정상입니다.</span>
+    <span class="en">The command window shows the <strong>current path</strong> on the left. It must end with
+    <code>t3-composer</code>.</span></p>
+    <div class="path-demo">
+      <span class="ok">✅ <span class="ko">올바름</span><span class="en">Correct</span></span>   D:\work\t3-composer&gt;<br>
+      <span class="no">❌ <span class="ko">잘못됨</span><span class="en">Wrong</span></span>   C:\Users\hong&gt;
+      <span style="color:#8AA3B0;"><span class="ko">← 내 PC 기본 위치, 아직 이동 안 함</span><span class="en">← default location, not moved yet</span></span>
+    </div>
+    <p><span class="ko">잘못된 위치라면 아래처럼 이동하세요 (경로는 본인이 저장한 곳으로).</span>
+       <span class="en">If you are in the wrong place, move like this (use your own path).</span></p>
+<pre class="cmd"><span class="k">cd</span> D:\work\t3-composer</pre>
+
+    <h3>1-6. <span class="ko">프로그램 실행</span><span class="en">Run the program</span></h3>
+    <p><span class="ko"><code>t3-composer</code> 폴더에서 명령창이 열려 있다면, 아래를 순서대로 붙여넣습니다.
+    (검은 창이 낯설어도 괜찮습니다 — 복사·붙여넣기만 하면 됩니다)</span>
+    <span class="en">With a command window open in <code>t3-composer</code>, paste the following in order.
+    (The black window may look unfamiliar — copy and paste is all you need.)</span></p>
+<pre class="cmd"><span class="c"># 1) <span class="ko">컨테이너 기동 (백그라운드 실행) — 첫 실행은 5~10분 소요</span><span class="en">Start containers (background) — first run takes 5–10 min</span></span>
+<span class="k">docker compose up -d</span>
+
+<span class="c"># 2) <span class="ko">상태 확인 — 아래처럼 나오면 정상</span><span class="en">Check status — this output means success</span></span>
+<span class="k">docker compose ps</span>
+<span class="c">#   composer-backend    Up (healthy)</span>
+<span class="c">#   composer-db         Up (healthy)</span>
+<span class="c">#   composer-frontend   Up</span>
+<span class="c">#   target-mssql        Up (healthy)</span>
+
+<span class="c"># 3) <span class="ko">브라우저 주소창에 입력</span><span class="en">Open in your browser</span></span>
+<span class="c">#   http://localhost:5173</span></pre>
+
+    <div class="box tip">
+      ⏱️ <strong><span class="ko">첫 기동은 5~10분 정도 걸립니다.</span><span class="en">The first start takes 5–10 minutes.</span></strong>
+      <span class="ko">프로그램을 내려받아 조립하는 과정이라 처음 한 번만 오래 걸리고, 이후에는 수십 초면 켜집니다.
+      창이 멈춘 것처럼 보여도 기다려주세요.</span>
+      <span class="en">It downloads and assembles everything, so only the first run is slow — later starts take
+      seconds. The window may look frozen; just wait.</span>
+    </div>
+
+    <h3 class="sub"><span class="ko">화면으로 따라가기</span><span class="en">Step by step, on screen</span></h3>
+
+    <div class="fig">
+      <img src="img/dk-07-command.png" alt="Typing docker compose up -d in the command window">
+      <div class="cap"><span class="n">1</span>
+        <span class="ko"><b>맨 앞의 경로가 <code>...\t3-composer&gt;</code> 인지</b> 꼭 확인하고 입력하세요</span>
+        <span class="en">Check that the prompt shows <b><code>...\t3-composer&gt;</code></b> before typing</span></div>
+    </div>
+
+    <div class="fig">
+      <img src="img/dk-08-building.png" alt="Docker pulling images">
+      <div class="cap"><span class="n">2</span>
+        <span class="ko">필요한 프로그램을 내려받는 중 — <b>이 화면이 가장 오래 걸립니다</b></span>
+        <span class="en">Downloading what it needs — <b>this is the longest part</b></span></div>
+    </div>
+
+    <div class="box tip">
+      ⚠️ <strong><span class="ko">노란 글씨 <code>The "HOME" variable is not set</code> 가 보여도 정상입니다.</span>
+      <span class="en">The yellow <code>The "HOME" variable is not set</code> line is normal.</span></strong>
+      <span class="ko"><code>HOME</code> 은 Mac/Linux 에서 쓰는 이름이라 Windows 에는 없습니다.
+      프로그램은 대신 Windows 용 이름을 알아서 사용합니다. <strong>그냥 넘어가세요.</strong></span>
+      <span class="en"><code>HOME</code> is a Mac/Linux name that Windows does not have.
+      The program automatically uses the Windows equivalent instead. <strong>Just ignore it.</strong></span>
+    </div>
+
+    <div class="fig">
+      <img src="img/dk-09-done.png" alt="docker compose up finished with all containers listed">
+      <div class="cap"><span class="n">3</span>
+        <span class="ko">모든 줄에 <b>✔</b> 가 붙고 다시 입력 가능한 상태가 되면 명령은 끝난 것입니다</span>
+        <span class="en">Every line has a <b>✔</b> and the prompt returns — the command is done</span></div>
+    </div>
+
+    <div class="box warn">
+      🤔 <strong><span class="ko"><code>Exited</code> 라고 나왔는데 실패한 건가요? — 아닙니다</span>
+      <span class="en">It says <code>Exited</code> — did it fail? No.</span></strong>
+      <span class="ko"><code>composer-db-init</code> 과 <code>target-mssql-init</code> 두 개는
+      <strong>데이터베이스 초기 준비만 하고 스스로 끝나는 프로그램</strong>입니다.
+      할 일을 마치고 종료된 것이라 <code>Exited</code> 가 <strong>정상</strong>입니다 — 앞에 <b>✔</b> 가 붙어 있죠.
+      <br>나머지 4개가 <code>Healthy</code> · <code>Started</code> 면 성공입니다.</span>
+      <span class="en"><code>composer-db-init</code> and <code>target-mssql-init</code> are
+      <strong>one-shot programs that prepare the database and then stop on their own</strong>.
+      <code>Exited</code> means they finished their job — note the <b>✔</b> in front.
+      <br>If the other four say <code>Healthy</code> or <code>Started</code>, you are good.</span>
+    </div>
+
+    <div class="fig">
+      <img src="img/dk-10-running.png" alt="Docker Desktop containers list with 7 items">
+      <div class="cap"><span class="n">4</span>
+        <span class="ko">Docker Desktop 에서 <code>t3-composer</code> 왼쪽 <b>&gt;</b> 를 눌러 펼친 모습 —
+        초록 4개 + <b>회색 2개(정상)</b></span>
+        <span class="en">Expanded with the <b>&gt;</b> next to <code>t3-composer</code> —
+        four green + <b>two grey (normal)</b></span></div>
+    </div>
+
+    <div class="box tip">
+      🎨 <strong><span class="ko">색으로 보는 상태</span><span class="en">Reading the colours</span></strong>
+      <span class="ko">🟢 <strong>초록</strong> = 실행 중 &nbsp;·&nbsp; ⚪ <strong>회색</strong> = 멈춤.
+      회색 2개(<code>-init</code>)는 <strong>일을 마치고 꺼진 것</strong>이라 그대로 두세요 —
+      ▶ 를 눌러 다시 켤 필요가 없습니다.</span>
+      <span class="en">🟢 <strong>green</strong> = running &nbsp;·&nbsp; ⚪ <strong>grey</strong> = stopped.
+      The two grey ones (<code>-init</code>) <strong>finished and shut down</strong> — leave them alone;
+      there is no need to press ▶.</span>
+    </div>
+
+    <div class="fig">
+      <img src="img/dk-11-port.png" alt="T3Composer home screen in the browser">
+      <div class="cap"><span class="n">5</span>
+        <span class="ko"><code>composer-frontend</code> 줄의 <b>5173:5173</b> 을 클릭하면 브라우저가 바로 열립니다 —
+        주소를 외울 필요가 없습니다</span>
+        <span class="en">Click <b>5173:5173</b> on the <code>composer-frontend</code> row to open the browser —
+        no need to memorise the address</span></div>
+    </div>
+
+    <div class="box warn">
+      ⚠️ <strong><span class="ko">포트 충돌 오류가 나면?</span><span class="en">Port conflict error?</span></strong>
+      <span class="ko"><code>5173 · 8090 · 11433 · 15432</code> 번호가 이미 다른 프로그램에서 쓰이고 있다는 뜻입니다.
+      대부분 <strong>기존에 켜둔 프로그램을 끄면</strong> 해결됩니다. 계속 충돌하면
+      <code>docker-compose.yml</code> 파일을 열어 그 번호만 다른 숫자로
+      (예: <code>5173</code> → <code>5174</code>) 바꾸고 다시 실행하세요.</span>
+      <span class="en">It means ports <code>5173 · 8090 · 11433 · 15432</code> are already in use.
+      Usually <strong>closing the other program</strong> fixes it. If it keeps happening, open
+      <code>docker-compose.yml</code> and change just that number
+      (e.g. <code>5173</code> → <code>5174</code>), then run again.</span>
+    </div>
+
+    <h3>1-7. <span class="ko">Docker Desktop 사용법 — 매일 쓰는 4가지</span><span class="en">Using Docker Desktop — the four everyday actions</span></h3>
+    <p><span class="ko">설치가 끝나면 <strong>명령창은 더 이상 필요 없습니다.</strong>
+    끄고 켜고 확인하는 일은 전부 Docker Desktop 화면에서 클릭으로 합니다.</span>
+    <span class="en">Once installed you <strong>no longer need the command window.</strong>
+    Starting, stopping, and checking are all done by clicking in Docker Desktop.</span></p>
+
+    <div class="box ok">
+      🔁 <strong><span class="ko">PC 를 껐다 켜도 알아서 다시 켜집니다.</span><span class="en">It restarts itself after a reboot.</span></strong>
+      <span class="ko"><code>docker compose up -d</code> 는 <strong>처음 한 번만</strong> 치면 됩니다.
+      다음부터는 PC 를 켜고 Docker Desktop 이 실행되면 자동으로 다시 올라옵니다.
+      <br><strong>단, 내가 직접 ■ 로 멈춘 경우에는</strong> 다시 ▶ 를 눌러 켜야 합니다.</span>
+      <span class="en">You only type <code>docker compose up -d</code> <strong>once</strong>.
+      After that, everything comes back automatically when Docker Desktop starts.
+      <br><strong>Except</strong> when you stopped it yourself with ■ — then press ▶ to start it again.</span>
+    </div>
+
+    <h3 class="sub">① <span class="ko">끄기 · 켜기</span><span class="en">Stop and start</span></h3>
+    <div class="fig">
+      <img src="img/dk-12-stopstart.png" alt="Stop button on the t3-composer group row">
+      <div class="cap"><span class="n">1</span>
+        <span class="ko">맨 위 <code>t3-composer</code> 줄의 <b>■</b> 를 누르면 <b>6개가 한 번에</b> 꺼집니다
+        (다시 켤 땐 같은 자리의 <b>▶</b>)</span>
+        <span class="en">The <b>■</b> on the top <code>t3-composer</code> row stops <b>all six at once</b>
+        (press <b>▶</b> in the same spot to start again)</span></div>
+    </div>
+
+    <h3 class="sub">② <span class="ko">다시 시작 — 뭔가 이상할 때 첫 번째로</span><span class="en">Restart — try this first when something is off</span></h3>
+    <div class="fig">
+      <img src="img/dk-14-restart.png" alt="Context menu with View details, Pause, Restart">
+      <div class="cap"><span class="n">2</span>
+        <span class="ko">줄 오른쪽 <b>⋮</b> 클릭 → <b>Restart</b></span>
+        <span class="en">Click <b>⋮</b> on the row → <b>Restart</b></span></div>
+    </div>
+    <div class="box warn">
+      🧊 <strong><span class="ko"><code>Pause</code> 는 누르지 마세요.</span><span class="en">Do not use <code>Pause</code>.</span></strong>
+      <span class="ko">Pause 는 "잠깐 얼려두기" 라서 <strong>화면상으로는 켜져 있는데 실제로는 응답하지 않습니다.</strong>
+      원인을 찾기 어려워지니, <strong>끌 땐 ■ (Stop), 이상하면 ↺ (Restart)</strong> 두 개만 쓰세요.</span>
+      <span class="en">Pause "freezes" the program, so it <strong>looks running but does not respond</strong> —
+      which makes problems hard to diagnose. Stick to <strong>■ (Stop) to turn off and ↺ (Restart) when something is odd.</strong></span>
+    </div>
+
+    <h3 class="sub">③ <span class="ko">기록(로그) 보기 — 오류 원인 찾기</span><span class="en">Reading the logs — finding the cause of an error</span></h3>
+    <div class="fig">
+      <img src="img/dk-13-logs.png" alt="composer-backend logs tab">
+      <div class="cap"><span class="n">3</span>
+        <span class="ko">컨테이너 <b>이름을 클릭</b> → <b>Logs</b> 탭 — 프로그램이 남긴 기록이 보입니다</span>
+        <span class="en">Click the container <b>name</b> → <b>Logs</b> tab to see what the program recorded</span></div>
+    </div>
+    <div class="box tip">
+      🔍 <strong><span class="ko">같은 줄이 계속 반복돼도 정상입니다.</span><span class="en">Repeating lines are normal.</span></strong>
+      <span class="ko"><code>/actuator/health</code> 는 Docker 가 <strong>15초마다 "잘 살아있니?" 하고 확인하는 신호</strong>입니다.
+      이 줄이 계속 나오는 게 오히려 정상이라는 뜻이에요.
+      <br>문제를 찾을 땐 오른쪽 <b>🔍</b> 를 눌러 <code>ERROR</code> 또는 <code>Exception</code> 을 검색하세요.</span>
+      <span class="en"><code>/actuator/health</code> is Docker asking <strong>"are you alive?" every 15 seconds</strong>.
+      Seeing it repeat actually means things are fine.
+      <br>To find a problem, click <b>🔍</b> on the right and search for <code>ERROR</code> or <code>Exception</code>.</span>
+    </div>
+
+    <h3 class="sub">④ <span class="ko">Volumes — 내 작업 내용이 저장되는 곳</span><span class="en">Volumes — where your work is kept</span></h3>
+    <div class="fig">
+      <img src="img/dk-15-volumes.png" alt="Docker Desktop volumes list">
+      <div class="cap"><span class="n">4</span>
+        <span class="ko">왼쪽 <b>Volumes</b> 메뉴 — 🟢 는 <b>현재 사용 중</b> 이라는 뜻입니다</span>
+        <span class="en">The <b>Volumes</b> menu on the left — 🟢 means <b>currently in use</b></span></div>
+    </div>
+    <div class="box danger">
+      🗄️ <strong><span class="ko">여기 있는 것을 지우면 작업 내역이 사라집니다.</span><span class="en">Deleting these erases your work history.</span></strong>
+      <span class="ko">컨테이너가 "프로그램" 이라면 볼륨은 <strong>그 프로그램이 저장해 둔 데이터</strong>입니다.
+      등록한 API 키 · Target DB 정보 · 지금까지 만든 작업 기록이 모두 여기 들어 있습니다.
+      <br><strong>평소에는 이 화면을 열어볼 일이 없습니다.</strong> 구경만 하고 <strong>지우지 마세요.</strong>
+      (완전히 처음부터 다시 설치할 때만 지웁니다.)</span>
+      <span class="en">If a container is the "program", a volume is <strong>the data that program saved</strong> —
+      your API key, Target DB settings, and every session you have created.
+      <br><strong>You will rarely need this screen.</strong> Look, but <strong>do not delete.</strong>
+      (Only delete when you want a completely fresh install.)</span>
+    </div>
+
+    <h3>1-8. <span class="ko">첫 설정 — 화면 안에서 두 가지 입력</span><span class="en">First-time setup — two entries inside the app</span></h3>
+    <p><span class="ko">접속에 성공하면 마지막으로 두 가지를 프로그램 화면 안에서 입력합니다.
+    <strong>둘 다 한 번만 입력하면 계속 저장됩니다.</strong></span>
+    <span class="en">Once the app opens, two settings remain. <strong>Both are entered once and stay saved.</strong></span></p>
+
+    <div class="box warn">
+      📍 <strong><span class="ko">어디에 있나요?</span><span class="en">Where are they?</span></strong><br>
+      <span class="ko">두 설정은 <strong>화면 맨 위 오른쪽 끝</strong>, 언어 선택(<strong>🌐 KO</strong>) <strong>바로 왼쪽</strong>에
+      나란히 있습니다. 어느 메뉴에 있든 항상 같은 자리에 보이므로, 필요할 때 언제든 클릭하면 됩니다.</span>
+      <span class="en">Both sit at the <strong>top-right of the screen</strong>, immediately
+      <strong>left of the language switch</strong> (<strong>🌐 KO</strong>). They stay in the same place on
+      every menu, so you can click them any time.</span>
+    </div>
+
+    <div class="app-mock">
+      <div class="app-mock-topbar" style="background:#FFFFFF;color:var(--text);border-bottom:1px solid var(--border);">
+        <span style="font-weight:800;">T³Composer</span>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span class="hchip">🗄 T3Series ⌄</span>
+          <span class="hchip key-ok">🔑 API Key</span>
+          <span class="hchip llm">☁ API</span>
+          <span class="hchip lang">🌐 KO</span>
+        </span>
+      </div>
+      <div class="app-mock-body">
+        <div class="app-mock-sidebar">
+          <div class="mock-menu-item active"><svg class="ic"><use href="#ic-home"/></svg> Home</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-composer"/></svg> Composer</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-history"/></svg> History</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-mockup"/></svg> SCM UI Mockup</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-pattern"/></svg> UI Pattern</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-ontology"/></svg> Ontology</div>
+        </div>
+        <div class="app-mock-main">
+          <div style="color:var(--text-secondary);font-size:12.5px;line-height:1.95;">
+            <span class="ko">↑ 화면 <strong style="color:var(--primary);">맨 위 오른쪽</strong>, 언어 선택
+            <code>🌐 KO</code> 왼쪽에 칩 3개가 있습니다.<br>
+            <strong style="color:var(--primary);">② Target DB</strong> →
+            <span class="hchip" style="height:22px;font-size:11px;">🗄 T3Series ⌄</span> 클릭<br>
+            <strong style="color:var(--primary);">① API 키</strong> →
+            <span class="hchip key-ok" style="height:22px;font-size:11px;">🔑 API Key</span> 클릭<br>
+            <span style="font-size:12px;color:var(--text-muted);">
+              <span class="hchip llm" style="height:20px;font-size:10.5px;">☁ API</span>
+              칩은 현재 AI 연결 방식 표시용 — 누를 필요 없습니다.</span></span>
+            <span class="en">↑ Three chips sit at the <strong style="color:var(--primary);">top-right</strong>,
+            left of the <code>🌐 KO</code> language switch.<br>
+            <strong style="color:var(--primary);">② Target DB</strong> → click
+            <span class="hchip" style="height:22px;font-size:11px;">🗄 T3Series ⌄</span><br>
+            <strong style="color:var(--primary);">① API key</strong> → click
+            <span class="hchip key-ok" style="height:22px;font-size:11px;">🔑 API Key</span><br>
+            <span style="font-size:12px;color:var(--text-muted);">The
+              <span class="hchip llm" style="height:20px;font-size:10.5px;">☁ API</span>
+              chip only shows the current AI connection mode — no need to click it.</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="box tip">
+      🎨 <strong><span class="ko">칩 색으로 상태를 알 수 있습니다.</span><span class="en">The chip colour shows the status.</span></strong><br>
+      · <span class="hchip key-ok" style="height:22px;font-size:11px;">🔑 API Key</span>
+      <strong style="color:var(--key-ok-text);"><span class="ko">초록</span><span class="en">Green</span></strong>
+      = <span class="ko">등록 완료</span><span class="en">registered</span> &nbsp;/&nbsp;
+      <span class="hchip key-no" style="height:22px;font-size:11px;">⚠ API Key</span>
+      <strong style="color:var(--key-no-text);"><span class="ko">주황</span><span class="en">Amber</span></strong>
+      = <span class="ko">아직 등록 전</span><span class="en">not registered yet</span>
+    </div>
+
+    <h3 class="sub">① <span class="ko">Anthropic API 키 등록</span><span class="en">Register the Anthropic API key</span></h3>
+    <p><span class="ko">맨 위 오른쪽 <strong>API Key 칩</strong>(언어 선택 왼쪽)을 클릭하면 입력창이 열립니다.</span>
+       <span class="en">Click the <strong>API Key chip</strong> at the top-right (left of the language switch).</span></p>
+    <ul>
+      <li><span class="hchip key-no" style="height:22px;font-size:11px;">⚠ API Key</span>
+        <span class="ko"><strong>주황색</strong>이면 아직 등록 전 → 클릭해서 키를 붙여넣고 [저장]</span>
+        <span class="en"><strong>Amber</strong> means not registered — click, paste the key, and [Save]</span></li>
+      <li><span class="ko">저장하면 자동으로 검증한 뒤</span><span class="en">After saving it is validated and turns</span>
+        <span class="hchip key-ok" style="height:22px;font-size:11px;">🔑 API Key</span>
+        <span class="ko"><strong>초록색</strong>으로 바뀝니다</span><span class="en"><strong>green</strong></span></li>
+      <li><span class="ko">"설명" 칸은 비워도 되고, <code>Personal key</code> 처럼 메모용으로 적어도 됩니다</span>
+          <span class="en">The description field is optional — a note like <code>Personal key</code> is fine</span></li>
+    </ul>
+    <div class="fig-pair">
+      <div class="fig">
+        <img src="img/dk-17-apikey-before.png" alt="API Key chip before registration">
+        <div class="cap"><span class="ko"><b>등록 전</b> — 주황색 <code>API Key 필요</code></span>
+          <span class="en"><b>Before</b> — amber <code>API Key Required</code></span></div>
+      </div>
+      <div class="fig">
+        <img src="img/dk-19-apikey-after.png" alt="API Key chip after registration">
+        <div class="cap"><span class="ko"><b>등록 후</b> — 초록색 <code>API Key</code></span>
+          <span class="en"><b>After</b> — green <code>API Key</code></span></div>
+      </div>
+    </div>
+
+    <div class="fig md">
+      <img src="img/dk-18-apikey-dialog.png" alt="Anthropic API key dialog">
+      <div class="cap">
+        <span class="ko">주황색 칩을 클릭하면 열리는 입력창 — 키를 붙여넣고 <b>[저장]</b></span>
+        <span class="en">Clicking the amber chip opens this — paste the key and click <b>[Save]</b></span></div>
+    </div>
+
+    <div class="box warn">
+      📋 <strong><span class="ko">키 원본은 따로 보관하세요.</span><span class="en">Keep the original key somewhere safe.</span></strong>
+      <span class="ko">저장한 키는 <strong>화면에 다시 표시되지 않습니다.</strong>
+      나중에 확인하거나 다른 PC 에 다시 입력해야 할 수 있으니, 받은 키는 안전한 곳에 보관해 두세요.
+      <br>입력창 오른쪽 <b>👁</b> 는 방금 붙여넣은 키를 확인할 때만 쓰고, 다른 사람이 보는 화면에서는 누르지 마세요.</span>
+      <span class="en">Once saved, the key is <strong>never shown again.</strong>
+      You may need it later or on another PC, so store the original safely.
+      <br>The <b>👁</b> in the field is only for checking what you just pasted — do not press it while others can see your screen.</span>
+    </div>
+
+    <div class="box danger">
+      🔑 <strong><span class="ko">API 키는 비밀번호와 같습니다.</span><span class="en">Treat the API key like a password.</span></strong>
+      <span class="ko">메신저·이메일로 주고받거나 화면 캡처에 찍히지 않도록 주의하세요.</span>
+      <span class="en">Do not share it over chat or email, and keep it out of screenshots.</span>
+    </div>
+
+    <h3 class="sub">② <span class="ko">Target DB 연결</span><span class="en">Connect the Target DB</span></h3>
+    <p><span class="ko">어느 프로젝트의 데이터를 쓸지 연결하는 설정입니다 (Target 개념은 2장에서 설명).
+    <strong>여기는 두 번 클릭</strong>해야 창이 열립니다.</span>
+    <span class="en">This selects which project's data you use (Target is explained in Chapter 2).
+    <strong>It takes two clicks</strong> to open.</span></p>
+    <ol>
+      <li><span class="ko">맨 위 오른쪽</span><span class="en">Click the</span>
+        <span class="hchip" style="height:22px;font-size:11px;">🗄 T3Series ⌄</span>
+        <span class="ko">칩을 클릭 → <strong>Target 목록이 아래로 펼쳐집니다</strong></span>
+        <span class="en">chip at the top-right → <strong>a Target list drops down</strong></span></li>
+      <li><span class="ko">목록에서 사용할 Target 줄의 오른쪽 <strong>🗄️ 아이콘</strong>을 클릭</span>
+        <span class="en">Click the <strong>🗄️ icon</strong> on the right of the Target row you want</span>
+        <br><span style="color:var(--text-muted);font-size:13px;">
+        <span class="ko">→ 아이콘이 <strong style="color:#0ea5e9;">파란색</strong>이면 이미 설정된 상태,
+        <strong style="color:#94a3b8;">회색</strong>이면 아직 미설정입니다.
+        (옆의 📷 아이콘은 다른 기능이니 누르지 마세요)</span>
+        <span class="en">→ <strong style="color:#0ea5e9;">Blue</strong> means already configured;
+        <strong style="color:#94a3b8;">grey</strong> means not yet.
+        (The 📷 icon next to it is a different feature — do not click it.)</span></span></li>
+    </ol>
+    <p><span class="ko">그러면 아래 창이 열립니다.</span><span class="en">This dialog then opens.</span></p>
+
+    <div class="dlg-mock">
+      <div class="dlg-head">
+        🗄️ <span class="ko">Target DB 접속 정보</span><span class="en">Target DB Connection</span> — T3Series
+        <span class="badge-sm">MSSQL</span>
+      </div>
+      <div class="dlg-body">
+        <div class="dlg-note">
+          <span class="ko">실제 프로젝트 DB 에 연결하면 <strong>그 프로젝트의 진짜 메뉴·데이터</strong>를 보면서
+          기존 화면을 복사·수정할 수 있습니다. 비워두면 연습용 샘플 데이터로 동작합니다.</span>
+          <span class="en">Connecting to the real project database lets you copy and modify existing screens using
+          <strong>that project's actual menus and data</strong>. Leave it blank to run on practice sample data.</span>
+        </div>
+
+        <div class="fld">
+          <span class="lb">JDBC URL</span>
+          jdbc:sqlserver://&lt;host&gt;:21433;databaseName=T3SMARTSCM;encrypt=true;trustServerCertificate=true
+        </div>
+
+        <div class="fld-row">
+          <div class="fld"><span class="lb">Username</span>education1</div>
+          <div class="fld"><span class="lb">Password</span>••••••••••••••</div>
+        </div>
+
+        <div class="fld">
+          <span class="lb">Driver Class (<span class="ko">선택</span><span class="en">optional</span>)</span>
+          com.microsoft.sqlserver.jdbc.SQLServerDriver
+        </div>
+
+        <div class="dlg-sub">📁 Target source path</div>
+        <div class="dlg-note">
+          <span class="ko">기존 화면을 <strong>복사·수정</strong>할 때만 쓰는 항목입니다.
+          신규 화면만 만들 거라면 <strong>둘 다 비워도 됩니다</strong>.</span>
+          <span class="en">Only used when you <strong>copy or modify</strong> existing screens.
+          If you only build new screens, <strong>you can leave both blank</strong>.</span>
+        </div>
+        <div class="fld">
+          <span class="lb"><span class="ko">source 폴더 경로</span><span class="en">source folder path</span></span>
+          /workspace/projects/t3series-1xma/t3series-wingui
+        </div>
+        <div class="fld ph">
+          <span class="lb"><span class="ko">backend 폴더 경로 (분리 구조일 때만)</span><span class="en">backend folder path (split repos only)</span></span>
+          <span class="ko">(비워두면 source 와 동일)</span><span class="en">(blank = same as source)</span>
+        </div>
+      </div>
+      <div class="dlg-foot">
+        <span class="mock-btn outline"><span class="ko">닫기</span><span class="en">Close</span></span>
+        <span class="mock-btn outline">▶ <span class="ko">연결 테스트</span><span class="en">Test connection</span></span>
+        <span class="mock-btn primary">💾 <span class="ko">저장</span><span class="en">Save</span></span>
+      </div>
+    </div>
+
+    <h3 class="sub"><span class="ko">각 칸에 무엇을 넣나요?</span><span class="en">What goes in each field?</span></h3>
+    <table>
+      <tr><th style="width:24%"><span class="ko">항목</span><span class="en">Field</span></th>
+          <th><span class="ko">설명</span><span class="en">Description</span></th></tr>
+      <tr>
+        <td><strong>JDBC URL</strong></td>
+        <td><span class="ko">접속할 DB 주소입니다. <code>&lt;host&gt;</code> 자리에 <strong>서버 주소</strong>,
+        <code>databaseName=</code> 뒤에 <strong>DB 이름</strong>을 넣습니다.
+        <br><span style="color:var(--text-muted);font-size:13px;">※ 주소 안의 숫자(<code>21433</code> 등)는
+        <strong>프로젝트마다 다른 포트 번호</strong>입니다 — 1-6 의 설치용 번호와 달라도 정상이며,
+        프로젝트에서 쓰던 값을 그대로 넣으면 됩니다.</span></span>
+        <span class="en">The database address. Put the <strong>server address</strong> where
+        <code>&lt;host&gt;</code> is, and the <strong>database name</strong> after <code>databaseName=</code>.</span>
+        <br><span style="color:var(--text-muted);font-size:13px;">
+        <span class="ko">뒤쪽 <code>encrypt=true;trustServerCertificate=true</code> 는 <strong>지우지 마세요</strong> —
+        빠지면 연결이 거부됩니다.</span>
+        <span class="en"><strong>Do not delete</strong> the trailing
+        <code>encrypt=true;trustServerCertificate=true</code> — without it the connection is refused.</span></span></td>
+      </tr>
+      <tr>
+        <td><strong>Username / Password</strong></td>
+        <td><span class="ko">DB 계정과 비밀번호입니다.</span><span class="en">The database account and password.</span></td>
+      </tr>
+      <tr>
+        <td><strong>Driver Class</strong></td>
+        <td><span class="ko"><strong>선택 항목</strong> — 기본값이 이미 채워져 있으니 그대로 두시면 됩니다.</span>
+        <span class="en"><strong>Optional</strong> — the default is already filled in; leave it as is.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">source 폴더 경로</span><span class="en">source folder path</span></strong></td>
+        <td><span class="ko">기존 화면을 복사·수정할 때 참고할 <strong>원본 소스 위치</strong>입니다.
+        신규 화면만 만들 거라면 비워도 됩니다.</span>
+        <span class="en">Where the <strong>original source</strong> lives, used when copying or modifying existing
+        screens. Leave blank if you only build new screens.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">backend 폴더 경로</span><span class="en">backend folder path</span></strong></td>
+        <td><span class="ko"><strong>선택 항목</strong> — 프론트와 백엔드가 따로 있는 프로젝트만 입력. 비우면
+        위 source 경로와 같은 것으로 처리됩니다.</span>
+        <span class="en"><strong>Optional</strong> — only for projects where frontend and backend are separate.
+        Blank means the same as the source path above.</span></td>
+      </tr>
+    </table>
+
+    <ul>
+      <li><span class="ko">입력값(서버 주소·계정·비밀번호)은 <strong>담당하시는 프로젝트의 DB 접속 정보</strong>입니다
+      — 평소 그 프로젝트에서 사용하는 접속 정보를 그대로 입력하면 됩니다</span>
+      <span class="en">These values are simply <strong>your project's own database credentials</strong> — enter the
+      same connection details you normally use for that project</span></li>
+      <li><span class="ko">입력 후 <strong>[▶ 연결 테스트]</strong> 를 눌러 초록색 성공 메시지를 확인한 뒤
+      <strong>[💾 저장]</strong> 을 누르세요</span>
+      <span class="en">Click <strong>[▶ Test connection]</strong>, confirm the green success message, then
+      <strong>[💾 Save]</strong></span></li>
+      <li><span class="ko">비워두면 연습용 샘플 데이터로 동작합니다 (실제 업무 데이터는 안 보임)</span>
+          <span class="en">If left blank it runs on practice sample data (no real business data)</span></li>
+    </ul>
+    <div class="box warn">
+      ⚠️ <strong><span class="ko">연결 테스트가 실패하면?</span><span class="en">Connection test failed?</span></strong>
+      <span class="ko">대부분 서버 주소·계정 오타이거나, JDBC URL 뒤쪽
+      <code>encrypt=true;trustServerCertificate=true</code> 가 빠진 경우입니다.
+      두 가지를 다시 확인한 뒤 재시도해 보세요.</span>
+      <span class="en">Usually a typo in the address or account, or the missing
+      <code>encrypt=true;trustServerCertificate=true</code> at the end of the JDBC URL.
+      Check both and try again.</span>
+    </div>
+    <div class="box tip">
+      ✅ <strong><span class="ko">여기까지 왔으면 설치 완료입니다.</span><span class="en">That completes the installation.</span></strong>
+      <span class="ko">2장으로 넘어가서 T³Composer 가 무엇인지 살펴본 뒤, 3장에서 첫 화면을 만들어 보세요.</span>
+      <span class="en">Move on to Chapter 2 to learn what T³Composer is, then build your first screen in Chapter 3.</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s2">
+    <h2 class="section"><span class="num">2</span>
+      <span class="ko">T³Composer가 뭔가요?</span><span class="en">What is T³Composer?</span></h2>
+
+    <h3><span class="ko">한 줄로 말하면</span><span class="en">In one sentence</span></h3>
+    <p><strong><span class="ko">말로 설명하면 화면을 대신 만들어주는 프로그램</span><span class="en">A program that builds screens for you, from a plain description</span></strong><span class="ko">입니다.</span></p>
+    <p><span class="ko">지금까지는 "이런 화면이 필요합니다" 라고 문서를 써서 개발팀에 전달하고, 개발자가 그
+    문서를 보고 코드를 작성했습니다. 이 과정은 보통 며칠씩 걸렸습니다.</span>
+    <span class="en">Until now you wrote a document saying "we need a screen like this", handed it to a
+    development team, and a developer turned it into code — typically taking days.</span></p>
+    <p><span class="ko">T³Composer 는 그 중간 과정을 줄여줍니다. <strong>문서 대신 채팅창에 요구사항을
+    입력</strong>하면, AI(인공지능)가 문서화·화면 설계·코드 작성까지 대신 진행합니다.</span>
+    <span class="en">T³Composer removes the middle steps. <strong>Type the requirement into a chat box instead of
+    a document</strong>, and the AI handles the specification, screen design, and code.</span></p>
+
+    <h3><span class="ko">비유로 이해하기</span><span class="en">Everyday analogies</span></h3>
+    <table>
+      <tr><th style="width:22%"><span class="ko">비유</span><span class="en">Term</span></th>
+          <th><span class="ko">설명</span><span class="en">Think of it as</span></th></tr>
+      <tr><td><strong><span class="ko">화면</span><span class="en">Screen</span></strong></td>
+        <td><span class="ko">엑셀 시트 한 장이라고 생각하세요. 조회 조건(검색창)이 있고, 아래 표(그리드)가 있는 형태가 대부분입니다.</span>
+        <span class="en">One Excel sheet — usually a search area on top and a table (grid) below.</span></td></tr>
+      <tr><td><strong><span class="ko">테이블</span><span class="en">Table</span></strong></td>
+        <td><span class="ko">화면에 표시되는 데이터가 저장된 엑셀 파일이라고 생각하세요. "사용자 목록"을 보여주려면 "사용자 정보가 저장된 테이블"을 연결해야 합니다.</span>
+        <span class="en">The Excel file where the data lives. To show a "user list" you connect the table that stores user data.</span></td></tr>
+      <tr><td><strong>Target</strong></td>
+        <td><span class="ko">"어느 회사(프로젝트)의 화면을 만들 것인가" 를 고르는 라벨입니다. 회사마다 사용하는 데이터베이스·화면 부품이 달라서, 시작 전에 먼저 골라야 합니다.</span>
+        <span class="en">A label for "which company/project am I building for". Each one uses a different database
+        and UI components, so you pick it before you start.</span></td></tr>
+      <tr><td><strong><span class="ko">메뉴 등록</span><span class="en">Menu registration</span></strong></td>
+        <td><span class="ko">만든 화면을 실제 프로그램의 메뉴 목록에 추가하는 것 — 새 엑셀 파일을 즐겨찾기에 등록하는 것과 비슷합니다.</span>
+        <span class="en">Adding your screen to the real menu list — like bookmarking a new Excel file.</span></td></tr>
+      <tr><td><strong><span class="ko">산출물(코드)</span><span class="en">Artifacts (code)</span></strong></td>
+        <td><span class="ko">AI가 만들어낸 화면 파일들의 모음. 눈으로 보는 화면 1개를 만들려면 실제로는 여러 개의 파일이 함께 필요합니다.</span>
+        <span class="en">The set of files the AI produced. One visible screen actually needs several files together.</span></td></tr>
+    </table>
+
+    <h3><span class="ko">할 수 있는 것 / 아직 못 하는 것</span><span class="en">What it can and cannot do</span></h3>
+    <table>
+      <tr><th>✅ <span class="ko">할 수 있는 것</span><span class="en">Can do</span></th>
+          <th>⚠️ <span class="ko">아직 어려운 것</span><span class="en">Still hard</span></th></tr>
+      <tr><td><span class="ko">검색 조건 + 표(그리드) 형태의 조회 화면</span><span class="en">Search + grid inquiry screens</span></td>
+          <td><span class="ko">3D 그래픽, 복잡한 애니메이션</span><span class="en">3D graphics, complex animation</span></td></tr>
+      <tr><td><span class="ko">등록·수정·삭제(CRUD)가 되는 관리 화면</span><span class="en">Management screens with create/update/delete</span></td>
+          <td><span class="ko">매우 독특한 디자인의 화면</span><span class="en">Highly unusual custom designs</span></td></tr>
+      <tr><td><span class="ko">기존 화면과 비슷한 새 화면 (복사 후 일부만 변경)</span><span class="en">New screens similar to existing ones (copy then tweak)</span></td>
+          <td><span class="ko">새로운 업무 로직을 처음부터 설계하는 것</span><span class="en">Designing brand-new business logic from scratch</span></td></tr>
+      <tr><td><span class="ko">KPI 카드·차트가 있는 대시보드</span><span class="en">Dashboards with KPI cards and charts</span></td>
+          <td><span class="ko">여러 화면이 서로 연동되는 복잡한 흐름</span><span class="en">Complex flows linking several screens together</span></td></tr>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s3">
+    <h2 class="section"><span class="num">3</span>
+      <span class="ko">5분 안에 첫 화면 만들어보기</span><span class="en">Your First Screen in 5 Minutes</span></h2>
+    <p><span class="ko">지금 바로 따라 해볼 수 있는 가장 쉬운 시나리오입니다. 실제로 데이터가 저장되지는
+    않으니 편하게 눌러보세요.</span>
+    <span class="en">The simplest walkthrough you can follow right now. Nothing is saved for real, so click freely.</span></p>
+
+    <h3>3-1. <span class="ko">처음 화면 (Home)</span><span class="en">The Home screen</span></h3>
+    <p><span class="ko">프로그램을 열면 아래와 같은 화면이 나옵니다.</span>
+       <span class="en">Opening the program shows this.</span></p>
+    <div class="box tip">
+      🔐 <strong><span class="ko">혹시 "인증키"를 입력하라는 로그인 화면이 먼저 뜨나요?</span><span class="en">Does a login screen ask for an "auth key" first?</span></strong>
+      <span class="ko">일부 환경에서만 켜두는 <strong>선택 기능</strong>입니다. 인증키를 입력하면
+      아래 화면으로 넘어갑니다. <strong>키는 규칙만 알면 직접 만들 수 있습니다</strong> —
+      만드는 법은 <strong>13-3</strong> 를 보세요.</span>
+      <span class="en">That is an <strong>optional feature</strong> enabled in some environments. Enter the key and
+      you reach the screen below. <strong>You can build the key yourself</strong> once you know the rule —
+      see <strong>13-3</strong>.</span>
+    </div>
+    <div class="app-mock">
+      <div class="app-mock-topbar" style="background:#FFFFFF;color:var(--text);border-bottom:1px solid var(--border);">
+        <span style="font-weight:800;">T³Composer</span>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <span class="hchip">🗄 T3Series ⌄</span>
+          <span class="hchip key-ok">🔑 API Key</span>
+          <span class="hchip llm">☁ API</span>
+          <span class="hchip lang">🌐 KO</span>
+        </span>
+      </div>
+      <div class="app-mock-body">
+        <div class="app-mock-sidebar">
+          <div class="mock-menu-item active"><svg class="ic"><use href="#ic-home"/></svg> Home</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-composer"/></svg> Composer</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-history"/></svg> History</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-mockup"/></svg> SCM UI Mockup</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-pattern"/></svg> UI Pattern</div>
+          <div class="mock-menu-item"><svg class="ic"><use href="#ic-ontology"/></svg> Ontology</div>
+        </div>
+        <div class="app-mock-main">
+          <div class="mock-hello">👋 <span class="ko">무엇을 만들어 드릴까요?</span><span class="en">What would you like to build?</span></div>
+          <div class="mock-qs-grid">
+            <div class="mock-qs-card highlight"><span class="ico">💬</span>
+              <span class="ko">자연어로<br>만들기</span><span class="en">Build with<br>plain language</span></div>
+            <div class="mock-qs-card"><span class="ico">🧩</span>
+              <span class="ko">패턴으로<br>시작하기</span><span class="en">Start from<br>a pattern</span></div>
+            <div class="mock-qs-card"><span class="ico">📋</span>
+              <span class="ko">화면 복사<br>해서 시작</span><span class="en">Copy an<br>existing screen</span></div>
+            <div class="mock-qs-card"><span class="ico">💬</span>
+              <span class="ko">자연어<br>수정</span><span class="en">Modify with<br>plain language</span></div>
+            <div class="mock-qs-card"><span class="ico">☑</span>
+              <span class="ko">단계별<br>수정</span><span class="en">Step-by-step<br>modify</span></div>
+          </div>
+          <div class="mock-recent"><span class="ko">최근 작업 이력 ...</span><span class="en">Recent activity ...</span></div>
+        </div>
+      </div>
+    </div>
+    <p><span class="ko">왼쪽 세로 줄이 <strong>메뉴</strong>입니다 (4장에서 자세히 설명). 가운데 5개 카드가
+    <strong>빠른 시작</strong> 버튼입니다. 오늘은 첫 번째 카드 <strong>"자연어로 만들기"</strong>를
+    눌러보겠습니다.</span>
+    <span class="en">The vertical strip on the left is the <strong>menu</strong> (Chapter 4). The five cards in the
+    middle are <strong>quick-start</strong> buttons. Today we use the first one,
+    <strong>"Build with plain language"</strong>.</span></p>
+
+    <h3>3-2. <span class="ko">"자연어로 만들기" 클릭 → 모듈 선택</span><span class="en">Click "Build with plain language" → pick a module</span></h3>
+    <p><span class="ko">"자연어" 란 우리가 평소 쓰는 말 그대로를 뜻합니다 (프로그래밍 언어가 아니라는 뜻).
+    버튼을 누르면 먼저 <strong>모듈을 고르는 화면</strong>이 나옵니다.</span>
+    <span class="en">"Plain language" simply means ordinary words, not a programming language.
+    The first thing you see is a <strong>module picker</strong>.</span></p>
+
+    <div class="box tip">
+      🧩 <strong><span class="ko">모듈이 뭔가요?</span><span class="en">What is a module?</span></strong>
+      <span class="ko">— 업무 영역을 나눈 <strong>서랍</strong>이라고 생각하세요.
+      "수요 계획 화면"은 <code>DP</code> 서랍, "품목 마스터 화면"은 <code>CM</code> 서랍에 들어갑니다.
+      <br>고르기만 하면 <strong>그 업무에 맞는 규칙과 자주 쓰는 데이터를 AI가 알아서 참고</strong>합니다.</span>
+      <span class="en">— Think of it as a <strong>drawer</strong> per business area. A demand-planning screen goes in
+      the <code>DP</code> drawer; an item-master screen goes in <code>CM</code>.
+      <br>Just pick one and <strong>the AI automatically applies that area's rules and common data</strong>.</span>
+    </div>
+
+    <div class="app-mock">
+      <div class="app-mock-topbar alt"><span class="back">←</span>
+        <span class="mid"><span class="ko">자연어 기반 신규 생성</span><span class="en">New screen from plain language</span></span></div>
+      <div class="app-mock-main">
+        <div style="font-weight:800;font-size:14px;margin-bottom:4px;">
+          <span class="ko">모듈 선택</span><span class="en">Select a module</span></div>
+        <div style="color:var(--text-secondary);font-size:12.5px;margin-bottom:12px;">
+          <span class="ko">생성할 화면이 속한 모듈을 선택하세요. 모듈별 네이밍 규약과 공통 테이블을 자동으로 참고합니다.</span>
+          <span class="en">Choose the module your screen belongs to. Naming rules and common tables are applied automatically.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <div class="mod-card"><b>DP</b><span><span class="ko">수요 계획</span><span class="en">Demand Plan</span></span><i>29 tables · 155 SPs</i></div>
+          <div class="mod-card"><b>MP</b><span><span class="ko">마스터 계획</span><span class="en">Master Plan</span></span><i>58 tables · 197 SPs</i></div>
+          <div class="mod-card"><b>FP</b><span><span class="ko">공장 계획</span><span class="en">Factory Plan</span></span><i>135 tables · 1 SPs</i></div>
+          <div class="mod-card"><b>RP</b><span><span class="ko">보충 계획</span><span class="en">Replenishment</span></span><i>4 tables · 11 SPs</i></div>
+          <div class="mod-card"><b>BF</b><span><span class="ko">베이스라인 예측</span><span class="en">Baseline Forecast</span></span><i>31 tables · 51 SPs</i></div>
+          <div class="mod-card"><b>IM</b><span><span class="ko">재고 관리</span><span class="en">Inventory</span></span><i>17 tables · 90 SPs</i></div>
+          <div class="mod-card"><b>SA</b><span><span class="ko">판매 집계 · S&amp;OP</span><span class="en">Sales &amp; S&amp;OP</span></span><i>21 tables · 48 SPs</i></div>
+          <div class="mod-card"><b>SO</b><span><span class="ko">판매 주문</span><span class="en">Sales Order</span></span><i>2 tables · 15 SPs</i></div>
+          <div class="mod-card sel"><b>CM</b><span><span class="ko">공통 마스터</span><span class="en">Common Master</span></span><i>108 tables · 181 SPs</i></div>
+          <div class="mod-card"><b>AD</b><span><span class="ko">시스템 · 관리</span><span class="en">System / Admin</span></span><i>27 tables · 1 SPs</i></div>
+          <div class="mod-card"><b>UT</b><span><span class="ko">유틸리티</span><span class="en">Utility</span></span><i>24 tables · 3 SPs</i></div>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <tr><th style="width:16%"><span class="ko">모듈</span><span class="en">Module</span></th>
+          <th style="width:26%"><span class="ko">이런 화면일 때</span><span class="en">Use it when</span></th>
+          <th><span class="ko">예시</span><span class="en">Example</span></th></tr>
+      <tr><td><strong>CM</strong> <span class="ko">공통 마스터</span><span class="en">Common Master</span></td>
+          <td><span class="ko">품목·창고·거래처 등 <strong>기준정보</strong></span><span class="en">Master data: items, warehouses, partners</span></td>
+          <td><span class="ko">품목 마스터 관리</span><span class="en">Item master management</span></td></tr>
+      <tr><td><strong>DP</strong> <span class="ko">수요 계획</span><span class="en">Demand Plan</span></td>
+          <td><span class="ko">수요 예측·계획 입력</span><span class="en">Demand forecasting and plan entry</span></td>
+          <td><span class="ko">월별 수요 계획 입력</span><span class="en">Monthly demand plan entry</span></td></tr>
+      <tr><td><strong>MP</strong> <span class="ko">마스터 계획</span><span class="en">Master Plan</span></td>
+          <td><span class="ko">생산·자원 계획</span><span class="en">Production and resource planning</span></td>
+          <td><span class="ko">자원 가동 현황</span><span class="en">Resource utilization</span></td></tr>
+      <tr><td><strong>IM</strong> <span class="ko">재고 관리</span><span class="en">Inventory</span></td>
+          <td><span class="ko">재고 정책·안전재고</span><span class="en">Inventory policy and safety stock</span></td>
+          <td><span class="ko">안전재고 정책 관리</span><span class="en">Safety stock policy</span></td></tr>
+      <tr><td><strong>AD</strong> <span class="ko">시스템·관리</span><span class="en">System / Admin</span></td>
+          <td><span class="ko">사용자·권한·메뉴 등 <strong>관리 화면</strong></span><span class="en">Users, permissions, menus</span></td>
+          <td><span class="ko">사용자 관리</span><span class="en">User management</span></td></tr>
+      <tr><td><strong>UT</strong> <span class="ko">유틸리티</span><span class="en">Utility</span></td>
+          <td><span class="ko">공지·이슈·대시보드 등 <strong>부가 기능</strong></span><span class="en">Notices, issues, dashboards</span></td>
+          <td><span class="ko">공지사항 관리</span><span class="en">Notice management</span></td></tr>
+    </table>
+    <div class="box tip">
+      💡 <strong><span class="ko">확신이 안 서면?</span><span class="en">Not sure which to pick?</span></strong>
+      <span class="ko">일단 가장 가까워 보이는 것을 고르세요. 다음 화면에서 <strong>[모듈 변경]</strong> 으로
+      언제든 바꿀 수 있습니다. 연습이라면 <code>CM</code>(공통 마스터) 또는 <code>UT</code>(유틸리티)가 무난합니다.</span>
+      <span class="en">Pick the closest match. You can change it any time from <strong>[Change module]</strong> on the
+      next screen. For practice, <code>CM</code> or <code>UT</code> are safe choices.</span>
+    </div>
+
+    <h3>3-3. <span class="ko">요구사항 입력 화면 살펴보기</span><span class="en">A tour of the request screen</span></h3>
+    <p><span class="ko">모듈을 고르면 아래 화면이 나옵니다. <strong>✅ 표시된 두 곳만</strong> 신경 쓰면
+    되고, 나머지는 비워둬도 됩니다.</span>
+    <span class="en">After choosing a module you see this. <strong>Only the two ✅ items matter</strong> — the rest can
+    stay empty.</span></p>
+
+    <div class="app-mock">
+      <div class="app-mock-topbar alt">
+        <span class="back">←</span>
+        <span class="mid"><span class="ko">자연어 기반 신규 생성 / CM · 공통 마스터</span><span class="en">New from plain language / CM · Common Master</span></span>
+      </div>
+      <div class="app-mock-main">
+        <div style="display:flex;align-items:center;margin-bottom:8px;">
+          <span style="font-weight:800;font-size:13.5px;"><span class="ko">요구사항 입력</span><span class="en">Requirement</span></span>
+          <span style="margin-left:auto;font-size:11.5px;color:var(--primary);"><span class="ko">모듈 변경</span><span class="en">Change module</span></span>
+        </div>
+        <div class="mock-textarea" style="border-color:var(--primary);border-style:solid;">
+          <span class="ko">예: 품목 마스터 관리 — 검색 + 단일 그리드<br><br>
+          💡 참조 파일은 아래 "참조 파일 첨부" 영역에 끌어다 놓으세요</span>
+          <span class="en">e.g. Item master management — search + single grid<br><br>
+          💡 Drag reference files into the "Attach files" area below</span>
+        </div>
+
+        <div class="engine-row">
+          <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);"><span class="ko">AI 엔진</span><span class="en">AI engine</span></span>
+          <span class="engine-opt"><b>⚡ Sonnet</b><span><span class="ko">Sonnet 4.6 — 빠름</span><span class="en">Sonnet 4.6 — fast</span></span></span>
+          <span class="engine-opt sel"><b>💎 Opus</b><span><span class="ko">기본값 · 현재 선택</span><span class="en">default · selected</span></span></span>
+        </div>
+
+        <div style="border:1px dashed var(--primary-border);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:7px;">
+            <span class="ko">선택사항 — SCM UI Mockup · UI Pattern 중 1개 (서로 배타)</span>
+            <span class="en">Optional — SCM UI Mockup or UI Pattern (pick one)</span>
+          </div>
+          <div class="mock-opt-row" style="margin-bottom:0;">
+            <span class="mock-chip">SCM UI Mockup</span>
+            <span class="mock-chip">UI Pattern</span>
+          </div>
+        </div>
+        <div style="border:1px dashed var(--border);border-radius:8px;padding:12px;
+                    text-align:center;color:var(--text-muted);font-size:11.5px;margin-bottom:10px;">
+          ⬆ <span class="ko">참조 파일 첨부 — SQL · 설계서 이미지 등 (최대 5개 · 파일당 5MB)</span>
+          <span class="en">Attach files — SQL, design images, etc. (up to 5 · 5MB each)</span>
+        </div>
+        <div class="mock-opt-row"><span class="mock-chip">Data Source</span></div>
+        <div class="mock-btn-row right">
+          <span class="mock-btn primary">✨ <span class="ko">Claude 에게 생성 요청</span><span class="en">Ask Claude to generate</span></span>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <tr><th style="width:24%"><span class="ko">영역</span><span class="en">Area</span></th>
+          <th><span class="ko">꼭 해야 하나요?</span><span class="en">Is it required?</span></th></tr>
+      <tr>
+        <td><strong><span class="ko">요구사항 입력창</span><span class="en">Requirement box</span></strong></td>
+        <td><strong style="color:var(--primary);">✅ <span class="ko">필수</span><span class="en">Required</span></strong>
+          <span class="ko">— 만들고 싶은 화면을 말로 적는 곳 (3-4 참고)</span>
+          <span class="en">— describe the screen you want (see 3-4)</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">AI 엔진</span><span class="en">AI engine</span></strong></td>
+        <td><span class="ko">기본값 <strong>Opus</strong> 그대로 두면 됩니다.</span>
+        <span class="en">Leave the default <strong>Opus</strong> as is.</span>
+        <span style="color:var(--text-muted);">
+        <span class="ko">Opus = 고품질(조금 느림) · Sonnet = 빠름. 복잡한 화면일수록 Opus 가 유리합니다.</span>
+        <span class="en">Opus = higher quality (slightly slower); Sonnet = faster. The more complex the screen, the more Opus helps.</span></span></td>
+      </tr>
+      <tr>
+        <td>SCM UI Mockup / UI Pattern</td>
+        <td><span class="ko">선택 — "이런 느낌으로" 참고 화면을 지정할 때만 (둘 중 하나만)</span>
+            <span class="en">Optional — only to point at a reference screen (choose one)</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">참조 파일 첨부</span><span class="en">Attach files</span></td>
+        <td><span class="ko">선택 — 설계서 이미지·SQL 파일이 있을 때만</span>
+            <span class="en">Optional — only if you have design images or SQL files</span></td>
+      </tr>
+      <tr>
+        <td>Data Source</td>
+        <td><span class="ko">선택 — 쓸 테이블을 직접 지정하고 싶을 때만 (안 골라도 AI가 찾습니다)</span>
+            <span class="en">Optional — only to pin specific tables (the AI finds them otherwise)</span></td>
+      </tr>
+      <tr>
+        <td><strong>[<span class="ko">Claude 에게 생성 요청</span><span class="en">Ask Claude to generate</span>]</strong></td>
+        <td><strong style="color:var(--primary);">✅ <span class="ko">마지막에 클릭</span><span class="en">Click last</span></strong>
+          <span class="ko">— 여기서 생성이 시작됩니다</span><span class="en">— this starts generation</span></td>
+      </tr>
+    </table>
+
+    <h3>3-4. <span class="ko">요구사항 입력해보기</span><span class="en">Write your requirement</span></h3>
+    <p><span class="ko">아래처럼 <strong>평소 회의에서 말하듯이</strong> 적으면 됩니다. 표 이름·컬럼 이름 같은
+    걸 몰라도 괜찮습니다 (모르면 AI가 물어보거나, 비슷한 이름으로 추측한 뒤 화면에 표시해줍니다).</span>
+    <span class="en">Write it <strong>the way you would say it in a meeting</strong>. You do not need table or column
+    names — the AI will ask, or infer sensible ones and show them to you.</span></p>
+    <div class="box tip">
+      <strong><span class="ko">예시 입력</span><span class="en">Example</span></strong><br>
+      <span class="ko">"사용자 목록을 보여주는 화면을 만들어줘. 이름과 부서로 검색할 수 있고,
+      목록에서 사용자를 추가·수정·삭제할 수 있으면 좋겠어."</span>
+      <span class="en">"Build a screen that shows a list of users. I want to search by name and department, and
+      be able to add, edit, and delete users from the list."</span>
+    </div>
+    <p><span class="ko"><strong>[✨ Claude 에게 생성 요청]</strong> 버튼을 누르면 AI가 화면을 만들기 시작합니다.
+    화면 오른쪽에 진행 상황이 표시되고, 보통 수십 초~몇 분 정도 걸립니다.</span>
+    <span class="en">Click <strong>[✨ Ask Claude to generate]</strong> and generation begins. Progress appears on the
+    right; it usually takes from tens of seconds to a few minutes.</span></p>
+
+    <h3>3-5. <span class="ko">작업 화면 둘러보기 — 채팅창은 여기 있습니다</span><span class="en">A tour of the workspace — this is where the chat lives</span></h3>
+    <p><span class="ko">생성 요청을 누르면 <strong>작업 화면</strong>으로 넘어갑니다. 처음에는 복잡해 보이지만
+    <strong>크게 세 부분</strong>뿐입니다.</span>
+    <span class="en">After you click generate, you land in the <strong>workspace</strong>. It looks busy at first, but
+    there are only <strong>three areas</strong>.</span></p>
+
+    <div class="app-mock">
+      <div class="app-mock-topbar" style="background:#FFFFFF;color:var(--text);border-bottom:1px solid var(--border);">
+        <span style="font-weight:800;font-size:12.5px;"><span class="ko">사용자 관리 화면</span><span class="en">User management screen</span></span>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span class="mock-btn info" style="padding:5px 11px;font-size:11px;">▶ <span class="ko">화면 실행</span><span class="en">Run preview</span></span>
+          <span class="mock-btn outline" style="padding:5px 11px;font-size:11px;">① <span class="ko">메뉴 등록</span><span class="en">Register</span></span>
+          <span class="mock-btn outline" style="padding:5px 11px;font-size:11px;">② <span class="ko">산출물 실행</span><span class="en">Apply</span></span>
+          <span class="hchip" style="height:24px;"><span class="ko">처음부터 다시</span><span class="en">Start over</span></span>
+        </span>
+      </div>
+      <div class="ws">
+        <div class="ws-left">
+          <div class="ws-pane">
+            <div class="ph">📁 <span class="ko">산출물 (7)</span><span class="en">Artifacts (7)</span></div>
+            <div class="ws-file">UserMgmt.jsx</div>
+            <div class="ws-file">UserMgmt.java</div>
+            <div class="ws-file">UserMgmtService.java</div>
+            <div class="ws-file" style="color:var(--text-muted);">…</div>
+          </div>
+          <div class="ws-pane">
+            <div class="ph">💬 <span class="ko">작업 내역 (채팅창)</span><span class="en">Activity (chat)</span>
+              <span class="ws-callout">←</span></div>
+            <div class="ws-msg me"><span class="ko">사용자 목록 화면 만들어줘…</span><span class="en">Build a user list screen…</span></div>
+            <div class="ws-msg ai"><span class="ko">생성 완료했습니다.</span><span class="en">Generation complete.</span></div>
+            <div class="ws-input"><span class="ko">수정 요청을 입력하세요…</span><span class="en">Type a change request…</span></div>
+          </div>
+        </div>
+        <div class="ws-right">
+          <div class="ws-tabs">
+            <span class="ws-tab on"><span class="ko">실행 화면</span><span class="en">Preview</span></span>
+            <span class="ws-tab"><span class="ko">산출물 소스</span><span class="en">Source</span></span>
+          </div>
+          <div class="ws-canvas">
+            <span class="ko">[화면 실행] 을 누르면<br>여기에 만들어진 화면이 나타납니다</span>
+            <span class="en">Click [Run preview] and<br>the generated screen appears here</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <tr><th style="width:24%"><span class="ko">위치</span><span class="en">Area</span></th>
+          <th><span class="ko">무엇을 하는 곳인가요?</span><span class="en">What it is for</span></th></tr>
+      <tr>
+        <td><strong>📁 <span class="ko">왼쪽 위 — 산출물</span><span class="en">Top-left — Artifacts</span></strong></td>
+        <td><span class="ko">AI가 만든 <strong>파일 목록</strong>입니다. 화면 1개에 파일 여러 개가 만들어집니다.
+        <strong>눌러보지 않아도 됩니다</strong> — 개발자가 나중에 확인하는 영역입니다.</span>
+        <span class="en">The <strong>list of files</strong> the AI produced — one screen creates several files.
+        <strong>You do not need to open them</strong>; this is for developers to review later.</span></td>
+      </tr>
+      <tr>
+        <td><strong>💬 <span class="ko">왼쪽 아래 — 작업 내역 (채팅창)</span><span class="en">Bottom-left — Activity (chat)</span></strong></td>
+        <td><strong style="color:var(--primary);"><span class="ko">★ 가장 많이 쓰는 곳입니다.</span><span class="en">★ You will use this the most.</span></strong>
+        <span class="ko">지금까지 주고받은 대화가 쌓이고, 맨 아래 입력칸에 <strong>수정 요청을 계속 이어서</strong>
+        적을 수 있습니다. 이 가이드에서 <strong>"채팅창에 입력하세요"</strong> 라고 하는 곳이 바로 여기입니다.</span>
+        <span class="en">Your conversation collects here, and the box at the bottom lets you
+        <strong>keep asking for changes</strong>. Whenever this guide says
+        <strong>"type in the chat"</strong>, this is the place.</span></td>
+      </tr>
+      <tr>
+        <td><strong>🖥 <span class="ko">오른쪽 — 실행 화면 / 산출물 소스</span><span class="en">Right — Preview / Source</span></strong></td>
+        <td><span class="ko"><strong>실행 화면</strong> 탭에 만들어진 화면이 표시됩니다 (초심자는 이 탭만 보면 됩니다).
+        <strong>산출물 소스</strong> 탭은 코드를 보는 곳이라 <strong>안 봐도 괜찮습니다</strong>.</span>
+        <span class="en">The <strong>Preview</strong> tab shows the generated screen (the only tab you need).
+        The <strong>Source</strong> tab shows code — <strong>safe to ignore</strong>.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">위쪽 버튼들</span><span class="en">Top buttons</span></strong></td>
+        <td><span class="ko"><strong>[▶ 화면 실행]</strong> 미리보기 · <strong>[① 메뉴 등록] [② 산출물 실행]</strong> 실제 반영 (6장) ·
+        <strong>[처음부터 다시]</strong> 새로 시작 (이전 작업은 History 에 남습니다)</span>
+        <span class="en"><strong>[▶ Run preview]</strong> · <strong>[① Register] [② Apply]</strong> for the real system (Chapter 6) ·
+        <strong>[Start over]</strong> to begin again (past work stays in History)</span></td>
+      </tr>
+    </table>
+
+    <div class="box tip">
+      💬 <strong><span class="ko">채팅창 사용 팁</span><span class="en">Chat tips</span></strong><br>
+      · <span class="ko"><strong>Ctrl + Enter</strong> 로 전송됩니다 (Enter 만 누르면 줄바꿈)</span>
+        <span class="en">Send with <strong>Ctrl + Enter</strong> (Enter alone inserts a line break)</span><br>
+      · <span class="ko">이전 대화 내용이 그대로 이어지므로 <strong>"아까 그 화면에서 ~~ 바꿔줘"</strong> 처럼 말해도 통합니다</span>
+        <span class="en">The conversation carries over, so <strong>"change that screen we just made"</strong> works fine</span><br>
+      · <span class="ko">한 번에 하나씩 요청하면 결과가 더 안정적입니다 (10장 참고)</span>
+        <span class="en">One request at a time gives steadier results (Chapter 8)</span>
+    </div>
+
+    <div class="box tip">
+      🕐 <strong><span class="ko">중간에 닫아도 괜찮습니다.</span><span class="en">You can close it any time.</span></strong>
+      <span class="ko">작업은 자동으로 저장되어, 왼쪽 메뉴 <strong>History</strong> 에서
+      <strong>해당 줄을 클릭</strong>하면 이 작업 화면이 그대로 다시 열립니다.</span>
+      <span class="en">Work is saved automatically — open <strong>History</strong> in the left menu and
+      <strong>click the row</strong> to reopen this workspace exactly as it was.</span>
+    </div>
+
+    <h3>3-6. <span class="ko">결과 확인하기 (미리보기)</span><span class="en">Check the result (preview)</span></h3>
+    <p><span class="ko">작업이 끝나면 화면 상단에 다음과 같은 버튼들이 나타납니다.</span>
+       <span class="en">When it finishes, these buttons appear at the top.</span></p>
+    <div class="mock-toolbar">
+      <span class="mock-btn info">▶ <span class="ko">화면 실행</span><span class="en">Run preview</span></span>
+      <span class="mock-check">☐ <span class="ko">오류 시 자동보완</span><span class="en">Auto-fix on error</span></span>
+      <div class="mock-group">
+        <span class="mock-group-label"><span class="ko">Target System 적용</span><span class="en">Apply to Target System</span></span>
+        <span class="mock-btn outline">① <span class="ko">메뉴 등록</span><span class="en">Register menu</span></span>
+        <span class="mock-btn outline">② <span class="ko">산출물 실행</span><span class="en">Apply artifacts</span></span>
+      </div>
+    </div>
+    <ul>
+      <li><span class="ko"><strong>[화면 실행]</strong>을 눌러보세요. 오른쪽에 방금 설명한 화면이 실제로 어떻게
+      생겼는지 나타납니다.</span>
+      <span class="en">Click <strong>[Run preview]</strong>. The screen you described appears on the right.</span>
+        <ul>
+          <li><span class="ko">이 단계는 <strong>미리보기</strong>입니다. 실제 데이터베이스에 아무 것도 저장되지
+          않으니 안심하고 눌러보세요.</span>
+          <span class="en">This is only a <strong>preview</strong> — nothing is written to the real database.</span></li>
+          <li><span class="ko">화면에 가짜(샘플) 데이터가 채워져서, 진짜처럼 움직이는 걸 확인할 수 있습니다.</span>
+          <span class="en">Sample data fills the screen so you can see it behave realistically.</span></li>
+        </ul>
+      </li>
+      <li><span class="ko">마음에 안 들면 채팅창에 "검색 조건에 입사일도 추가해줘" 처럼 <strong>계속 대화하듯이
+      수정 요청</strong>을 하면 됩니다.</span>
+      <span class="en">If something is off, just <strong>keep chatting</strong> — e.g. "also add a hire-date filter".</span></li>
+      <li><span class="ko">여기서 멈춰도 됩니다. 진짜로 회사 시스템에 반영하려면 "메뉴 등록 → 산출물
+      실행" 단계가 더 필요합니다 (6장에서 설명).</span>
+      <span class="en">You can stop here. Applying it to the real system needs the
+      "Register menu → Apply artifacts" steps (Chapter 6).</span></li>
+    </ul>
+    <div class="box ok">🎉 <span class="ko">여기까지가 5분 완주 코스입니다. 축하합니다 — 첫 화면을 만들어 보셨습니다!</span>
+      <span class="en">That is the 5-minute walkthrough. Congratulations — you built your first screen!</span></div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s4">
+    <h2 class="section"><span class="num">4</span>
+      <span class="ko">왼쪽 메뉴 둘러보기</span><span class="en">Sidebar Menu Tour</span></h2>
+    <p><span class="ko">화면 왼쪽에 세로로 있는 메뉴들입니다. 각각 어떤 역할인지 간단히 소개합니다.</span>
+       <span class="en">A quick tour of the vertical menu on the left.</span></p>
+    <div class="menu-list-mock">
+      <div class="menu-list-row"><span class="menu-chip"><svg class="ic"><use href="#ic-home"/></svg> Home</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">시작 화면. 빠른 시작 카드 + 최근 작업 목록</span><span class="en">Start page — quick-start cards and recent work</span></span></div>
+      <div class="menu-list-row"><span class="menu-chip"><svg class="ic"><use href="#ic-composer"/></svg> Composer</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">화면을 새로 만들거나 수정하는 메인 기능 (5장에서 자세히)</span><span class="en">The main feature — build or modify screens (Chapter 5)</span></span></div>
+      <div class="menu-list-row"><span class="menu-chip"><svg class="ic"><use href="#ic-history"/></svg> History</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">지금까지 진행한 작업 목록 (이어서 하기 가능)</span><span class="en">Past sessions — reopen and continue</span></span></div>
+      <div class="menu-list-row"><span class="menu-chip" style="flex-basis:170px;"><svg class="ic"><use href="#ic-mockup"/></svg> SCM UI Mockup</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">"이런 느낌의 화면 있어요" 예시 모음 (참고용 갤러리)</span><span class="en">A gallery of example screens for reference</span></span></div>
+      <div class="menu-list-row"><span class="menu-chip" style="flex-basis:170px;"><svg class="ic"><use href="#ic-pattern"/></svg> UI Pattern</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">실제 운영 중인 화면 디자인 모음 (참고용 갤러리)</span><span class="en">A catalog of real production screen designs</span></span></div>
+      <div class="menu-list-row"><span class="menu-chip"><svg class="ic"><use href="#ic-ontology"/></svg> Ontology</span><span class="menu-arrow">←</span>
+        <span class="menu-desc"><span class="ko">(다소 전문적) 업무 용어·질문-답변 사전 관리</span><span class="en">(More advanced) business term and Q&amp;A dictionary</span></span></div>
+    </div>
+    <table>
+      <tr><th style="width:22%"><span class="ko">메뉴</span><span class="en">Menu</span></th>
+          <th><span class="ko">이런 분들이 씁니다</span><span class="en">Use it when</span></th></tr>
+      <tr><td><strong>Home</strong></td>
+        <td><span class="ko">첫 진입 시 열리는 시작 화면. 매번 여기서 출발하면 됩니다.</span>
+            <span class="en">The landing page — start here every time.</span></td></tr>
+      <tr><td><strong>Composer</strong></td>
+        <td><span class="ko"><strong>메인 기능</strong> — 실제로 화면을 새로 만들거나 기존 화면을 고칠 때.</span>
+            <span class="en"><strong>The main feature</strong> — build new screens or modify existing ones.</span></td></tr>
+      <tr><td><strong>History</strong></td>
+        <td><span class="ko">"어제 만들던 화면 이어서 하고 싶은데?" 할 때 — 이전 작업을 다시 열어 이어서 진행.</span>
+            <span class="en">"I want to continue yesterday's screen" — reopen and resume past work.</span></td></tr>
+      <tr><td><strong>SCM UI Mockup</strong></td>
+        <td><span class="ko"><strong>181개</strong> 운영 화면 예시 갤러리. "이런 느낌으로 만들어줘" 하고 참고 화면을 보여주고 싶을 때.</span>
+            <span class="en">A gallery of <strong>181</strong> example screens — to say "make it look like this".</span></td></tr>
+      <tr><td><strong>UI Pattern</strong></td>
+        <td><span class="ko">T3MES 퍼블리싱 <strong>730개</strong> 화면 패턴 카탈로그. 실제 운영 중인 비슷한 화면을 참고하고 싶을 때.</span>
+            <span class="en">A catalog of <strong>730</strong> T3MES screen patterns for referencing real screens.</span></td></tr>
+      <tr><td><strong>Ontology</strong></td>
+        <td><span class="ko">Q&amp;A · Entity · View · Process 4영역 업무 용어 사전.</span>
+            <span class="en">A business dictionary across Q&amp;A, Entity, View, and Process.</span>
+      <span style="color:var(--text-muted);"><span class="ko">(처음에는 몰라도 됩니다 — 익숙해진 뒤 살펴보세요)</span>
+        <span class="en">(You can ignore this at first.)</span></span></td></tr>
+    </table>
+    <div class="box tip">
+      💡 <strong><span class="ko">참고 사항 두 가지</span><span class="en">Two notes</span></strong><br>
+      · <span class="ko"><strong>Dashboard</strong> 메뉴가 안 보여도 정상입니다 — 별도 설정을 켠 환경에서만 나타납니다.</span>
+        <span class="en">It is normal not to see a <strong>Dashboard</strong> menu — it appears only where enabled.</span><br>
+      · <span class="ko">사이드바가 좁게 느껴지면 <strong>접기 버튼</strong>으로 아이콘만 남길 수 있습니다
+      (아이콘에 마우스를 올리면 이름이 표시됩니다).</span>
+        <span class="en">You can <strong>collapse</strong> the sidebar to icons only; hover an icon to see its name.</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s5">
+    <h2 class="section"><span class="num">5</span>
+      <span class="ko">Composer 메뉴 자세히 알아보기</span><span class="en">Composer Menu in Detail</span></h2>
+    <p><span class="ko"><code>Composer</code> 메뉴를 누르면 두 가지 큰 갈래로 나뉩니다.</span>
+       <span class="en">The <code>Composer</code> menu splits into two branches.</span></p>
+    <div class="app-mock">
+      <div class="app-mock-topbar" style="justify-content:center;">
+        <span class="ko">무엇을 하시겠어요?</span><span class="en">What would you like to do?</span></div>
+      <div class="app-mock-main">
+        <div class="cat-grid">
+          <div class="cat-card">
+            <div class="cat-title"><span class="ko">신규 개발</span><span class="en">New development</span></div>
+            <div class="cat-item">💬 <span class="ko">자연어 생성</span><span class="en">Plain-language build</span></div>
+            <div class="cat-item">🧩 <span class="ko">단계별 생성 (Beta)</span><span class="en">Step-by-step build (Beta)</span></div>
+            <div class="cat-item">📋 <span class="ko">기존 화면 복사</span><span class="en">Copy existing screen</span></div>
+          </div>
+          <div class="cat-card alt">
+            <div class="cat-title"><span class="ko">기존 화면 수정</span><span class="en">Modify existing</span></div>
+            <div class="cat-item">💬 <span class="ko">자연어 수정</span><span class="en">Plain-language modify</span></div>
+            <div class="cat-item">☑ <span class="ko">단계별 수정</span><span class="en">Step-by-step modify</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>5-1. <span class="ko">신규 개발 — 새 화면을 만들 때</span><span class="en">New development — building a new screen</span></h3>
+    <table>
+      <tr><th style="width:18%"><span class="ko">방식</span><span class="en">Method</span></th>
+          <th style="width:28%"><span class="ko">언제 쓰나요?</span><span class="en">When to use</span></th>
+          <th><span class="ko">쉬운 설명</span><span class="en">In plain terms</span></th></tr>
+      <tr><td><strong>💬 <span class="ko">자연어 생성</span><span class="en">Plain-language build</span></strong></td>
+        <td><span class="ko">가장 쉽고 빠른 방법. 처음이라면 이것부터</span><span class="en">Easiest and fastest — start here</span></td>
+        <td><span class="ko">3장에서 해본 것처럼 채팅으로 요구사항을 설명하면 AI가 알아서 화면 구조·데이터를 정합니다.</span>
+        <span class="en">Describe it in chat as in Chapter 3; the AI decides the structure and data.</span></td></tr>
+      <tr><td><strong>🧩 <span class="ko">단계별 생성 (Beta)</span><span class="en">Step-by-step build (Beta)</span></strong></td>
+        <td><span class="ko">화면 배치(레이아웃)를 내가 직접 정하고 싶을 때</span><span class="en">When you want to control the layout yourself</span></td>
+        <td><span class="ko">화면을 어떻게 나눌지(위/아래, 좌/우) 마우스로 직접 배치한 뒤, 각 영역에 필요한 데이터를 입력합니다. 원하는 모양을 더 정확하게 만들 수 있습니다.</span>
+        <span class="en">Arrange the split (top/bottom, left/right) with the mouse, then fill in the data for each area — more precise control.</span></td></tr>
+      <tr><td><strong>📋 <span class="ko">기존 화면 복사</span><span class="en">Copy existing screen</span></strong></td>
+        <td><span class="ko">"저 화면이랑 거의 똑같은데 몇 개만 다른 화면" 이 필요할 때</span><span class="en">When you need "almost the same as that screen, with a few changes"</span></td>
+        <td><span class="ko">이미 있는 화면을 하나 고르면 그 구조를 그대로 복사해오고, 달라지는 부분만 대화로 알려주면 됩니다.</span>
+        <span class="en">Pick an existing screen to copy its structure, then describe only what changes.</span></td></tr>
+    </table>
+    <div class="box tip"><strong><span class="ko">Beta 란?</span><span class="en">What does Beta mean?</span></strong>
+      <span class="ko">"아직 시험 중인 기능" 이라는 뜻입니다. 동작은 하지만 정식 기능보다는 예상치 못한 부분이 있을 수 있다는 의미로 이해하시면 됩니다.</span>
+      <span class="en">It means the feature still being tested — it works, but may behave unexpectedly compared with finished features.</span></div>
+
+    <h3>5-2. <span class="ko">기존 화면 수정 — 이미 있는 화면을 고칠 때</span><span class="en">Modify existing — changing a screen you already have</span></h3>
+    <table>
+      <tr><th style="width:18%"><span class="ko">방식</span><span class="en">Method</span></th>
+          <th style="width:28%"><span class="ko">언제 쓰나요?</span><span class="en">When to use</span></th>
+          <th><span class="ko">쉬운 설명</span><span class="en">In plain terms</span></th></tr>
+      <tr><td><strong>💬 <span class="ko">자연어 수정</span><span class="en">Plain-language modify</span></strong></td>
+        <td><span class="ko">빠르게 몇 군데만 손보고 싶을 때</span><span class="en">For quick fixes in a few places</span></td>
+        <td><span class="ko">고치고 싶은 화면을 목록에서 고른 뒤, "검색 조건에 상태값도 추가해줘" 처럼 말로 요청합니다.</span>
+        <span class="en">Pick the screen from a list, then ask in words — e.g. "also add a status filter".</span></td></tr>
+      <tr><td><strong>☑ <span class="ko">단계별 수정</span><span class="en">Step-by-step modify</span></strong></td>
+        <td><span class="ko">여러 곳을 체계적으로 바꾸고 싶을 때</span><span class="en">For systematic changes across several areas</span></td>
+        <td><span class="ko">화면을 구성요소별로 쪼개서 보여주고, 바꾸고 싶은 부분만 체크해서 수정합니다.</span>
+        <span class="en">The screen is broken into components so you tick only what you want changed.</span></td></tr>
+    </table>
+
+    <h3>5-3. <span class="ko">화면 만들 때 물어보는 것들 (선택사항)</span><span class="en">Optional inputs when building</span></h3>
+    <p><span class="ko">자연어 생성 화면에는 아래와 같은 "선택사항" 들이 있습니다. <strong>몰라도 그냥 넘어가도
+    됩니다</strong> — 없어도 AI가 알아서 만들어줍니다. 다만 있으면 더 정확한 결과가 나옵니다.</span>
+    <span class="en">The build screen offers these optional inputs. <strong>You can safely skip all of them</strong> —
+    the AI works without them — but they improve accuracy.</span></p>
+    <table>
+      <tr><th style="width:26%"><span class="ko">선택사항</span><span class="en">Option</span></th>
+          <th><span class="ko">언제 쓰면 좋은가요?</span><span class="en">When it helps</span></th></tr>
+      <tr><td><strong>SCM UI Mockup</strong></td>
+        <td><span class="ko">"4장의 Mockup 갤러리에서 본 그 느낌으로 만들어줘" 라고 콕 집어 알려주고 싶을 때</span>
+            <span class="en">To point at a specific example from the Mockup gallery (Chapter 4)</span></td></tr>
+      <tr><td><strong>UI Pattern</strong></td>
+        <td><span class="ko">실제 운영 화면 중 하나를 콕 집어 "이거랑 비슷하게" 라고 알려주고 싶을 때</span>
+            <span class="en">To say "make it like this one" about a real production screen</span></td></tr>
+      <tr><td><strong><span class="ko">참조 파일 첨부</span><span class="en">Attach files</span></strong></td>
+        <td><span class="ko">화면 설계서 이미지, 참고할 SQL 파일 등을 파일로 가지고 있을 때 (끌어다 놓기 가능, 최대 5개)</span>
+            <span class="en">When you have design images or SQL files (drag and drop, up to 5)</span></td></tr>
+      <tr><td><strong>Data Source</strong></td>
+        <td><span class="ko">(다소 전문적) 사용할 데이터베이스 테이블을 직접 화면에서 찾아 지정하고 싶을 때</span>
+            <span class="en">(More advanced) to browse and pin the exact database tables to use</span></td></tr>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s6">
+    <h2 class="section"><span class="num">6</span>
+      <span class="ko">화면을 만든 뒤 할 일 — 확인하고 등록하기</span><span class="en">After Building — Verify and Register</span></h2>
+    <p><span class="ko">AI가 화면을 만들어주면, 그것으로 끝이 아닙니다. 실제 회사 시스템에 반영되려면
+    순서대로 아래 3단계를 거칩니다.</span>
+    <span class="en">Generation is not the end. To reach the real system, three steps follow in order.</span></p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="n">①</div>
+        <div class="t"><span class="ko">화면 실행 (미리보기)</span><span class="en">Run preview</span></div>
+        <div class="d"><span class="ko">"일단 어떻게 생겼나 볼까?"<br>안전 · 몇 번을 눌러도 OK</span>
+          <span class="en">"Let's see how it looks"<br>Safe — click as often as you like</span></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step danger">
+        <div class="n">②</div>
+        <div class="t"><span class="ko">메뉴 등록</span><span class="en">Register menu</span></div>
+        <div class="d"><span class="ko">실제 메뉴 목록에 추가<br>되돌리기 어려움</span>
+          <span class="en">Adds to the real menu<br>Hard to undo</span></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step danger">
+        <div class="n">③</div>
+        <div class="t"><span class="ko">산출물 실행</span><span class="en">Apply artifacts</span></div>
+        <div class="d"><span class="ko">실제 파일·DB에 진짜 반영<br>신중하게 진행</span>
+          <span class="en">Writes real files and DB<br>Proceed carefully</span></div>
+      </div>
+    </div>
+
+    <h3>① <span class="ko">화면 실행 (미리보기) — 안심하고 눌러도 됩니다</span><span class="en">Run preview — completely safe</span></h3>
+    <ul>
+      <li><span class="ko">3장에서 해본 그 버튼입니다.</span><span class="en">The same button you used in Chapter 3.</span></li>
+      <li><span class="ko">화면이 실제로 어떻게 보이는지, 버튼을 눌렀을 때 어떻게 동작하는지 <strong>가짜
+      데이터로</strong> 확인합니다.</span>
+      <span class="en">See how it looks and behaves, using <strong>sample data</strong>.</span></li>
+      <li><span class="ko">몇 번을 눌러도, 잘못 눌러도 문제가 생기지 않습니다.</span>
+          <span class="en">Nothing breaks no matter how often you click.</span></li>
+    </ul>
+
+    <h3>② <span class="ko">메뉴 등록 — 여기부터는 실제 반영</span><span class="en">Register menu — this one is real</span></h3>
+    <ul>
+      <li><span class="ko">만든 화면을 프로그램의 진짜 메뉴 목록에 추가하는 단계입니다.</span>
+          <span class="en">This adds your screen to the actual menu list.</span></li>
+      <li><span class="ko">등록하면 실제 메뉴에 나타나므로, <strong>①에서 미리보기로 결과를 충분히 확인한 뒤</strong>
+      누르세요.</span>
+      <span class="en">Because it becomes visible in the real menu, <strong>review the preview from step ① thoroughly</strong> first.</span></li>
+    </ul>
+    <div class="box warn">
+      ✅ <strong><span class="ko">누르기 전 체크리스트</span><span class="en">Checklist before clicking</span></strong><br>
+      · <span class="ko">미리보기 화면이 원하는 모양대로 나왔는가?</span><span class="en">Does the preview match what you wanted?</span><br>
+      · <span class="ko">검색 조건·목록 컬럼이 빠짐없이 들어갔는가?</span><span class="en">Are all filters and list columns present?</span><br>
+      · <span class="ko">메뉴 이름(화면 제목)이 알맞게 정해졌는가?</span><span class="en">Is the menu name (screen title) right?</span><br>
+      <span style="color:var(--text-muted);">
+        <span class="ko">→ 셋 다 OK 면 눌러도 됩니다. 아니면 채팅으로 먼저 수정하세요.</span>
+        <span class="en">→ All three OK? Go ahead. Otherwise fix it in chat first.</span></span>
+    </div>
+
+    <h3>③ <span class="ko">산출물 실행 — 실제 반영</span><span class="en">Apply artifacts — the real write</span></h3>
+    <ul>
+      <li><span class="ko">화면을 이루는 실제 파일들과 데이터베이스 설정을 진짜로 적용하는 단계입니다.</span>
+          <span class="en">This actually writes the screen's files and database objects.</span></li>
+      <li><span class="ko">메뉴 등록 다음 순서로 진행하는 것이 안전합니다.</span>
+          <span class="en">It is safest to run this after menu registration.</span></li>
+    </ul>
+    <div class="box tip">
+      🧭 <strong><span class="ko">한 문장 요약</span><span class="en">In one line</span></strong>:
+      <span class="ko">"①은 마음껏 눌러보고, ②③은 미리보기로 확인한 뒤 누른다."</span>
+      <span class="en">"Click ① freely; click ② and ③ once the preview checks out."</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ════════ 7. Target 바꾸기 ════════ -->
+  <section class="card" id="s7">
+    <h2 class="section"><span class="num">7</span>
+      <span class="ko">Target 바꾸기 — 다른 프로젝트 화면 만들기</span>
+      <span class="en">Switching Target — Building for Another Project</span></h2>
+    <p><span class="ko">지금까지 만든 화면은 <strong>하나의 프로젝트(Target)</strong> 를 기준으로 만들어졌습니다.
+    다른 프로젝트의 화면을 만들어야 한다면 여기를 바꾸면 됩니다.</span>
+    <span class="en">Everything you built so far targeted <strong>one project (Target)</strong>.
+    To build for a different project, switch it here.</span></p>
+    <p><span class="ko">회사에서 여러 프로젝트를 담당한다면, <strong>Target 을 바꿔가며</strong> 각각의
+    화면을 만들 수 있습니다.</span>
+    <span class="en">If you work on several projects, you can <strong>switch Target</strong> and build screens for
+    each one.</span></p>
+
+    <div class="mock-toolbar" style="justify-content:flex-start;">
+      <span class="hchip">🗄 T3Series ⌄</span>
+      <span class="menu-arrow"><span class="ko">← 이 칩을 클릭하면 프로젝트 목록이 펼쳐집니다</span>
+        <span class="en">← click this chip to see the project list</span></span>
+    </div>
+
+    <div class="box tip">
+      🔄 <strong><span class="ko">Target 을 바꾸면 이런 것들이 함께 바뀝니다</span><span class="en">Switching Target changes all of this</span></strong><br>
+      · <span class="ko"><strong>보이는 메뉴 목록</strong> — 그 프로젝트의 실제 메뉴를 가져옵니다</span>
+        <span class="en"><strong>The menu list</strong> — real menus from that project are loaded</span><br>
+      · <span class="ko"><strong>사용하는 데이터</strong> — 그 프로젝트의 테이블·데이터를 봅니다</span>
+        <span class="en"><strong>The data</strong> — you see that project's tables and data</span><br>
+      · <span class="ko"><strong>만들어지는 화면 스타일</strong> — 프로젝트마다 쓰는 화면 부품이 달라서
+        결과물 모양도 달라집니다</span>
+        <span class="en"><strong>The generated style</strong> — each project uses different UI components, so results differ</span>
+    </div>
+
+    <table>
+      <tr><th style="width:26%"><span class="ko">궁금한 점</span><span class="en">Question</span></th>
+          <th><span class="ko">답</span><span class="en">Answer</span></th></tr>
+      <tr>
+        <td><span class="ko">바꾸면 지금 작업이 사라지나요?</span><span class="en">Do I lose my current work?</span></td>
+        <td><span class="ko">아니요. 지금까지 작업은 <strong>History 에 그대로</strong> 남습니다.</span>
+            <span class="en">No — everything stays in <strong>History</strong>.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">다음에 열면 초기화되나요?</span><span class="en">Does it reset next time?</span></td>
+        <td><span class="ko">아니요. <strong>마지막에 고른 Target 이 그대로 기억</strong>됩니다.</span>
+            <span class="en">No — the <strong>last Target you chose is remembered</strong>.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">프로젝트마다 DB 를 따로 넣어야 하나요?</span><span class="en">Do I set the DB for each project?</span></td>
+        <td><span class="ko">네. Target 별로 한 번씩 입력하면 각각 따로 저장됩니다 (1-8 참고).</span>
+            <span class="en">Yes — enter it once per Target; each is saved separately (see 1-8).</span></td>
+      </tr>
+    </table>
+    <div class="box warn">
+      ⚠️ <strong><span class="ko">화면 만들기 전에 Target 부터 확인하세요.</span><span class="en">Check the Target before you build.</span></strong>
+      <span class="ko">엉뚱한 프로젝트로 만들어지면 처음부터 다시 해야 합니다. 습관처럼 화면 오른쪽 위 칩을
+      한 번 보고 시작하세요.</span>
+      <span class="en">Building for the wrong project means starting over. Make it a habit to glance at the chip
+      at the top right first.</span>
+    </div>
+  </section>
+
+  <!-- ════════ 8. API 키 바꾸기 ════════ -->
+  <section class="card" id="s8">
+    <h2 class="section"><span class="num">8</span>
+      <span class="ko">API 키 바꾸기 / 다시 등록하기</span>
+      <span class="en">Changing or Re-registering the API Key</span></h2>
+    <p><span class="ko"><strong>1-8</strong> 에서 처음 등록한 API 키를 나중에 바꾸는 방법입니다.
+    새 PC 에서 다시 시작할 때도 같은 자리에서 입력하면 됩니다.</span>
+    <span class="en">How to change the API key you first registered in <strong>1-8</strong>.
+    Use the same place when starting again on a new PC.</span></p>
+    <p><span class="ko">키가 만료됐거나 다른 키로 바꾸고 싶을 때는 <strong>같은 자리에서 다시 등록</strong>하면 됩니다.</span>
+    <span class="en">If the key expired or you want to use a different one, just <strong>register again in the same place</strong>.</span></p>
+    <ol>
+      <li><span class="ko">화면 오른쪽 위</span><span class="en">Click the</span>
+        <span class="hchip key-ok" style="height:22px;font-size:11px;">🔑 API Key</span>
+        <span class="ko">칩을 클릭</span><span class="en">chip at the top right</span></li>
+      <li><span class="ko">새 키를 붙여넣고 <strong>[저장]</strong> — 이전 키는 자동으로 교체됩니다</span>
+          <span class="en">Paste the new key and click <strong>[Save]</strong> — the old one is replaced</span></li>
+    </ol>
+    <div class="box tip">
+      💡 <strong><span class="ko">이럴 때 키를 다시 확인해 보세요</span><span class="en">Check the key when…</span></strong><br>
+      · <span class="ko">칩이 갑자기 <strong style="color:var(--key-no-text);">주황색</strong>으로 바뀌었을 때</span>
+        <span class="en">the chip suddenly turns <strong style="color:var(--key-no-text);">amber</strong></span><br>
+      · <span class="ko">생성 요청을 눌렀는데 "인증" 관련 오류가 날 때</span>
+        <span class="en">you get an authentication-style error when generating</span><br>
+      · <span class="ko">회사 키가 갱신됐다고 안내받았을 때</span>
+        <span class="en">you are told the company key was renewed</span>
+    </div>
+  </section>
+
+  <section class="card" id="s9">
+    <h2 class="section"><span class="num">9</span>
+      <span class="ko">오류가 나면 어떻게 하나요?</span><span class="en">What If an Error Appears?</span></h2>
+
+    <h3><span class="ko">"빨간 글씨"나 오류 메시지가 뜨면?</span><span class="en">When you see red text or an error</span></h3>
+    <p><span class="ko">당황하지 않아도 됩니다. 화면 실행 버튼 근처에 있는 <strong>"오류 시 자동보완"</strong>
+    체크박스를 켜두면, AI가 스스로 오류 원인을 찾아 화면을 고친 뒤 다시 실행해 봅니다.</span>
+    <span class="en">No need to panic. Tick <strong>"Auto-fix on error"</strong> next to the preview button and the AI
+    will diagnose the cause, fix the screen, and re-run it by itself.</span></p>
+    <div class="mock-toolbar">
+      <span class="mock-btn info">▶ <span class="ko">화면 실행</span><span class="en">Run preview</span></span>
+      <span class="mock-check on">☑ <span class="ko">오류 시 자동보완</span><span class="en">Auto-fix on error</span></span>
+      <span class="menu-arrow"><span class="ko">← 이 체크박스를 켜두세요</span><span class="en">← keep this ticked</span></span>
+    </div>
+    <ul>
+      <li><span class="ko">자동으로 고쳐지면 별다른 조치가 필요 없습니다.</span>
+          <span class="en">If it fixes itself, there is nothing more to do.</span></li>
+      <li><span class="ko">몇 번을 시도해도 안 고쳐지면, "여기서부터는 사람이 봐야 합니다" 라는 안내가
+      나오면서 멈춥니다. 이때는 채팅창에 <strong>"다른 방법으로 다시 만들어줘"</strong> 라고
+      요청하거나, 요구사항을 더 단순하게 나눠서 다시 시도해 보세요 (10장 참고).</span>
+      <span class="en">If it still fails, it stops with a note that a person should look at it. Ask in chat —
+      <strong>"try a different approach and rebuild it"</strong> — or split the requirement into smaller
+      pieces (Chapter 8).</span></li>
+    </ul>
+
+    <h3><span class="ko">그래도 막막할 때</span><span class="en">Still stuck?</span></h3>
+    <ul>
+      <li><span class="ko">채팅창에 "왜 이 오류가 났는지 쉽게 설명해줘" 라고 물어보세요. AI가 원인을
+      풀어서 설명해줍니다.</span>
+      <span class="en">Ask in chat: "explain in simple terms why this error happened". The AI will walk you through it.</span></li>
+      <li><span class="ko">History 메뉴에서 이전 대화 내용을 다시 열어볼 수 있으니, 언제든 이어서
+      진행할 수 있습니다.</span>
+      <span class="en">You can reopen past conversations from the History menu and continue any time.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s10">
+    <h2 class="section"><span class="num">10</span>
+      <span class="ko">막혔을 때 스스로 푸는 법</span><span class="en">Getting Unstuck On Your Own</span></h2>
+    <p><span class="ko">대부분의 막힘은 <strong>AI에게 다시 물어보는 것</strong>으로 풀립니다.
+    아래는 상황별로 그대로 복사해 쓸 수 있는 문장들입니다.</span>
+    <span class="en">Most blockers are solved by <strong>simply asking the AI again</strong>. Below are phrases you can
+    copy as-is.</span></p>
+
+    <table>
+      <tr><th style="width:34%"><span class="ko">이런 상황이면</span><span class="en">If this happens</span></th>
+          <th><span class="ko">채팅창에 이렇게 입력하세요</span><span class="en">Type this in chat</span></th></tr>
+      <tr>
+        <td><span class="ko">결과가 내가 원한 모양이 아님</span><span class="en">The result is not what you wanted</span></td>
+        <td><code><span class="ko">"검색 조건에 등록일 기간을 추가하고, 목록에 담당자 컬럼도 넣어줘"</span><span class="en">"Add a created-date range filter and a manager column to the list"</span></code>
+        <span class="ko">— 바꾸고 싶은 부분을 구체적으로 적을수록 정확해집니다.</span>
+        <span class="en">— the more specific, the better.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">오류 메시지가 뜨는데 뜻을 모르겠음</span><span class="en">An error appears and you cannot read it</span></td>
+        <td><code><span class="ko">"방금 오류가 났어. 무슨 뜻인지 쉽게 설명하고 고쳐줘"</span><span class="en">"I just got an error. Explain it simply and fix it"</span></code>
+        <span class="ko">— 오류 내용을 붙여넣으면 더 정확합니다.</span>
+        <span class="en">— paste the error text for better accuracy.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">어떤 테이블을 써야 할지 모르겠음</span><span class="en">You do not know which table to use</span></td>
+        <td><code><span class="ko">"사용자 정보가 들어있는 테이블이 뭔지 찾아서 그걸로 만들어줘"</span><span class="en">"Find the table that holds user data and build with it"</span></code>
+        <span class="ko">— AI가 연결된 DB에서 직접 찾아봅니다.</span>
+        <span class="en">— the AI searches the connected database itself.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">계산식·업무 규칙을 어떻게 넣을지 모르겠음</span><span class="en">You do not know how to express a formula or rule</span></td>
+        <td><code><span class="ko">"재고회전율 = 출고수량 ÷ 평균재고 로 계산하는 컬럼을 추가해줘"</span><span class="en">"Add a column: inventory turnover = shipped qty ÷ average stock"</span></code>
+        <span class="ko">— <strong>규칙만 말로 알려주면</strong> 코드는 AI가 만듭니다.</span>
+        <span class="en">— <strong>just state the rule</strong>; the AI writes the code.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">같은 오류가 반복되고 자동보완도 안 됨</span><span class="en">The same error repeats and auto-fix fails</span></td>
+        <td><code><span class="ko">"계속 같은 오류가 나. 다른 방법으로 접근해서 다시 만들어줘"</span><span class="en">"The same error keeps happening. Try another approach and rebuild"</span></code>
+        <span class="ko">— 그래도 안 되면 요구사항을 더 단순하게 나눠 요청해보세요.</span>
+        <span class="en">— if that fails, split the requirement into smaller parts.</span></td>
+      </tr>
+      <tr>
+        <td><span class="ko">처음부터 다시 하고 싶음</span><span class="en">You want to start over</span></td>
+        <td><span class="ko">오른쪽 위 <strong>[처음부터 다시]</strong> 클릭 — 이전 작업은 History 에 그대로 남습니다.</span>
+            <span class="en">Click <strong>[Start over]</strong> at the top right — past work stays in History.</span></td>
+      </tr>
+    </table>
+
+    <h3><span class="ko">스스로 풀 때의 3가지 요령</span><span class="en">Three habits that help</span></h3>
+    <ol>
+      <li><span class="ko"><strong>한 번에 다 바꾸려 하지 마세요.</strong> "검색 조건 추가" → 확인 → "컬럼 추가" → 확인
+      처럼 <strong>하나씩</strong> 요청하면 훨씬 안정적입니다.</span>
+      <span class="en"><strong>Do not change everything at once.</strong> Ask <strong>one thing at a time</strong> —
+      "add a filter" → check → "add a column" → check.</span></li>
+      <li><span class="ko"><strong>결과가 이상하면 되돌리기보다 다시 말하세요.</strong>
+      "아니야, 그게 아니라 ~~하게 해줘" 처럼 대화를 이어가면 됩니다.</span>
+      <span class="en"><strong>If something is off, say so rather than undoing.</strong> Just continue the
+      conversation: "no, I meant it this way instead".</span></li>
+      <li><span class="ko"><strong>막히면 3장으로 돌아가 새로 시작해도 됩니다.</strong>
+      미리보기 단계에서는 아무것도 저장되지 않으니 몇 번이든 다시 만들어도 괜찮습니다.</span>
+      <span class="en"><strong>You can always restart from Chapter 3.</strong> Nothing is saved during preview, so
+      rebuild as many times as you like.</span></li>
+    </ol>
+
+    <div class="box tip">
+      💡 <strong><span class="ko">이런 것까지 AI에게 물어봐도 됩니다</span><span class="en">You can also ask the AI for judgement</span></strong><br>
+      <span class="ko">"이 화면에 어떤 검색 조건이 있으면 좋을까?" · "비슷한 화면을 참고해서 개선해줘" ·
+      "이 코드가 무슨 일을 하는지 설명해줘" — 만드는 것뿐 아니라 <strong>판단을 도와달라</strong>고
+      해도 됩니다.</span>
+      <span class="en">"Which filters would suit this screen?" · "Improve it using a similar screen as reference" ·
+      "Explain what this code does" — it can <strong>help you decide</strong>, not just build.</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s11">
+    <h2 class="section"><span class="num">11</span>
+      <span class="ko">용어 사전</span><span class="en">Glossary</span></h2>
+    <table>
+      <tr><th style="width:24%"><span class="ko">용어</span><span class="en">Term</span></th>
+          <th><span class="ko">쉬운 설명</span><span class="en">Plain explanation</span></th></tr>
+      <tr><td><strong><span class="ko">화면 (Screen)</span><span class="en">Screen</span></strong></td>
+        <td><span class="ko">사용자가 보는 조회/입력 페이지 한 장. 보통 검색 조건 + 표(그리드)로 구성</span>
+            <span class="en">One page users see — usually search filters plus a table (grid)</span></td></tr>
+      <tr><td><strong><span class="ko">테이블 (Table)</span><span class="en">Table</span></strong></td>
+        <td><span class="ko">데이터가 저장되는 엑셀 파일 같은 것. 화면은 테이블에서 데이터를 가져와 보여줌</span>
+            <span class="en">Like an Excel file that stores data; screens read from it</span></td></tr>
+      <tr><td><strong>Target</strong></td>
+        <td><span class="ko">어느 회사/프로젝트의 화면을 만들지 고르는 선택지 (예: T3SERIES, PLANNEL)</span>
+            <span class="en">Which company/project you are building for (e.g. T3SERIES, PLANNEL)</span></td></tr>
+      <tr><td><strong><span class="ko">메뉴 등록</span><span class="en">Menu registration</span></strong></td>
+        <td><span class="ko">만든 화면을 프로그램의 실제 메뉴 목록에 추가하는 것</span>
+            <span class="en">Adding your screen to the program's real menu list</span></td></tr>
+      <tr><td><strong><span class="ko">산출물 (코드)</span><span class="en">Artifacts (code)</span></strong></td>
+        <td><span class="ko">AI가 만들어낸 화면 관련 파일들의 묶음</span>
+            <span class="en">The bundle of files the AI produced for the screen</span></td></tr>
+      <tr><td><strong><span class="ko">미리보기 / 화면 실행</span><span class="en">Preview / Run</span></strong></td>
+        <td><span class="ko">실제로 반영하지 않고, 가짜 데이터로 화면이 어떻게 보일지 미리 확인하는 기능</span>
+            <span class="en">Seeing how the screen looks with sample data, without applying anything</span></td></tr>
+      <tr><td><strong><span class="ko">자동보완</span><span class="en">Auto-fix</span></strong></td>
+        <td><span class="ko">화면 실행 중 오류가 나면 AI가 스스로 원인을 찾아 고쳐보는 기능</span>
+            <span class="en">The AI diagnosing and fixing errors during preview by itself</span></td></tr>
+      <tr><td><strong><span class="ko">Wizard(마법사)</span><span class="en">Wizard</span></strong></td>
+        <td><span class="ko">여러 단계를 순서대로 밟아가며 화면을 만드는 방식</span>
+            <span class="en">Building a screen by walking through ordered steps</span></td></tr>
+      <tr><td><strong>Mockup / UI Pattern</strong></td>
+        <td><span class="ko">"이런 느낌" 을 보여주는 참고용 화면 예시 모음 (실제 동작하는 화면은 아님)</span>
+            <span class="en">Reference galleries showing "this kind of look" (not working screens)</span></td></tr>
+      <tr><td><strong>Ontology</strong></td>
+        <td><span class="ko">업무 용어와 질문-답변을 정리해둔 사전. 자연어 질의의 정확도를 높이는 데 쓰임</span>
+            <span class="en">A dictionary of business terms and Q&amp;A that improves natural-language accuracy</span></td></tr>
+      <tr><td><strong><span class="ko">컬럼 (Column)</span><span class="en">Column</span></strong></td>
+        <td><span class="ko">표(테이블)의 세로 한 줄 = 항목 하나. 예: "이름", "부서" 각각이 컬럼</span>
+            <span class="en">One vertical field in a table — e.g. "Name" or "Department"</span></td></tr>
+      <tr><td><strong>CRUD</strong></td>
+        <td><span class="ko">Create(등록)·Read(조회)·Update(수정)·Delete(삭제)의 줄임말. "등록·조회·수정·삭제가 다 되는 화면"을 뜻함</span>
+            <span class="en">Create, Read, Update, Delete — a screen that supports all four</span></td></tr>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s12">
+    <h2 class="section"><span class="num">12</span>
+      <span class="ko">자주 묻는 질문 (FAQ)</span><span class="en">FAQ</span></h2>
+
+    <div class="qa">
+      <div class="q"><span class="ko">설치를 꼭 제가 해야 하나요?</span><span class="en">Do I have to install it myself?</span></div>
+      <div class="a"><span class="ko">네, 사용할 PC 에 한 번은 설치가 필요합니다. 다만 명령어 몇 줄이면 끝나고
+      <strong>처음 한 번만</strong> 하면 됩니다. 1장을 순서대로 따라 하시면 되고, 한 번
+      설치해두면 이후에는 실행 명령 한 줄이면 켜집니다.</span>
+      <span class="en">Yes, once per PC. It is only a few commands and <strong>only the first time</strong>.
+      Follow Chapter 1 in order; afterwards a single command starts it.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">설치 중 검은 창(명령 프롬프트)에 빨간 글씨가 떴어요.</span><span class="en">Red text appeared in the command window during install.</span></div>
+      <div class="a"><span class="ko">대부분 <strong>Docker Desktop 이 안 켜져 있거나</strong> 포트 번호 충돌입니다.
+      Docker 를 실행한 뒤 다시 시도하고, 그래도 안 되면 1-6 의 포트 충돌 안내를 따라 하세요.</span>
+      <span class="en">Usually <strong>Docker Desktop is not running</strong>, or ports are in use. Start Docker and
+      retry; if it persists, follow the port-conflict note in 1-6.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">API 키는 어디서 받나요?</span><span class="en">Where do I get an API key?</span></div>
+      <div class="a"><span class="ko">현재는 <strong>선결제된 회사 API 키</strong>를 사용합니다.
+      <strong>황금향 재무팀장님께 요청</strong>하시면 됩니다. 개인이 Anthropic 사이트에서
+      직접 발급받은 키를 쓰셔도 됩니다. 키가 없으면 화면 생성 기능이 동작하지 않습니다.</span>
+      <span class="en">A <strong>prepaid company API key</strong> is currently used — request it from
+      <strong>Finance Team Lead Hwang Geum-hyang</strong>. You may also use your own key issued from the
+      Anthropic site. Without a key, screen generation does not work.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">개발을 전혀 모르는데 정말 화면을 만들 수 있나요?</span><span class="en">Can I really build a screen with no development background?</span></div>
+      <div class="a"><span class="ko">네, 3장에서 해본 것처럼 채팅으로 설명만 하면 됩니다. 다만 실제로 회사
+      시스템에 반영하는 "메뉴 등록"·"산출물 실행" 단계는 6장의 체크리스트를 확인한 뒤
+      진행하세요.</span>
+      <span class="en">Yes — just describe it in chat as in Chapter 3. Before the "Register menu" and
+      "Apply artifacts" steps that touch the real system, run through the checklist in Chapter 6.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">실수로 이상한 버튼을 눌러서 회사 시스템이 망가지면 어떡하죠?</span><span class="en">What if I break the system by clicking the wrong button?</span></div>
+      <div class="a"><span class="ko">[화면 실행] (미리보기) 버튼은 몇 번을 눌러도 안전합니다. 진짜 위험한
+      버튼은 [메뉴 등록]과 [산출물 실행] 두 개뿐이고, 이 둘은 6장에서 설명한 대로 신중하게
+      접근하면 됩니다.</span>
+      <span class="en">[Run preview] is always safe. Only [Register menu] and [Apply artifacts] touch the real
+      system, and Chapter 6 explains how to approach them carefully.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">AI가 제 요구사항을 잘못 이해하면 어떻게 하나요?</span><span class="en">What if the AI misunderstands me?</span></div>
+      <div class="a"><span class="ko">채팅으로 계속 대화하면서 고쳐나가면 됩니다. "그게 아니라 ~~하게
+      바꿔줘" 라고 말하듯이 요청하면 됩니다.</span>
+      <span class="en">Keep talking and refine it — "no, change it to this instead" works fine.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">만들다가 중간에 그만두면 작업 내용이 사라지나요?</span><span class="en">If I stop halfway, is my work lost?</span></div>
+      <div class="a"><span class="ko">아니요. History 메뉴에서 언제든 이어서 진행할 수 있습니다.</span>
+      <span class="en">No. You can resume any time from the History menu.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">Target(타겟)을 잘못 선택하면 어떻게 되나요?</span><span class="en">What if I pick the wrong Target?</span></div>
+      <div class="a"><span class="ko">화면이 엉뚱한 프로젝트에 만들어질 수 있습니다. 시작 전에 화면 상단의
+      Target 표시를 한 번 확인하는 습관을 들이면 좋습니다. 잘못 골랐다면 칩에서 다시 선택하고
+      화면을 새로 만들면 됩니다.</span>
+      <span class="en">The screen could be built for the wrong project. Get into the habit of checking the Target
+      chip at the top before you start. If it was wrong, switch it in the chip and rebuild.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">"단계별 생성 (Beta)" 는 언제 써야 하나요?</span><span class="en">When should I use "Step-by-step build (Beta)"?</span></div>
+      <div class="a"><span class="ko">화면의 배치(어디에 뭐가 들어갈지)를 내가 직접 정하고 싶을 때 씁니다.
+      처음이라면 굳이 안 써도 되고, 익숙해진 뒤에 시도해봐도 늦지 않습니다.</span>
+      <span class="en">Use it when you want to decide the layout yourself. Beginners can skip it and try later.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">SCM UI Mockup, UI Pattern은 꼭 골라야 하나요?</span><span class="en">Do I have to choose an SCM UI Mockup or UI Pattern?</span></div>
+      <div class="a"><span class="ko">아닙니다. 선택사항입니다. 참고 이미지를 보여주고 싶을 때만 사용하면
+      되고, 안 골라도 AI가 알아서 적절한 형태로 만들어줍니다.</span>
+      <span class="en">No — they are optional. Use them only to show a reference; otherwise the AI picks a suitable form.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">화면이 계속 오류가 나고 자동보완도 안 될 때는요?</span><span class="en">What if errors persist and auto-fix fails?</span></div>
+      <div class="a"><span class="ko">10장의 "막혔을 때 스스로 푸는 법" 을 참고하세요. 요구사항을 더 작게 나눠
+      다시 요청하면 대부분 해결됩니다.</span>
+      <span class="en">See Chapter 8, "Getting Unstuck On Your Own". Splitting the requirement into smaller parts
+      resolves most cases.</span></div>
+    </div>
+    <div class="qa">
+      <div class="q"><span class="ko">이 가이드에 없는 내용은 어디서 찾나요?</span><span class="en">Where do I find topics not covered here?</span></div>
+      <div class="a"><span class="ko">더 자세한 기능 설명이 필요하면 같은 폴더의
+      <code>T3Composer-User-Guide.html</code> 을 참고하세요. 다만 이 문서는 개발 용어를
+      이미 아는 것을 전제로 쓰여 있습니다.</span>
+      <span class="en">See <code>T3Composer-User-Guide.html</code> in the same folder for deeper coverage — though it
+      assumes you already know the technical terms.</span></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="s13">
+    <h2 class="section"><span class="num">13</span>
+      <span class="ko">부록 — 알아두면 편한 것들</span><span class="en">Appendix — Handy to Know</span></h2>
+    <p><span class="ko">당장 필요하진 않지만, 알아두면 훨씬 편해지는 내용들입니다.
+    <strong>처음에는 건너뛰고</strong> 필요할 때 찾아보세요.</span>
+    <span class="en">Not needed right away, but useful once you settle in.
+    <strong>Skip it at first</strong> and come back when you need it.</span></p>
+
+    <!-- ── 13-1 첨부 파일 ── -->
+    <h3>13-1. <span class="ko">참조 파일 첨부 — 어떤 파일을 넣을 수 있나요?</span><span class="en">Attaching files — what can I upload?</span></h3>
+    <p><span class="ko">설계서나 참고 자료가 있으면 <strong>끌어다 놓기만</strong> 하면 됩니다.
+    AI가 파일 종류에 맞춰 알아서 읽습니다.</span>
+    <span class="en">If you have a design document or reference material, just <strong>drag and drop it</strong>.
+    The AI reads it according to its type.</span></p>
+    <table>
+      <tr><th style="width:28%"><span class="ko">파일 종류</span><span class="en">File type</span></th>
+          <th><span class="ko">이렇게 활용됩니다</span><span class="en">How it is used</span></th></tr>
+      <tr>
+        <td><strong><span class="ko">이미지</span><span class="en">Images</span></strong><br>
+          <span style="color:var(--text-muted);font-size:12.5px;">png · jpg · gif</span></td>
+        <td><span class="ko"><strong>가장 잘 통합니다.</strong> 손으로 그린 스케치, 파워포인트 캡처,
+        다른 시스템 화면 캡처 모두 좋습니다 — AI가 보고 비슷하게 만듭니다.</span>
+        <span class="en"><strong>Works best.</strong> Hand sketches, PowerPoint captures, screenshots of other
+        systems — the AI looks at them and builds something similar.</span></td>
+      </tr>
+      <tr>
+        <td><strong>PDF</strong></td>
+        <td><span class="ko">여러 장짜리 설계서도 <strong>첫 장부터 순서대로</strong> 읽습니다.</span>
+            <span class="en">Multi-page design documents are read <strong>page by page from the first</strong>.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">텍스트 파일</span><span class="en">Text files</span></strong><br>
+          <span style="color:var(--text-muted);font-size:12.5px;">sql · txt · csv · json</span></td>
+        <td><span class="ko">내용이 그대로 전달됩니다. <strong>기존 쿼리(SQL)</strong> 가 있으면 넣어주세요 —
+        훨씬 정확해집니다.</span>
+        <span class="en">The content is passed through directly. If you have an existing
+        <strong>SQL query</strong>, include it — accuracy improves a lot.</span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">엑셀 · 압축파일</span><span class="en">Excel · archives</span></strong><br>
+          <span style="color:var(--text-muted);font-size:12.5px;">xlsx · zip</span></td>
+        <td><span class="ko">잘 안 될 수 있습니다. <strong>엑셀은 화면 캡처</strong>하거나 내용을
+        복사해서 요구사항에 직접 붙여넣는 편이 확실합니다.</span>
+        <span class="en">May not work well. For Excel, a <strong>screenshot</strong> or pasting the content into the
+        requirement box is more reliable.</span></td>
+      </tr>
+    </table>
+    <div class="box tip">
+      📎 <strong><span class="ko">첨부 규칙</span><span class="en">Attachment limits</span></strong>
+      <span class="ko">— 최대 <strong>5개</strong> · 파일당 <strong>5MB</strong> 까지.
+      SCM UI Mockup / UI Pattern 선택과 <strong>함께 써도 됩니다</strong>.</span>
+      <span class="en">— up to <strong>5 files</strong>, <strong>5MB</strong> each.
+      They <strong>can be combined</strong> with an SCM UI Mockup or UI Pattern selection.</span>
+    </div>
+
+    <!-- ── 13-2 단축키·팁 ── -->
+    <h3>13-2. <span class="ko">알아두면 편한 단축키 · 팁</span><span class="en">Handy shortcuts and tips</span></h3>
+    <table>
+      <tr><th style="width:26%"><span class="ko">단축키</span><span class="en">Shortcut</span></th>
+          <th><span class="ko">동작</span><span class="en">What it does</span></th></tr>
+      <tr><td><strong>Ctrl + F</strong></td>
+        <td><span class="ko">지금 보고 있는 문서·화면에서 단어 찾기 (브라우저 기본 기능)</span>
+            <span class="en">Find a word on the current page (browser built-in)</span></td></tr>
+      <tr><td><strong>Enter</strong></td>
+        <td><span class="ko">검색창에서 누르면 바로 검색 실행</span>
+            <span class="en">Runs the search when you are in a search box</span></td></tr>
+      <tr><td><strong>Esc</strong></td>
+        <td><span class="ko">열려 있는 팝업 창 닫기</span><span class="en">Closes the open dialog</span></td></tr>
+    </table>
+
+    <div class="box tip">
+      🌟 <strong><span class="ko">작업이 편해지는 5가지 습관</span><span class="en">Five habits that make this easier</span></strong>
+      <ol style="margin:8px 0 0;padding-left:20px;">
+        <li><span class="ko"><strong>시작 전 Target 확인</strong> — 오른쪽 위 칩을 한 번 보기</span>
+            <span class="en"><strong>Check the Target first</strong> — glance at the chip at the top right</span></li>
+        <li><span class="ko"><strong>요구사항은 짧게 여러 번</strong> — 한 번에 다 적기보다 나눠서 대화하기</span>
+            <span class="en"><strong>Short requests, repeated</strong> — split it up instead of one long message</span></li>
+        <li><span class="ko"><strong>미리보기를 자주</strong> — 조금 바꿀 때마다 눌러 확인 (몇 번을 눌러도 안전)</span>
+            <span class="en"><strong>Preview often</strong> — after each small change (always safe)</span></li>
+        <li><span class="ko"><strong>참고 이미지 적극 활용</strong> — 말보다 그림 한 장이 정확할 때가 많음</span>
+            <span class="en"><strong>Use reference images</strong> — one picture often beats a paragraph</span></li>
+        <li><span class="ko"><strong>막히면 AI에게 되묻기</strong> — 10장의 문장들을 그대로 복사해 쓰기</span>
+            <span class="en"><strong>Ask the AI back</strong> — reuse the phrases from Chapter 8</span></li>
+      </ol>
+    </div>
+
+    <!-- ── 13-3 로그인 화면 ── -->
+    <h3>13-3. <span class="ko">로그인 화면 (환경에 따라 표시)</span><span class="en">Login screen (shown in some environments)</span></h3>
+    <p><span class="ko">일부 환경에서는 프로그램을 열 때 <strong>인증키를 입력하는 로그인 화면</strong>이
+    먼저 나옵니다. 기본적으로는 꺼져 있는 <strong>선택 기능</strong>입니다.</span>
+    <span class="en">In some environments a <strong>login screen asking for an auth key</strong> appears first.
+    It is an <strong>optional feature</strong>, off by default.</span></p>
+    <ul>
+      <li><span class="ko">전달받은 인증키를 입력하면 Home 화면으로 넘어갑니다</span>
+          <span class="en">Enter the key you were given to reach the Home screen</span></li>
+      <li><span class="ko">내 PC 에 직접 설치한 경우에는 <strong>보통 이 화면이 나오지 않습니다</strong></span>
+          <span class="en">If you installed it on your own PC, <strong>you normally will not see this</strong></span></li>
+    </ul>
+
+    <h3 class="sub"><span class="ko">인증키는 어떻게 만들어지나요?</span><span class="en">How is the auth key formed?</span></h3>
+    <div class="box tip">
+      🔑 <strong><span class="ko">유효 키 = 정해진 앞글자(prefix) + 오늘 날짜(YYYYMMDD)</span>
+        <span class="en">Valid key = a fixed prefix + today's date (YYYYMMDD)</span></strong><br>
+      <span class="ko"><strong>날짜가 매일 자동으로 바뀌므로</strong>, 어제 쓰던 키는 오늘 통하지 않습니다.
+      대신 규칙만 알면 <strong>오늘 키를 직접 만들 수 있습니다</strong>.</span>
+      <span class="en"><strong>The date changes automatically every day</strong>, so yesterday's key will not work
+      today. But once you know the rule, <strong>you can build today's key yourself</strong>.</span>
+    </div>
+
+    <table>
+      <tr><th style="width:26%"><span class="ko">항목</span><span class="en">Item</span></th>
+          <th><span class="ko">기본 설정값</span><span class="en">Default value</span></th></tr>
+      <tr>
+        <td><strong><span class="ko">앞글자 (prefix)</span><span class="en">Prefix</span></strong></td>
+        <td><code>zjavhwj</code>
+          <br><span style="color:var(--text-muted);font-size:13px;">
+          <span class="ko">별도로 바꾸지 않았다면 이 값이 기본입니다.</span>
+          <span class="en">This is the default unless it was changed.</span></span></td>
+      </tr>
+      <tr>
+        <td><strong><span class="ko">뒷부분</span><span class="en">Suffix</span></strong></td>
+        <td><span class="ko"><strong>오늘 날짜 8자리</strong> — 연(4) + 월(2) + 일(2)</span>
+            <span class="en"><strong>Today's date, 8 digits</strong> — year(4) + month(2) + day(2)</span>
+          <br><span style="color:var(--text-muted);font-size:13px;">
+          <span class="ko">예: 2026년 8월 27일 → <code>20260827</code> (한 자리 월·일은 앞에 0)</span>
+          <span class="en">e.g. 27 Aug 2026 → <code>20260827</code> (pad single digits with 0)</span></span></td>
+      </tr>
+    </table>
+
+    <div class="box ok">
+      ✅ <strong><span class="ko">예시</span><span class="en">Example</span></strong><br>
+      <span class="ko">오늘이 <strong>2026-08-27</strong> 이라면 → 입력할 키는</span>
+      <span class="en">If today is <strong>2026-08-27</strong>, the key to type is</span>
+      <code style="font-size:15px;font-weight:800;">zjavhwj20260827</code>
+    </div>
+
+    <div class="box warn">
+      ⚠️ <strong><span class="ko">키를 넣어도 안 될 때</span><span class="en">If the key is rejected</span></strong><br>
+      · <span class="ko"><strong>날짜를 다시 확인</strong>하세요 — 자정을 넘겼다면 날짜가 바뀐 것입니다</span>
+        <span class="en"><strong>Re-check the date</strong> — if it is past midnight, the date has changed</span><br>
+      · <span class="ko">월·일이 <strong>한 자리면 앞에 0</strong> 을 붙였는지 확인 (8월 → <code>08</code>)</span>
+        <span class="en">Make sure single-digit months/days are <strong>zero-padded</strong> (August → <code>08</code>)</span><br>
+      · <span class="ko"><strong>앞뒤 공백</strong>이 함께 붙여넣기 되지 않았는지 확인</span>
+        <span class="en">Check that no <strong>leading or trailing spaces</strong> were pasted</span><br>
+      · <span class="ko">그래도 안 되면 앞글자(prefix)가 기본값에서 변경됐을 수 있으니 환경 담당자에게 확인</span>
+        <span class="en">Still failing? The prefix may have been changed — check with whoever set up the environment</span>
+    </div>
+
+    <div class="box tip">
+      💡 <strong><span class="ko">참고</span><span class="en">Note</span></strong>
+      <span class="ko">— 이 인증키는 <strong>사내 임시 출입 장치</strong>일 뿐, 개인 계정이나 비밀번호가
+      아닙니다. 화면 안의 기능이나 데이터 권한과는 관계가 없습니다.</span>
+      <span class="en">— This key is only a <strong>temporary internal gate</strong>, not a personal account or
+      password. It does not affect feature or data permissions inside the app.</span>
+    </div>
+  </section>
+
+  </div>
+
+  <footer>
+    <span class="ko">T³Composer 처음 사용자 가이드 · 내부 배포용</span>
+    <span class="en">T³Composer Beginner Guide · for internal use</span>
+  </footer>
+
+  </main>
+</div>
+
+<script>
+  // ── 언어 토글 (localStorage 저장) ───────────────────────────
+  (function () {
+    var STORE = 't3c-beginner-lang';
+    var body = document.body;
+    var buttons = document.querySelectorAll('[data-lang-btn]');
+
+    function apply(lang) {
+      if (lang !== 'ko' && lang !== 'en') lang = 'ko';
+      body.setAttribute('data-lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.classList.toggle('active', b.getAttribute('data-lang-btn') === lang);
+      });
+      try { localStorage.setItem(STORE, lang); } catch (e) {}
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem(STORE); } catch (e) {}
+    var initial = saved
+      || ((navigator.language || 'ko').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en');
+    apply(initial);
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-lang-btn')); });
+    });
+  })();
+
+  // ── 스크롤에 따라 목차 항목 강조 ────────────────────────────
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var targets = Array.prototype.map.call(links, function (a) {
+      var id = a.getAttribute('href').slice(1);
+      return { link: a, el: document.getElementById(id) };
+    }).filter(function (t) { return t.el; });
+
+    function update() {
+      var scroll = window.scrollY + 90;
+      var active = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].el.offsetTop <= scroll) active = targets[i];
+        else break;
+      }
+      Array.prototype.forEach.call(links, function (a) { a.classList.remove('active'); });
+      if (active) active.link.classList.add('active');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('hashchange', update);
+    update();
+  })();
+</script>
+
+</body>
+</html>

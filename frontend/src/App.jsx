@@ -80,6 +80,12 @@ function MenuIcon({ item, isActive, size = 20, color }) {
 const SIDEBAR_W           = 220;
 const SIDEBAR_W_COLLAPSED = 52;
 
+// 사이드바 하단 가이드 링크 — 위에서부터 순서대로 노출 (초심자 → 사용자)
+const GUIDE_LINKS = [
+    { key: 'beginnerGuide', href: '/T3Composer-Beginner-Guide.html', i18nKey: 'app.menu.beginnerGuide', fallback: '초심자 가이드' },
+    { key: 'userGuide',     href: '/T3Composer-User-Guide.html',     i18nKey: 'app.menu.userGuide',     fallback: '사용자 가이드' },
+];
+
 function findMenu(key) { return MENU_ITEMS.find((m) => m.key === key); }
 
 function TabbedHome() {
@@ -261,40 +267,46 @@ function TabbedHome() {
                     })}
                 </Box>
 
-                {/* 사이드바 하단 — 사용자 가이드 (T3Composer-User-Guide.html 새 창 열기) */}
+                {/* 사이드바 하단 — 가이드 링크 (초심자 → 사용자 순서, 각각 새 창) */}
                 <Box sx={{
                     flexShrink: 0,
                     py: '16px',
                     px: collapsed ? 0 : '20px',
-                    display: 'flex', justifyContent: collapsed ? 'center' : 'flex-start',
+                    display: 'flex', flexDirection: 'column', gap: '12px',
+                    alignItems: collapsed ? 'center' : 'flex-start',
                 }}>
-                    <Tooltip title={collapsed ? t('app.menu.userGuide', '사용자 가이드') : ''} placement="right">
-                        <Box
-                            component="a"
-                            href="/T3Composer-User-Guide.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{
-                                display: 'flex', alignItems: 'center', gap: '10px',
-                                cursor: 'pointer', textDecoration: 'none',
-                                color: PALETTE.sidebarOnBg,
-                                transition: 'opacity .15s ease',
-                                '&:hover': { opacity: 0.8 },
-                            }}
-                        >
-                            <SvgIcon src={iconFileDefault} size={18} color={PALETTE.sidebarOnBg} />
-                            {!collapsed && (
-                                <Typography sx={{
-                                    fontFamily: FONT_FAMILY,
-                                    fontSize: 13, fontWeight: 700,
-                                    letterSpacing: '-0.36px',
-                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                }}>
-                                    {t('app.menu.userGuide', '사용자 가이드')}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Tooltip>
+                    {GUIDE_LINKS.map((g) => {
+                        const label = t(g.i18nKey, g.fallback);
+                        return (
+                            <Tooltip key={g.key} title={collapsed ? label : ''} placement="right">
+                                <Box
+                                    component="a"
+                                    href={g.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    sx={{
+                                        display: 'flex', alignItems: 'center', gap: '10px',
+                                        cursor: 'pointer', textDecoration: 'none',
+                                        color: PALETTE.sidebarOnBg,
+                                        transition: 'opacity .15s ease',
+                                        '&:hover': { opacity: 0.8 },
+                                    }}
+                                >
+                                    <SvgIcon src={iconFileDefault} size={18} color={PALETTE.sidebarOnBg} />
+                                    {!collapsed && (
+                                        <Typography sx={{
+                                            fontFamily: FONT_FAMILY,
+                                            fontSize: 13, fontWeight: 700,
+                                            letterSpacing: '-0.36px',
+                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                        }}>
+                                            {label}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            </Tooltip>
+                        );
+                    })}
                 </Box>
             </Box>
 

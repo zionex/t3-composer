@@ -124,6 +124,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 </head>
 <body>
 
@@ -626,8 +627,7 @@ function hideTooltip() { tooltip.classList.remove('show'); }
 
 // --- 7. SVG Flow Lines ---
 function drawFlowLines() {
-  const g = $('flow-paths'); g.innerHTML = ''; 
-  if(!$('toggle-flow').checked) return;
+  const g = $('flow-paths'); g.innerHTML = '';
 
   const items = layoutData[currentFloorId] || [];
   routingFlows.forEach(flowObj => {

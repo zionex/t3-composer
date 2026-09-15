@@ -139,12 +139,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 /* ========================================================
    🌟 Tooltip & Realistic 3D Equipment Animations (CSS Only)
    ======================================================== */
-#wip-tooltip { position: fixed; z-index: 9999; background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(8px); border: 1px solid var(--cyan); border-radius: 8px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); pointer-events: none; display: none; opacity: 0; transition: opacity 0.15s; width: 280px; }
+#wip-tooltip { position: fixed; z-index: 9999; background: var(--surface); backdrop-filter: blur(8px); border: 1px solid var(--cyan); border-radius: 8px; padding: 14px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18); pointer-events: none; display: none; opacity: 0; transition: opacity 0.15s; width: 280px; }
 #wip-tooltip.show { display: flex; flex-direction: column; gap: 8px; opacity: 1; }
 .tt-hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px; }
 
-/* 3D Scene Container */
-.tt-3d-scene { height: 130px; display: flex; align-items: center; justify-content: center; perspective: 800px; margin-bottom: 10px; background: radial-gradient(circle at center, var(--surface4), transparent 80%); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+.tt-3d-scene { height: 130px; display: flex; align-items: center; justify-content: center; perspective: 800px; margin-bottom: 10px; background: radial-gradient(circle at center, #1a2035, #0a0d16); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
 
 /* Base 3D World */
 .tt-world { transform-style: preserve-3d; transform: rotateX(-20deg) rotateY(35deg); position: relative; display: flex; justify-content: center; align-items: center; }
@@ -225,6 +224,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 </head>
 <body>
 

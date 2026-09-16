@@ -1278,17 +1278,25 @@ export function parseDataBindingFromJsx(jsx, sourceBundle) {
     }
   }
 
-  // ── SP 수집: jsx 의 callService + sourceBundle 의 procedures ─────────
+  // ── SP 수집: 출처별 (backend vs jsx) 로 분리 ─────────────────────
   // 핵심 규칙: callService 의 **첫 인자는 SERVICE_ID** (engine service.xml 의 <service id>) 이지
   //          SP 이름이 아니다. SP 이름은 service.xml 의 <procedure id> 에 있다.
   //          따라서 백엔드가 trace 한 procedures 의 procedure 필드를 1차 진실로 본다.
   //          그 외에는 SERVICE_ID 에서 SP 이름을 추론(SRV_GET_SP_UI_X → SP_UI_X 등)하되,
   //          서비스ID 자체도 별도 보관해 사용자가 검증 가능하게 한다.
-  const spSet = new Set();        // SP 이름 (SP_UI_*) 만
-  const serviceIdSet = new Set(); // SERVICE ID (SRV_*, custom names like 'GetEntryNotifyChart')
-  const csTargetMap = {};         // {spName | serviceId} → 'mp'/'dp'/'bf'/'fp'
-  const serviceIdToSp = {};       // serviceId → 추론된 SP 이름 (있을 때만)
+  //
+  // ★ 우선순위 (rules/50 §7 관례 기반):
+  //   화면의 실제 조회/저장 SP 는 대부분 backend Controller/Service 안 `EXEC SP_UI_*` 로 존재하고,
+  //   JSX 리터럴 SP 는 대개 콤보 로드용 (common/data dispatcher 우회 패턴). 따라서 backend 출처 SP 를
+  //   먼저, jsx 출처 SP 를 나중에 spList 에 넣어 classifySpListByCrud 의 first-match-wins 에서
+  //   조회(read) SP 자리를 backend SP 가 선점하도록 한다.
+  const backendSpSet  = new Set();  // backend Controller/Service/Repository/Entity/procedures 안 SP
+  const jsxSpSet      = new Set();  // callService · JSX 리터럴 SP (콤보 등)
+  const serviceIdSet  = new Set();  // SERVICE ID (SRV_*, custom names like 'GetEntryNotifyChart')
+  const csTargetMap   = {};         // {spName | serviceId} → 'mp'/'dp'/'bf'/'fp'
+  const serviceIdToSp = {};         // serviceId → 추론된 SP 이름 (있을 때만)
 
+  // (a) callService(...) — JSX 안이므로 jsx 로 분류
   const csRe = /callService\(\s*['"]([^'"]+)['"]\s*,[^,]*(?:,\s*['"](mp|dp|bf|fp)['"])?\s*\)/g;
   while ((m = csRe.exec(text)) !== null) {
     const serviceId = m[1];
@@ -1299,42 +1307,57 @@ export function parseDataBindingFromJsx(jsx, sourceBundle) {
     // SERVICE_ID 에서 SP 이름 추론
     const inferredSp = inferSpNameFromServiceId(serviceId);
     if (inferredSp) {
-      spSet.add(inferredSp);
+      jsxSpSet.add(inferredSp);
       if (target) csTargetMap[inferredSp] = target;
       serviceIdToSp[serviceId] = inferredSp;
     }
   }
 
-  // 백엔드가 trace 한 procedures (service.xml 매핑 결과 — 1차 진실)
+  // (b) 백엔드가 trace 한 procedures (service.xml 매핑 결과 — 1차 진실) → backend 로 분류
+  //     ※ `frontendProcedures` 는 이름과 달리 프론트 callService → service.xml → procedure 를
+  //       backend 가 역추적한 결과. 실질적으로 backend 출처이므로 backend bucket 에 넣는다.
   if (sourceBundle && typeof sourceBundle === 'object') {
     const frontProc = Array.isArray(sourceBundle.frontendProcedures) ? sourceBundle.frontendProcedures : [];
     const backProc  = sourceBundle.backend && Array.isArray(sourceBundle.backend.procedures)
                         ? sourceBundle.backend.procedures : [];
-    for (const p of [...frontProc, ...backProc]) {
+    for (const p of [...backProc, ...frontProc]) {
       const name = p && (p.procedure || p.name);
       if (name && typeof name === 'string' && /^SP_/i.test(name)) {
-        spSet.add(name.trim());
+        backendSpSet.add(name.trim());
         // serviceId 가 메타에 있으면 매핑 기록
         if (p.serviceId) serviceIdToSp[p.serviceId] = name.trim();
       }
     }
   }
 
-  // ── ★ Last-resort: sourceBundle 의 **모든 텍스트** 에서 SP_UI_* 패턴 grep ─────
-  const allSpFromText = grepSpNamesFromBundle(sourceBundle, text);
-  for (const sp of allSpFromText) {
-    if (/^SP_/i.test(sp)) spSet.add(sp);
+  // (c) ★ Last-resort: sourceBundle 의 모든 텍스트에서 SP_UI_* 패턴 grep — 출처별 분리
+  const { backend: backendGrep, jsx: jsxGrep } = grepSpNamesFromBundleBySource(sourceBundle, text);
+  for (const sp of backendGrep) {
+    if (/^SP_/i.test(sp)) backendSpSet.add(sp);
     else if (/^SRV_/i.test(sp)) {
       serviceIdSet.add(sp);
       const inferred = inferSpNameFromServiceId(sp);
       if (inferred) {
-        spSet.add(inferred);
+        backendSpSet.add(inferred);
+        serviceIdToSp[sp] = inferred;
+      }
+    }
+  }
+  for (const sp of jsxGrep) {
+    if (/^SP_/i.test(sp)) {
+      if (!backendSpSet.has(sp)) jsxSpSet.add(sp);   // backend 우선
+    } else if (/^SRV_/i.test(sp)) {
+      serviceIdSet.add(sp);
+      const inferred = inferSpNameFromServiceId(sp);
+      if (inferred) {
+        if (!backendSpSet.has(inferred)) jsxSpSet.add(inferred);
         serviceIdToSp[sp] = inferred;
       }
     }
   }
 
-  const spList        = Array.from(spSet).filter(Boolean);
+  // 최종 spList — backend 먼저 → jsx (조회 SP 우선순위 결정)
+  const spList        = [...backendSpSet, ...jsxSpSet].filter(Boolean);
   const serviceIdList = Array.from(serviceIdSet).filter(Boolean);
 
   // ── 1차 키: BaseGrid id (정규식 매칭됐을 때) · 없으면 fallback 'mainGrid' ────
@@ -1375,79 +1398,89 @@ export function parseDataBindingFromJsx(jsx, sourceBundle) {
 
 /**
  * sourceBundle 의 모든 텍스트 필드에서 SP_UI_<DOMAIN>_* / SRV_GET_SP_UI_* / SRV_SET_SP_UI_*
- * 패턴을 정규식으로 grep. 다음 경로 모두 검사:
- *   · screen.source                       — 화면 JSX
- *   · frontendSources[].source             — 같이 import 된 JS/JSX (store/hook/utils)
- *   · backend.controllers[].source         — Controller Java
- *   · backend.services[].source            — Service Java
- *   · backend.repositories[].source        — Repository Java
- *   · backend.entities[].source            — Entity Java
- *   · backend.procedures[].source          — SP DDL 본문
- *   · service XML 내용 (있으면)
+ * 패턴을 정규식으로 grep. 다음 경로 모두 검사하되 **출처별로 분리** 하여 반환:
  *
- * 변수 경유 호출 / XML 매핑 / JdbcTemplate / @Procedure / Native query 등 다양한 패턴 포착.
+ *   backend (조회/저장 SP 대부분 여기)
+ *     · backend.controllers[].source · services[].source · repositories[].source
+ *     · backend.entities[].source · procedures[].source (+ procedures[].procedure/name 필드)
+ *     · frontendProcedures[]  (backend trace 결과)
+ *
+ *   jsx (콤보 로드용 리터럴 SP 대부분 여기)
+ *     · screen.source           — 화면 JSX
+ *     · frontendSources[].source — 같이 import 된 JS/JSX (store/hook/utils)
+ *     · screenJsx 인자           — 명시적으로 넘긴 화면 소스
+ *
+ * ★ 우선순위 (rules/50 §7 관례 기반):
+ *   신규 화면 관례상 조회/저장 SP 는 backend Controller/Service 안 `EXEC SP_UI_*` 로 존재하고,
+ *   JSX 리터럴 SP 는 대개 `common/data` dispatcher 우회 콤보 로드용이다. 따라서 backend 출처를
+ *   우선 순회하여 backend 에 이미 있는 SP 는 jsx bucket 에서 dedup 한다.
+ *
+ * 반환: { backend: string[], jsx: string[] } — 각 배열은 삽입 순서 유지 (Set → Array).
  */
-export function grepSpNamesFromBundle(sourceBundle, screenJsx) {
-  const out = new Set();
+export function grepSpNamesFromBundleBySource(sourceBundle, screenJsx) {
+  const backend = new Set();
+  const jsx     = new Set();
   const SP_PATTERN = /\b(SP_UI_[A-Z][A-Z0-9_]+|SRV_(?:GET|SET)_SP_UI_[A-Z][A-Z0-9_]+|SP_(?:UI|COMM|UT)_[A-Z][A-Z0-9_]+)\b/g;
 
-  const scanText = (text) => {
+  const scanInto = (bucket, text) => {
     if (!text || typeof text !== 'string') return;
-    let m;
-    while ((m = SP_PATTERN.exec(text)) !== null) {
+    for (const m of text.matchAll(SP_PATTERN)) {
       const name = m[1];
-      // 명백히 SP 가 아닌 prefix 제외 (false positive 방지)
-      if (name.length < 5) continue;
-      out.add(name);
+      if (!name || name.length < 5) continue;   // false positive 방지
+      // 교차 dedup — backend 가 이미 보유하면 jsx bucket 은 skip (backend 우선)
+      if (bucket === jsx && backend.has(name)) continue;
+      bucket.add(name);
     }
   };
 
-  scanText(screenJsx);
-
+  // ── 1) backend 우선 (조회 SP 자리 선점) ───────────────────────────
   if (sourceBundle && typeof sourceBundle === 'object') {
-    // screen — legacy fallback 포함
-    const screenText = pickScreenSource(sourceBundle);
-    if (screenText) scanText(screenText);
-
-    // frontendSources — legacy 'sources[].type=COMPONENT' fallback 포함
-    const frontSrcs = pickFrontendSources(sourceBundle);
-    for (const s of frontSrcs) scanText(s && (s.source || s.content));
-
-    // backend.{controllers,services,repositories,entities,procedures}
-    const backend = sourceBundle.backend;
-    if (backend && typeof backend === 'object') {
+    const b = sourceBundle.backend;
+    if (b && typeof b === 'object') {
       for (const key of ['controllers', 'services', 'repositories', 'entities', 'procedures']) {
-        if (Array.isArray(backend[key])) {
-          for (const item of backend[key]) {
-            if (!item || typeof item !== 'object') continue;
-            scanText(item.source || item.content || item.body);
-            // procedures 의 경우 procedure/name 필드 자체가 SP 이름
-            if (key === 'procedures') {
-              const n = item.procedure || item.name;
-              if (n && typeof n === 'string' && SP_PATTERN.test(n)) {
-                SP_PATTERN.lastIndex = 0;
-                out.add(n.trim());
-              }
-            }
+        const arr = b[key];
+        if (!Array.isArray(arr)) continue;
+        for (const item of arr) {
+          if (!item || typeof item !== 'object') continue;
+          scanInto(backend, item.source || item.content || item.body);
+          // procedures 의 procedure/name 필드 자체가 SP 이름
+          if (key === 'procedures') {
+            const n = item.procedure || item.name;
+            if (n && typeof n === 'string' && /^SP_/i.test(n)) backend.add(n.trim());
           }
         }
       }
     }
-
-    // frontendProcedures (이미 procedure 이름만 있을 수도)
+    // frontendProcedures — backend trace 결과 (procedure 이름만 있을 수도)
     if (Array.isArray(sourceBundle.frontendProcedures)) {
       for (const p of sourceBundle.frontendProcedures) {
         const n = p && (p.procedure || p.name);
-        if (n && typeof n === 'string') {
-          SP_PATTERN.lastIndex = 0;
-          if (SP_PATTERN.test(n)) out.add(n.trim());
-        }
-        SP_PATTERN.lastIndex = 0;
-        scanText(p && (p.source || p.content));
+        if (n && typeof n === 'string' && /^SP_/i.test(n)) backend.add(n.trim());
+        scanInto(backend, p && (p.source || p.content));
       }
     }
   }
-  return Array.from(out);
+
+  // ── 2) jsx (backend 에 이미 있는 SP 는 자동 dedup) ────────────────
+  scanInto(jsx, screenJsx);
+  if (sourceBundle && typeof sourceBundle === 'object') {
+    const screenText = pickScreenSource(sourceBundle);
+    if (screenText && screenText !== screenJsx) scanInto(jsx, screenText);
+    const frontSrcs = pickFrontendSources(sourceBundle);
+    for (const s of frontSrcs) scanInto(jsx, s && (s.source || s.content));
+  }
+
+  return { backend: Array.from(backend), jsx: Array.from(jsx) };
+}
+
+/**
+ * 기존 API — 하위호환용. backend 먼저, jsx 나중 순서의 flat 배열을 반환한다.
+ * 이 순서가 classifySpListByCrud 의 first-match-wins 에서 조회(read) SP 자리를 backend SP 가
+ * 선점하도록 만든다 (rules/50 §7 관례).
+ */
+export function grepSpNamesFromBundle(sourceBundle, screenJsx) {
+  const { backend, jsx } = grepSpNamesFromBundleBySource(sourceBundle, screenJsx);
+  return [...backend, ...jsx];
 }
 
 /**

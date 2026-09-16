@@ -241,10 +241,13 @@ public class InsightSourceController {
         return lowered + "/" + basename;
     }
 
+    // ★ `baseURI() +` 는 wingui 전역 헬퍼로 T3SERIES 화면 대부분이 `zAxios.get(baseURI() + '...')` /
+    //   `url: baseURI() + '...'` 형태로 URL 을 조립한다. optional prefix 로 허용해야 실제 URL 리터럴을 잡을 수 있음.
+    //   프론트 정규식 (wizardState.js:analyzeSourceBundle) 은 이미 이 prefix 를 지원 — 백엔드도 맞춤.
     private static final Pattern ZAXIOS_CALL_RE =
-        Pattern.compile("zAxios\\.(?:get|post|put|delete|patch)\\s*\\(\\s*[\\'\"`]([^\\'\"`]+)[\\'\"`]");
+        Pattern.compile("zAxios\\.(?:get|post|put|delete|patch)\\s*\\(\\s*(?:baseURI\\(\\)\\s*\\+\\s*)?[\\'\"`]([^\\'\"`]+)[\\'\"`]");
     private static final Pattern URL_OBJECT_RE =
-        Pattern.compile("url\\s*:\\s*[\\'\"`]([^\\'\"`]+)[\\'\"`]");
+        Pattern.compile("url\\s*:\\s*(?:baseURI\\(\\)\\s*\\+\\s*)?[\\'\"`]([^\\'\"`]+)[\\'\"`]");
     /**
      * PLANNEL 류 — `<service>.{get,post,put,delete,patch}('/api/...')` 호출 매칭.
      * 첫 인자가 `/api/` 로 시작해야 — false positive (array.get(idx) 등) 차단.

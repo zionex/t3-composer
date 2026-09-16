@@ -92,6 +92,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .topo-node{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--c);border-radius:var(--radius);padding:12px;position:relative}
 .topo-arrow{color:var(--text3);font-size:24px}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 <style>/* T3MES split — hide tab nav + no-flash panel activation */.tab-nav,#tab-nav{display:none !important;}.panel{visibility:hidden;}.panel.t3split-target{visibility:visible;}html.t3split-fallback .panel.active{visibility:visible;}</style>
 </head>
 <body>
@@ -122,6 +123,14 @@ const rInt = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
 const rFloat = (min,max) => (Math.random()*(max-min)+min).toFixed(2);
 const formatNum = n => n.toLocaleString();
 const getEl = id => document.getElementById(id);
+// 탭이 아직 비활성(display:none) 상태일 때 SVG 실측 크기가 0으로 잡히는 것을 방지 —
+// 실제 렌더 크기(clientWidth/Height)가 확보될 때까지 재시도 후 그리기 콜백 실행
+function drawWhenVisible(svgId, drawFn, tries) {
+  tries = tries || 0;
+  const svg = getEl(svgId); const w = svg && svg.clientWidth;
+  if (!svg || !w) { if (tries < 20) setTimeout(() => drawWhenVisible(svgId, drawFn, tries + 1), 50); return; }
+  drawFn(svg, w, svg.clientHeight);
+}
 
 // Helpers
 const tblTpl = (head, rows) => `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
@@ -210,8 +219,13 @@ function g5() {
   getEl('v5').innerHTML = `<div class="grid2">${cardTpl('평균 검사 소요시간', '<div class="val-lg live-num" style="font-size:80px;text-align:center;padding:50px;--c:var(--blue)">4.5</div><div style="text-align:center;color:var(--text2)">Hours / LOT</div>')}${cardTpl('구간별 정체현황', '<div style="height:200px;background:var(--surface3);display:flex;align-items:flex-end;gap:10px;padding:10px">'+[10,30,80,40,20].map((v,i)=>`<div style="flex:1;background:var(--${i>2?'red':'blue'});height:${v}%;border-radius:4px 4px 0 0"></div>`).join('')+'</div>')}</div>`;
 }
 function g6() {
-  let pts='0,150 '; for(let i=0;i<=10;i++) pts+=`${i*40},${150 - rInt(20,130)} `; pts+='400,150';
-  getEl('v6').innerHTML = cardTpl('악성 불량 원인 파레토 (누적 곡선 포함)', `<div style="height:300px;position:relative;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--red-dim)"/><polyline points="${pts.replace(/0,150 |400,150/g,'')}" fill="none" stroke="var(--red)" stroke-width="2"/></svg></div>`);
+  getEl('v6').innerHTML = cardTpl('악성 불량 원인 파레토 (누적 곡선 포함)', `<div style="height:300px;position:relative;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" id="v6-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v6-svg', (svg, w, h) => {
+    const n = 10, stepX = w / n;
+    const vals = []; for (let i = 0; i <= n; i++) vals.push(`${i*stepX},${rInt(Math.round(h*0.13), Math.round(h*0.87))}`);
+    const linePts = vals.join(' ');
+    svg.innerHTML = `<polygon points="0,${h} ${linePts} ${w},${h}" fill="var(--red-dim)"/><polyline points="${linePts}" fill="none" stroke="var(--red)" stroke-width="2"/>`;
+  }));
 }
 function g7() {
   let rows=[]; for(let i=1;i<=100;i++){ let d=rInt(1,365); let c=d>180?'red':d>90?'amber':'text'; rows.push(`<tr><td>원자재 ${i}</td><td class="num">${formatNum(rInt(100,5000))}</td><td style="color:var(--${c});font-weight:700">입고 후 ${d}일 경과</td></tr>`); }
@@ -238,7 +252,7 @@ function g11() {
   }); getEl('v11').innerHTML = cardTpl('메인 공정 수율 폭포수 (Waterfall)', h);
 }
 function g12() {
-  let h=''; for(let i=1;i<=20;i++) h+=`<div style="padding:12px;border-bottom:1px solid var(--border);color:var(--${i%4===0?'red':'text'})"><span style="font-family:var(--mono);margin-right:10px">[14:${String(i).padStart(2,'0')}:00]</span> 검사원 ${i} - 라인 ${rInt(1,5)} 순회검사 완료. ${i%4===0?'[부적합 발견: ESD 미착용]':'[특이사항 없음]'}</div>`;
+  let h=''; for(let i=1;i<=20;i++) h+=`<div style="padding:12px;border-bottom:1px solid #293345;color:${i%4===0?'var(--red)':'#e2e8f0'}"><span style="font-family:var(--mono);margin-right:10px">[14:${String(i).padStart(2,'0')}:00]</span> 검사원 ${i} - 라인 ${rInt(1,5)} 순회검사 완료. ${i%4===0?'[부적합 발견: ESD 미착용]':'[특이사항 없음]'}</div>`;
   getEl('v12').innerHTML = cardTpl('현장 모바일 순회검사 실시간 피드', `<div style="background:#000;padding:20px;border-radius:8px;height:500px;overflow-y:auto">${h}</div>`);
 }
 function g13() {
@@ -256,8 +270,12 @@ function g15() {
 
 // Group 3: OQC
 function g16() {
-  let pts=''; for(let i=0;i<24;i++) pts+=`${i*40},${rInt(20,50)} `;
-  getEl('v16').innerHTML = cardTpl('실시간 출하검사(OQC) 불합격률 추이', `<div class="spc-box" style="height:300px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="3"/></svg></div>`);
+  getEl('v16').innerHTML = cardTpl('실시간 출하검사(OQC) 불합격률 추이', `<div class="spc-box" style="height:300px"><svg width="100%" height="100%" id="v16-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v16-svg', (svg, w, h) => {
+    const n = 24, stepX = w / (n - 1);
+    let pts = ''; for (let i = 0; i < n; i++) pts += `${i*stepX},${rInt(Math.round(h*0.4), h)} `;
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="3"/>`;
+  }));
 }
 function g17() {
   let rows=[]; for(let i=1;i<=50;i++){ let isNew=i<4; rows.push(`<tr class="${isNew?'blink-row':''}"><td>RMA-2410-${i}</td><td>고객사 ${i}</td><td style="color:var(--red);font-weight:700">전원 불량 (발열)</td><td class="num">${rInt(1,10)}</td><td>${isNew?'방금 전':'어제'}</td></tr>`); }
@@ -285,8 +303,13 @@ function g22() {
 
 // Group 4: SPC
 function g23() {
-  let pts1='', pts2=''; for(let i=0;i<50;i++){ pts1+=`${i*20},${rInt(30,70)} `; pts2+=`${i*20},${rInt(40,60)} `; }
-  getEl('v23').innerHTML = cardTpl('다중 라인 X-bar R 실시간 관리도', `<div class="spc-box" style="height:350px"><div class="spc-line" style="top:20%;border-color:var(--red)"></div><div class="spc-line" style="top:50%;border-color:var(--cyan)"></div><div class="spc-line" style="top:80%;border-color:var(--red)"></div><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="2"/><polyline points="${pts2}" fill="none" stroke="var(--amber)" stroke-width="2"/></svg></div>`);
+  getEl('v23').innerHTML = cardTpl('다중 라인 X-bar R 실시간 관리도', `<div class="spc-box" style="height:350px"><div class="spc-line" style="top:20%;border-color:var(--red)"></div><div class="spc-line" style="top:50%;border-color:var(--cyan)"></div><div class="spc-line" style="top:80%;border-color:var(--red)"></div><svg width="100%" height="100%" id="v23-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v23-svg', (svg, w, h) => {
+    const n = 50, stepX = w / (n - 1);
+    let pts1 = '', pts2 = '';
+    for (let i = 0; i < n; i++) { pts1 += `${i*stepX},${h*(rInt(30,70)/100)} `; pts2 += `${i*stepX},${h*(rInt(40,60)/100)} `; }
+    svg.innerHTML = `<polyline points="${pts1}" fill="none" stroke="var(--purple)" stroke-width="2"/><polyline points="${pts2}" fill="none" stroke="var(--amber)" stroke-width="2"/>`;
+  }));
 }
 function g24() {
   let h=''; for(let i=1;i<=16;i++){ let cp=rFloat(0.8, 2.0); let c=cp<1.33?'red':'green'; h+=`<div class="card" style="margin:0;border-top:4px solid var(--${c});text-align:center"><div style="font-size:11px;color:var(--text2)">치수 항목 ${i}</div><div class="val-lg live-num" style="--c:var(--${c});margin-top:10px">${cp}</div></div>`; }
@@ -312,13 +335,17 @@ function g29() {
   getEl('v29').innerHTML = cardTpl('다중 파라미터(온도/압력/속도) 상관분석 산점도 매트릭스', `<div style="display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:150px;gap:10px">${h}</div>`);
 }
 function g30() {
-  let pts=''; for(let i=0;i<24;i++) pts+=`${i*40},${180 - rInt(20,50)} `;
-  getEl('v30').innerHTML = cardTpl('일간 산포(표준편차 σ) 변화 트렌드', `<div class="spc-box" style="height:250px"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="3"/></svg></div>`);
+  getEl('v30').innerHTML = cardTpl('일간 산포(표준편차 σ) 변화 트렌드', `<div class="spc-box" style="height:250px"><svg width="100%" height="100%" id="v30-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v30-svg', (svg, w, h) => {
+    const n = 24, stepX = w / (n - 1);
+    let pts = ''; for (let i = 0; i < n; i++) pts += `${i*stepX},${rInt(Math.round(h*0.7222), Math.round(h*0.8889))} `;
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="3"/>`;
+  }));
 }
 
 // Group 5: Smart
 function g31() {
-  getEl('v31').innerHTML = `<div class="grid2"><div style="height:400px;background:#000;border:1px solid var(--border);border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center"><span style="font-size:40px;opacity:0.3">Live Camera</span><div style="position:absolute;top:30%;left:40%;width:60px;height:60px;border:2px solid var(--red);box-shadow:0 0 10px var(--red)"></div><div style="position:absolute;top:10px;left:10px;background:var(--red);padding:4px 8px;border-radius:4px;font-weight:700">AI DETECT: SCRATCH (99%)</div></div>${cardTpl('실시간 판독 로그', tblTpl(['시간','판정','신뢰도'], [1,2,3,4,5].map(i=>`<tr><td>14:2${i}:00</td><td style="color:var(--red)">NG</td><td>99.${i}%</td></tr>`)))}</div>`;
+  getEl('v31').innerHTML = `<div class="grid2"><div style="height:400px;background:#000;border:1px solid #344054;border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center"><span style="font-size:40px;opacity:0.3;color:#e2e8f0">Live Camera</span><div style="position:absolute;top:30%;left:40%;width:60px;height:60px;border:2px solid var(--red);box-shadow:0 0 10px var(--red)"></div><div style="position:absolute;top:10px;left:10px;background:var(--red);padding:4px 8px;border-radius:4px;font-weight:700">AI DETECT: SCRATCH (99%)</div></div>${cardTpl('실시간 판독 로그', tblTpl(['시간','판정','신뢰도'], [1,2,3,4,5].map(i=>`<tr><td>14:2${i}:00</td><td style="color:var(--red)">NG</td><td>99.${i}%</td></tr>`)))}</div>`;
 }
 function g32() {
   let rows=[]; for(let i=1;i<=20;i++) rows.push(`<tr><td>CAL-MAC-01</td><td class="num live-num" style="color:var(--cyan);font-weight:700;font-size:16px">${rFloat(12.4,12.6)}</td><td>mm</td><td><span class="badge badge-green">OK</span></td></tr>`);

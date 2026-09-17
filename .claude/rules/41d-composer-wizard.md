@@ -160,7 +160,7 @@ SourceBundleAnalysisPanel — wizard 진입 전 SP/URL/Entity 미리보기
 ComposerWizard 진입 (initialSpec 주입)
 ```
 
-**SP 추출 — `grepSpNamesFromBundle`**: sourceBundle 의 모든 텍스트에서 정규식 grep.
+**SP 추출 — `grepSpNamesFromBundle` / `grepSpNamesFromBundleBySource`**: sourceBundle 의 모든 텍스트에서 정규식 grep.
 패턴: `\b(SP_UI_[A-Z][A-Z0-9_]+|SRV_(?:GET|SET)_SP_UI_[A-Z][A-Z0-9_]+|SP_(?:UI|COMM|UT)_[A-Z][A-Z0-9_]+)\b`
 
 **SP suffix → CRUD 자동 분류**:
@@ -168,6 +168,13 @@ ComposerWizard 진입 (initialSpec 주입)
 - `_S\d* / _SAVE / _INSERT / _CREATE / _ADD / SRV_SET_SP_UI_*` → **create**
 - `_U\d* / _UPDATE / _MODIFY / _EDIT` → **update**
 - `_D\d* / _DELETE / _REMOVE / _DEL` → **delete**
+
+**같은 CRUD 슬롯 내 우선순위 — backend 출처 SP 가 JSX 리터럴 위**:
+- `classifySpListByCrud(spList)` 는 각 slot 마다 **first-match-wins** — `spList` 순서상 먼저 오는 SP 가 슬롯 선점 (`wizardState.js:1592-1597`)
+- 같은 read 슬롯에 후보가 여럿일 때 (예: JSX 콤보 로드용 `SP_UI_CM_02_Q1` + backend 실조회 `SP_UI_AD_10_Q1`) 순서가 결과를 가름
+- **`grepSpNamesFromBundleBySource(bundle, jsx) → {backend, jsx}`** — 출처별 bucket 분리 API. backend 를 먼저 스캔하고 JSX bucket 에서 backend 중복 자동 dedup
+- **`grepSpNamesFromBundle(bundle, jsx) → string[]`** — 하위호환 wrapper. `[...backend, ...jsx]` flat 배열로 backend 먼저 반환하여 실사용 조회 SP 가 콤보 로드 SP 위에 배치됨
+- **`frontendProcedures` 필드** — 이름과 달리 backend service.xml 역추적 결과 (`sourceBundle.frontendProcedures[].procedure`) → backend bucket 에 분류. rules/50 §7.1 참조
 
 ### §16.6 Composer 3-Layer 방어
 
@@ -223,7 +230,7 @@ ComposerWizard 진입 (initialSpec 주입)
 - `41a-composer-jsx.md` — JSX 표준 (§0.6.1 prop 명세)
 - `41b-composer-java.md` — Java 백엔드 표준 (import 화이트리스트)
 - `41c-composer-widgets.md` — 위젯 카탈로그 + Cascade
-- `frontend/src/view/util/t3composer/wizardState.js` — ComposerSpec 데이터 모델 + prefill 함수 (spec*FromPattern/Mockup/Synthesized/UiPattern · applyPrefillPatchToComposerSpec · specToInitialPrompt · grepSpNamesFromBundle · mergeAiPrefillIntoSpec)
+- `frontend/src/view/util/t3composer/wizardState.js` — ComposerSpec 데이터 모델 + prefill 함수 (spec*FromPattern/Mockup/Synthesized/UiPattern · applyPrefillPatchToComposerSpec · specToInitialPrompt · grepSpNamesFromBundle · grepSpNamesFromBundleBySource · classifySpListByCrud · mergeAiPrefillIntoSpec)
 - `frontend/src/view/util/t3composer/ComposerWizard.jsx` — 4-Step 컨테이너
 - `frontend/src/view/util/t3composer/{Layout,DataAndFilter,Meta,Generate}Step.jsx` — 각 단계
 - `frontend/src/view/util/t3composer/ComposerCanvas.jsx` — Layout 단계의 시각 편집기

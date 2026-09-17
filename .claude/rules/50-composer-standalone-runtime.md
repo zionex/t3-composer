@@ -323,8 +323,14 @@ menuCd 입력
   ↓ /workspace/wingui/src/main/java/.../*.java 에서 @RequestMapping 매칭 Controller 찾기
   ↓ 같은 디렉토리 peer (Service/Repository/Entity) 동봉
   ↓ ★ 각 Repository 에 대해 JpaMethodSqlMapper 호출 → queryMethods 첨부
-  ↓ response = { screen, backend: {controllers, services, repositories[queryMethods], entities[className]}, apiCalls, ... }
+  ↓ response = { screen, backend: {controllers, services, repositories[queryMethods], entities[className]}, apiCalls, frontendProcedures, ... }
 ```
+
+**URL 추출 정규식 계약 — 프론트/백엔드 표면 정합** (`InsightSourceController.ZAXIOS_CALL_RE` / `URL_OBJECT_RE` ↔ `wizardState.js:analyzeSourceBundle`):
+- 두 곳 모두 `(?:baseURI\(\)\s*\+\s*)?` optional prefix 지원 — T3SERIES 화면들이 `zAxios.get(baseURI() + '...')` / `url: baseURI() + '...'` 형태로 URL 조립하는 관례를 흡수
+- 한 쪽만 확장하면 backend 수집 URL 과 frontend 분석 URL 이 어긋나 SP/URL 매칭 누락 → **정규식 변경 시 두 지점 동시 갱신 필수**
+
+**`frontendProcedures` 필드** — 이름과 달리 backend 가 프론트 callService → service.xml → procedure 를 역추적한 결과. `sourceBundle.frontendProcedures[].procedure` 는 실질적으로 backend 출처의 SP 이름이므로, frontend prefill 로직 (`wizardState.js:grepSpNamesFromBundleBySource`) 은 이 필드를 backend bucket 에 분류한다. rules/41d §16.5 SP 우선순위 참조.
 
 ### 7.2 JpaMethodSqlMapper (`domain/service/JpaMethodSqlMapper.java`)
 

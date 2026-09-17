@@ -82,6 +82,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .blink-row{animation:blink 1s infinite}
 .val{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--c, var(--text))}
 </style>
+<link rel="stylesheet" href="/t3mes/theme.css">
 <style>/* T3MES split — hide tab nav + no-flash panel activation */.tab-nav,#tab-nav{display:none !important;}.panel{visibility:hidden;}.panel.t3split-target{visibility:visible;}html.t3split-fallback .panel.active{visibility:visible;}</style>
 </head>
 <body>
@@ -105,6 +106,14 @@ const rInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const rFloat = (min, max) => (Math.random() * (max - min) + min).toFixed(2);
 const rStat = () => { const r=Math.random(); return r>0.9?['var(--red)','정지']:r>0.7?['var(--amber)','대기']:['var(--green)','가동']; };
 const getEl = id => document.getElementById(id);
+// 탭이 아직 비활성(display:none) 상태일 때 SVG 실측 크기가 0으로 잡히는 것을 방지 —
+// 실제 렌더 크기(clientWidth/Height)가 확보될 때까지 재시도 후 그리기 콜백 실행
+function drawWhenVisible(svgId, drawFn, tries) {
+  tries = tries || 0;
+  const svg = getEl(svgId); const w = svg && svg.clientWidth;
+  if (!svg || !w) { if (tries < 20) setTimeout(() => drawWhenVisible(svgId, drawFn, tries + 1), 50); return; }
+  drawFn(svg, w, svg.clientHeight);
+}
 
 // --- Core Initialization ---
 function initTabs() {
@@ -191,8 +200,12 @@ function g2() { // Machine Tiles
 }
 
 function g3() { // UPH Trend SVG
-  let pts=''; for(let i=0;i<24;i++){ pts+=`${i*40},${180 - rInt(20,150)} `; }
-  getEl('v3').innerHTML = cardTpl('24시간 UPH (Unit Per Hour) 추이', `<div style="height:250px;width:100%;background:var(--surface3);border-radius:8px;position:relative"><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--cyan)" stroke-width="3" vector-effect="non-scaling-stroke"/></svg></div>`);
+  getEl('v3').innerHTML = cardTpl('24시간 UPH (Unit Per Hour) 추이', `<div style="height:250px;width:100%;background:var(--surface3);border-radius:8px;position:relative"><svg width="100%" height="100%" id="v3-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v3-svg', (svg, w, h) => {
+    const n = 24, stepX = w / (n - 1);
+    let pts = ''; for (let i = 0; i < n; i++) pts += `${i*stepX},${rInt(Math.round(h*0.1667), Math.round(h*0.8889))} `;
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--cyan)" stroke-width="3" vector-effect="non-scaling-stroke"/>`;
+  }));
 }
 
 function g4() { // WIP Bar Chart
@@ -225,13 +238,17 @@ function g7() { // Progress
 }
 
 function g8() { // SPC
-  let pts=''; for(let i=0;i<50;i++){ pts+=`${i*20},${rInt(40,60)} `; }
-  getEl('v8').innerHTML = cardTpl('실시간 X-bar Chart (Ø50.0)', `<div style="height:300px;background:var(--surface3);position:relative;border:1px solid var(--border)"><div style="position:absolute;top:20%;width:100%;border-top:1px dashed var(--red)"></div><div style="position:absolute;top:50%;width:100%;border-top:1px solid var(--cyan)"></div><div style="position:absolute;top:80%;width:100%;border-top:1px dashed var(--red)"></div><svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2"/></svg></div>`);
+  getEl('v8').innerHTML = cardTpl('실시간 X-bar Chart (Ø50.0)', `<div style="height:300px;background:var(--surface3);position:relative;border:1px solid var(--border)"><div style="position:absolute;top:20%;width:100%;border-top:1px dashed var(--red)"></div><div style="position:absolute;top:50%;width:100%;border-top:1px solid var(--cyan)"></div><div style="position:absolute;top:80%;width:100%;border-top:1px dashed var(--red)"></div><svg width="100%" height="100%" id="v8-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v8-svg', (svg, w, h) => {
+    const n = 50, stepX = w / (n - 1);
+    let pts = ''; for (let i = 0; i < n; i++) pts += `${i*stepX},${h*(rInt(40,60)/100)} `;
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2"/>`;
+  }));
 }
 
 function g9() { // Param Trend
   let rows=[]; for(let i=1;i<=15;i++) rows.push(`<tr><td>Furnace ${i}호</td><td class="num live-val">${rInt(200,300)}</td><td class="num live-val">${rFloat(4,5)}</td></tr>`);
-  getEl('v9').innerHTML = `<div class="grid2">${cardTpl('실시간 설비 파라미터', tblTpl(['설비','온도(℃)','압력(MPa)'], rows))}${cardTpl('Trend 추이', '<div style="height:100%;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text3)">다중 라인 차트 영역</div>')}</div>`;
+  getEl('v9').innerHTML = `<div class="grid2">${cardTpl('실시간 설비 파라미터', tblTpl(['설비','온도(℃)','압력(MPa)'], rows))}<div class="card" style="align-self:start"><div class="card-title">Trend 추이</div><div style="height:300px;background:var(--surface3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text3)">다중 라인 차트 영역</div></div></div>`;
 }
 
 function g10() { // Gantt / Lead Time
@@ -309,7 +326,7 @@ function g18() { // Tool Life
 
 function g19() { // Shift
   let h=''; for(let i=1;i<=7;i++){
-    h+=`<div style="display:flex;align-items:flex-end;gap:2px"><div class="bar-v" style="height:${rInt(40,90)}%;--c:var(--amber);width:20px" title="주간"></div><div class="bar-v" style="height:${rInt(30,80)}%;--c:var(--purple);width:20px" title="야간"></div></div>`;
+    h+=`<div style="display:flex;align-items:flex-end;gap:2px;height:100%"><div class="bar-v" style="height:${rInt(40,90)}%;--c:var(--amber);width:20px" title="주간"></div><div class="bar-v" style="height:${rInt(30,80)}%;--c:var(--purple);width:20px" title="야간"></div></div>`;
   }
   getEl('v19').innerHTML = cardTpl('교대조별(주간 vs 야간) 생산량 추이', `<div class="chart-box" style="justify-content:space-around">${h}</div><div style="text-align:center;margin-top:10px"><span class="badge" style="background:var(--amber)">주간</span> <span class="badge" style="background:var(--purple)">야간</span></div>`);
 }
@@ -378,8 +395,13 @@ function g29() { // Rework Flow
 }
 
 function g30() { // Scrap
-  let pts='0,200 '; for(let i=0;i<=10;i++){ pts+=`${i*10},${rInt(100,180)} `; } pts+='100,200';
-  getEl('v30').innerHTML = cardTpl('일일 폐기물(Scrap) 누적 발생량 (Area Chart)', `<div style="height:300px;width:100%;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" preserveAspectRatio="none"><polygon points="${pts}" fill="var(--red-dim)" stroke="var(--red)" stroke-width="2"/></svg></div>`);
+  getEl('v30').innerHTML = cardTpl('일일 폐기물(Scrap) 누적 발생량 (Area Chart)', `<div style="height:300px;width:100%;background:var(--surface3);border-radius:8px"><svg width="100%" height="100%" id="v30-svg"></svg></div>`);
+  requestAnimationFrame(() => drawWhenVisible('v30-svg', (svg, w, h) => {
+    const n = 10, stepX = w / n;
+    const vals = []; for (let i = 0; i <= n; i++) vals.push(`${i*stepX},${h*(rInt(50,90)/100)}`);
+    const linePts = vals.join(' ');
+    svg.innerHTML = `<polygon points="0,${h} ${linePts} ${w},${h}" fill="var(--red-dim)" stroke="var(--red)" stroke-width="2"/>`;
+  }));
 }
 
 function g31() { // Delay Order
